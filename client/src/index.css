@@ -3,9 +3,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ─── Google Fonts ─────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -45,68 +42,193 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* ─── Design Tokens (Light) ────────────────────────────────────────────────── */
 :root {
   --radius: 0.65rem;
+
+  /* Brand */
+  --teal: #00C9A7;
+  --teal-dark: #009E85;
+  --coral: #E8524A;
+  --charcoal: #1C1C1E;
+
+  /* Semantic — WCAG AA compliant */
   --background: oklch(1 0 0);
-  --foreground: oklch(0.15 0.01 250);
+  --foreground: oklch(0.12 0.01 250);          /* #1C1C1E — 16:1 on white */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.01 250);
+  --card-foreground: oklch(0.12 0.01 250);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.01 250);
-  --primary: oklch(0.72 0.17 172);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.97 0.003 250);
-  --secondary-foreground: oklch(0.4 0.01 250);
+  --popover-foreground: oklch(0.12 0.01 250);
+  --primary: oklch(0.72 0.17 172);             /* teal #00C9A7 */
+  --primary-foreground: oklch(0.10 0 0);       /* near-black on teal — 7:1 */
+  --secondary: oklch(0.96 0.003 250);
+  --secondary-foreground: oklch(0.30 0.01 250);
   --muted: oklch(0.96 0.003 250);
-  --muted-foreground: oklch(0.55 0.01 250);
+  --muted-foreground: oklch(0.42 0.01 250);    /* 4.6:1 on white */
   --accent: oklch(0.96 0.003 250);
-  --accent-foreground: oklch(0.15 0.01 250);
-  --destructive: oklch(0.63 0.22 25);
+  --accent-foreground: oklch(0.12 0.01 250);
+  --destructive: oklch(0.54 0.22 25);          /* darker red — 4.6:1 on white */
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.92 0.003 250);
-  --input: oklch(0.92 0.003 250);
+  --border: oklch(0.88 0.005 250);
+  --input: oklch(0.88 0.005 250);
   --ring: oklch(0.72 0.17 172);
   --chart-1: oklch(0.72 0.17 172);
-  --chart-2: oklch(0.65 0.20 25);
+  --chart-2: oklch(0.54 0.22 25);
   --chart-3: oklch(0.80 0.15 172);
   --chart-4: oklch(0.55 0.18 172);
   --chart-5: oklch(0.45 0.15 172);
-  --sidebar: oklch(0.13 0.005 250);
-  --sidebar-foreground: oklch(0.85 0.005 250);
+  --sidebar: oklch(0.11 0.005 250);
+  --sidebar-foreground: oklch(0.92 0.005 250);
   --sidebar-primary: oklch(0.72 0.17 172);
-  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-primary-foreground: oklch(0.10 0 0);
   --sidebar-accent: oklch(0.20 0.005 250);
-  --sidebar-accent-foreground: oklch(0.85 0.005 250);
-  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-accent-foreground: oklch(0.92 0.005 250);
+  --sidebar-border: oklch(1 0 0 / 12%);
   --sidebar-ring: oklch(0.72 0.17 172);
+
+  /* Focus ring */
+  --focus-ring-color: #00C9A7;
+  --focus-ring-offset: 3px;
+  --focus-ring-width: 3px;
 }
 
+/* ─── Base Layer ────────────────────────────────────────────────────────────── */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  *, *::before, *::after {
+    @apply border-border;
+    box-sizing: border-box;
   }
+
+  /* ── Skip Link ─────────────────────────────────────────────────────────── */
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 1rem;
+    z-index: 9999;
+    padding: 0.75rem 1.25rem;
+    background: var(--teal);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border-radius: 0 0 0.5rem 0.5rem;
+    text-decoration: none;
+    transition: top 0.15s ease;
+  }
+  .skip-link:focus {
+    top: 0;
+    outline: var(--focus-ring-width) solid #000;
+    outline-offset: 2px;
+  }
+
+  /* ── Global Focus Ring ─────────────────────────────────────────────────── */
+  :focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    border-radius: 4px;
+  }
+
+  /* Remove default outline only when focus-visible is supported */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* ── Body ──────────────────────────────────────────────────────────────── */
+  html {
+    /* Fluid base font: 16px at 320px → 18px at 1440px */
+    font-size: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+    min-height: 100dvh;
   }
+
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Sora', sans-serif;
+    font-family: 'Sora', system-ui, sans-serif;
+    line-height: 1.2;
+    font-weight: 700;
   }
+
+  /* Minimum touch target size — WCAG 2.5.5 */
+  button, [role="button"], a, input[type="checkbox"], input[type="radio"], select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Inline links always have underline for accessibility */
+  p a, li a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Ensure images don't overflow */
+  img, video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Cursor pointer for interactive elements */
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
   [type="submit"]:not(:disabled),
-  [type="reset"]:not(:disabled),
   a[href],
   select:not(:disabled),
   input[type="checkbox"]:not(:disabled),
-  input[type="radio"]:not(:disabled) {
-    @apply cursor-pointer;
+  input[type="radio"]:not(:disabled),
+  label[for] {
+    cursor: pointer;
+  }
+
+  /* Disabled state */
+  :disabled, [aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  /* ── Reduced Motion ────────────────────────────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  /* ── High Contrast Mode ────────────────────────────────────────────────── */
+  @media (forced-colors: active) {
+    :focus-visible {
+      outline: 3px solid ButtonText;
+    }
+    .gradient-teal,
+    .gradient-coral {
+      background: ButtonFace;
+      color: ButtonText;
+      border: 2px solid ButtonText;
+    }
+  }
+
+  /* ── Selection ─────────────────────────────────────────────────────────── */
+  ::selection {
+    background: rgba(0, 201, 167, 0.25);
+    color: #000;
   }
 }
 
+/* ─── Component Layer ───────────────────────────────────────────────────────── */
 @layer components {
+
+  /* ── Container ─────────────────────────────────────────────────────────── */
   .container {
     width: 100%;
     margin-left: auto;
@@ -114,62 +236,50 @@
     padding-left: 1rem;
     padding-right: 1rem;
   }
-
-  .flex {
-    min-height: 0;
-    min-width: 0;
-  }
-
   @media (min-width: 640px) {
-    .container {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
+    .container { padding-left: 1.5rem; padding-right: 1.5rem; }
   }
-
   @media (min-width: 1024px) {
-    .container {
-      padding-left: 2rem;
-      padding-right: 2rem;
-      max-width: 1280px;
-    }
+    .container { padding-left: 2rem; padding-right: 2rem; max-width: 1280px; }
   }
 
-  /* ─── Design System Utilities ─────────────────────────────────────────────── */
+  .flex { min-height: 0; min-width: 0; }
 
+  /* ── Brand Gradients ───────────────────────────────────────────────────── */
   .gradient-teal {
-    background: linear-gradient(135deg, #00C9A7 0%, #00A88A 100%);
+    background: linear-gradient(135deg, #00C9A7 0%, #009E85 100%);
   }
-
   .gradient-coral {
-    background: linear-gradient(135deg, #FF6B6B 0%, #EE5A5A 100%);
+    background: linear-gradient(135deg, #E8524A 0%, #C9403A 100%);
   }
-
   .gradient-dark {
     background: linear-gradient(135deg, #1C1C1E 0%, #1A2E2A 100%);
   }
 
-  .text-teal {
-    color: #00C9A7;
-  }
+  /* ── Text Colors ───────────────────────────────────────────────────────── */
+  .text-teal  { color: #007A65; }   /* darkened for 4.5:1 on white */
+  .text-coral { color: #C9403A; }   /* darkened for 4.5:1 on white */
 
-  .text-coral {
-    color: #FF6B6B;
-  }
-
+  /* ── Glow / Shadow ─────────────────────────────────────────────────────── */
   .glow-teal {
     box-shadow: 0 0 60px rgba(0, 201, 167, 0.25);
   }
 
+  /* ── Card Lift ─────────────────────────────────────────────────────────── */
   .card-lift {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-
-  .card-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  @media (prefers-reduced-motion: no-preference) {
+    .card-lift:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.10);
+    }
+  }
+  .card-lift:focus-within {
+    box-shadow: 0 0 0 3px var(--focus-ring-color);
   }
 
+  /* ── Pill Badge ────────────────────────────────────────────────────────── */
   .pill-badge {
     display: inline-flex;
     align-items: center;
@@ -181,10 +291,11 @@
     letter-spacing: 0.01em;
   }
 
+  /* ── Animated Underline ────────────────────────────────────────────────── */
   .animated-underline {
     position: relative;
+    text-decoration: none;
   }
-
   .animated-underline::after {
     content: '';
     position: absolute;
@@ -192,63 +303,232 @@
     left: 0;
     width: 0;
     height: 2px;
-    background: #00C9A7;
+    background: var(--teal);
     transition: width 0.3s ease;
   }
+  @media (prefers-reduced-motion: no-preference) {
+    .animated-underline:hover::after,
+    .animated-underline:focus::after { width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animated-underline:hover::after,
+    .animated-underline:focus::after { width: 100%; transition: none; }
+  }
 
-  .animated-underline:hover::after {
+  /* ── Form Elements ─────────────────────────────────────────────────────── */
+  .form-input {
     width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border: 2px solid var(--border);
+    border-radius: 0.75rem;
+    background: var(--background);
+    color: var(--foreground);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .form-input::placeholder { color: var(--muted-foreground); }
+  .form-input:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(0, 201, 167, 0.2);
+  }
+  .form-input[aria-invalid="true"] {
+    border-color: var(--destructive);
+    box-shadow: 0 0 0 3px rgba(232, 82, 74, 0.2);
+  }
+  .form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 0.375rem;
+  }
+  .form-error {
+    font-size: 0.8125rem;
+    color: var(--destructive);
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .form-hint {
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+    margin-top: 0.25rem;
   }
 
-  /* ─── Animations ──────────────────────────────────────────────────────────── */
-
-  @keyframes slide-up {
-    from { opacity: 0; transform: translateY(24px); }
-    to { opacity: 1; transform: translateY(0); }
+  /* ── Status Badges ─────────────────────────────────────────────────────── */
+  .status-active {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(0, 201, 167, 0.12);
+    color: #006B58;  /* 4.5:1 on white */
+  }
+  .status-active::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #00C9A7;
+    flex-shrink: 0;
+  }
+  .status-pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(234, 179, 8, 0.12);
+    color: #7A5F00;  /* 4.5:1 on white */
+  }
+  .status-pending::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #EAB308;
+    flex-shrink: 0;
+  }
+  .status-inactive {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(107, 114, 128, 0.12);
+    color: #374151;  /* 4.5:1 on white */
+  }
+  .status-inactive::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #6B7280;
+    flex-shrink: 0;
   }
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-12px); }
+  /* ── Skeleton Loading ──────────────────────────────────────────────────── */
+  .skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    border-radius: 0.5rem;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .skeleton { animation: skeleton-shimmer 1.5s infinite; }
+  }
+  @keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(0, 201, 167, 0.3); }
-    50% { box-shadow: 0 0 40px rgba(0, 201, 167, 0.6); }
-  }
-
-  .animate-slide-up {
-    animation: slide-up 0.7s ease forwards;
-  }
-
-  .animate-float {
-    animation: float 4s ease-in-out infinite;
-  }
-
-  .animate-fade-in {
-    animation: fade-in 0.5s ease forwards;
-  }
-
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-
-  /* ─── Diagonal Section Breaks ─────────────────────────────────────────────── */
-
+  /* ── Diagonal Section Breaks ───────────────────────────────────────────── */
   .diagonal-top {
     clip-path: polygon(0 5%, 100% 0, 100% 100%, 0 100%);
     margin-top: -3rem;
     padding-top: 6rem;
   }
-
   .diagonal-bottom {
     clip-path: polygon(0 0, 100% 0, 100% 95%, 0 100%);
     padding-bottom: 6rem;
     margin-bottom: -3rem;
   }
+
+  /* ── Animations (motion-safe only) ────────────────────────────────────── */
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-12px); }
+    }
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(0, 201, 167, 0.3); }
+      50%       { box-shadow: 0 0 40px rgba(0, 201, 167, 0.6); }
+    }
+    .animate-slide-up   { animation: slide-up 0.7s ease forwards; }
+    .animate-float      { animation: float 4s ease-in-out infinite; }
+    .animate-fade-in    { animation: fade-in 0.5s ease forwards; }
+    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+  }
+
+  /* Static fallback when motion is reduced */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-slide-up,
+    .animate-float,
+    .animate-fade-in,
+    .animate-pulse-glow { animation: none; opacity: 1; transform: none; }
+  }
+
+  /* ── Visually Hidden (screen-reader only) ──────────────────────────────── */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  /* Reveal on focus (for skip links etc.) */
+  .sr-only-focusable:focus,
+  .sr-only-focusable:focus-within {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: inherit;
+    margin: inherit;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  /* ── Modal / Dialog ────────────────────────────────────────────────────── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-panel {
+    background: var(--background);
+    border-radius: 1.25rem;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 480px;
+    max-height: 90dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* ── Scrollbar ─────────────────────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.30); }
 }

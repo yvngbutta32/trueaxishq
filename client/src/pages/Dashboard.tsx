@@ -3,12 +3,16 @@
  * All panels are fully functional with real state from AppContext (localStorage-persisted)
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useApp } from "@/contexts/AppContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import AIAssistant from "@/components/AIAssistant";
 import type { Client, Invoice, Booking, FollowUp } from "@/lib/store";
 import {
   LayoutDashboard, Users, Calendar, FileText, Mail,
@@ -17,7 +21,8 @@ import {
   ArrowUpRight, ChevronRight, LogOut, X, Edit2,
   Trash2, Send, Eye, Download, Phone, MessageSquare,
   AlertCircle, RefreshCw, User, Building, Save,
-  ChevronLeft, ChevronDown
+  ChevronLeft, ChevronDown, Moon, Sun, Bot, CreditCard,
+  Shield, ExternalLink
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -25,7 +30,7 @@ import {
 } from "recharts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings";
+type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai";
 
 // ─── Greeting ────────────────────────────────────────────────────────────────
 function getGreeting() {
@@ -65,6 +70,7 @@ const navItems: { icon: React.ElementType; label: string; panel: ActivePanel }[]
   { icon: Mail, label: "Follow-Ups", panel: "followups" },
   { icon: BarChart3, label: "Analytics", panel: "analytics" },
   { icon: Settings, label: "Settings", panel: "settings" },
+  { icon: Bot, label: "AI Assistant", panel: "ai" },
 ];
 
 function Sidebar({ active, setActive, collapsed, setCollapsed }: {
@@ -73,6 +79,8 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
 }) {
   const [, navigate] = useLocation();
   const { unreadCount } = useApp();
+  const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
 
   return (
     <aside className={`fixed left-0 top-0 h-full bg-[#1C1C1E] flex flex-col transition-all duration-300 z-40 ${collapsed ? "w-16" : "w-60"}`}>
@@ -123,8 +131,25 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
           </div>
         )}
         <button
+          onClick={toggleTheme}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4 flex-shrink-0" /> : <Moon className="w-4 h-4 flex-shrink-0" />}
+          {!collapsed && <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
+        </button>
+        <button
+          onClick={() => navigate("/billing")}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
+          aria-label="Go to billing"
+        >
+          <CreditCard className="w-4 h-4 flex-shrink-0" />
+          {!collapsed && <span>Billing</span>}
+        </button>
+        <button
           onClick={() => navigate("/")}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
+          aria-label="Back to website"
         >
           <LogOut className="w-4 h-4 flex-shrink-0" />
           {!collapsed && <span>Back to Site</span>}
@@ -1055,7 +1080,7 @@ export default function Dashboard() {
 
   const panelTitles: Record<ActivePanel, string> = {
     overview: "Dashboard", clients: "Clients", scheduling: "Scheduling",
-    invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics", settings: "Settings"
+    invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics", settings: "Settings", ai: "AI Assistant"
   };
 
   return (
@@ -1118,6 +1143,7 @@ export default function Dashboard() {
           {active === "followups" && <FollowUpsPanel />}
           {active === "analytics" && <AnalyticsPanel />}
           {active === "settings" && <SettingsPanel />}
+        {active === "ai" && <AIAssistant />}
         </div>
       </main>
 
