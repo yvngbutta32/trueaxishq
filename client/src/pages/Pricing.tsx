@@ -85,12 +85,12 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
       {/* Nav */}
-      <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+      <nav className="bg-white border-b border-gray-100 px-4 sm:px-6 py-4 flex items-center justify-between" aria-label="Pricing page navigation">
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-[#00C9A7] transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           Back to Home
         </button>
         <div className="flex items-center gap-2">
@@ -107,12 +107,12 @@ export default function Pricing() {
       </nav>
 
       {/* Header */}
-      <section className="py-20 text-center">
+      <section className="py-12 sm:py-20 text-center px-4">
         <div className="pill-badge bg-[#00C9A7]/10 text-[#00C9A7] border border-[#00C9A7]/20 mb-5 mx-auto w-fit">
           <Sparkles className="w-3 h-3" />
           Simple, Transparent Pricing
         </div>
-        <h1 className="text-5xl font-extrabold text-[#1C1C1E] mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#1C1C1E] mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>
           Invest in your business.<br />
           <span className="text-[#00C9A7]">Get 10x back.</span>
         </h1>
@@ -121,17 +121,21 @@ export default function Pricing() {
         </p>
 
         {/* Toggle */}
-        <div className="flex items-center justify-center gap-3">
-          <span className={`text-sm font-medium ${!annual ? "text-[#1C1C1E]" : "text-gray-400"}`}>Monthly</span>
+        <div className="flex items-center justify-center gap-3" role="group" aria-label="Billing period">
+          <span id="billing-monthly" className={`text-sm font-medium ${!annual ? "text-[#1C1C1E]" : "text-gray-400"}`}>Monthly</span>
           <button
             onClick={() => setAnnual(!annual)}
-            className={`relative w-12 h-6 rounded-full transition-colors ${annual ? "bg-[#00C9A7]" : "bg-gray-200"}`}
+            role="switch"
+            aria-checked={annual}
+            aria-labelledby="billing-monthly billing-annual"
+            className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#00C9A7] focus:ring-offset-2 ${annual ? "bg-[#00C9A7]" : "bg-gray-200"}`}
           >
-            <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${annual ? "translate-x-6" : "translate-x-0.5"}`} />
+            <span className="sr-only">{annual ? "Switch to monthly billing" : "Switch to annual billing"}</span>
+            <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${annual ? "translate-x-6" : "translate-x-0.5"}`} aria-hidden="true" />
           </button>
-          <span className={`text-sm font-medium ${annual ? "text-[#1C1C1E]" : "text-gray-400"}`}>
+          <span id="billing-annual" className={`text-sm font-medium ${annual ? "text-[#1C1C1E]" : "text-gray-400"}`}>
             Annual
-            <span className="ml-1.5 text-xs font-bold text-[#00C9A7] bg-[#00C9A7]/10 px-2 py-0.5 rounded-full">Save 20%</span>
+            <span className="ml-1.5 text-xs font-bold text-[#00C9A7] bg-[#00C9A7]/10 px-2 py-0.5 rounded-full" aria-label="Save 20 percent">Save 20%</span>
           </span>
         </div>
       </section>
@@ -139,7 +143,7 @@ export default function Pricing() {
       {/* Plans */}
       <section className="pb-20">
         <div className="container">
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
             {plans.map((plan) => (
               <div
                 key={plan.name}

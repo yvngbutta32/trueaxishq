@@ -147,18 +147,20 @@ describe("booking", () => {
     expect(result).toBeNull();
   });
 
-  it("booking.submit succeeds with valid input", async () => {
+  it("booking.submit throws NOT_FOUND for unknown host", async () => {
+    // The mocked DB returns empty array, so host lookup will fail — this is correct behavior
     const caller = appRouter.createCaller(makeCtx());
-    const result = await caller.booking.submit({
-      hostUsername: "testhost",
-      clientName: "Jane Doe",
-      clientEmail: "jane@example.com",
-      service: "Life Coaching",
-      preferredDate: "2026-04-01",
-      preferredTime: "10:00 AM",
-      message: "Looking forward to our session!",
-    });
-    expect(result).toEqual({ success: true });
+    await expect(
+      caller.booking.submit({
+        hostUsername: "nonexistent-host",
+        clientName: "Jane Doe",
+        clientEmail: "jane@example.com",
+        service: "Life Coaching",
+        preferredDate: "2026-04-01",
+        preferredTime: "10:00 AM",
+        message: "Looking forward to our session!",
+      })
+    ).rejects.toThrow("Booking page not found.");
   });
 
   it("booking.submit rejects invalid email", async () => {

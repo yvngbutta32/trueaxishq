@@ -1,5 +1,5 @@
 import { trpc } from "@/lib/trpc";
-import { UNAUTHED_ERR_MSG } from '@shared/const';
+import { UNAUTHED_ERR_MSG } from "@shared/const";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
@@ -8,35 +8,71 @@ import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
 
-const queryClient = new QueryClient();
+// ─── Hardened QueryClient ─────────────────────────────────────────────────────
+// Retry up to 3 times on transient failures, but never on auth/forbidden errors
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        if (error instanceof TRPCClientError) {
+          const code = error.data?.code;
+          if (
+            code === "UNAUTHORIZED" ||
+            code === "FORBIDDEN" ||
+            code === "NOT_FOUND" ||
+            code === "BAD_REQUEST"
+          ) {
+            return false;
+          }
+        }
+        return failureCount < 3;
+      },
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: (failureCount, error) => {
+        if (error instanceof TRPCClientError) {
+          const code = error.data?.code;
+          if (
+            code === "UNAUTHORIZED" ||
+            code === "FORBIDDEN" ||
+            code === "BAD_REQUEST"
+          ) {
+            return false;
+          }
+        }
+        return failureCount < 2;
+      },
+    },
+  },
+});
 
+// ─── Auth redirect on 401 ─────────────────────────────────────────────────────
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
-
-  const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
-
-  if (!isUnauthorized) return;
-
-  window.location.href = getLoginUrl();
+  if (error.message === UNAUTHED_ERR_MSG) {
+    window.location.href = getLoginUrl();
+  }
 };
 
-queryClient.getQueryCache().subscribe(event => {
+queryClient.getQueryCache().subscribe((event) => {
   if (event.type === "updated" && event.action.type === "error") {
-    const error = event.query.state.error;
-    redirectToLoginIfUnauthorized(error);
-    console.error("[API Query Error]", error);
+    redirectToLoginIfUnauthorized(event.query.state.error);
+    console.error("[API Query Error]", event.query.state.error);
   }
 });
 
-queryClient.getMutationCache().subscribe(event => {
+queryClient.getMutationCache().subscribe((event) => {
   if (event.type === "updated" && event.action.type === "error") {
-    const error = event.mutation.state.error;
-    redirectToLoginIfUnauthorized(error);
-    console.error("[API Mutation Error]", error);
+    redirectToLoginIfUnauthorized(event.mutation.state.error);
+    console.error("[API Mutation Error]", event.mutation.state.error);
   }
 });
 
+// ─── tRPC client ──────────────────────────────────────────────────────────────
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({

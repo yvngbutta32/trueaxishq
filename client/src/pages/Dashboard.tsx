@@ -1066,6 +1066,44 @@ function SettingsPanel() {
   );
 }
 
+// ─── Mobile Bottom Nav ───────────────────────────────────────────────────────
+function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive: (p: ActivePanel) => void }) {
+  const { unreadCount } = useApp();
+  const mobileNavItems = [
+    { icon: LayoutDashboard, label: "Home", panel: "overview" as ActivePanel },
+    { icon: Users, label: "Clients", panel: "clients" as ActivePanel },
+    { icon: Calendar, label: "Schedule", panel: "scheduling" as ActivePanel },
+    { icon: FileText, label: "Invoices", panel: "invoices" as ActivePanel },
+    { icon: Bot, label: "AI", panel: "ai" as ActivePanel },
+  ];
+  return (
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 bg-[#1C1C1E] border-t border-white/10 flex md:hidden safe-area-bottom"
+      aria-label="Mobile navigation"
+    >
+      {mobileNavItems.map((item) => (
+        <button
+          key={item.panel}
+          onClick={() => setActive(item.panel)}
+          aria-label={item.label}
+          aria-current={active === item.panel ? "page" : undefined}
+          className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 min-h-[56px] transition-colors relative ${
+            active === item.panel ? "text-[#00C9A7]" : "text-gray-500 hover:text-gray-300"
+          }`}
+        >
+          <item.icon className="w-5 h-5" aria-hidden="true" />
+          <span className="text-[10px] font-medium">{item.label}</span>
+          {item.panel === "followups" && unreadCount > 0 && (
+            <span className="absolute top-1.5 right-1/4 w-4 h-4 bg-[#FF6B6B] rounded-full text-white text-[9px] flex items-center justify-center font-bold">
+              {unreadCount}
+            </span>
+          )}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [active, setActive] = useState<ActivePanel>("overview");
@@ -1085,28 +1123,47 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#F5F5F7] flex">
-      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} />
+      {/* Sidebar — hidden on mobile, shown on md+ */}
+      <div className="hidden md:block">
+        <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} />
+      </div>
 
-      <main className={`flex-1 transition-all duration-300 ${collapsed ? "ml-16" : "ml-60"} min-h-screen`}>
+      {/* Mobile bottom nav */}
+      <MobileBottomNav active={active} setActive={setActive} />
+
+      <main className={`flex-1 transition-all duration-300 md:${collapsed ? "ml-16" : "ml-60"} min-h-screen pb-20 md:pb-0`} id="main-content">
         {/* Top Bar */}
-        <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+        <header className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-30" role="banner">
           <div className="flex items-center gap-4">
-            <button onClick={() => setCollapsed(!collapsed)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <LayoutDashboard className="w-4 h-4 text-gray-500" />
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden md:flex p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-[#00C9A7]"
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <LayoutDashboard className="w-4 h-4 text-gray-500" aria-hidden="true" />
             </button>
-            <div className="hidden md:flex items-center gap-2 text-sm text-gray-400">
+            {/* Mobile: show current panel title */}
+            <div className="flex md:hidden items-center gap-2">
+              <div className="w-7 h-7 rounded-lg gradient-teal flex items-center justify-center" aria-hidden="true">
+                <Zap className="w-3.5 h-3.5 text-white" />
+              </div>
+              <span className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>{panelTitles[active]}</span>
+            </div>
+            <div className="hidden md:flex items-center gap-2 text-sm text-gray-400" aria-label="Breadcrumb">
               <span className="text-gray-300">/</span>
               <span className="font-medium text-[#1C1C1E]">{panelTitles[active]}</span>
             </div>
           </div>
           <div className="relative hidden md:block">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
+            <label htmlFor="dashboard-search" className="sr-only">Search clients and invoices</label>
             <input
-              type="text"
+              id="dashboard-search"
+              type="search"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search clients, invoices..."
-              className="pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl w-64 focus:outline-none focus:border-[#00C9A7] transition-colors"
+              className="pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl w-64 focus:outline-none focus:ring-2 focus:ring-[#00C9A7] transition-colors"
               onFocus={() => setActive("clients")}
             />
           </div>
@@ -1125,17 +1182,27 @@ export default function Dashboard() {
               </button>
               <NotificationsPanel open={showNotifications} onClose={() => setShowNotifications(false)} />
             </div>
-            <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowQuickAdd(true)}>
-              <Plus className="w-3.5 h-3.5" />New Client
+            <Button
+              size="sm"
+              className="gradient-teal text-white border-0 hover:opacity-90 gap-1.5 focus:ring-2 focus:ring-[#00C9A7] focus:ring-offset-2"
+              onClick={() => setShowQuickAdd(true)}
+              aria-label="Add new client"
+            >
+              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <span className="hidden sm:inline">New Client</span>
             </Button>
-            <div className="w-8 h-8 rounded-full bg-[#00C9A7] flex items-center justify-center text-white text-xs font-bold cursor-pointer" onClick={() => setActive("settings")}>
+            <button
+              className="w-8 h-8 rounded-full bg-[#00C9A7] flex items-center justify-center text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#00C9A7] focus:ring-offset-2"
+              onClick={() => setActive("settings")}
+              aria-label="Open settings"
+            >
               A
-            </div>
+            </button>
           </div>
         </header>
 
         {/* Panel Content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {active === "overview" && <OverviewPanel setActive={setActive} />}
           {active === "clients" && <ClientsPanel />}
           {active === "scheduling" && <SchedulingPanel />}

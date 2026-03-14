@@ -138,7 +138,7 @@ export default function Admin() {
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* Header */}
-      <header className="bg-[#1C1C1E] text-white px-6 py-4 flex items-center justify-between" role="banner">
+      <header className="bg-[#1C1C1E] text-white px-4 sm:px-6 py-4 flex items-center justify-between" role="banner">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl gradient-teal flex items-center justify-center" aria-hidden="true">
             <Crown className="w-4 h-4 text-white" />
@@ -167,7 +167,7 @@ export default function Admin() {
       </header>
 
       {/* Tab Nav */}
-      <nav aria-label="Admin sections" className="bg-white border-b border-gray-100 px-6">
+      <nav aria-label="Admin sections" className="bg-white border-b border-gray-100 px-2 sm:px-6 overflow-x-auto">
         <div className="flex gap-1 max-w-6xl mx-auto">
           {([
             { id: "overview", label: "Overview", icon: BarChart3 },
@@ -192,7 +192,7 @@ export default function Admin() {
       </nav>
 
       {/* Main Content */}
-      <main id="main-content" className="max-w-6xl mx-auto px-6 py-8">
+      <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         {/* ── Overview Tab ──────────────────────────────────────────────── */}
         {activeTab === "overview" && (

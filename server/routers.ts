@@ -1,7 +1,8 @@
 import { COOKIE_NAME } from "@shared/const";
-import { eq, desc, count, sql } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
+import { TRPCError } from "@trpc/server";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_core/trpc";
@@ -11,12 +12,27 @@ import { getDb } from "./db";
 import { users } from "../drizzle/schema";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 
-// ─── Stripe client ────────────────────────────────────────────────────────────
-function getStripe() {
+// ─── Stripe client (lazy, cached) ─────────────────────────────────────────────
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (_stripe) return _stripe;
   const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error("STRIPE_SECRET_KEY not configured");
-  return new Stripe(key, { apiVersion: "2026-02-25.clover" });
+  if (!key) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Payment system not configured. Please contact support." });
+  _stripe = new Stripe(key, { apiVersion: "2026-02-25.clover" });
+  return _stripe;
 }
+
+// ─── Safe DB helper ───────────────────────────────────────────────────────────
+async function requireDb() {
+  const db = await getDb();
+  if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database temporarily unavailable. Please try again." });
+  return db;
+}
+
+// ─── Input sanitization helpers ───────────────────────────────────────────────
+const safeString = (max = 255) => z.string().trim().min(1).max(max);
+const safeEmail = z.string().trim().email("Invalid email address").max(320);
+const safeUrl = z.string().url("Invalid URL").max(2048);
 
 // ─── App Router ───────────────────────────────────────────────────────────────
 export const appRouter = router({
@@ -34,24 +50,21 @@ export const appRouter = router({
 
   // ── Admin ─────────────────────────────────────────────────────────────────
   admin: router({
-    // Get all users with stats
     listUsers: adminProcedure
       .input(z.object({
-        search: z.string().optional(),
-        page: z.number().min(1).default(1),
-        limit: z.number().min(1).max(100).default(20),
+        search: z.string().trim().max(200).optional(),
+        page: z.number().int().min(1).max(1000).default(1),
+        limit: z.number().int().min(1).max(100).default(20),
       }))
       .query(async ({ input }) => {
-        const db = await getDb();
-        if (!db) return { users: [], total: 0 };
+        const db = await requireDb();
         const offset = (input.page - 1) * input.limit;
-        let query = db.select().from(users).orderBy(desc(users.createdAt));
-        const allUsers = await query;
+        const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
         const filtered = input.search
-          ? allUsers.filter(u =>
-              u.name?.toLowerCase().includes(input.search!.toLowerCase()) ||
-              u.email?.toLowerCase().includes(input.search!.toLowerCase())
-            )
+          ? allUsers.filter(u => {
+              const q = input.search!.toLowerCase();
+              return u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q);
+            })
           : allUsers;
         return {
           users: filtered.slice(offset, offset + input.limit),
@@ -59,10 +72,8 @@ export const appRouter = router({
         };
       }),
 
-    // Revenue stats
     revenueStats: adminProcedure.query(async () => {
-      const db = await getDb();
-      if (!db) return { total: 0, mrr: 0, arr: 0, byPlan: {}, totalUsers: 0, paidUsers: 0 };
+      const db = await requireDb();
       const allUsers = await db.select().from(users);
       const paidUsers = allUsers.filter(u => u.subscriptionStatus === "active");
       const byPlan: Record<string, number> = { starter: 0, pro: 0, agency: 0, free: 0 };
@@ -84,21 +95,34 @@ export const appRouter = router({
       };
     }),
 
-    // Promote user to admin
     setUserRole: adminProcedure
-      .input(z.object({ userId: z.number(), role: z.enum(["user", "admin"]) }))
-      .mutation(async ({ input }) => {
-        const db = await getDb();
-        if (!db) throw new Error("DB unavailable");
+      .input(z.object({
+        userId: z.number().int().positive(),
+        role: z.enum(["user", "admin"]),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Prevent self-demotion
+        if (input.userId === ctx.user.id && input.role === "user") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "You cannot remove your own admin role." });
+        }
+        const db = await requireDb();
+        const target = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
+        if (!target[0]) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
         await db.update(users).set({ role: input.role }).where(eq(users.id, input.userId));
         return { success: true };
       }),
 
-    // Broadcast notification to owner (placeholder for multi-user notifications)
     broadcast: adminProcedure
-      .input(z.object({ title: z.string().min(1), content: z.string().min(1) }))
+      .input(z.object({
+        title: safeString(200),
+        content: safeString(2000),
+      }))
       .mutation(async ({ input }) => {
-        await notifyOwner({ title: `[Broadcast] ${input.title}`, content: input.content });
+        const sent = await notifyOwner({
+          title: `[Broadcast] ${input.title}`,
+          content: input.content,
+        });
+        if (!sent) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Notification service unavailable. Try again shortly." });
         return { success: true };
       }),
   }),
@@ -109,13 +133,13 @@ export const appRouter = router({
       .input(z.object({
         messages: z.array(z.object({
           role: z.enum(["user", "assistant"]),
-          content: z.string(),
-        })),
+          content: z.string().trim().max(4000),
+        })).min(1).max(50),
         context: z.object({
-          clientCount: z.number().optional(),
-          revenue: z.number().optional(),
-          bookingsThisWeek: z.number().optional(),
-          planId: z.string().optional(),
+          clientCount: z.number().min(0).max(100000).optional(),
+          revenue: z.number().min(0).max(1e9).optional(),
+          bookingsThisWeek: z.number().min(0).max(10000).optional(),
+          planId: z.string().max(50).optional(),
         }).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -123,15 +147,21 @@ export const appRouter = router({
           ? `User context: ${input.context.clientCount ?? 0} active clients, $${input.context.revenue ?? 0} revenue this month, ${input.context.bookingsThisWeek ?? 0} bookings this week, plan: ${input.context.planId ?? "free"}.`
           : "";
 
-        const result = await invokeLLM({
-          messages: [
-            {
-              role: "system",
-              content: `You are SkillBridge AI Assistant — a smart, friendly business advisor for freelancers and solo service providers. You help users grow their business, manage clients, understand their analytics, write follow-up emails, create invoice descriptions, and give actionable advice. Be concise, warm, and practical. ${contextStr} The user's name is ${ctx.user.name ?? "there"}.`,
-            },
-            ...input.messages.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
-          ],
-        });
+        let result;
+        try {
+          result = await invokeLLM({
+            messages: [
+              {
+                role: "system",
+                content: `You are SkillBridge AI Assistant — a smart, friendly business advisor for freelancers and solo service providers. Help users grow their business, manage clients, understand analytics, write follow-up emails, create invoice descriptions, and give actionable advice. Be concise, warm, and practical. ${contextStr} The user's name is ${ctx.user.name ?? "there"}.`,
+              },
+              ...input.messages.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
+            ],
+          });
+        } catch (err) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI service temporarily unavailable. Please try again in a moment." });
+        }
+
         const content = result.choices[0]?.message?.content;
         return { reply: typeof content === "string" ? content : "I'm here to help! What would you like to know?" };
       }),
@@ -139,95 +169,114 @@ export const appRouter = router({
 
   // ── Stripe Billing ────────────────────────────────────────────────────────
   billing: router({
-    // Get current user's subscription info
     getSubscription: protectedProcedure.query(async ({ ctx }) => {
-      const db = await getDb();
-      if (!db) return { planId: "free", status: "free", stripeCustomerId: null, stripeSubscriptionId: null };
+      const db = await requireDb();
       const result = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
       const user = result[0];
+      if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User account not found." });
       return {
-        planId: user?.planId ?? "free",
-        status: user?.subscriptionStatus ?? "free",
-        stripeCustomerId: user?.stripeCustomerId ?? null,
-        stripeSubscriptionId: user?.stripeSubscriptionId ?? null,
+        planId: user.planId ?? "free",
+        status: user.subscriptionStatus ?? "free",
+        stripeCustomerId: user.stripeCustomerId ?? null,
+        stripeSubscriptionId: user.stripeSubscriptionId ?? null,
       };
     }),
 
-    // Create Stripe Checkout session
     createCheckout: protectedProcedure
       .input(z.object({
         planId: z.enum(["starter", "pro", "agency"]),
         interval: z.enum(["monthly", "annual"]).default("monthly"),
-        origin: z.string().url(),
+        origin: safeUrl,
       }))
       .mutation(async ({ input, ctx }) => {
         const stripe = getStripe();
         const plan = PLANS[input.planId];
+        if (!plan) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid plan selected." });
+
+        // Check if user already has an active subscription
+        const db = await requireDb();
+        const existing = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        if (existing[0]?.subscriptionStatus === "active" && existing[0]?.planId === input.planId) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "You are already subscribed to this plan. Visit the billing portal to make changes." });
+        }
+
         const unitAmount = input.interval === "annual" ? plan.annualPrice * 12 : plan.monthlyPrice;
         const intervalConfig = input.interval === "annual"
           ? { interval: "year" as const, interval_count: 1 }
           : { interval: "month" as const, interval_count: 1 };
 
-        const session = await stripe.checkout.sessions.create({
-          mode: "subscription",
-          customer_email: ctx.user.email ?? undefined,
-          allow_promotion_codes: true,
-          client_reference_id: ctx.user.id.toString(),
-          metadata: {
-            user_id: ctx.user.id.toString(),
-            customer_email: ctx.user.email ?? "",
-            customer_name: ctx.user.name ?? "",
-            plan_id: input.planId,
-            interval: input.interval,
-          },
-          line_items: [{
-            price_data: {
-              currency: "usd",
-              product_data: {
-                name: `SkillBridge AI — ${plan.name}`,
-                description: plan.description,
-              },
-              unit_amount: unitAmount,
-              recurring: intervalConfig,
+        let session;
+        try {
+          session = await stripe.checkout.sessions.create({
+            mode: "subscription",
+            customer_email: ctx.user.email ?? undefined,
+            allow_promotion_codes: true,
+            client_reference_id: ctx.user.id.toString(),
+            metadata: {
+              user_id: ctx.user.id.toString(),
+              customer_email: ctx.user.email ?? "",
+              customer_name: ctx.user.name ?? "",
+              plan_id: input.planId,
+              interval: input.interval,
             },
-            quantity: 1,
-          }],
-          success_url: `${input.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${input.origin}/pricing?cancelled=true`,
-        });
+            line_items: [{
+              price_data: {
+                currency: "usd",
+                product_data: {
+                  name: `SkillBridge AI — ${plan.name}`,
+                  description: plan.description,
+                },
+                unit_amount: unitAmount,
+                recurring: intervalConfig,
+              },
+              quantity: 1,
+            }],
+            success_url: `${input.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${input.origin}/pricing?cancelled=true`,
+          });
+        } catch (err: any) {
+          console.error("[Stripe] Checkout creation failed:", err?.message);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Unable to create checkout session. Please try again." });
+        }
 
+        if (!session.url) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Checkout session created but no URL returned." });
         return { url: session.url };
       }),
 
-    // Create Stripe Billing Portal session
     createPortal: protectedProcedure
-      .input(z.object({ origin: z.string().url() }))
+      .input(z.object({ origin: safeUrl }))
       .mutation(async ({ input, ctx }) => {
         const stripe = getStripe();
-        const db = await getDb();
-        if (!db) throw new Error("DB unavailable");
+        const db = await requireDb();
         const result = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
         const customerId = result[0]?.stripeCustomerId;
-        if (!customerId) throw new Error("No Stripe customer found. Please subscribe first.");
-        const session = await stripe.billingPortal.sessions.create({
-          customer: customerId,
-          return_url: `${input.origin}/dashboard`,
-        });
-        return { url: session.url };
+        if (!customerId) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "No billing account found. Please subscribe to a plan first." });
+        }
+        let portalSession;
+        try {
+          portalSession = await stripe.billingPortal.sessions.create({
+            customer: customerId,
+            return_url: `${input.origin}/dashboard`,
+          });
+        } catch (err: any) {
+          console.error("[Stripe] Portal creation failed:", err?.message);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Unable to open billing portal. Please try again." });
+        }
+        return { url: portalSession.url };
       }),
 
-    // Get available plans
     getPlans: publicProcedure.query(() => PLAN_LIST),
   }),
 
   // ── Public Booking ────────────────────────────────────────────────────────
   booking: router({
-    // Get booking page info by username (public)
     getPage: publicProcedure
-      .input(z.object({ username: z.string() }))
+      .input(z.object({
+        username: z.string().trim().min(1).max(100),
+      }))
       .query(async ({ input }) => {
-        const db = await getDb();
-        if (!db) return null;
+        const db = await requireDb();
         const result = await db.select().from(users)
           .where(sql`LOWER(${users.name}) = LOWER(${input.username})`)
           .limit(1);
@@ -240,23 +289,32 @@ export const appRouter = router({
         };
       }),
 
-    // Submit a booking request (public)
     submit: publicProcedure
       .input(z.object({
-        hostUsername: z.string(),
-        clientName: z.string().min(1),
-        clientEmail: z.string().email(),
-        service: z.string().min(1),
-        message: z.string().optional(),
-        preferredDate: z.string(),
-        preferredTime: z.string(),
+        hostUsername: z.string().trim().min(1).max(100),
+        clientName: safeString(100),
+        clientEmail: safeEmail,
+        service: safeString(200),
+        message: z.string().trim().max(1000).optional(),
+        preferredDate: z.string().trim().min(1).max(50),
+        preferredTime: z.string().trim().min(1).max(50),
       }))
       .mutation(async ({ input }) => {
-        // Notify the owner/host
-        await notifyOwner({
-          title: `📅 New Booking Request — ${input.clientName}`,
+        // Verify host exists
+        const db = await requireDb();
+        const host = await db.select().from(users)
+          .where(sql`LOWER(${users.name}) = LOWER(${input.hostUsername})`)
+          .limit(1);
+        if (!host[0]) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Booking page not found." });
+        }
+
+        // Fire-and-forget notification (don't block response on notification failure)
+        notifyOwner({
+          title: `📅 New Booking — ${input.clientName}`,
           content: `**Client:** ${input.clientName} (${input.clientEmail})\n**Service:** ${input.service}\n**Preferred:** ${input.preferredDate} at ${input.preferredTime}\n**Message:** ${input.message ?? "None"}`,
-        }).catch(() => {});
+        }).catch(err => console.error("[Notification] Booking notify failed:", err));
+
         return { success: true };
       }),
   }),

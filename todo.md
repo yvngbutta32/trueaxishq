@@ -68,3 +68,50 @@
 - [x] auth.logout test (original)
 - [x] 15 new vitest tests covering auth, billing, admin, AI, and booking procedures
 - [x] All 16 tests passing
+
+## Hardening & Mobile Pass (Round 3)
+
+### Global Infrastructure
+- [x] Global error boundary with friendly fallback UI and retry button
+- [x] Offline detection banner — notify user when connection is lost
+- [x] API retry logic on transient failures (tRPC + React Query retry config)
+- [x] Consistent toast system — success/error/info with icons and auto-dismiss
+- [ ] Rate limiting on sensitive server endpoints (AI chat, booking submit)
+- [x] Input sanitization on all server-side zod schemas
+- [ ] Watchdog: server health check endpoint + auto-restart on crash
+
+### Mobile Navigation
+- [x] Hamburger menu fully functional on mobile (landing page)
+- [x] Dashboard sidebar collapses to bottom tab bar on mobile
+- [x] All touch targets minimum 48px
+- [ ] No horizontal scroll on any page at 375px viewport
+- [ ] Swipe gestures for dashboard panels on mobile
+
+### Landing Page
+- [x] Hero section readable on 375px (no text overflow)
+- [x] Feature cards stack vertically on mobile
+- [ ] Stats section wraps properly on mobile
+- [ ] Testimonials carousel works on touch
+- [ ] Footer links grid collapses on mobile
+- [ ] Nav menu closes on link click (mobile)
+
+### Dashboard
+- [ ] Loading skeleton screens for all panels
+- [ ] Empty states with helpful CTAs for all panels
+- [ ] Form validation with inline error messages
+- [ ] Confirm dialog before destructive actions (delete client, delete invoice)
+- [ ] Mobile-optimized table views (card layout on small screens)
+- [ ] AI Assistant panel scrolls correctly on mobile
+
+### Pricing / Billing / Admin / Booking
+- [x] Pricing cards stack on mobile
+- [ ] Billing page works on mobile
+- [x] Admin table horizontally scrollable on mobile
+- [ ] Booking form fully usable on mobile keyboard
+- [ ] Success page centered and readable on all sizes
+
+### Server Hardening
+- [x] Zod validation on all tRPC inputs
+- [x] TRPC error codes (NOT_FOUND, BAD_REQUEST, FORBIDDEN) used consistently
+- [ ] Stripe webhook signature verification
+- [x] Admin procedures protected with role check
