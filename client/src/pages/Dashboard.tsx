@@ -1,38 +1,37 @@
-/* SkillBridge AI — Full Dashboard
+/* SkillBridge AI — Full Dashboard (DB-backed)
+ * All panels connected to real tRPC/database procedures
  * Design: "Kinetic Warmth" — Dark sidebar (#1C1C1E), Teal (#00C9A7), Coral (#FF6B6B)
- * All panels are fully functional with real state from AppContext (localStorage-persisted)
  */
 
-import { useState, useMemo, useEffect } from "react";
-import { useLocation, useParams } from "wouter";
+import { useState, useEffect, useRef } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useApp } from "@/contexts/AppContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useTheme } from "@/contexts/ThemeContext";
 import AIAssistant from "@/components/AIAssistant";
-import type { Client, Invoice, Booking, FollowUp } from "@/lib/store";
 import {
   LayoutDashboard, Users, Calendar, FileText, Mail,
-  BarChart3, Settings, Zap, Bell, Search, Plus,
-  TrendingUp, DollarSign, Clock, CheckCircle,
-  ArrowUpRight, ChevronRight, LogOut, X, Edit2,
-  Trash2, Send, Eye, Download, Phone, MessageSquare,
-  AlertCircle, RefreshCw, User, Building, Save,
-  ChevronLeft, ChevronDown, Moon, Sun, Bot, CreditCard,
-  Shield, ExternalLink
+  BarChart3, Settings, Zap, Plus, TrendingUp,
+  DollarSign, Clock, CheckCircle, ArrowUpRight,
+  ChevronRight, LogOut, X, Edit2, Trash2, Send,
+  Download, Phone, AlertCircle, RefreshCw, User,
+  Building, Save, Moon, Sun, Bot, CreditCard,
+  ExternalLink, Bell, Search, ChevronDown, Loader2,
+  Globe, ToggleLeft, ToggleRight, Printer, Eye,
+  Copy, Check, Star, Activity
 } from "lucide-react";
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, PieChart, Pie, Cell
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, BarChart, Bar,
+  PieChart, Pie, Cell
 } from "recharts";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai";
 
-// ─── Greeting ────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function getGreeting() {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
@@ -40,23 +39,66 @@ function getGreeting() {
   return "Good evening";
 }
 
-// ─── Modal Wrapper ───────────────────────────────────────────────────────────
+function formatCurrency(n: number | string) {
+  return `$${parseFloat(String(n)).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+}
+
+function formatDate(d: Date | string | null | undefined) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+// ─── Loading Skeleton ─────────────────────────────────────────────────────────
+function Skeleton({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />;
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
 function Modal({ open, onClose, title, children, wide }: {
   open: boolean; onClose: () => void; title: string; children: React.ReactNode; wide?: boolean;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handleKey);
+    ref.current?.focus();
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
+      <div
+        ref={ref}
+        tabIndex={-1}
+        className={`relative bg-white rounded-2xl shadow-2xl w-full ${wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto outline-none`}
+      >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="font-bold text-[#1C1C1E] text-base" style={{ fontFamily: 'Sora, sans-serif' }}>{title}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+          <h2 className="font-bold text-[#1C1C1E] text-base" style={{ fontFamily: "Sora, sans-serif" }}>{title}</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close dialog">
             <X className="w-4 h-4 text-gray-500" />
           </button>
         </div>
         <div className="p-5">{children}</div>
       </div>
+    </div>
+  );
+}
+
+// ─── Input Field ─────────────────────────────────────────────────────────────
+function Field({ label, value, onChange, placeholder, type = "text", required, textarea, rows = 3 }: {
+  label: string; value: string; onChange: (v: string) => void;
+  placeholder?: string; type?: string; required?: boolean; textarea?: boolean; rows?: number;
+}) {
+  const cls = "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors";
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-gray-600 mb-1.5">{label}{required && " *"}</label>
+      {textarea
+        ? <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={rows} className={`${cls} resize-none`} />
+        : <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className={cls} />
+      }
     </div>
   );
 }
@@ -78,79 +120,81 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
   collapsed: boolean; setCollapsed: (v: boolean) => void;
 }) {
   const [, navigate] = useLocation();
-  const { unreadCount } = useApp();
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const { data: settings } = trpc.settings.get.useQuery(undefined, { retry: 1 });
 
   return (
-    <aside className={`fixed left-0 top-0 h-full bg-[#1C1C1E] flex flex-col transition-all duration-300 z-40 ${collapsed ? "w-16" : "w-60"}`}>
+    <aside
+      className={`fixed left-0 top-0 h-full bg-[#1C1C1E] flex flex-col transition-all duration-300 z-40 ${collapsed ? "w-16" : "w-60"}`}
+      aria-label="Main navigation"
+    >
+      {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
-        <div className="w-8 h-8 rounded-lg gradient-teal flex items-center justify-center flex-shrink-0 cursor-pointer" onClick={() => setCollapsed(!collapsed)}>
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="w-8 h-8 rounded-lg gradient-teal flex items-center justify-center flex-shrink-0"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
           <Zap className="w-4 h-4 text-white" />
-        </div>
+        </button>
         {!collapsed && (
-          <span className="font-bold text-white text-sm" style={{ fontFamily: 'Sora, sans-serif' }}>
+          <span className="font-bold text-white text-sm" style={{ fontFamily: "Sora, sans-serif" }}>
             SkillBridge <span className="text-[#00C9A7]">AI</span>
           </span>
         )}
       </div>
 
-      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
+      {/* Nav */}
+      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto" aria-label="Dashboard sections">
         {navItems.map((item) => (
           <button
             key={item.panel}
             onClick={() => setActive(item.panel)}
+            aria-current={active === item.panel ? "page" : undefined}
+            aria-label={item.label}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative ${
-              active === item.panel
-                ? "bg-[#00C9A7]/15 text-[#00C9A7]"
-                : "text-gray-400 hover:bg-white/5 hover:text-white"
+              active === item.panel ? "bg-[#00C9A7]/15 text-[#00C9A7]" : "text-gray-400 hover:bg-white/5 hover:text-white"
             }`}
           >
-            <item.icon className="w-4 h-4 flex-shrink-0" />
+            <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
             {!collapsed && <span>{item.label}</span>}
-            {!collapsed && item.panel === "followups" && unreadCount > 0 && (
-              <span className="ml-auto bg-[#FF6B6B] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                {unreadCount}
-              </span>
-            )}
-            {!collapsed && active === item.panel && item.panel !== "followups" && (
-              <ChevronRight className="w-3 h-3 ml-auto" />
-            )}
+            {!collapsed && active === item.panel && <ChevronRight className="w-3 h-3 ml-auto" aria-hidden="true" />}
           </button>
         ))}
       </nav>
 
-      <div className="p-3 border-t border-white/10 space-y-2">
-        {!collapsed && (
-          <div className="bg-[#00C9A7]/10 border border-[#00C9A7]/20 rounded-xl p-3">
-            <p className="text-xs font-semibold text-[#00C9A7] mb-1">Pro Trial</p>
-            <p className="text-xs text-gray-400">11 days remaining</p>
-            <div className="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div className="h-full bg-[#00C9A7] rounded-full" style={{ width: "79%" }} />
-            </div>
+      {/* Footer */}
+      <div className="p-3 border-t border-white/10 space-y-1">
+        {!collapsed && settings?.subscriptionStatus === "active" && (
+          <div className="bg-[#00C9A7]/10 border border-[#00C9A7]/20 rounded-xl p-3 mb-2">
+            <p className="text-xs font-semibold text-[#00C9A7] mb-0.5 capitalize">{settings.planId || "Pro"} Plan</p>
+            <p className="text-xs text-gray-400">Active subscription</p>
           </div>
         )}
-        <button
-          onClick={toggleTheme}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {theme === 'dark' ? <Sun className="w-4 h-4 flex-shrink-0" /> : <Moon className="w-4 h-4 flex-shrink-0" />}
-          {!collapsed && <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
+        {!collapsed && (!settings?.subscriptionStatus || settings.subscriptionStatus === "inactive") && (
+          <button
+            onClick={() => navigate("/pricing")}
+            className="w-full bg-gradient-to-r from-[#00C9A7] to-[#00a88c] text-white text-xs font-semibold px-3 py-2 rounded-xl mb-2 hover:opacity-90 transition-opacity"
+          >
+            Upgrade to Pro →
+          </button>
+        )}
+        <button onClick={toggleTheme} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
+          {theme === "dark" ? <Sun className="w-4 h-4 flex-shrink-0" /> : <Moon className="w-4 h-4 flex-shrink-0" />}
+          {!collapsed && <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>}
         </button>
-        <button
-          onClick={() => navigate("/billing")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
-          aria-label="Go to billing"
-        >
+        <button onClick={() => navigate("/billing")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label="Billing">
           <CreditCard className="w-4 h-4 flex-shrink-0" />
           {!collapsed && <span>Billing</span>}
         </button>
-        <button
-          onClick={() => navigate("/")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
-          aria-label="Back to website"
-        >
+        {user?.role === "admin" && (
+          <button onClick={() => navigate("/admin")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label="Admin panel">
+            <Star className="w-4 h-4 flex-shrink-0" />
+            {!collapsed && <span>Admin Panel</span>}
+          </button>
+        )}
+        <button onClick={() => navigate("/")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label="Back to website">
           <LogOut className="w-4 h-4 flex-shrink-0" />
           {!collapsed && <span>Back to Site</span>}
         </button>
@@ -159,383 +203,359 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
   );
 }
 
-// ─── Notifications Panel ──────────────────────────────────────────────────────
-function NotificationsPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { notifications, markNotificationRead, markAllNotificationsRead } = useApp();
-  if (!open) return null;
-  const iconMap = { booking: Calendar, invoice: FileText, followup: Mail, ai: Zap };
-  const colorMap = { booking: "#00C9A7", invoice: "#FF6B6B", followup: "#6366F1", ai: "#F59E0B" };
-
-  return (
-    <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
-      <div className="flex items-center justify-between p-4 border-b border-gray-100">
-        <h3 className="font-bold text-sm text-[#1C1C1E]">Notifications</h3>
-        <button onClick={markAllNotificationsRead} className="text-xs text-[#00C9A7] hover:underline">Mark all read</button>
-      </div>
-      <div className="max-h-80 overflow-y-auto">
-        {notifications.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">No notifications</p>
-        ) : notifications.map((n) => {
-          const Icon = iconMap[n.type];
-          const color = colorMap[n.type];
-          return (
-            <div
-              key={n.id}
-              onClick={() => markNotificationRead(n.id)}
-              className={`flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors ${!n.read ? "bg-[#00C9A7]/5" : ""}`}
-            >
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}20` }}>
-                <Icon className="w-3.5 h-3.5" style={{ color }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold ${!n.read ? "text-[#1C1C1E]" : "text-gray-600"}`}>{n.title}</p>
-                <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{n.body}</p>
-                <p className="text-xs text-gray-300 mt-1">{n.createdAt}</p>
-              </div>
-              {!n.read && <div className="w-2 h-2 rounded-full bg-[#00C9A7] flex-shrink-0 mt-1" />}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 // ─── Overview Panel ───────────────────────────────────────────────────────────
-const revenueData = [
-  { month: "Sep", revenue: 3200 }, { month: "Oct", revenue: 4100 },
-  { month: "Nov", revenue: 3800 }, { month: "Dec", revenue: 5200 },
-  { month: "Jan", revenue: 4900 }, { month: "Feb", revenue: 6800 },
-  { month: "Mar", revenue: 8420 },
-];
-const bookingsChartData = [
-  { day: "Mon", bookings: 4 }, { day: "Tue", bookings: 7 },
-  { day: "Wed", bookings: 5 }, { day: "Thu", bookings: 9 },
-  { day: "Fri", bookings: 6 }, { day: "Sat", bookings: 2 }, { day: "Sun", bookings: 1 },
-];
+function OverviewPanel({ userName }: { userName: string }) {
+  const { data: analytics, isLoading } = trpc.analytics.overview.useQuery(undefined, { retry: 2 });
+  const { data: recentClients } = trpc.clients.list.useQuery({ search: "", status: "all" });
+  const { data: recentBookings } = trpc.bookings.list.useQuery({ status: "scheduled" });
 
-function StatCard({ title, value, change, icon: Icon, color }: {
-  title: string; value: string; change: string; icon: React.ElementType; color: string;
-}) {
-  return (
-    <div className="bg-white rounded-2xl p-5 border border-gray-100 card-lift">
-      <div className="flex items-start justify-between mb-4">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: color }}>
-          <Icon className="w-5 h-5" />
-        </div>
-        <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
-          <ArrowUpRight className="w-3 h-3" />{change}
-        </span>
+  if (isLoading) return (
+    <div className="space-y-5">
+      <Skeleton className="h-8 w-48" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28" />)}
       </div>
-      <p className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>{value}</p>
-      <p className="text-sm text-gray-500 mt-1">{title}</p>
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Skeleton className="h-64" />
+        <Skeleton className="h-64" />
+      </div>
     </div>
   );
-}
 
-function OverviewPanel({ setActive }: { setActive: (p: ActivePanel) => void }) {
-  const { clients, invoices, bookings, followUps, sendFollowUp, userName } = useApp();
-  const activeClients = clients.filter(c => c.status === "active").length;
-  const thisMonthRevenue = invoices.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0);
-  const pendingFollowUps = followUps.filter(f => f.status === "pending");
+  const stats = [
+    { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), change: "+12% this month", icon: DollarSign, color: "#00C9A7" },
+    { label: "Active Clients", value: String(analytics?.activeClients || 0), change: `${analytics?.totalClients || 0} total`, icon: Users, color: "#6366F1" },
+    { label: "Sessions Completed", value: String(analytics?.completedSessions || 0), change: `${analytics?.completedSessions || 0} upcoming`, icon: CheckCircle, color: "#F59E0B" },
+    { label: "Outstanding", value: formatCurrency(analytics?.outstanding || 0), change: "Awaiting payment", icon: Clock, color: "#FF6B6B" },
+  ];
+
+  const monthlyData = analytics?.monthlyRevenue || [];
+  const clientGrowthData = analytics?.clientGrowth || [];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>
-            {getGreeting()}, {userName} 👋
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Here's what's happening with your business today.</p>
-        </div>
-        <Badge className="bg-[#00C9A7]/10 text-[#00C9A7] border border-[#00C9A7]/20 text-xs px-3 py-1">
-          Pro Trial — 11 days left
-        </Badge>
+      <div>
+        <h1 className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>
+          {getGreeting()}, {userName || "there"} 👋
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">Here's what's happening with your business today.</p>
       </div>
 
+      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Revenue This Month" value={`$${thisMonthRevenue.toLocaleString()}`} change="+23%" icon={DollarSign} color="#00C9A7" />
-        <StatCard title="Active Clients" value={String(activeClients)} change="+8%" icon={Users} color="#FF6B6B" />
-        <StatCard title="Bookings This Week" value={String(bookings.length)} change="+15%" icon={Calendar} color="#00C9A7" />
-        <StatCard title="Hours Saved" value="14 hrs" change="+5%" icon={Clock} color="#FF6B6B" />
+        {stats.map(s => (
+          <div key={s.label} className="bg-white rounded-2xl p-5 border border-gray-100 card-lift">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: s.color }}>
+                <s.icon className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <ArrowUpRight className="w-4 h-4 text-gray-300" aria-hidden="true" />
+            </div>
+            <p className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>{s.value}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+            <p className="text-xs font-medium mt-1" style={{ color: s.color }}>{s.change}</p>
+          </div>
+        ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-2xl p-5 border border-gray-100">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h3 className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: 'Sora, sans-serif' }}>Revenue Trend</h3>
-              <p className="text-xs text-gray-400 mt-0.5">Last 7 months</p>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full">
-              <TrendingUp className="w-3 h-3" />+163% YTD
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={revenueData}>
-              <defs>
-                <linearGradient id="tealGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00C9A7" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#00C9A7" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: '12px' }} formatter={(v: number) => [`$${v.toLocaleString()}`, 'Revenue']} />
-              <Area type="monotone" dataKey="revenue" stroke="#00C9A7" strokeWidth={2.5} fill="url(#tealGrad)" dot={{ fill: '#00C9A7', strokeWidth: 0, r: 4 }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <div className="mb-5">
-            <h3 className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: 'Sora, sans-serif' }}>Bookings This Week</h3>
-            <p className="text-xs text-gray-400 mt-0.5">{bookings.length} total</p>
-          </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={bookingsChartData} barSize={20}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: '12px' }} />
-              <Bar dataKey="bookings" fill="#FF6B6B" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
+      {/* Charts */}
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: 'Sora, sans-serif' }}>Recent Clients</h3>
-            <button className="text-xs text-[#00C9A7] font-medium hover:underline" onClick={() => setActive("clients")}>View all</button>
-          </div>
-          <div className="space-y-2">
-            {clients.slice(0, 4).map((c) => (
-              <div key={c.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setActive("clients")}>
-                <img src={c.avatar} alt={c.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[#1C1C1E] truncate">{c.name}</p>
-                  <p className="text-xs text-gray-400 truncate">{c.service}</p>
-                </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  c.status === 'active' ? 'bg-green-50 text-green-600' :
-                  c.status === 'lead' ? 'bg-yellow-50 text-yellow-600' : 'bg-gray-100 text-gray-500'
-                }`}>{c.status}</span>
-              </div>
-            ))}
-          </div>
+          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Sora, sans-serif" }}>Revenue (Last 6 Months)</h3>
+          {monthlyData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={monthlyData}>
+                <defs>
+                  <linearGradient id="tealGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00C9A7" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#00C9A7" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
+                <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: "12px" }} formatter={(v: number) => [formatCurrency(v), "Revenue"]} />
+                <Area type="monotone" dataKey="revenue" stroke="#00C9A7" strokeWidth={2.5} fill="url(#tealGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-48 flex flex-col items-center justify-center text-gray-400">
+              <Activity className="w-8 h-8 mb-2 opacity-40" />
+              <p className="text-sm">Revenue data will appear once you create paid invoices.</p>
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: 'Sora, sans-serif' }}>Upcoming Bookings</h3>
-            <button className="text-xs text-[#00C9A7] font-medium hover:underline" onClick={() => setActive("scheduling")}>View calendar</button>
-          </div>
-          <div className="space-y-2">
-            {bookings.slice(0, 4).map((b) => (
-              <div key={b.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setActive("scheduling")}>
-                <div className="w-9 h-9 rounded-xl bg-[#00C9A7]/10 flex items-center justify-center flex-shrink-0">
-                  <Calendar className="w-4 h-4 text-[#00C9A7]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[#1C1C1E] truncate">{b.client}</p>
-                  <p className="text-xs text-gray-400 truncate">{b.service}</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-xs font-medium text-[#1C1C1E]">{b.date}</p>
-                  <p className="text-xs text-gray-400">{b.time}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Sora, sans-serif" }}>Client Growth</h3>
+          {clientGrowthData.some(d => d.count > 0) ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={clientGrowthData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: "12px" }} />
+                <Bar dataKey="count" fill="#00C9A7" radius={[6, 6, 0, 0]} name="New Clients" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-48 flex flex-col items-center justify-center text-gray-400">
+              <Users className="w-8 h-8 mb-2 opacity-40" />
+              <p className="text-sm">Add your first client to see growth trends.</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {pendingFollowUps.length > 0 && (
-        <div className="bg-gradient-to-r from-[#1C1C1E] to-[#1A2E2A] rounded-2xl p-5 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-[#00C9A7]/20 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-[#00C9A7]" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-white" style={{ fontFamily: 'Sora, sans-serif' }}>
-                AI Insight: {pendingFollowUps.length} leads haven't heard from you recently
-              </p>
-              <p className="text-xs text-gray-400 mt-0.5">Send automated follow-ups to recover potential revenue.</p>
-            </div>
+      {/* Recent Activity */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
+            <h3 className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Recent Clients</h3>
+            <span className="text-xs text-[#00C9A7] font-medium">{recentClients?.length || 0} total</span>
           </div>
-          <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90 flex-shrink-0"
-            onClick={() => { pendingFollowUps.forEach(f => sendFollowUp(f.id)); toast.success(`${pendingFollowUps.length} follow-up emails sent!`); setActive("followups"); }}>
-            <Send className="w-3.5 h-3.5 mr-1.5" />Send All
-          </Button>
+          {!recentClients || recentClients.length === 0 ? (
+            <div className="py-10 text-center text-gray-400">
+              <Users className="w-7 h-7 mx-auto mb-2 opacity-40" />
+              <p className="text-sm">No clients yet. Add your first client!</p>
+            </div>
+          ) : recentClients.slice(0, 5).map(c => (
+            <div key={c.id} className="flex items-center gap-3 px-5 py-3 border-t border-gray-50 hover:bg-gray-50 transition-colors">
+              <div className="w-8 h-8 rounded-full gradient-teal flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                {c.avatarInitials || c.name.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#1C1C1E] truncate">{c.name}</p>
+                <p className="text-xs text-gray-400 truncate">{c.service || "General Client"}</p>
+              </div>
+              <Badge className={`text-xs border-0 ${c.status === "active" ? "bg-green-50 text-green-600" : c.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-gray-100 text-gray-500"}`}>
+                {c.status}
+              </Badge>
+            </div>
+          ))}
         </div>
-      )}
+
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
+            <h3 className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Upcoming Sessions</h3>
+            <span className="text-xs text-[#00C9A7] font-medium">{recentBookings?.length || 0} scheduled</span>
+          </div>
+          {!recentBookings || recentBookings.length === 0 ? (
+            <div className="py-10 text-center text-gray-400">
+              <Calendar className="w-7 h-7 mx-auto mb-2 opacity-40" />
+              <p className="text-sm">No upcoming sessions. Create a booking!</p>
+            </div>
+          ) : recentBookings.slice(0, 5).map(b => (
+            <div key={b.id} className="flex items-center gap-3 px-5 py-3 border-t border-gray-50 hover:bg-gray-50 transition-colors">
+              <div className="w-8 h-8 rounded-xl bg-[#00C9A7]/10 flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-4 h-4 text-[#00C9A7]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#1C1C1E] truncate">{b.clientName}</p>
+                <p className="text-xs text-gray-400">{b.date} at {b.time}</p>
+              </div>
+              <span className="text-xs text-gray-400">{b.duration}m</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
 // ─── Clients Panel ────────────────────────────────────────────────────────────
 function ClientsPanel() {
-  const { clients, addClient, updateClient, deleteClient } = useApp();
+  const utils = trpc.useUtils();
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "active" | "lead" | "inactive">("all");
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "prospect">("all");
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", service: "", status: "lead" as Client["status"], notes: "" });
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", service: "", status: "active" as "active" | "inactive" | "prospect", notes: "" });
 
-  const filtered = useMemo(() =>
-    clients.filter(c =>
-      (filter === "all" || c.status === filter) &&
-      (c.name.toLowerCase().includes(search.toLowerCase()) ||
-       c.email.toLowerCase().includes(search.toLowerCase()) ||
-       c.service.toLowerCase().includes(search.toLowerCase()))
-    ), [clients, search, filter]);
+  const { data: clientList, isLoading } = trpc.clients.list.useQuery({ search, status: statusFilter });
+  const { data: selectedClient } = trpc.clients.get.useQuery({ id: selectedId! }, { enabled: !!selectedId });
 
-  const handleAdd = () => {
-    if (!form.name || !form.email) { toast.error("Name and email are required"); return; }
-    addClient({ ...form, totalRevenue: 0, lastContact: "Just now", avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(form.name)}&background=00C9A7&color=fff&size=60`, joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) });
-    setForm({ name: "", email: "", phone: "", service: "", status: "lead", notes: "" });
-    setShowAdd(false);
-    toast.success(`${form.name} added successfully!`);
+  const createClient = trpc.clients.create.useMutation({
+    onSuccess: () => { utils.clients.list.invalidate(); toast.success("Client added successfully!"); setShowAdd(false); setForm({ name: "", email: "", phone: "", service: "", status: "active", notes: "" }); },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteClient = trpc.clients.delete.useMutation({
+    onSuccess: () => { utils.clients.list.invalidate(); toast.success("Client removed."); },
+    onError: (e) => toast.error(e.message),
+  });
+  const updateClient = trpc.clients.update.useMutation({
+    onSuccess: () => { utils.clients.list.invalidate(); utils.clients.get.invalidate({ id: selectedId! }); toast.success("Client updated!"); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleCreate = () => {
+    if (!form.name.trim()) { toast.error("Client name is required."); return; }
+    createClient.mutate(form);
   };
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>Clients</h2>
-          <p className="text-sm text-gray-500">{clients.length} total · {clients.filter(c => c.status === "active").length} active</p>
+          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Clients</h2>
+          <p className="text-sm text-gray-500">{clientList?.length || 0} clients in your roster</p>
         </div>
         <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
           <Plus className="w-3.5 h-3.5" />Add Client
         </Button>
       </div>
 
-      <div className="flex gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-48">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients..." className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors" />
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search clients by name, email, or service..."
+            className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors"
+            aria-label="Search clients"
+          />
         </div>
-        <div className="flex gap-2">
-          {(["all", "active", "lead", "inactive"] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f)} className={`px-3 py-2 text-xs font-medium rounded-xl transition-colors capitalize ${filter === f ? "bg-[#00C9A7] text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-[#00C9A7]"}`}>{f}</button>
-          ))}
-        </div>
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value as typeof statusFilter)}
+          className="px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors bg-white"
+          aria-label="Filter by status"
+        >
+          <option value="all">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="prospect">Prospect</option>
+          <option value="inactive">Inactive</option>
+        </select>
       </div>
 
+      {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        {filtered.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <Users className="w-8 h-8 mx-auto mb-2 opacity-40" />
-            <p className="text-sm">No clients found</p>
+        <div className="hidden sm:grid grid-cols-4 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <span className="col-span-2">Client</span>
+          <span>Service</span>
+          <span>Status</span>
+        </div>
+        {isLoading ? (
+          <div className="space-y-px">
+            {[...Array(4)].map((_, i) => <div key={i} className="px-5 py-4 border-t border-gray-50"><Skeleton className="h-10" /></div>)}
           </div>
-        ) : (
-          <div className="divide-y divide-gray-50">
-            {filtered.map(c => (
-              <div key={c.id} className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
-                <img src={c.avatar} alt={c.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-[#1C1C1E]">{c.name}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      c.status === 'active' ? 'bg-green-50 text-green-600' :
-                      c.status === 'lead' ? 'bg-yellow-50 text-yellow-600' : 'bg-gray-100 text-gray-500'
-                    }`}>{c.status}</span>
-                  </div>
-                  <p className="text-xs text-gray-400">{c.email} · {c.service}</p>
-                </div>
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-bold text-[#1C1C1E]">${c.totalRevenue.toLocaleString()}</p>
-                  <p className="text-xs text-gray-400">{c.lastContact}</p>
-                </div>
-                <div className="flex gap-1.5">
-                  <button onClick={() => setSelectedClient(c)} className="p-2 rounded-lg hover:bg-[#00C9A7]/10 text-gray-400 hover:text-[#00C9A7] transition-colors"><Eye className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => { if (confirm(`Delete ${c.name}?`)) { deleteClient(c.id); toast.success("Client deleted"); }}} className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                </div>
+        ) : !clientList || clientList.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <p className="text-sm font-medium text-gray-500">No clients found</p>
+            <p className="text-xs mt-1">{search ? "Try adjusting your search." : "Add your first client to get started."}</p>
+          </div>
+        ) : clientList.map(c => (
+          <div
+            key={c.id}
+            className="flex sm:grid sm:grid-cols-4 gap-4 px-5 py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors items-center cursor-pointer"
+            onClick={() => setSelectedId(c.id)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => e.key === "Enter" && setSelectedId(c.id)}
+            aria-label={`View ${c.name}'s profile`}
+          >
+            <div className="col-span-2 flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-full gradient-teal flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                {c.avatarInitials || c.name.slice(0, 2).toUpperCase()}
               </div>
-            ))}
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-[#1C1C1E] truncate">{c.name}</p>
+                <p className="text-xs text-gray-400 truncate">{c.email || "No email"}</p>
+              </div>
+            </div>
+            <p className="hidden sm:block text-sm text-gray-600 truncate">{c.service || "—"}</p>
+            <div className="flex items-center justify-between ml-auto sm:ml-0">
+              <Badge className={`text-xs border-0 ${c.status === "active" ? "bg-green-50 text-green-600" : c.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-gray-100 text-gray-500"}`}>
+                {c.status}
+              </Badge>
+              <button
+                onClick={e => { e.stopPropagation(); if (confirm(`Remove ${c.name}?`)) deleteClient.mutate({ id: c.id }); }}
+                className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors ml-3"
+                aria-label={`Delete ${c.name}`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
-        )}
+        ))}
       </div>
 
       {/* Add Client Modal */}
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add New Client">
         <div className="space-y-4">
-          {[
-            { label: "Full Name *", key: "name", placeholder: "Jane Smith" },
-            { label: "Email *", key: "email", placeholder: "jane@example.com" },
-            { label: "Phone", key: "phone", placeholder: "+1 (555) 000-0000" },
-            { label: "Service", key: "service", placeholder: "Business Coaching" },
-          ].map(f => (
-            <div key={f.key}>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">{f.label}</label>
-              <input value={(form as any)[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.placeholder} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors" />
-            </div>
-          ))}
+          <Field label="Full Name" value={form.name} onChange={v => setForm(p => ({ ...p, name: v }))} placeholder="Jane Smith" required />
+          <Field label="Email Address" value={form.email} onChange={v => setForm(p => ({ ...p, email: v }))} placeholder="jane@example.com" type="email" />
+          <Field label="Phone Number" value={form.phone} onChange={v => setForm(p => ({ ...p, phone: v }))} placeholder="+1 (555) 000-0000" />
+          <Field label="Service / Niche" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="Business Coaching, Web Design..." />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Status</label>
-            <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as Client["status"] }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
-              <option value="lead">Lead</option>
+            <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as typeof form.status }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
               <option value="active">Active</option>
+              <option value="prospect">Prospect / Lead</option>
               <option value="inactive">Inactive</option>
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Notes</label>
-            <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} placeholder="Any relevant notes..." rows={3} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors resize-none" />
-          </div>
+          <Field label="Notes" value={form.notes} onChange={v => setForm(p => ({ ...p, notes: v }))} placeholder="Any important notes about this client..." textarea rows={3} />
           <div className="flex gap-3 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90" onClick={handleAdd}>Add Client</Button>
+            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90" onClick={handleCreate} disabled={createClient.isPending}>
+              {createClient.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add Client"}
+            </Button>
           </div>
         </div>
       </Modal>
 
-      {/* Client Detail Modal */}
-      <Modal open={!!selectedClient} onClose={() => setSelectedClient(null)} title="Client Profile" wide>
+      {/* Client Profile Modal */}
+      <Modal open={!!selectedId} onClose={() => setSelectedId(null)} title="Client Profile" wide>
         {selectedClient && (
           <div className="space-y-5">
             <div className="flex items-center gap-4">
-              <img src={selectedClient.avatar} alt={selectedClient.name} className="w-16 h-16 rounded-2xl object-cover" />
+              <div className="w-14 h-14 rounded-2xl gradient-teal flex items-center justify-center text-white text-lg font-bold">
+                {selectedClient.avatarInitials || selectedClient.name.slice(0, 2).toUpperCase()}
+              </div>
               <div>
                 <h3 className="text-lg font-bold text-[#1C1C1E]">{selectedClient.name}</h3>
-                <p className="text-sm text-gray-500">{selectedClient.service}</p>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium mt-1 inline-block ${
-                  selectedClient.status === 'active' ? 'bg-green-50 text-green-600' :
-                  selectedClient.status === 'lead' ? 'bg-yellow-50 text-yellow-600' : 'bg-gray-100 text-gray-500'
-                }`}>{selectedClient.status}</span>
+                <p className="text-sm text-gray-500">{selectedClient.service || "General Client"}</p>
+                <Badge className={`text-xs border-0 mt-1 ${selectedClient.status === "active" ? "bg-green-50 text-green-600" : selectedClient.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-gray-100 text-gray-500"}`}>
+                  {selectedClient.status}
+                </Badge>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {[
-                { icon: Mail, label: "Email", value: selectedClient.email },
+                { icon: Mail, label: "Email", value: selectedClient.email || "Not provided" },
                 { icon: Phone, label: "Phone", value: selectedClient.phone || "Not provided" },
-                { icon: DollarSign, label: "Total Revenue", value: `$${selectedClient.totalRevenue.toLocaleString()}` },
-                { icon: Clock, label: "Last Contact", value: selectedClient.lastContact },
-                { icon: Calendar, label: "Joined", value: selectedClient.joinedDate },
+                { icon: Calendar, label: "Added", value: formatDate(selectedClient.createdAt) },
+                { icon: Clock, label: "Last Updated", value: formatDate(selectedClient.updatedAt) },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <div className="flex items-center gap-2 mb-1">
                     <Icon className="w-3.5 h-3.5 text-gray-400" />
                     <p className="text-xs text-gray-400">{label}</p>
                   </div>
-                  <p className="text-sm font-semibold text-[#1C1C1E]">{value}</p>
+                  <p className="text-sm font-semibold text-[#1C1C1E] truncate">{value}</p>
                 </div>
               ))}
             </div>
             {selectedClient.notes && (
               <div className="bg-gray-50 rounded-xl p-4">
                 <p className="text-xs font-semibold text-gray-500 mb-1">Notes</p>
-                <p className="text-sm text-gray-700">{selectedClient.notes}</p>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedClient.notes}</p>
               </div>
             )}
             <div className="flex gap-3">
-              <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => { toast.success(`Email drafted for ${selectedClient.name}`); setSelectedClient(null); }}>
-                <Mail className="w-4 h-4" />Send Email
+              <Button
+                className="flex-1 gradient-teal text-white border-0 hover:opacity-90 gap-2"
+                onClick={() => { updateClient.mutate({ id: selectedClient.id, status: "active" }); }}
+                disabled={updateClient.isPending}
+              >
+                <CheckCircle className="w-4 h-4" />Mark Active
               </Button>
-              <Button variant="outline" className="flex-1 gap-2" onClick={() => { updateClient(selectedClient.id, { status: "active" }); toast.success("Status updated to active"); setSelectedClient(null); }}>
-                <Edit2 className="w-4 h-4" />Mark Active
+              <Button variant="outline" className="flex-1 gap-2 border-red-200 text-red-500 hover:bg-red-50" onClick={() => { if (confirm(`Remove ${selectedClient.name}?`)) { deleteClient.mutate({ id: selectedClient.id }); setSelectedId(null); } }}>
+                <Trash2 className="w-4 h-4" />Remove
               </Button>
             </div>
           </div>
@@ -547,26 +567,39 @@ function ClientsPanel() {
 
 // ─── Scheduling Panel ─────────────────────────────────────────────────────────
 function SchedulingPanel() {
-  const { bookings, addBooking, updateBooking, deleteBooking, clients } = useApp();
+  const utils = trpc.useUtils();
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ clientId: "", client: "", service: "", date: "", time: "", duration: "60 min", notes: "" });
+  const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", date: "", time: "", duration: 60, notes: "" });
 
-  const handleAdd = () => {
-    if (!form.client || !form.date || !form.time) { toast.error("Client, date and time are required"); return; }
-    addBooking({ ...form, status: "confirmed" });
-    setForm({ clientId: "", client: "", service: "", date: "", time: "", duration: "60 min", notes: "" });
-    setShowAdd(false);
-    toast.success("Booking confirmed!");
+  const { data: bookingList, isLoading } = trpc.bookings.list.useQuery({ status: "all" });
+  const { data: clientList } = trpc.clients.list.useQuery({ search: "", status: "all" });
+
+  const createBooking = trpc.bookings.create.useMutation({
+    onSuccess: () => { utils.bookings.list.invalidate(); toast.success("Booking confirmed!"); setShowAdd(false); setForm({ clientName: "", clientEmail: "", service: "", date: "", time: "", duration: 60, notes: "" }); },
+    onError: (e) => toast.error(e.message),
+  });
+  const updateStatus = trpc.bookings.updateStatus.useMutation({
+    onSuccess: () => { utils.bookings.list.invalidate(); toast.success("Status updated."); },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteBooking = trpc.bookings.delete.useMutation({
+    onSuccess: () => { utils.bookings.list.invalidate(); toast.success("Booking removed."); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const statusColor: Record<string, string> = {
+    scheduled: "bg-green-50 text-green-600",
+    completed: "bg-blue-50 text-blue-600",
+    cancelled: "bg-red-50 text-red-500",
+    no_show: "bg-gray-100 text-gray-500",
   };
-
-  const statusColor = { confirmed: "bg-green-50 text-green-600", pending: "bg-yellow-50 text-yellow-600", cancelled: "bg-red-50 text-red-500" };
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>Scheduling</h2>
-          <p className="text-sm text-gray-500">{bookings.length} upcoming bookings</p>
+          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Scheduling</h2>
+          <p className="text-sm text-gray-500">{bookingList?.filter(b => b.status === "scheduled").length || 0} upcoming sessions</p>
         </div>
         <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
           <Plus className="w-3.5 h-3.5" />New Booking
@@ -574,31 +607,44 @@ function SchedulingPanel() {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="grid grid-cols-5 gap-4 px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
           <span className="col-span-2">Client / Service</span>
           <span>Date & Time</span>
           <span>Duration</span>
           <span>Status</span>
         </div>
-        {bookings.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <Calendar className="w-8 h-8 mx-auto mb-2 opacity-40" />
-            <p className="text-sm">No bookings yet</p>
+        {isLoading ? (
+          <div className="space-y-px">{[...Array(3)].map((_, i) => <div key={i} className="px-5 py-4 border-t border-gray-50"><Skeleton className="h-10" /></div>)}</div>
+        ) : !bookingList || bookingList.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <Calendar className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <p className="text-sm font-medium text-gray-500">No bookings yet</p>
+            <p className="text-xs mt-1">Create your first booking or share your booking page with clients.</p>
           </div>
-        ) : bookings.map(b => (
-          <div key={b.id} className="grid grid-cols-5 gap-4 px-4 py-3.5 border-t border-gray-50 hover:bg-gray-50 transition-colors items-center">
-            <div className="col-span-2">
-              <p className="text-sm font-semibold text-[#1C1C1E]">{b.client}</p>
-              <p className="text-xs text-gray-400">{b.service}</p>
+        ) : bookingList.map(b => (
+          <div key={b.id} className="flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-5 py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors">
+            <div className="sm:col-span-2">
+              <p className="text-sm font-semibold text-[#1C1C1E]">{b.clientName}</p>
+              <p className="text-xs text-gray-400">{b.service || "General Session"}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-[#1C1C1E]">{b.date}</p>
               <p className="text-xs text-gray-400">{b.time}</p>
             </div>
-            <p className="text-sm text-gray-600">{b.duration}</p>
+            <p className="text-sm text-gray-600">{b.duration} min</p>
             <div className="flex items-center justify-between">
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor[b.status]}`}>{b.status}</span>
-              <button onClick={() => { deleteBooking(b.id); toast.success("Booking removed"); }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors ml-2">
+              <select
+                value={b.status}
+                onChange={e => updateStatus.mutate({ id: b.id, status: e.target.value as any })}
+                className={`text-xs px-2 py-1 rounded-full font-medium border-0 cursor-pointer ${statusColor[b.status] || "bg-gray-100 text-gray-500"}`}
+                aria-label="Update booking status"
+              >
+                <option value="scheduled">Scheduled</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="no_show">No Show</option>
+              </select>
+              <button onClick={() => { if (confirm("Remove this booking?")) deleteBooking.mutate({ id: b.id }); }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors ml-2" aria-label="Delete booking">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -609,35 +655,37 @@ function SchedulingPanel() {
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="New Booking">
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client *</label>
-            <select value={form.clientId} onChange={e => { const c = clients.find(c => c.id === e.target.value); setForm(p => ({ ...p, clientId: e.target.value, client: c?.name || "", service: c?.service || "" })); }} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
-              <option value="">Select a client...</option>
-              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Select Existing Client</label>
+            <select
+              onChange={e => {
+                const c = clientList?.find(c => c.id === parseInt(e.target.value));
+                if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "", service: c.service || "" }));
+              }}
+              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors"
+            >
+              <option value="">— Or enter manually below —</option>
+              {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          {[
-            { label: "Service", key: "service", placeholder: "Strategy Session" },
-            { label: "Date *", key: "date", placeholder: "e.g. Mar 10, 2026" },
-            { label: "Time *", key: "time", placeholder: "e.g. 2:00 PM" },
-          ].map(f => (
-            <div key={f.key}>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">{f.label}</label>
-              <input value={(form as any)[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.placeholder} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors" />
-            </div>
-          ))}
+          <Field label="Client Name" value={form.clientName} onChange={v => setForm(p => ({ ...p, clientName: v }))} placeholder="Jane Smith" required />
+          <Field label="Client Email" value={form.clientEmail} onChange={v => setForm(p => ({ ...p, clientEmail: v }))} placeholder="jane@example.com" type="email" />
+          <Field label="Service" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="Strategy Session, Coaching Call..." />
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Date *" value={form.date} onChange={v => setForm(p => ({ ...p, date: v }))} placeholder="2026-03-20" type="date" required />
+            <Field label="Time *" value={form.time} onChange={v => setForm(p => ({ ...p, time: v }))} placeholder="14:00" type="time" required />
+          </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Duration</label>
-            <select value={form.duration} onChange={e => setForm(p => ({ ...p, duration: e.target.value }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
-              {["30 min", "45 min", "60 min", "90 min", "120 min"].map(d => <option key={d}>{d}</option>)}
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Duration (minutes)</label>
+            <select value={form.duration} onChange={e => setForm(p => ({ ...p, duration: parseInt(e.target.value) }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
+              {[15, 30, 45, 60, 90, 120].map(d => <option key={d} value={d}>{d} minutes</option>)}
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Notes</label>
-            <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors resize-none" />
-          </div>
+          <Field label="Notes" value={form.notes} onChange={v => setForm(p => ({ ...p, notes: v }))} placeholder="Session goals, preparation notes..." textarea />
           <div className="flex gap-3 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90" onClick={handleAdd}>Confirm Booking</Button>
+            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90" onClick={() => createBooking.mutate(form)} disabled={createBooking.isPending}>
+              {createBooking.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm Booking"}
+            </Button>
           </div>
         </div>
       </Modal>
@@ -647,77 +695,97 @@ function SchedulingPanel() {
 
 // ─── Invoices Panel ───────────────────────────────────────────────────────────
 function InvoicesPanel() {
-  const { invoices, addInvoice, updateInvoice, deleteInvoice, clients } = useApp();
+  const utils = trpc.useUtils();
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ clientId: "", clientName: "", service: "", amount: "", description: "", dueDate: "", status: "pending" as Invoice["status"] });
+  const [previewInvoice, setPreviewInvoice] = useState<any>(null);
+  const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" as "draft" | "sent" });
 
-  const totalPaid = invoices.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0);
-  const totalPending = invoices.filter(i => i.status === "pending").reduce((s, i) => s + i.amount, 0);
-  const totalOverdue = invoices.filter(i => i.status === "overdue").reduce((s, i) => s + i.amount, 0);
+  const { data: invoiceList, isLoading } = trpc.invoices.list.useQuery({ status: "all" });
+  const { data: invoiceStats } = trpc.invoices.stats.useQuery();
+  const { data: clientList } = trpc.clients.list.useQuery({ search: "", status: "all" });
 
-  const handleAdd = () => {
-    if (!form.clientName || !form.amount) { toast.error("Client and amount are required"); return; }
-    addInvoice({ ...form, amount: parseFloat(form.amount), issuedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) });
-    setForm({ clientId: "", clientName: "", service: "", amount: "", description: "", dueDate: "", status: "pending" });
-    setShowAdd(false);
-    toast.success("Invoice created!");
-  };
+  const createInvoice = trpc.invoices.create.useMutation({
+    onSuccess: () => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); toast.success("Invoice created!"); setShowAdd(false); setForm({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" }); },
+    onError: (e) => toast.error(e.message),
+  });
+  const markPaid = trpc.invoices.markPaid.useMutation({
+    onSuccess: () => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); toast.success("Invoice marked as paid!"); },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteInvoice = trpc.invoices.delete.useMutation({
+    onSuccess: () => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); toast.success("Invoice deleted."); },
+    onError: (e) => toast.error(e.message),
+  });
 
-  const statusColor: Record<Invoice["status"], string> = {
+  const statusColor: Record<string, string> = {
+    draft: "bg-gray-100 text-gray-500",
+    sent: "bg-blue-50 text-blue-600",
     paid: "bg-green-50 text-green-600",
-    pending: "bg-yellow-50 text-yellow-600",
     overdue: "bg-red-50 text-red-500",
-    draft: "bg-gray-100 text-gray-500"
   };
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>Invoices</h2>
-          <p className="text-sm text-gray-500">{invoices.length} total invoices</p>
+          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Invoices</h2>
+          <p className="text-sm text-gray-500">{invoiceList?.length || 0} total invoices</p>
         </div>
         <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
           <Plus className="w-3.5 h-3.5" />New Invoice
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: "Paid", value: totalPaid, color: "#00C9A7", bg: "bg-[#00C9A7]/10" },
-          { label: "Pending", value: totalPending, color: "#F59E0B", bg: "bg-yellow-50" },
-          { label: "Overdue", value: totalOverdue, color: "#FF6B6B", bg: "bg-red-50" },
+          { label: "Total Paid", value: formatCurrency(invoiceStats?.totalRevenue || 0), color: "#00C9A7", bg: "bg-[#00C9A7]/10" },
+          { label: "Outstanding", value: formatCurrency(invoiceStats?.outstanding || 0), color: "#6366F1", bg: "bg-indigo-50" },
+          { label: "Overdue", value: String(invoiceStats?.overdue || 0), color: "#FF6B6B", bg: "bg-red-50" },
+          { label: "Total Invoices", value: String(invoiceStats?.total || 0), color: "#F59E0B", bg: "bg-yellow-50" },
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
             <p className="text-xs font-semibold mb-1" style={{ color: s.color }}>{s.label}</p>
-            <p className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>${s.value.toLocaleString()}</p>
+            <p className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>{s.value}</p>
           </div>
         ))}
       </div>
 
+      {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="grid grid-cols-5 gap-4 px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
           <span className="col-span-2">Client / Service</span>
           <span>Amount</span>
           <span>Due Date</span>
           <span>Status</span>
         </div>
-        {invoices.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <FileText className="w-8 h-8 mx-auto mb-2 opacity-40" />
-            <p className="text-sm">No invoices yet</p>
+        {isLoading ? (
+          <div className="space-y-px">{[...Array(3)].map((_, i) => <div key={i} className="px-5 py-4 border-t border-gray-50"><Skeleton className="h-10" /></div>)}</div>
+        ) : !invoiceList || invoiceList.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <p className="text-sm font-medium text-gray-500">No invoices yet</p>
+            <p className="text-xs mt-1">Create your first invoice to start tracking payments.</p>
           </div>
-        ) : invoices.map(inv => (
-          <div key={inv.id} className="grid grid-cols-5 gap-4 px-4 py-3.5 border-t border-gray-50 hover:bg-gray-50 transition-colors items-center">
-            <div className="col-span-2">
+        ) : invoiceList.map(inv => (
+          <div key={inv.id} className="flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-5 py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors">
+            <div className="sm:col-span-2">
               <p className="text-sm font-semibold text-[#1C1C1E]">{inv.clientName}</p>
-              <p className="text-xs text-gray-400">{inv.service}</p>
+              <p className="text-xs text-gray-400">{inv.invoiceNumber} · {inv.service || "General Service"}</p>
             </div>
-            <p className="text-sm font-bold text-[#1C1C1E]">${inv.amount.toLocaleString()}</p>
-            <p className="text-sm text-gray-600">{inv.dueDate}</p>
-            <div className="flex items-center justify-between">
-              <button onClick={() => { const next = inv.status === "pending" ? "paid" : inv.status === "overdue" ? "paid" : "pending"; updateInvoice(inv.id, { status: next as Invoice["status"] }); toast.success(`Invoice marked as ${next}`); }} className={`text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer hover:opacity-80 transition-opacity ${statusColor[inv.status]}`}>{inv.status}</button>
-              <button onClick={() => { deleteInvoice(inv.id); toast.success("Invoice deleted"); }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors ml-2">
+            <p className="text-sm font-bold text-[#1C1C1E]">{formatCurrency(inv.amount)}</p>
+            <p className="text-sm text-gray-500">{inv.dueDate || "—"}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge className={`text-xs border-0 ${statusColor[inv.status] || "bg-gray-100 text-gray-500"}`}>{inv.status}</Badge>
+              {inv.status !== "paid" && (
+                <button onClick={() => markPaid.mutate({ id: inv.id })} className="text-xs text-[#00C9A7] hover:underline font-medium" disabled={markPaid.isPending}>
+                  Mark Paid
+                </button>
+              )}
+              <button onClick={() => setPreviewInvoice(inv)} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Preview invoice">
+                <Eye className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => { if (confirm("Delete this invoice?")) deleteInvoice.mutate({ id: inv.id }); }} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete invoice">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -725,31 +793,94 @@ function InvoicesPanel() {
         ))}
       </div>
 
+      {/* Add Invoice Modal */}
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Create Invoice">
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client *</label>
-            <select value={form.clientId} onChange={e => { const c = clients.find(c => c.id === e.target.value); setForm(p => ({ ...p, clientId: e.target.value, clientName: c?.name || "", service: c?.service || "" })); }} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
-              <option value="">Select a client...</option>
-              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Select Client</label>
+            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "" })); }} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
+              <option value="">— Or enter manually below —</option>
+              {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          {[
-            { label: "Service Description", key: "service", placeholder: "Business Coaching — March" },
-            { label: "Amount ($) *", key: "amount", placeholder: "350" },
-            { label: "Due Date", key: "dueDate", placeholder: "Mar 15, 2026" },
-            { label: "Notes", key: "description", placeholder: "4 x 60-min sessions" },
-          ].map(f => (
-            <div key={f.key}>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">{f.label}</label>
-              <input value={(form as any)[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.placeholder} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors" />
-            </div>
-          ))}
+          <Field label="Client Name" value={form.clientName} onChange={v => setForm(p => ({ ...p, clientName: v }))} placeholder="Jane Smith" required />
+          <Field label="Client Email" value={form.clientEmail} onChange={v => setForm(p => ({ ...p, clientEmail: v }))} placeholder="jane@example.com" type="email" />
+          <Field label="Service Description" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="3-month coaching program, web design..." />
+          <Field label="Amount ($) *" value={form.amount} onChange={v => setForm(p => ({ ...p, amount: v }))} placeholder="500.00" type="number" required />
+          <Field label="Due Date" value={form.dueDate} onChange={v => setForm(p => ({ ...p, dueDate: v }))} type="date" />
+          <Field label="Notes" value={form.notes} onChange={v => setForm(p => ({ ...p, notes: v }))} placeholder="Payment terms, bank details..." textarea />
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Send as</label>
+            <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as "draft" | "sent" }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
+              <option value="draft">Save as Draft</option>
+              <option value="sent">Mark as Sent</option>
+            </select>
+          </div>
           <div className="flex gap-3 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90" onClick={handleAdd}>Create Invoice</Button>
+            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90" onClick={() => createInvoice.mutate({ ...form, amount: parseFloat(form.amount) || 0 })} disabled={createInvoice.isPending}>
+              {createInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Invoice"}
+            </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Invoice Preview Modal */}
+      <Modal open={!!previewInvoice} onClose={() => setPreviewInvoice(null)} title="Invoice Preview" wide>
+        {previewInvoice && (
+          <div className="space-y-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>INVOICE</h3>
+                <p className="text-sm text-gray-500 mt-1">{previewInvoice.invoiceNumber}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-400">Issued</p>
+                <p className="text-sm font-semibold">{formatDate(previewInvoice.createdAt)}</p>
+                {previewInvoice.dueDate && <>
+                  <p className="text-xs text-gray-400 mt-1">Due</p>
+                  <p className="text-sm font-semibold">{previewInvoice.dueDate}</p>
+                </>}
+              </div>
+            </div>
+            <div className="border-t border-b border-gray-100 py-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Client</span>
+                <span className="font-semibold">{previewInvoice.clientName}</span>
+              </div>
+              {previewInvoice.clientEmail && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Email</span>
+                  <span>{previewInvoice.clientEmail}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Service</span>
+                <span>{previewInvoice.service || "Professional Services"}</span>
+              </div>
+            </div>
+            <div className="flex justify-between items-center bg-[#00C9A7]/10 rounded-xl p-4">
+              <span className="font-bold text-[#1C1C1E]">Total Amount</span>
+              <span className="text-2xl font-extrabold text-[#00C9A7]" style={{ fontFamily: "Sora, sans-serif" }}>{formatCurrency(previewInvoice.amount)}</span>
+            </div>
+            {previewInvoice.notes && (
+              <div className="bg-gray-50 rounded-xl p-4">
+                <p className="text-xs font-semibold text-gray-500 mb-1">Notes</p>
+                <p className="text-sm text-gray-700">{previewInvoice.notes}</p>
+              </div>
+            )}
+            <div className="flex gap-3">
+              <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => { window.print(); }}>
+                <Printer className="w-4 h-4" />Print / Save PDF
+              </Button>
+              {previewInvoice.status !== "paid" && (
+                <Button variant="outline" className="flex-1 gap-2" onClick={() => { markPaid.mutate({ id: previewInvoice.id }); setPreviewInvoice(null); }}>
+                  <CheckCircle className="w-4 h-4 text-green-500" />Mark Paid
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
@@ -757,123 +888,171 @@ function InvoicesPanel() {
 
 // ─── Follow-Ups Panel ─────────────────────────────────────────────────────────
 function FollowUpsPanel() {
-  const { followUps, sendFollowUp, addFollowUp, clients } = useApp();
-  const [showAdd, setShowAdd] = useState(false);
-  const [preview, setPreview] = useState<FollowUp | null>(null);
-  const [form, setForm] = useState({ clientId: "", clientName: "", type: "email" as FollowUp["type"], message: "", scheduledAt: "" });
+  const utils = trpc.useUtils();
+  const [showGenerate, setShowGenerate] = useState(false);
+  const [previewFollowUp, setPreviewFollowUp] = useState<any>(null);
+  const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", context: "", tone: "professional" as "professional" | "friendly" | "motivational" });
 
-  const handleSendAll = () => {
-    const pending = followUps.filter(f => f.status === "pending");
-    pending.forEach(f => sendFollowUp(f.id));
-    toast.success(`${pending.length} follow-ups sent!`);
+  const { data: followUpList, isLoading } = trpc.followUps.list.useQuery();
+  const { data: clientList } = trpc.clients.list.useQuery({ search: "", status: "all" });
+
+  const generate = trpc.followUps.generate.useMutation({
+    onSuccess: (data) => {
+      utils.followUps.list.invalidate();
+      setPreviewFollowUp(data);
+      setShowGenerate(false);
+      toast.success("AI follow-up email generated!");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const markSent = trpc.followUps.markSent.useMutation({
+    onSuccess: () => { utils.followUps.list.invalidate(); toast.success("Follow-up marked as sent."); },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteFollowUp = trpc.followUps.delete.useMutation({
+    onSuccess: () => { utils.followUps.list.invalidate(); toast.success("Follow-up deleted."); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const [copied, setCopied] = useState(false);
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
   };
-
-  const statusColor = { sent: "bg-green-50 text-green-600", pending: "bg-yellow-50 text-yellow-600", replied: "bg-blue-50 text-blue-600" };
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>AI Follow-Ups</h2>
-          <p className="text-sm text-gray-500">{followUps.filter(f => f.status === "pending").length} pending · {followUps.filter(f => f.status === "sent").length} sent</p>
+          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>AI Follow-Ups</h2>
+          <p className="text-sm text-gray-500">Let AI write personalized follow-up emails for your clients</p>
         </div>
-        <div className="flex gap-2">
-          {followUps.some(f => f.status === "pending") && (
-            <Button size="sm" variant="outline" className="gap-1.5 border-[#00C9A7] text-[#00C9A7] hover:bg-[#00C9A7]/5" onClick={handleSendAll}>
-              <Send className="w-3.5 h-3.5" />Send All Pending
-            </Button>
-          )}
-          <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
-            <Plus className="w-3.5 h-3.5" />New Follow-Up
-          </Button>
+        <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowGenerate(true)}>
+          <Zap className="w-3.5 h-3.5" />Generate Email
+        </Button>
+      </div>
+
+      {/* Info Card */}
+      <div className="bg-gradient-to-r from-[#00C9A7]/10 to-[#6366F1]/10 border border-[#00C9A7]/20 rounded-2xl p-5">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl gradient-teal flex items-center justify-center text-white flex-shrink-0">
+            <Zap className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-[#1C1C1E] text-sm">How AI Follow-Ups Work</h3>
+            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+              Select a client, choose a tone, and our AI writes a personalized follow-up email in seconds. The email checks in on their progress, encourages rebooking, and sounds like it came directly from you. Copy the email and send it from your preferred email client.
+            </p>
+          </div>
         </div>
       </div>
 
+      {/* List */}
       <div className="space-y-3">
-        {followUps.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 text-center py-12 text-gray-400">
-            <Mail className="w-8 h-8 mx-auto mb-2 opacity-40" />
-            <p className="text-sm">No follow-ups yet</p>
+        {isLoading ? (
+          [...Array(3)].map((_, i) => <Skeleton key={i} className="h-20" />)
+        ) : !followUpList || followUpList.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-100 text-center py-16 text-gray-400">
+            <Mail className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <p className="text-sm font-medium text-gray-500">No follow-ups generated yet</p>
+            <p className="text-xs mt-1">Generate your first AI follow-up email above.</p>
           </div>
-        ) : followUps.map(f => (
-          <div key={f.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-start gap-4">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${f.type === "email" ? "bg-[#00C9A7]/10" : "bg-[#FF6B6B]/10"}`}>
-              {f.type === "email" ? <Mail className="w-4 h-4 text-[#00C9A7]" /> : <MessageSquare className="w-4 h-4 text-[#FF6B6B]" />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="text-sm font-semibold text-[#1C1C1E]">{f.clientName}</p>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor[f.status]}`}>{f.status}</span>
+        ) : followUpList.map(f => (
+          <div key={f.id} className="bg-white rounded-2xl border border-gray-100 p-4 hover:border-[#00C9A7]/30 transition-colors">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-sm font-bold text-[#1C1C1E]">{f.clientName}</p>
+                  <Badge className={`text-xs border-0 ${f.status === "sent" ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600"}`}>
+                    {f.status}
+                  </Badge>
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5 font-medium">{f.subject}</p>
+                <p className="text-xs text-gray-400 mt-1 line-clamp-2">{f.body}</p>
               </div>
-              <p className="text-xs text-gray-500 line-clamp-2">{f.message}</p>
-              <p className="text-xs text-gray-300 mt-1">{f.status === "sent" ? `Sent ${f.sentAt}` : `Scheduled: ${f.scheduledAt}`}</p>
-            </div>
-            <div className="flex gap-1.5 flex-shrink-0">
-              <button onClick={() => setPreview(f)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"><Eye className="w-3.5 h-3.5" /></button>
-              {f.status === "pending" && (
-                <button onClick={() => { sendFollowUp(f.id); toast.success(`Follow-up sent to ${f.clientName}!`); }} className="p-2 rounded-lg hover:bg-[#00C9A7]/10 text-gray-400 hover:text-[#00C9A7] transition-colors"><Send className="w-3.5 h-3.5" /></button>
-              )}
+              <div className="flex gap-1.5 flex-shrink-0">
+                <button onClick={() => setPreviewFollowUp(f)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Preview email">
+                  <Eye className="w-4 h-4" />
+                </button>
+                {f.status === "draft" && (
+                  <button onClick={() => markSent.mutate({ id: f.id })} className="p-1.5 rounded-lg hover:bg-green-50 text-gray-400 hover:text-green-600 transition-colors" aria-label="Mark as sent">
+                    <Send className="w-4 h-4" />
+                  </button>
+                )}
+                <button onClick={() => { if (confirm("Delete this follow-up?")) deleteFollowUp.mutate({ id: f.id }); }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete follow-up">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Preview Modal */}
-      <Modal open={!!preview} onClose={() => setPreview(null)} title="Follow-Up Preview" wide>
-        {preview && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-              <div className="w-8 h-8 rounded-lg bg-[#00C9A7]/10 flex items-center justify-center"><Mail className="w-4 h-4 text-[#00C9A7]" /></div>
-              <div>
-                <p className="text-xs text-gray-400">To</p>
-                <p className="text-sm font-semibold text-[#1C1C1E]">{preview.clientName}</p>
-              </div>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-xs font-semibold text-gray-400 mb-2">MESSAGE</p>
-              <p className="text-sm text-gray-700 leading-relaxed">{preview.message}</p>
-            </div>
-            {preview.status === "pending" && (
-              <Button className="w-full gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => { sendFollowUp(preview.id); toast.success("Follow-up sent!"); setPreview(null); }}>
-                <Send className="w-4 h-4" />Send Now
-              </Button>
-            )}
-          </div>
-        )}
-      </Modal>
-
-      {/* Add Follow-Up Modal */}
-      <Modal open={showAdd} onClose={() => setShowAdd(false)} title="New Follow-Up" wide>
+      {/* Generate Modal */}
+      <Modal open={showGenerate} onClose={() => setShowGenerate(false)} title="Generate AI Follow-Up Email">
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client</label>
-            <select value={form.clientId} onChange={e => { const c = clients.find(c => c.id === e.target.value); setForm(p => ({ ...p, clientId: e.target.value, clientName: c?.name || "" })); }} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
-              <option value="">Select a client...</option>
-              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Select Client</label>
+            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "", service: c.service || "" })); }} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
+              <option value="">— Or enter manually below —</option>
+              {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
+          <Field label="Client Name *" value={form.clientName} onChange={v => setForm(p => ({ ...p, clientName: v }))} placeholder="Jane Smith" required />
+          <Field label="Client Email" value={form.clientEmail} onChange={v => setForm(p => ({ ...p, clientEmail: v }))} placeholder="jane@example.com" type="email" />
+          <Field label="Service / Context" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="Business coaching, web design..." />
+          <Field label="Additional Context (optional)" value={form.context} onChange={v => setForm(p => ({ ...p, context: v }))} placeholder="Last session was about goal-setting, they struggled with time management..." textarea />
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Type</label>
-            <div className="flex gap-3">
-              {(["email", "sms"] as const).map(t => (
-                <button key={t} onClick={() => setForm(p => ({ ...p, type: t }))} className={`flex-1 py-2.5 text-sm font-medium rounded-xl border transition-colors capitalize ${form.type === t ? "border-[#00C9A7] bg-[#00C9A7]/5 text-[#00C9A7]" : "border-gray-200 text-gray-600"}`}>{t}</button>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Email Tone</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(["professional", "friendly", "motivational"] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => setForm(p => ({ ...p, tone: t }))}
+                  className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${form.tone === t ? "border-[#00C9A7] bg-[#00C9A7]/10 text-[#00C9A7]" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
+                >
+                  {t}
+                </button>
               ))}
             </div>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Message</label>
-            <textarea value={form.message} onChange={e => setForm(p => ({ ...p, message: e.target.value }))} rows={5} placeholder="Write your follow-up message..." className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors resize-none" />
-          </div>
           <div className="flex gap-3 pt-2">
-            <Button variant="outline" className="flex-1" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90" onClick={() => {
-              if (!form.clientName || !form.message) { toast.error("Client and message required"); return; }
-              addFollowUp({ ...form, status: "pending", scheduledAt: new Date().toLocaleString() });
-              setShowAdd(false);
-              toast.success("Follow-up created!");
-            }}>Create Follow-Up</Button>
+            <Button variant="outline" className="flex-1" onClick={() => setShowGenerate(false)}>Cancel</Button>
+            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => generate.mutate(form)} disabled={generate.isPending}>
+              {generate.isPending ? <><Loader2 className="w-4 h-4 animate-spin" />Generating...</> : <><Zap className="w-4 h-4" />Generate</>}
+            </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Preview Modal */}
+      <Modal open={!!previewFollowUp} onClose={() => setPreviewFollowUp(null)} title="Email Preview" wide>
+        {previewFollowUp && (
+          <div className="space-y-4">
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 w-12">To:</span>
+                <span className="text-sm text-gray-700">{previewFollowUp.clientEmail || previewFollowUp.clientName}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 w-12">Subject:</span>
+                <span className="text-sm font-semibold text-[#1C1C1E]">{previewFollowUp.subject}</span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-100 rounded-xl p-4">
+              <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{previewFollowUp.body}</p>
+            </div>
+            <div className="flex gap-3">
+              <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => copyToClipboard(previewFollowUp.body)}>
+                {copied ? <><Check className="w-4 h-4" />Copied!</> : <><Copy className="w-4 h-4" />Copy Email</>}
+              </Button>
+              {previewFollowUp.status === "draft" && previewFollowUp.id && (
+                <Button variant="outline" className="flex-1 gap-2" onClick={() => { markSent.mutate({ id: previewFollowUp.id }); setPreviewFollowUp(null); }}>
+                  <Send className="w-4 h-4" />Mark Sent
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
@@ -881,42 +1060,45 @@ function FollowUpsPanel() {
 
 // ─── Analytics Panel ──────────────────────────────────────────────────────────
 function AnalyticsPanel() {
-  const { clients, invoices, bookings } = useApp();
-  const totalRevenue = invoices.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0);
-  const activeClients = clients.filter(c => c.status === "active").length;
-  const conversionRate = clients.length > 0 ? Math.round((activeClients / clients.length) * 100) : 0;
+  const { data: analytics, isLoading } = trpc.analytics.overview.useQuery(undefined, { retry: 2 });
+
+  if (isLoading) return (
+    <div className="space-y-5">
+      <Skeleton className="h-8 w-40" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28" />)}</div>
+      <div className="grid lg:grid-cols-2 gap-6">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-64" />)}</div>
+    </div>
+  );
+
+  const stats = [
+    { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), icon: DollarSign, color: "#00C9A7" },
+    { label: "Active Clients", value: String(analytics?.activeClients || 0), icon: Users, color: "#6366F1" },
+    { label: "Sessions Booked", value: String((analytics?.completedSessions || 0) + (analytics?.completedSessions || 0)), icon: Calendar, color: "#F59E0B" },
+    { label: "Conversion Rate", value: analytics?.totalClients ? `${Math.round((analytics.activeClients / analytics.totalClients) * 100)}%` : "0%", icon: TrendingUp, color: "#FF6B6B" },
+  ];
 
   const pieData = [
-    { name: "Active", value: clients.filter(c => c.status === "active").length, color: "#00C9A7" },
-    { name: "Leads", value: clients.filter(c => c.status === "lead").length, color: "#FF6B6B" },
-    { name: "Inactive", value: clients.filter(c => c.status === "inactive").length, color: "#E5E7EB" },
-  ];
+    { name: "Active", value: analytics?.activeClients || 0, color: "#00C9A7" },
+    { name: "Prospects", value: analytics?.totalClients || 0, color: "#6366F1" },
+    { name: "Inactive", value: analytics?.activeClients || 0, color: "#E5E7EB" },
+  ].filter(d => d.value > 0);
 
-  const invoiceData = [
-    { name: "Paid", value: invoices.filter(i => i.status === "paid").length, color: "#00C9A7" },
-    { name: "Pending", value: invoices.filter(i => i.status === "pending").length, color: "#F59E0B" },
-    { name: "Overdue", value: invoices.filter(i => i.status === "overdue").length, color: "#FF6B6B" },
-  ];
+  const topServices = analytics?.topServices || [];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>Analytics</h2>
+        <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Analytics</h2>
         <p className="text-sm text-gray-500">Your business performance at a glance</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign, color: "#00C9A7" },
-          { label: "Total Clients", value: String(clients.length), icon: Users, color: "#FF6B6B" },
-          { label: "Total Bookings", value: String(bookings.length), icon: Calendar, color: "#00C9A7" },
-          { label: "Conversion Rate", value: `${conversionRate}%`, icon: TrendingUp, color: "#FF6B6B" },
-        ].map(s => (
+        {stats.map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 border border-gray-100">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white mb-3" style={{ backgroundColor: s.color }}>
               <s.icon className="w-4 h-4" />
             </div>
-            <p className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>{s.value}</p>
+            <p className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>{s.value}</p>
             <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
           </div>
         ))}
@@ -924,57 +1106,81 @@ function AnalyticsPanel() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>Revenue Trend</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={revenueData}>
-              <defs>
-                <linearGradient id="tealGrad2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00C9A7" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#00C9A7" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: '12px' }} formatter={(v: number) => [`$${v.toLocaleString()}`, 'Revenue']} />
-              <Area type="monotone" dataKey="revenue" stroke="#00C9A7" strokeWidth={2.5} fill="url(#tealGrad2)" />
-            </AreaChart>
-          </ResponsiveContainer>
+          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Sora, sans-serif" }}>Revenue Trend</h3>
+          {analytics?.monthlyRevenue?.some(d => d.revenue > 0) ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={analytics.monthlyRevenue}>
+                <defs>
+                  <linearGradient id="tealGrad3" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00C9A7" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#00C9A7" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
+                <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: "12px" }} formatter={(v: number) => [formatCurrency(v), "Revenue"]} />
+                <Area type="monotone" dataKey="revenue" stroke="#00C9A7" strokeWidth={2.5} fill="url(#tealGrad3)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-48 flex flex-col items-center justify-center text-gray-400">
+              <DollarSign className="w-8 h-8 mb-2 opacity-30" />
+              <p className="text-sm text-center">Revenue data will appear once you create and mark invoices as paid.</p>
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>Client Breakdown</h3>
-          <div className="flex items-center gap-6">
-            <ResponsiveContainer width={140} height={140}>
-              <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
-                  {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="space-y-2">
-              {pieData.map(d => (
-                <div key={d.name} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
-                  <span className="text-sm text-gray-600">{d.name}</span>
-                  <span className="text-sm font-bold text-[#1C1C1E] ml-auto">{d.value}</span>
+          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Sora, sans-serif" }}>Client Breakdown</h3>
+          {pieData.length > 0 ? (
+            <div className="flex items-center gap-6">
+              <ResponsiveContainer width={140} height={140}>
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
+                    {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="space-y-2">
+                {pieData.map(d => (
+                  <div key={d.name} className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                    <span className="text-sm text-gray-600">{d.name}</span>
+                    <span className="text-sm font-bold text-[#1C1C1E] ml-auto pl-4">{d.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="h-36 flex flex-col items-center justify-center text-gray-400">
+              <Users className="w-8 h-8 mb-2 opacity-30" />
+              <p className="text-sm">Add clients to see breakdown.</p>
+            </div>
+          )}
+        </div>
+
+        {topServices.length > 0 && (
+          <div className="bg-white rounded-2xl p-5 border border-gray-100 lg:col-span-2">
+            <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Sora, sans-serif" }}>Top Services by Revenue</h3>
+            <div className="space-y-3">
+              {topServices.slice(0, 5).map((s: any, i: number) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span className="text-xs text-gray-400 w-4">{i + 1}</span>
+                  <div className="flex-1">
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm font-medium text-[#1C1C1E]">{s.service}</span>
+                      <span className="text-sm font-bold text-[#00C9A7]">{formatCurrency(s.revenue)}</span>
+                    </div>
+                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#00C9A7] rounded-full" style={{ width: `${Math.min((s.revenue / topServices[0].revenue) * 100, 100)}%` }} />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 lg:col-span-2">
-          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>Invoice Status</h3>
-          <div className="grid grid-cols-3 gap-4">
-            {invoiceData.map(d => (
-              <div key={d.name} className="text-center p-4 rounded-xl" style={{ backgroundColor: `${d.color}15` }}>
-                <p className="text-2xl font-extrabold" style={{ color: d.color, fontFamily: 'Sora, sans-serif' }}>{d.value}</p>
-                <p className="text-xs text-gray-500 mt-1">{d.name} Invoices</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -982,93 +1188,161 @@ function AnalyticsPanel() {
 
 // ─── Settings Panel ───────────────────────────────────────────────────────────
 function SettingsPanel() {
-  const { userName, setUserName, userEmail, setUserEmail, businessName, setBusinessName } = useApp();
-  const [localName, setLocalName] = useState(userName);
-  const [localEmail, setLocalEmail] = useState(userEmail);
-  const [localBiz, setLocalBiz] = useState(businessName);
-  const [saved, setSaved] = useState(false);
+  const utils = trpc.useUtils();
+  const [, navigate] = useLocation();
+  const { data: settings, isLoading } = trpc.settings.get.useQuery(undefined, { retry: 1 });
+  const [profile, setProfile] = useState({ name: "", bio: "", phone: "" });
+  const [business, setBusiness] = useState({ businessName: "", businessPhone: "", businessAddress: "", businessWebsite: "" });
+  const [bookingPage, setBookingPage] = useState({ bookingUsername: "", bookingBio: "", bookingServices: ["Coaching Session", "Strategy Call", "Consultation"] });
+  const [notifications, setNotifications] = useState({ notifyNewBooking: true, notifyInvoicePaid: true, notifyNewLead: true });
+  const [newService, setNewService] = useState("");
 
-  const handleSave = () => {
-    setUserName(localName);
-    setUserEmail(localEmail);
-    setBusinessName(localBiz);
-    setSaved(true);
-    toast.success("Settings saved!");
-    setTimeout(() => setSaved(false), 2000);
-  };
+  useEffect(() => {
+    if (settings) {
+      setProfile({ name: settings.name || "", bio: settings.bio || "", phone: settings.phone || "" });
+      setBusiness({ businessName: settings.businessName || "", businessPhone: settings.businessPhone || "", businessAddress: settings.businessAddress || "", businessWebsite: settings.businessWebsite || "" });
+      setBookingPage({ bookingUsername: settings.bookingUsername || "", bookingBio: settings.bookingBio || "", bookingServices: settings.bookingServices || ["Coaching Session", "Strategy Call", "Consultation"] });
+      setNotifications({ notifyNewBooking: settings.notifyNewBooking ?? true, notifyInvoicePaid: settings.notifyInvoicePaid ?? true, notifyNewLead: settings.notifyNewLead ?? true });
+    }
+  }, [settings]);
+
+  const updateProfile = trpc.settings.updateProfile.useMutation({ onSuccess: () => { utils.settings.get.invalidate(); toast.success("Profile saved!"); }, onError: (e) => toast.error(e.message) });
+  const updateBusiness = trpc.settings.updateBusiness.useMutation({ onSuccess: () => { utils.settings.get.invalidate(); toast.success("Business info saved!"); }, onError: (e) => toast.error(e.message) });
+  const updateBookingPage = trpc.settings.updateBookingPage.useMutation({ onSuccess: () => { utils.settings.get.invalidate(); toast.success("Booking page saved!"); }, onError: (e) => toast.error(e.message) });
+  const updateNotifications = trpc.settings.updateNotifications.useMutation({ onSuccess: () => { utils.settings.get.invalidate(); toast.success("Notification preferences saved!"); }, onError: (e) => toast.error(e.message) });
+
+  if (isLoading) return <div className="space-y-4">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-40" />)}</div>;
+
+  const bookingUrl = bookingPage.bookingUsername ? `${window.location.origin}/book/${bookingPage.bookingUsername}` : null;
 
   return (
-    <div className="space-y-6 max-w-xl">
+    <div className="space-y-6 max-w-2xl">
       <div>
-        <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>Settings</h2>
-        <p className="text-sm text-gray-500">Manage your account and business preferences</p>
+        <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Settings</h2>
+        <p className="text-sm text-gray-500">Manage your profile, business info, and preferences</p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-          <User className="w-4 h-4 text-[#00C9A7]" />Profile
-        </h3>
+      {/* Profile */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><User className="w-4 h-4 text-[#00C9A7]" />Profile</h3>
+        <Field label="Your Name" value={profile.name} onChange={v => setProfile(p => ({ ...p, name: v }))} placeholder="Alex Smith" />
+        <Field label="Phone Number" value={profile.phone} onChange={v => setProfile(p => ({ ...p, phone: v }))} placeholder="+1 (555) 000-0000" />
+        <Field label="Bio (shown on booking page)" value={profile.bio} onChange={v => setProfile(p => ({ ...p, bio: v }))} placeholder="I help entrepreneurs build scalable businesses..." textarea rows={3} />
+        <Button className="gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => updateProfile.mutate(profile)} disabled={updateProfile.isPending}>
+          {updateProfile.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Profile</>}
+        </Button>
+      </div>
+
+      {/* Business */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Building className="w-4 h-4 text-[#00C9A7]" />Business Info</h3>
+        <Field label="Business Name" value={business.businessName} onChange={v => setBusiness(p => ({ ...p, businessName: v }))} placeholder="My Coaching Studio" />
+        <Field label="Business Phone" value={business.businessPhone} onChange={v => setBusiness(p => ({ ...p, businessPhone: v }))} placeholder="+1 (555) 000-0000" />
+        <Field label="Business Address" value={business.businessAddress} onChange={v => setBusiness(p => ({ ...p, businessAddress: v }))} placeholder="123 Main St, New York, NY 10001" />
+        <Field label="Website" value={business.businessWebsite} onChange={v => setBusiness(p => ({ ...p, businessWebsite: v }))} placeholder="https://yourwebsite.com" type="url" />
+        <Button className="gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => updateBusiness.mutate(business)} disabled={updateBusiness.isPending}>
+          {updateBusiness.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Business Info</>}
+        </Button>
+      </div>
+
+      {/* Booking Page */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Globe className="w-4 h-4 text-[#00C9A7]" />Booking Page</h3>
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1.5">Your Booking URL</label>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-400 flex-shrink-0">{window.location.origin}/book/</span>
+            <input
+              value={bookingPage.bookingUsername}
+              onChange={e => setBookingPage(p => ({ ...p, bookingUsername: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
+              placeholder="your-name"
+              className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors"
+            />
+          </div>
+          {bookingUrl && (
+            <div className="flex items-center gap-2 mt-2">
+              <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#00C9A7] hover:underline flex items-center gap-1">
+                <ExternalLink className="w-3 h-3" />Preview your booking page
+              </a>
+            </div>
+          )}
+        </div>
+        <Field label="Booking Page Bio" value={bookingPage.bookingBio} onChange={v => setBookingPage(p => ({ ...p, bookingBio: v }))} placeholder="Book a session with me..." textarea rows={2} />
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-2">Services Offered</label>
+          <div className="space-y-2 mb-3">
+            {bookingPage.bookingServices.map((s, i) => (
+              <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+                <span className="text-sm flex-1">{s}</span>
+                <button onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.filter((_, j) => j !== i) }))} className="text-gray-400 hover:text-red-500 transition-colors" aria-label={`Remove ${s}`}>
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Add a service..." className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }} />
+            <Button size="sm" variant="outline" onClick={() => { if (newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }}>
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+        <Button className="gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => updateBookingPage.mutate(bookingPage)} disabled={updateBookingPage.isPending}>
+          {updateBookingPage.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Booking Page</>}
+        </Button>
+      </div>
+
+      {/* Notifications */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Bell className="w-4 h-4 text-[#00C9A7]" />Notifications</h3>
         {[
-          { label: "Your Name", value: localName, setter: setLocalName, placeholder: "Alex Smith" },
-          { label: "Email Address", value: localEmail, setter: setLocalEmail, placeholder: "alex@example.com" },
-        ].map(f => (
-          <div key={f.label}>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">{f.label}</label>
-            <input value={f.value} onChange={e => f.setter(e.target.value)} placeholder={f.placeholder} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors" />
+          { key: "notifyNewBooking" as const, label: "New Booking", desc: "Get notified when a client books a session" },
+          { key: "notifyInvoicePaid" as const, label: "Invoice Paid", desc: "Get notified when an invoice is marked as paid" },
+          { key: "notifyNewLead" as const, label: "New Lead", desc: "Get notified when someone joins the waitlist" },
+        ].map(n => (
+          <div key={n.key} className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-[#1C1C1E]">{n.label}</p>
+              <p className="text-xs text-gray-400">{n.desc}</p>
+            </div>
+            <button
+              onClick={() => setNotifications(p => ({ ...p, [n.key]: !p[n.key] }))}
+              className={`w-11 h-6 rounded-full transition-colors relative ${notifications[n.key] ? "bg-[#00C9A7]" : "bg-gray-200"}`}
+              aria-label={`${notifications[n.key] ? "Disable" : "Enable"} ${n.label} notifications`}
+              role="switch"
+              aria-checked={notifications[n.key]}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notifications[n.key] ? "translate-x-5" : "translate-x-0.5"}`} />
+            </button>
           </div>
         ))}
+        <Button className="gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => updateNotifications.mutate(notifications)} disabled={updateNotifications.isPending}>
+          {updateNotifications.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Preferences</>}
+        </Button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-          <Building className="w-4 h-4 text-[#00C9A7]" />Business
-        </h3>
-        <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1.5">Business Name</label>
-          <input value={localBiz} onChange={e => setLocalBiz(e.target.value)} placeholder="My Coaching Studio" className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors" />
-        </div>
-      </div>
-
+      {/* Subscription */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-          <Zap className="w-4 h-4 text-[#00C9A7]" />Subscription
-        </h3>
+        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><CreditCard className="w-4 h-4 text-[#00C9A7]" />Subscription</h3>
         <div className="flex items-center justify-between p-3 bg-[#00C9A7]/5 border border-[#00C9A7]/20 rounded-xl">
           <div>
-            <p className="text-sm font-semibold text-[#1C1C1E]">Pro Trial</p>
-            <p className="text-xs text-gray-500">11 days remaining · Up to unlimited clients</p>
+            <p className="text-sm font-semibold text-[#1C1C1E] capitalize">{settings?.subscriptionStatus ?? "free"} Plan</p>
+            <p className="text-xs text-gray-500">{settings?.subscriptionStatus === "active" ? "Active subscription" : "No active subscription"}</p>
           </div>
-          <Badge className="bg-[#00C9A7] text-white border-0">Active</Badge>
+          <Badge className={`border-0 ${settings?.subscriptionStatus === "active" ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"}`}>
+            {settings?.subscriptionStatus === "active" ? "Active" : "Free"}
+          </Badge>
         </div>
-        <Button className="w-full gradient-teal text-white border-0 hover:opacity-90" onClick={() => toast.success("Redirecting to upgrade page...")}>
-          Upgrade to Pro — $99/month
+        <Button className="w-full gradient-teal text-white border-0 hover:opacity-90" onClick={() => navigate("/billing")}>
+          {settings?.subscriptionStatus === "active" ? "Manage Subscription" : "Upgrade to Pro — $99/month"}
         </Button>
       </div>
-
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-          <AlertCircle className="w-4 h-4 text-[#FF6B6B]" />Danger Zone
-        </h3>
-        <Button variant="outline" className="w-full border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300" onClick={() => {
-          if (confirm("Reset all data to defaults? This cannot be undone.")) {
-            localStorage.clear();
-            window.location.reload();
-          }
-        }}>
-          <RefreshCw className="w-4 h-4 mr-2" />Reset All Data
-        </Button>
-      </div>
-
-      <Button className="gradient-teal text-white border-0 hover:opacity-90 gap-2 w-full" onClick={handleSave}>
-        <Save className="w-4 h-4" />{saved ? "Saved!" : "Save Settings"}
-      </Button>
     </div>
   );
 }
 
-// ─── Mobile Bottom Nav ───────────────────────────────────────────────────────
+// ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
 function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive: (p: ActivePanel) => void }) {
-  const { unreadCount } = useApp();
   const mobileNavItems = [
     { icon: LayoutDashboard, label: "Home", panel: "overview" as ActivePanel },
     { icon: Users, label: "Clients", panel: "clients" as ActivePanel },
@@ -1077,27 +1351,17 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
     { icon: Bot, label: "AI", panel: "ai" as ActivePanel },
   ];
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-40 bg-[#1C1C1E] border-t border-white/10 flex md:hidden safe-area-bottom"
-      aria-label="Mobile navigation"
-    >
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#1C1C1E] border-t border-white/10 flex md:hidden" aria-label="Mobile navigation" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
       {mobileNavItems.map((item) => (
         <button
           key={item.panel}
           onClick={() => setActive(item.panel)}
           aria-label={item.label}
           aria-current={active === item.panel ? "page" : undefined}
-          className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 min-h-[56px] transition-colors relative ${
-            active === item.panel ? "text-[#00C9A7]" : "text-gray-500 hover:text-gray-300"
-          }`}
+          className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 min-h-[56px] transition-colors ${active === item.panel ? "text-[#00C9A7]" : "text-gray-500 hover:text-gray-300"}`}
         >
           <item.icon className="w-5 h-5" aria-hidden="true" />
           <span className="text-[10px] font-medium">{item.label}</span>
-          {item.panel === "followups" && unreadCount > 0 && (
-            <span className="absolute top-1.5 right-1/4 w-4 h-4 bg-[#FF6B6B] rounded-full text-white text-[9px] flex items-center justify-center font-bold">
-              {unreadCount}
-            </span>
-          )}
         </button>
       ))}
     </nav>
@@ -1110,136 +1374,121 @@ export default function Dashboard() {
   const [collapsed, setCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [search, setSearch] = useState("");
-  const { unreadCount, clients, addClient } = useApp();
+  const { user, isAuthenticated, loading } = useAuth();
+  const [, navigate] = useLocation();
 
-  // New Client quick-add modal
-  const [showQuickAdd, setShowQuickAdd] = useState(false);
-  const [qForm, setQForm] = useState({ name: "", email: "", service: "", status: "lead" as Client["status"] });
+  useEffect(() => {
+    if (!loading && !isAuthenticated) navigate("/");
+  }, [loading, isAuthenticated, navigate]);
+
+  if (loading) return (
+    <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="w-8 h-8 text-[#00C9A7] animate-spin mx-auto mb-3" />
+        <p className="text-sm text-gray-500">Loading your dashboard...</p>
+      </div>
+    </div>
+  );
 
   const panelTitles: Record<ActivePanel, string> = {
     overview: "Dashboard", clients: "Clients", scheduling: "Scheduling",
-    invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics", settings: "Settings", ai: "AI Assistant"
+    invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics",
+    settings: "Settings", ai: "AI Assistant",
+  };
+
+  const renderPanel = () => {
+    switch (active) {
+      case "overview": return <OverviewPanel userName={user?.name || ""} />;
+      case "clients": return <ClientsPanel />;
+      case "scheduling": return <SchedulingPanel />;
+      case "invoices": return <InvoicesPanel />;
+      case "followups": return <FollowUpsPanel />;
+      case "analytics": return <AnalyticsPanel />;
+      case "settings": return <SettingsPanel />;
+      case "ai": return <AIAssistant />;
+      default: return null;
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#F5F5F7] flex">
-      {/* Sidebar — hidden on mobile, shown on md+ */}
+      {/* Skip link */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-xl focus:shadow-lg focus:text-[#00C9A7] focus:font-semibold">
+        Skip to main content
+      </a>
+
+      {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} />
       </div>
 
-      {/* Mobile bottom nav */}
-      <MobileBottomNav active={active} setActive={setActive} />
-
-      <main className={`flex-1 transition-all duration-300 md:${collapsed ? "ml-16" : "ml-60"} min-h-screen pb-20 md:pb-0`} id="main-content">
-        {/* Top Bar */}
-        <header className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-30" role="banner">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="hidden md:flex p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-[#00C9A7]"
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              <LayoutDashboard className="w-4 h-4 text-gray-500" aria-hidden="true" />
-            </button>
-            {/* Mobile: show current panel title */}
-            <div className="flex md:hidden items-center gap-2">
-              <div className="w-7 h-7 rounded-lg gradient-teal flex items-center justify-center" aria-hidden="true">
+      {/* Main Content */}
+      <main
+        id="main-content"
+        className={`flex-1 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"} pb-20 md:pb-0`}
+        tabIndex={-1}
+      >
+        {/* Header */}
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 md:px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* Mobile logo */}
+            <div className="flex items-center gap-2 md:hidden">
+              <div className="w-7 h-7 rounded-lg gradient-teal flex items-center justify-center">
                 <Zap className="w-3.5 h-3.5 text-white" />
               </div>
-              <span className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>{panelTitles[active]}</span>
+              <span className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: "Sora, sans-serif" }}>SkillBridge</span>
             </div>
-            <div className="hidden md:flex items-center gap-2 text-sm text-gray-400" aria-label="Breadcrumb">
-              <span className="text-gray-300">/</span>
-              <span className="font-medium text-[#1C1C1E]">{panelTitles[active]}</span>
+            <h1 className="hidden md:block text-base font-bold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>
+              {panelTitles[active]}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Search */}
+            <div className="relative hidden lg:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Quick search..."
+                className="pl-8 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors w-48"
+                aria-label="Quick search"
+              />
             </div>
-          </div>
-          <div className="relative hidden md:block">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
-            <label htmlFor="dashboard-search" className="sr-only">Search clients and invoices</label>
-            <input
-              id="dashboard-search"
-              type="search"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search clients, invoices..."
-              className="pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl w-64 focus:outline-none focus:ring-2 focus:ring-[#00C9A7] transition-colors"
-              onFocus={() => setActive("clients")}
-            />
-          </div>
-          <div className="flex items-center gap-3">
+
+            {/* Notifications */}
             <div className="relative">
               <button
-                className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
                 onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                aria-label="Notifications"
+                aria-expanded={showNotifications}
               >
                 <Bell className="w-4 h-4 text-gray-500" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 bg-[#FF6B6B] rounded-full text-white text-xs flex items-center justify-center font-bold leading-none">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
               </button>
-              <NotificationsPanel open={showNotifications} onClose={() => setShowNotifications(false)} />
+              {showNotifications && (
+                <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 p-4">
+                  <p className="text-sm font-bold text-[#1C1C1E] mb-2">Notifications</p>
+                  <p className="text-xs text-gray-400 text-center py-4">No new notifications</p>
+                </div>
+              )}
             </div>
-            <Button
-              size="sm"
-              className="gradient-teal text-white border-0 hover:opacity-90 gap-1.5 focus:ring-2 focus:ring-[#00C9A7] focus:ring-offset-2"
-              onClick={() => setShowQuickAdd(true)}
-              aria-label="Add new client"
-            >
-              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-              <span className="hidden sm:inline">New Client</span>
-            </Button>
-            <button
-              className="w-8 h-8 rounded-full bg-[#00C9A7] flex items-center justify-center text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#00C9A7] focus:ring-offset-2"
-              onClick={() => setActive("settings")}
-              aria-label="Open settings"
-            >
-              A
-            </button>
+
+            {/* User Avatar */}
+            <div className="w-8 h-8 rounded-full gradient-teal flex items-center justify-center text-white text-xs font-bold" aria-label={`Logged in as ${user?.name || "User"}`}>
+              {user?.name?.slice(0, 2).toUpperCase() || "U"}
+            </div>
           </div>
         </header>
 
         {/* Panel Content */}
-        <div className="p-4 sm:p-6">
-          {active === "overview" && <OverviewPanel setActive={setActive} />}
-          {active === "clients" && <ClientsPanel />}
-          {active === "scheduling" && <SchedulingPanel />}
-          {active === "invoices" && <InvoicesPanel />}
-          {active === "followups" && <FollowUpsPanel />}
-          {active === "analytics" && <AnalyticsPanel />}
-          {active === "settings" && <SettingsPanel />}
-        {active === "ai" && <AIAssistant />}
+        <div className="p-4 md:p-6 max-w-6xl mx-auto">
+          {renderPanel()}
         </div>
       </main>
 
-      {/* Quick Add Client Modal */}
-      <Modal open={showQuickAdd} onClose={() => setShowQuickAdd(false)} title="Quick Add Client">
-        <div className="space-y-4">
-          {[
-            { label: "Full Name *", key: "name", placeholder: "Jane Smith" },
-            { label: "Email *", key: "email", placeholder: "jane@example.com" },
-            { label: "Service", key: "service", placeholder: "Business Coaching" },
-          ].map(f => (
-            <div key={f.key}>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">{f.label}</label>
-              <input value={(qForm as any)[f.key]} onChange={e => setQForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.placeholder} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors" />
-            </div>
-          ))}
-          <div className="flex gap-3 pt-2">
-            <Button variant="outline" className="flex-1" onClick={() => setShowQuickAdd(false)}>Cancel</Button>
-            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90" onClick={() => {
-              if (!qForm.name || !qForm.email) { toast.error("Name and email required"); return; }
-              addClient({ ...qForm, phone: "", notes: "", totalRevenue: 0, lastContact: "Just now", avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(qForm.name)}&background=00C9A7&color=fff&size=60`, joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) });
-              setQForm({ name: "", email: "", service: "", status: "lead" });
-              setShowQuickAdd(false);
-              setActive("clients");
-              toast.success(`${qForm.name} added!`);
-            }}>Add Client</Button>
-          </div>
-        </div>
-      </Modal>
+      {/* Mobile Bottom Nav */}
+      <MobileBottomNav active={active} setActive={setActive} />
     </div>
   );
 }

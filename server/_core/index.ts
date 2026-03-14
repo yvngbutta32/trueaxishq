@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { handleStripeWebhook } from "../stripeWebhook";
+import { securityMiddleware } from "../security";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -42,6 +43,9 @@ async function startServer() {
   // ── Standard body parsers ─────────────────────────────────────────────────
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // ── Security middleware (rate limiting, blocklist, header hardening) ──────
+  app.use(securityMiddleware);
 
   // ── OAuth callback ────────────────────────────────────────────────────────
   registerOAuthRoutes(app);

@@ -15,6 +15,13 @@
       "when": 1772791575779,
       "tag": "0001_wooden_junta",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1773527471061,
+      "tag": "0002_third_tarot",
+      "breakpoints": true
     }
   ]
 }

@@ -17,6 +17,11 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Billing = lazy(() => import("./pages/Billing"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
 const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
+const About = lazy(() => import("./pages/About"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Help = lazy(() => import("./pages/Help"));
+const Contact = lazy(() => import("./pages/Contact"));
 
 // ─── Full-screen page loader ──────────────────────────────────────────────────
 function PageLoader() {
@@ -67,6 +72,13 @@ function Router() {
         {/* Owner admin routes */}
         <Route path="/admin" component={Admin} />
         <Route path="/admin/:section" component={Admin} />
+
+        {/* Info pages */}
+        <Route path="/about" component={About} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/terms" component={Terms} />
+        <Route path="/help" component={Help} />
+        <Route path="/contact" component={Contact} />
 
         {/* Fallbacks */}
         <Route path="/404" component={NotFound} />

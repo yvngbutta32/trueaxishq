@@ -8,6 +8,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 import {
   Zap, Calendar, FileText, Mail, BarChart3, Users,
   ArrowRight, CheckCircle, Star, Menu, X, Sparkles,
@@ -428,14 +429,22 @@ function HeroSection({ onCTA }: { onCTA: () => void }) {
   const [, navigate] = useLocation();
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const captureLead = trpc.leads.capture.useMutation();
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setEmailError("");
     if (!email.trim()) { setEmailError("Please enter your email address"); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setEmailError("Please enter a valid email address"); return; }
-    toast.success(`🎉 You're on the list! Check ${email} for your access link.`);
-    setEmail("");
+    try {
+      await captureLead.mutateAsync({ email: email.trim(), source: "landing_page" });
+      setSubmitted(true);
+      toast.success(`🎉 You're on the list! We'll be in touch at ${email}.`);
+      setEmail("");
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    }
   };
 
   return (
@@ -481,11 +490,12 @@ function HeroSection({ onCTA }: { onCTA: () => void }) {
                   aria-describedby={emailError ? "hero-email-error" : undefined}
                   className={`flex-1 px-4 py-3 text-sm bg-white/10 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00C9A7] transition-colors min-h-[48px] ${emailError ? "border-red-400" : "border-white/20"}`}
                 />
-                <Button
+                  <Button
                   type="submit"
-                  className="gradient-teal text-white border-0 hover:opacity-90 px-5 py-3 whitespace-nowrap min-h-[48px] focus:ring-2 focus:ring-[#00C9A7] focus:ring-offset-2 focus:ring-offset-[#1C1C1E]"
+                  disabled={captureLead.isPending || submitted}
+                  className="gradient-teal text-white border-0 hover:opacity-90 px-5 py-3 whitespace-nowrap min-h-[48px] focus:ring-2 focus:ring-[#00C9A7] focus:ring-offset-2 focus:ring-offset-[#1C1C1E] disabled:opacity-60"
                 >
-                  Get Early Access
+                  {submitted ? "You're on the list! ✓" : captureLead.isPending ? "Saving..." : "Get Early Access"}
                 </Button>
               </div>
               {emailError && <p id="hero-email-error" role="alert" className="text-xs text-red-400 mt-1.5">{emailError}</p>}
@@ -718,14 +728,22 @@ function TestimonialsSection() {
 function CTASection({ onCTA }: { onCTA: () => void }) {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const captureLead = trpc.leads.capture.useMutation();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setEmailError("");
     if (!email.trim()) { setEmailError("Please enter your email address"); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setEmailError("Please enter a valid email address"); return; }
-    toast.success(`🎉 You're on the list! Check ${email} for your access link.`);
-    setEmail("");
+    try {
+      await captureLead.mutateAsync({ email: email.trim(), source: "footer" });
+      setSubmitted(true);
+      toast.success(`🎉 You're on the list! We'll be in touch at ${email}.`);
+      setEmail("");
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    }
   };
 
   return (
@@ -761,9 +779,10 @@ function CTASection({ onCTA }: { onCTA: () => void }) {
             />
             <Button
               type="submit"
-              className="gradient-teal text-white border-0 hover:opacity-90 px-6 whitespace-nowrap min-h-[48px] focus:ring-2 focus:ring-[#00C9A7] focus:ring-offset-2 focus:ring-offset-[#1C1C1E]"
+              disabled={captureLead.isPending || submitted}
+              className="gradient-teal text-white border-0 hover:opacity-90 px-6 whitespace-nowrap min-h-[48px] focus:ring-2 focus:ring-[#00C9A7] focus:ring-offset-2 focus:ring-offset-[#1C1C1E] disabled:opacity-60"
             >
-              Get Started
+              {submitted ? "You're on the list! ✓" : captureLead.isPending ? "Saving..." : "Get Started"}
             </Button>
           </div>
           {emailError && <p id="cta-email-error" role="alert" className="text-xs text-red-400 mt-1.5 text-left">{emailError}</p>}
@@ -818,17 +837,17 @@ function Footer() {
             {
               title: "Company",
               links: [
-                { label: "About", action: () => toast.info("About page coming soon!") },
-                { label: "Blog", action: () => toast.info("Blog coming soon!") },
-                { label: "Careers", action: () => toast.info("We're hiring! Email careers@skillbridge.ai") },
+                { label: "About", action: () => navigate("/about") },
+                { label: "Contact", action: () => navigate("/contact") },
+                { label: "Careers", action: () => window.location.href = "mailto:careers@skillbridge.ai" },
               ],
             },
             {
               title: "Support",
               links: [
-                { label: "Help Center", action: () => toast.info("Help center coming soon!") },
-                { label: "Contact", action: () => toast.info("Email support@skillbridge.ai") },
-                { label: "Privacy Policy", action: () => toast.info("Privacy policy coming soon!") },
+                { label: "Help Center", action: () => navigate("/help") },
+                { label: "Privacy Policy", action: () => navigate("/privacy") },
+                { label: "Terms of Service", action: () => navigate("/terms") },
               ],
             },
           ].map(col => (
