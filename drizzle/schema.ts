@@ -195,3 +195,39 @@ export const clientPulse = mysqlTable("clientPulse", {
 
 export type ClientPulse = typeof clientPulse.$inferSelect;
 export type InsertClientPulse = typeof clientPulse.$inferInsert;
+
+// ─── Platform Settings (admin-editable site config) ─────────────────────────────
+
+export const platformSettings = mysqlTable("platformSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  // Site identity
+  siteName: varchar("siteName", { length: 255 }).default("SkillBridge AI").notNull(),
+  siteTagline: varchar("siteTagline", { length: 512 }).default("The AI-powered business platform for freelancers & coaches"),
+  supportEmail: varchar("supportEmail", { length: 320 }).default("support@skillbridge.ai"),
+  supportPhone: varchar("supportPhone", { length: 32 }),
+  // Announcement banner
+  announcementEnabled: boolean("announcementEnabled").default(false).notNull(),
+  announcementText: varchar("announcementText", { length: 512 }),
+  announcementColor: varchar("announcementColor", { length: 32 }).default("teal"),
+  // Social links
+  socialTwitter: varchar("socialTwitter", { length: 255 }),
+  socialLinkedin: varchar("socialLinkedin", { length: 255 }),
+  socialInstagram: varchar("socialInstagram", { length: 255 }),
+  socialYoutube: varchar("socialYoutube", { length: 255 }),
+  // Feature flags
+  featureClientPulse: boolean("featureClientPulse").default(true).notNull(),
+  featureBookingPage: boolean("featureBookingPage").default(true).notNull(),
+  featureInvoicing: boolean("featureInvoicing").default(true).notNull(),
+  featureFollowUps: boolean("featureFollowUps").default(true).notNull(),
+  featureAnalytics: boolean("featureAnalytics").default(true).notNull(),
+  featureAIAssistant: boolean("featureAIAssistant").default(true).notNull(),
+  // Maintenance
+  maintenanceMode: boolean("maintenanceMode").default(false).notNull(),
+  maintenanceMessage: varchar("maintenanceMessage", { length: 512 }),
+  // Free trial config
+  freeTrialDays: int("freeTrialDays").default(14).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PlatformSettings = typeof platformSettings.$inferSelect;
+export type InsertPlatformSettings = typeof platformSettings.$inferInsert;

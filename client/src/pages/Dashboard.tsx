@@ -219,10 +219,11 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
 }
 
 // ─── Overview Panel ───────────────────────────────────────────────────────────
-function OverviewPanel({ userName }: { userName: string }) {
+function OverviewPanel({ userName, setActivePanel }: { userName: string; setActivePanel: (p: ActivePanel) => void }) {
   const { data: analytics, isLoading } = trpc.analytics.overview.useQuery(undefined, { retry: 2 });
   const { data: recentClients } = trpc.clients.list.useQuery({ search: "", status: "all" });
   const { data: recentBookings } = trpc.bookings.list.useQuery({ status: "scheduled" });
+  const { data: pulseData } = trpc.pulse.getAll.useQuery(undefined, { retry: 1 });
 
   if (isLoading) return (
     <div className="space-y-5">
@@ -322,6 +323,58 @@ function OverviewPanel({ userName }: { userName: string }) {
         </div>
       </div>
 
+      {/* Client Pulse Summary Widget */}
+      {pulseData && pulseData.length > 0 && (() => {
+        const withPulse = pulseData.filter(d => d.pulse !== null);
+        const churnRisk = withPulse.filter(d => d.pulse?.churnRisk === true).length;
+        const upsellReady = withPulse.filter(d => d.pulse?.upsellReady === true).length;
+        const goingSilent = withPulse.filter(d => d.pulse?.goingSilent === true).length;
+        const avgScore = withPulse.length > 0
+          ? Math.round(withPulse.reduce((s, d) => s + (d.pulse?.healthScore ?? 0), 0) / withPulse.length)
+          : null;
+        if (withPulse.length === 0) return null;
+        return (
+          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <HeartPulse className="w-4 h-4 text-[#00C9A7]" />
+                <h3 className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Client Pulse</h3>
+                <span className="text-xs bg-[#00C9A7]/10 text-[#00C9A7] font-semibold px-2 py-0.5 rounded-full">AI</span>
+              </div>
+              <button onClick={() => setActivePanel("pulse")} className="text-xs text-[#00C9A7] hover:underline font-medium flex items-center gap-1">
+                View All <ChevronRight className="w-3 h-3" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="text-center p-3 bg-gray-50 rounded-xl">
+                <p className="text-2xl font-extrabold" style={{ fontFamily: "Sora, sans-serif", color: avgScore !== null ? (avgScore >= 70 ? "#00C9A7" : avgScore >= 40 ? "#F59E0B" : "#FF6B6B") : "#9CA3AF" }}>{avgScore ?? "—"}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Avg Health</p>
+              </div>
+              <div className="text-center p-3 bg-red-50 rounded-xl">
+                <p className="text-2xl font-extrabold text-[#FF6B6B]" style={{ fontFamily: "Sora, sans-serif" }}>{churnRisk}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Churn Risk</p>
+              </div>
+              <div className="text-center p-3 bg-yellow-50 rounded-xl">
+                <p className="text-2xl font-extrabold text-yellow-600" style={{ fontFamily: "Sora, sans-serif" }}>{goingSilent}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Going Silent</p>
+              </div>
+              <div className="text-center p-3 bg-[#00C9A7]/10 rounded-xl">
+                <p className="text-2xl font-extrabold text-[#00C9A7]" style={{ fontFamily: "Sora, sans-serif" }}>{upsellReady}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Upsell Ready</p>
+              </div>
+            </div>
+            {churnRisk > 0 && (
+              <div className="mt-3 flex items-center gap-2 p-3 bg-red-50 rounded-xl border border-red-100">
+                <AlertCircle className="w-4 h-4 text-[#FF6B6B] flex-shrink-0" />
+                <p className="text-xs text-red-700">
+                  <strong>{churnRisk} client{churnRisk > 1 ? "s" : ""}</strong> at risk of churning. <button onClick={() => setActivePanel("pulse")} className="underline font-semibold">Take action →</button>
+                </p>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Recent Activity */}
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
@@ -389,6 +442,8 @@ function ClientsPanel() {
 
   const { data: clientList, isLoading } = trpc.clients.list.useQuery({ search, status: statusFilter });
   const { data: selectedClient } = trpc.clients.get.useQuery({ id: selectedId! }, { enabled: !!selectedId });
+  const { data: pulseData } = trpc.pulse.getAll.useQuery(undefined, { retry: 1 });
+  const pulseMap = new Map((pulseData ?? []).map(d => [d.client.id, d.pulse]));
 
   const createClient = trpc.clients.create.useMutation({
     onSuccess: () => { utils.clients.list.invalidate(); toast.success("Client added successfully!"); setShowAdd(false); setForm({ name: "", email: "", phone: "", service: "", status: "active", notes: "" }); },
@@ -473,8 +528,25 @@ function ClientsPanel() {
             aria-label={`View ${c.name}'s profile`}
           >
             <div className="col-span-2 flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-full gradient-teal flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                {c.avatarInitials || c.name.slice(0, 2).toUpperCase()}
+              <div className="relative flex-shrink-0">
+                <div className="w-9 h-9 rounded-full gradient-teal flex items-center justify-center text-white text-xs font-bold">
+                  {c.avatarInitials || c.name.slice(0, 2).toUpperCase()}
+                </div>
+                {(() => {
+                  const p = pulseMap.get(c.id);
+                  if (!p) return null;
+                  const score = p.healthScore;
+                  const color = score >= 70 ? "#00C9A7" : score >= 40 ? "#F59E0B" : "#FF6B6B";
+                  return (
+                    <span
+                      title={`Health score: ${score}`}
+                      className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold text-white"
+                      style={{ backgroundColor: color }}
+                    >
+                      {score >= 70 ? "✓" : score >= 40 ? "!" : "✕"}
+                    </span>
+                  );
+                })()}
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-[#1C1C1E] truncate">{c.name}</p>
@@ -731,6 +803,10 @@ function InvoicesPanel() {
     onSuccess: () => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); toast.success("Invoice deleted."); },
     onError: (e) => toast.error(e.message),
   });
+  const sendReminder = trpc.invoices.sendReminder.useMutation({
+    onSuccess: (data) => { utils.followUps.list.invalidate(); toast.success(`Reminder draft saved to Follow-Ups: "${data.subject}"`); },
+    onError: (e) => toast.error(e.message),
+  });
 
   const statusColor: Record<string, string> = {
     draft: "bg-gray-100 text-gray-500",
@@ -795,6 +871,16 @@ function InvoicesPanel() {
               {inv.status !== "paid" && (
                 <button onClick={() => markPaid.mutate({ id: inv.id })} className="text-xs text-[#00C9A7] hover:underline font-medium" disabled={markPaid.isPending}>
                   Mark Paid
+                </button>
+              )}
+              {(inv.status === "sent" || inv.status === "overdue") && (
+                <button
+                  onClick={() => sendReminder.mutate({ id: inv.id })}
+                  className="text-xs text-[#FF6B6B] hover:underline font-medium flex items-center gap-1"
+                  disabled={sendReminder.isPending}
+                  title="Generate a payment reminder email draft"
+                >
+                  <Bell className="w-3 h-3" />Remind
                 </button>
               )}
               <button onClick={() => setPreviewInvoice(inv)} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Preview invoice">
@@ -1275,10 +1361,16 @@ function SettingsPanel() {
             />
           </div>
           {bookingUrl && (
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-3 mt-2 flex-wrap">
               <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#00C9A7] hover:underline flex items-center gap-1">
                 <ExternalLink className="w-3 h-3" />Preview your booking page
               </a>
+              <button
+                onClick={() => { navigator.clipboard.writeText(bookingUrl).then(() => toast.success("Booking link copied to clipboard!")).catch(() => toast.error("Could not copy link")); }}
+                className="text-xs text-gray-500 hover:text-[#00C9A7] flex items-center gap-1 transition-colors"
+              >
+                <Copy className="w-3 h-3" />Copy link
+              </button>
             </div>
           )}
         </div>
@@ -1414,7 +1506,7 @@ export default function Dashboard() {
 
   const renderPanel = () => {
     switch (active) {
-      case "overview": return <OverviewPanel userName={user?.name || ""} />;
+      case "overview": return <OverviewPanel userName={user?.name || ""} setActivePanel={setActive} />;
       case "clients": return <ClientsPanel />;
       case "scheduling": return <SchedulingPanel />;
       case "invoices": return <InvoicesPanel />;

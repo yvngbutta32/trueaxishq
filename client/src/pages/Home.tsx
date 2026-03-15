@@ -604,7 +604,8 @@ function FeaturesSection({ onCTA }: { onCTA: () => void }) {
     { icon: <Mail className="w-6 h-6" aria-hidden="true" />, title: "AI Follow-Up Engine", description: "Never lose a lead again. Automated email and SMS follow-ups that sound personal, not robotic — powered by AI.", color: "#FF6B6B" },
     { icon: <BarChart3 className="w-6 h-6" aria-hidden="true" />, title: "Analytics Dashboard", description: "See your revenue trends, client retention rates, and booking patterns at a glance. Know exactly where to focus.", color: "#00C9A7" },
     { icon: <Zap className="w-6 h-6" aria-hidden="true" />, title: "Booking Page Builder", description: "Your professional booking page is included — no extra tools needed. Share one link and let clients book instantly.", color: "#FF6B6B" },
-  ];
+    { icon: <TrendingUp className="w-6 h-6" aria-hidden="true" />, title: "Client Pulse AI", description: "The world's first AI relationship health engine. Detects churn risk, upsell opportunities, and silent clients before they disappear — then drafts the perfect outreach automatically.", color: "#6366F1", badge: "New" },
+  ] as { icon: React.ReactNode; title: string; description: string; color: string; badge?: string }[];
 
   return (
     <section id="features" className="py-16 sm:py-24 bg-[#FAFAF8]" aria-labelledby="features-heading">
@@ -623,7 +624,10 @@ function FeaturesSection({ onCTA }: { onCTA: () => void }) {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {features.map((f, i) => (
-            <article key={i} className="bg-white rounded-2xl p-5 sm:p-6 card-lift border border-gray-100 group cursor-pointer" onClick={onCTA}>
+            <article key={i} className="relative bg-white rounded-2xl p-5 sm:p-6 card-lift border border-gray-100 group cursor-pointer" onClick={onCTA}>
+              {f.badge && (
+                <span className="absolute top-4 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: f.color }}>{f.badge}</span>
+              )}
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 text-white transition-transform group-hover:scale-110" style={{ backgroundColor: f.color }}>
                 {f.icon}
               </div>
@@ -718,6 +722,120 @@ function TestimonialsSection() {
               </figcaption>
             </figure>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Client Pulse Showcase ──────────────────────────────────────────────────
+function ClientPulseShowcase({ onCTA }: { onCTA: () => void }) {
+  const signals = [
+    { label: "Days since last contact", value: "14 days", risk: true },
+    { label: "Bookings last 90 days", value: "0", risk: true },
+    { label: "Outstanding invoices", value: "$1,200", risk: true },
+    { label: "Revenue trend", value: "-40%", risk: true },
+  ];
+  return (
+    <section className="py-16 sm:py-24 bg-[#1C1C1E] relative overflow-hidden" aria-labelledby="pulse-showcase-heading">
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div className="absolute top-1/2 left-0 w-72 h-72 rounded-full bg-[#6366F1] opacity-10 blur-3xl -translate-y-1/2" />
+        <div className="absolute top-1/2 right-0 w-72 h-72 rounded-full bg-[#00C9A7] opacity-10 blur-3xl -translate-y-1/2" />
+      </div>
+      <div className="container relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left — copy */}
+          <div>
+            <div className="inline-flex items-center gap-2 bg-[#6366F1]/15 text-[#A5B4FC] border border-[#6366F1]/30 rounded-full px-4 py-1.5 text-xs font-semibold mb-6">
+              <Sparkles className="w-3 h-3" aria-hidden="true" />
+              Exclusive to SkillBridge AI
+            </div>
+            <h2 id="pulse-showcase-heading" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6" style={{ fontFamily: "Sora, sans-serif" }}>
+              Know which clients are about to leave —
+              <span className="text-[#6366F1]"> before they do.</span>
+            </h2>
+            <p className="text-base sm:text-lg text-gray-400 mb-8 leading-relaxed">
+              Client Pulse AI is the world's first relationship health engine for freelancers. It analyzes 8 behavioral signals across your entire client base and surfaces churn risks, upsell opportunities, and silent clients — then writes the outreach for you.
+            </p>
+            <ul className="space-y-3 mb-8" aria-label="Client Pulse AI benefits">
+              {[
+                "Detects churn risk up to 30 days before a client goes silent",
+                "Identifies upsell-ready clients based on booking and revenue patterns",
+                "Drafts personalized re-engagement emails with one click",
+                "Updates automatically as you add bookings, invoices, and follow-ups",
+              ].map(item => (
+                <li key={item} className="flex items-start gap-3 text-sm text-gray-300">
+                  <CheckCircle className="w-4 h-4 text-[#6366F1] flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={onCTA}
+              className="inline-flex items-center gap-2 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-semibold px-6 py-3 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:ring-offset-2 focus:ring-offset-[#1C1C1E]"
+            >
+              Try Client Pulse AI free <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
+          {/* Right — mock pulse card */}
+          <div className="relative" aria-hidden="true">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#FF8E53] flex items-center justify-center text-white text-sm font-bold">JD</div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">Jessica Davis</p>
+                    <p className="text-xs text-gray-400">Business Consultant</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#FF6B6B] animate-pulse" />
+                    <span className="text-xs font-bold text-[#FF6B6B]">Churn Risk</span>
+                  </div>
+                  <div className="text-2xl font-extrabold text-white mt-0.5" style={{ fontFamily: "Sora, sans-serif" }}>24</div>
+                  <div className="text-[10px] text-gray-500">Health Score</div>
+                </div>
+              </div>
+              <div className="w-full bg-white/10 rounded-full h-2 mb-5">
+                <div className="h-2 rounded-full bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53]" style={{ width: "24%" }} />
+              </div>
+              <div className="grid grid-cols-2 gap-2 mb-5">
+                {signals.map(s => (
+                  <div key={s.label} className="bg-white/5 rounded-xl p-3">
+                    <p className="text-[10px] text-gray-500 mb-0.5">{s.label}</p>
+                    <p className="text-sm font-bold text-[#FF6B6B]">{s.value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-[#6366F1]/10 border border-[#6366F1]/20 rounded-xl p-3 mb-4">
+                <p className="text-xs text-[#A5B4FC] font-semibold mb-1">AI Insight</p>
+                <p className="text-xs text-gray-300 leading-relaxed">Jessica has gone quiet after a strong Q3. Her last booking was 14 days ago and she has an unpaid invoice. High risk of churn — reach out now.</p>
+              </div>
+              <button className="w-full bg-[#6366F1] hover:bg-[#4F46E5] text-white text-xs font-semibold py-2.5 rounded-xl transition-colors">
+                Use AI Draft → Send to Follow-Ups
+              </button>
+            </div>
+            {/* Floating badges */}
+            <div className="absolute -top-4 -right-4 bg-white rounded-xl px-3 py-2 shadow-xl flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-[#00C9A7]/15 flex items-center justify-center">
+                <TrendingUp className="w-3.5 h-3.5 text-[#00C9A7]" />
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-500">Upsell Ready</p>
+                <p className="text-xs font-bold text-gray-900">3 clients</p>
+              </div>
+            </div>
+            <div className="absolute -bottom-4 -left-4 bg-white rounded-xl px-3 py-2 shadow-xl flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-[#FF6B6B]/15 flex items-center justify-center">
+                <Shield className="w-3.5 h-3.5 text-[#FF6B6B]" />
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-500">Churn Risk</p>
+                <p className="text-xs font-bold text-gray-900">2 clients</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -893,6 +1011,7 @@ export default function Home() {
       <FeaturesSection onCTA={() => setShowOnboarding(true)} />
       <HowItWorksSection onCTA={() => setShowOnboarding(true)} />
       <TestimonialsSection />
+      <ClientPulseShowcase onCTA={() => setShowOnboarding(true)} />
       <CTASection onCTA={() => setShowOnboarding(true)} />
       <Footer />
     </div>

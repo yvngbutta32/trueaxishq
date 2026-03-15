@@ -9,7 +9,7 @@ import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings } from "../drizzle/schema";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
@@ -260,15 +260,62 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    markOverdue: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.update(invoices)
+          .set({ status: "overdue", updatedAt: new Date() })
+          .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    sendReminder: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [inv] = await db.select().from(invoices)
+          .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id))).limit(1);
+        if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
+        const [user] = await db.select({ name: users.name, businessName: users.businessName })
+          .from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        const senderName = user?.businessName || user?.name || "Your service provider";
+        const subject = `Friendly Reminder: Invoice #${inv.invoiceNumber} is due`;
+        const body = `Hi ${inv.clientName},\n\nI wanted to send a friendly reminder that invoice #${inv.invoiceNumber} for ${inv.service || "services rendered"} in the amount of $${parseFloat(String(inv.amount)).toFixed(2)} is currently outstanding.\n\nIf you have any questions or need to discuss payment arrangements, please don't hesitate to reach out.\n\nThank you for your continued support!\n\nBest regards,\n${senderName}`;
+        await db.insert(followUps).values({
+          userId: ctx.user.id,
+          clientId: inv.clientId || null,
+          clientName: inv.clientName,
+          clientEmail: inv.clientEmail || null,
+          subject,
+          body,
+          status: "draft",
+        });
+        return { success: true, subject };
+      }),
+
     stats: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
       const all = await db.select().from(invoices).where(eq(invoices.userId, ctx.user.id));
+      // Auto-detect overdue: mark sent invoices past their due date
+      const today = new Date().toISOString().split("T")[0];
+      const overdueIds = all
+        .filter(i => i.status === "sent" && i.dueDate && i.dueDate < today)
+        .map(i => i.id);
+      if (overdueIds.length > 0) {
+        requireDb().then(db => {
+          overdueIds.forEach(id => {
+            db.update(invoices).set({ status: "overdue", updatedAt: new Date() })
+              .where(eq(invoices.id, id)).catch(() => {});
+          });
+        }).catch(() => {});
+      }
       const totalRevenue = all.filter(i => i.status === "paid").reduce((s, i) => s + parseFloat(String(i.amount)), 0);
       const outstanding = all.filter(i => i.status === "sent" || i.status === "overdue").reduce((s, i) => s + parseFloat(String(i.amount)), 0);
       return {
         totalRevenue,
         outstanding,
-        overdue: all.filter(i => i.status === "overdue").length,
+        overdue: all.filter(i => i.status === "overdue" || (i.status === "sent" && i.dueDate && i.dueDate < today)).length,
         paid: all.filter(i => i.status === "paid").length,
         total: all.length,
       };
@@ -810,6 +857,127 @@ export const appRouter = router({
         if (!sent) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Notification service unavailable. Try again shortly." });
         return { success: true };
       }),
+
+    // ── Platform Settings ───────────────────────────────────────────────────────
+    getSettings: adminProcedure.query(async () => {
+      const db = await requireDb();
+      const rows = await db.select().from(platformSettings).limit(1);
+      if (rows[0]) return rows[0];
+      // Seed defaults on first access
+      await db.insert(platformSettings).values({});
+      const fresh = await db.select().from(platformSettings).limit(1);
+      return fresh[0]!;
+    }),
+
+    updateSettings: adminProcedure
+      .input(z.object({
+        siteName: z.string().trim().min(1).max(255).optional(),
+        siteTagline: z.string().trim().max(512).optional(),
+        supportEmail: z.string().trim().email().max(320).optional(),
+        supportPhone: z.string().trim().max(32).optional(),
+        announcementEnabled: z.boolean().optional(),
+        announcementText: z.string().trim().max(512).optional(),
+        announcementColor: z.enum(["teal", "coral", "purple", "yellow", "blue"]).optional(),
+        socialTwitter: z.string().trim().max(255).optional(),
+        socialLinkedin: z.string().trim().max(255).optional(),
+        socialInstagram: z.string().trim().max(255).optional(),
+        socialYoutube: z.string().trim().max(255).optional(),
+        featureClientPulse: z.boolean().optional(),
+        featureBookingPage: z.boolean().optional(),
+        featureInvoicing: z.boolean().optional(),
+        featureFollowUps: z.boolean().optional(),
+        featureAnalytics: z.boolean().optional(),
+        featureAIAssistant: z.boolean().optional(),
+        maintenanceMode: z.boolean().optional(),
+        maintenanceMessage: z.string().trim().max(512).optional(),
+        freeTrialDays: z.number().int().min(0).max(365).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const existing = await db.select({ id: platformSettings.id }).from(platformSettings).limit(1);
+        if (!existing[0]) {
+          await db.insert(platformSettings).values(input as any);
+        } else {
+          await db.update(platformSettings).set(input as any).where(eq(platformSettings.id, existing[0].id));
+        }
+        return { success: true };
+      }),
+
+    // ── User Management (extended) ────────────────────────────────────────────
+    updateUserPlan: adminProcedure
+      .input(z.object({
+        userId: z.number().int().positive(),
+        planId: z.enum(["free", "starter", "pro", "agency"]),
+        subscriptionStatus: z.enum(["free", "active", "cancelled", "past_due"]),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const target = await db.select({ id: users.id }).from(users).where(eq(users.id, input.userId)).limit(1);
+        if (!target[0]) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
+        await db.update(users).set({
+          planId: input.planId,
+          subscriptionStatus: input.subscriptionStatus,
+        }).where(eq(users.id, input.userId));
+        return { success: true };
+      }),
+
+    deleteUser: adminProcedure
+      .input(z.object({ userId: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        if (input.userId === ctx.user.id) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "You cannot delete your own account from the admin panel." });
+        }
+        const db = await requireDb();
+        const target = await db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, input.userId)).limit(1);
+        if (!target[0]) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
+        // Delete all user data in order
+        await db.delete(clientPulse).where(eq(clientPulse.userId, input.userId));
+        await db.delete(followUps).where(eq(followUps.userId, input.userId));
+        await db.delete(bookings).where(eq(bookings.userId, input.userId));
+        await db.delete(invoices).where(eq(invoices.userId, input.userId));
+        await db.delete(clients).where(eq(clients.userId, input.userId));
+        await db.delete(emailTemplates).where(eq(emailTemplates.userId, input.userId));
+        await db.delete(users).where(eq(users.id, input.userId));
+        return { success: true, deletedName: target[0].name };
+      }),
+
+    // ── System Health ───────────────────────────────────────────────────────────────
+    getSystemHealth: adminProcedure.query(async () => {
+      const db = await requireDb();
+      const now = Date.now();
+      const uptimeSeconds = process.uptime();
+      // DB ping
+      let dbOk = false;
+      try {
+        await db.select({ id: users.id }).from(users).limit(1);
+        dbOk = true;
+      } catch { dbOk = false; }
+      // Counts
+      const allUsers = await db.select({ id: users.id, createdAt: users.createdAt, planId: users.planId }).from(users);
+      const allClients = await db.select({ id: clients.id }).from(clients);
+      const allInvoices = await db.select({ id: invoices.id, status: invoices.status }).from(invoices);
+      const allBookings = await db.select({ id: bookings.id, status: bookings.status }).from(bookings);
+      const allLeads = await db.select({ id: leads.id }).from(leads);
+      // Recent signups (last 7 days)
+      const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+      const recentSignups = allUsers.filter(u => new Date(u.createdAt) > sevenDaysAgo).length;
+      // Paid users
+      const paidUsers = allUsers.filter(u => u.planId && u.planId !== "free").length;
+      return {
+        dbStatus: dbOk ? "healthy" : "error",
+        uptimeSeconds: Math.round(uptimeSeconds),
+        totalUsers: allUsers.length,
+        paidUsers,
+        recentSignups,
+        totalClients: allClients.length,
+        totalInvoices: allInvoices.length,
+        paidInvoices: allInvoices.filter(i => i.status === "paid").length,
+        totalBookings: allBookings.length,
+        completedBookings: allBookings.filter(b => b.status === "completed").length,
+        totalLeads: allLeads.length,
+        checkedAt: now,
+      };
+    }),
   }),
 
   // ── Public Booking Page ───────────────────────────────────────────────────

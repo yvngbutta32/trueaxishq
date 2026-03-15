@@ -140,3 +140,45 @@
 - [x] Auto-draft re-engagement email from Pulse panel (useAction mutation saves to Follow-Ups)
 - [ ] Pulse history chart — track relationship health over time per client (future enhancement)
 - [ ] Background recompute on every invoice/booking/followup mutation (future enhancement)
+
+## Completion Pass — Production Polish (Round 6)
+
+### Dashboard UX Improvements
+- [ ] Pulse score mini-badge on each client card in Clients panel (colored dot + score)
+- [ ] Client Pulse summary widget on Overview panel (churn risk count, avg health score)
+- [ ] Mobile bottom nav: replace AI tab with Pulse tab for better discoverability
+- [ ] Overview panel: fix "Sessions Completed" stat to show upcoming count correctly
+- [ ] Invoice overdue auto-detection: mark invoices as overdue if past due date
+- [ ] Follow-Ups panel: add "Copy to Clipboard" button for email body
+
+### Admin Panel Improvements
+- [ ] Leads tab in Admin panel with table of all captured emails + CSV export
+- [ ] System health watchdog section in Admin overview
+- [ ] Admin overview: show total leads count alongside user count
+
+### Landing Page Conversion Optimization
+- [ ] Add "money-back guarantee" badge to hero and pricing sections
+- [ ] Add feature comparison table to Pricing page (Starter vs Pro vs Agency)
+- [ ] Add "Trusted by X freelancers" social proof counter to hero
+- [ ] Add FAQ section to landing page (not just pricing page)
+- [ ] Add urgency/scarcity element (e.g., "Limited early-bird pricing")
+
+### Operational Completeness
+- [ ] Invoice: add "Send Reminder" button for overdue invoices (marks status + generates follow-up draft)
+- [ ] Booking confirmation: send owner notification with client details on every public booking
+- [ ] Settings: add "Copy booking link" button with one-click clipboard copy
+- [ ] Dashboard header: show current plan badge next to user avatar
+- [ ] 404 page: add navigation links back to home and dashboard
+
+## Admin Dashboard Expansion (Round 7)
+
+- [x] platformSettings DB table — store site name, support email, phone, social links, announcement banner
+- [x] admin.getSettings / admin.updateSettings tRPC procedures
+- [x] admin.updateUserPlan mutation — manually override a user's plan
+- [x] admin.deleteUser mutation — permanently delete user and all their data
+- [x] admin.getSystemHealth procedure — DB stats, user counts, recent activity
+- [x] Admin Settings tab — edit site name, support email, phone, social links, announcement banner
+- [x] Admin Feature Flags tab — enable/disable 6 platform features globally
+- [x] Admin Maintenance Mode — toggle with custom message
+- [x] Admin User Actions — override plan, promote/demote admin, delete user inline
+- [x] Admin System Health tab — DB status, server uptime, platform data counts, quick actions
