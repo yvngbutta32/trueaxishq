@@ -9,7 +9,8 @@ import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse } from "../drizzle/schema";
+import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
 
@@ -868,6 +869,67 @@ export const appRouter = router({
           }).catch(() => {});
         }
         return { success: true };
+      }),
+  }),
+
+  // ─── Client Pulse ─────────────────────────────────────────────────────────
+  pulse: router({
+    getAll: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const userClients = await db.select().from(clients).where(eq(clients.userId, ctx.user.id)).orderBy(desc(clients.createdAt));
+      const pulseRecords = await db.select().from(clientPulse).where(eq(clientPulse.userId, ctx.user.id));
+      return userClients.map((client) => ({
+        client,
+        pulse: pulseRecords.find((p) => p.clientId === client.id) ?? null,
+      }));
+    }),
+
+    computeAll: protectedProcedure.mutation(async ({ ctx }) => {
+      computeAllClientPulses(ctx.user.id).catch((err) => console.error("[Pulse] computeAll error:", err));
+      return { started: true };
+    }),
+
+    computeOne: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [client] = await db.select().from(clients)
+          .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+        const result = await computeClientPulse(ctx.user.id, client.id, client.name ?? "Client");
+        return result;
+      }),
+
+    getOne: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [pulse] = await db.select().from(clientPulse)
+          .where(and(eq(clientPulse.clientId, input.clientId), eq(clientPulse.userId, ctx.user.id))).limit(1);
+        return pulse ?? null;
+      }),
+
+    useAction: protectedProcedure
+      .input(z.object({
+        clientId: z.number().int().positive(),
+        subject: safeString(512),
+        body: z.string().trim().min(1).max(5000),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [client] = await db.select().from(clients)
+          .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+        const [fu] = await db.insert(followUps).values({
+          userId: ctx.user.id,
+          clientId: input.clientId,
+          clientName: client.name ?? "",
+          clientEmail: client.email ?? "",
+          subject: input.subject,
+          body: input.body,
+          status: "draft",
+        }).$returningId();
+        return { id: fu.id, success: true };
       }),
   }),
 });

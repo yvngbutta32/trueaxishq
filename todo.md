@@ -84,6 +84,8 @@
 - [x] auth.logout test (original)
 - [x] 15 new vitest tests covering auth, billing, admin, AI, and booking procedures
 - [x] All 16 tests passing
+- [x] 13 new Client Pulse engine tests (scoring, risk classification, action type)
+- [x] All 29 tests passing
 
 ## Bulletproofing Pass (Round 5)
 
@@ -125,3 +127,16 @@
 - [x] Client-side health monitor (polls /api/health every 60s, shows degraded banner)
 - [x] Watchdog in Admin panel showing system status (DB, Stripe, AI, Security)
 - [x] Owner notification when health check fails
+
+## Client Pulse — AI Relationship Intelligence Engine (NEW)
+- [x] clientPulse DB table — stores computed health scores, risk flags, last computed timestamp
+- [x] computeClientPulse() server function — scores each client 0-100 from activity signals
+- [x] pulse.getAll tRPC procedure — returns all clients with pulse scores
+- [x] pulse.recompute tRPC mutation — manually trigger recompute for a client (computeOne + computeAll)
+- [x] pulse.getInsights tRPC procedure — AI-generated action recommendations (built into computeClientPulse)
+- [x] Client Pulse dashboard panel — heat map of all clients by health score
+- [x] Risk cards — Churn Risk, Upsell Ready, Going Silent with one-click actions
+- [ ] Pulse score badge on each client card in the Clients panel (future enhancement)
+- [x] Auto-draft re-engagement email from Pulse panel (useAction mutation saves to Follow-Ups)
+- [ ] Pulse history chart — track relationship health over time per client (future enhancement)
+- [ ] Background recompute on every invoice/booking/followup mutation (future enhancement)

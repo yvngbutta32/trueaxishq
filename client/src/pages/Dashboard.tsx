@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import ClientPulsePanel from "./ClientPulse";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +24,7 @@ import {
   Building, Save, Moon, Sun, Bot, CreditCard,
   ExternalLink, Bell, Search, ChevronDown, Loader2,
   Globe, ToggleLeft, ToggleRight, Printer, Eye,
-  Copy, Check, Star, Activity
+  Copy, Check, Star, Activity, HeartPulse
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -31,7 +32,7 @@ import {
   PieChart, Pie, Cell
 } from "recharts";
 
-type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai";
+type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse";
 
 interface ConfirmState {
   open: boolean;
@@ -114,12 +115,13 @@ function Field({ label, value, onChange, placeholder, type = "text", required, t
 }
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
-const navItems: { icon: React.ElementType; label: string; panel: ActivePanel }[] = [
+const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; badge?: string }[] = [
   { icon: LayoutDashboard, label: "Dashboard", panel: "overview" },
   { icon: Users, label: "Clients", panel: "clients" },
   { icon: Calendar, label: "Scheduling", panel: "scheduling" },
   { icon: FileText, label: "Invoices", panel: "invoices" },
   { icon: Mail, label: "Follow-Ups", panel: "followups" },
+  { icon: HeartPulse, label: "Client Pulse", panel: "pulse", badge: "AI" },
   { icon: BarChart3, label: "Analytics", panel: "analytics" },
   { icon: Settings, label: "Settings", panel: "settings" },
   { icon: Bot, label: "AI Assistant", panel: "ai" },
@@ -169,6 +171,9 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
           >
             <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
             {!collapsed && <span>{item.label}</span>}
+            {!collapsed && item.badge && active !== item.panel && (
+              <span className="ml-auto text-[9px] font-bold bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full">{item.badge}</span>
+            )}
             {!collapsed && active === item.panel && <ChevronRight className="w-3 h-3 ml-auto" aria-hidden="true" />}
           </button>
         ))}
@@ -1404,7 +1409,7 @@ export default function Dashboard() {
   const panelTitles: Record<ActivePanel, string> = {
     overview: "Dashboard", clients: "Clients", scheduling: "Scheduling",
     invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics",
-    settings: "Settings", ai: "AI Assistant",
+    settings: "Settings", ai: "AI Assistant", pulse: "Client Pulse",
   };
 
   const renderPanel = () => {
@@ -1417,6 +1422,7 @@ export default function Dashboard() {
       case "analytics": return <AnalyticsPanel />;
       case "settings": return <SettingsPanel />;
       case "ai": return <AIAssistant />;
+      case "pulse": return <ClientPulsePanel />;
       default: return null;
     }
   };

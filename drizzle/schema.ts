@@ -161,3 +161,37 @@ export const emailTemplates = mysqlTable("emailTemplates", {
 
 export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = typeof emailTemplates.$inferInsert;
+
+// ─── Client Pulse (AI Relationship Intelligence) ──────────────────────────────
+
+export const clientPulse = mysqlTable("clientPulse", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  clientId: int("clientId").notNull(),
+  // Health score 0-100
+  healthScore: int("healthScore").default(100).notNull(),
+  // Risk flags
+  churnRisk: boolean("churnRisk").default(false).notNull(),
+  upsellReady: boolean("upsellReady").default(false).notNull(),
+  goingSilent: boolean("goingSilent").default(false).notNull(),
+  // Signal data used for scoring
+  daysSinceLastContact: int("daysSinceLastContact").default(0),
+  daysSinceLastBooking: int("daysSinceLastBooking").default(0),
+  daysSinceLastInvoice: int("daysSinceLastInvoice").default(0),
+  totalInvoicesPaid: int("totalInvoicesPaid").default(0),
+  totalBookings: int("totalBookings").default(0),
+  followUpResponseRate: decimal("followUpResponseRate", { precision: 5, scale: 2 }).default("0"),
+  revenueLastThirtyDays: decimal("revenueLastThirtyDays", { precision: 10, scale: 2 }).default("0"),
+  revenueLastNinetyDays: decimal("revenueLastNinetyDays", { precision: 10, scale: 2 }).default("0"),
+  // AI-generated insight
+  aiInsight: text("aiInsight"),
+  aiAction: text("aiAction"),
+  aiActionType: varchar("aiActionType", { length: 32 }), // 're_engage' | 'upsell' | 'check_in' | 'maintain'
+  // Timestamps
+  lastComputedAt: timestamp("lastComputedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ClientPulse = typeof clientPulse.$inferSelect;
+export type InsertClientPulse = typeof clientPulse.$inferInsert;
