@@ -47,6 +47,47 @@ async function startServer() {
   // ── Security middleware (rate limiting, blocklist, header hardening) ──────
   app.use(securityMiddleware);
 
+  // ── Health Check ─────────────────────────────────────────────────────────
+  app.get("/api/health", async (_req, res) => {
+    const start = Date.now();
+    const checks: Record<string, { status: string; latencyMs?: number; error?: string }> = {};
+
+    // DB check
+    try {
+      const { getDb } = await import("../db");
+      const db = await getDb();
+      if (db) {
+        const dbStart = Date.now();
+        await db.execute("SELECT 1");
+        checks.database = { status: "ok", latencyMs: Date.now() - dbStart };
+      } else {
+        checks.database = { status: "unavailable" };
+      }
+    } catch (e: unknown) {
+      checks.database = { status: "error", error: e instanceof Error ? e.message : String(e) };
+    }
+
+    // Stripe check
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    checks.stripe = stripeKey ? { status: "configured" } : { status: "not_configured" };
+
+    // LLM check
+    const llmKey = process.env.BUILT_IN_FORGE_API_KEY;
+    checks.llm = llmKey ? { status: "configured" } : { status: "not_configured" };
+
+    const allOk = checks.database?.status === "ok";
+    const totalMs = Date.now() - start;
+
+    res.status(allOk ? 200 : 503).json({
+      status: allOk ? "healthy" : "degraded",
+      version: process.env.npm_package_version || "1.0.0",
+      uptime: Math.floor(process.uptime()),
+      totalLatencyMs: totalMs,
+      checks,
+      timestamp: new Date().toISOString(),
+    });
+  });
+
   // ── OAuth callback ────────────────────────────────────────────────────────
   registerOAuthRoutes(app);
 

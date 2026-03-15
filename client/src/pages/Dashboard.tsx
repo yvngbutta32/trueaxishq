@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useRef } from "react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import AIAssistant from "@/components/AIAssistant";
+import { HealthMonitor } from "@/components/HealthMonitor";
 import {
   LayoutDashboard, Users, Calendar, FileText, Mail,
   BarChart3, Settings, Zap, Plus, TrendingUp,
@@ -30,6 +32,14 @@ import {
 } from "recharts";
 
 type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai";
+
+interface ConfirmState {
+  open: boolean;
+  title: string;
+  description: string;
+  onConfirm: () => void;
+}
+const defaultConfirm: ConfirmState = { open: false, title: "", description: "", onConfirm: () => {} };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getGreeting() {
@@ -472,7 +482,7 @@ function ClientsPanel() {
                 {c.status}
               </Badge>
               <button
-                onClick={e => { e.stopPropagation(); if (confirm(`Remove ${c.name}?`)) deleteClient.mutate({ id: c.id }); }}
+                onClick={e => { e.stopPropagation(); if (window.confirm(`Remove ${c.name} from your clients? This cannot be undone.`)) deleteClient.mutate({ id: c.id }); }}
                 className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors ml-3"
                 aria-label={`Delete ${c.name}`}
               >
@@ -554,7 +564,7 @@ function ClientsPanel() {
               >
                 <CheckCircle className="w-4 h-4" />Mark Active
               </Button>
-              <Button variant="outline" className="flex-1 gap-2 border-red-200 text-red-500 hover:bg-red-50" onClick={() => { if (confirm(`Remove ${selectedClient.name}?`)) { deleteClient.mutate({ id: selectedClient.id }); setSelectedId(null); } }}>
+              <Button variant="outline" className="flex-1 gap-2 border-red-200 text-red-500 hover:bg-red-50" onClick={() => { if (window.confirm(`Remove ${selectedClient.name}? This cannot be undone.`)) { deleteClient.mutate({ id: selectedClient.id }); setSelectedId(null); } }}>
                 <Trash2 className="w-4 h-4" />Remove
               </Button>
             </div>
@@ -644,7 +654,7 @@ function SchedulingPanel() {
                 <option value="cancelled">Cancelled</option>
                 <option value="no_show">No Show</option>
               </select>
-              <button onClick={() => { if (confirm("Remove this booking?")) deleteBooking.mutate({ id: b.id }); }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors ml-2" aria-label="Delete booking">
+              <button onClick={() => { if (window.confirm("Remove this booking? This cannot be undone.")) deleteBooking.mutate({ id: b.id }); }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors ml-2" aria-label="Delete booking">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -785,7 +795,7 @@ function InvoicesPanel() {
               <button onClick={() => setPreviewInvoice(inv)} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Preview invoice">
                 <Eye className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => { if (confirm("Delete this invoice?")) deleteInvoice.mutate({ id: inv.id }); }} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete invoice">
+              <button onClick={() => { if (window.confirm("Delete this invoice? This cannot be undone.")) deleteInvoice.mutate({ id: inv.id }); }} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete invoice">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -978,7 +988,7 @@ function FollowUpsPanel() {
                     <Send className="w-4 h-4" />
                   </button>
                 )}
-                <button onClick={() => { if (confirm("Delete this follow-up?")) deleteFollowUp.mutate({ id: f.id }); }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete follow-up">
+                <button onClick={() => { if (window.confirm("Delete this follow-up email? This cannot be undone.")) deleteFollowUp.mutate({ id: f.id }); }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete follow-up">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -1374,6 +1384,7 @@ export default function Dashboard() {
   const [collapsed, setCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [search, setSearch] = useState("");
+  const [confirm, setConfirm] = useState<ConfirmState>(defaultConfirm);
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
 
@@ -1456,6 +1467,8 @@ export default function Dashboard() {
               />
             </div>
 
+            {/* Health Monitor */}
+            <HealthMonitor />
             {/* Notifications */}
             <div className="relative">
               <button
@@ -1489,6 +1502,16 @@ export default function Dashboard() {
 
       {/* Mobile Bottom Nav */}
       <MobileBottomNav active={active} setActive={setActive} />
+      {/* Global Confirm Dialog */}
+      <ConfirmDialog
+        open={confirm.open}
+        onOpenChange={(open) => !open && setConfirm(defaultConfirm)}
+        title={confirm.title}
+        description={confirm.description}
+        onConfirm={() => { confirm.onConfirm(); setConfirm(defaultConfirm); }}
+        confirmLabel="Delete"
+        variant="destructive"
+      />
     </div>
   );
 }

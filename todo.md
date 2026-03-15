@@ -84,3 +84,44 @@
 - [x] auth.logout test (original)
 - [x] 15 new vitest tests covering auth, billing, admin, AI, and booking procedures
 - [x] All 16 tests passing
+
+## Bulletproofing Pass (Round 5)
+
+### Database Layer
+- [x] DB connection retry with exponential backoff (3 attempts before failing)
+- [x] All DB helpers wrapped in try/catch with structured error logging
+- [x] Graceful fallback when DB is unavailable (return empty arrays, not crashes)
+- [x] Input length limits enforced at DB layer (prevent oversized inserts)
+
+### tRPC Router Hardening
+- [x] Every procedure wrapped in try/catch — no unhandled promise rejections
+- [x] Structured server-side error logging (timestamp, procedure, user ID, error)
+- [x] Internal error details never leaked to client (always TRPCError with safe message)
+- [x] All mutations validate ownership (user can only modify their own data)
+
+### Stripe System
+- [x] Webhook idempotency — skip already-processed events (track event IDs)
+- [x] Fallback plan detection if Stripe API is down (read from DB cache)
+- [x] Checkout session creation timeout guard (10s max)
+- [x] Billing portal creation timeout guard
+
+### AI Systems
+- [x] LLM call timeout guard (30s max — never hang forever)
+- [x] Fallback response when LLM is unavailable ("AI temporarily unavailable, try again")
+- [x] AI Assistant error boundary — chat errors don't crash the dashboard
+- [x] Follow-up generation failure shows user-friendly retry button
+
+### Frontend Resilience
+- [x] Skeleton loaders on every dashboard panel (Clients, Invoices, Bookings, Analytics)
+- [x] Empty states with helpful CTAs on every panel
+- [x] Optimistic UI on all mutations (instant feedback, rollback on error)
+- [x] Confirm dialog before all destructive actions (delete client, delete invoice, delete booking)
+- [x] All forms show inline validation errors (not just toast)
+- [x] Network error toast with retry button on all failed mutations
+- [x] Booking page: graceful 404 if username not found
+
+### Health & Monitoring
+- [x] Server health check endpoint at /api/health (DB ping, uptime, version)
+- [x] Client-side health monitor (polls /api/health every 60s, shows degraded banner)
+- [x] Watchdog in Admin panel showing system status (DB, Stripe, AI, Security)
+- [x] Owner notification when health check fails

@@ -11,6 +11,10 @@ import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
 import { users, leads, clients, invoices, bookings, followUps, emailTemplates } from "../drizzle/schema";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
+import { withTimeout } from "./utils";
+
+// LLM timeout: 25 seconds
+const LLM_TIMEOUT_MS = 25_000;
 
 // ─── Stripe client (lazy, cached) ─────────────────────────────────────────────
 let _stripe: Stripe | null = null;
@@ -386,7 +390,7 @@ export const appRouter = router({
         let body = `Hi ${input.clientName},\n\nI wanted to reach out and see how you've been doing since our last session together. I hope you've been making great progress on your goals!\n\nI'd love to hear how things are going and discuss what we can work on next. Feel free to reply to this email or book your next session whenever you're ready.\n\nLooking forward to connecting soon!\n\nWarm regards,\n${userName}\n${businessName}`;
 
         try {
-          const response = await invokeLLM({
+          const response = await withTimeout(invokeLLM({
             messages: [
               {
                 role: "system",
@@ -413,7 +417,7 @@ export const appRouter = router({
                 },
               },
             },
-          });
+          }), LLM_TIMEOUT_MS, "followUps.generate");
           const rawResp = response.choices?.[0]?.message?.content;
           const contentStr = typeof rawResp === "string" ? rawResp : null;
           if (contentStr) {
@@ -630,7 +634,7 @@ export const appRouter = router({
           : "";
         let result;
         try {
-          result = await invokeLLM({
+          result = await withTimeout(invokeLLM({
             messages: [
               {
                 role: "system",
@@ -638,7 +642,7 @@ export const appRouter = router({
               },
               ...input.messages.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
             ],
-          });
+          }), LLM_TIMEOUT_MS, "ai.chat");
         } catch (_) {
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI service temporarily unavailable. Please try again in a moment." });
         }
