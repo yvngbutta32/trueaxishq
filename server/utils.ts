@@ -1,5 +1,5 @@
 /**
- * Utility helpers for the SkillBridge AI server.
+ * Utility helpers for the TrueAxis HQ server.
  * Provides timeout wrappers, safe JSON parsing, and other shared utilities.
  */
 

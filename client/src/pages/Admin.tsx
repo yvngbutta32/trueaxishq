@@ -220,7 +220,7 @@ export default function Admin() {
           </div>
           <div>
             <h1 className="text-base font-bold" style={{ fontFamily: "Sora, sans-serif" }}>
-              SkillBridge AI <span className="text-[#00C9A7]">Admin</span>
+              TrueAxis HQ <span className="text-[#00C9A7]">Admin</span>
             </h1>
             <p className="text-xs text-gray-400">Owner Control Panel</p>
           </div>
@@ -496,7 +496,7 @@ export default function Admin() {
                   const csv = ["Name,Email,Source,Date", ...leads.map(l => `"${l.name ?? ""}","${l.email}","${l.source ?? ""}","${new Date(l.createdAt).toLocaleDateString()}"`)].join("\n");
                   const blob = new Blob([csv], { type: "text/csv" });
                   const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a"); a.href = url; a.download = "skillbridge-leads.csv"; a.click(); URL.revokeObjectURL(url);
+                  const a = document.createElement("a"); a.href = url; a.download = "trueaxishq-leads.csv"; a.click(); URL.revokeObjectURL(url);
                   toast.success(`Exported ${leads.length} leads as CSV`);
                 }}
                 className="gap-2"
@@ -600,11 +600,11 @@ export default function Admin() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="form-label">Site Name</label>
-                      <input type="text" value={settingsForm.siteName ?? ""} onChange={e => updateField("siteName", e.target.value)} className="form-input" placeholder="SkillBridge AI" maxLength={255} />
+                      <input type="text" value={settingsForm.siteName ?? ""} onChange={e => updateField("siteName", e.target.value)} className="form-input" placeholder="TrueAxis HQ" maxLength={255} />
                     </div>
                     <div>
                       <label className="form-label">Support Email</label>
-                      <input type="email" value={settingsForm.supportEmail ?? ""} onChange={e => updateField("supportEmail", e.target.value)} className="form-input" placeholder="support@skillbridge.ai" maxLength={320} />
+                      <input type="email" value={settingsForm.supportEmail ?? ""} onChange={e => updateField("supportEmail", e.target.value)} className="form-input" placeholder="support@trueaxishq.com" maxLength={320} />
                     </div>
                     <div>
                       <label className="form-label">Support Phone</label>
@@ -671,10 +671,10 @@ export default function Admin() {
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[
-                      { key: "socialTwitter", label: "Twitter / X", icon: Twitter, placeholder: "https://twitter.com/skillbridgeai" },
-                      { key: "socialLinkedin", label: "LinkedIn", icon: Linkedin, placeholder: "https://linkedin.com/company/skillbridge-ai" },
-                      { key: "socialInstagram", label: "Instagram", icon: Instagram, placeholder: "https://instagram.com/skillbridgeai" },
-                      { key: "socialYoutube", label: "YouTube", icon: Youtube, placeholder: "https://youtube.com/@skillbridgeai" },
+                      { key: "socialTwitter", label: "Twitter / X", icon: Twitter, placeholder: "https://twitter.com/trueaxishq" },
+                      { key: "socialLinkedin", label: "LinkedIn", icon: Linkedin, placeholder: "https://linkedin.com/company/trueaxis-hq" },
+                      { key: "socialInstagram", label: "Instagram", icon: Instagram, placeholder: "https://instagram.com/trueaxishq" },
+                      { key: "socialYoutube", label: "YouTube", icon: Youtube, placeholder: "https://youtube.com/@trueaxishq" },
                     ].map(({ key, label, icon: Icon, placeholder }) => (
                       <div key={key}>
                         <label className="form-label flex items-center gap-1.5">

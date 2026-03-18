@@ -6,13 +6,13 @@ const LAST_UPDATED = "March 14, 2026";
 const sections = [
   {
     title: "1. Acceptance of Terms",
-    content: `By accessing or using SkillBridge AI ("the Platform"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Platform. These Terms apply to all users, including visitors, registered users, and subscribers.
+    content: `By accessing or using TrueAxis HQ ("the Platform"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Platform. These Terms apply to all users, including visitors, registered users, and subscribers.
 
 We reserve the right to update these Terms at any time. We will notify you of material changes by email or by posting a notice on the Platform. Your continued use after changes take effect constitutes acceptance of the updated Terms.`,
   },
   {
     title: "2. Description of Service",
-    content: `SkillBridge AI is a cloud-based business management platform designed for freelancers and solo service providers. The Platform provides tools for client relationship management, scheduling, invoicing, AI-powered follow-up automation, analytics, and business settings management.
+    content: `TrueAxis HQ is a cloud-based business management platform designed for freelancers and solo service providers. The Platform provides tools for client relationship management, scheduling, invoicing, AI-powered follow-up automation, analytics, and business settings management.
 
 We offer three subscription tiers: Starter, Pro, and Agency. Features available to you depend on your subscription plan. We reserve the right to modify, suspend, or discontinue any feature at any time with reasonable notice.`,
   },
@@ -23,7 +23,7 @@ We offer three subscription tiers: Starter, Pro, and Agency. Features available 
 - Provide accurate, current, and complete information during registration
 - Maintain and promptly update your account information
 - Keep your password confidential and not share it with third parties
-- Notify us immediately at security@skillbridge.ai if you suspect unauthorized access to your account
+- Notify us immediately at security@trueaxishq.com if you suspect unauthorized access to your account
 - Accept responsibility for all activity that occurs under your account
 
 You must be at least 18 years old to create an account. By registering, you represent that you meet this requirement.`,
@@ -69,9 +69,9 @@ We reserve the right to suspend or terminate accounts that violate these terms w
   },
   {
     title: "7. Intellectual Property",
-    content: `The Platform, including its software, design, trademarks, and content created by us, is owned by SkillBridge AI and protected by intellectual property laws. You may not copy, modify, distribute, sell, or lease any part of the Platform without our written permission.
+    content: `The Platform, including its software, design, trademarks, and content created by us, is owned by TrueAxis HQ and protected by intellectual property laws. You may not copy, modify, distribute, sell, or lease any part of the Platform without our written permission.
 
-The SkillBridge AI name, logo, and all related marks are trademarks of SkillBridge AI. You may not use our trademarks without prior written consent.`,
+The TrueAxis HQ name, logo, and all related marks are trademarks of TrueAxis HQ. You may not use our trademarks without prior written consent.`,
   },
   {
     title: "8. Third-Party Services",
@@ -83,7 +83,7 @@ Links to external websites are provided for convenience. We do not endorse or as
     title: "9. Disclaimers and Limitation of Liability",
     content: `**Disclaimer:** The Platform is provided "as is" and "as available" without warranties of any kind, express or implied. We do not warrant that the Platform will be uninterrupted, error-free, or free of harmful components.
 
-**Limitation of Liability:** To the maximum extent permitted by law, SkillBridge AI shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, data, or business opportunities, arising from your use of or inability to use the Platform.
+**Limitation of Liability:** To the maximum extent permitted by law, TrueAxis HQ shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, data, or business opportunities, arising from your use of or inability to use the Platform.
 
 Our total liability to you for any claim arising from these Terms or your use of the Platform shall not exceed the amount you paid us in the 12 months preceding the claim.`,
   },
@@ -103,8 +103,8 @@ You waive any right to participate in a class action lawsuit or class-wide arbit
     title: "12. Contact",
     content: `For questions about these Terms, please contact us at:
 
-**Email:** legal@skillbridge.ai
-**Address:** SkillBridge AI, Legal Department, 100 Innovation Drive, Suite 400, Austin, TX 78701`,
+**Email:** legal@trueaxishq.com
+**Address:** TrueAxis HQ, Legal Department, 100 Innovation Drive, Suite 400, Austin, TX 78701`,
   },
 ];
 
@@ -121,7 +121,7 @@ export default function Terms() {
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#00C9A7] to-[#00A88A] flex items-center justify-center">
             <Zap className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-bold" style={{ fontFamily: "Sora, sans-serif" }}>SkillBridge AI</span>
+          <span className="font-bold" style={{ fontFamily: "Sora, sans-serif" }}>TrueAxis HQ</span>
         </div>
       </nav>
 
@@ -136,7 +136,7 @@ export default function Terms() {
         <p className="text-sm text-gray-500 mb-12">Last updated: {LAST_UPDATED}</p>
 
         <p className="text-gray-300 leading-relaxed mb-10 text-base">
-          Please read these Terms of Service carefully before using the SkillBridge AI platform. These Terms constitute a legally binding agreement between you and SkillBridge AI governing your access to and use of the platform.
+          Please read these Terms of Service carefully before using the TrueAxis HQ platform. These Terms constitute a legally binding agreement between you and TrueAxis HQ governing your access to and use of the platform.
         </p>
 
         <div className="space-y-10">
@@ -158,7 +158,7 @@ export default function Terms() {
       </div>
 
       <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-600">
-        <p>© {new Date().getFullYear()} SkillBridge AI. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>
   );

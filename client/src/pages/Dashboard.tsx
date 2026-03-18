@@ -1,4 +1,4 @@
-/* SkillBridge AI — Full Dashboard (DB-backed)
+/* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
  * Design: "Kinetic Warmth" — Dark sidebar (#1C1C1E), Teal (#00C9A7), Coral (#FF6B6B)
  */
@@ -152,7 +152,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
         </button>
         {!collapsed && (
           <span className="font-bold text-white text-sm" style={{ fontFamily: "Sora, sans-serif" }}>
-            SkillBridge <span className="text-[#00C9A7]">AI</span>
+            TrueAxis <span className="text-[#00C9A7]">HQ</span>
           </span>
         )}
       </div>
@@ -1545,7 +1545,7 @@ export default function Dashboard() {
               <div className="w-7 h-7 rounded-lg gradient-teal flex items-center justify-center">
                 <Zap className="w-3.5 h-3.5 text-white" />
               </div>
-              <span className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: "Sora, sans-serif" }}>SkillBridge</span>
+              <span className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: "Sora, sans-serif" }}>TrueAxis HQ</span>
             </div>
             <h1 className="hidden md:block text-base font-bold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>
               {panelTitles[active]}

@@ -432,7 +432,7 @@ export const appRouter = router({
         const userRecord = await db.select({ name: users.name, businessName: users.businessName })
           .from(users).where(eq(users.id, ctx.user.id)).limit(1);
         const userName = userRecord[0]?.name || ctx.user.name || "Your Coach";
-        const businessName = userRecord[0]?.businessName || "SkillBridge AI";
+        const businessName = userRecord[0]?.businessName || "TrueAxis HQ";
 
         let subject = `Checking in — ${input.clientName}`;
         let body = `Hi ${input.clientName},\n\nI wanted to reach out and see how you've been doing since our last session together. I hope you've been making great progress on your goals!\n\nI'd love to hear how things are going and discuss what we can work on next. Feel free to reply to this email or book your next session whenever you're ready.\n\nLooking forward to connecting soon!\n\nWarm regards,\n${userName}\n${businessName}`;
@@ -686,7 +686,7 @@ export const appRouter = router({
             messages: [
               {
                 role: "system",
-                content: `You are SkillBridge AI Assistant — a smart, friendly business advisor for freelancers and solo service providers. Help users grow their business, manage clients, understand analytics, write follow-up emails, create invoice descriptions, and give actionable advice. Be concise, warm, and practical. ${contextStr} The user's name is ${ctx.user.name ?? "there"}.`,
+                content: `You are TrueAxis HQ Assistant — a smart, friendly business advisor for freelancers and solo service providers. Help users grow their business, manage clients, understand analytics, write follow-up emails, create invoice descriptions, and give actionable advice. Be concise, warm, and practical. ${contextStr} The user's name is ${ctx.user.name ?? "there"}.`,
               },
               ...input.messages.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
             ],
@@ -753,7 +753,7 @@ export const appRouter = router({
             line_items: [{
               price_data: {
                 currency: "usd",
-                product_data: { name: `SkillBridge AI — ${plan.name}`, description: plan.description },
+                product_data: { name: `TrueAxis HQ — ${plan.name}`, description: plan.description },
                 unit_amount: unitAmount,
                 recurring: intervalConfig,
               },

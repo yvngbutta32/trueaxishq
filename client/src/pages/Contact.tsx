@@ -33,7 +33,7 @@ export default function Contact() {
       setSubmitted(true);
       toast.success("Message sent! We'll be in touch within 4 hours.");
     } catch {
-      toast.error("Something went wrong. Please email us directly at support@skillbridge.ai");
+      toast.error("Something went wrong. Please email us directly at support@trueaxishq.com");
     }
   };
 
@@ -79,7 +79,7 @@ export default function Contact() {
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#00C9A7] to-[#00A88A] flex items-center justify-center">
             <Zap className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-bold" style={{ fontFamily: "Sora, sans-serif" }}>SkillBridge AI</span>
+          <span className="font-bold" style={{ fontFamily: "Sora, sans-serif" }}>TrueAxis HQ</span>
         </div>
       </nav>
 
@@ -100,8 +100,8 @@ export default function Contact() {
 
             <div className="space-y-5">
               {[
-                { icon: Mail, title: "Email Support", value: "support@skillbridge.ai", sub: "For general questions and account help" },
-                { icon: Mail, title: "Billing", value: "billing@skillbridge.ai", sub: "For payment and subscription questions" },
+                { icon: Mail, title: "Email Support", value: "support@trueaxishq.com", sub: "For general questions and account help" },
+                { icon: Mail, title: "Billing", value: "billing@trueaxishq.com", sub: "For payment and subscription questions" },
                 { icon: Clock, title: "Response Time", value: "Within 4 business hours", sub: "Monday – Friday, 9am – 6pm CT" },
               ].map(({ icon: Icon, title, value, sub }) => (
                 <div key={title} className="flex items-start gap-4 bg-white/5 border border-white/10 rounded-xl p-4">
@@ -158,7 +158,7 @@ export default function Contact() {
       </div>
 
       <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-600">
-        <p>© {new Date().getFullYear()} SkillBridge AI. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>
   );

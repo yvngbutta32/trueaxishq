@@ -1,4 +1,4 @@
-# SkillBridge AI — Todo & Feature Tracker
+# TrueAxis HQ — Todo & Feature Tracker
 
 ## Core App Features
 - [x] Landing page with hero, features, testimonials, how-it-works, CTA, footer
@@ -182,3 +182,23 @@
 - [x] Admin Maintenance Mode — toggle with custom message
 - [x] Admin User Actions — override plan, promote/demote admin, delete user inline
 - [x] Admin System Health tab — DB status, server uptime, platform data counts, quick actions
+
+## Rebrand: SkillBridge AI → TrueAxis HQ (Round 8)
+- [x] Update index.html title and meta tags
+- [x] Update all branding constants across shared files (mass find-and-replace)
+- [x] Update Home.tsx — all SkillBridge references → TrueAxis HQ
+- [x] Update Pricing.tsx — all SkillBridge references
+- [x] Update About.tsx — company name and story
+- [x] Update Contact.tsx — company name references
+- [x] Update Help.tsx — company name references
+- [x] Update Terms.tsx — company name references
+- [x] Update Privacy.tsx — company name references
+- [x] Update Dashboard.tsx — all SkillBridge references + logo text
+- [x] Update Admin.tsx — all SkillBridge references
+- [x] Update BookingPage.tsx — all SkillBridge references
+- [x] Update Billing.tsx — all SkillBridge references
+- [x] Update CheckoutSuccess.tsx — all SkillBridge references
+- [x] Update server routers, products, db, security, utils
+- [x] Update drizzle/schema.ts default values
+- [x] Update todo.md header
+- [x] 0 TypeScript errors, 29/29 tests passing after rebrand

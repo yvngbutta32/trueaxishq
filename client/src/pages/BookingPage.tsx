@@ -148,7 +148,7 @@ export default function BookingPage() {
           </div>
           <div className="ml-auto">
             <span className="text-xs bg-[#00C9A7]/10 text-[#007A65] border border-[#00C9A7]/20 rounded-full px-3 py-1 font-semibold">
-              Powered by SkillBridge AI
+              Powered by TrueAxis HQ
             </span>
           </div>
         </div>

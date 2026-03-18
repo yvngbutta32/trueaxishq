@@ -1,5 +1,5 @@
 /**
- * SkillBridge AI — Security Middleware
+ * TrueAxis HQ — Security Middleware
  * - IP-based rate limiting (sliding window)
  * - Automatic IP blocklist for repeated violations
  * - Suspicious pattern detection (SQL injection, XSS probes, path traversal)

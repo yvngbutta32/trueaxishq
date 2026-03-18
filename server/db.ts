@@ -1,5 +1,5 @@
 /**
- * SkillBridge AI — Hardened Database Layer
+ * TrueAxis HQ — Hardened Database Layer
  * - Lazy connection with automatic retry (3 attempts, exponential backoff)
  * - All helpers wrapped in try/catch with structured logging
  * - Graceful fallback when DB is unavailable (empty arrays, not crashes)

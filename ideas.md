@@ -1,4 +1,4 @@
-# SkillBridge AI — Design Brainstorm
+# TrueAxis HQ — Design Brainstorm
 
 ## Approach 1: "Executive Clarity"
 <response>

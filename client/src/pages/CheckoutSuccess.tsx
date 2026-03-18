@@ -10,7 +10,7 @@ export default function CheckoutSuccess() {
   useEffect(() => {
     // Show a welcome toast after a short delay
     const timer = setTimeout(() => {
-      toast.success("Welcome to SkillBridge AI! Your subscription is now active.", {
+      toast.success("Welcome to TrueAxis HQ! Your subscription is now active.", {
         duration: 6000,
       });
     }, 800);
@@ -50,7 +50,7 @@ export default function CheckoutSuccess() {
           You're all set! 🎉
         </h1>
         <p className="text-gray-500 text-sm mb-8 leading-relaxed">
-          Your subscription is now active. Welcome to SkillBridge AI — your business is about to run on autopilot.
+          Your subscription is now active. Welcome to TrueAxis HQ — your business is about to run on autopilot.
         </p>
 
         {/* What's unlocked */}
@@ -92,8 +92,8 @@ export default function CheckoutSuccess() {
 
         <p className="text-xs text-gray-400 mt-6">
           A receipt has been sent to your email. Questions? Email{" "}
-          <a href="mailto:support@skillbridge.ai" className="text-[#00C9A7] hover:underline focus-visible:outline-[3px] focus-visible:outline-[#00C9A7] focus-visible:outline-offset-1 rounded">
-            support@skillbridge.ai
+          <a href="mailto:support@trueaxishq.com" className="text-[#00C9A7] hover:underline focus-visible:outline-[3px] focus-visible:outline-[#00C9A7] focus-visible:outline-offset-1 rounded">
+            support@trueaxishq.com
           </a>
         </p>
       </main>

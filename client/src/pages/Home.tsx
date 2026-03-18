@@ -1,5 +1,5 @@
 /**
- * SkillBridge AI — Landing Page
+ * TrueAxis HQ — Landing Page
  * Design: "Kinetic Warmth" — Teal #00C9A7, Coral #FF6B6B, Charcoal #1C1C1E
  * Fully accessible (WCAG AA), mobile-first, hardened interactions
  */
@@ -97,7 +97,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
 
   const steps = [
     {
-      title: "Welcome to SkillBridge AI 👋",
+      title: "Welcome to TrueAxis HQ 👋",
       subtitle: "Let's set up your account in 60 seconds.",
       content: (
         <div className="space-y-4">
@@ -324,13 +324,13 @@ function Navbar({ onCTA }: { onCTA: () => void }) {
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-[#00C9A7] rounded-lg p-1"
-          aria-label="SkillBridge AI — scroll to top"
+          aria-label="TrueAxis HQ — scroll to top"
         >
           <div className="w-8 h-8 rounded-lg gradient-teal flex items-center justify-center" aria-hidden="true">
             <Zap className="w-4 h-4 text-white" />
           </div>
           <span className="font-bold text-lg" style={{ fontFamily: "Sora, sans-serif", color: scrolled ? "#1C1C1E" : "white" }}>
-            SkillBridge <span className="text-[#00C9A7]">AI</span>
+            TrueAxis <span className="text-[#00C9A7]">HQ</span>
           </span>
         </button>
 
@@ -471,7 +471,7 @@ function HeroSection({ onCTA }: { onCTA: () => void }) {
             </h1>
 
             <p className="text-base sm:text-lg text-gray-300 leading-relaxed mb-8 max-w-lg">
-              SkillBridge AI handles your client intake, scheduling, invoicing, and follow-ups — so you can focus on the work you love and scale to <strong className="text-white">$100K/year</strong>.
+              TrueAxis HQ handles your client intake, scheduling, invoicing, and follow-ups — so you can focus on the work you love and scale to <strong className="text-white">$100K/year</strong>.
             </p>
 
             {/* Email capture */}
@@ -618,7 +618,7 @@ function FeaturesSection({ onCTA }: { onCTA: () => void }) {
             Your entire business,<br /><span className="text-[#00C9A7]">automated.</span>
           </h2>
           <p className="text-base sm:text-lg text-gray-500 max-w-2xl mx-auto">
-            Stop juggling five different tools. SkillBridge AI replaces your scheduling app, invoicing software, CRM, and email tool — in one platform.
+            Stop juggling five different tools. TrueAxis HQ replaces your scheduling app, invoicing software, CRM, and email tool — in one platform.
           </p>
         </div>
 
@@ -686,7 +686,7 @@ function HowItWorksSection({ onCTA }: { onCTA: () => void }) {
 // ─── Testimonials ─────────────────────────────────────────────────────────────
 function TestimonialsSection() {
   const testimonials = [
-    { name: "Sarah Chen", role: "Life Coach", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop", quote: "I used to spend 3 hours every Monday on admin. Now it's zero. SkillBridge AI paid for itself in the first week.", revenue: "+$2,400/mo" },
+    { name: "Sarah Chen", role: "Life Coach", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop", quote: "I used to spend 3 hours every Monday on admin. Now it's zero. TrueAxis HQ paid for itself in the first week.", revenue: "+$2,400/mo" },
     { name: "Marcus Williams", role: "Freelance Designer", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop", quote: "The AI follow-up feature alone recovered 4 lost clients in my first month. Absolute game changer.", revenue: "+$3,100/mo" },
     { name: "Priya Patel", role: "Business Consultant", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop", quote: "Finally a tool that understands solo operators. The invoicing automation is flawless — clients pay faster now.", revenue: "+$5,800/mo" },
   ];
@@ -698,7 +698,7 @@ function TestimonialsSection() {
           <h2 id="testimonials-heading" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#1C1C1E] mb-4" style={{ fontFamily: "Sora, sans-serif" }}>
             Real people, <span className="text-[#FF6B6B]">real results.</span>
           </h2>
-          <p className="text-base sm:text-lg text-gray-500">Join thousands of freelancers who scaled their income with SkillBridge AI.</p>
+          <p className="text-base sm:text-lg text-gray-500">Join thousands of freelancers who scaled their income with TrueAxis HQ.</p>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -748,7 +748,7 @@ function ClientPulseShowcase({ onCTA }: { onCTA: () => void }) {
           <div>
             <div className="inline-flex items-center gap-2 bg-[#6366F1]/15 text-[#A5B4FC] border border-[#6366F1]/30 rounded-full px-4 py-1.5 text-xs font-semibold mb-6">
               <Sparkles className="w-3 h-3" aria-hidden="true" />
-              Exclusive to SkillBridge AI
+              Exclusive to TrueAxis HQ
             </div>
             <h2 id="pulse-showcase-heading" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6" style={{ fontFamily: "Sora, sans-serif" }}>
               Know which clients are about to leave —
@@ -877,7 +877,7 @@ function CTASection({ onCTA }: { onCTA: () => void }) {
           Ready to stop trading<br /><span className="text-[#00C9A7]">time for money?</span>
         </h2>
         <p className="text-base sm:text-lg text-gray-400 max-w-xl mx-auto mb-8 sm:mb-10">
-          Join 4,200+ freelancers who automated their business with SkillBridge AI. 14-day free trial. No credit card required.
+          Join 4,200+ freelancers who automated their business with TrueAxis HQ. 14-day free trial. No credit card required.
         </p>
 
         <form onSubmit={handleSubmit} className="max-w-md mx-auto mb-6" noValidate>
@@ -939,7 +939,7 @@ function Footer() {
               <div className="w-7 h-7 rounded-lg gradient-teal flex items-center justify-center" aria-hidden="true">
                 <Zap className="w-3.5 h-3.5 text-white" />
               </div>
-              <span className="font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>SkillBridge AI</span>
+              <span className="font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>TrueAxis HQ</span>
             </div>
             <p className="text-xs text-gray-500 leading-relaxed">The all-in-one AI platform for freelancers and solo service providers.</p>
           </div>
@@ -957,7 +957,7 @@ function Footer() {
               links: [
                 { label: "About", action: () => navigate("/about") },
                 { label: "Contact", action: () => navigate("/contact") },
-                { label: "Careers", action: () => window.location.href = "mailto:careers@skillbridge.ai" },
+                { label: "Careers", action: () => window.location.href = "mailto:careers@trueaxishq.com" },
               ],
             },
             {
@@ -987,7 +987,7 @@ function Footer() {
           ))}
         </div>
         <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-gray-600">© 2026 SkillBridge AI. All rights reserved.</p>
+          <p className="text-xs text-gray-600">© 2026 TrueAxis HQ. All rights reserved.</p>
           <div className="flex items-center gap-2">
             <Shield className="w-3.5 h-3.5 text-[#00C9A7]" aria-hidden="true" />
             <span className="text-xs text-gray-600">SOC 2 Type II Certified · GDPR Compliant</span>

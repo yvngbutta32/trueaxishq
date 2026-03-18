@@ -16,7 +16,7 @@ export default function About() {
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#00C9A7] to-[#00A88A] flex items-center justify-center">
             <Zap className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-bold" style={{ fontFamily: "Sora, sans-serif" }}>SkillBridge AI</span>
+          <span className="font-bold" style={{ fontFamily: "Sora, sans-serif" }}>TrueAxis HQ</span>
         </div>
       </nav>
 
@@ -32,7 +32,7 @@ export default function About() {
             We built the platform<br /><span className="text-[#00C9A7]">we always needed.</span>
           </h1>
           <p className="text-lg text-gray-300 leading-relaxed max-w-2xl mx-auto">
-            SkillBridge AI was born out of frustration. We watched talented freelancers — coaches, consultants, designers, developers — spend more time on admin work than on the craft they loved. We decided to fix that.
+            TrueAxis HQ was born out of frustration. We watched talented freelancers — coaches, consultants, designers, developers — spend more time on admin work than on the craft they loved. We decided to fix that.
           </p>
         </div>
       </section>
@@ -62,8 +62,8 @@ export default function About() {
           <h2 className="text-3xl font-extrabold mb-8 text-center" style={{ fontFamily: "Sora, sans-serif" }}>The Story</h2>
           <div className="space-y-5 text-gray-300 leading-relaxed text-base">
             <p>In 2024, the average freelancer in the United States was juggling five or more separate tools just to run their business: a scheduling app, an invoicing tool, a CRM, an email client, and a spreadsheet for everything else. They were paying $200–$400 per month for tools that didn't talk to each other — and spending 15–20 hours per week on admin work instead of billable work.</p>
-            <p>SkillBridge AI was built to collapse all of that into one intelligent platform. We combined AI-powered automation with the core workflows every service provider needs: client management, scheduling, invoicing, follow-ups, and analytics. The result is a platform that doesn't just organize your business — it actively runs it.</p>
-            <p>Today, SkillBridge AI serves thousands of freelancers across coaching, consulting, design, development, fitness, legal, and more. Our users report saving an average of 12 hours per week and increasing their revenue by 34% within their first six months.</p>
+            <p>TrueAxis HQ was built to collapse all of that into one intelligent platform. We combined AI-powered automation with the core workflows every service provider needs: client management, scheduling, invoicing, follow-ups, and analytics. The result is a platform that doesn't just organize your business — it actively runs it.</p>
+            <p>Today, TrueAxis HQ serves thousands of freelancers across coaching, consulting, design, development, fitness, legal, and more. Our users report saving an average of 12 hours per week and increasing their revenue by 34% within their first six months.</p>
             <p>We are a small, focused team. We don't have a massive marketing budget or a flashy office. What we have is a deep commitment to building software that actually works — software that makes your business feel effortless.</p>
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function About() {
 
       {/* Footer */}
       <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-600">
-        <p>© {new Date().getFullYear()} SkillBridge AI. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>
   );

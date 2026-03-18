@@ -1,4 +1,4 @@
-/* SkillBridge AI — Pricing Page
+/* TrueAxis HQ — Pricing Page
  * Design: "Kinetic Warmth" — Teal #00C9A7, Coral #FF6B6B, Charcoal #1C1C1E
  */
 
@@ -98,7 +98,7 @@ export default function Pricing() {
             <Zap className="w-3.5 h-3.5 text-white" />
           </div>
           <span className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: 'Sora, sans-serif' }}>
-            SkillBridge <span className="text-teal">AI</span>
+            TrueAxis <span className="text-teal">HQ</span>
           </span>
         </div>
         <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90" onClick={() => navigate("/dashboard")}>
@@ -189,7 +189,7 @@ export default function Pricing() {
                   variant={plan.popular ? "default" : "outline"}
                   onClick={() => {
                     if (plan.name === "Agency") {
-                      toast.info("Contact sales@skillbridge.ai for Agency pricing");
+                      toast.info("Contact sales@trueaxishq.com for Agency pricing");
                     } else {
                       navigate("/dashboard");
                     }

@@ -33,7 +33,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hi! I'm your SkillBridge AI Assistant. I can help you grow your business, write emails, understand your analytics, and answer any questions. What would you like to work on today?",
+      content: "Hi! I'm your TrueAxis HQ Assistant. I can help you grow your business, write emails, understand your analytics, and answer any questions. What would you like to work on today?",
       timestamp: new Date(),
     },
   ]);
