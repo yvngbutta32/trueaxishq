@@ -212,21 +212,23 @@ export default function Admin() {
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* Header */}
-      <header className="bg-[#1C1C1E] text-white px-4 sm:px-6 py-4 flex items-center justify-between">
+      <header className="bg-[#1C1C1E] text-white px-4 sm:px-6 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl gradient-amber flex items-center justify-center">
-            <Crown className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
-              TrueAxis HQ <span className="text-[#E8A020]">Admin</span>
-            </h1>
-            <p className="text-xs text-gray-400">Owner Control Panel</p>
+          <img
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+            alt="TrueAxis HQ"
+            className="h-8 w-auto object-contain"
+          />
+          <div className="hidden sm:block w-px h-6 bg-white/10" />
+          <div className="hidden sm:flex items-center gap-1.5">
+            <Crown className="w-3.5 h-3.5 text-[#E8A020]" />
+            <span className="text-sm font-semibold text-gray-300" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Admin Panel</span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-white/10" onClick={() => navigate("/dashboard")}>
-            Dashboard
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-white/10 text-xs sm:text-sm" onClick={() => navigate("/dashboard")}>
+            <span className="hidden sm:inline">← Dashboard</span>
+            <span className="sm:hidden">← Back</span>
           </Button>
           <div className="w-8 h-8 rounded-full bg-[#E8A020]/20 flex items-center justify-center text-[#E8A020] text-sm font-bold">
             {user?.name?.[0]?.toUpperCase() ?? "A"}
@@ -235,20 +237,21 @@ export default function Admin() {
       </header>
 
       {/* Tab Nav */}
-      <nav aria-label="Admin sections" className="bg-white border-b border-gray-100 px-2 sm:px-6 overflow-x-auto">
-        <div className="flex gap-1 max-w-7xl mx-auto">
+      <nav aria-label="Admin sections" className="bg-white border-b border-gray-100 overflow-x-auto">
+        <div className="flex max-w-7xl mx-auto px-2 sm:px-6">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               aria-current={activeTab === tab.id ? "page" : undefined}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap min-h-[44px] ${
-                activeTab === tab.id ? "border-[#E8A020] text-[#007A65]" : "border-transparent text-gray-500 hover:text-gray-700"
+              className={`flex items-center gap-2 px-3 sm:px-4 py-3.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap min-h-[48px] ${
+                activeTab === tab.id
+                  ? "border-[#E8A020] text-[#E8A020]"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200"
               }`}
             >
-              <tab.icon className="w-4 h-4" />
-              <span className="hidden sm:inline">{tab.label}</span>
-              <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
+              <tab.icon className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden xs:inline sm:inline">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -323,7 +326,7 @@ export default function Admin() {
                 value={search}
                 onChange={e => { setSearch(e.target.value); setPage(1); }}
                 placeholder="Search by name or email…"
-                className="form-input pl-10"
+                className="form-input-light pl-10"
               />
             </div>
 
@@ -547,11 +550,11 @@ export default function Admin() {
               <form onSubmit={e => { e.preventDefault(); if (!broadcastTitle.trim() || !broadcastContent.trim()) { toast.error("Please fill in both fields"); return; } broadcastMutation.mutate({ title: broadcastTitle, content: broadcastContent }); }} noValidate>
                 <div className="mb-4">
                   <label htmlFor="broadcast-title" className="form-label">Title *</label>
-                  <input id="broadcast-title" type="text" value={broadcastTitle} onChange={e => setBroadcastTitle(e.target.value)} placeholder="e.g. New feature launched" className="form-input" required maxLength={200} />
+                  <input id="broadcast-title" type="text" value={broadcastTitle} onChange={e => setBroadcastTitle(e.target.value)} placeholder="e.g. New feature launched" className="form-input-light" required maxLength={200} />
                 </div>
                 <div className="mb-6">
                   <label htmlFor="broadcast-content" className="form-label">Message *</label>
-                  <textarea id="broadcast-content" value={broadcastContent} onChange={e => setBroadcastContent(e.target.value)} placeholder="Write your message here…" rows={5} className="form-input resize-none" required maxLength={2000} />
+                  <textarea id="broadcast-content" value={broadcastContent} onChange={e => setBroadcastContent(e.target.value)} placeholder="Write your message here…" rows={5} className="form-input-light resize-none" required maxLength={2000} />
                   <p className="form-hint">{broadcastContent.length}/2000 characters</p>
                 </div>
                 <Button type="submit" className="gradient-amber text-white border-0 w-full gap-2" disabled={broadcastMutation.isPending}>
@@ -599,23 +602,23 @@ export default function Admin() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="form-label">Site Name</label>
-                      <input type="text" value={settingsForm.siteName ?? ""} onChange={e => updateField("siteName", e.target.value)} className="form-input" placeholder="TrueAxis HQ" maxLength={255} />
+                      <input type="text" value={settingsForm.siteName ?? ""} onChange={e => updateField("siteName", e.target.value)} className="form-input-light" placeholder="TrueAxis HQ" maxLength={255} />
                     </div>
                     <div>
                       <label className="form-label">Support Email</label>
-                      <input type="email" value={settingsForm.supportEmail ?? ""} onChange={e => updateField("supportEmail", e.target.value)} className="form-input" placeholder="support@trueaxishq.com" maxLength={320} />
+                      <input type="email" value={settingsForm.supportEmail ?? ""} onChange={e => updateField("supportEmail", e.target.value)} className="form-input-light" placeholder="support@trueaxishq.com" maxLength={320} />
                     </div>
                     <div>
                       <label className="form-label">Support Phone</label>
-                      <input type="tel" value={settingsForm.supportPhone ?? ""} onChange={e => updateField("supportPhone", e.target.value)} className="form-input" placeholder="+1 (555) 000-0000" maxLength={32} />
+                      <input type="tel" value={settingsForm.supportPhone ?? ""} onChange={e => updateField("supportPhone", e.target.value)} className="form-input-light" placeholder="+1 (555) 000-0000" maxLength={32} />
                     </div>
                     <div>
                       <label className="form-label">Free Trial Days</label>
-                      <input type="number" value={settingsForm.freeTrialDays ?? 14} onChange={e => updateField("freeTrialDays", parseInt(e.target.value) || 0)} className="form-input" min={0} max={365} />
+                      <input type="number" value={settingsForm.freeTrialDays ?? 14} onChange={e => updateField("freeTrialDays", parseInt(e.target.value) || 0)} className="form-input-light" min={0} max={365} />
                     </div>
                     <div className="sm:col-span-2">
                       <label className="form-label">Site Tagline</label>
-                      <input type="text" value={settingsForm.siteTagline ?? ""} onChange={e => updateField("siteTagline", e.target.value)} className="form-input" placeholder="The AI-powered business platform for freelancers & coaches" maxLength={512} />
+                      <input type="text" value={settingsForm.siteTagline ?? ""} onChange={e => updateField("siteTagline", e.target.value)} className="form-input-light" placeholder="The AI-powered business platform for freelancers & coaches" maxLength={512} />
                     </div>
                   </div>
                 </div>
@@ -636,11 +639,11 @@ export default function Admin() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="sm:col-span-2">
                       <label className="form-label">Banner Text</label>
-                      <input type="text" value={settingsForm.announcementText ?? ""} onChange={e => updateField("announcementText", e.target.value)} className="form-input" placeholder="🎉 Limited early-bird pricing — 50% off for the first 3 months!" maxLength={512} />
+                      <input type="text" value={settingsForm.announcementText ?? ""} onChange={e => updateField("announcementText", e.target.value)} className="form-input-light" placeholder="🎉 Limited early-bird pricing — 50% off for the first 3 months!" maxLength={512} />
                     </div>
                     <div>
                       <label className="form-label">Color</label>
-                      <select value={settingsForm.announcementColor ?? "teal"} onChange={e => updateField("announcementColor", e.target.value)} className="form-input">
+                      <select value={settingsForm.announcementColor ?? "teal"} onChange={e => updateField("announcementColor", e.target.value)} className="form-input-light">
                         <option value="teal">Teal</option>
                         <option value="coral">Coral</option>
                         <option value="purple">Purple</option>
@@ -680,7 +683,7 @@ export default function Admin() {
                           <Icon className="w-3.5 h-3.5" />
                           {label}
                         </label>
-                        <input type="url" value={(settingsForm as any)[key] ?? ""} onChange={e => updateField(key, e.target.value)} className="form-input" placeholder={placeholder} maxLength={255} />
+                        <input type="url" value={(settingsForm as any)[key] ?? ""} onChange={e => updateField(key, e.target.value)} className="form-input-light" placeholder={placeholder} maxLength={255} />
                       </div>
                     ))}
                   </div>
@@ -734,7 +737,7 @@ export default function Admin() {
                   <p className="text-xs text-gray-500 mb-4">When enabled, all non-admin users will see a maintenance page instead of the app.</p>
                   <div>
                     <label className="form-label">Maintenance Message</label>
-                    <input type="text" value={settingsForm.maintenanceMessage ?? ""} onChange={e => updateField("maintenanceMessage", e.target.value)} className="form-input" placeholder="We're performing scheduled maintenance. Back in 30 minutes!" maxLength={512} />
+                    <input type="text" value={settingsForm.maintenanceMessage ?? ""} onChange={e => updateField("maintenanceMessage", e.target.value)} className="form-input-light" placeholder="We're performing scheduled maintenance. Back in 30 minutes!" maxLength={512} />
                   </div>
                 </div>
 

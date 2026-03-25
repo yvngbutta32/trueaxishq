@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowLeft, ShieldCheck } from "lucide-react";
 
-const LOGO_URL = "https://cdn.manus.im/projects/iPfgoMEqzDCjDqvRPrVro9/static/logo-r1.png";
+const LOGO_URL =
+  "https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png";
 
 export default function ResetPassword() {
   const [, navigate] = useLocation();
@@ -50,181 +48,129 @@ export default function ResetPassword() {
     resetMutation.mutate({ token, newPassword });
   };
 
-  const inputStyle = {
-    background: "rgba(245,240,232,0.05)",
-    border: "1px solid rgba(232,160,32,0.2)",
-    color: "#F5F0E8",
-    borderRadius: "8px",
-  };
-
-  const labelStyle = {
-    color: "rgba(245,240,232,0.7)",
-    fontSize: "0.875rem",
-    marginBottom: "0.5rem",
-    display: "block",
-  };
-
   const isDisabled =
     resetMutation.isPending ||
     !newPassword ||
     !confirmPassword ||
-    newPassword !== confirmPassword;
+    newPassword !== confirmPassword ||
+    newPassword.length < 8;
+
+  const passwordMismatch = confirmPassword.length > 0 && confirmPassword !== newPassword;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#141414",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "2rem 1rem",
-      }}
-    >
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ background: "#141414" }}>
       {/* Logo */}
       <button
         onClick={() => navigate("/")}
-        style={{ background: "none", border: "none", cursor: "pointer", marginBottom: "2rem" }}
+        className="mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A020] rounded-lg"
         aria-label="Go to homepage"
+        style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
       >
-        <img src={LOGO_URL} alt="TrueAxis HQ" style={{ height: "48px", objectFit: "contain" }} />
+        <img src={LOGO_URL} alt="TrueAxis HQ" className="h-12 w-auto object-contain" />
       </button>
 
       {/* Card */}
       <div
-        style={{
-          width: "100%",
-          maxWidth: "420px",
-          background: "#1C1C1E",
-          border: "1px solid rgba(232,160,32,0.15)",
-          borderRadius: "16px",
-          padding: "2.5rem 2rem",
-        }}
+        className="w-full max-w-md rounded-2xl p-8 sm:p-10"
+        style={{ background: "#1C1C1E", border: "1px solid rgba(232,160,32,0.15)" }}
       >
         {/* No token */}
         {!token ? (
-          <div style={{ textAlign: "center" }}>
+          <div className="text-center">
             <div
-              style={{
-                width: "56px",
-                height: "56px",
-                borderRadius: "50%",
-                background: "rgba(239,68,68,0.12)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 1.5rem",
-              }}
+              className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-6"
+              style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.20)" }}
             >
-              <AlertCircle size={28} style={{ color: "#ef4444" }} />
+              <AlertCircle size={26} style={{ color: "#ef4444" }} />
             </div>
             <h1
-              style={{
-                fontFamily: "Space Grotesk, sans-serif",
-                fontWeight: 700,
-                fontSize: "1.4rem",
-                color: "#F5F0E8",
-                marginBottom: "0.75rem",
-              }}
+              className="mb-3"
+              style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.5rem", color: "#F5F0E8" }}
             >
               Invalid reset link
             </h1>
-            <p style={{ fontSize: "0.875rem", color: "rgba(245,240,232,0.5)", marginBottom: "2rem" }}>
+            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.50)" }}>
               This link is missing a reset token. Please request a new password reset.
             </p>
-            <Button
+            <button
               onClick={() => navigate("/forgot-password")}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm"
               style={{
                 background: "linear-gradient(135deg, #E8A020, #F5C842)",
                 color: "#141414",
                 fontFamily: "Space Grotesk, sans-serif",
-                fontWeight: 700,
-                borderRadius: "8px",
+                fontSize: "0.9375rem",
                 border: "none",
-                width: "100%",
+                cursor: "pointer",
               }}
             >
               Request New Link
-            </Button>
+            </button>
           </div>
         ) : done ? (
           /* Success state */
-          <div style={{ textAlign: "center" }}>
+          <div className="text-center">
             <div
-              style={{
-                width: "64px",
-                height: "64px",
-                borderRadius: "50%",
-                background: "rgba(0,201,167,0.12)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 1.5rem",
-              }}
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+              style={{ background: "rgba(232,160,32,0.10)", border: "1px solid rgba(232,160,32,0.20)" }}
             >
-              <CheckCircle2 size={32} style={{ color: "#00C9A7" }} />
+              <CheckCircle2 size={32} style={{ color: "#E8A020" }} />
             </div>
             <h1
-              style={{
-                fontFamily: "Space Grotesk, sans-serif",
-                fontWeight: 700,
-                fontSize: "1.4rem",
-                color: "#F5F0E8",
-                marginBottom: "0.75rem",
-              }}
+              className="mb-3"
+              style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.5rem", color: "#F5F0E8" }}
             >
               Password updated!
             </h1>
-            <p style={{ fontSize: "0.875rem", color: "rgba(245,240,232,0.5)", marginBottom: "2rem" }}>
+            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.55)" }}>
               Your password has been changed successfully. You can now sign in with your new password.
             </p>
-            <Button
+            <button
               onClick={() => navigate("/login")}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm"
               style={{
                 background: "linear-gradient(135deg, #E8A020, #F5C842)",
                 color: "#141414",
                 fontFamily: "Space Grotesk, sans-serif",
-                fontWeight: 700,
-                borderRadius: "8px",
+                fontSize: "0.9375rem",
                 border: "none",
-                width: "100%",
+                cursor: "pointer",
               }}
             >
               Sign In
-            </Button>
+            </button>
           </div>
         ) : (
           /* Reset form */
           <>
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-6"
+              style={{ background: "rgba(232,160,32,0.10)", border: "1px solid rgba(232,160,32,0.20)" }}
+            >
+              <ShieldCheck size={24} style={{ color: "#E8A020" }} />
+            </div>
             <h1
-              style={{
-                fontFamily: "Space Grotesk, sans-serif",
-                fontWeight: 700,
-                fontSize: "1.5rem",
-                color: "#F5F0E8",
-                marginBottom: "0.5rem",
-                textAlign: "center",
-              }}
+              className="text-center mb-2"
+              style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.625rem", color: "#F5F0E8" }}
             >
               Set new password
             </h1>
-            <p
-              style={{
-                fontSize: "0.875rem",
-                color: "rgba(245,240,232,0.45)",
-                textAlign: "center",
-                marginBottom: "2rem",
-              }}
-            >
+            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.45)" }}>
               Choose a strong password for your account
             </p>
 
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* New Password */}
               <div>
-                <Label htmlFor="newPassword" style={labelStyle}>New Password</Label>
-                <div style={{ position: "relative" }}>
-                  <Input
+                <label
+                  htmlFor="newPassword"
+                  className="block text-sm font-semibold mb-1.5"
+                  style={{ color: "rgba(245,240,232,0.70)" }}
+                >
+                  New Password
+                </label>
+                <div className="relative">
+                  <input
                     id="newPassword"
                     type={showPassword ? "text" : "password"}
                     value={newPassword}
@@ -233,40 +179,35 @@ export default function ResetPassword() {
                     required
                     autoFocus
                     autoComplete="new-password"
-                    style={{ ...inputStyle, paddingRight: "2.75rem" }}
+                    className="form-input pr-11"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    style={{
-                      position: "absolute",
-                      right: "0.75rem",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "rgba(245,240,232,0.4)",
-                      padding: 0,
-                      minHeight: "auto",
-                      minWidth: "auto",
-                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:opacity-80"
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(245,240,232,0.35)", padding: 0, minHeight: "auto", minWidth: "auto" }}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                {/* Password strength hint */}
                 {newPassword && newPassword.length < 8 && (
-                  <p style={{ color: "#ef4444", fontSize: "0.75rem", marginTop: "0.25rem" }}>
+                  <p className="text-xs mt-1" style={{ color: "#ef4444" }}>
                     Password must be at least 8 characters
                   </p>
                 )}
               </div>
 
+              {/* Confirm Password */}
               <div>
-                <Label htmlFor="confirmPassword" style={labelStyle}>Confirm New Password</Label>
-                <Input
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-semibold mb-1.5"
+                  style={{ color: "rgba(245,240,232,0.70)" }}
+                >
+                  Confirm New Password
+                </label>
+                <input
                   id="confirmPassword"
                   type={showPassword ? "text" : "password"}
                   value={confirmPassword}
@@ -274,47 +215,34 @@ export default function ResetPassword() {
                   placeholder="Re-enter new password"
                   required
                   autoComplete="new-password"
-                  style={{
-                    ...inputStyle,
-                    borderColor:
-                      confirmPassword && confirmPassword !== newPassword
-                        ? "rgba(239,68,68,0.5)"
-                        : "rgba(232,160,32,0.2)",
-                  }}
+                  className="form-input"
+                  style={passwordMismatch ? { borderColor: "rgba(239,68,68,0.55)", boxShadow: "0 0 0 3px rgba(239,68,68,0.10)" } : {}}
                 />
-                {confirmPassword && confirmPassword !== newPassword && (
-                  <p style={{ color: "#ef4444", fontSize: "0.75rem", marginTop: "0.25rem" }}>
-                    Passwords do not match
-                  </p>
+                {passwordMismatch && (
+                  <p className="text-xs mt-1" style={{ color: "#ef4444" }}>Passwords do not match</p>
                 )}
               </div>
 
-              <Button
+              {/* Submit */}
+              <button
                 type="submit"
                 disabled={isDisabled}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
-                  background: isDisabled
-                    ? "rgba(232,160,32,0.3)"
-                    : "linear-gradient(135deg, #E8A020, #F5C842)",
+                  background: "linear-gradient(135deg, #E8A020, #F5C842)",
                   color: "#141414",
                   fontFamily: "Space Grotesk, sans-serif",
-                  fontWeight: 700,
-                  borderRadius: "8px",
+                  fontSize: "0.9375rem",
                   border: "none",
-                  padding: "0.75rem",
-                  fontSize: "0.95rem",
                   cursor: isDisabled ? "not-allowed" : "pointer",
-                  width: "100%",
                 }}
               >
                 {resetMutation.isPending ? (
-                  <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
-                    <Loader2 size={16} className="animate-spin" /> Updating…
-                  </span>
+                  <><Loader2 size={16} className="animate-spin" /> Updating…</>
                 ) : (
                   "Update Password"
                 )}
-              </Button>
+              </button>
             </form>
           </>
         )}
@@ -323,18 +251,11 @@ export default function ResetPassword() {
       {/* Back link */}
       <button
         onClick={() => navigate("/login")}
-        style={{
-          marginTop: "1.5rem",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          color: "rgba(245,240,232,0.3)",
-          fontSize: "0.8rem",
-          minHeight: "auto",
-          minWidth: "auto",
-        }}
+        className="mt-6 flex items-center gap-1.5 text-sm transition-colors hover:opacity-70"
+        style={{ color: "rgba(245,240,232,0.30)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
       >
-        ← Back to Sign In
+        <ArrowLeft size={14} />
+        Back to Sign In
       </button>
     </div>
   );

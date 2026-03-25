@@ -143,8 +143,8 @@ export const appRouter = router({
     }),
 
     forgotPassword: publicProcedure
-      .input(z.object({ email: safeEmail }))
-      .mutation(async ({ input }) => {
+      .input(z.object({ email: safeEmail, origin: z.string().url().optional() }))
+      .mutation(async ({ input, ctx }) => {
         // Always return success to prevent email enumeration
         try {
           const db = await requireDb();
@@ -170,9 +170,9 @@ export const appRouter = router({
             used: false,
           });
 
-          // Notify owner (who IS the user in this single-admin setup)
-          // The reset link uses the request origin so it works in any environment
-          const resetUrl = `https://skillbridge-gipzwtye.manus.space/reset-password?token=${token}`;
+          // Build reset URL from the request origin (works in any environment)
+          const origin = input.origin || ctx.req.headers.origin || ctx.req.headers.referer?.replace(/\/[^/]*$/, '') || 'https://skillbridge-gipzwtye.manus.space';
+          const resetUrl = `${origin}/reset-password?token=${token}`;
           await notifyOwner({
             title: "Password Reset Requested",
             content: `A password reset was requested for ${user.email}.\n\nReset link (expires in 1 hour):\n${resetUrl}\n\nIf you did not request this, you can ignore this message.`,

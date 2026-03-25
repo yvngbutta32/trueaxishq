@@ -951,7 +951,7 @@ function Footer() {
   return (
     <footer style={{ background: "#0A0A0A", borderTop: "1px solid rgba(232,160,32,0.08)" }}>
       <div className="container py-16">
-        <div className="grid md:grid-cols-4 gap-10 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-12">
           {/* Brand */}
           <div>
             <div className="flex items-center mb-4">

@@ -135,27 +135,30 @@ export default function BookingPage() {
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 px-4 py-4" role="banner">
+      <header className="bg-[#1C1C1E] border-b border-white/10 px-4 py-3.5" role="banner">
         <div className="max-w-xl mx-auto flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl gradient-amber flex items-center justify-center flex-shrink-0" aria-hidden="true">
-            <Zap className="w-4 h-4 text-white" />
-          </div>
+          <img
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+            alt="TrueAxis HQ"
+            className="h-7 w-auto object-contain flex-shrink-0"
+          />
+          <div className="w-px h-5 bg-white/15 flex-shrink-0" aria-hidden="true" />
           <div>
-            <p className="text-xs text-gray-400">Booking with</p>
-            <h1 className="text-base font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <p className="text-xs text-gray-500">Booking with</p>
+            <h1 className="text-sm font-bold text-white" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               {host.name}
             </h1>
           </div>
           <div className="ml-auto">
-            <span className="text-xs bg-[#E8A020]/10 text-[#007A65] border border-[#E8A020]/20 rounded-full px-3 py-1 font-semibold">
-              Powered by TrueAxis HQ
+            <span className="text-xs bg-[#E8A020]/15 text-[#E8A020] border border-[#E8A020]/25 rounded-full px-3 py-1 font-semibold">
+              Secure Booking
             </span>
           </div>
         </div>
       </header>
 
       {/* Progress */}
-      <div className="bg-white border-b border-gray-100" role="navigation" aria-label="Booking progress">
+      <div className="bg-[#1C1C1E] border-b border-white/10" role="navigation" aria-label="Booking progress">
         <div className="max-w-xl mx-auto px-4 py-3">
           <div className="flex items-center gap-2" role="list">
             {[
@@ -173,19 +176,21 @@ export default function BookingPage() {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                        isDone ? "gradient-amber text-white" :
-                        isCurrent ? "bg-[#E8A020]/15 text-[#007A65] border-2 border-[#E8A020]" :
-                        "bg-gray-100 text-gray-400"
+                        isDone ? "bg-[#E8A020] text-[#1C1C1E]" :
+                        isCurrent ? "bg-[#E8A020]/20 text-[#E8A020] border-2 border-[#E8A020]" :
+                        "bg-white/10 text-gray-500"
                       }`}
                       aria-current={isCurrent ? "step" : undefined}
                     >
                       {isDone ? <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" /> : i + 1}
                     </div>
-                    <span className={`text-xs font-medium hidden sm:block ${isCurrent ? "text-[#007A65]" : isDone ? "text-gray-700" : "text-gray-400"}`}>
+                    <span className={`text-xs font-medium hidden sm:block ${
+                      isCurrent ? "text-[#E8A020]" : isDone ? "text-gray-300" : "text-gray-600"
+                    }`}>
                       {s.label}
                     </span>
                   </div>
-                  {i < 2 && <div className="flex-1 h-px bg-gray-200 mx-1" aria-hidden="true" />}
+                  {i < 2 && <div className="flex-1 h-px bg-white/10 mx-1" aria-hidden="true" />}
                 </div>
               );
             })}
@@ -199,10 +204,10 @@ export default function BookingPage() {
         {/* Step 1: Details */}
         {step === "details" && (
           <section aria-label="Your contact details">
-            <h2 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               Tell us about yourself
             </h2>
-            <p className="text-sm text-gray-500 mb-6">We'll share this with {host.name} to prepare for your session.</p>
+            <p className="text-sm text-gray-400 mb-6">We'll share this with {host.name} to prepare for your session.</p>
 
             <div className="space-y-4">
               <div>
@@ -217,7 +222,7 @@ export default function BookingPage() {
                     value={form.clientName}
                     onChange={e => setForm(p => ({ ...p, clientName: e.target.value }))}
                     placeholder="Jane Smith"
-                    className="form-input pl-10"
+                    className="form-input-light pl-10"
                     required
                     aria-required="true"
                     autoComplete="name"
@@ -237,7 +242,7 @@ export default function BookingPage() {
                     value={form.clientEmail}
                     onChange={e => setForm(p => ({ ...p, clientEmail: e.target.value }))}
                     placeholder="jane@example.com"
-                    className="form-input pl-10"
+                    className="form-input-light pl-10"
                     required
                     aria-required="true"
                     autoComplete="email"
@@ -255,7 +260,7 @@ export default function BookingPage() {
                     id="service-select"
                     value={form.service}
                     onChange={e => setForm(p => ({ ...p, service: e.target.value }))}
-                    className="form-input pl-10 appearance-none"
+                    className="form-input-light pl-10 appearance-none"
                     required
                     aria-required="true"
                   >
@@ -277,7 +282,7 @@ export default function BookingPage() {
                     onChange={e => setForm(p => ({ ...p, message: e.target.value }))}
                     placeholder="Briefly describe what you'd like to work on…"
                     rows={3}
-                    className="form-input pl-10 resize-none"
+                    className="form-input-light pl-10 resize-none"
                     maxLength={500}
                   />
                 </div>
@@ -305,16 +310,16 @@ export default function BookingPage() {
           <section aria-label="Select date and time">
             <button
               onClick={() => setStep("details")}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-5 min-h-[44px]"
+              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
               aria-label="Back to your details"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
             </button>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               Choose a date & time
             </h2>
-            <p className="text-sm text-gray-500 mb-6">All times are shown in your local timezone.</p>
+            <p className="text-sm text-gray-400 mb-6">All times are shown in your local timezone.</p>
 
             {/* Date picker */}
             <fieldset className="mb-6">
@@ -333,11 +338,11 @@ export default function BookingPage() {
                       aria-label={`${dayName} ${dateStr}`}
                       className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2 ${
                         isSelected
-                          ? "border-[#E8A020] bg-[#E8A020]/5 text-[#007A65]"
-                          : "border-gray-200 hover:border-gray-300 text-gray-700"
+                          ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]"
+                          : "border-white/15 bg-white/5 hover:border-white/25 text-gray-300"
                       }`}
                     >
-                      <p className="text-xs text-gray-400">{dayName}</p>
+                      <p className="text-xs text-gray-500">{dayName}</p>
                       <p className="text-lg font-bold">{dayNum}</p>
                     </button>
                   );
@@ -360,8 +365,8 @@ export default function BookingPage() {
                         aria-label={`${time}`}
                         className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2 ${
                           isSelected
-                            ? "border-[#E8A020] bg-[#E8A020]/5 text-[#007A65]"
-                            : "border-gray-200 hover:border-gray-300 text-gray-700"
+                            ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]"
+                            : "border-white/15 bg-white/5 hover:border-white/25 text-gray-300"
                         }`}
                       >
                         {time}
@@ -392,25 +397,25 @@ export default function BookingPage() {
           <section aria-label="Confirm your booking">
             <button
               onClick={() => setStep("datetime")}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-5 min-h-[44px]"
+              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
               aria-label="Back to date and time selection"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
             </button>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               Confirm your booking
             </h2>
-            <p className="text-sm text-gray-500 mb-6">Please review the details below before submitting.</p>
+            <p className="text-sm text-gray-400 mb-6">Please review the details below before submitting.</p>
 
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4 mb-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
-                <div className="w-10 h-10 rounded-xl gradient-amber flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                  <User className="w-5 h-5 text-white" />
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-5 space-y-4 mb-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+                <div className="w-10 h-10 rounded-xl bg-[#E8A020]/15 border border-[#E8A020]/25 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                  <User className="w-5 h-5 text-[#E8A020]" />
                 </div>
                 <div>
-                  <p className="font-bold text-gray-900">{host.name}</p>
-                  <p className="text-xs text-gray-400">Your service provider</p>
+                  <p className="font-bold text-white">{host.name}</p>
+                  <p className="text-xs text-gray-500">Your service provider</p>
                 </div>
               </div>
 
@@ -422,24 +427,24 @@ export default function BookingPage() {
                 { icon: Clock, label: "Time", value: form.preferredTime },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                    <Icon className="w-4 h-4 text-gray-500" />
+                  <div className="w-8 h-8 rounded-lg bg-white/8 border border-white/10 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                    <Icon className="w-4 h-4 text-gray-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">{label}</p>
-                    <p className="text-sm font-semibold text-gray-900">{value}</p>
+                    <p className="text-xs text-gray-500">{label}</p>
+                    <p className="text-sm font-semibold text-white">{value}</p>
                   </div>
                 </div>
               ))}
 
               {form.message && (
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
-                    <MessageSquare className="w-4 h-4 text-gray-500" />
+                  <div className="w-8 h-8 rounded-lg bg-white/8 border border-white/10 flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
+                    <MessageSquare className="w-4 h-4 text-gray-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Message</p>
-                    <p className="text-sm text-gray-700">{form.message}</p>
+                    <p className="text-xs text-gray-500">Message</p>
+                    <p className="text-sm text-gray-300">{form.message}</p>
                   </div>
                 </div>
               )}

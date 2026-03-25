@@ -24,7 +24,7 @@ import {
   Building, Save, Moon, Sun, Bot, CreditCard,
   ExternalLink, Bell, Search, ChevronDown, Loader2,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
-  Copy, Check, Star, Activity, HeartPulse
+  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -102,7 +102,7 @@ function Field({ label, value, onChange, placeholder, type = "text", required, t
   label: string; value: string; onChange: (v: string) => void;
   placeholder?: string; type?: string; required?: boolean; textarea?: boolean; rows?: number;
 }) {
-  const cls = "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors";
+  const cls = "form-input-light";
   return (
     <div>
       <label className="block text-xs font-semibold text-gray-600 mb-1.5">{label}{required && " *"}</label>
@@ -493,14 +493,14 @@ function ClientsPanel() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search clients by name, email, or service..."
-            className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors"
+            className="form-input-light pl-9"
             aria-label="Search clients"
           />
         </div>
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value as typeof statusFilter)}
-          className="px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors bg-white"
+          className="form-input-light"
           aria-label="Filter by status"
         >
           <option value="all">All Statuses</option>
@@ -589,7 +589,7 @@ function ClientsPanel() {
           <Field label="Service / Niche" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="Business Coaching, Web Design..." />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Status</label>
-            <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as typeof form.status }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors">
+            <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as typeof form.status }))} className="form-input-light">
               <option value="active">Active</option>
               <option value="prospect">Prospect / Lead</option>
               <option value="inactive">Inactive</option>
@@ -758,7 +758,7 @@ function SchedulingPanel() {
                 const c = clientList?.find(c => c.id === parseInt(e.target.value));
                 if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "", service: c.service || "" }));
               }}
-              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors"
+              className="form-input-light"
             >
               <option value="">— Or enter manually below —</option>
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -773,7 +773,7 @@ function SchedulingPanel() {
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Duration (minutes)</label>
-            <select value={form.duration} onChange={e => setForm(p => ({ ...p, duration: parseInt(e.target.value) }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors">
+            <select value={form.duration} onChange={e => setForm(p => ({ ...p, duration: parseInt(e.target.value) }))} className="form-input-light">
               {[15, 30, 45, 60, 90, 120].map(d => <option key={d} value={d}>{d} minutes</option>)}
             </select>
           </div>
@@ -909,7 +909,7 @@ function InvoicesPanel() {
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Select Client</label>
-            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "" })); }} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors">
+            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "" })); }} className="form-input-light">
               <option value="">— Or enter manually below —</option>
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -922,7 +922,7 @@ function InvoicesPanel() {
           <Field label="Notes" value={form.notes} onChange={v => setForm(p => ({ ...p, notes: v }))} placeholder="Payment terms, bank details..." textarea />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Send as</label>
-            <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as "draft" | "sent" }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors">
+            <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as "draft" | "sent" }))} className="form-input-light">
               <option value="draft">Save as Draft</option>
               <option value="sent">Mark as Sent</option>
             </select>
@@ -1103,7 +1103,7 @@ function FollowUpsPanel() {
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Select Client</label>
-            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "", service: c.service || "" })); }} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors">
+            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "", service: c.service || "" })); }} className="form-input-light">
               <option value="">— Or enter manually below —</option>
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -1345,7 +1345,7 @@ function ChangePasswordSection() {
               onChange={e => setCurrentPassword(e.target.value)}
               placeholder="Enter current password"
               autoComplete="current-password"
-              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors pr-10"
+              className="form-input-light pr-10"
             />
             <button
               type="button"
@@ -1365,7 +1365,7 @@ function ChangePasswordSection() {
             onChange={e => setNewPassword(e.target.value)}
             placeholder="Min. 8 characters"
             autoComplete="new-password"
-            className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors"
+            className="form-input-light"
           />
         </div>
         <div>
@@ -1376,7 +1376,7 @@ function ChangePasswordSection() {
             onChange={e => setConfirmPassword(e.target.value)}
             placeholder="Re-enter new password"
             autoComplete="new-password"
-            className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors ${
+            className={`form-input-light ${
               confirmPassword && confirmPassword !== newPassword ? "border-red-300" : "border-gray-200"
             }`}
           />
@@ -1465,7 +1465,7 @@ function SettingsPanel() {
               value={bookingPage.bookingUsername}
               onChange={e => setBookingPage(p => ({ ...p, bookingUsername: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
               placeholder="your-name"
-              className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors"
+              className="form-input-light"
             />
           </div>
           {bookingUrl && (
@@ -1496,7 +1496,7 @@ function SettingsPanel() {
             ))}
           </div>
           <div className="flex gap-2">
-            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Add a service..." className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }} />
+            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Add a service..." className="form-input-light" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }} />
             <Button size="sm" variant="outline" onClick={() => { if (newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }}>
               <Plus className="w-4 h-4" />
             </Button>
@@ -1561,28 +1561,115 @@ function SettingsPanel() {
 
 // ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
 function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive: (p: ActivePanel) => void }) {
-  const mobileNavItems = [
+  const [showMore, setShowMore] = useState(false);
+  const [, navigate] = useLocation();
+  const { user } = useAuth();
+
+  const primaryItems = [
     { icon: LayoutDashboard, label: "Home", panel: "overview" as ActivePanel },
     { icon: Users, label: "Clients", panel: "clients" as ActivePanel },
     { icon: Calendar, label: "Schedule", panel: "scheduling" as ActivePanel },
     { icon: FileText, label: "Invoices", panel: "invoices" as ActivePanel },
-    { icon: Bot, label: "AI", panel: "ai" as ActivePanel },
   ];
+
+  const moreItems = [
+    { icon: Mail, label: "Follow-Ups", panel: "followups" as ActivePanel },
+    { icon: HeartPulse, label: "Client Pulse", panel: "pulse" as ActivePanel },
+    { icon: BarChart3, label: "Analytics", panel: "analytics" as ActivePanel },
+    { icon: Bot, label: "AI Assistant", panel: "ai" as ActivePanel },
+    { icon: Settings, label: "Settings", panel: "settings" as ActivePanel },
+  ];
+
+  const isMoreActive = moreItems.some(i => i.panel === active);
+
+  const handleMoreItem = (panel: ActivePanel) => {
+    setActive(panel);
+    setShowMore(false);
+  };
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#1C1C1E] border-t border-white/10 flex md:hidden" aria-label="Mobile navigation" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-      {mobileNavItems.map((item) => (
+    <>
+      {/* More Drawer Overlay */}
+      {showMore && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setShowMore(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* More Drawer */}
+      <div
+        className={`fixed bottom-[57px] left-0 right-0 z-50 md:hidden bg-[#1C1C1E] border-t border-white/10 transition-transform duration-200 ${showMore ? "translate-y-0" : "translate-y-full"}`}
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="grid grid-cols-3 gap-px p-3">
+          {moreItems.map((item) => (
+            <button
+              key={item.panel}
+              onClick={() => handleMoreItem(item.panel)}
+              aria-label={item.label}
+              className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl gap-1.5 transition-colors ${
+                active === item.panel ? "bg-[#E8A020]/15 text-[#E8A020]" : "text-gray-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <item.icon className="w-5 h-5" aria-hidden="true" />
+              <span className="text-[10px] font-medium text-center leading-tight">{item.label}</span>
+            </button>
+          ))}
+          {user?.role === "admin" && (
+            <button
+              onClick={() => { navigate("/admin"); setShowMore(false); }}
+              className="flex flex-col items-center justify-center py-3 px-2 rounded-xl gap-1.5 text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              <Star className="w-5 h-5" aria-hidden="true" />
+              <span className="text-[10px] font-medium">Admin</span>
+            </button>
+          )}
+          <button
+            onClick={() => { navigate("/billing"); setShowMore(false); }}
+            className="flex flex-col items-center justify-center py-3 px-2 rounded-xl gap-1.5 text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+          >
+            <CreditCard className="w-5 h-5" aria-hidden="true" />
+            <span className="text-[10px] font-medium">Billing</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom Nav Bar */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 bg-[#1C1C1E] border-t border-white/10 flex md:hidden"
+        aria-label="Mobile navigation"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        {primaryItems.map((item) => (
+          <button
+            key={item.panel}
+            onClick={() => { setActive(item.panel); setShowMore(false); }}
+            aria-label={item.label}
+            aria-current={active === item.panel ? "page" : undefined}
+            className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 min-h-[56px] transition-colors ${
+              active === item.panel && !showMore ? "text-[#E8A020]" : "text-gray-500 hover:text-gray-300"
+            }`}
+          >
+            <item.icon className="w-5 h-5" aria-hidden="true" />
+            <span className="text-[10px] font-medium">{item.label}</span>
+          </button>
+        ))}
+        {/* More button */}
         <button
-          key={item.panel}
-          onClick={() => setActive(item.panel)}
-          aria-label={item.label}
-          aria-current={active === item.panel ? "page" : undefined}
-          className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 min-h-[56px] transition-colors ${active === item.panel ? "text-[#E8A020]" : "text-gray-500 hover:text-gray-300"}`}
+          onClick={() => setShowMore(v => !v)}
+          aria-label="More panels"
+          aria-expanded={showMore}
+          className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 min-h-[56px] transition-colors ${
+            isMoreActive || showMore ? "text-[#E8A020]" : "text-gray-500 hover:text-gray-300"
+          }`}
         >
-          <item.icon className="w-5 h-5" aria-hidden="true" />
-          <span className="text-[10px] font-medium">{item.label}</span>
+          <MoreHorizontal className="w-5 h-5" aria-hidden="true" />
+          <span className="text-[10px] font-medium">More</span>
         </button>
-      ))}
-    </nav>
+      </nav>
+    </>
   );
 }
 
@@ -1651,13 +1738,16 @@ export default function Dashboard() {
         {/* Header */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 md:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Mobile logo */}
+            {/* Mobile logo + panel title */}
             <div className="flex items-center gap-2 md:hidden">
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
                 alt="TrueAxis HQ"
                 className="h-7 w-auto object-contain"
               />
+              <span className="text-sm font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                {panelTitles[active]}
+              </span>
             </div>
             <h1 className="hidden md:block text-base font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               {panelTitles[active]}
@@ -1672,7 +1762,7 @@ export default function Dashboard() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Quick search..."
-                className="pl-8 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors w-48"
+                className="form-input-light pl-8 pr-4 w-48"
                 aria-label="Quick search"
               />
             </div>

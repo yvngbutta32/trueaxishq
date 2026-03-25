@@ -255,8 +255,9 @@ export default function Pricing() {
           </div>
 
           <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(232,160,32,0.10)" }}>
+            <div className="overflow-x-auto">
             {/* Header */}
-            <div className="grid grid-cols-4 px-5 py-3" style={{ background: "#272727", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
+            <div className="grid grid-cols-4 min-w-[480px] px-5 py-3" style={{ background: "#272727", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
               <div className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(245,240,232,0.30)" }}>Feature</div>
               {["Starter", "Pro", "Agency"].map((p, i) => (
                 <div key={p} className="text-center">
@@ -269,7 +270,7 @@ export default function Pricing() {
             {comparisonRows.map((row, i) => (
               <div
                 key={i}
-                className="grid grid-cols-4 px-5 py-3"
+                className="grid grid-cols-4 min-w-[480px] px-5 py-3"
                 style={{ background: i % 2 === 0 ? "#1E1E1E" : "#141414", borderBottom: i < comparisonRows.length - 1 ? "1px solid rgba(245,240,232,0.04)" : "none" }}
               >
                 <div className="text-sm" style={{ color: "rgba(245,240,232,0.60)" }}>{row.feature}</div>
@@ -280,6 +281,7 @@ export default function Pricing() {
                 ))}
               </div>
             ))}
+            </div>
           </div>
         </div>
       </section>

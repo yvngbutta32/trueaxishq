@@ -331,3 +331,78 @@
 - [x] /forgot-password and /reset-password routes registered in App.tsx
 - [x] Admin invite management panel — skipped per user request
 - [x] 29/29 tests passing, build succeeds
+
+## Visual Polish & UX Pass (Round 15)
+
+### Global CSS & Typography
+- [ ] Audit and fix all input/textarea focus states — consistent amber ring, no browser default blue
+- [ ] Fix all controlled inputs to use value+onChange (no defaultValue anti-patterns causing stale state)
+- [ ] Ensure all select dropdowns have consistent amber focus ring
+- [ ] Add smooth transitions to all interactive elements (buttons, cards, nav items)
+- [ ] Ensure consistent font sizing hierarchy across all pages
+- [ ] Fix any text overflow/truncation issues on mobile
+
+### Auth Pages
+- [ ] Login — fix autofill background color (browser yellow override)
+- [ ] Login — add loading disabled state visual feedback
+- [ ] Register — ensure invite code field auto-uppercases smoothly without cursor jump
+- [ ] ForgotPassword — ensure email field autofocuses on mount
+- [ ] ResetPassword — ensure token is read from URL on mount correctly
+
+### Dashboard
+- [ ] Fix mobile bottom nav — ensure all 5 tabs are tappable with 48px targets
+- [ ] Fix sidebar collapse animation — smooth width transition
+- [ ] Fix all modal inputs — ensure typing doesn't lag or lose focus
+- [ ] Fix client search input — debounce to prevent excessive re-renders
+- [ ] Fix invoice amount input — allow decimal typing without value reset
+- [ ] Fix booking date/time inputs — consistent styling with rest of form
+- [ ] Fix follow-up panel — textarea should auto-resize as user types
+- [ ] Add scroll-to-top when switching panels
+- [ ] Ensure all empty states have clear CTAs
+
+### Admin Panel
+- [ ] Fix mobile tab overflow — horizontal scroll with snap
+- [ ] Fix user table on mobile — card layout instead of table
+- [ ] Fix broadcast textarea — smooth typing, character counter
+- [ ] Fix settings form inputs — consistent styling and focus states
+- [ ] Ensure all admin action buttons have loading states
+
+### Public Pages
+- [ ] Home — fix mobile nav hamburger menu animation
+- [ ] Home — fix email capture input focus and submit state
+- [ ] Pricing — fix plan toggle animation
+- [ ] Contact — fix all form inputs, ensure submit shows success state
+- [ ] Help — fix search input, ensure filtering is smooth
+- [ ] BookingPage — fix all form inputs, ensure date picker is mobile-friendly
+- [ ] All pages — ensure nav logo links back to homepage
+- [ ] All pages — ensure footer links are tappable on mobile (48px targets)
+
+## Visual Polish & UX Pass (Round 14)
+- [x] Add Space Grotesk font import to index.html (was referenced in 98 places but not imported)
+- [x] Add missing `form-input` CSS class (used in 20+ places but undefined — inputs were unstyled)
+- [x] Add missing `form-input-light` CSS class for light-background forms
+- [x] Add missing `form-label` CSS class (used in Admin, BookingPage but undefined)
+- [x] Add missing `form-hint` CSS class (used in BookingPage, Admin but undefined)
+- [x] Add missing `form-error` CSS class for inline validation errors
+- [x] Add missing `animated-underline` CSS class (used in 4 places but undefined)
+- [x] Add missing `btn-ghost` CSS class (used in About.tsx but undefined)
+- [x] Fix select arrow styling for form-input and form-input-light
+- [x] Apply form-input-light to all Admin.tsx inputs (light background context)
+- [x] Apply form-input-light to all BookingPage.tsx inputs
+- [x] Apply form-input-light to all Dashboard.tsx Field components
+- [x] Rewrite Login.tsx with polished dark design, smooth typing, caret-color, transitions
+- [x] Rewrite Register.tsx with polished dark design and invite code field
+- [x] Rewrite ForgotPassword.tsx with polished design and correct success message
+- [x] Rewrite ResetPassword.tsx with polished design and password strength indicator
+- [x] Fix Pricing.tsx comparison table — add overflow-x-auto wrapper for mobile
+- [x] Fix Home.tsx footer grid — responsive 2-col mobile / 4-col desktop layout
+- [x] Add "More" drawer to Dashboard mobile bottom nav (access all 8 panels on mobile)
+- [x] Add MoreHorizontal icon to Dashboard lucide-react imports
+- [x] Improve Admin.tsx header with logo and better mobile tab nav
+- [x] Fix BookingPage header to use official logo instead of Zap icon
+- [x] Fix BookingPage steps 2 & 3 to match dark theme (white text, dark card backgrounds)
+- [x] Fix BookingPage date/time selection buttons to use dark theme colors
+- [x] Fix password reset URL to use request origin (not hardcoded domain)
+- [x] Update ForgotPassword.tsx to pass window.location.origin to backend
+- [x] Fix ForgotPassword success message to remove Manus reference
+- [x] 0 TypeScript errors, 29/29 tests passing after full polish pass
