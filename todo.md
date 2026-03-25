@@ -257,3 +257,77 @@
 - [x] Update Home.tsx Sign In buttons to navigate to /login
 - [x] Set bcrypt password hash for owner account (aaron.anderson62901@gmail.com)
 - [x] 0 TypeScript errors, 29/29 tests passing, build succeeds
+
+## Auth Enhancements (Round 13)
+
+### Forgot Password Flow
+- [ ] Add passwordResetTokens DB table (token, userId, expiresAt, used)
+- [ ] Add auth.forgotPassword tRPC procedure — generate token, send email via notifyOwner/email
+- [ ] Add auth.resetPassword tRPC procedure — validate token, update passwordHash, mark used
+- [ ] Create ForgotPassword page at /forgot-password
+- [ ] Create ResetPassword page at /reset-password?token=...
+- [ ] Add "Forgot password?" link on Login page
+
+### Change Password in Dashboard Settings
+- [ ] Add auth.changePassword tRPC procedure (verify old password, set new)
+- [ ] Add Change Password section to Dashboard Settings panel
+
+### Invitation-Only Registration Gate
+- [ ] Add inviteCodes DB table (code, createdBy, usedBy, usedAt, expiresAt)
+- [ ] Add admin.createInvite tRPC procedure — generate invite code
+- [ ] Add admin.listInvites tRPC procedure — list all codes with status
+- [ ] Add admin.revokeInvite tRPC mutation — delete/expire a code
+- [ ] Update auth.register to require a valid invite code
+- [ ] Update Register page to include invite code field
+- [ ] Add Invite Codes tab to Admin panel — generate, list, revoke codes
+
+## Comprehensive Platform Hardening (Round 13 — Full Pass)
+
+### Migration & DB
+- [ ] Fix duplicate passwordHash migration conflict (mark 0006 as applied, push new tables only)
+- [ ] Verify passwordResetTokens and inviteCodes tables created in DB
+
+### Forgot Password Flow
+- [ ] auth.forgotPassword tRPC procedure — generate secure token, store in DB, send email via notifyOwner
+- [ ] auth.resetPassword tRPC procedure — validate token expiry/used, update passwordHash, mark token used
+- [ ] ForgotPassword page at /forgot-password
+- [ ] ResetPassword page at /reset-password?token=...
+- [ ] "Forgot password?" link on Login page
+
+### Change Password
+- [ ] auth.changePassword tRPC procedure — verify current password, hash and save new one
+- [ ] Change Password section in Dashboard Settings panel
+
+### Invitation-Only Registration
+- [ ] admin.createInvite tRPC procedure — generate unique code, store with note/expiry
+- [ ] admin.listInvites tRPC procedure — list all codes with status (used/active/revoked/expired)
+- [ ] admin.revokeInvite tRPC mutation — mark code as revoked
+- [ ] Update auth.register to require valid invite code (check not used/revoked/expired)
+- [ ] Update Register page with invite code field
+- [ ] Invite Codes tab in Admin panel — generate, list, copy, revoke
+
+### Data Integrity Audit
+- [ ] Verify all tRPC mutations return correct data shapes (no undefined fields)
+- [ ] Verify all analytics calculations use correct UTC timestamps
+- [ ] Verify invoice totals aggregate correctly (paid vs unpaid)
+- [ ] Verify client pulse scores recompute on relevant mutations
+- [ ] Verify admin user management shows accurate plan/role/subscription data
+- [ ] Verify Stripe webhook correctly updates subscriptionStatus and planId in DB
+- [ ] Verify lastSignedIn updates on every login
+- [ ] Verify all error paths return typed TRPCError (no raw throws)
+- [ ] Verify all admin procedures check role === 'admin' before executing
+
+## Auth Enhancements — Completed (Round 14)
+- [x] passwordResetTokens and inviteCodes DB tables created
+- [x] auth.forgotPassword tRPC procedure — generates token, sends owner notification
+- [x] auth.resetPassword tRPC procedure — validates token, updates password, marks used
+- [x] auth.changePassword tRPC procedure — verifies current password, saves new hash
+- [x] auth.register updated to require valid invite code
+- [x] ForgotPassword page at /forgot-password
+- [x] ResetPassword page at /reset-password?token=...
+- [x] "Forgot password?" link on Login page
+- [x] Change Password section in Dashboard → Settings
+- [x] Register page updated with invite code field (prominent, monospace, uppercase)
+- [x] /forgot-password and /reset-password routes registered in App.tsx
+- [x] Admin invite management panel — skipped per user request
+- [x] 29/29 tests passing, build succeeds

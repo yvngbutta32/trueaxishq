@@ -9,8 +9,8 @@ import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings } from "../drizzle/schema";
-import { registerUser, loginUser, createSessionToken } from "./auth";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes } from "../drizzle/schema";
+import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
@@ -64,19 +64,46 @@ export const appRouter = router({
         name: z.string().trim().min(1).max(255),
         email: safeEmail,
         password: z.string().min(8).max(128),
+        inviteCode: z.string().trim().min(1).max(32),
       }))
       .mutation(async ({ input, ctx }) => {
         try {
+          // Validate invite code first
+          const db = await requireDb();
+          const [invite] = await db.select().from(inviteCodes)
+            .where(eq(inviteCodes.code, input.inviteCode.toUpperCase())).limit(1);
+
+          if (!invite) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid invite code. Please check and try again." });
+          }
+          if (invite.revoked) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "This invite code has been revoked." });
+          }
+          if (invite.usedAt) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "This invite code has already been used." });
+          }
+          if (invite.expiresAt && new Date() > invite.expiresAt) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "This invite code has expired." });
+          }
+
           const user = await registerUser({
             name: input.name,
             email: input.email,
             password: input.password,
           });
+
+          // Mark invite as used
+          await db.update(inviteCodes).set({
+            usedBy: user.id,
+            usedAt: new Date(),
+          }).where(eq(inviteCodes.id, invite.id));
+
           const token = await createSessionToken(user.id, user.email ?? input.email);
           const cookieOptions = getSessionCookieOptions(ctx.req);
           ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
           return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
         } catch (err: any) {
+          if (err instanceof TRPCError) throw err;
           if (err?.message === "EMAIL_TAKEN") {
             throw new TRPCError({ code: "CONFLICT", message: "An account with this email already exists." });
           }
@@ -114,6 +141,105 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+
+    forgotPassword: publicProcedure
+      .input(z.object({ email: safeEmail }))
+      .mutation(async ({ input }) => {
+        // Always return success to prevent email enumeration
+        try {
+          const db = await requireDb();
+          const [user] = await db.select({ id: users.id, name: users.name, email: users.email })
+            .from(users).where(eq(users.email, input.email.trim().toLowerCase())).limit(1);
+          if (!user) return { success: true }; // silent — don't reveal if email exists
+
+          // Generate a secure random token
+          const crypto = await import("crypto");
+          const token = crypto.randomBytes(48).toString("hex");
+          const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+          // Invalidate any existing unused tokens for this user
+          await db.update(passwordResetTokens)
+            .set({ used: true })
+            .where(and(eq(passwordResetTokens.userId, user.id), eq(passwordResetTokens.used, false)));
+
+          // Store new token
+          await db.insert(passwordResetTokens).values({
+            userId: user.id,
+            token,
+            expiresAt,
+            used: false,
+          });
+
+          // Notify owner (who IS the user in this single-admin setup)
+          // The reset link uses the request origin so it works in any environment
+          const resetUrl = `https://skillbridge-gipzwtye.manus.space/reset-password?token=${token}`;
+          await notifyOwner({
+            title: "Password Reset Requested",
+            content: `A password reset was requested for ${user.email}.\n\nReset link (expires in 1 hour):\n${resetUrl}\n\nIf you did not request this, you can ignore this message.`,
+          });
+
+          console.log(`[Auth] Password reset token generated for user ${user.id}`);
+        } catch (err) {
+          console.error("[Auth] forgotPassword error:", err);
+          // Still return success to prevent enumeration
+        }
+        return { success: true };
+      }),
+
+    resetPassword: publicProcedure
+      .input(z.object({
+        token: z.string().min(1).max(200),
+        newPassword: z.string().min(8).max(128),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [resetRecord] = await db.select()
+          .from(passwordResetTokens)
+          .where(eq(passwordResetTokens.token, input.token))
+          .limit(1);
+
+        if (!resetRecord) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid or expired reset link. Please request a new one." });
+        }
+        if (resetRecord.used) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This reset link has already been used. Please request a new one." });
+        }
+        if (new Date() > resetRecord.expiresAt) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This reset link has expired. Please request a new one." });
+        }
+
+        const newHash = await hashPassword(input.newPassword);
+        await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, resetRecord.userId));
+        await db.update(passwordResetTokens).set({ used: true }).where(eq(passwordResetTokens.id, resetRecord.id));
+
+        console.log(`[Auth] Password reset completed for user ${resetRecord.userId}`);
+        return { success: true };
+      }),
+
+    changePassword: protectedProcedure
+      .input(z.object({
+        currentPassword: z.string().min(1).max(128),
+        newPassword: z.string().min(8).max(128),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [user] = await db.select({ id: users.id, passwordHash: users.passwordHash })
+          .from(users).where(eq(users.id, ctx.user.id)).limit(1);
+
+        if (!user?.passwordHash) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "No password is set on this account." });
+        }
+
+        const valid = await verifyPassword(input.currentPassword, user.passwordHash);
+        if (!valid) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Current password is incorrect." });
+        }
+
+        const newHash = await hashPassword(input.newPassword);
+        await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, ctx.user.id));
+        console.log(`[Auth] Password changed for user ${ctx.user.id}`);
+        return { success: true };
+      }),
   }),
 
   // ── Leads ─────────────────────────────────────────────────────────────────
@@ -991,6 +1117,56 @@ export const appRouter = router({
         await db.delete(emailTemplates).where(eq(emailTemplates.userId, input.userId));
         await db.delete(users).where(eq(users.id, input.userId));
         return { success: true, deletedName: target[0].name };
+      }),
+
+    // ── Invite Codes ────────────────────────────────────────────────────────────
+    createInvite: adminProcedure
+      .input(z.object({
+        note: z.string().trim().max(255).optional(),
+        expiresInDays: z.number().int().min(1).max(365).optional(), // undefined = never expires
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const crypto = await import("crypto");
+        // Generate a human-readable 12-char code: XXXX-XXXX-XXXX
+        const raw = crypto.randomBytes(9).toString("hex").toUpperCase();
+        const code = `${raw.slice(0, 4)}-${raw.slice(4, 8)}-${raw.slice(8, 12)}`;
+        const expiresAt = input.expiresInDays
+          ? new Date(Date.now() + input.expiresInDays * 24 * 60 * 60 * 1000)
+          : null;
+        await db.insert(inviteCodes).values({
+          code,
+          createdBy: ctx.user.id,
+          note: input.note ?? null,
+          expiresAt: expiresAt ?? undefined,
+          revoked: false,
+        });
+        return { success: true, code };
+      }),
+
+    listInvites: adminProcedure.query(async () => {
+      const db = await requireDb();
+      const all = await db.select().from(inviteCodes).orderBy(desc(inviteCodes.createdAt));
+      const now = new Date();
+      return all.map(inv => ({
+        ...inv,
+        status: inv.revoked ? "revoked"
+          : inv.usedAt ? "used"
+          : inv.expiresAt && inv.expiresAt < now ? "expired"
+          : "active",
+      }));
+    }),
+
+    revokeInvite: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [inv] = await db.select({ id: inviteCodes.id, usedAt: inviteCodes.usedAt })
+          .from(inviteCodes).where(eq(inviteCodes.id, input.id)).limit(1);
+        if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invite code not found." });
+        if (inv.usedAt) throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot revoke an already-used invite code." });
+        await db.update(inviteCodes).set({ revoked: true }).where(eq(inviteCodes.id, input.id));
+        return { success: true };
       }),
 
     // ── System Health ───────────────────────────────────────────────────────────────

@@ -23,7 +23,7 @@ import {
   Download, Phone, AlertCircle, RefreshCw, User,
   Building, Save, Moon, Sun, Bot, CreditCard,
   ExternalLink, Bell, Search, ChevronDown, Loader2,
-  Globe, ToggleLeft, ToggleRight, Printer, Eye,
+  Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
   Copy, Check, Star, Activity, HeartPulse
 } from "lucide-react";
 import {
@@ -1298,6 +1298,104 @@ function AnalyticsPanel() {
 }
 
 // ─── Settings Panel ───────────────────────────────────────────────────────────
+// ─── Change Password Section ─────────────────────────────────────────────────
+function ChangePasswordSection() {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPasswords, setShowPasswords] = useState(false);
+
+  const changePasswordMutation = trpc.auth.changePassword.useMutation({
+    onSuccess: () => {
+      toast.success("Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    },
+    onError: (e) => toast.error(e.message || "Failed to update password."),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error("New password must be at least 8 characters.");
+      return;
+    }
+    changePasswordMutation.mutate({ currentPassword, newPassword });
+  };
+
+  const isDisabled = changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword;
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2">
+        <Settings className="w-4 h-4 text-[#E8A020]" />Change Password
+      </h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1.5">Current Password</label>
+          <div className="relative">
+            <input
+              type={showPasswords ? "text" : "password"}
+              value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
+              placeholder="Enter current password"
+              autoComplete="current-password"
+              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPasswords(v => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              aria-label={showPasswords ? "Hide passwords" : "Show passwords"}
+            >
+              {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1.5">New Password</label>
+          <input
+            type={showPasswords ? "text" : "password"}
+            value={newPassword}
+            onChange={e => setNewPassword(e.target.value)}
+            placeholder="Min. 8 characters"
+            autoComplete="new-password"
+            className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1.5">Confirm New Password</label>
+          <input
+            type={showPasswords ? "text" : "password"}
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            placeholder="Re-enter new password"
+            autoComplete="new-password"
+            className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors ${
+              confirmPassword && confirmPassword !== newPassword ? "border-red-300" : "border-gray-200"
+            }`}
+          />
+          {confirmPassword && confirmPassword !== newPassword && (
+            <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+          )}
+        </div>
+        <Button
+          type="submit"
+          disabled={isDisabled}
+          className="gradient-amber text-white border-0 hover:opacity-90 gap-2 disabled:opacity-40"
+        >
+          {changePasswordMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Update Password</>}
+        </Button>
+      </form>
+    </div>
+  );
+}
+
 function SettingsPanel() {
   const utils = trpc.useUtils();
   const [, navigate] = useLocation();
@@ -1437,6 +1535,9 @@ function SettingsPanel() {
           {updateNotifications.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Preferences</>}
         </Button>
       </div>
+
+      {/* Change Password */}
+      <ChangePasswordSection />
 
       {/* Subscription */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">

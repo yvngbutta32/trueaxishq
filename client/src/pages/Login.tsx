@@ -158,6 +158,26 @@ export default function Login() {
             </div>
           </div>
 
+          {/* Forgot password link */}
+          <div style={{ textAlign: "right", marginTop: "-0.5rem" }}>
+            <button
+              type="button"
+              onClick={() => navigate("/forgot-password")}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "rgba(232,160,32,0.7)",
+                fontSize: "0.8rem",
+                padding: 0,
+                minHeight: "auto",
+                minWidth: "auto",
+              }}
+            >
+              Forgot password?
+            </button>
+          </div>
+
           <Button
             type="submit"
             disabled={loginMutation.isPending || !email || !password}

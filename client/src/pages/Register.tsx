@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, KeyRound } from "lucide-react";
 
 const LOGO_URL = "https://cdn.manus.im/projects/iPfgoMEqzDCjDqvRPrVro9/static/logo-r1.png";
 
@@ -15,6 +15,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const registerMutation = trpc.auth.register.useMutation({
@@ -37,7 +38,16 @@ export default function Register() {
       toast.error("Password must be at least 8 characters.");
       return;
     }
-    registerMutation.mutate({ name: name.trim(), email: email.trim(), password });
+    if (!inviteCode.trim()) {
+      toast.error("An invite code is required to register.");
+      return;
+    }
+    registerMutation.mutate({
+      name: name.trim(),
+      email: email.trim(),
+      password,
+      inviteCode: inviteCode.trim(),
+    });
   };
 
   const inputStyle = {
@@ -53,6 +63,15 @@ export default function Register() {
     marginBottom: "0.5rem",
     display: "block",
   };
+
+  const isSubmitDisabled =
+    registerMutation.isPending ||
+    !name ||
+    !email ||
+    !password ||
+    !confirmPassword ||
+    !inviteCode ||
+    password !== confirmPassword;
 
   return (
     <div
@@ -106,10 +125,36 @@ export default function Register() {
             marginBottom: "2rem",
           }}
         >
-          Start your free trial — no credit card required
+          An invite code is required to register
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          {/* Invite Code — first and prominent */}
+          <div>
+            <Label htmlFor="inviteCode" style={labelStyle}>
+              <span style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <KeyRound size={14} style={{ color: "#E8A020" }} />
+                Invite Code
+              </span>
+            </Label>
+            <Input
+              id="inviteCode"
+              type="text"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+              placeholder="XXXX-XXXX-XXXX"
+              required
+              autoComplete="off"
+              spellCheck={false}
+              style={{
+                ...inputStyle,
+                fontFamily: "monospace",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}
+            />
+          </div>
+
           <div>
             <Label htmlFor="name" style={labelStyle}>Full Name</Label>
             <Input
@@ -201,16 +246,11 @@ export default function Register() {
 
           <Button
             type="submit"
-            disabled={
-              registerMutation.isPending ||
-              !name ||
-              !email ||
-              !password ||
-              !confirmPassword ||
-              password !== confirmPassword
-            }
+            disabled={isSubmitDisabled}
             style={{
-              background: "linear-gradient(135deg, #E8A020, #F5C842)",
+              background: isSubmitDisabled
+                ? "rgba(232,160,32,0.3)"
+                : "linear-gradient(135deg, #E8A020, #F5C842)",
               color: "#141414",
               fontFamily: "Space Grotesk, sans-serif",
               fontWeight: 700,
@@ -218,8 +258,7 @@ export default function Register() {
               border: "none",
               padding: "0.75rem",
               fontSize: "0.95rem",
-              cursor: registerMutation.isPending ? "not-allowed" : "pointer",
-              opacity: registerMutation.isPending ? 0.7 : 1,
+              cursor: isSubmitDisabled ? "not-allowed" : "pointer",
               width: "100%",
             }}
           >

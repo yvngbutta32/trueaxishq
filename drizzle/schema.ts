@@ -233,3 +233,34 @@ export const platformSettings = mysqlTable("platformSettings", {
 
 export type PlatformSettings = typeof platformSettings.$inferSelect;
 export type InsertPlatformSettings = typeof platformSettings.$inferInsert;
+
+// ─── Password Reset Tokens ────────────────────────────────────────────────────
+
+export const passwordResetTokens = mysqlTable("passwordResetTokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  token: varchar("token", { length: 128 }).notNull().unique(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  used: boolean("used").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+
+// ─── Invite Codes (invitation-only registration) ─────────────────────────────
+
+export const inviteCodes = mysqlTable("inviteCodes", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 32 }).notNull().unique(),
+  createdBy: int("createdBy").notNull(), // admin user id
+  note: varchar("note", { length: 255 }), // optional label (e.g. "for John")
+  usedBy: int("usedBy"), // user id who used it
+  usedAt: timestamp("usedAt"),
+  expiresAt: timestamp("expiresAt"), // null = never expires
+  revoked: boolean("revoked").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type InviteCode = typeof inviteCodes.$inferSelect;
+export type InsertInviteCode = typeof inviteCodes.$inferInsert;
