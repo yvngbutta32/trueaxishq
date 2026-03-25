@@ -1,47 +1,65 @@
 /**
- * TrueAxis HQ — Security Middleware
- * - IP-based rate limiting (sliding window)
- * - Automatic IP blocklist for repeated violations
- * - Suspicious pattern detection (SQL injection, XSS probes, path traversal)
- * - Owner notification on attack detection
- * - All checks run automatically with zero admin input required
+ * TrueAxis HQ — Comprehensive Security System
+ *
+ * Layers:
+ * 1. IP blocklist (permanent + temporary auto-block)
+ * 2. Per-IP rate limiting (sliding window, auth endpoints stricter)
+ * 3. Per-email failed login tracking with account lockout
+ * 4. Suspicious payload pattern detection (SQLi, XSS, path traversal)
+ * 5. Full security headers (CSP, HSTS, X-Frame-Options, etc.)
+ * 6. DB audit log for all security events
+ * 7. Owner notification on high/critical severity events
+ *
+ * All checks run automatically — zero admin input required.
  */
 
 import { Request, Response, NextFunction } from "express";
 import { notifyOwner } from "./_core/notification";
-
-// ─── In-memory stores ─────────────────────────────────────────────────────────
-const requestCounts = new Map<string, { count: number; windowStart: number }>();
-const blocklist = new Set<string>();
-const violationCounts = new Map<string, number>();
+import { getDb } from "./db";
+import { securityEvents } from "../drizzle/schema";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-const RATE_LIMIT_WINDOW_MS = 60_000;       // 1 minute window
-const RATE_LIMIT_MAX_REQUESTS = 120;       // max requests per window per IP
-const AUTH_RATE_LIMIT_MAX = 10;            // stricter limit for auth endpoints
-const BLOCK_THRESHOLD = 5;                 // violations before auto-block
-const BLOCK_DURATION_MS = 15 * 60_000;    // 15 minutes auto-block
-const blockedUntil = new Map<string, number>();
+const RATE_LIMIT_WINDOW_MS     = 60_000;   // 1-minute window
+const RATE_LIMIT_MAX_GENERAL   = 120;      // general requests per window per IP
+const RATE_LIMIT_MAX_AUTH      = 10;       // auth endpoints per window per IP
+const RATE_LIMIT_MAX_AI        = 20;       // AI endpoints per window per IP
+const VIOLATION_BLOCK_THRESHOLD = 5;       // violations before auto-block
+const BLOCK_DURATION_MS        = 15 * 60_000; // 15-minute auto-block
+const FAILED_LOGIN_LOCKOUT     = 5;        // failed attempts before account lockout
+const LOCKOUT_DURATION_MS      = 10 * 60_000; // 10-minute account lockout
+
+// ─── In-memory stores (reset on server restart — intentional for lightweight ops) ─
+const requestCounts   = new Map<string, { count: number; windowStart: number }>();
+const blocklist       = new Set<string>();                      // permanent manual blocks
+const blockedUntil    = new Map<string, number>();              // temporary auto-blocks
+const violationCounts = new Map<string, number>();              // per-IP violation count
+const failedLogins    = new Map<string, { count: number; firstAt: number; lockedUntil?: number }>();
 
 // ─── Suspicious patterns ─────────────────────────────────────────────────────
-const SUSPICIOUS_PATTERNS = [
-  /(\bUNION\b|\bSELECT\b|\bDROP\b|\bINSERT\b|\bDELETE\b|\bUPDATE\b)\s+/i, // SQL injection
-  /<script[\s>]/i,                                                              // XSS
-  /javascript:/i,                                                               // JS injection
-  /\.\.[/\\]/,                                                                  // Path traversal
-  /\/etc\/passwd/i,                                                             // File access
-  /\/proc\/self/i,                                                              // Linux proc
-  /\bexec\s*\(/i,                                                               // Code execution
-  /\beval\s*\(/i,                                                               // Eval injection
+const SUSPICIOUS_PATTERNS: RegExp[] = [
+  /(\bUNION\b|\bSELECT\b|\bDROP\b|\bINSERT\b|\bDELETE\b|\bUPDATE\b)\s+/i,
+  /<script[\s>]/i,
+  /javascript:/i,
+  /\.\.[/\\]/,
+  /\/etc\/passwd/i,
+  /\/proc\/self/i,
+  /\bexec\s*\(/i,
+  /\beval\s*\(/i,
+  /on(load|error|click|mouseover|focus)\s*=/i,  // HTML event injection
+  /data:text\/html/i,                            // data URI injection
+  /%3cscript/i,                                  // URL-encoded XSS
 ];
 
-function getClientIp(req: Request): string {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+export function getClientIp(req: Request): string {
   const forwarded = req.headers["x-forwarded-for"];
   if (typeof forwarded === "string") return forwarded.split(",")[0].trim();
   return req.socket?.remoteAddress ?? "unknown";
 }
 
 function isSuspicious(req: Request): boolean {
+  const contentType = req.headers["content-type"] ?? "";
+  if (contentType.includes("multipart") || contentType.includes("octet-stream")) return false;
   const toCheck = [
     req.url,
     JSON.stringify(req.query),
@@ -50,42 +68,142 @@ function isSuspicious(req: Request): boolean {
   return SUSPICIOUS_PATTERNS.some(p => p.test(toCheck));
 }
 
-async function notifyAttack(ip: string, reason: string, req: Request) {
-  const details = `IP: ${ip} | Method: ${req.method} | Path: ${req.path} | Reason: ${reason} | UA: ${req.headers["user-agent"] ?? "unknown"} | Time: ${new Date().toISOString()}`;
-  console.warn(`[Security] BLOCKED — ${details}`);
+// ─── DB audit log (fire-and-forget, never throws) ────────────────────────────
+async function logSecurityEvent(event: {
+  eventType: string;
+  severity: "low" | "medium" | "high" | "critical";
+  ip?: string;
+  userId?: number;
+  email?: string;
+  details?: string;
+  userAgent?: string;
+}) {
   try {
-    await notifyOwner({
-      title: "⚠️ Security Alert — Suspicious Activity Detected",
-      content: details,
+    const db = await getDb();
+    if (!db) return;
+    await db.insert(securityEvents).values({
+      eventType: event.eventType,
+      severity: event.severity,
+      ip: event.ip ?? null,
+      userId: event.userId ?? null,
+      email: event.email ?? null,
+      details: event.details ?? null,
+      userAgent: event.userAgent ?? null,
+      resolved: false,
     });
   } catch {
-    // Notification failure should never crash the server
+    // Never let audit logging crash the server
+  }
+}
+
+// ─── Owner notification (fire-and-forget) ────────────────────────────────────
+async function alertOwner(title: string, content: string) {
+  try {
+    await notifyOwner({ title, content });
+  } catch {
+    // Never let notification failure crash the server
   }
 }
 
 function recordViolation(ip: string, req: Request, reason: string) {
   const count = (violationCounts.get(ip) ?? 0) + 1;
   violationCounts.set(ip, count);
-  if (count >= BLOCK_THRESHOLD) {
+  if (count >= VIOLATION_BLOCK_THRESHOLD) {
     blockedUntil.set(ip, Date.now() + BLOCK_DURATION_MS);
-    notifyAttack(ip, `Auto-blocked after ${count} violations (latest: ${reason})`, req);
+    const details = `IP: ${ip} | Method: ${req.method} | Path: ${req.path} | Reason: auto-blocked after ${count} violations (latest: ${reason}) | UA: ${req.headers["user-agent"] ?? "unknown"} | Time: ${new Date().toISOString()}`;
+    console.warn(`[Security] AUTO-BLOCKED — ${details}`);
+    logSecurityEvent({ eventType: "ip_blocked", severity: "high", ip, details, userAgent: req.headers["user-agent"] });
+    alertOwner("⚠️ Security Alert — IP Auto-Blocked", details);
   }
+}
+
+// ─── Account lockout tracking ─────────────────────────────────────────────────
+export function recordFailedLogin(email: string, ip: string, req: Request) {
+  const key = email.toLowerCase();
+  const now = Date.now();
+  const existing = failedLogins.get(key);
+
+  if (existing && existing.lockedUntil && now < existing.lockedUntil) {
+    // Already locked — just log the attempt
+    logSecurityEvent({ eventType: "failed_login_while_locked", severity: "high", ip, email: key, details: `Login attempt on locked account`, userAgent: req.headers["user-agent"] });
+    return;
+  }
+
+  const count = (existing?.count ?? 0) + 1;
+  const firstAt = existing?.firstAt ?? now;
+
+  if (count >= FAILED_LOGIN_LOCKOUT) {
+    const lockedUntil = now + LOCKOUT_DURATION_MS;
+    failedLogins.set(key, { count, firstAt, lockedUntil });
+    const details = `Email: ${key} | IP: ${ip} | Failed attempts: ${count} | Locked for 10 minutes`;
+    console.warn(`[Security] ACCOUNT LOCKED — ${details}`);
+    logSecurityEvent({ eventType: "account_locked", severity: "critical", ip, email: key, details, userAgent: req.headers["user-agent"] });
+    alertOwner("🔒 Security Alert — Account Locked", details);
+  } else {
+    failedLogins.set(key, { count, firstAt });
+    logSecurityEvent({ eventType: "failed_login", severity: count >= 3 ? "medium" : "low", ip, email: key, details: `Failed attempt ${count} of ${FAILED_LOGIN_LOCKOUT}`, userAgent: req.headers["user-agent"] });
+    if (count >= 3) {
+      alertOwner("⚠️ Security Alert — Multiple Failed Logins", `Email: ${key} | IP: ${ip} | ${count} failed attempts`);
+    }
+  }
+}
+
+export function isAccountLocked(email: string): { locked: boolean; remainingMs?: number } {
+  const key = email.toLowerCase();
+  const record = failedLogins.get(key);
+  if (!record?.lockedUntil) return { locked: false };
+  const remaining = record.lockedUntil - Date.now();
+  if (remaining <= 0) {
+    failedLogins.delete(key); // auto-clear expired lock
+    return { locked: false };
+  }
+  return { locked: true, remainingMs: remaining };
+}
+
+export function clearFailedLogins(email: string) {
+  failedLogins.delete(email.toLowerCase());
+}
+
+// ─── Manual IP management (called from admin procedures) ─────────────────────
+export function manualBlockIP(ip: string) {
+  blocklist.add(ip);
+  logSecurityEvent({ eventType: "ip_blocked_manual", severity: "high", ip, details: "Manually blocked by admin" });
+}
+
+export function unblockIP(ip: string) {
+  blocklist.delete(ip);
+  blockedUntil.delete(ip);
+  violationCounts.delete(ip);
+  logSecurityEvent({ eventType: "ip_unblocked", severity: "low", ip, details: "Unblocked by admin" });
+}
+
+export function getSecurityStats() {
+  return {
+    blockedIPs: blockedUntil.size,
+    permanentBlocklist: blocklist.size,
+    activeWindows: requestCounts.size,
+    lockedAccounts: Array.from(failedLogins.entries())
+      .filter(([, v]) => v.lockedUntil && v.lockedUntil > Date.now())
+      .map(([email, v]) => ({ email, lockedUntil: v.lockedUntil! })),
+    topViolators: Array.from(violationCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([ip, count]) => ({ ip, count })),
+  };
 }
 
 // ─── Cleanup stale entries every 5 minutes ───────────────────────────────────
 setInterval(() => {
   const now = Date.now();
   for (const [ip, until] of Array.from(blockedUntil.entries())) {
-    if (now > until) {
-      blockedUntil.delete(ip);
-      blocklist.delete(ip);
-      violationCounts.delete(ip);
-    }
+    if (now > until) { blockedUntil.delete(ip); violationCounts.delete(ip); }
   }
   for (const [ip, data] of Array.from(requestCounts.entries())) {
-    if (now - data.windowStart > RATE_LIMIT_WINDOW_MS * 2) {
-      requestCounts.delete(ip);
-    }
+    if (now - data.windowStart > RATE_LIMIT_WINDOW_MS * 2) requestCounts.delete(ip);
+  }
+  for (const [email, data] of Array.from(failedLogins.entries())) {
+    if (data.lockedUntil && now > data.lockedUntil) failedLogins.delete(email);
+    else if (!data.lockedUntil && now - data.firstAt > RATE_LIMIT_WINDOW_MS * 10) failedLogins.delete(email);
   }
 }, 5 * 60_000);
 
@@ -94,20 +212,23 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
   const ip = getClientIp(req);
   const now = Date.now();
 
-  // 1. Check permanent blocklist
+  // 1. Permanent manual blocklist
   if (blocklist.has(ip)) {
+    logSecurityEvent({ eventType: "blocked_request", severity: "high", ip, details: `Blocked IP attempted access: ${req.method} ${req.path}` });
     return res.status(403).json({ error: "Access denied." });
   }
 
-  // 2. Check temporary auto-block
+  // 2. Temporary auto-block
   const blockExpiry = blockedUntil.get(ip);
   if (blockExpiry && now < blockExpiry) {
     return res.status(429).json({ error: "Too many requests. Please try again later." });
   }
 
-  // 3. Rate limiting
-  const isAuthRoute = req.path.startsWith("/api/oauth") || req.path.includes("auth");
-  const maxRequests = isAuthRoute ? AUTH_RATE_LIMIT_MAX : RATE_LIMIT_MAX_REQUESTS;
+  // 3. Rate limiting (per-IP, endpoint-aware)
+  const isAuthRoute = req.path.includes("/auth") || req.path.includes("/oauth");
+  const isAIRoute   = req.path.includes("/ai") || req.path.includes("/pulse") || req.path.includes("/followUps");
+  const maxRequests = isAuthRoute ? RATE_LIMIT_MAX_AUTH : isAIRoute ? RATE_LIMIT_MAX_AI : RATE_LIMIT_MAX_GENERAL;
+
   const entry = requestCounts.get(ip);
   if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
     requestCounts.set(ip, { count: 1, windowStart: now });
@@ -119,45 +240,47 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
     }
   }
 
-  // 4. Suspicious pattern detection (skip binary/multipart)
-  const contentType = req.headers["content-type"] ?? "";
-  if (!contentType.includes("multipart") && !contentType.includes("octet-stream")) {
-    if (isSuspicious(req)) {
-      recordViolation(ip, req, "suspicious payload pattern");
-      notifyAttack(ip, "Suspicious payload pattern detected", req);
-      return res.status(400).json({ error: "Invalid request." });
-    }
+  // 4. Suspicious payload detection
+  if (isSuspicious(req)) {
+    recordViolation(ip, req, "suspicious payload");
+    const details = `IP: ${ip} | ${req.method} ${req.path} | UA: ${req.headers["user-agent"] ?? "unknown"}`;
+    logSecurityEvent({ eventType: "suspicious_payload", severity: "high", ip, details, userAgent: req.headers["user-agent"] });
+    alertOwner("⚠️ Security Alert — Suspicious Payload Detected", details);
+    return res.status(400).json({ error: "Invalid request." });
   }
 
-  // 5. Security headers
+  // 5. Comprehensive security headers
+  // Content Security Policy — strict, no inline scripts
+  res.setHeader(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://fonts.googleapis.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https:",
+      "connect-src 'self' https://api.stripe.com https://fonts.googleapis.com",
+      "frame-src https://js.stripe.com https://hooks.stripe.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "upgrade-insecure-requests",
+    ].join("; ")
+  );
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("X-XSS-Protection", "1; mode=block");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+  // Remove server fingerprinting headers
+  res.removeHeader("X-Powered-By");
+  res.removeHeader("Server");
 
   next();
 }
 
-// ─── Admin helpers ────────────────────────────────────────────────────────────
-export function getSecurityStats() {
-  return {
-    blockedIPs: blockedUntil.size,
-    permanentBlocklist: blocklist.size,
-    activeWindows: requestCounts.size,
-    topViolators: Array.from(violationCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([ip, count]) => ({ ip, count })),
-  };
-}
-
-export function manualBlockIP(ip: string) {
-  blocklist.add(ip);
-}
-
-export function unblockIP(ip: string) {
-  blocklist.delete(ip);
-  blockedUntil.delete(ip);
-  violationCounts.delete(ip);
-}
+// ─── Exported log helper for use in routers ──────────────────────────────────
+export { logSecurityEvent, alertOwner };

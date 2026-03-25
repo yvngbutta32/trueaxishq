@@ -57,6 +57,13 @@
       "when": 1774440616251,
       "tag": "0007_shiny_barracuda",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1774443615780,
+      "tag": "0008_woozy_tomorrow_man",
+      "breakpoints": true
     }
   ]
 }

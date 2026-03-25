@@ -78,7 +78,7 @@ function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: bool
 }
 
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
-type AdminTab = "overview" | "users" | "leads" | "broadcast" | "settings" | "health";
+type AdminTab = "overview" | "users" | "leads" | "broadcast" | "settings" | "health" | "security";
 
 export default function Admin() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -101,6 +101,46 @@ export default function Admin() {
 
   // Queries
   const statsQuery = trpc.admin.revenueStats.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
+  // Security queries & mutations
+  const [blockIPInput, setBlockIPInput] = useState("");
+  const [blockIPReason, setBlockIPReason] = useState("");
+  const [unlockEmailInput, setUnlockEmailInput] = useState("");
+  const [securityFilter, setSecurityFilter] = useState<"all" | "low" | "medium" | "high" | "critical">("all");
+  const [showResolvedEvents, setShowResolvedEvents] = useState(false);
+
+  const securityEventsQuery = trpc.security.events.useQuery(
+    { limit: 100, severity: securityFilter, resolved: showResolvedEvents ? undefined : false },
+    { enabled: activeTab === "security", refetchInterval: 30_000 }
+  );
+  const securityStatsQuery = trpc.security.stats.useQuery(
+    undefined,
+    { enabled: activeTab === "security", refetchInterval: 15_000 }
+  );
+  const watchdogQuery = trpc.security.watchdog.useQuery(
+    undefined,
+    { enabled: activeTab === "security", refetchInterval: 60_000 }
+  );
+  const blockIPMutation = trpc.security.blockIP.useMutation({
+    onSuccess: () => { toast.success("IP blocked successfully"); setBlockIPInput(""); setBlockIPReason(""); securityStatsQuery.refetch(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const unblockIPMutation = trpc.security.unblockIP.useMutation({
+    onSuccess: () => { toast.success("IP unblocked"); securityStatsQuery.refetch(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const unlockAccountMutation = trpc.security.unlockAccount.useMutation({
+    onSuccess: () => { toast.success("Account unlocked"); setUnlockEmailInput(""); securityStatsQuery.refetch(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const resolveEventMutation = trpc.security.resolveEvent.useMutation({
+    onSuccess: () => { securityEventsQuery.refetch(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const resolveAllMutation = trpc.security.resolveAll.useMutation({
+    onSuccess: () => { toast.success("All events resolved"); securityEventsQuery.refetch(); },
+    onError: (e) => toast.error(e.message),
+  });
+
   const usersQuery = trpc.admin.listUsers.useQuery(
     { search: search || undefined, page, limit: 20 },
     { enabled: isAuthenticated && user?.role === "admin" }
@@ -205,6 +245,7 @@ export default function Admin() {
     { id: "broadcast", label: "Broadcast", icon: Megaphone },
     { id: "settings", label: "Site Settings", icon: Settings },
     { id: "health", label: "System Health", icon: Activity },
+    { id: "security", label: "Security", icon: Shield },
   ];
 
   return (
@@ -868,6 +909,288 @@ export default function Admin() {
                 <p className="text-sm">Could not load health data. Try refreshing.</p>
               </div>
             )}
+          </section>
+        )}
+
+        {/* ── Security Panel ──────────────────────────────────────────── */}
+        {activeTab === "security" && (
+          <section id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+
+            {/* Watchdog Status */}
+            <div className={`rounded-2xl p-6 border shadow-sm ${
+              watchdogQuery.data?.healthy === false
+                ? "bg-red-50 border-red-200"
+                : watchdogQuery.data?.healthy === true
+                ? "bg-green-50 border-green-200"
+                : "bg-white border-gray-100"
+            }`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${
+                    watchdogQuery.data?.healthy === false ? "bg-red-500 animate-pulse" :
+                    watchdogQuery.data?.healthy === true ? "bg-green-500" : "bg-gray-300"
+                  }`} />
+                  <h2 className="text-lg font-bold text-gray-900">Watchdog Status</h2>
+                  {watchdogQuery.data?.checkedAt && (
+                    <span className="text-xs text-gray-400">Last checked: {new Date(watchdogQuery.data.checkedAt).toLocaleTimeString()}</span>
+                  )}
+                </div>
+                <Button size="sm" variant="outline" onClick={() => watchdogQuery.refetch()} disabled={watchdogQuery.isFetching}>
+                  <RefreshCw className={`w-4 h-4 mr-1 ${watchdogQuery.isFetching ? "animate-spin" : ""}`} />
+                  Run Check
+                </Button>
+              </div>
+              {watchdogQuery.data ? (
+                <div className="space-y-3">
+                  {watchdogQuery.data.issues.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold text-red-700">Issues requiring attention:</p>
+                      {watchdogQuery.data.issues.map((issue, i) => (
+                        <div key={i} className="flex items-start gap-2 text-sm text-red-700 bg-red-100 rounded-lg px-3 py-2">
+                          <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                          {issue}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {watchdogQuery.data.fixes.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold text-green-700">Auto-fixes applied:</p>
+                      {watchdogQuery.data.fixes.map((fix, i) => (
+                        <div key={i} className="flex items-start gap-2 text-sm text-green-700 bg-green-100 rounded-lg px-3 py-2">
+                          <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                          {fix}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {watchdogQuery.data.issues.length === 0 && watchdogQuery.data.fixes.length === 0 && (
+                    <p className="text-sm text-green-700 font-medium">All systems healthy. No issues detected.</p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400">Running watchdog check...</p>
+              )}
+            </div>
+
+            {/* Security Stats */}
+            {securityStatsQuery.data && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {[
+                  { label: "Blocked IPs", value: securityStatsQuery.data.blockedIPs, color: "text-red-600", bg: "bg-red-50" },
+                  { label: "Locked Accounts", value: securityStatsQuery.data.lockedAccounts.length, color: "text-amber-600", bg: "bg-amber-50" },
+                  { label: "Rate Limited IPs", value: securityStatsQuery.data.activeWindows, color: "text-orange-600", bg: "bg-orange-50" },
+                  { label: "Unresolved Events", value: securityEventsQuery.data?.length ?? 0, color: "text-purple-600", bg: "bg-purple-50" },
+                ].map(stat => (
+                  <div key={stat.label} className={`${stat.bg} rounded-2xl p-5 border border-white shadow-sm`}>
+                    <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                    <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* IP Management */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-base font-bold text-gray-900 mb-4">IP Management</h3>
+              <div className="grid sm:grid-cols-2 gap-6">
+                {/* Block IP */}
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-gray-700">Block an IP Address</p>
+                  <input
+                    type="text"
+                    value={blockIPInput}
+                    onChange={e => setBlockIPInput(e.target.value)}
+                    placeholder="e.g. 192.168.1.1"
+                    className="form-input-light w-full"
+                  />
+                  <input
+                    type="text"
+                    value={blockIPReason}
+                    onChange={e => setBlockIPReason(e.target.value)}
+                    placeholder="Reason (optional)"
+                    className="form-input-light w-full"
+                  />
+                  <Button
+                    size="sm"
+                    className="bg-red-600 hover:bg-red-700 text-white w-full"
+                    onClick={() => blockIPMutation.mutate({ ip: blockIPInput.trim(), reason: blockIPReason.trim() || undefined })}
+                    disabled={!blockIPInput.trim() || blockIPMutation.isPending}
+                  >
+                    <Lock className="w-4 h-4 mr-1" />
+                    Block IP
+                  </Button>
+                </div>
+                {/* Unblock IP */}
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-gray-700">Unblock an IP Address</p>
+                  <input
+                    type="text"
+                    value={blockIPInput}
+                    onChange={e => setBlockIPInput(e.target.value)}
+                    placeholder="e.g. 192.168.1.1"
+                    className="form-input-light w-full"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => unblockIPMutation.mutate({ ip: blockIPInput.trim() })}
+                    disabled={!blockIPInput.trim() || unblockIPMutation.isPending}
+                  >
+                    <Unlock className="w-4 h-4 mr-1" />
+                    Unblock IP
+                  </Button>
+
+                  {/* Blocked IPs list */}
+                  {securityStatsQuery.data?.permanentBlocklist && securityStatsQuery.data.permanentBlocklist > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold text-gray-500 mb-2">{securityStatsQuery.data.permanentBlocklist} IP(s) in permanent blocklist</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Account Lockout Management */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-base font-bold text-gray-900 mb-4">Account Lockout Management</h3>
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-gray-700">Unlock a Locked Account</p>
+                  <input
+                    type="email"
+                    value={unlockEmailInput}
+                    onChange={e => setUnlockEmailInput(e.target.value)}
+                    placeholder="user@example.com"
+                    className="form-input-light w-full"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => unlockAccountMutation.mutate({ email: unlockEmailInput.trim() })}
+                    disabled={!unlockEmailInput.trim() || unlockAccountMutation.isPending}
+                  >
+                    <Unlock className="w-4 h-4 mr-1" />
+                    Unlock Account
+                  </Button>
+                </div>
+                {securityStatsQuery.data?.lockedAccounts && securityStatsQuery.data.lockedAccounts.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 mb-2">Currently Locked:</p>
+                    <div className="space-y-1 max-h-40 overflow-y-auto">
+                      {securityStatsQuery.data.lockedAccounts.map((acct) => (
+                        <div key={acct.email} className="flex items-center justify-between bg-amber-50 rounded-lg px-3 py-1.5">
+                          <span className="text-xs text-amber-700">{acct.email}</span>
+                          <button
+                            onClick={() => unlockAccountMutation.mutate({ email: acct.email })}
+                            className="text-xs text-amber-600 hover:text-amber-800 transition-colors"
+                          >
+                            Unlock
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Security Events Log */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h3 className="text-base font-bold text-gray-900">Security Event Log</h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={securityFilter}
+                    onChange={e => setSecurityFilter(e.target.value as any)}
+                    className="form-input-light text-sm py-1.5 px-3"
+                  >
+                    <option value="all">All Severities</option>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                  <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showResolvedEvents}
+                      onChange={e => setShowResolvedEvents(e.target.checked)}
+                      className="rounded"
+                    />
+                    Show resolved
+                  </label>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => resolveAllMutation.mutate({ severity: securityFilter })}
+                    disabled={resolveAllMutation.isPending || (securityEventsQuery.data?.length ?? 0) === 0}
+                  >
+                    Resolve All
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => securityEventsQuery.refetch()}>
+                    <RefreshCw className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              {securityEventsQuery.isLoading ? (
+                <div className="py-8 text-center text-gray-400 text-sm">Loading events...</div>
+              ) : securityEventsQuery.data && securityEventsQuery.data.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Time</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Event</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Severity</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">IP</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Details</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {securityEventsQuery.data.map(event => (
+                        <tr key={event.id} className={`hover:bg-gray-50 transition-colors ${event.resolved ? "opacity-50" : ""}`}>
+                          <td className="py-2 px-3 text-xs text-gray-400 whitespace-nowrap">
+                            {new Date(event.createdAt).toLocaleString()}
+                          </td>
+                          <td className="py-2 px-3 font-mono text-xs text-gray-700">{event.eventType}</td>
+                          <td className="py-2 px-3">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                              event.severity === "critical" ? "bg-red-100 text-red-700" :
+                              event.severity === "high" ? "bg-orange-100 text-orange-700" :
+                              event.severity === "medium" ? "bg-amber-100 text-amber-700" :
+                              "bg-gray-100 text-gray-600"
+                            }`}>
+                              {event.severity}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 font-mono text-xs text-gray-500">{event.ip ?? "—"}</td>
+                          <td className="py-2 px-3 text-xs text-gray-600 max-w-xs truncate">{event.details ?? event.email ?? "—"}</td>
+                          <td className="py-2 px-3">
+                            {!event.resolved && (
+                              <button
+                                onClick={() => resolveEventMutation.mutate({ id: event.id })}
+                                className="text-xs text-teal-600 hover:text-teal-800 font-medium transition-colors"
+                              >
+                                Resolve
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="py-8 text-center text-gray-400">
+                  <Shield className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">No security events found.</p>
+                </div>
+              )}
+            </div>
           </section>
         )}
       </main>

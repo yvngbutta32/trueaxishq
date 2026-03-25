@@ -264,3 +264,39 @@ export const inviteCodes = mysqlTable("inviteCodes", {
 
 export type InviteCode = typeof inviteCodes.$inferSelect;
 export type InsertInviteCode = typeof inviteCodes.$inferInsert;
+
+// ─── Security Events (audit log for failed logins, blocks, suspicious activity) ─
+
+export const securityEvents = mysqlTable("securityEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  eventType: varchar("eventType", { length: 64 }).notNull(), // 'failed_login' | 'account_locked' | 'ip_blocked' | 'suspicious_payload' | 'rate_limit' | 'password_reset' | 'password_changed'
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).default("low").notNull(),
+  ip: varchar("ip", { length: 64 }),
+  userId: int("userId"),
+  email: varchar("email", { length: 320 }),
+  details: text("details"),
+  userAgent: text("userAgent"),
+  resolved: boolean("resolved").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SecurityEvent = typeof securityEvents.$inferSelect;
+export type InsertSecurityEvent = typeof securityEvents.$inferInsert;
+
+// ─── User Sessions (for forced logout and session management) ─────────────────
+
+export const userSessions = mysqlTable("userSessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  tokenHash: varchar("tokenHash", { length: 128 }).notNull().unique(), // SHA-256 of JWT
+  ip: varchar("ip", { length: 64 }),
+  userAgent: text("userAgent"),
+  isActive: boolean("isActive").default(true).notNull(),
+  invalidatedAt: timestamp("invalidatedAt"),
+  invalidationReason: varchar("invalidationReason", { length: 64 }), // 'logout' | 'password_changed' | 'admin_revoke'
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UserSession = typeof userSessions.$inferSelect;
+export type InsertUserSession = typeof userSessions.$inferInsert;

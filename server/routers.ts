@@ -9,8 +9,9 @@ import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
+import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
@@ -118,17 +119,28 @@ export const appRouter = router({
         password: z.string().min(1).max(128),
       }))
       .mutation(async ({ input, ctx }) => {
+        const ip = getClientIp(ctx.req);
+        // Check account lockout before attempting login
+        const lockStatus = isAccountLocked(input.email);
+        if (lockStatus.locked) {
+          const remainingMin = Math.ceil((lockStatus.remainingMs ?? 0) / 60_000);
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: `Account temporarily locked due to too many failed attempts. Try again in ${remainingMin} minute${remainingMin !== 1 ? 's' : ''}.` });
+        }
         try {
           const user = await loginUser({
             email: input.email,
             password: input.password,
           });
+          // Successful login — clear failed login counter
+          clearFailedLogins(input.email);
+          logSecurityEvent({ eventType: "login_success", severity: "low", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"] });
           const token = await createSessionToken(user.id, user.email ?? input.email);
           const cookieOptions = getSessionCookieOptions(ctx.req);
           ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
           return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
         } catch (err: any) {
           if (err?.message === "INVALID_CREDENTIALS" || err?.message === "NO_PASSWORD") {
+            recordFailedLogin(input.email, ip, ctx.req);
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });
           }
           console.error("[Auth] Login error:", err);
@@ -237,6 +249,11 @@ export const appRouter = router({
 
         const newHash = await hashPassword(input.newPassword);
         await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, ctx.user.id));
+        // Invalidate all active sessions for this user (force re-login on all devices)
+        await db.update(userSessions)
+          .set({ isActive: false, invalidatedAt: new Date(), invalidationReason: "password_changed" })
+          .where(and(eq(userSessions.userId, ctx.user.id), eq(userSessions.isActive, true)));
+        logSecurityEvent({ eventType: "password_changed", severity: "medium", userId: ctx.user.id, email: ctx.user.email ?? undefined, ip: getClientIp(ctx.req), details: "Password changed by user", userAgent: ctx.req.headers["user-agent"] });
         console.log(`[Auth] Password changed for user ${ctx.user.id}`);
         return { success: true };
       }),
@@ -1328,6 +1345,204 @@ export const appRouter = router({
         return { id: fu.id, success: true };
       }),
   }),
-});
 
+  // ── Security (admin-only) ───────────────────────────────────────────────────
+  security: router({
+    // Get recent security events from DB
+    events: adminProcedure
+      .input(z.object({
+        limit: z.number().int().min(1).max(200).default(50),
+        severity: z.enum(["low", "medium", "high", "critical", "all"]).default("all"),
+        resolved: z.boolean().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const all = await db.select().from(securityEvents)
+          .orderBy(desc(securityEvents.createdAt))
+          .limit(input?.limit ?? 50);
+        let filtered = all;
+        if (input?.severity && input.severity !== "all") {
+          filtered = filtered.filter(e => e.severity === input.severity);
+        }
+        if (input?.resolved !== undefined) {
+          filtered = filtered.filter(e => e.resolved === input.resolved);
+        }
+        return filtered;
+      }),
+
+    // Get in-memory security stats (blocked IPs, locked accounts, etc.)
+    stats: adminProcedure.query(() => {
+      return getSecurityStats();
+    }),
+
+    // Resolve a security event (mark as handled)
+    resolveEvent: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        await db.update(securityEvents)
+          .set({ resolved: true })
+          .where(eq(securityEvents.id, input.id));
+        return { success: true };
+      }),
+
+    // Resolve all events matching a filter
+    resolveAll: adminProcedure
+      .input(z.object({ severity: z.enum(["low", "medium", "high", "critical", "all"]).default("all") }).optional())
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        if (!input?.severity || input.severity === "all") {
+          await db.update(securityEvents).set({ resolved: true }).where(eq(securityEvents.resolved, false));
+        } else {
+          await db.update(securityEvents).set({ resolved: true })
+            .where(and(eq(securityEvents.severity, input.severity), eq(securityEvents.resolved, false)));
+        }
+        return { success: true };
+      }),
+
+    // Block an IP address manually
+    blockIP: adminProcedure
+      .input(z.object({
+        ip: z.string().min(7).max(45),
+        reason: z.string().max(255).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        manualBlockIP(input.ip);
+        logSecurityEvent({
+          eventType: "ip_blocked_manual",
+          severity: "high",
+          ip: input.ip,
+          userId: ctx.user.id,
+          details: `Manually blocked by admin. Reason: ${input.reason ?? "Not specified"}`,
+        });
+        return { success: true };
+      }),
+
+    // Unblock an IP address
+    unblockIP: adminProcedure
+      .input(z.object({ ip: z.string().min(7).max(45) }))
+      .mutation(async ({ ctx, input }) => {
+        unblockIP(input.ip);
+        logSecurityEvent({
+          eventType: "ip_unblocked",
+          severity: "low",
+          ip: input.ip,
+          userId: ctx.user.id,
+          details: "Unblocked by admin",
+        });
+        return { success: true };
+      }),
+
+    // Unlock a locked account
+    unlockAccount: adminProcedure
+      .input(z.object({ email: safeEmail }))
+      .mutation(async ({ ctx, input }) => {
+        clearFailedLogins(input.email);
+        logSecurityEvent({
+          eventType: "account_unlocked",
+          severity: "low",
+          email: input.email,
+          userId: ctx.user.id,
+          details: "Account unlocked by admin",
+        });
+        return { success: true };
+      }),
+
+    // Watchdog: check system health and auto-fix issues
+    watchdog: adminProcedure.query(async () => {
+      const db = await requireDb();
+      const issues: string[] = [];
+      const fixes: string[] = [];
+
+      // Check 1: Expired password reset tokens (clean up)
+      const expiredTokens = await db.select({ id: passwordResetTokens.id })
+        .from(passwordResetTokens)
+        .where(and(
+          eq(passwordResetTokens.used, false),
+          sql`${passwordResetTokens.expiresAt} < NOW()`
+        ));
+      if (expiredTokens.length > 0) {
+        await db.update(passwordResetTokens)
+          .set({ used: true })
+          .where(and(
+            eq(passwordResetTokens.used, false),
+            sql`${passwordResetTokens.expiresAt} < NOW()`
+          ));
+        fixes.push(`Cleaned up ${expiredTokens.length} expired password reset token(s)`);
+      }
+
+      // Check 2: Expired invite codes (mark as revoked)
+      const expiredInvites = await db.select({ id: inviteCodes.id })
+        .from(inviteCodes)
+        .where(and(
+          eq(inviteCodes.revoked, false),
+          sql`${inviteCodes.expiresAt} IS NOT NULL AND ${inviteCodes.expiresAt} < NOW()`
+        ));
+      if (expiredInvites.length > 0) {
+        await db.update(inviteCodes)
+          .set({ revoked: true })
+          .where(and(
+            eq(inviteCodes.revoked, false),
+            sql`${inviteCodes.expiresAt} IS NOT NULL AND ${inviteCodes.expiresAt} < NOW()`
+          ));
+        fixes.push(`Revoked ${expiredInvites.length} expired invite code(s)`);
+      }
+
+      // Check 3: Expired user sessions (deactivate)
+      const expiredSessions = await db.select({ id: userSessions.id })
+        .from(userSessions)
+        .where(and(
+          eq(userSessions.isActive, true),
+          sql`${userSessions.expiresAt} < NOW()`
+        ));
+      if (expiredSessions.length > 0) {
+        await db.update(userSessions)
+          .set({ isActive: false, invalidatedAt: new Date(), invalidationReason: "expired" })
+          .where(and(
+            eq(userSessions.isActive, true),
+            sql`${userSessions.expiresAt} < NOW()`
+          ));
+        fixes.push(`Deactivated ${expiredSessions.length} expired session(s)`);
+      }
+
+      // Check 4: Unresolved critical security events
+      const criticalEvents = await db.select({ id: securityEvents.id })
+        .from(securityEvents)
+        .where(and(
+          eq(securityEvents.severity, "critical"),
+          eq(securityEvents.resolved, false)
+        ));
+      if (criticalEvents.length > 0) {
+        issues.push(`${criticalEvents.length} unresolved critical security event(s) require attention`);
+      }
+
+      // Check 5: Users with no password (potential orphaned accounts)
+      const noPasswordUsers = await db.select({ id: users.id, email: users.email })
+        .from(users)
+        .where(sql`${users.passwordHash} IS NULL`);
+      if (noPasswordUsers.length > 0) {
+        issues.push(`${noPasswordUsers.length} user account(s) have no password set`);
+      }
+
+      const memStats = getSecurityStats();
+      const healthy = issues.length === 0;
+
+      if (!healthy) {
+        // Notify owner only when there are issues requiring manual intervention
+        notifyOwner({
+          title: "⚠️ Watchdog Alert — Issues Detected",
+          content: `Watchdog found ${issues.length} issue(s) requiring attention:\n\n${issues.join('\n')}\n\nFixes applied automatically:\n${fixes.length > 0 ? fixes.join('\n') : 'None'}`,
+        }).catch(() => {});
+      }
+
+      return {
+        healthy,
+        issues,
+        fixes,
+        memStats,
+        checkedAt: new Date().toISOString(),
+      };
+    }),
+  }),
+});
 export type AppRouter = typeof appRouter;

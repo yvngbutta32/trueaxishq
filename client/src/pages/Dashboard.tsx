@@ -546,14 +546,17 @@ function ClientsPanel() {
                   const p = pulseMap.get(c.id);
                   if (!p) return null;
                   const score = p.healthScore;
-                  const color = score >= 70 ? "#E8A020" : score >= 40 ? "#F59E0B" : "#FF6B6B";
+                  const isGood = score >= 70;
+                  const isMid = score >= 40;
+                  const bg = isGood ? "#22c55e" : isMid ? "#f59e0b" : "#ef4444";
+                  const label = isGood ? "Healthy" : isMid ? "Needs attention" : "At risk";
                   return (
                     <span
-                      title={`Health score: ${score}`}
-                      className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold text-white"
-                      style={{ backgroundColor: color }}
+                      title={`Client Pulse: ${score}/100 — ${label}`}
+                      className="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-0.5 rounded-full border-2 border-white flex items-center justify-center text-[9px] font-extrabold text-white leading-none"
+                      style={{ backgroundColor: bg }}
                     >
-                      {score >= 70 ? "✓" : score >= 40 ? "!" : "✕"}
+                      {score}
                     </span>
                   );
                 })()}
@@ -1396,6 +1399,32 @@ function ChangePasswordSection() {
   );
 }
 
+function CopyBookingLinkButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(url)
+      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); })
+      .catch(() => toast.error("Could not copy — please copy the link manually."));
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
+        copied
+          ? "bg-green-50 text-green-600 border border-green-200"
+          : "bg-[#E8A020]/10 text-[#E8A020] border border-[#E8A020]/30 hover:bg-[#E8A020]/20"
+      }`}
+      aria-label="Copy booking link to clipboard"
+    >
+      {copied ? (
+        <><CheckCircle className="w-4 h-4" />Copied to clipboard!</>
+      ) : (
+        <><Copy className="w-4 h-4" />Copy Booking Link</>
+      )}
+    </button>
+  );
+}
+
 function SettingsPanel() {
   const utils = trpc.useUtils();
   const [, navigate] = useLocation();
@@ -1469,16 +1498,14 @@ function SettingsPanel() {
             />
           </div>
           {bookingUrl && (
-            <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#E8A020] hover:underline flex items-center gap-1">
-                <ExternalLink className="w-3 h-3" />Preview your booking page
-              </a>
-              <button
-                onClick={() => { navigator.clipboard.writeText(bookingUrl).then(() => toast.success("Booking link copied to clipboard!")).catch(() => toast.error("Could not copy link")); }}
-                className="text-xs text-gray-500 hover:text-[#E8A020] flex items-center gap-1 transition-colors"
-              >
-                <Copy className="w-3 h-3" />Copy link
-              </button>
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
+                <span className="text-xs text-gray-500 flex-1 truncate font-mono">{bookingUrl}</span>
+                <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#E8A020] transition-colors flex-shrink-0" title="Preview booking page">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+              <CopyBookingLinkButton url={bookingUrl} />
             </div>
           )}
         </div>

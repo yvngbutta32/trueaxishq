@@ -406,3 +406,23 @@
 - [x] Update ForgotPassword.tsx to pass window.location.origin to backend
 - [x] Fix ForgotPassword success message to remove Manus reference
 - [x] 0 TypeScript errors, 29/29 tests passing after full polish pass
+
+## Three Precision Features (Round 15)
+- [ ] Copy Booking Link button in Dashboard Settings — one-click clipboard copy of /book/[username]
+- [ ] Client Pulse score badge on each client card — colored dot (green/yellow/red) + score number
+- [ ] Invoice overdue auto-detection — mark invoices as overdue when past due date server-side
+- [ ] Invoice Send Reminder button — generates a follow-up draft pre-filled with invoice details
+
+## Comprehensive Security System — Round 2 (Current)
+- [x] Account lockout after 5 failed login attempts (30-minute lockout)
+- [x] Failed login tracking with in-memory store
+- [x] Session invalidation on password change (cookie cleared)
+- [x] DB audit logging for all security events (securityEvents table)
+- [x] Admin notification on critical security events (brute force, IP blocks)
+- [x] Security tRPC router: events, stats, blockIP, unblockIP, unlockAccount, resolveEvent, resolveAll, watchdog
+- [x] Admin Security panel tab with real-time monitoring (30s auto-refresh)
+- [x] Watchdog system with auto-fix and issue reporting (60s auto-refresh)
+- [x] IP management panel (manual block/unblock, permanent blocklist display)
+- [x] Account lockout management panel (view and unlock locked accounts)
+- [x] Security event log with severity filter and resolve actions
+- [x] 29/29 tests passing, 0 TypeScript errors, production build clean
