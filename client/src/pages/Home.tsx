@@ -338,7 +338,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
             <button
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/login")}
               className="text-sm font-medium"
               style={{ color: "rgba(245,240,232,0.50)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
             >
@@ -377,7 +377,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
               </button>
             ))}
             <div className="pt-3 flex flex-col gap-2" style={{ borderTop: "1px solid rgba(232,160,32,0.10)" }}>
-              <button onClick={() => { setMobileOpen(false); navigate("/dashboard"); }} className="btn-ghost w-full" style={{ fontSize: "0.875rem" }}>
+              <button onClick={() => { setMobileOpen(false); navigate("/login"); }} className="btn-ghost w-full" style={{ fontSize: "0.875rem" }}>
                 Sign In
               </button>
               <button onClick={() => { setMobileOpen(false); onCTA(); }} className="btn-amber w-full" style={{ fontSize: "0.875rem" }}>

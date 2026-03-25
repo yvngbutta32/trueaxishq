@@ -22,6 +22,8 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
 
 // ─── Full-screen page loader ──────────────────────────────────────────────────
 function PageLoader() {
@@ -79,6 +81,10 @@ function Router() {
         <Route path="/terms" component={Terms} />
         <Route path="/help" component={Help} />
         <Route path="/contact" component={Contact} />
+
+        {/* Auth routes */}
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
 
         {/* Fallbacks */}
         <Route path="/404" component={NotFound} />

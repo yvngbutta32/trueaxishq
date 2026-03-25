@@ -11,7 +11,6 @@ import {
   Youtube, Zap, Database, Server, Lock, Unlock, Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
@@ -177,7 +176,7 @@ export default function Admin() {
           <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">Sign in required</h1>
           <p className="text-gray-500 text-sm mb-6">You need to be signed in to access the admin panel.</p>
-          <Button className="gradient-amber text-white border-0" onClick={() => window.location.href = getLoginUrl()}>Sign In</Button>
+          <Button className="gradient-amber text-white border-0" onClick={() => window.location.href = "/login"}>Sign In</Button>
         </div>
       </div>
     );

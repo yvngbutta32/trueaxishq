@@ -1,0 +1,146 @@
+/**
+ * TrueAxis HQ — Self-Contained Email/Password Authentication
+ *
+ * Completely independent of Manus OAuth. Uses:
+ * - bcryptjs for password hashing
+ * - jose (already installed) for JWT session tokens
+ * - Same cookie infrastructure as before
+ */
+
+import bcrypt from "bcryptjs";
+import { SignJWT, jwtVerify } from "jose";
+import type { Request } from "express";
+import { parse as parseCookieHeader } from "cookie";
+import { getDb } from "./db";
+import { users } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
+import { ENV } from "./_core/env";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { ForbiddenError } from "@shared/_core/errors";
+import type { User } from "../drizzle/schema";
+
+const BCRYPT_ROUNDS = 12;
+
+// ─── Session token helpers ────────────────────────────────────────────────────
+
+function getSessionSecret() {
+  return new TextEncoder().encode(ENV.cookieSecret || "fallback-dev-secret-change-in-prod");
+}
+
+export async function createSessionToken(userId: number, email: string): Promise<string> {
+  const secretKey = getSessionSecret();
+  const issuedAt = Date.now();
+  const expiresInMs = ONE_YEAR_MS;
+  const expirationSeconds = Math.floor((issuedAt + expiresInMs) / 1000);
+
+  return new SignJWT({ userId, email, type: "email_password" })
+    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setExpirationTime(expirationSeconds)
+    .sign(secretKey);
+}
+
+export async function verifySessionToken(
+  token: string | undefined | null
+): Promise<{ userId: number; email: string } | null> {
+  if (!token) return null;
+  try {
+    const secretKey = getSessionSecret();
+    const { payload } = await jwtVerify(token, secretKey, { algorithms: ["HS256"] });
+    const { userId, email } = payload as Record<string, unknown>;
+    if (typeof userId !== "number" || typeof email !== "string") return null;
+    return { userId, email };
+  } catch {
+    return null;
+  }
+}
+
+// ─── Password helpers ─────────────────────────────────────────────────────────
+
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, BCRYPT_ROUNDS);
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
+}
+
+// ─── Auth operations ──────────────────────────────────────────────────────────
+
+export async function registerUser(data: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<User> {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+
+  // Normalize email
+  const email = data.email.trim().toLowerCase();
+
+  // Check for existing user
+  const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  if (existing.length > 0) {
+    throw new Error("EMAIL_TAKEN");
+  }
+
+  const passwordHash = await hashPassword(data.password);
+
+  // Use email as openId for self-hosted accounts (prefixed to avoid collision with Manus openIds)
+  const openId = `email:${email}`;
+
+  await db.insert(users).values({
+    openId,
+    name: data.name.trim(),
+    email,
+    loginMethod: "email",
+    passwordHash,
+    lastSignedIn: new Date(),
+  });
+
+  const created = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  if (!created[0]) throw new Error("Failed to create user");
+  return created[0];
+}
+
+export async function loginUser(data: {
+  email: string;
+  password: string;
+}): Promise<User> {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+
+  const email = data.email.trim().toLowerCase();
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const user = result[0];
+
+  if (!user) throw new Error("INVALID_CREDENTIALS");
+  if (!user.passwordHash) throw new Error("NO_PASSWORD"); // OAuth-only account
+
+  const valid = await verifyPassword(data.password, user.passwordHash);
+  if (!valid) throw new Error("INVALID_CREDENTIALS");
+
+  // Update lastSignedIn
+  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
+
+  return user;
+}
+
+// ─── Request authentication ───────────────────────────────────────────────────
+
+export async function authenticateRequest(req: Request): Promise<User> {
+  const cookieHeader = req.headers.cookie;
+  const cookies = cookieHeader ? parseCookieHeader(cookieHeader) : {};
+  const sessionToken = cookies[COOKIE_NAME];
+
+  const session = await verifySessionToken(sessionToken);
+  if (!session) throw ForbiddenError("Invalid or missing session");
+
+  const db = await getDb();
+  if (!db) throw ForbiddenError("Database unavailable");
+
+  const result = await db.select().from(users).where(eq(users.id, session.userId)).limit(1);
+  const user = result[0];
+  if (!user) throw ForbiddenError("User not found");
+
+  return user;
+}

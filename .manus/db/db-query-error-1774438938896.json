@@ -1,0 +1,8 @@
+{
+  "query": "SELECT id, name, email, role, plan_id, created_at FROM users ORDER BY created_at ASC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3R6yGEe9JU4tHyX.b1aebb828f50 --database gipzWtYeMsnYWyzsuU8sxR --execute SELECT id, name, email, role, plan_id, created_at FROM users ORDER BY created_at ASC LIMIT 20;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'plan_id' in 'field list'"
+  ]
+}

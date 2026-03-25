@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE users SET planId = 'pro', subscriptionStatus = 'active', role = 'admin', businessName = 'TrueAxis HQ Demo', bio = 'Freelance business consultant and coach helping professionals scale their practice.', phone = '(512) 555-0100' WHERE id = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3R6yGEe9JU4tHyX.b1aebb828f50 --database gipzWtYeMsnYWyzsuU8sxR --execute UPDATE users SET planId = 'pro', subscriptionStatus = 'active', role = 'admin', businessName = 'TrueAxis HQ Demo', bio = 'Freelance business consultant and coach helping professionals scale their practice.', phone = '(512) 555-0100' WHERE id = 1;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 65
+}

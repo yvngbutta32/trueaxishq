@@ -1,0 +1,8 @@
+{
+  "query": "SELECT Field FROM information_schema.COLUMNS WHERE TABLE_NAME = 'users' AND COLUMN_NAME LIKE '%pass%' OR COLUMN_NAME LIKE '%booking%' LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3R6yGEe9JU4tHyX.b1aebb828f50 --database gipzWtYeMsnYWyzsuU8sxR --execute SELECT Field FROM information_schema.COLUMNS WHERE TABLE_NAME = 'users' AND COLUMN_NAME LIKE '%pass%' OR COLUMN_NAME LIKE '%booking%' LIMIT 10;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'field' in 'field list'"
+  ]
+}

@@ -8,7 +8,6 @@ import {
   ExternalLink, Loader2, ArrowRight, Shield, Star, ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getLoginUrl } from "@/const";
 
 const PLAN_ICONS: Record<string, React.ElementType> = {
   starter: Zap,
@@ -66,7 +65,7 @@ export default function Billing() {
         <div className="text-center max-w-sm">
           <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" aria-hidden="true" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">Sign in to manage billing</h1>
-          <Button className="gradient-amber text-white border-0 mt-4" onClick={() => window.location.href = getLoginUrl()}>
+          <Button className="gradient-amber text-white border-0 mt-4" onClick={() => window.location.href = "/login"}>
             Sign In
           </Button>
         </div>
@@ -265,7 +264,7 @@ export default function Billing() {
                         variant={plan.highlighted ? "default" : "outline"}
                         onClick={() => {
                           if (!isAuthenticated) {
-                            window.location.href = getLoginUrl();
+                            window.location.href = "/login";
                             return;
                           }
                           checkoutMutation.mutate({

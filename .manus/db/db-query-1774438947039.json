@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, name, email, role, planId, createdAt FROM users ORDER BY createdAt ASC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3R6yGEe9JU4tHyX.b1aebb828f50 --database gipzWtYeMsnYWyzsuU8sxR --execute SELECT id, name, email, role, planId, createdAt FROM users ORDER BY createdAt ASC LIMIT 20;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Aaron Anderson",
+      "email": "aaron.anderson62901@gmail.com",
+      "role": "admin",
+      "planId": "free",
+      "createdAt": "2026-03-06 10:26:04"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\tplanId\tcreatedAt\n1\tAaron Anderson\taaron.anderson62901@gmail.com\tadmin\tfree\t2026-03-06 10:26:04\n",
+  "stderr": "",
+  "execution_time_ms": 71
+}

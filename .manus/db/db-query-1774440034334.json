@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, openId, email, name, role, planId FROM users LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3R6yGEe9JU4tHyX.b1aebb828f50 --database gipzWtYeMsnYWyzsuU8sxR --execute SELECT id, openId, email, name, role, planId FROM users LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "openId": "NTzRuVDYN6FUvPRayT5f5E",
+      "email": "aaron.anderson62901@gmail.com",
+      "name": "Aaron Anderson",
+      "role": "admin",
+      "planId": "pro"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\temail\tname\trole\tplanId\n1\tNTzRuVDYN6FUvPRayT5f5E\taaron.anderson62901@gmail.com\tAaron Anderson\tadmin\tpro\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

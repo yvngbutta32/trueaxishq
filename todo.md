@@ -240,3 +240,20 @@
 - [x] Add official logo to Billing.tsx nav (also added proper nav bar)
 - [x] Add official logo to CheckoutSuccess.tsx card header
 - [x] 0 TypeScript errors, 29/29 tests passing, build succeeds
+
+## Self-Contained Email/Password Auth (Round 12)
+- [x] Replace Manus OAuth with bcrypt email/password authentication
+- [x] Add passwordHash column to users table (schema + migration)
+- [x] Create server/auth.ts — registerUser, loginUser, createSessionToken helpers
+- [x] Add auth.register and auth.login tRPC procedures to routers.ts
+- [x] Update context.ts to use local JWT session verification (no Manus SDK)
+- [x] Create Login page at /login with email/password form
+- [x] Create Register page at /register with name/email/password/confirm form
+- [x] Add /login and /register routes to App.tsx
+- [x] Update useAuth hook to redirect to /login (not Manus OAuth URL)
+- [x] Update const.ts getLoginUrl() to return /login
+- [x] Remove Manus OAuth route registration from server index.ts
+- [x] Remove all getLoginUrl() calls from Admin.tsx, Billing.tsx, DashboardLayout.tsx
+- [x] Update Home.tsx Sign In buttons to navigate to /login
+- [x] Set bcrypt password hash for owner account (aaron.anderson62901@gmail.com)
+- [x] 0 TypeScript errors, 29/29 tests passing, build succeeds

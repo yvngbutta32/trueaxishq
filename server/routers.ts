@@ -1,4 +1,4 @@
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
@@ -10,6 +10,7 @@ import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
 import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings } from "../drizzle/schema";
+import { registerUser, loginUser, createSessionToken } from "./auth";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
@@ -57,6 +58,57 @@ export const appRouter = router({
   // ── Auth ──────────────────────────────────────────────────────────────────
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+
+    register: publicProcedure
+      .input(z.object({
+        name: z.string().trim().min(1).max(255),
+        email: safeEmail,
+        password: z.string().min(8).max(128),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        try {
+          const user = await registerUser({
+            name: input.name,
+            email: input.email,
+            password: input.password,
+          });
+          const token = await createSessionToken(user.id, user.email ?? input.email);
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+          return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
+        } catch (err: any) {
+          if (err?.message === "EMAIL_TAKEN") {
+            throw new TRPCError({ code: "CONFLICT", message: "An account with this email already exists." });
+          }
+          console.error("[Auth] Register error:", err);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Registration failed. Please try again." });
+        }
+      }),
+
+    login: publicProcedure
+      .input(z.object({
+        email: safeEmail,
+        password: z.string().min(1).max(128),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        try {
+          const user = await loginUser({
+            email: input.email,
+            password: input.password,
+          });
+          const token = await createSessionToken(user.id, user.email ?? input.email);
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+          return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
+        } catch (err: any) {
+          if (err?.message === "INVALID_CREDENTIALS" || err?.message === "NO_PASSWORD") {
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });
+          }
+          console.error("[Auth] Login error:", err);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Login failed. Please try again." });
+        }
+      }),
+
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
