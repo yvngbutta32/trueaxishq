@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import {
   CreditCard, Zap, Crown, Building2, CheckCircle,
-  ExternalLink, Loader2, ArrowRight, Shield, Star
+  ExternalLink, Loader2, ArrowRight, Shield, Star, ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
@@ -23,6 +24,7 @@ const PLAN_COLORS: Record<string, string> = {
 
 export default function Billing() {
   const { user, isAuthenticated, loading } = useAuth();
+  const [, navigate] = useLocation();
   const [interval, setInterval] = useState<"monthly" | "annual">("monthly");
 
   const subscriptionQuery = trpc.billing.getSubscription.useQuery(undefined, {
@@ -78,8 +80,21 @@ export default function Billing() {
   const plans = plansQuery.data ?? [];
 
   return (
-    <div className="min-h-screen bg-[#141414]">
+    <div className="min-h-screen bg-[#141414] text-white">
       <a href="#main-content" className="skip-link">Skip to main content</a>
+      <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
+        <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-[#E8A020] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#E8A020] rounded px-2 py-1">
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Back to Dashboard</span>
+        </button>
+        <div className="flex items-center">
+          <img
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+            alt="TrueAxis HQ"
+            className="h-8 w-auto object-contain"
+          />
+        </div>
+      </nav>
 
       <main id="main-content" className="max-w-4xl mx-auto px-4 py-10">
         {/* Header */}

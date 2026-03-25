@@ -142,19 +142,29 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
       aria-label="Main navigation"
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
+      <div className="flex items-center px-3 py-4 border-b border-white/10">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="w-8 h-8 rounded-lg gradient-amber flex items-center justify-center flex-shrink-0"
+          className="flex items-center justify-center flex-shrink-0"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          style={{ background: "none", border: "none", minHeight: "auto", minWidth: "auto", padding: 0 }}
         >
-          <Zap className="w-4 h-4 text-white" />
+          {collapsed ? (
+            <div className="w-8 h-8 rounded-lg overflow-hidden">
+              <img
+                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+                alt="TrueAxis HQ"
+                className="w-full h-full object-cover object-left"
+              />
+            </div>
+          ) : (
+            <img
+              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+              alt="TrueAxis HQ"
+              className="h-9 w-auto object-contain"
+            />
+          )}
         </button>
-        {!collapsed && (
-          <span className="font-bold text-white text-sm" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
-            TrueAxis <span className="text-[#E8A020]">HQ</span>
-          </span>
-        )}
       </div>
 
       {/* Nav */}
@@ -1542,10 +1552,11 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             {/* Mobile logo */}
             <div className="flex items-center gap-2 md:hidden">
-              <div className="w-7 h-7 rounded-lg gradient-amber flex items-center justify-center">
-                <Zap className="w-3.5 h-3.5 text-white" />
-              </div>
-              <span className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: "Space Grotesk, sans-serif" }}>TrueAxis HQ</span>
+              <img
+                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+                alt="TrueAxis HQ"
+                className="h-7 w-auto object-contain"
+              />
             </div>
             <h1 className="hidden md:block text-base font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               {panelTitles[active]}

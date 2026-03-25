@@ -116,11 +116,12 @@ export default function Privacy() {
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Home</span>
         </button>
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#E8A020] to-[#F5C842] flex items-center justify-center">
-            <Zap className="w-3.5 h-3.5 text-white" />
-          </div>
-          <span className="font-bold" style={{ fontFamily: "Space Grotesk, sans-serif" }}>TrueAxis HQ</span>
+        <div className="flex items-center">
+          <img
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+            alt="TrueAxis HQ"
+            className="h-8 w-auto object-contain"
+          />
         </div>
       </nav>
 

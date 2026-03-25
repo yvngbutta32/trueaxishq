@@ -19,13 +19,12 @@ export default function About() {
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </button>
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded flex items-center justify-center" style={{ background: "linear-gradient(135deg, #E8A020, #F5C842)" }}>
-            <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "0.7rem", color: "#141414" }}>TX</span>
-          </div>
-          <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, color: "#F5F0E8" }}>
-            TrueAxis <span style={{ color: "#E8A020" }}>HQ</span>
-          </span>
+        <div className="flex items-center">
+          <img
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+            alt="TrueAxis HQ"
+            className="h-8 w-auto object-contain"
+          />
         </div>
         <button onClick={() => navigate("/pricing")} className="btn-ghost" style={{ padding: "0.4rem 1rem", fontSize: "0.8125rem" }}>
           View Pricing

@@ -32,6 +32,14 @@ export default function CheckoutSuccess() {
         className="relative z-10 bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 text-center"
         aria-labelledby="success-heading"
       >
+        {/* Logo */}
+        <div className="flex justify-center mb-5">
+          <img
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+            alt="TrueAxis HQ"
+            className="h-8 w-auto object-contain"
+          />
+        </div>
         {/* Success icon */}
         <div className="relative inline-flex items-center justify-center mb-6" aria-hidden="true">
           <div className="w-20 h-20 rounded-full bg-[#E8A020]/15 flex items-center justify-center">

@@ -314,12 +314,11 @@ function Nav({ onCTA }: { onCTA: () => void }) {
             aria-label="TrueAxis HQ — home"
             style={{ background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
           >
-            <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: "linear-gradient(135deg, #E8A020, #F5C842)" }}>
-              <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "0.8rem", color: "#141414" }}>TX</span>
-            </div>
-            <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1rem", color: "#F5F0E8", letterSpacing: "-0.02em" }}>
-              TrueAxis <span style={{ color: "#E8A020" }}>HQ</span>
-            </span>
+            <img
+              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+              alt="TrueAxis HQ"
+              className="h-9 w-auto object-contain"
+            />
           </button>
 
           {/* Desktop links */}
@@ -955,13 +954,12 @@ function Footer() {
         <div className="grid md:grid-cols-4 gap-10 mb-12">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: "linear-gradient(135deg, #E8A020, #F5C842)" }}>
-                <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "0.8rem", color: "#141414" }}>TX</span>
-              </div>
-              <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, color: "#F5F0E8" }}>
-                TrueAxis <span style={{ color: "#E8A020" }}>HQ</span>
-              </span>
+            <div className="flex items-center mb-4">
+              <img
+                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+                alt="TrueAxis HQ"
+                className="h-9 w-auto object-contain"
+              />
             </div>
             <p className="text-sm mb-4" style={{ color: "rgba(245,240,232,0.35)", lineHeight: 1.7 }}>
               The AI-powered business OS for freelancers and solo service professionals.

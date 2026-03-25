@@ -216,3 +216,27 @@
 - [x] Update AIAssistant, ErrorBoundary, InvoicePrint, HealthMonitor, ClientPulse with amber theme
 - [x] 0 teal color references remaining across entire codebase
 - [x] 0 TypeScript errors, 29/29 tests passing after full redesign
+
+## Visual Redesign: Polaroid Retro-Modern Theme (Round 10)
+- [ ] Define Polaroid design system — white base, rainbow stripe, bold primaries, Syne + Inter fonts
+- [ ] Rewrite index.css with new CSS variables, utility classes, rainbow stripe component
+- [ ] Update index.html with new Google Fonts (Syne + Inter)
+- [ ] Redesign Home.tsx with Polaroid retro-modern layout
+- [ ] Redesign Pricing.tsx with Polaroid theme
+- [ ] Update About.tsx with Polaroid theme
+- [ ] Update Dashboard.tsx with Polaroid accent colors
+- [ ] Update Admin.tsx with Polaroid accent colors
+- [ ] Update all remaining pages (Contact, Help, Terms, Privacy, Billing, BookingPage, CheckoutSuccess, NotFound)
+- [ ] Update all components (AIAssistant, ClientPulse, ErrorBoundary, InvoicePrint, HealthMonitor)
+- [ ] 0 TypeScript errors, 29/29 tests passing after redesign
+
+## Logo Integration & CSS Build Fix (Round 11)
+- [x] Fix build failure — replace all `@apply btn-yellow`, `@apply glow-yellow`, `@apply pill-yellow`, `@apply pill-green`, `@apply tag-yellow`, `@apply tag-green`, `@apply tag-red`, `@apply shimmer-text` with inline CSS
+- [x] Replace old `trueaxis-official-logo` CDN URL with new `logo-r1` CDN URL across all pages
+- [x] Add official logo to Privacy.tsx nav
+- [x] Add official logo to Terms.tsx nav
+- [x] Add official logo to Help.tsx nav
+- [x] Add official logo to Contact.tsx nav
+- [x] Add official logo to Billing.tsx nav (also added proper nav bar)
+- [x] Add official logo to CheckoutSuccess.tsx card header
+- [x] 0 TypeScript errors, 29/29 tests passing, build succeeds
