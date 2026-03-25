@@ -70,9 +70,9 @@ export default function BookingPage() {
   // Loading state
   if (pageQuery.isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center" role="status" aria-label="Loading booking page">
+      <div className="min-h-screen bg-[#141414] flex items-center justify-center" role="status" aria-label="Loading booking page">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 text-[#00C9A7] animate-spin mx-auto mb-3" aria-hidden="true" />
+          <Loader2 className="w-10 h-10 text-[#E8A020] animate-spin mx-auto mb-3" aria-hidden="true" />
           <p className="text-gray-500 text-sm">Loading booking page…</p>
         </div>
       </div>
@@ -82,7 +82,7 @@ export default function BookingPage() {
   // Not found
   if (!pageQuery.data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#141414] flex items-center justify-center">
         <div className="text-center max-w-sm">
           <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
             <User className="w-8 h-8 text-gray-400" />
@@ -99,12 +99,12 @@ export default function BookingPage() {
   // Success screen
   if (step === "success") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#141414] flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-lg border border-gray-100">
-          <div className="w-16 h-16 rounded-full bg-[#00C9A7]/15 flex items-center justify-center mx-auto mb-5" aria-hidden="true">
-            <CheckCircle className="w-8 h-8 text-[#00C9A7]" />
+          <div className="w-16 h-16 rounded-full bg-[#E8A020]/15 flex items-center justify-center mx-auto mb-5" aria-hidden="true">
+            <CheckCircle className="w-8 h-8 text-[#E8A020]" />
           </div>
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-2" style={{ fontFamily: "Sora, sans-serif" }}>
+          <h1 className="text-2xl font-extrabold text-gray-900 mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
             Booking Request Sent!
           </h1>
           <p className="text-gray-500 mb-6">
@@ -131,23 +131,23 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#141414]">
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* Header */}
       <header className="bg-white border-b border-gray-100 px-4 py-4" role="banner">
         <div className="max-w-xl mx-auto flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl gradient-teal flex items-center justify-center flex-shrink-0" aria-hidden="true">
+          <div className="w-9 h-9 rounded-xl gradient-amber flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <Zap className="w-4 h-4 text-white" />
           </div>
           <div>
             <p className="text-xs text-gray-400">Booking with</p>
-            <h1 className="text-base font-bold text-gray-900" style={{ fontFamily: "Sora, sans-serif" }}>
+            <h1 className="text-base font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               {host.name}
             </h1>
           </div>
           <div className="ml-auto">
-            <span className="text-xs bg-[#00C9A7]/10 text-[#007A65] border border-[#00C9A7]/20 rounded-full px-3 py-1 font-semibold">
+            <span className="text-xs bg-[#E8A020]/10 text-[#007A65] border border-[#E8A020]/20 rounded-full px-3 py-1 font-semibold">
               Powered by TrueAxis HQ
             </span>
           </div>
@@ -173,8 +173,8 @@ export default function BookingPage() {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                        isDone ? "gradient-teal text-white" :
-                        isCurrent ? "bg-[#00C9A7]/15 text-[#007A65] border-2 border-[#00C9A7]" :
+                        isDone ? "gradient-amber text-white" :
+                        isCurrent ? "bg-[#E8A020]/15 text-[#007A65] border-2 border-[#E8A020]" :
                         "bg-gray-100 text-gray-400"
                       }`}
                       aria-current={isCurrent ? "step" : undefined}
@@ -199,7 +199,7 @@ export default function BookingPage() {
         {/* Step 1: Details */}
         {step === "details" && (
           <section aria-label="Your contact details">
-            <h2 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: "Sora, sans-serif" }}>
+            <h2 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               Tell us about yourself
             </h2>
             <p className="text-sm text-gray-500 mb-6">We'll share this with {host.name} to prepare for your session.</p>
@@ -286,7 +286,7 @@ export default function BookingPage() {
             </div>
 
             <Button
-              className="w-full gradient-teal text-white border-0 mt-6 h-12 text-base"
+              className="w-full gradient-amber text-white border-0 mt-6 h-12 text-base"
               onClick={() => {
                 if (!form.clientName.trim()) { toast.error("Please enter your name"); return; }
                 if (!form.clientEmail.includes("@")) { toast.error("Please enter a valid email"); return; }
@@ -311,7 +311,7 @@ export default function BookingPage() {
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
             </button>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: "Sora, sans-serif" }}>
+            <h2 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               Choose a date & time
             </h2>
             <p className="text-sm text-gray-500 mb-6">All times are shown in your local timezone.</p>
@@ -331,9 +331,9 @@ export default function BookingPage() {
                       onClick={() => setForm(p => ({ ...p, preferredDate: dateStr }))}
                       aria-pressed={isSelected}
                       aria-label={`${dayName} ${dateStr}`}
-                      className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#00C9A7] focus-visible:outline-offset-2 ${
+                      className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2 ${
                         isSelected
-                          ? "border-[#00C9A7] bg-[#00C9A7]/5 text-[#007A65]"
+                          ? "border-[#E8A020] bg-[#E8A020]/5 text-[#007A65]"
                           : "border-gray-200 hover:border-gray-300 text-gray-700"
                       }`}
                     >
@@ -358,9 +358,9 @@ export default function BookingPage() {
                         onClick={() => setForm(p => ({ ...p, preferredTime: time }))}
                         aria-pressed={isSelected}
                         aria-label={`${time}`}
-                        className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] focus-visible:outline-[3px] focus-visible:outline-[#00C9A7] focus-visible:outline-offset-2 ${
+                        className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2 ${
                           isSelected
-                            ? "border-[#00C9A7] bg-[#00C9A7]/5 text-[#007A65]"
+                            ? "border-[#E8A020] bg-[#E8A020]/5 text-[#007A65]"
                             : "border-gray-200 hover:border-gray-300 text-gray-700"
                         }`}
                       >
@@ -373,7 +373,7 @@ export default function BookingPage() {
             )}
 
             <Button
-              className="w-full gradient-teal text-white border-0 h-12 text-base"
+              className="w-full gradient-amber text-white border-0 h-12 text-base"
               onClick={() => {
                 if (!form.preferredDate) { toast.error("Please select a date"); return; }
                 if (!form.preferredTime) { toast.error("Please select a time"); return; }
@@ -398,14 +398,14 @@ export default function BookingPage() {
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
             </button>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: "Sora, sans-serif" }}>
+            <h2 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               Confirm your booking
             </h2>
             <p className="text-sm text-gray-500 mb-6">Please review the details below before submitting.</p>
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4 mb-6">
               <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
-                <div className="w-10 h-10 rounded-xl gradient-teal flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                <div className="w-10 h-10 rounded-xl gradient-amber flex items-center justify-center flex-shrink-0" aria-hidden="true">
                   <User className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -446,7 +446,7 @@ export default function BookingPage() {
             </div>
 
             <Button
-              className="w-full gradient-teal text-white border-0 h-12 text-base gap-2"
+              className="w-full gradient-amber text-white border-0 h-12 text-base gap-2"
               onClick={handleSubmit}
               disabled={submitMutation.isPending}
               aria-label="Submit booking request"

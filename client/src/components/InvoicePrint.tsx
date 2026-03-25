@@ -41,7 +41,7 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
           body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1C1C1E; background: white; padding: 48px; }
           .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
           .brand { display: flex; align-items: center; gap: 12px; }
-          .brand-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #00C9A7, #007A65); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+          .brand-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #E8A020, #B87A10); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
           .brand-icon svg { width: 20px; height: 20px; fill: white; }
           .brand-name { font-size: 20px; font-weight: 800; color: #1C1C1E; }
           .invoice-title { font-size: 32px; font-weight: 800; color: #1C1C1E; }
@@ -62,7 +62,7 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
           .total-section { display: flex; justify-content: flex-end; }
           .total-box { background: #F9FAFB; border-radius: 12px; padding: 16px 24px; min-width: 200px; }
           .total-label { font-size: 12px; color: #6B7280; }
-          .total-amount { font-size: 28px; font-weight: 800; color: #00C9A7; margin-top: 4px; }
+          .total-amount { font-size: 28px; font-weight: 800; color: #E8A020; margin-top: 4px; }
           .notes { background: #F9FAFB; border-radius: 12px; padding: 16px; margin-top: 24px; }
           .notes-label { font-size: 11px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
           .notes-text { font-size: 13px; color: #6B7280; line-height: 1.6; }
@@ -170,7 +170,7 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
           <div className="bg-white border border-gray-100 rounded-xl p-6">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl gradient-teal flex items-center justify-center" aria-hidden="true">
+                <div className="w-10 h-10 rounded-xl gradient-amber flex items-center justify-center" aria-hidden="true">
                   <Download className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -222,7 +222,7 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
             <div className="flex justify-end mb-4">
               <div className="bg-gray-50 rounded-xl p-4 text-right">
                 <p className="text-xs text-gray-400">Total Due</p>
-                <p className="text-2xl font-extrabold text-[#00C9A7]">${invoice.amount.toLocaleString()}</p>
+                <p className="text-2xl font-extrabold text-[#E8A020]">${invoice.amount.toLocaleString()}</p>
               </div>
             </div>
 

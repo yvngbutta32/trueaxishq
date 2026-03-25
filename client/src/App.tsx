@@ -32,8 +32,8 @@ function PageLoader() {
       aria-label="Loading page"
     >
       <div className="text-center">
-        <div className="w-12 h-12 rounded-2xl bg-[#00C9A7]/10 flex items-center justify-center mx-auto mb-4">
-          <Loader2 className="w-6 h-6 text-[#00C9A7] animate-spin" aria-hidden="true" />
+        <div className="w-12 h-12 rounded-2xl bg-[#E8A020]/10 flex items-center justify-center mx-auto mb-4">
+          <Loader2 className="w-6 h-6 text-[#E8A020] animate-spin" aria-hidden="true" />
         </div>
         <p className="text-sm font-medium text-muted-foreground">Loading…</p>
       </div>
@@ -46,7 +46,7 @@ function SkipLink() {
   return (
     <a
       href="#main-content"
-      className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#00C9A7] focus:text-white focus:font-semibold focus:shadow-lg focus:outline-none"
+      className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#E8A020] focus:text-white focus:font-semibold focus:shadow-lg focus:outline-none"
     >
       Skip to main content
     </a>

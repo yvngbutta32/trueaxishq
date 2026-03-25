@@ -113,7 +113,7 @@ function ArticleAccordion({ q, a }: { q: string; a: string }) {
     <div className="border border-white/10 rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#00C9A7] focus:ring-inset"
+        className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E8A020] focus:ring-inset"
         aria-expanded={open}
       >
         <span className="text-sm font-medium text-white">{q}</span>
@@ -141,23 +141,23 @@ export default function Help() {
   })).filter(cat => cat.articles.length > 0);
 
   return (
-    <div className="min-h-screen bg-[#1C1C1E] text-white">
+    <div className="min-h-screen bg-[#141414] text-white">
       <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#00C9A7] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#00C9A7] rounded px-2 py-1">
+        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#E8A020] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#E8A020] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Home</span>
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#00C9A7] to-[#00A88A] flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#E8A020] to-[#F5C842] flex items-center justify-center">
             <Zap className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-bold" style={{ fontFamily: "Sora, sans-serif" }}>TrueAxis HQ</span>
+          <span className="font-bold" style={{ fontFamily: "Space Grotesk, sans-serif" }}>TrueAxis HQ</span>
         </div>
       </nav>
 
       {/* Hero */}
       <section className="py-16 sm:py-20 px-4 text-center bg-gradient-to-b from-[#1A2E2A] to-[#1C1C1E]">
-        <h1 className="text-4xl sm:text-5xl font-extrabold mb-4" style={{ fontFamily: "Sora, sans-serif" }}>Help Center</h1>
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Help Center</h1>
         <p className="text-gray-400 mb-8 max-w-lg mx-auto">Find answers to common questions, or contact our support team.</p>
         <div className="relative max-w-lg mx-auto">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -166,7 +166,7 @@ export default function Help() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search for answers..."
-            className="w-full pl-10 pr-4 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#00C9A7] transition-colors"
+            className="w-full pl-10 pr-4 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#E8A020] transition-colors"
           />
         </div>
       </section>
@@ -176,7 +176,7 @@ export default function Help() {
         <div className="px-4 py-4 flex flex-wrap gap-2 justify-center border-b border-white/10">
           <button
             onClick={() => setActiveCategory(null)}
-            className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#00C9A7] ${!activeCategory ? "bg-[#00C9A7] text-white" : "bg-white/10 text-gray-400 hover:bg-white/15"}`}
+            className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#E8A020] ${!activeCategory ? "bg-[#E8A020] text-white" : "bg-white/10 text-gray-400 hover:bg-white/15"}`}
           >
             All Topics
           </button>
@@ -184,7 +184,7 @@ export default function Help() {
             <button
               key={cat.title}
               onClick={() => setActiveCategory(activeCategory === cat.title ? null : cat.title)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#00C9A7] ${activeCategory === cat.title ? "bg-[#00C9A7] text-white" : "bg-white/10 text-gray-400 hover:bg-white/15"}`}
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#E8A020] ${activeCategory === cat.title ? "bg-[#E8A020] text-white" : "bg-white/10 text-gray-400 hover:bg-white/15"}`}
             >
               {cat.title}
             </button>
@@ -199,10 +199,10 @@ export default function Help() {
           .map(cat => (
             <section key={cat.title}>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-9 h-9 rounded-xl bg-[#00C9A7]/15 flex items-center justify-center">
-                  <cat.icon className="w-4 h-4 text-[#00C9A7]" />
+                <div className="w-9 h-9 rounded-xl bg-[#E8A020]/15 flex items-center justify-center">
+                  <cat.icon className="w-4 h-4 text-[#E8A020]" />
                 </div>
-                <h2 className="text-lg font-bold" style={{ fontFamily: "Sora, sans-serif" }}>{cat.title}</h2>
+                <h2 className="text-lg font-bold" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{cat.title}</h2>
               </div>
               <div className="space-y-2">
                 {cat.articles.map(a => <ArticleAccordion key={a.q} {...a} />)}
@@ -218,19 +218,19 @@ export default function Help() {
 
         {/* Contact support */}
         <section className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
-          <h2 className="text-xl font-bold mb-2" style={{ fontFamily: "Sora, sans-serif" }}>Still need help?</h2>
+          <h2 className="text-xl font-bold mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Still need help?</h2>
           <p className="text-gray-400 text-sm mb-6">Our support team typically responds within 4 business hours.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
               href="mailto:support@trueaxishq.com"
-              className="flex items-center justify-center gap-2 bg-[#00C9A7] hover:bg-[#00A88A] text-white px-6 py-3 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#00C9A7] focus:ring-offset-2 focus:ring-offset-[#1C1C1E] min-h-[48px]"
+              className="flex items-center justify-center gap-2 bg-[#E8A020] hover:bg-[#D4911A] text-white px-6 py-3 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#E8A020] focus:ring-offset-2 focus:ring-offset-[#1C1C1E] min-h-[48px]"
             >
               <Mail className="w-4 h-4" />
               Email Support
             </a>
             <button
               onClick={() => navigate("/dashboard")}
-              className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#00C9A7] min-h-[48px]"
+              className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#E8A020] min-h-[48px]"
             >
               <ChevronRight className="w-4 h-4" />
               Open Dashboard

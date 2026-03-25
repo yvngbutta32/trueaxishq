@@ -61,7 +61,7 @@ interface PulseRecord {
 
 function HealthRing({ score }: { score: number }) {
   const color =
-    score >= 75 ? "#00C9A7" :
+    score >= 75 ? "#E8A020" :
     score >= 50 ? "#F59E0B" :
     score >= 25 ? "#F97316" :
     "#EF4444";
@@ -94,7 +94,7 @@ function RiskBadge({ pulse }: { pulse: PulseRecord["pulse"] }) {
   if (!pulse) return <Badge variant="outline" className="text-xs">Not analyzed</Badge>;
   if (pulse.churnRisk) return <Badge className="bg-red-500/15 text-red-600 border-red-200 text-xs gap-1"><AlertTriangle className="w-3 h-3" />Churn Risk</Badge>;
   if (pulse.goingSilent) return <Badge className="bg-orange-500/15 text-orange-600 border-orange-200 text-xs gap-1"><Clock className="w-3 h-3" />Going Silent</Badge>;
-  if (pulse.upsellReady) return <Badge className="bg-teal-500/15 text-teal-600 border-teal-200 text-xs gap-1"><TrendingUp className="w-3 h-3" />Upsell Ready</Badge>;
+  if (pulse.upsellReady) return <Badge className="bg-amber-500/15 text-amber-400 border-amber-700/30 text-xs gap-1"><TrendingUp className="w-3 h-3" />Upsell Ready</Badge>;
   return <Badge className="bg-green-500/15 text-green-600 border-green-200 text-xs gap-1"><Heart className="w-3 h-3" />Healthy</Badge>;
 }
 
@@ -103,7 +103,7 @@ function RiskBadge({ pulse }: { pulse: PulseRecord["pulse"] }) {
 function getActionConfig(actionType: string | null) {
   switch (actionType) {
     case "re_engage": return { label: "Re-engage", color: "text-red-600", bg: "bg-red-50 dark:bg-red-950/30", icon: AlertTriangle };
-    case "upsell": return { label: "Pitch Retainer", color: "text-teal-600", bg: "bg-teal-50 dark:bg-teal-950/30", icon: TrendingUp };
+    case "upsell": return { label: "Pitch Retainer", color: "text-amber-400", bg: "bg-amber-950/30", icon: TrendingUp };
     case "check_in": return { label: "Check In", color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-950/30", icon: Clock };
     default: return { label: "Nurture", color: "text-green-600", bg: "bg-green-50 dark:bg-green-950/30", icon: Heart };
   }
@@ -240,10 +240,10 @@ export default function ClientPulse() {
           <Card className="border-0 bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="w-4 h-4 text-teal-500" />
+                <TrendingUp className="w-4 h-4 text-amber-400" />
                 <span className="text-xs text-muted-foreground font-medium">Upsell Ready</span>
               </div>
-              <p className="text-2xl font-bold text-teal-500">{upsellReady.length}</p>
+              <p className="text-2xl font-bold text-amber-400">{upsellReady.length}</p>
             </CardContent>
           </Card>
         </div>
@@ -304,7 +304,7 @@ export default function ClientPulse() {
                 className={`transition-all duration-200 hover:shadow-md ${
                   pulse?.churnRisk ? "border-red-200 dark:border-red-800" :
                   pulse?.goingSilent ? "border-orange-200 dark:border-orange-800" :
-                  pulse?.upsellReady ? "border-teal-200 dark:border-teal-800" :
+                  pulse?.upsellReady ? "border-amber-700/30 dark:border-amber-800" :
                   ""
                 }`}
               >
@@ -354,7 +354,7 @@ export default function ClientPulse() {
                           )}
                           {pulse.revenueLastThirtyDays && parseFloat(pulse.revenueLastThirtyDays) > 0 && (
                             <span className="inline-flex items-center gap-1 text-xs bg-muted/60 rounded-full px-2 py-0.5">
-                              <TrendingUp className="w-3 h-3 text-teal-500" />
+                              <TrendingUp className="w-3 h-3 text-amber-400" />
                               ${parseFloat(pulse.revenueLastThirtyDays).toFixed(0)} last 30d
                             </span>
                           )}

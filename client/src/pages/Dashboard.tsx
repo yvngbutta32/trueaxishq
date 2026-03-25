@@ -1,6 +1,6 @@
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C1C1E), Teal (#00C9A7), Coral (#FF6B6B)
+ * Design: "Kinetic Warmth" — Dark sidebar (#1C1C1E), Teal (#E8A020), Coral (#FF6B6B)
  */
 
 import { useState, useEffect, useRef } from "react";
@@ -86,7 +86,7 @@ function Modal({ open, onClose, title, children, wide }: {
         className={`relative bg-white rounded-2xl shadow-2xl w-full ${wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto outline-none`}
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="font-bold text-[#1C1C1E] text-base" style={{ fontFamily: "Sora, sans-serif" }}>{title}</h2>
+          <h2 className="font-bold text-[#1C1C1E] text-base" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{title}</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close dialog">
             <X className="w-4 h-4 text-gray-500" />
           </button>
@@ -102,7 +102,7 @@ function Field({ label, value, onChange, placeholder, type = "text", required, t
   label: string; value: string; onChange: (v: string) => void;
   placeholder?: string; type?: string; required?: boolean; textarea?: boolean; rows?: number;
 }) {
-  const cls = "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors";
+  const cls = "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors";
   return (
     <div>
       <label className="block text-xs font-semibold text-gray-600 mb-1.5">{label}{required && " *"}</label>
@@ -145,14 +145,14 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="w-8 h-8 rounded-lg gradient-teal flex items-center justify-center flex-shrink-0"
+          className="w-8 h-8 rounded-lg gradient-amber flex items-center justify-center flex-shrink-0"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <Zap className="w-4 h-4 text-white" />
         </button>
         {!collapsed && (
-          <span className="font-bold text-white text-sm" style={{ fontFamily: "Sora, sans-serif" }}>
-            TrueAxis <span className="text-[#00C9A7]">HQ</span>
+          <span className="font-bold text-white text-sm" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            TrueAxis <span className="text-[#E8A020]">HQ</span>
           </span>
         )}
       </div>
@@ -166,7 +166,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             aria-current={active === item.panel ? "page" : undefined}
             aria-label={item.label}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative ${
-              active === item.panel ? "bg-[#00C9A7]/15 text-[#00C9A7]" : "text-gray-400 hover:bg-white/5 hover:text-white"
+              active === item.panel ? "bg-[#E8A020]/15 text-[#E8A020]" : "text-gray-400 hover:bg-white/5 hover:text-white"
             }`}
           >
             <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
@@ -182,15 +182,15 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
       {/* Footer */}
       <div className="p-3 border-t border-white/10 space-y-1">
         {!collapsed && settings?.subscriptionStatus === "active" && (
-          <div className="bg-[#00C9A7]/10 border border-[#00C9A7]/20 rounded-xl p-3 mb-2">
-            <p className="text-xs font-semibold text-[#00C9A7] mb-0.5 capitalize">{settings.planId || "Pro"} Plan</p>
+          <div className="bg-[#E8A020]/10 border border-[#E8A020]/20 rounded-xl p-3 mb-2">
+            <p className="text-xs font-semibold text-[#E8A020] mb-0.5 capitalize">{settings.planId || "Pro"} Plan</p>
             <p className="text-xs text-gray-400">Active subscription</p>
           </div>
         )}
         {!collapsed && (!settings?.subscriptionStatus || settings.subscriptionStatus === "inactive") && (
           <button
             onClick={() => navigate("/pricing")}
-            className="w-full bg-gradient-to-r from-[#00C9A7] to-[#00a88c] text-white text-xs font-semibold px-3 py-2 rounded-xl mb-2 hover:opacity-90 transition-opacity"
+            className="w-full bg-gradient-to-r from-[#E8A020] to-[#D4911A] text-white text-xs font-semibold px-3 py-2 rounded-xl mb-2 hover:opacity-90 transition-opacity"
           >
             Upgrade to Pro →
           </button>
@@ -239,7 +239,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
   );
 
   const stats = [
-    { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), change: "+12% this month", icon: DollarSign, color: "#00C9A7" },
+    { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), change: "+12% this month", icon: DollarSign, color: "#E8A020" },
     { label: "Active Clients", value: String(analytics?.activeClients || 0), change: `${analytics?.totalClients || 0} total`, icon: Users, color: "#6366F1" },
     { label: "Sessions Completed", value: String(analytics?.completedSessions || 0), change: `${analytics?.completedSessions || 0} upcoming`, icon: CheckCircle, color: "#F59E0B" },
     { label: "Outstanding", value: formatCurrency(analytics?.outstanding || 0), change: "Awaiting payment", icon: Clock, color: "#FF6B6B" },
@@ -251,7 +251,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>
+        <h1 className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
           {getGreeting()}, {userName || "there"} 👋
         </h1>
         <p className="text-sm text-gray-500 mt-1">Here's what's happening with your business today.</p>
@@ -267,7 +267,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               </div>
               <ArrowUpRight className="w-4 h-4 text-gray-300" aria-hidden="true" />
             </div>
-            <p className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>{s.value}</p>
+            <p className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{s.value}</p>
             <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
             <p className="text-xs font-medium mt-1" style={{ color: s.color }}>{s.change}</p>
           </div>
@@ -277,21 +277,21 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       {/* Charts */}
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Sora, sans-serif" }}>Revenue (Last 6 Months)</h3>
+          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Revenue (Last 6 Months)</h3>
           {monthlyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={monthlyData}>
                 <defs>
-                  <linearGradient id="tealGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00C9A7" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#00C9A7" stopOpacity={0} />
+                  <linearGradient id="amberGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#E8A020" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#E8A020" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: "12px" }} formatter={(v: number) => [formatCurrency(v), "Revenue"]} />
-                <Area type="monotone" dataKey="revenue" stroke="#00C9A7" strokeWidth={2.5} fill="url(#tealGrad)" />
+                <Area type="monotone" dataKey="revenue" stroke="#E8A020" strokeWidth={2.5} fill="url(#amberGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
@@ -303,7 +303,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
         </div>
 
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Sora, sans-serif" }}>Client Growth</h3>
+          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Client Growth</h3>
           {clientGrowthData.some(d => d.count > 0) ? (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={clientGrowthData}>
@@ -311,7 +311,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: "12px" }} />
-                <Bar dataKey="count" fill="#00C9A7" radius={[6, 6, 0, 0]} name="New Clients" />
+                <Bar dataKey="count" fill="#E8A020" radius={[6, 6, 0, 0]} name="New Clients" />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -337,29 +337,29 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <HeartPulse className="w-4 h-4 text-[#00C9A7]" />
-                <h3 className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Client Pulse</h3>
-                <span className="text-xs bg-[#00C9A7]/10 text-[#00C9A7] font-semibold px-2 py-0.5 rounded-full">AI</span>
+                <HeartPulse className="w-4 h-4 text-[#E8A020]" />
+                <h3 className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Client Pulse</h3>
+                <span className="text-xs bg-[#E8A020]/10 text-[#E8A020] font-semibold px-2 py-0.5 rounded-full">AI</span>
               </div>
-              <button onClick={() => setActivePanel("pulse")} className="text-xs text-[#00C9A7] hover:underline font-medium flex items-center gap-1">
+              <button onClick={() => setActivePanel("pulse")} className="text-xs text-[#E8A020] hover:underline font-medium flex items-center gap-1">
                 View All <ChevronRight className="w-3 h-3" />
               </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="text-center p-3 bg-gray-50 rounded-xl">
-                <p className="text-2xl font-extrabold" style={{ fontFamily: "Sora, sans-serif", color: avgScore !== null ? (avgScore >= 70 ? "#00C9A7" : avgScore >= 40 ? "#F59E0B" : "#FF6B6B") : "#9CA3AF" }}>{avgScore ?? "—"}</p>
+                <p className="text-2xl font-extrabold" style={{ fontFamily: "Space Grotesk, sans-serif", color: avgScore !== null ? (avgScore >= 70 ? "#E8A020" : avgScore >= 40 ? "#F59E0B" : "#FF6B6B") : "#9CA3AF" }}>{avgScore ?? "—"}</p>
                 <p className="text-xs text-gray-500 mt-0.5">Avg Health</p>
               </div>
               <div className="text-center p-3 bg-red-50 rounded-xl">
-                <p className="text-2xl font-extrabold text-[#FF6B6B]" style={{ fontFamily: "Sora, sans-serif" }}>{churnRisk}</p>
+                <p className="text-2xl font-extrabold text-[#FF6B6B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{churnRisk}</p>
                 <p className="text-xs text-gray-500 mt-0.5">Churn Risk</p>
               </div>
               <div className="text-center p-3 bg-yellow-50 rounded-xl">
-                <p className="text-2xl font-extrabold text-yellow-600" style={{ fontFamily: "Sora, sans-serif" }}>{goingSilent}</p>
+                <p className="text-2xl font-extrabold text-yellow-600" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{goingSilent}</p>
                 <p className="text-xs text-gray-500 mt-0.5">Going Silent</p>
               </div>
-              <div className="text-center p-3 bg-[#00C9A7]/10 rounded-xl">
-                <p className="text-2xl font-extrabold text-[#00C9A7]" style={{ fontFamily: "Sora, sans-serif" }}>{upsellReady}</p>
+              <div className="text-center p-3 bg-[#E8A020]/10 rounded-xl">
+                <p className="text-2xl font-extrabold text-[#E8A020]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{upsellReady}</p>
                 <p className="text-xs text-gray-500 mt-0.5">Upsell Ready</p>
               </div>
             </div>
@@ -379,8 +379,8 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
-            <h3 className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Recent Clients</h3>
-            <span className="text-xs text-[#00C9A7] font-medium">{recentClients?.length || 0} total</span>
+            <h3 className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Recent Clients</h3>
+            <span className="text-xs text-[#E8A020] font-medium">{recentClients?.length || 0} total</span>
           </div>
           {!recentClients || recentClients.length === 0 ? (
             <div className="py-10 text-center text-gray-400">
@@ -389,7 +389,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             </div>
           ) : recentClients.slice(0, 5).map(c => (
             <div key={c.id} className="flex items-center gap-3 px-5 py-3 border-t border-gray-50 hover:bg-gray-50 transition-colors">
-              <div className="w-8 h-8 rounded-full gradient-teal flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              <div className="w-8 h-8 rounded-full gradient-amber flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                 {c.avatarInitials || c.name.slice(0, 2).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
@@ -405,8 +405,8 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
 
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
-            <h3 className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Upcoming Sessions</h3>
-            <span className="text-xs text-[#00C9A7] font-medium">{recentBookings?.length || 0} scheduled</span>
+            <h3 className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Upcoming Sessions</h3>
+            <span className="text-xs text-[#E8A020] font-medium">{recentBookings?.length || 0} scheduled</span>
           </div>
           {!recentBookings || recentBookings.length === 0 ? (
             <div className="py-10 text-center text-gray-400">
@@ -415,8 +415,8 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             </div>
           ) : recentBookings.slice(0, 5).map(b => (
             <div key={b.id} className="flex items-center gap-3 px-5 py-3 border-t border-gray-50 hover:bg-gray-50 transition-colors">
-              <div className="w-8 h-8 rounded-xl bg-[#00C9A7]/10 flex items-center justify-center flex-shrink-0">
-                <Calendar className="w-4 h-4 text-[#00C9A7]" />
+              <div className="w-8 h-8 rounded-xl bg-[#E8A020]/10 flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-4 h-4 text-[#E8A020]" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#1C1C1E] truncate">{b.clientName}</p>
@@ -467,10 +467,10 @@ function ClientsPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Clients</h2>
+          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Clients</h2>
           <p className="text-sm text-gray-500">{clientList?.length || 0} clients in your roster</p>
         </div>
-        <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
+        <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
           <Plus className="w-3.5 h-3.5" />Add Client
         </Button>
       </div>
@@ -483,14 +483,14 @@ function ClientsPanel() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search clients by name, email, or service..."
-            className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors"
+            className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors"
             aria-label="Search clients"
           />
         </div>
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value as typeof statusFilter)}
-          className="px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors bg-white"
+          className="px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors bg-white"
           aria-label="Filter by status"
         >
           <option value="all">All Statuses</option>
@@ -529,14 +529,14 @@ function ClientsPanel() {
           >
             <div className="col-span-2 flex items-center gap-3 min-w-0">
               <div className="relative flex-shrink-0">
-                <div className="w-9 h-9 rounded-full gradient-teal flex items-center justify-center text-white text-xs font-bold">
+                <div className="w-9 h-9 rounded-full gradient-amber flex items-center justify-center text-white text-xs font-bold">
                   {c.avatarInitials || c.name.slice(0, 2).toUpperCase()}
                 </div>
                 {(() => {
                   const p = pulseMap.get(c.id);
                   if (!p) return null;
                   const score = p.healthScore;
-                  const color = score >= 70 ? "#00C9A7" : score >= 40 ? "#F59E0B" : "#FF6B6B";
+                  const color = score >= 70 ? "#E8A020" : score >= 40 ? "#F59E0B" : "#FF6B6B";
                   return (
                     <span
                       title={`Health score: ${score}`}
@@ -579,7 +579,7 @@ function ClientsPanel() {
           <Field label="Service / Niche" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="Business Coaching, Web Design..." />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Status</label>
-            <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as typeof form.status }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
+            <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as typeof form.status }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors">
               <option value="active">Active</option>
               <option value="prospect">Prospect / Lead</option>
               <option value="inactive">Inactive</option>
@@ -588,7 +588,7 @@ function ClientsPanel() {
           <Field label="Notes" value={form.notes} onChange={v => setForm(p => ({ ...p, notes: v }))} placeholder="Any important notes about this client..." textarea rows={3} />
           <div className="flex gap-3 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90" onClick={handleCreate} disabled={createClient.isPending}>
+            <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90" onClick={handleCreate} disabled={createClient.isPending}>
               {createClient.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add Client"}
             </Button>
           </div>
@@ -600,7 +600,7 @@ function ClientsPanel() {
         {selectedClient && (
           <div className="space-y-5">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl gradient-teal flex items-center justify-center text-white text-lg font-bold">
+              <div className="w-14 h-14 rounded-2xl gradient-amber flex items-center justify-center text-white text-lg font-bold">
                 {selectedClient.avatarInitials || selectedClient.name.slice(0, 2).toUpperCase()}
               </div>
               <div>
@@ -635,7 +635,7 @@ function ClientsPanel() {
             )}
             <div className="flex gap-3">
               <Button
-                className="flex-1 gradient-teal text-white border-0 hover:opacity-90 gap-2"
+                className="flex-1 gradient-amber text-white border-0 hover:opacity-90 gap-2"
                 onClick={() => { updateClient.mutate({ id: selectedClient.id, status: "active" }); }}
                 disabled={updateClient.isPending}
               >
@@ -685,10 +685,10 @@ function SchedulingPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Scheduling</h2>
+          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Scheduling</h2>
           <p className="text-sm text-gray-500">{bookingList?.filter(b => b.status === "scheduled").length || 0} upcoming sessions</p>
         </div>
-        <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
+        <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
           <Plus className="w-3.5 h-3.5" />New Booking
         </Button>
       </div>
@@ -748,7 +748,7 @@ function SchedulingPanel() {
                 const c = clientList?.find(c => c.id === parseInt(e.target.value));
                 if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "", service: c.service || "" }));
               }}
-              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors"
+              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors"
             >
               <option value="">— Or enter manually below —</option>
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -763,14 +763,14 @@ function SchedulingPanel() {
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Duration (minutes)</label>
-            <select value={form.duration} onChange={e => setForm(p => ({ ...p, duration: parseInt(e.target.value) }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
+            <select value={form.duration} onChange={e => setForm(p => ({ ...p, duration: parseInt(e.target.value) }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors">
               {[15, 30, 45, 60, 90, 120].map(d => <option key={d} value={d}>{d} minutes</option>)}
             </select>
           </div>
           <Field label="Notes" value={form.notes} onChange={v => setForm(p => ({ ...p, notes: v }))} placeholder="Session goals, preparation notes..." textarea />
           <div className="flex gap-3 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90" onClick={() => createBooking.mutate(form)} disabled={createBooking.isPending}>
+            <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90" onClick={() => createBooking.mutate(form)} disabled={createBooking.isPending}>
               {createBooking.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm Booking"}
             </Button>
           </div>
@@ -819,10 +819,10 @@ function InvoicesPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Invoices</h2>
+          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Invoices</h2>
           <p className="text-sm text-gray-500">{invoiceList?.length || 0} total invoices</p>
         </div>
-        <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
+        <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
           <Plus className="w-3.5 h-3.5" />New Invoice
         </Button>
       </div>
@@ -830,14 +830,14 @@ function InvoicesPanel() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: "Total Paid", value: formatCurrency(invoiceStats?.totalRevenue || 0), color: "#00C9A7", bg: "bg-[#00C9A7]/10" },
+          { label: "Total Paid", value: formatCurrency(invoiceStats?.totalRevenue || 0), color: "#E8A020", bg: "bg-[#E8A020]/10" },
           { label: "Outstanding", value: formatCurrency(invoiceStats?.outstanding || 0), color: "#6366F1", bg: "bg-indigo-50" },
           { label: "Overdue", value: String(invoiceStats?.overdue || 0), color: "#FF6B6B", bg: "bg-red-50" },
           { label: "Total Invoices", value: String(invoiceStats?.total || 0), color: "#F59E0B", bg: "bg-yellow-50" },
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
             <p className="text-xs font-semibold mb-1" style={{ color: s.color }}>{s.label}</p>
-            <p className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>{s.value}</p>
+            <p className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -869,7 +869,7 @@ function InvoicesPanel() {
             <div className="flex items-center gap-2 flex-wrap">
               <Badge className={`text-xs border-0 ${statusColor[inv.status] || "bg-gray-100 text-gray-500"}`}>{inv.status}</Badge>
               {inv.status !== "paid" && (
-                <button onClick={() => markPaid.mutate({ id: inv.id })} className="text-xs text-[#00C9A7] hover:underline font-medium" disabled={markPaid.isPending}>
+                <button onClick={() => markPaid.mutate({ id: inv.id })} className="text-xs text-[#E8A020] hover:underline font-medium" disabled={markPaid.isPending}>
                   Mark Paid
                 </button>
               )}
@@ -899,7 +899,7 @@ function InvoicesPanel() {
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Select Client</label>
-            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "" })); }} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
+            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "" })); }} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors">
               <option value="">— Or enter manually below —</option>
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -912,14 +912,14 @@ function InvoicesPanel() {
           <Field label="Notes" value={form.notes} onChange={v => setForm(p => ({ ...p, notes: v }))} placeholder="Payment terms, bank details..." textarea />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Send as</label>
-            <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as "draft" | "sent" }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
+            <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as "draft" | "sent" }))} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors">
               <option value="draft">Save as Draft</option>
               <option value="sent">Mark as Sent</option>
             </select>
           </div>
           <div className="flex gap-3 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90" onClick={() => createInvoice.mutate({ ...form, amount: parseFloat(form.amount) || 0 })} disabled={createInvoice.isPending}>
+            <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90" onClick={() => createInvoice.mutate({ ...form, amount: parseFloat(form.amount) || 0 })} disabled={createInvoice.isPending}>
               {createInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Invoice"}
             </Button>
           </div>
@@ -932,7 +932,7 @@ function InvoicesPanel() {
           <div className="space-y-6">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>INVOICE</h3>
+                <h3 className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>INVOICE</h3>
                 <p className="text-sm text-gray-500 mt-1">{previewInvoice.invoiceNumber}</p>
               </div>
               <div className="text-right">
@@ -960,9 +960,9 @@ function InvoicesPanel() {
                 <span>{previewInvoice.service || "Professional Services"}</span>
               </div>
             </div>
-            <div className="flex justify-between items-center bg-[#00C9A7]/10 rounded-xl p-4">
+            <div className="flex justify-between items-center bg-[#E8A020]/10 rounded-xl p-4">
               <span className="font-bold text-[#1C1C1E]">Total Amount</span>
-              <span className="text-2xl font-extrabold text-[#00C9A7]" style={{ fontFamily: "Sora, sans-serif" }}>{formatCurrency(previewInvoice.amount)}</span>
+              <span className="text-2xl font-extrabold text-[#E8A020]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{formatCurrency(previewInvoice.amount)}</span>
             </div>
             {previewInvoice.notes && (
               <div className="bg-gray-50 rounded-xl p-4">
@@ -971,7 +971,7 @@ function InvoicesPanel() {
               </div>
             )}
             <div className="flex gap-3">
-              <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => { window.print(); }}>
+              <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => { window.print(); }}>
                 <Printer className="w-4 h-4" />Print / Save PDF
               </Button>
               {previewInvoice.status !== "paid" && (
@@ -1024,18 +1024,18 @@ function FollowUpsPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>AI Follow-Ups</h2>
+          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>AI Follow-Ups</h2>
           <p className="text-sm text-gray-500">Let AI write personalized follow-up emails for your clients</p>
         </div>
-        <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowGenerate(true)}>
+        <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowGenerate(true)}>
           <Zap className="w-3.5 h-3.5" />Generate Email
         </Button>
       </div>
 
       {/* Info Card */}
-      <div className="bg-gradient-to-r from-[#00C9A7]/10 to-[#6366F1]/10 border border-[#00C9A7]/20 rounded-2xl p-5">
+      <div className="bg-gradient-to-r from-[#E8A020]/10 to-[#6366F1]/10 border border-[#E8A020]/20 rounded-2xl p-5">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl gradient-teal flex items-center justify-center text-white flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl gradient-amber flex items-center justify-center text-white flex-shrink-0">
             <Zap className="w-5 h-5" />
           </div>
           <div>
@@ -1058,7 +1058,7 @@ function FollowUpsPanel() {
             <p className="text-xs mt-1">Generate your first AI follow-up email above.</p>
           </div>
         ) : followUpList.map(f => (
-          <div key={f.id} className="bg-white rounded-2xl border border-gray-100 p-4 hover:border-[#00C9A7]/30 transition-colors">
+          <div key={f.id} className="bg-white rounded-2xl border border-gray-100 p-4 hover:border-[#E8A020]/30 transition-colors">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -1093,7 +1093,7 @@ function FollowUpsPanel() {
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Select Client</label>
-            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "", service: c.service || "" })); }} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors">
+            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "", service: c.service || "" })); }} className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors">
               <option value="">— Or enter manually below —</option>
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -1109,7 +1109,7 @@ function FollowUpsPanel() {
                 <button
                   key={t}
                   onClick={() => setForm(p => ({ ...p, tone: t }))}
-                  className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${form.tone === t ? "border-[#00C9A7] bg-[#00C9A7]/10 text-[#00C9A7]" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
+                  className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${form.tone === t ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
                 >
                   {t}
                 </button>
@@ -1118,7 +1118,7 @@ function FollowUpsPanel() {
           </div>
           <div className="flex gap-3 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => setShowGenerate(false)}>Cancel</Button>
-            <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => generate.mutate(form)} disabled={generate.isPending}>
+            <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => generate.mutate(form)} disabled={generate.isPending}>
               {generate.isPending ? <><Loader2 className="w-4 h-4 animate-spin" />Generating...</> : <><Zap className="w-4 h-4" />Generate</>}
             </Button>
           </div>
@@ -1143,7 +1143,7 @@ function FollowUpsPanel() {
               <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{previewFollowUp.body}</p>
             </div>
             <div className="flex gap-3">
-              <Button className="flex-1 gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => copyToClipboard(previewFollowUp.body)}>
+              <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => copyToClipboard(previewFollowUp.body)}>
                 {copied ? <><Check className="w-4 h-4" />Copied!</> : <><Copy className="w-4 h-4" />Copy Email</>}
               </Button>
               {previewFollowUp.status === "draft" && previewFollowUp.id && (
@@ -1172,14 +1172,14 @@ function AnalyticsPanel() {
   );
 
   const stats = [
-    { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), icon: DollarSign, color: "#00C9A7" },
+    { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), icon: DollarSign, color: "#E8A020" },
     { label: "Active Clients", value: String(analytics?.activeClients || 0), icon: Users, color: "#6366F1" },
     { label: "Sessions Booked", value: String((analytics?.completedSessions || 0) + (analytics?.completedSessions || 0)), icon: Calendar, color: "#F59E0B" },
     { label: "Conversion Rate", value: analytics?.totalClients ? `${Math.round((analytics.activeClients / analytics.totalClients) * 100)}%` : "0%", icon: TrendingUp, color: "#FF6B6B" },
   ];
 
   const pieData = [
-    { name: "Active", value: analytics?.activeClients || 0, color: "#00C9A7" },
+    { name: "Active", value: analytics?.activeClients || 0, color: "#E8A020" },
     { name: "Prospects", value: analytics?.totalClients || 0, color: "#6366F1" },
     { name: "Inactive", value: analytics?.activeClients || 0, color: "#E5E7EB" },
   ].filter(d => d.value > 0);
@@ -1189,7 +1189,7 @@ function AnalyticsPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Analytics</h2>
+        <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Analytics</h2>
         <p className="text-sm text-gray-500">Your business performance at a glance</p>
       </div>
 
@@ -1199,7 +1199,7 @@ function AnalyticsPanel() {
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white mb-3" style={{ backgroundColor: s.color }}>
               <s.icon className="w-4 h-4" />
             </div>
-            <p className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>{s.value}</p>
+            <p className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{s.value}</p>
             <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
           </div>
         ))}
@@ -1207,21 +1207,21 @@ function AnalyticsPanel() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Sora, sans-serif" }}>Revenue Trend</h3>
+          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Revenue Trend</h3>
           {analytics?.monthlyRevenue?.some(d => d.revenue > 0) ? (
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={analytics.monthlyRevenue}>
                 <defs>
-                  <linearGradient id="tealGrad3" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00C9A7" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#00C9A7" stopOpacity={0} />
+                  <linearGradient id="amberGrad3" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#E8A020" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#E8A020" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: "12px" }} formatter={(v: number) => [formatCurrency(v), "Revenue"]} />
-                <Area type="monotone" dataKey="revenue" stroke="#00C9A7" strokeWidth={2.5} fill="url(#tealGrad3)" />
+                <Area type="monotone" dataKey="revenue" stroke="#E8A020" strokeWidth={2.5} fill="url(#amberGrad3)" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
@@ -1233,7 +1233,7 @@ function AnalyticsPanel() {
         </div>
 
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Sora, sans-serif" }}>Client Breakdown</h3>
+          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Client Breakdown</h3>
           {pieData.length > 0 ? (
             <div className="flex items-center gap-6">
               <ResponsiveContainer width={140} height={140}>
@@ -1263,7 +1263,7 @@ function AnalyticsPanel() {
 
         {topServices.length > 0 && (
           <div className="bg-white rounded-2xl p-5 border border-gray-100 lg:col-span-2">
-            <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Sora, sans-serif" }}>Top Services by Revenue</h3>
+            <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Top Services by Revenue</h3>
             <div className="space-y-3">
               {topServices.slice(0, 5).map((s: any, i: number) => (
                 <div key={i} className="flex items-center gap-3">
@@ -1271,10 +1271,10 @@ function AnalyticsPanel() {
                   <div className="flex-1">
                     <div className="flex justify-between mb-1">
                       <span className="text-sm font-medium text-[#1C1C1E]">{s.service}</span>
-                      <span className="text-sm font-bold text-[#00C9A7]">{formatCurrency(s.revenue)}</span>
+                      <span className="text-sm font-bold text-[#E8A020]">{formatCurrency(s.revenue)}</span>
                     </div>
                     <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#00C9A7] rounded-full" style={{ width: `${Math.min((s.revenue / topServices[0].revenue) * 100, 100)}%` }} />
+                      <div className="h-full bg-[#E8A020] rounded-full" style={{ width: `${Math.min((s.revenue / topServices[0].revenue) * 100, 100)}%` }} />
                     </div>
                   </div>
                 </div>
@@ -1319,36 +1319,36 @@ function SettingsPanel() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>Settings</h2>
+        <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Settings</h2>
         <p className="text-sm text-gray-500">Manage your profile, business info, and preferences</p>
       </div>
 
       {/* Profile */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><User className="w-4 h-4 text-[#00C9A7]" />Profile</h3>
+        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><User className="w-4 h-4 text-[#E8A020]" />Profile</h3>
         <Field label="Your Name" value={profile.name} onChange={v => setProfile(p => ({ ...p, name: v }))} placeholder="Alex Smith" />
         <Field label="Phone Number" value={profile.phone} onChange={v => setProfile(p => ({ ...p, phone: v }))} placeholder="+1 (555) 000-0000" />
         <Field label="Bio (shown on booking page)" value={profile.bio} onChange={v => setProfile(p => ({ ...p, bio: v }))} placeholder="I help entrepreneurs build scalable businesses..." textarea rows={3} />
-        <Button className="gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => updateProfile.mutate(profile)} disabled={updateProfile.isPending}>
+        <Button className="gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => updateProfile.mutate(profile)} disabled={updateProfile.isPending}>
           {updateProfile.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Profile</>}
         </Button>
       </div>
 
       {/* Business */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Building className="w-4 h-4 text-[#00C9A7]" />Business Info</h3>
+        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Building className="w-4 h-4 text-[#E8A020]" />Business Info</h3>
         <Field label="Business Name" value={business.businessName} onChange={v => setBusiness(p => ({ ...p, businessName: v }))} placeholder="My Coaching Studio" />
         <Field label="Business Phone" value={business.businessPhone} onChange={v => setBusiness(p => ({ ...p, businessPhone: v }))} placeholder="+1 (555) 000-0000" />
         <Field label="Business Address" value={business.businessAddress} onChange={v => setBusiness(p => ({ ...p, businessAddress: v }))} placeholder="123 Main St, New York, NY 10001" />
         <Field label="Website" value={business.businessWebsite} onChange={v => setBusiness(p => ({ ...p, businessWebsite: v }))} placeholder="https://yourwebsite.com" type="url" />
-        <Button className="gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => updateBusiness.mutate(business)} disabled={updateBusiness.isPending}>
+        <Button className="gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => updateBusiness.mutate(business)} disabled={updateBusiness.isPending}>
           {updateBusiness.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Business Info</>}
         </Button>
       </div>
 
       {/* Booking Page */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Globe className="w-4 h-4 text-[#00C9A7]" />Booking Page</h3>
+        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Globe className="w-4 h-4 text-[#E8A020]" />Booking Page</h3>
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1.5">Your Booking URL</label>
           <div className="flex items-center gap-2">
@@ -1357,17 +1357,17 @@ function SettingsPanel() {
               value={bookingPage.bookingUsername}
               onChange={e => setBookingPage(p => ({ ...p, bookingUsername: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
               placeholder="your-name"
-              className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors"
+              className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors"
             />
           </div>
           {bookingUrl && (
             <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#00C9A7] hover:underline flex items-center gap-1">
+              <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#E8A020] hover:underline flex items-center gap-1">
                 <ExternalLink className="w-3 h-3" />Preview your booking page
               </a>
               <button
                 onClick={() => { navigator.clipboard.writeText(bookingUrl).then(() => toast.success("Booking link copied to clipboard!")).catch(() => toast.error("Could not copy link")); }}
-                className="text-xs text-gray-500 hover:text-[#00C9A7] flex items-center gap-1 transition-colors"
+                className="text-xs text-gray-500 hover:text-[#E8A020] flex items-center gap-1 transition-colors"
               >
                 <Copy className="w-3 h-3" />Copy link
               </button>
@@ -1388,20 +1388,20 @@ function SettingsPanel() {
             ))}
           </div>
           <div className="flex gap-2">
-            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Add a service..." className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }} />
+            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Add a service..." className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }} />
             <Button size="sm" variant="outline" onClick={() => { if (newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }}>
               <Plus className="w-4 h-4" />
             </Button>
           </div>
         </div>
-        <Button className="gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => updateBookingPage.mutate(bookingPage)} disabled={updateBookingPage.isPending}>
+        <Button className="gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => updateBookingPage.mutate(bookingPage)} disabled={updateBookingPage.isPending}>
           {updateBookingPage.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Booking Page</>}
         </Button>
       </div>
 
       {/* Notifications */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Bell className="w-4 h-4 text-[#00C9A7]" />Notifications</h3>
+        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Bell className="w-4 h-4 text-[#E8A020]" />Notifications</h3>
         {[
           { key: "notifyNewBooking" as const, label: "New Booking", desc: "Get notified when a client books a session" },
           { key: "notifyInvoicePaid" as const, label: "Invoice Paid", desc: "Get notified when an invoice is marked as paid" },
@@ -1414,7 +1414,7 @@ function SettingsPanel() {
             </div>
             <button
               onClick={() => setNotifications(p => ({ ...p, [n.key]: !p[n.key] }))}
-              className={`w-11 h-6 rounded-full transition-colors relative ${notifications[n.key] ? "bg-[#00C9A7]" : "bg-gray-200"}`}
+              className={`w-11 h-6 rounded-full transition-colors relative ${notifications[n.key] ? "bg-[#E8A020]" : "bg-gray-200"}`}
               aria-label={`${notifications[n.key] ? "Disable" : "Enable"} ${n.label} notifications`}
               role="switch"
               aria-checked={notifications[n.key]}
@@ -1423,15 +1423,15 @@ function SettingsPanel() {
             </button>
           </div>
         ))}
-        <Button className="gradient-teal text-white border-0 hover:opacity-90 gap-2" onClick={() => updateNotifications.mutate(notifications)} disabled={updateNotifications.isPending}>
+        <Button className="gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => updateNotifications.mutate(notifications)} disabled={updateNotifications.isPending}>
           {updateNotifications.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Preferences</>}
         </Button>
       </div>
 
       {/* Subscription */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><CreditCard className="w-4 h-4 text-[#00C9A7]" />Subscription</h3>
-        <div className="flex items-center justify-between p-3 bg-[#00C9A7]/5 border border-[#00C9A7]/20 rounded-xl">
+        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><CreditCard className="w-4 h-4 text-[#E8A020]" />Subscription</h3>
+        <div className="flex items-center justify-between p-3 bg-[#E8A020]/5 border border-[#E8A020]/20 rounded-xl">
           <div>
             <p className="text-sm font-semibold text-[#1C1C1E] capitalize">{settings?.subscriptionStatus ?? "free"} Plan</p>
             <p className="text-xs text-gray-500">{settings?.subscriptionStatus === "active" ? "Active subscription" : "No active subscription"}</p>
@@ -1440,7 +1440,7 @@ function SettingsPanel() {
             {settings?.subscriptionStatus === "active" ? "Active" : "Free"}
           </Badge>
         </div>
-        <Button className="w-full gradient-teal text-white border-0 hover:opacity-90" onClick={() => navigate("/billing")}>
+        <Button className="w-full gradient-amber text-white border-0 hover:opacity-90" onClick={() => navigate("/billing")}>
           {settings?.subscriptionStatus === "active" ? "Manage Subscription" : "Upgrade to Pro — $99/month"}
         </Button>
       </div>
@@ -1465,7 +1465,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
           onClick={() => setActive(item.panel)}
           aria-label={item.label}
           aria-current={active === item.panel ? "page" : undefined}
-          className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 min-h-[56px] transition-colors ${active === item.panel ? "text-[#00C9A7]" : "text-gray-500 hover:text-gray-300"}`}
+          className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 min-h-[56px] transition-colors ${active === item.panel ? "text-[#E8A020]" : "text-gray-500 hover:text-gray-300"}`}
         >
           <item.icon className="w-5 h-5" aria-hidden="true" />
           <span className="text-[10px] font-medium">{item.label}</span>
@@ -1492,7 +1492,7 @@ export default function Dashboard() {
   if (loading) return (
     <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
       <div className="text-center">
-        <Loader2 className="w-8 h-8 text-[#00C9A7] animate-spin mx-auto mb-3" />
+        <Loader2 className="w-8 h-8 text-[#E8A020] animate-spin mx-auto mb-3" />
         <p className="text-sm text-gray-500">Loading your dashboard...</p>
       </div>
     </div>
@@ -1522,7 +1522,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#F5F5F7] flex">
       {/* Skip link */}
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-xl focus:shadow-lg focus:text-[#00C9A7] focus:font-semibold">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-xl focus:shadow-lg focus:text-[#E8A020] focus:font-semibold">
         Skip to main content
       </a>
 
@@ -1542,12 +1542,12 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             {/* Mobile logo */}
             <div className="flex items-center gap-2 md:hidden">
-              <div className="w-7 h-7 rounded-lg gradient-teal flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg gradient-amber flex items-center justify-center">
                 <Zap className="w-3.5 h-3.5 text-white" />
               </div>
-              <span className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: "Sora, sans-serif" }}>TrueAxis HQ</span>
+              <span className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: "Space Grotesk, sans-serif" }}>TrueAxis HQ</span>
             </div>
-            <h1 className="hidden md:block text-base font-bold text-[#1C1C1E]" style={{ fontFamily: "Sora, sans-serif" }}>
+            <h1 className="hidden md:block text-base font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               {panelTitles[active]}
             </h1>
           </div>
@@ -1560,7 +1560,7 @@ export default function Dashboard() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Quick search..."
-                className="pl-8 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#00C9A7] transition-colors w-48"
+                className="pl-8 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#E8A020] transition-colors w-48"
                 aria-label="Quick search"
               />
             </div>
@@ -1586,7 +1586,7 @@ export default function Dashboard() {
             </div>
 
             {/* User Avatar */}
-            <div className="w-8 h-8 rounded-full gradient-teal flex items-center justify-center text-white text-xs font-bold" aria-label={`Logged in as ${user?.name || "User"}`}>
+            <div className="w-8 h-8 rounded-full gradient-amber flex items-center justify-center text-white text-xs font-bold" aria-label={`Logged in as ${user?.name || "User"}`}>
               {user?.name?.slice(0, 2).toUpperCase() || "U"}
             </div>
           </div>

@@ -17,7 +17,7 @@ const PLAN_ICONS: Record<string, React.ElementType> = {
 
 const PLAN_COLORS: Record<string, string> = {
   starter: "bg-blue-500",
-  pro: "bg-[#00C9A7]",
+  pro: "bg-[#E8A020]",
   agency: "bg-purple-600",
 };
 
@@ -53,7 +53,7 @@ export default function Billing() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading billing">
-        <Loader2 className="w-8 h-8 text-[#00C9A7] animate-spin" aria-hidden="true" />
+        <Loader2 className="w-8 h-8 text-[#E8A020] animate-spin" aria-hidden="true" />
       </div>
     );
   }
@@ -64,7 +64,7 @@ export default function Billing() {
         <div className="text-center max-w-sm">
           <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" aria-hidden="true" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">Sign in to manage billing</h1>
-          <Button className="gradient-teal text-white border-0 mt-4" onClick={() => window.location.href = getLoginUrl()}>
+          <Button className="gradient-amber text-white border-0 mt-4" onClick={() => window.location.href = getLoginUrl()}>
             Sign In
           </Button>
         </div>
@@ -78,13 +78,13 @@ export default function Billing() {
   const plans = plansQuery.data ?? [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#141414]">
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       <main id="main-content" className="max-w-4xl mx-auto px-4 py-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-1" style={{ fontFamily: "Sora, sans-serif" }}>
+          <h1 className="text-2xl font-extrabold text-gray-900 mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
             Billing & Subscription
           </h1>
           <p className="text-gray-500 text-sm">Manage your plan, upgrade, or access your billing history.</p>
@@ -105,7 +105,7 @@ export default function Billing() {
                 );
               })()}
               <div>
-                <p className="text-lg font-extrabold text-gray-900 capitalize" style={{ fontFamily: "Sora, sans-serif" }}>
+                <p className="text-lg font-extrabold text-gray-900 capitalize" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                   {currentPlan === "free" ? "Free Plan" : `${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan`}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -155,7 +155,7 @@ export default function Billing() {
                 aria-pressed={interval === opt}
                 className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all min-h-[40px] ${
                   interval === opt
-                    ? "gradient-teal text-white shadow-sm"
+                    ? "gradient-amber text-white shadow-sm"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -191,7 +191,7 @@ export default function Billing() {
                     key={plan.id}
                     className={`bg-white rounded-2xl border-2 p-6 flex flex-col transition-all ${
                       plan.highlighted
-                        ? "border-[#00C9A7] shadow-lg shadow-[#00C9A7]/10"
+                        ? "border-[#E8A020] shadow-lg shadow-[#E8A020]/10"
                         : isCurrent
                         ? "border-blue-300"
                         : "border-gray-100 hover:border-gray-200"
@@ -199,7 +199,7 @@ export default function Billing() {
                     aria-label={`${plan.name} plan — $${price} per ${interval === "annual" ? "month (billed annually)" : "month"}`}
                   >
                     {plan.highlighted && (
-                      <div className="text-xs font-bold text-[#007A65] bg-[#00C9A7]/10 border border-[#00C9A7]/20 rounded-full px-3 py-1 text-center mb-4 -mt-1" role="note">
+                      <div className="text-xs font-bold text-[#007A65] bg-[#E8A020]/10 border border-[#E8A020]/20 rounded-full px-3 py-1 text-center mb-4 -mt-1" role="note">
                         Most Popular
                       </div>
                     )}
@@ -213,7 +213,7 @@ export default function Billing() {
                       <Icon className="w-5 h-5 text-white" />
                     </div>
 
-                    <h3 className="text-lg font-extrabold text-gray-900 mb-1" style={{ fontFamily: "Sora, sans-serif" }}>
+                    <h3 className="text-lg font-extrabold text-gray-900 mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                       {plan.name}
                     </h3>
                     <p className="text-xs text-gray-500 mb-4">{plan.description}</p>
@@ -229,7 +229,7 @@ export default function Billing() {
                     <ul className="space-y-2 mb-6 flex-1" aria-label={`${plan.name} features`}>
                       {plan.features.map((feature: string) => (
                         <li key={feature} className="flex items-start gap-2 text-sm text-gray-600">
-                          <CheckCircle className="w-4 h-4 text-[#00C9A7] flex-shrink-0 mt-0.5" aria-hidden="true" />
+                          <CheckCircle className="w-4 h-4 text-[#E8A020] flex-shrink-0 mt-0.5" aria-hidden="true" />
                           {feature}
                         </li>
                       ))}
@@ -246,7 +246,7 @@ export default function Billing() {
                       </Button>
                     ) : (
                       <Button
-                        className={`w-full gap-2 ${plan.highlighted ? "gradient-teal text-white border-0" : ""}`}
+                        className={`w-full gap-2 ${plan.highlighted ? "gradient-amber text-white border-0" : ""}`}
                         variant={plan.highlighted ? "default" : "outline"}
                         onClick={() => {
                           if (!isAuthenticated) {

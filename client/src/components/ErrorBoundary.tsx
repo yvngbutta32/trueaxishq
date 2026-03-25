@@ -109,8 +109,8 @@ class ErrorBoundary extends Component<Props, State> {
               onClick={this.handleRetry}
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold",
-                "bg-[#00C9A7] text-white hover:bg-[#00b396] active:scale-95 transition-all",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00C9A7] focus-visible:ring-offset-2"
+                "bg-[#E8A020] text-white hover:bg-[#D4911A] active:scale-95 transition-all",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A020] focus-visible:ring-offset-2"
               )}
             >
               <RotateCcw className="w-4 h-4" aria-hidden="true" />

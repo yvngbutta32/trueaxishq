@@ -1,19 +1,18 @@
 /* TrueAxis HQ — Pricing Page
- * Design: "Kinetic Warmth" — Teal #00C9A7, Coral #FF6B6B, Charcoal #1C1C1E
+ * Design: "Dark Amber Retro-Modern" — Charcoal #141414, Amber #E8A020, Cream #F5F0E8
  */
 
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { CheckCircle, Zap, ArrowLeft, Star, Shield, Sparkles } from "lucide-react";
+import { CheckCircle, Zap, ArrowLeft, Star, Shield, Sparkles, Brain, X } from "lucide-react";
 
 const plans = [
   {
     name: "Starter",
     price: { monthly: 49, annual: 39 },
     description: "Perfect for freelancers just getting started.",
-    color: "#6B7280",
+    accentColor: "rgba(245,240,232,0.30)",
     features: [
       "Up to 20 active clients",
       "AI client intake forms",
@@ -24,6 +23,7 @@ const plans = [
       "1 booking page",
       "Email support",
     ],
+    notIncluded: ["Client Pulse AI™", "Unlimited follow-ups", "Priority support"],
     cta: "Start Free Trial",
     popular: false,
   },
@@ -31,7 +31,7 @@ const plans = [
     name: "Pro",
     price: { monthly: 99, annual: 79 },
     description: "For growing service businesses ready to scale.",
-    color: "#00C9A7",
+    accentColor: "#E8A020",
     features: [
       "Unlimited active clients",
       "AI client intake + lead scoring",
@@ -40,10 +40,11 @@ const plans = [
       "Unlimited AI follow-ups",
       "Full analytics + insights",
       "Custom booking page + branding",
-      "SMS notifications",
+      "Client Pulse AI™",
       "Priority support",
       "API access",
     ],
+    notIncluded: [],
     cta: "Start Free Trial",
     popular: true,
   },
@@ -51,7 +52,7 @@ const plans = [
     name: "Agency",
     price: { monthly: 199, annual: 159 },
     description: "For coaches and consultants managing a team.",
-    color: "#FF6B6B",
+    accentColor: "#7A9A8A",
     features: [
       "Everything in Pro",
       "Up to 10 sub-accounts",
@@ -64,6 +65,7 @@ const plans = [
       "Custom integrations",
       "Revenue sharing tools",
     ],
+    notIncluded: [],
     cta: "Contact Sales",
     popular: false,
   },
@@ -75,6 +77,20 @@ const faqs = [
   { q: "What payment methods do you accept?", a: "We accept all major credit cards (Visa, Mastercard, Amex) and ACH bank transfers for annual plans." },
   { q: "Do you offer refunds?", a: "Yes. If you're not satisfied within the first 30 days, we'll refund your payment — no questions asked." },
   { q: "What happens to my data if I cancel?", a: "Your data is yours. We export everything in CSV/PDF format upon request and delete it within 30 days of cancellation." },
+  { q: "What is Client Pulse AI™?", a: "Client Pulse AI is our proprietary relationship intelligence engine. It scores every client 0–100 in real time, flags churn risk and upsell opportunities, and drafts re-engagement emails automatically. It's exclusive to Pro and Agency plans." },
+];
+
+const comparisonRows = [
+  { feature: "Active Clients", starter: "20", pro: "Unlimited", agency: "Unlimited" },
+  { feature: "Booking Pages", starter: "1", pro: "Custom branded", agency: "White-label" },
+  { feature: "AI Follow-Ups", starter: "5/month", pro: "Unlimited", agency: "Unlimited" },
+  { feature: "Invoicing", starter: "✓", pro: "✓ + reminders", agency: "✓ + reminders" },
+  { feature: "Analytics", starter: "Basic", pro: "Full + insights", agency: "Full + insights" },
+  { feature: "Client Pulse AI™", starter: "—", pro: "✓", agency: "✓" },
+  { feature: "API Access", starter: "—", pro: "✓", agency: "✓" },
+  { feature: "Sub-accounts", starter: "—", pro: "—", agency: "Up to 10" },
+  { feature: "White-label", starter: "—", pro: "—", agency: "✓" },
+  { feature: "Support", starter: "Email", pro: "Priority", agency: "Dedicated SLA" },
 ];
 
 export default function Pricing() {
@@ -83,110 +99,119 @@ export default function Pricing() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
+    <div style={{ background: "#141414", minHeight: "100vh", color: "#F5F0E8" }}>
       {/* Nav */}
-      <nav className="bg-white border-b border-gray-100 px-4 sm:px-6 py-4 flex items-center justify-between" aria-label="Pricing page navigation">
+      <nav
+        className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
+        style={{ background: "rgba(10,10,10,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(232,160,32,0.10)" }}
+        aria-label="Pricing navigation"
+      >
         <button
           onClick={() => navigate("/")}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-[#00C9A7] transition-colors"
+          className="flex items-center gap-2 text-sm font-medium animated-underline"
+          style={{ color: "rgba(245,240,232,0.55)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
         >
-          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+          <ArrowLeft className="w-4 h-4" />
           Back to Home
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg gradient-teal flex items-center justify-center">
-            <Zap className="w-3.5 h-3.5 text-white" />
+          <div className="w-7 h-7 rounded flex items-center justify-center" style={{ background: "linear-gradient(135deg, #E8A020, #F5C842)" }}>
+            <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "0.7rem", color: "#141414" }}>TX</span>
           </div>
-          <span className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: 'Sora, sans-serif' }}>
-            TrueAxis <span className="text-teal">HQ</span>
+          <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, color: "#F5F0E8", fontSize: "0.9375rem" }}>
+            TrueAxis <span style={{ color: "#E8A020" }}>HQ</span>
           </span>
         </div>
-        <Button size="sm" className="gradient-teal text-white border-0 hover:opacity-90" onClick={() => navigate("/dashboard")}>
+        <button onClick={() => navigate("/dashboard")} className="btn-amber" style={{ padding: "0.4rem 1rem", fontSize: "0.8125rem" }}>
           Start Free Trial
-        </Button>
+        </button>
       </nav>
 
       {/* Header */}
-      <section className="py-12 sm:py-20 text-center px-4">
-        <div className="pill-badge bg-[#00C9A7]/10 text-[#00C9A7] border border-[#00C9A7]/20 mb-5 mx-auto w-fit">
-          <Sparkles className="w-3 h-3" />
-          Simple, Transparent Pricing
-        </div>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#1C1C1E] mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>
-          Invest in your business.<br />
-          <span className="text-[#00C9A7]">Get 10x back.</span>
-        </h1>
-        <p className="text-lg text-gray-500 max-w-xl mx-auto mb-8">
-          Every plan includes a 14-day free trial. No credit card required. Cancel anytime.
-        </p>
+      <section className="py-16 sm:py-24 text-center px-4 relative overflow-hidden">
+        <div className="absolute inset-0 retro-grid opacity-30 pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 60% at 50% 40%, rgba(232,160,32,0.07) 0%, transparent 70%)" }} />
+        <div className="relative z-10">
+          <div className="pill-retro mb-5 inline-flex">
+            <Sparkles className="w-3 h-3" />
+            Simple, Transparent Pricing
+          </div>
+          <h1 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(2rem, 4.5vw, 3.25rem)", letterSpacing: "-0.03em", color: "#F5F0E8", lineHeight: 1.1 }}>
+            Invest in your business.
+            <br />
+            <span style={{ color: "#E8A020" }}>Get 10× back.</span>
+          </h1>
+          <p className="mt-4 mb-10 max-w-xl mx-auto" style={{ color: "rgba(245,240,232,0.45)", fontSize: "1.0625rem" }}>
+            Every plan includes a 14-day free trial. No credit card required. Cancel anytime.
+          </p>
 
-        {/* Toggle */}
-        <div className="flex items-center justify-center gap-3" role="group" aria-label="Billing period">
-          <span id="billing-monthly" className={`text-sm font-medium ${!annual ? "text-[#1C1C1E]" : "text-gray-400"}`}>Monthly</span>
-          <button
-            onClick={() => setAnnual(!annual)}
-            role="switch"
-            aria-checked={annual}
-            aria-labelledby="billing-monthly billing-annual"
-            className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#00C9A7] focus:ring-offset-2 ${annual ? "bg-[#00C9A7]" : "bg-gray-200"}`}
-          >
-            <span className="sr-only">{annual ? "Switch to monthly billing" : "Switch to annual billing"}</span>
-            <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${annual ? "translate-x-6" : "translate-x-0.5"}`} aria-hidden="true" />
-          </button>
-          <span id="billing-annual" className={`text-sm font-medium ${annual ? "text-[#1C1C1E]" : "text-gray-400"}`}>
-            Annual
-            <span className="ml-1.5 text-xs font-bold text-[#00C9A7] bg-[#00C9A7]/10 px-2 py-0.5 rounded-full" aria-label="Save 20 percent">Save 20%</span>
-          </span>
+          {/* Billing toggle */}
+          <div className="flex items-center justify-center gap-4" role="group" aria-label="Billing period">
+            <span className="text-sm font-medium" style={{ color: !annual ? "#F5F0E8" : "rgba(245,240,232,0.35)" }}>Monthly</span>
+            <button
+              onClick={() => setAnnual(!annual)}
+              role="switch"
+              aria-checked={annual}
+              className="relative w-12 h-6 rounded-full transition-colors focus:outline-none"
+              style={{ background: annual ? "#E8A020" : "rgba(245,240,232,0.12)", border: "1px solid rgba(245,240,232,0.10)" }}
+            >
+              <div className="absolute top-0.5 w-5 h-5 rounded-full shadow transition-transform" style={{ background: "#F5F0E8", transform: annual ? "translateX(1.5rem)" : "translateX(0.125rem)" }} />
+            </button>
+            <span className="text-sm font-medium flex items-center gap-2" style={{ color: annual ? "#F5F0E8" : "rgba(245,240,232,0.35)" }}>
+              Annual
+              <span className="tag tag-amber" style={{ fontSize: "0.65rem" }}>Save 20%</span>
+            </span>
+          </div>
         </div>
       </section>
 
       {/* Plans */}
-      <section className="pb-20">
+      <section className="pb-20 px-4">
         <div className="container">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`relative bg-white rounded-2xl p-6 border-2 transition-all ${
-                  plan.popular
-                    ? "border-[#00C9A7] shadow-xl shadow-[#00C9A7]/10 scale-105"
-                    : "border-gray-100 card-lift"
-                }`}
+                className="relative rounded-2xl p-6 flex flex-col"
+                style={{
+                  background: plan.popular ? "rgba(232,160,32,0.04)" : "#1E1E1E",
+                  border: plan.popular ? "1px solid rgba(232,160,32,0.30)" : "1px solid rgba(245,240,232,0.07)",
+                  boxShadow: plan.popular ? "0 0 40px rgba(232,160,32,0.08)" : "none",
+                  transform: plan.popular ? "scale(1.02)" : "scale(1)",
+                }}
               >
                 {plan.popular && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <div className="pill-badge gradient-teal text-white text-xs px-4 py-1">
-                      <Star className="w-3 h-3 fill-white" />
+                    <div className="tag tag-amber px-4 py-1 flex items-center gap-1.5" style={{ fontSize: "0.7rem" }}>
+                      <Star className="w-3 h-3 fill-current" />
                       Most Popular
                     </div>
                   </div>
                 )}
 
                 <div className="mb-5">
-                  <div className="w-10 h-10 rounded-xl mb-3 flex items-center justify-center text-white" style={{ backgroundColor: plan.color }}>
-                    <Zap className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded flex items-center justify-center mb-3" style={{ background: `${plan.accentColor}18`, border: `1px solid ${plan.accentColor}30` }}>
+                    {plan.name === "Pro" ? <Brain className="w-5 h-5" style={{ color: plan.accentColor }} /> : <Zap className="w-5 h-5" style={{ color: plan.accentColor }} />}
                   </div>
-                  <h3 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>{plan.name}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
+                  <h3 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.25rem", color: "#F5F0E8" }}>{plan.name}</h3>
+                  <p className="text-sm mt-1" style={{ color: "rgba(245,240,232,0.40)" }}>{plan.description}</p>
                 </div>
 
                 <div className="mb-6">
                   <div className="flex items-end gap-1">
-                    <span className="text-4xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: 'Sora, sans-serif' }}>
+                    <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "2.5rem", color: "#F5F0E8", lineHeight: 1 }}>
                       ${annual ? plan.price.annual : plan.price.monthly}
                     </span>
-                    <span className="text-gray-400 text-sm mb-1">/month</span>
+                    <span className="mb-1 text-sm" style={{ color: "rgba(245,240,232,0.35)" }}>/mo</span>
                   </div>
                   {annual && (
-                    <p className="text-xs text-[#00C9A7] font-medium mt-1">
-                      Billed annually — save ${(plan.price.monthly - plan.price.annual) * 12}/year
+                    <p className="text-xs mt-1" style={{ color: "#E8A020" }}>
+                      Billed annually — save ${(plan.price.monthly - plan.price.annual) * 12}/yr
                     </p>
                   )}
                 </div>
 
-                <Button
-                  className={`w-full mb-6 ${plan.popular ? "gradient-teal text-white border-0 hover:opacity-90" : "border-gray-200 text-[#1C1C1E] hover:bg-gray-50 bg-transparent"}`}
-                  variant={plan.popular ? "default" : "outline"}
+                <button
                   onClick={() => {
                     if (plan.name === "Agency") {
                       toast.info("Contact sales@trueaxishq.com for Agency pricing");
@@ -194,15 +219,23 @@ export default function Pricing() {
                       navigate("/dashboard");
                     }
                   }}
+                  className={plan.popular ? "btn-amber w-full mb-6" : "btn-ghost w-full mb-6"}
+                  style={{ fontSize: "0.875rem" }}
                 >
                   {plan.cta}
-                </Button>
+                </button>
 
-                <ul className="space-y-2.5">
+                <ul className="space-y-2.5 flex-1">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2.5 text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: plan.color }} />
-                      {feature}
+                    <li key={feature} className="flex items-start gap-2.5 text-sm">
+                      <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: plan.popular ? "#E8A020" : "#7A9A8A" }} />
+                      <span style={{ color: "rgba(245,240,232,0.65)" }}>{feature}</span>
+                    </li>
+                  ))}
+                  {plan.notIncluded.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5 text-sm opacity-30">
+                      <X className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "rgba(245,240,232,0.30)" }} />
+                      <span style={{ color: "rgba(245,240,232,0.35)", textDecoration: "line-through" }}>{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -212,18 +245,58 @@ export default function Pricing() {
         </div>
       </section>
 
+      {/* Feature Comparison Table */}
+      <section className="py-20" style={{ background: "#0E0E0E" }}>
+        <div className="container max-w-4xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <div className="section-label mb-3">Full Comparison</div>
+            <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+              What's included in each plan
+            </h2>
+          </div>
+
+          <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(232,160,32,0.10)" }}>
+            {/* Header */}
+            <div className="grid grid-cols-4 px-5 py-3" style={{ background: "#272727", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
+              <div className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(245,240,232,0.30)" }}>Feature</div>
+              {["Starter", "Pro", "Agency"].map((p, i) => (
+                <div key={p} className="text-center">
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: i === 1 ? "#E8A020" : "rgba(245,240,232,0.50)" }}>{p}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Rows */}
+            {comparisonRows.map((row, i) => (
+              <div
+                key={i}
+                className="grid grid-cols-4 px-5 py-3"
+                style={{ background: i % 2 === 0 ? "#1E1E1E" : "#141414", borderBottom: i < comparisonRows.length - 1 ? "1px solid rgba(245,240,232,0.04)" : "none" }}
+              >
+                <div className="text-sm" style={{ color: "rgba(245,240,232,0.60)" }}>{row.feature}</div>
+                {[row.starter, row.pro, row.agency].map((val, j) => (
+                  <div key={j} className="text-center text-sm" style={{ color: val === "—" ? "rgba(245,240,232,0.18)" : j === 1 ? "#E8A020" : "rgba(245,240,232,0.55)" }}>
+                    {val === "✓" ? <CheckCircle className="w-4 h-4 mx-auto" style={{ color: j === 1 ? "#E8A020" : "#7A9A8A" }} /> : val}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Trust Badges */}
-      <section className="py-12 bg-white border-y border-gray-100">
+      <section className="py-12" style={{ background: "#141414", borderTop: "1px solid rgba(232,160,32,0.08)", borderBottom: "1px solid rgba(232,160,32,0.08)" }}>
         <div className="container">
-          <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center justify-center gap-8 text-sm">
             {[
               { icon: Shield, text: "SOC 2 Type II Certified" },
               { icon: CheckCircle, text: "GDPR Compliant" },
               { icon: Star, text: "4.9/5 on G2 (320+ reviews)" },
               { icon: Zap, text: "99.9% Uptime SLA" },
             ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-2">
-                <Icon className="w-4 h-4 text-[#00C9A7]" />
+              <div key={text} className="flex items-center gap-2" style={{ color: "rgba(245,240,232,0.40)" }}>
+                <Icon className="w-4 h-4" style={{ color: "#E8A020" }} />
                 {text}
               </div>
             ))}
@@ -232,23 +305,27 @@ export default function Pricing() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20">
+      <section className="py-20 px-4" style={{ background: "#0E0E0E" }}>
         <div className="container max-w-2xl mx-auto">
-          <h2 className="text-3xl font-extrabold text-[#1C1C1E] text-center mb-10" style={{ fontFamily: 'Sora, sans-serif' }}>
-            Frequently Asked Questions
-          </h2>
-          <div className="space-y-3">
+          <div className="text-center mb-12">
+            <div className="section-label mb-3">FAQ</div>
+            <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+              Common questions
+            </h2>
+          </div>
+          <div className="space-y-2">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(245,240,232,0.07)" }}>
                 <button
-                  className="w-full text-left px-5 py-4 flex items-center justify-between font-medium text-[#1C1C1E] text-sm"
+                  className="w-full text-left px-5 py-4 flex items-center justify-between text-sm font-semibold"
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  style={{ background: openFaq === i ? "rgba(232,160,32,0.04)" : "#1E1E1E", color: "#F5F0E8", border: "none", minHeight: "auto" }}
                 >
                   {faq.q}
-                  <span className={`text-[#00C9A7] transition-transform ${openFaq === i ? "rotate-45" : ""}`}>+</span>
+                  <span className="text-lg transition-transform" style={{ color: "#E8A020", transform: openFaq === i ? "rotate(45deg)" : "none", display: "inline-block" }}>+</span>
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-4 text-sm text-gray-500 leading-relaxed border-t border-gray-50">
+                  <div className="px-5 pb-4 text-sm leading-relaxed" style={{ background: "rgba(232,160,32,0.02)", borderTop: "1px solid rgba(232,160,32,0.08)", color: "rgba(245,240,232,0.50)" }}>
                     {faq.a}
                   </div>
                 )}
@@ -259,19 +336,18 @@ export default function Pricing() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-[#1C1C1E] text-center">
-        <div className="container">
-          <h2 className="text-3xl font-extrabold text-white mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>
+      <section className="py-20 text-center relative overflow-hidden" style={{ background: "#141414" }}>
+        <div className="absolute inset-0 retro-grid opacity-25 pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 70% at 50% 50%, rgba(232,160,32,0.06) 0%, transparent 70%)" }} />
+        <div className="container relative z-10">
+          <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
             Start your free trial today.
           </h2>
-          <p className="text-gray-400 mb-6">14 days free. No credit card. Cancel anytime.</p>
-          <Button
-            size="lg"
-            className="gradient-teal text-white border-0 hover:opacity-90 px-10 py-6 text-base"
-            onClick={() => navigate("/dashboard")}
-          >
+          <p className="mt-3 mb-8" style={{ color: "rgba(245,240,232,0.40)" }}>14 days free. No credit card. Cancel anytime.</p>
+          <button onClick={() => navigate("/dashboard")} className="btn-amber" style={{ padding: "0.75rem 2.5rem", fontSize: "1rem" }}>
             Get Started Free
-          </Button>
+            <Zap className="w-4 h-4" />
+          </button>
         </div>
       </section>
     </div>

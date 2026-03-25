@@ -25,7 +25,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
           <Icon className="w-5 h-5 text-white" />
         </div>
       </div>
-      <p className="text-3xl font-extrabold text-gray-900" style={{ fontFamily: "Sora, sans-serif" }}>{value}</p>
+      <p className="text-3xl font-extrabold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{value}</p>
       <p className="text-sm font-semibold text-gray-700 mt-1">{label}</p>
       {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
     </article>
@@ -36,7 +36,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
 function PlanBadge({ plan }: { plan: string }) {
   const colors: Record<string, string> = {
     agency: "bg-purple-100 text-purple-800",
-    pro: "bg-teal-100 text-teal-800",
+    pro: "bg-amber-900/30 text-amber-400",
     starter: "bg-blue-100 text-blue-800",
     free: "bg-gray-100 text-gray-600",
   };
@@ -71,7 +71,7 @@ function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: bool
       aria-checked={value}
       aria-label={label}
       onClick={() => onChange(!value)}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00C9A7] ${value ? "bg-[#00C9A7]" : "bg-gray-200"}`}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A020] ${value ? "bg-[#E8A020]" : "bg-gray-200"}`}
     >
       <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${value ? "translate-x-6" : "translate-x-1"}`} />
     </button>
@@ -163,7 +163,7 @@ export default function Admin() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-full border-4 border-[#00C9A7] border-t-transparent animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 rounded-full border-4 border-[#E8A020] border-t-transparent animate-spin mx-auto mb-4" />
           <p className="text-gray-500 text-sm">Loading admin panel…</p>
         </div>
       </div>
@@ -177,7 +177,7 @@ export default function Admin() {
           <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">Sign in required</h1>
           <p className="text-gray-500 text-sm mb-6">You need to be signed in to access the admin panel.</p>
-          <Button className="gradient-teal text-white border-0" onClick={() => window.location.href = getLoginUrl()}>Sign In</Button>
+          <Button className="gradient-amber text-white border-0" onClick={() => window.location.href = getLoginUrl()}>Sign In</Button>
         </div>
       </div>
     );
@@ -215,12 +215,12 @@ export default function Admin() {
       {/* Header */}
       <header className="bg-[#1C1C1E] text-white px-4 sm:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl gradient-teal flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl gradient-amber flex items-center justify-center">
             <Crown className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h1 className="text-base font-bold" style={{ fontFamily: "Sora, sans-serif" }}>
-              TrueAxis HQ <span className="text-[#00C9A7]">Admin</span>
+            <h1 className="text-base font-bold" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+              TrueAxis HQ <span className="text-[#E8A020]">Admin</span>
             </h1>
             <p className="text-xs text-gray-400">Owner Control Panel</p>
           </div>
@@ -229,7 +229,7 @@ export default function Admin() {
           <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-white/10" onClick={() => navigate("/dashboard")}>
             Dashboard
           </Button>
-          <div className="w-8 h-8 rounded-full bg-[#00C9A7]/20 flex items-center justify-center text-[#00C9A7] text-sm font-bold">
+          <div className="w-8 h-8 rounded-full bg-[#E8A020]/20 flex items-center justify-center text-[#E8A020] text-sm font-bold">
             {user?.name?.[0]?.toUpperCase() ?? "A"}
           </div>
         </div>
@@ -244,7 +244,7 @@ export default function Admin() {
               onClick={() => setActiveTab(tab.id)}
               aria-current={activeTab === tab.id ? "page" : undefined}
               className={`flex items-center gap-2 px-3 sm:px-4 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap min-h-[44px] ${
-                activeTab === tab.id ? "border-[#00C9A7] text-[#007A65]" : "border-transparent text-gray-500 hover:text-gray-700"
+                activeTab === tab.id ? "border-[#E8A020] text-[#007A65]" : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -262,7 +262,7 @@ export default function Admin() {
         {activeTab === "overview" && (
           <section aria-label="Revenue overview">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Sora, sans-serif" }}>Revenue Overview</h2>
+              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Revenue Overview</h2>
               <Button variant="outline" size="sm" onClick={() => statsQuery.refetch()} disabled={statsQuery.isFetching}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${statsQuery.isFetching ? "animate-spin" : ""}`} />
                 Refresh
@@ -276,7 +276,7 @@ export default function Admin() {
             ) : (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard icon={Users} label="Total Users" value={stats?.totalUsers ?? 0} color="bg-blue-500" />
-                <StatCard icon={Crown} label="Paid Subscribers" value={stats?.paidUsers ?? 0} sub={`${stats?.totalUsers ? Math.round((stats.paidUsers / stats.totalUsers) * 100) : 0}% conversion`} color="bg-[#00C9A7]" />
+                <StatCard icon={Crown} label="Paid Subscribers" value={stats?.paidUsers ?? 0} sub={`${stats?.totalUsers ? Math.round((stats.paidUsers / stats.totalUsers) * 100) : 0}% conversion`} color="bg-[#E8A020]" />
                 <StatCard icon={DollarSign} label="MRR" value={`$${(stats?.mrr ?? 0).toLocaleString()}`} sub="Monthly recurring revenue" color="bg-purple-500" />
                 <StatCard icon={TrendingUp} label="ARR" value={`$${(stats?.arr ?? 0).toLocaleString()}`} sub="Annual run rate" color="bg-orange-500" />
               </div>
@@ -287,7 +287,7 @@ export default function Admin() {
               <div className="space-y-4">
                 {[
                   { id: "agency", label: "Agency ($199/mo)", color: "bg-purple-500" },
-                  { id: "pro", label: "Pro ($99/mo)", color: "bg-[#00C9A7]" },
+                  { id: "pro", label: "Pro ($99/mo)", color: "bg-[#E8A020]" },
                   { id: "starter", label: "Starter ($49/mo)", color: "bg-blue-500" },
                   { id: "free", label: "Free", color: "bg-gray-300" },
                 ].map(plan => {
@@ -313,7 +313,7 @@ export default function Admin() {
         {activeTab === "users" && (
           <section aria-label="User management">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Sora, sans-serif" }}>User Management</h2>
+              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>User Management</h2>
               <p className="text-sm text-gray-500">{usersQuery.data?.total ?? 0} total users</p>
             </div>
 
@@ -362,7 +362,7 @@ export default function Admin() {
                         <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-[#00C9A7]/15 flex items-center justify-center text-[#007A65] text-xs font-bold flex-shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-[#E8A020]/15 flex items-center justify-center text-[#007A65] text-xs font-bold flex-shrink-0">
                                 {u.name?.[0]?.toUpperCase() ?? "?"}
                               </div>
                               <div>
@@ -377,7 +377,7 @@ export default function Admin() {
                                 <select
                                   value={editPlanId}
                                   onChange={e => setEditPlanId(e.target.value)}
-                                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#00C9A7]"
+                                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#E8A020]"
                                 >
                                   <option value="free">Free</option>
                                   <option value="starter">Starter</option>
@@ -387,7 +387,7 @@ export default function Admin() {
                                 <select
                                   value={editSubStatus}
                                   onChange={e => setEditSubStatus(e.target.value)}
-                                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#00C9A7]"
+                                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#E8A020]"
                                 >
                                   <option value="free">Free</option>
                                   <option value="active">Active</option>
@@ -485,7 +485,7 @@ export default function Admin() {
           <section aria-label="Leads management">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Sora, sans-serif" }}>Email Leads</h2>
+                <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Email Leads</h2>
                 <p className="text-sm text-gray-500 mt-0.5">{leadsQuery.data?.total ?? 0} leads captured from the landing page</p>
               </div>
               <Button
@@ -511,7 +511,7 @@ export default function Admin() {
               </div>
               {leadsQuery.isLoading ? (
                 <div className="p-6 text-center text-gray-400">
-                  <div className="w-8 h-8 border-2 border-[#00C9A7] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <div className="w-8 h-8 border-2 border-[#E8A020] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                   <p className="text-sm">Loading leads…</p>
                 </div>
               ) : !leadsQuery.data?.leads || leadsQuery.data.leads.length === 0 ? (
@@ -524,7 +524,7 @@ export default function Admin() {
                 <div key={lead.id} className={`grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 px-6 py-4 ${i > 0 ? "border-t border-gray-50" : ""} hover:bg-gray-50`}>
                   <p className="text-sm font-medium text-gray-900">{lead.name || <span className="text-gray-400 italic">No name</span>}</p>
                   <p className="text-sm text-gray-600 truncate">{lead.email}</p>
-                  <span className="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-xs font-medium bg-[#00C9A7]/10 text-[#007A65]">{lead.source ?? "landing_page"}</span>
+                  <span className="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-xs font-medium bg-[#E8A020]/10 text-[#007A65]">{lead.source ?? "landing_page"}</span>
                   <p className="text-sm text-gray-400">{new Date(lead.createdAt).toLocaleDateString()}</p>
                 </div>
               ))}
@@ -542,7 +542,7 @@ export default function Admin() {
         {/* ── Broadcast Tab ─────────────────────────────────────────────── */}
         {activeTab === "broadcast" && (
           <section aria-label="Broadcast notification">
-            <h2 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: "Sora, sans-serif" }}>Send Broadcast</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Send Broadcast</h2>
             <p className="text-sm text-gray-500 mb-6">Send an owner notification — useful for tracking important events or reminders.</p>
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm max-w-xl">
               <form onSubmit={e => { e.preventDefault(); if (!broadcastTitle.trim() || !broadcastContent.trim()) { toast.error("Please fill in both fields"); return; } broadcastMutation.mutate({ title: broadcastTitle, content: broadcastContent }); }} noValidate>
@@ -555,7 +555,7 @@ export default function Admin() {
                   <textarea id="broadcast-content" value={broadcastContent} onChange={e => setBroadcastContent(e.target.value)} placeholder="Write your message here…" rows={5} className="form-input resize-none" required maxLength={2000} />
                   <p className="form-hint">{broadcastContent.length}/2000 characters</p>
                 </div>
-                <Button type="submit" className="gradient-teal text-white border-0 w-full gap-2" disabled={broadcastMutation.isPending}>
+                <Button type="submit" className="gradient-amber text-white border-0 w-full gap-2" disabled={broadcastMutation.isPending}>
                   {broadcastMutation.isPending ? (
                     <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Sending…</>
                   ) : (
@@ -572,12 +572,12 @@ export default function Admin() {
           <section aria-label="Site settings">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Sora, sans-serif" }}>Site Settings</h2>
+                <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Site Settings</h2>
                 <p className="text-sm text-gray-500 mt-0.5">Control every aspect of the platform from here</p>
               </div>
               {settingsDirty && (
                 <Button
-                  className="gradient-teal text-white border-0 gap-2"
+                  className="gradient-amber text-white border-0 gap-2"
                   onClick={() => updateSettingsMutation.mutate(settingsForm as any)}
                   disabled={updateSettingsMutation.isPending}
                 >
@@ -594,7 +594,7 @@ export default function Admin() {
                 {/* Site Identity */}
                 <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                   <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-[#00C9A7]" />
+                    <Globe className="w-4 h-4 text-[#E8A020]" />
                     Site Identity
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -625,7 +625,7 @@ export default function Admin() {
                 <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                   <div className="flex items-center justify-between mb-5">
                     <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                      <Megaphone className="w-4 h-4 text-[#00C9A7]" />
+                      <Megaphone className="w-4 h-4 text-[#E8A020]" />
                       Announcement Banner
                     </h3>
                     <Toggle
@@ -656,7 +656,7 @@ export default function Admin() {
                       settingsForm.announcementColor === "purple" ? "bg-purple-100 text-purple-800" :
                       settingsForm.announcementColor === "yellow" ? "bg-yellow-100 text-yellow-800" :
                       settingsForm.announcementColor === "blue" ? "bg-blue-100 text-blue-800" :
-                      "bg-[#00C9A7]/15 text-[#007A65]"
+                      "bg-[#E8A020]/15 text-[#007A65]"
                     }`}>
                       Preview: {settingsForm.announcementText}
                     </div>
@@ -666,7 +666,7 @@ export default function Admin() {
                 {/* Social Links */}
                 <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                   <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-[#00C9A7]" />
+                    <Globe className="w-4 h-4 text-[#E8A020]" />
                     Social Media Links
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -690,7 +690,7 @@ export default function Admin() {
                 {/* Feature Flags */}
                 <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                   <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-[#00C9A7]" />
+                    <Zap className="w-4 h-4 text-[#E8A020]" />
                     Feature Flags
                     <span className="text-xs font-normal text-gray-400 ml-1">— enable or disable platform features globally</span>
                   </h3>
@@ -743,7 +743,7 @@ export default function Admin() {
                 {settingsDirty && (
                   <div className="flex justify-end">
                     <Button
-                      className="gradient-teal text-white border-0 gap-2 px-8"
+                      className="gradient-amber text-white border-0 gap-2 px-8"
                       onClick={() => updateSettingsMutation.mutate(settingsForm as any)}
                       disabled={updateSettingsMutation.isPending}
                     >
@@ -761,7 +761,7 @@ export default function Admin() {
           <section aria-label="System health">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Sora, sans-serif" }}>System Health</h2>
+                <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>System Health</h2>
                 <p className="text-sm text-gray-500 mt-0.5">Live platform diagnostics — auto-refreshes every 30 seconds</p>
               </div>
               <Button variant="outline" size="sm" onClick={() => healthQuery.refetch()} disabled={healthQuery.isFetching}>
@@ -833,7 +833,7 @@ export default function Admin() {
                       { label: "Checked At", value: new Date(health.checkedAt).toLocaleTimeString(), sub: "Last check" },
                     ].map(({ label, value, sub }) => (
                       <div key={label} className="text-center p-4 bg-gray-50 rounded-xl">
-                        <p className="text-2xl font-extrabold text-gray-900" style={{ fontFamily: "Sora, sans-serif" }}>{value}</p>
+                        <p className="text-2xl font-extrabold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{value}</p>
                         <p className="text-xs font-semibold text-gray-700 mt-1">{label}</p>
                         <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
                       </div>

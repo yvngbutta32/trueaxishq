@@ -70,7 +70,7 @@ export const appRouter = router({
       .input(z.object({
         email: safeEmail,
         name: z.string().trim().max(255).optional(),
-        source: z.enum(["landing_page", "footer", "pricing"]).default("landing_page"),
+        source: z.enum(["landing_page", "footer", "pricing", "onboarding-modal", "homepage-cta"]).optional().default("landing_page"),
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();

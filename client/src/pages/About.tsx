@@ -1,66 +1,83 @@
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Zap, Target, Heart, Shield, Users, TrendingUp, ArrowLeft, CheckCircle } from "lucide-react";
+import { Target, Heart, Shield, CheckCircle, ArrowLeft, TrendingUp, Users, Clock } from "lucide-react";
 
 export default function About() {
   const [, navigate] = useLocation();
+
   return (
-    <div className="min-h-screen bg-[#1C1C1E] text-white">
+    <div style={{ background: "#141414", minHeight: "100vh", color: "#F5F0E8" }}>
       {/* Nav */}
-      <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#00C9A7] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#00C9A7] rounded px-2 py-1">
+      <nav
+        className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
+        style={{ background: "rgba(10,10,10,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(232,160,32,0.10)" }}
+      >
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 text-sm font-medium animated-underline"
+          style={{ color: "rgba(245,240,232,0.55)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
+        >
           <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">Back to Home</span>
+          Back to Home
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#00C9A7] to-[#00A88A] flex items-center justify-center">
-            <Zap className="w-3.5 h-3.5 text-white" />
+          <div className="w-7 h-7 rounded flex items-center justify-center" style={{ background: "linear-gradient(135deg, #E8A020, #F5C842)" }}>
+            <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "0.7rem", color: "#141414" }}>TX</span>
           </div>
-          <span className="font-bold" style={{ fontFamily: "Sora, sans-serif" }}>TrueAxis HQ</span>
+          <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, color: "#F5F0E8" }}>
+            TrueAxis <span style={{ color: "#E8A020" }}>HQ</span>
+          </span>
         </div>
+        <button onClick={() => navigate("/pricing")} className="btn-ghost" style={{ padding: "0.4rem 1rem", fontSize: "0.8125rem" }}>
+          View Pricing
+        </button>
       </nav>
 
       {/* Hero */}
       <section className="py-20 sm:py-28 px-4 text-center relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-[#00C9A7] opacity-8 blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 retro-grid opacity-30 pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 60% at 50% 40%, rgba(232,160,32,0.07) 0%, transparent 70%)" }} />
         <div className="relative max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-[#00C9A7]/15 text-[#00C9A7] border border-[#00C9A7]/30 rounded-full px-4 py-1.5 text-xs font-semibold mb-6">
+          <div className="pill-retro mb-6 inline-flex">
             <Heart className="w-3 h-3" />
             Built for Freelancers, by People Who Get It
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6" style={{ fontFamily: "Sora, sans-serif" }}>
-            We built the platform<br /><span className="text-[#00C9A7]">we always needed.</span>
+          <h1 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", letterSpacing: "-0.03em", color: "#F5F0E8", lineHeight: 1.1 }}>
+            We built the platform<br />
+            <span style={{ color: "#E8A020" }}>we always needed.</span>
           </h1>
-          <p className="text-lg text-gray-300 leading-relaxed max-w-2xl mx-auto">
+          <p className="mt-6 text-lg max-w-2xl mx-auto" style={{ color: "rgba(245,240,232,0.50)", lineHeight: 1.7 }}>
             TrueAxis HQ was born out of frustration. We watched talented freelancers — coaches, consultants, designers, developers — spend more time on admin work than on the craft they loved. We decided to fix that.
           </p>
         </div>
       </section>
 
-      {/* Mission */}
-      <section className="py-16 px-4 bg-white/3">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
+      {/* Mission / Values / Promise */}
+      <section className="py-16 px-4" style={{ background: "#0E0E0E" }}>
+        <div className="container max-w-5xl mx-auto grid md:grid-cols-3 gap-5">
           {[
             { icon: Target, title: "Our Mission", body: "To give every freelancer and solo service provider the same operational leverage that enterprise companies have — without the enterprise price tag or complexity." },
             { icon: Heart, title: "Our Values", body: "We believe your time is your most valuable asset. Every feature we build is designed to give you more of it. We are obsessively focused on simplicity, reliability, and real business impact." },
             { icon: Shield, title: "Our Promise", body: "We will never sell your data. We will never lock you in. Your client data, your invoices, your business — they belong to you. Always. We are just the engine that makes it run." },
           ].map(({ icon: Icon, title, body }) => (
-            <div key={title} className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <div className="w-10 h-10 rounded-xl bg-[#00C9A7]/15 flex items-center justify-center mb-4">
-                <Icon className="w-5 h-5 text-[#00C9A7]" />
+            <div key={title} className="retro-card p-6">
+              <div className="w-10 h-10 rounded flex items-center justify-center mb-4" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.18)" }}>
+                <Icon className="w-5 h-5" style={{ color: "#E8A020" }} />
               </div>
-              <h2 className="text-lg font-bold mb-3" style={{ fontFamily: "Sora, sans-serif" }}>{title}</h2>
-              <p className="text-sm text-gray-400 leading-relaxed">{body}</p>
+              <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.0625rem", color: "#F5F0E8", marginBottom: "0.5rem" }}>{title}</h2>
+              <p className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.45)" }}>{body}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Story */}
-      <section className="py-16 sm:py-20 px-4">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-extrabold mb-8 text-center" style={{ fontFamily: "Sora, sans-serif" }}>The Story</h2>
-          <div className="space-y-5 text-gray-300 leading-relaxed text-base">
+      <section className="py-20 px-4" style={{ background: "#141414" }}>
+        <div className="container max-w-3xl mx-auto">
+          <div className="section-label mb-3 text-center">The Story</div>
+          <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em", textAlign: "center", marginBottom: "2rem" }}>
+            Why TrueAxis HQ exists
+          </h2>
+          <div className="space-y-5 text-base leading-relaxed" style={{ color: "rgba(245,240,232,0.55)" }}>
             <p>In 2024, the average freelancer in the United States was juggling five or more separate tools just to run their business: a scheduling app, an invoicing tool, a CRM, an email client, and a spreadsheet for everything else. They were paying $200–$400 per month for tools that didn't talk to each other — and spending 15–20 hours per week on admin work instead of billable work.</p>
             <p>TrueAxis HQ was built to collapse all of that into one intelligent platform. We combined AI-powered automation with the core workflows every service provider needs: client management, scheduling, invoicing, follow-ups, and analytics. The result is a platform that doesn't just organize your business — it actively runs it.</p>
             <p>Today, TrueAxis HQ serves thousands of freelancers across coaching, consulting, design, development, fitness, legal, and more. Our users report saving an average of 12 hours per week and increasing their revenue by 34% within their first six months.</p>
@@ -70,27 +87,31 @@ export default function About() {
       </section>
 
       {/* Stats */}
-      <section className="py-16 px-4 bg-white/3">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      <section className="py-16 px-4" style={{ background: "#0E0E0E" }}>
+        <div className="container max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl overflow-hidden" style={{ background: "rgba(232,160,32,0.08)" }}>
           {[
-            { value: "4,200+", label: "Active Users" },
-            { value: "12 hrs", label: "Saved Per Week" },
-            { value: "34%", label: "Avg Revenue Increase" },
-            { value: "99.9%", label: "Uptime SLA" },
-          ].map(({ value, label }) => (
-            <div key={label} className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <p className="text-3xl font-extrabold text-[#00C9A7] mb-1" style={{ fontFamily: "Sora, sans-serif" }}>{value}</p>
-              <p className="text-sm text-gray-400">{label}</p>
+            { icon: Users, value: "4,200+", label: "Active Users" },
+            { icon: Clock, value: "12 hrs", label: "Saved Per Week" },
+            { icon: TrendingUp, value: "34%", label: "Avg Revenue Increase" },
+            { icon: Shield, value: "99.9%", label: "Uptime SLA" },
+          ].map(({ icon: Icon, value, label }) => (
+            <div key={label} className="flex flex-col items-center justify-center py-10 px-6 text-center" style={{ background: "#141414" }}>
+              <Icon className="w-5 h-5 mb-3" style={{ color: "rgba(232,160,32,0.50)" }} />
+              <p className="stat-number text-3xl mb-1">{value}</p>
+              <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "rgba(245,240,232,0.30)" }}>{label}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* What we believe */}
-      <section className="py-16 sm:py-20 px-4">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-extrabold mb-8 text-center" style={{ fontFamily: "Sora, sans-serif" }}>What We Believe</h2>
-          <ul className="space-y-4">
+      {/* What We Believe */}
+      <section className="py-20 px-4" style={{ background: "#141414" }}>
+        <div className="container max-w-3xl mx-auto">
+          <div className="section-label mb-3 text-center">Our Principles</div>
+          <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em", textAlign: "center", marginBottom: "2rem" }}>
+            What we believe
+          </h2>
+          <ul className="space-y-3">
             {[
               "Freelancers deserve enterprise-grade tools at freelancer-friendly prices.",
               "Automation should feel invisible — it should just work, without you having to think about it.",
@@ -98,9 +119,9 @@ export default function About() {
               "Good software should make you feel calm, not anxious.",
               "The best businesses are built on trust — with clients, with tools, and with each other.",
             ].map(belief => (
-              <li key={belief} className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-xl p-4">
-                <CheckCircle className="w-5 h-5 text-[#00C9A7] mt-0.5 flex-shrink-0" />
-                <span className="text-gray-300 text-sm leading-relaxed">{belief}</span>
+              <li key={belief} className="retro-card flex items-start gap-3 p-4">
+                <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#E8A020" }} />
+                <span className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.60)" }}>{belief}</span>
               </li>
             ))}
           </ul>
@@ -108,23 +129,26 @@ export default function About() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 px-4 text-center bg-gradient-to-b from-transparent to-black/30">
-        <div className="max-w-xl mx-auto">
-          <h2 className="text-3xl font-extrabold mb-4" style={{ fontFamily: "Sora, sans-serif" }}>Ready to join us?</h2>
-          <p className="text-gray-400 mb-8">Start your free 14-day trial. No credit card required.</p>
+      <section className="py-20 px-4 text-center relative overflow-hidden" style={{ background: "#0E0E0E" }}>
+        <div className="absolute inset-0 retro-grid opacity-25 pointer-events-none" />
+        <div className="container relative z-10 max-w-xl mx-auto">
+          <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+            Ready to join us?
+          </h2>
+          <p className="mt-3 mb-8" style={{ color: "rgba(245,240,232,0.40)" }}>Start your free 14-day trial. No credit card required.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button onClick={() => navigate("/dashboard")} className="bg-[#00C9A7] hover:bg-[#00A88A] text-white border-0 px-8 py-3 text-sm font-semibold rounded-xl min-h-[48px]">
+            <button onClick={() => navigate("/dashboard")} className="btn-amber" style={{ fontSize: "0.9375rem" }}>
               Start Free Trial
-            </Button>
-            <Button onClick={() => navigate("/pricing")} variant="outline" className="border-white/20 text-white hover:bg-white/10 px-8 py-3 text-sm rounded-xl min-h-[48px]">
+            </button>
+            <button onClick={() => navigate("/pricing")} className="btn-ghost" style={{ fontSize: "0.9375rem" }}>
               View Pricing
-            </Button>
+            </button>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-600">
+      <footer className="py-8 px-4 text-center text-xs" style={{ borderTop: "1px solid rgba(232,160,32,0.08)", color: "rgba(245,240,232,0.20)" }}>
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

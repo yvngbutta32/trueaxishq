@@ -123,7 +123,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
         <button
           onClick={() => setIsOpen(true)}
           aria-label="Open AI Assistant"
-          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full gradient-teal text-white shadow-lg hover:opacity-90 transition-all flex items-center justify-center animate-pulse-glow focus-visible:outline-[3px] focus-visible:outline-[#00C9A7] focus-visible:outline-offset-2"
+          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full gradient-amber text-white shadow-lg hover:opacity-90 transition-all flex items-center justify-center animate-pulse-glow focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2"
         >
           <Sparkles className="w-6 h-6" aria-hidden="true" />
         </button>
@@ -140,7 +140,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
           style={{ height: isMinimized ? "auto" : "520px" }}
         >
           {/* Header */}
-          <div className="gradient-teal px-4 py-3 flex items-center justify-between flex-shrink-0">
+          <div className="gradient-amber px-4 py-3 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center" aria-hidden="true">
                 <Bot className="w-4 h-4 text-white" />
@@ -186,7 +186,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
                   >
                     <div
                       className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        msg.role === "assistant" ? "gradient-teal" : "bg-gray-200"
+                        msg.role === "assistant" ? "gradient-amber" : "bg-gray-200"
                       }`}
                       aria-hidden="true"
                     >
@@ -200,7 +200,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
                         className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
                           msg.role === "assistant"
                             ? "bg-gray-100 text-gray-800 rounded-tl-sm"
-                            : "gradient-teal text-white rounded-tr-sm"
+                            : "gradient-amber text-white rounded-tr-sm"
                         }`}
                       >
                         {msg.content}
@@ -219,7 +219,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
                 {/* Typing indicator */}
                 {chatMutation.isPending && (
                   <div className="flex gap-2.5" role="status" aria-label="AI is thinking">
-                    <div className="w-7 h-7 rounded-full gradient-teal flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                    <div className="w-7 h-7 rounded-full gradient-amber flex items-center justify-center flex-shrink-0" aria-hidden="true">
                       <Bot className="w-3.5 h-3.5 text-white" />
                     </div>
                     <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1">
@@ -245,7 +245,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
                       key={i}
                       role="listitem"
                       onClick={() => sendMessage(p)}
-                      className="flex-shrink-0 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-full transition-colors min-h-[36px] focus-visible:outline-[3px] focus-visible:outline-[#00C9A7]"
+                      className="flex-shrink-0 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-full transition-colors min-h-[36px] focus-visible:outline-[3px] focus-visible:outline-[#E8A020]"
                       aria-label={`Ask: ${p}`}
                     >
                       {p}
@@ -265,7 +265,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
                   onKeyDown={handleKeyDown}
                   placeholder="Ask anything about your business…"
                   rows={1}
-                  className="flex-1 resize-none text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#00C9A7] focus:ring-2 focus:ring-[#00C9A7]/20 transition-colors"
+                  className="flex-1 resize-none text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#E8A020] focus:ring-2 focus:ring-[#E8A020]/20 transition-colors"
                   aria-label="Type your message"
                   aria-describedby="ai-chat-hint"
                   disabled={chatMutation.isPending}
@@ -275,7 +275,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
                 <Button
                   onClick={() => sendMessage()}
                   disabled={!input.trim() || chatMutation.isPending}
-                  className="gradient-teal text-white border-0 rounded-xl w-11 h-11 p-0 flex-shrink-0"
+                  className="gradient-amber text-white border-0 rounded-xl w-11 h-11 p-0 flex-shrink-0"
                   aria-label="Send message"
                 >
                   <Send className="w-4 h-4" aria-hidden="true" />

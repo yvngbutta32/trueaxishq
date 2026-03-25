@@ -110,28 +110,28 @@ We will respond to all privacy-related inquiries within 5 business days.`,
 export default function Privacy() {
   const [, navigate] = useLocation();
   return (
-    <div className="min-h-screen bg-[#1C1C1E] text-white">
+    <div className="min-h-screen bg-[#141414] text-white">
       <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#00C9A7] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#00C9A7] rounded px-2 py-1">
+        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#E8A020] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#E8A020] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Home</span>
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#00C9A7] to-[#00A88A] flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#E8A020] to-[#F5C842] flex items-center justify-center">
             <Zap className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-bold" style={{ fontFamily: "Sora, sans-serif" }}>TrueAxis HQ</span>
+          <span className="font-bold" style={{ fontFamily: "Space Grotesk, sans-serif" }}>TrueAxis HQ</span>
         </div>
       </nav>
 
       <div className="max-w-3xl mx-auto px-4 py-16 sm:py-20">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-[#00C9A7]/15 flex items-center justify-center">
-            <Shield className="w-5 h-5 text-[#00C9A7]" />
+          <div className="w-10 h-10 rounded-xl bg-[#E8A020]/15 flex items-center justify-center">
+            <Shield className="w-5 h-5 text-[#E8A020]" />
           </div>
-          <span className="text-xs font-semibold text-[#00C9A7] uppercase tracking-wider">Legal</span>
+          <span className="text-xs font-semibold text-[#E8A020] uppercase tracking-wider">Legal</span>
         </div>
-        <h1 className="text-4xl sm:text-5xl font-extrabold mb-3" style={{ fontFamily: "Sora, sans-serif" }}>Privacy Policy</h1>
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-3" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Privacy Policy</h1>
         <p className="text-sm text-gray-500 mb-12">Last updated: {LAST_UPDATED}</p>
 
         <p className="text-gray-300 leading-relaxed mb-10 text-base">
@@ -141,7 +141,7 @@ export default function Privacy() {
         <div className="space-y-10">
           {sections.map(({ title, content }) => (
             <section key={title}>
-              <h2 className="text-xl font-bold mb-4 text-white" style={{ fontFamily: "Sora, sans-serif" }}>{title}</h2>
+              <h2 className="text-xl font-bold mb-4 text-white" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{title}</h2>
               <div className="text-gray-300 text-sm leading-relaxed space-y-3">
                 {content.split("\n\n").map((para, i) => (
                   <p key={i} dangerouslySetInnerHTML={{

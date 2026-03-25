@@ -202,3 +202,17 @@
 - [x] Update drizzle/schema.ts default values
 - [x] Update todo.md header
 - [x] 0 TypeScript errors, 29/29 tests passing after rebrand
+
+## Visual Redesign: Dark Amber Retro-Modern Theme (Round 9)
+- [x] Define design system — Dark Amber palette (#141414 base, #E8A020 amber, #F5F0E8 cream)
+- [x] Rewrite index.css with new CSS variables, Space Grotesk + DM Sans fonts, retro-grid, btn-amber, pill-retro, retro-card, section-label, stat-number
+- [x] Update Google Fonts in index.html (Space Grotesk + DM Sans)
+- [x] Redesign Home.tsx with dark amber retro-modern layout
+- [x] Rewrite Pricing.tsx with dark amber theme + feature comparison table
+- [x] Update About.tsx with dark amber theme (full rewrite)
+- [x] Update Contact, Help, Terms, Privacy, Billing, CheckoutSuccess, BookingPage, NotFound with amber theme
+- [x] Update Dashboard.tsx with amber accent colors
+- [x] Update Admin.tsx with amber accent colors
+- [x] Update AIAssistant, ErrorBoundary, InvoicePrint, HealthMonitor, ClientPulse with amber theme
+- [x] 0 teal color references remaining across entire codebase
+- [x] 0 TypeScript errors, 29/29 tests passing after full redesign

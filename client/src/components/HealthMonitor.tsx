@@ -128,7 +128,7 @@ export function HealthMonitor() {
 
           <button
             onClick={(e) => { e.stopPropagation(); checkHealth(); }}
-            className="mt-3 w-full text-xs text-[#00C9A7] hover:text-[#00a88c] transition-colors text-center"
+            className="mt-3 w-full text-xs text-[#E8A020] hover:text-[#D4911A] transition-colors text-center"
           >
             Refresh status
           </button>
