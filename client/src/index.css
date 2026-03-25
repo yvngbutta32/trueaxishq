@@ -456,15 +456,24 @@
 
   /* ── Cards ─────────────────────────────────────────────────────────────── */
   .retro-card {
-    background: #FFFFFF;
-    border: 2px solid #DDE1E8;
+    background: #1E1E1E;
+    border: 1px solid rgba(245,240,232,0.07);
     border-radius: 1rem;
     transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
   }
   .retro-card:hover {
-    border-color: #1D3557;
-    box-shadow: 0 8px 32px rgba(29,53,87,0.12);
+    border-color: rgba(232,160,32,0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
     transform: translateY(-2px);
+  }
+
+  /* card-lift — hover lift effect */
+  .card-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .card-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.40);
   }
 
   .retro-card-navy {
@@ -495,6 +504,9 @@
   .glow-amber {
     box-shadow: 0 0 20px rgba(255,183,3,0.30), 0 0 40px rgba(255,183,3,0.15);
   }
+  .glow-amber-sm {
+    box-shadow: 0 0 12px rgba(232,160,32,0.18), 0 0 24px rgba(232,160,32,0.08);
+  }
 
   /* ── Typography Utilities ──────────────────────────────────────────────── */
   .heading-display {
@@ -510,17 +522,20 @@
     line-height: 1.2;
   }
   .section-label {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
+    color: #E8A020;
+    display: block;
   }
   .stat-number {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.03em;
+    color: #F5F0E8;
   }
 
   /* ── Pill / Badge ──────────────────────────────────────────────────────── */
@@ -533,6 +548,9 @@
     font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 0.01em;
+    background: rgba(232,160,32,0.10);
+    color: #E8A020;
+    border: 1px solid rgba(232,160,32,0.22);
   }
   .pill-navy   { background: rgba(29,53,87,0.10);  color: #1D3557; border: 1px solid rgba(29,53,87,0.20); }
   .pill-red    { background: rgba(230,57,70,0.10); color: #C02030; border: 1px solid rgba(230,57,70,0.20); }
@@ -592,6 +610,39 @@
   .navy-line {
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(29,53,87,0.3) 30%, rgba(29,53,87,0.3) 70%, transparent);
+  }
+
+  /* ── Marquee / Ticker ─────────────────────────────────────────────────── */
+  @keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll 28s linear infinite;
+  }
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  /* ── Scanlines Overlay ─────────────────────────────────────────────────── */
+  .scanlines {
+    position: relative;
+  }
+  .scanlines::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.04) 2px,
+      rgba(0,0,0,0.04) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
   }
 
   /* ── Retro Grid Background ─────────────────────────────────────────────── */
@@ -758,6 +809,17 @@
     opacity: 0.45;
     cursor: not-allowed;
   }
+  /* Fix browser autofill yellow background on dark inputs */
+  .form-input:-webkit-autofill,
+  .form-input:-webkit-autofill:hover,
+  .form-input:-webkit-autofill:focus,
+  .form-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #1C1C1E inset !important;
+    -webkit-text-fill-color: #F5F0E8 !important;
+    caret-color: #E8A020 !important;
+    border-color: rgba(232, 160, 32, 0.18) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
   /* form-input on light backgrounds (Dashboard, Admin, Booking) */
   .form-input-light {
     width: 100%;
@@ -783,6 +845,17 @@
   .form-input-light:disabled {
     opacity: 0.45;
     cursor: not-allowed;
+  }
+  /* Fix browser autofill yellow background on light inputs */
+  .form-input-light:-webkit-autofill,
+  .form-input-light:-webkit-autofill:hover,
+  .form-input-light:-webkit-autofill:focus,
+  .form-input-light:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+    -webkit-text-fill-color: #1C1C1E !important;
+    caret-color: #E8A020 !important;
+    border-color: #E5E7EB !important;
+    transition: background-color 5000s ease-in-out 0s;
   }
 
   /* ── Form Labels, Hints & Errors ─────────────────────────────────────── */

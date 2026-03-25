@@ -362,31 +362,38 @@ function Nav({ onCTA }: { onCTA: () => void }) {
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {mobileOpen && (
-        <div style={{ background: "rgba(10,10,10,0.98)", borderTop: "1px solid rgba(232,160,32,0.12)" }}>
-          <div className="container py-4 flex flex-col gap-1">
-            {links.map(l => (
-              <button
-                key={l.label}
-                onClick={() => handleLink(l.href)}
-                className="text-left py-3 px-2 text-sm font-medium rounded"
-                style={{ color: "rgba(245,240,232,0.75)", background: "none", border: "none", minHeight: "auto" }}
-              >
-                {l.label}
-              </button>
-            ))}
-            <div className="pt-3 flex flex-col gap-2" style={{ borderTop: "1px solid rgba(232,160,32,0.10)" }}>
-              <button onClick={() => { setMobileOpen(false); navigate("/login"); }} className="btn-ghost w-full" style={{ fontSize: "0.875rem" }}>
-                Sign In
-              </button>
-              <button onClick={() => { setMobileOpen(false); onCTA(); }} className="btn-amber w-full" style={{ fontSize: "0.875rem" }}>
-                Start Free Trial
-              </button>
-            </div>
+      {/* Mobile menu — animated slide-down */}
+      <div
+        style={{
+          background: "rgba(10,10,10,0.98)",
+          borderTop: mobileOpen ? "1px solid rgba(232,160,32,0.12)" : "none",
+          maxHeight: mobileOpen ? "400px" : "0",
+          overflow: "hidden",
+          transition: "max-height 0.28s cubic-bezier(0.4,0,0.2,1), border-top 0.28s ease",
+        }}
+        aria-hidden={!mobileOpen}
+      >
+        <div className="container py-4 flex flex-col gap-1">
+          {links.map(l => (
+            <button
+              key={l.label}
+              onClick={() => handleLink(l.href)}
+              className="text-left py-3 px-2 text-sm font-medium rounded"
+              style={{ color: "rgba(245,240,232,0.75)", background: "none", border: "none", minHeight: "auto" }}
+            >
+              {l.label}
+            </button>
+          ))}
+          <div className="pt-3 flex flex-col gap-2" style={{ borderTop: "1px solid rgba(232,160,32,0.10)" }}>
+            <button onClick={() => { setMobileOpen(false); navigate("/login"); }} className="btn-ghost w-full" style={{ fontSize: "0.875rem" }}>
+              Sign In
+            </button>
+            <button onClick={() => { setMobileOpen(false); onCTA(); }} className="btn-amber w-full" style={{ fontSize: "0.875rem" }}>
+              Start Free Trial
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </nav>
   );
 }

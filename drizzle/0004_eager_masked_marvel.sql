@@ -1,8 +1,8 @@
 CREATE TABLE `platformSettings` (
 	`id` int AUTO_INCREMENT NOT NULL,
-	`siteName` varchar(255) NOT NULL DEFAULT 'SkillBridge AI',
+	`siteName` varchar(255) NOT NULL DEFAULT 'TrueAxis HQ',
 	`siteTagline` varchar(512) DEFAULT 'The AI-powered business platform for freelancers & coaches',
-	`supportEmail` varchar(320) DEFAULT 'support@skillbridge.ai',
+	`supportEmail` varchar(320) DEFAULT 'support@trueaxishq.com',
 	`supportPhone` varchar(32),
 	`announcementEnabled` boolean NOT NULL DEFAULT false,
 	`announcementText` varchar(512),

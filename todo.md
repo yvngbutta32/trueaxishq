@@ -426,3 +426,20 @@
 - [x] Account lockout management panel (view and unlock locked accounts)
 - [x] Security event log with severity filter and resolve actions
 - [x] 29/29 tests passing, 0 TypeScript errors, production build clean
+
+## Final Polish & Completion Pass (Mar 25, 2026)
+- [x] Remove all SkillBridge references from all source files (routers.ts, package.json, HTML, migrations)
+- [x] Fix retro-card CSS class — dark background on dark pages (was white/transparent)
+- [x] Fix section-label CSS class — amber color now visible
+- [x] Fix pill-retro CSS class — background and color defined
+- [x] Add marquee-track CSS animation for ticker bar
+- [x] Add card-lift CSS class (hover lift effect)
+- [x] Add scanlines CSS class (retro overlay effect)
+- [x] Add glow-amber-sm CSS class
+- [x] Fix stat-number CSS class — amber color now visible
+- [x] Fix browser autofill yellow background on dark form-input (webkit-autofill override)
+- [x] Fix browser autofill yellow background on light form-input-light (webkit-autofill override)
+- [x] Add smooth slide-down animation to mobile nav hamburger menu in Home.tsx
+- [x] Add scroll-to-top on panel switch in Dashboard (setActiveWithScroll + mainRef)
+- [x] Increase security rate limits to prevent blocking during normal use
+- [x] 29/29 tests passing, 0 TypeScript errors after all changes

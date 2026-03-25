@@ -20,11 +20,11 @@ import { securityEvents } from "../drizzle/schema";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const RATE_LIMIT_WINDOW_MS     = 60_000;   // 1-minute window
-const RATE_LIMIT_MAX_GENERAL   = 120;      // general requests per window per IP
-const RATE_LIMIT_MAX_AUTH      = 10;       // auth endpoints per window per IP
-const RATE_LIMIT_MAX_AI        = 20;       // AI endpoints per window per IP
-const VIOLATION_BLOCK_THRESHOLD = 5;       // violations before auto-block
-const BLOCK_DURATION_MS        = 15 * 60_000; // 15-minute auto-block
+const RATE_LIMIT_MAX_GENERAL   = 300;      // general requests per window per IP
+const RATE_LIMIT_MAX_AUTH      = 30;       // auth endpoints per window per IP
+const RATE_LIMIT_MAX_AI        = 60;       // AI endpoints per window per IP
+const VIOLATION_BLOCK_THRESHOLD = 15;      // violations before auto-block
+const BLOCK_DURATION_MS        = 5 * 60_000; // 5-minute auto-block
 const FAILED_LOGIN_LOCKOUT     = 5;        // failed attempts before account lockout
 const LOCKOUT_DURATION_MS      = 10 * 60_000; // 10-minute account lockout
 

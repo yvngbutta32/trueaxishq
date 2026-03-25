@@ -1709,6 +1709,15 @@ export default function Dashboard() {
   const [confirm, setConfirm] = useState<ConfirmState>(defaultConfirm);
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Scroll to top of main content when switching panels
+  const setActiveWithScroll = (panel: ActivePanel) => {
+    setActive(panel);
+    requestAnimationFrame(() => {
+      mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  };
 
   useEffect(() => {
     if (!loading && !isAuthenticated) navigate("/");
@@ -1753,13 +1762,14 @@ export default function Dashboard() {
 
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
-        <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} />
+        <Sidebar active={active} setActive={setActiveWithScroll} collapsed={collapsed} setCollapsed={setCollapsed} />
       </div>
 
       {/* Main Content */}
       <main
         id="main-content"
-        className={`flex-1 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"} pb-20 md:pb-0`}
+        ref={mainRef}
+        className={`flex-1 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"} pb-20 md:pb-0 overflow-y-auto h-screen`}
         tabIndex={-1}
       >
         {/* Header */}
@@ -1828,7 +1838,7 @@ export default function Dashboard() {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <MobileBottomNav active={active} setActive={setActive} />
+      <MobileBottomNav active={active} setActive={setActiveWithScroll} />
       {/* Global Confirm Dialog */}
       <ConfirmDialog
         open={confirm.open}

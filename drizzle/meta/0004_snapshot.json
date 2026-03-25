@@ -781,7 +781,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'SkillBridge AI'"
+          "default": "'TrueAxis HQ'"
         },
         "siteTagline": {
           "name": "siteTagline",
@@ -797,7 +797,7 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": "'support@skillbridge.ai'"
+          "default": "'support@trueaxishq.com'"
         },
         "supportPhone": {
           "name": "supportPhone",

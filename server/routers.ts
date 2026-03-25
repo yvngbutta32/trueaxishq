@@ -183,7 +183,7 @@ export const appRouter = router({
           });
 
           // Build reset URL from the request origin (works in any environment)
-          const origin = input.origin || ctx.req.headers.origin || ctx.req.headers.referer?.replace(/\/[^/]*$/, '') || 'https://skillbridge-gipzwtye.manus.space';
+          const origin = input.origin || ctx.req.headers.origin || ctx.req.headers.referer?.replace(/\/[^/]*$/, '') || 'https://trueaxishq.manus.space';
           const resetUrl = `${origin}/reset-password?token=${token}`;
           await notifyOwner({
             title: "Password Reset Requested",
