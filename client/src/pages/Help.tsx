@@ -157,7 +157,7 @@ export default function Help() {
       </nav>
 
       {/* Hero */}
-      <section className="py-16 sm:py-20 px-4 text-center bg-gradient-to-b from-[#1A2E2A] to-[#1C1C1E]">
+      <section className="py-10 sm:py-14 px-4 text-center bg-gradient-to-b from-[#1A2E2A] to-[#1C1C1E]">
         <h1 className="text-4xl sm:text-5xl font-extrabold mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Help Center</h1>
         <p className="text-gray-400 mb-8 max-w-lg mx-auto">Find answers to common questions, or contact our support team.</p>
         <div className="relative max-w-lg mx-auto">
@@ -194,7 +194,7 @@ export default function Help() {
       )}
 
       {/* Articles */}
-      <div className="max-w-3xl mx-auto px-4 py-12 space-y-12">
+      <div className="max-w-3xl mx-auto px-4 py-8 space-y-10">
         {filtered
           .filter(cat => !activeCategory || cat.title === activeCategory)
           .map(cat => (
@@ -241,7 +241,7 @@ export default function Help() {
         </section>
       </div>
 
-      <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-600">
+      <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-400">
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

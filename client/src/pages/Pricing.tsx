@@ -127,7 +127,7 @@ export default function Pricing() {
       </nav>
 
       {/* Header */}
-      <section className="py-16 sm:py-24 text-center px-4 relative overflow-hidden">
+      <section className="py-10 sm:py-14 text-center px-4 relative overflow-hidden">
         <div className="absolute inset-0 retro-grid opacity-30 pointer-events-none" />
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 60% at 50% 40%, rgba(232,160,32,0.07) 0%, transparent 70%)" }} />
         <div className="relative z-10">

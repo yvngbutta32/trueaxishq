@@ -98,15 +98,15 @@ export default function Billing() {
       <main id="main-content" className="max-w-4xl mx-auto px-4 py-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+          <h1 className="text-2xl font-extrabold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
             Billing & Subscription
           </h1>
-          <p className="text-gray-500 text-sm">Manage your plan, upgrade, or access your billing history.</p>
+          <p className="text-gray-400 text-sm">Manage your plan, upgrade, or access your billing history.</p>
         </div>
 
         {/* Current Plan Card */}
-        <section aria-label="Current subscription" className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
-          <h2 className="text-base font-bold text-gray-900 mb-4">Current Plan</h2>
+        <section aria-label="Current subscription" className="bg-[#1C1C1E] rounded-2xl border border-white/10 shadow-sm p-6 mb-8">
+          <h2 className="text-base font-bold text-white mb-4">Current Plan</h2>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               {(() => {
@@ -119,7 +119,7 @@ export default function Billing() {
                 );
               })()}
               <div>
-                <p className="text-lg font-extrabold text-gray-900 capitalize" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                <p className="text-lg font-extrabold text-white capitalize" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                   {currentPlan === "free" ? "Free Plan" : `${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan`}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -161,7 +161,7 @@ export default function Billing() {
 
         {/* Interval Toggle */}
         <div className="flex items-center justify-center mb-6">
-          <div className="bg-white border border-gray-200 rounded-xl p-1 flex" role="group" aria-label="Billing interval">
+          <div className="bg-[#1C1C1E] border border-white/10 rounded-xl p-1 flex" role="group" aria-label="Billing interval">
             {(["monthly", "annual"] as const).map(opt => (
               <button
                 key={opt}
@@ -170,7 +170,7 @@ export default function Billing() {
                 className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all min-h-[40px] ${
                   interval === opt
                     ? "gradient-amber text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                    : "text-gray-400 hover:text-gray-200"
                 }`}
               >
                 {opt === "monthly" ? "Monthly" : "Annual"}
@@ -203,7 +203,7 @@ export default function Billing() {
                 return (
                   <article
                     key={plan.id}
-                    className={`bg-white rounded-2xl border-2 p-6 flex flex-col transition-all ${
+                    className={`bg-[#1C1C1E] rounded-2xl border-2 p-6 flex flex-col transition-all ${
                       plan.highlighted
                         ? "border-[#E8A020] shadow-lg shadow-[#E8A020]/10"
                         : isCurrent
@@ -227,13 +227,13 @@ export default function Billing() {
                       <Icon className="w-5 h-5 text-white" />
                     </div>
 
-                    <h3 className="text-lg font-extrabold text-gray-900 mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                    <h3 className="text-lg font-extrabold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                       {plan.name}
                     </h3>
-                    <p className="text-xs text-gray-500 mb-4">{plan.description}</p>
+                    <p className="text-xs text-gray-400 mb-4">{plan.description}</p>
 
                     <div className="mb-5">
-                      <span className="text-3xl font-extrabold text-gray-900">${price}</span>
+                      <span className="text-3xl font-extrabold text-white">${price}</span>
                       <span className="text-sm text-gray-400">/mo</span>
                       {interval === "annual" && (
                         <p className="text-xs text-green-600 font-semibold mt-0.5">Billed annually</p>
@@ -242,7 +242,7 @@ export default function Billing() {
 
                     <ul className="space-y-2 mb-6 flex-1" aria-label={`${plan.name} features`}>
                       {plan.features.map((feature: string) => (
-                        <li key={feature} className="flex items-start gap-2 text-sm text-gray-600">
+                        <li key={feature} className="flex items-start gap-2 text-sm text-gray-300">
                           <CheckCircle className="w-4 h-4 text-[#E8A020] flex-shrink-0 mt-0.5" aria-hidden="true" />
                           {feature}
                         </li>

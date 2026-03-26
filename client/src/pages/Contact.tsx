@@ -84,7 +84,7 @@ export default function Contact() {
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 py-16 sm:py-20">
+      <div className="max-w-5xl mx-auto px-4 py-10 sm:py-14">
         <div className="grid md:grid-cols-2 gap-12 items-start">
           {/* Left */}
           <div>

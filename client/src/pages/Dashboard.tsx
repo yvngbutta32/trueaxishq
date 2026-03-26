@@ -284,6 +284,27 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
         ))}
       </div>
 
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {([
+          { icon: Plus, label: "Add Client", color: "#6366F1", panel: "clients" },
+          { icon: Calendar, label: "New Booking", color: "#F59E0B", panel: "scheduling" },
+          { icon: FileText, label: "New Invoice", color: "#E8A020", panel: "invoices" },
+          { icon: Mail, label: "AI Follow-Up", color: "#5A9A7A", panel: "followups" },
+        ] as { icon: React.ElementType; label: string; color: string; panel: ActivePanel }[]).map(({ icon: Icon, label, color, panel }) => (
+          <button
+            key={label}
+            onClick={() => setActivePanel(panel)}
+            className="bg-white rounded-2xl p-4 border border-gray-100 card-lift flex flex-col items-center gap-2 text-center hover:border-[#E8A020]/30 transition-all group"
+          >
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white transition-transform group-hover:scale-110" style={{ backgroundColor: color }}>
+              <Icon className="w-4 h-4" aria-hidden="true" />
+            </div>
+            <span className="text-xs font-semibold text-[#1C1C1E]">{label}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Charts */}
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
@@ -1852,3 +1873,4 @@ export default function Dashboard() {
     </div>
   );
 }
+ 

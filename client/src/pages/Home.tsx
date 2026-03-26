@@ -570,7 +570,7 @@ function StatsBar() {
   ];
 
   return (
-    <section className="py-20" style={{ background: "#0E0E0E" }}>
+    <section className="py-12" style={{ background: "#0E0E0E" }}>
       <div className="container">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl overflow-hidden" style={{ background: "rgba(232,160,32,0.08)" }}>
           {stats.map((s, i) => (
@@ -601,9 +601,9 @@ function FeaturesSection() {
   ];
 
   return (
-    <section id="features" className="py-24" style={{ background: "#141414" }}>
+    <section id="features" className="py-16" style={{ background: "#141414" }}>
       <div className="container">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <div className="section-label mb-3">Platform Features</div>
           <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
             Stop juggling five different tools.
@@ -661,10 +661,10 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 relative" style={{ background: "#0E0E0E" }}>
+    <section id="how-it-works" className="py-16 relative" style={{ background: "#0E0E0E" }}>
       <div className="absolute inset-0 retro-grid opacity-40 pointer-events-none" />
       <div className="container relative z-10">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <div className="section-label mb-3">How It Works</div>
           <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
             From signup to autopilot in 4 steps
@@ -706,7 +706,7 @@ function ClientPulseShowcase() {
   ];
 
   return (
-    <section className="py-24" style={{ background: "#141414" }}>
+    <section className="py-16" style={{ background: "#141414" }}>
       <div className="container">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left — copy */}
@@ -822,9 +822,9 @@ function TestimonialsSection() {
   ];
 
   return (
-    <section className="py-24" style={{ background: "#0E0E0E" }}>
+    <section className="py-12" style={{ background: "#0E0E0E" }}>
       <div className="container">
-        <div className="text-center mb-16">
+        <div className="text-center mb-8">
           <div className="section-label mb-3">What Freelancers Say</div>
           <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
             Join thousands who scaled with TrueAxis HQ.
@@ -879,7 +879,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
   };
 
   return (
-    <section className="py-24 relative overflow-hidden" style={{ background: "#141414" }}>
+    <section className="py-12 relative overflow-hidden" style={{ background: "#141414" }}>
       <div className="absolute inset-0 retro-grid opacity-25 pointer-events-none" />
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 80% at 50% 50%, rgba(232,160,32,0.06) 0%, transparent 70%)" }} />
       <div className="container relative z-10 text-center max-w-2xl mx-auto">

@@ -32,7 +32,7 @@ export default function About() {
       </nav>
 
       {/* Hero */}
-      <section className="py-20 sm:py-28 px-4 text-center relative overflow-hidden">
+      <section className="py-10 sm:py-14 px-4 text-center relative overflow-hidden">
         <div className="absolute inset-0 retro-grid opacity-30 pointer-events-none" />
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 60% at 50% 40%, rgba(232,160,32,0.07) 0%, transparent 70%)" }} />
         <div className="relative max-w-3xl mx-auto">
@@ -51,7 +51,7 @@ export default function About() {
       </section>
 
       {/* Mission / Values / Promise */}
-      <section className="py-16 px-4" style={{ background: "#0E0E0E" }}>
+      <section className="py-12 px-4" style={{ background: "#0E0E0E" }}>
         <div className="container max-w-5xl mx-auto grid md:grid-cols-3 gap-5">
           {[
             { icon: Target, title: "Our Mission", body: "To give every freelancer and solo service provider the same operational leverage that enterprise companies have — without the enterprise price tag or complexity." },
@@ -70,7 +70,7 @@ export default function About() {
       </section>
 
       {/* Story */}
-      <section className="py-20 px-4" style={{ background: "#141414" }}>
+      <section className="py-14 px-4" style={{ background: "#141414" }}>
         <div className="container max-w-3xl mx-auto">
           <div className="section-label mb-3 text-center">The Story</div>
           <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em", textAlign: "center", marginBottom: "2rem" }}>
@@ -86,7 +86,7 @@ export default function About() {
       </section>
 
       {/* Stats */}
-      <section className="py-16 px-4" style={{ background: "#0E0E0E" }}>
+      <section className="py-12 px-4" style={{ background: "#0E0E0E" }}>
         <div className="container max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl overflow-hidden" style={{ background: "rgba(232,160,32,0.08)" }}>
           {[
             { icon: Users, value: "4,200+", label: "Active Users" },
@@ -104,7 +104,7 @@ export default function About() {
       </section>
 
       {/* What We Believe */}
-      <section className="py-20 px-4" style={{ background: "#141414" }}>
+      <section className="py-14 px-4" style={{ background: "#141414" }}>
         <div className="container max-w-3xl mx-auto">
           <div className="section-label mb-3 text-center">Our Principles</div>
           <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em", textAlign: "center", marginBottom: "2rem" }}>
@@ -128,7 +128,7 @@ export default function About() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 text-center relative overflow-hidden" style={{ background: "#0E0E0E" }}>
+      <section className="py-14 px-4 text-center relative overflow-hidden" style={{ background: "#0E0E0E" }}>
         <div className="absolute inset-0 retro-grid opacity-25 pointer-events-none" />
         <div className="container relative z-10 max-w-xl mx-auto">
           <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
