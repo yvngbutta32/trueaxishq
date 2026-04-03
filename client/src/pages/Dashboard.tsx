@@ -27,7 +27,7 @@ import {
   Building, Save, Moon, Sun, Bot, CreditCard,
   ExternalLink, Bell, Search, ChevronDown, Loader2,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
-  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature
+  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -311,7 +311,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
   const stats = [
     { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), change: "+12% this month", icon: DollarSign, color: "#E8A020" },
     { label: "Active Clients", value: String(analytics?.activeClients || 0), change: `${analytics?.totalClients || 0} total`, icon: Users, color: "#6366F1" },
-    { label: "Sessions Completed", value: String(analytics?.completedSessions || 0), change: `${analytics?.completedSessions || 0} upcoming`, icon: CheckCircle, color: "#F59E0B" },
+    { label: "Sessions Completed", value: String(analytics?.completedSessions || 0), change: `${analytics?.upcomingSessions || 0} upcoming`, icon: CheckCircle, color: "#F59E0B" },
     { label: "Outstanding", value: formatCurrency(analytics?.outstanding || 0), change: "Awaiting payment", icon: Clock, color: "#FF6B6B" },
   ];
 
@@ -840,6 +840,16 @@ function SchedulingPanel() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", date: "", time: "", duration: 60, notes: "" });
   const [schedConfirm, setSchedConfirm] = useState<ConfirmState>(defaultConfirm);
+  const [smartSuggestions, setSmartSuggestions] = useState<{ date: string; time: string; reason: string }[]>([]);
+
+  const smartSchedule = trpc.ai.smartSchedule.useMutation({
+    onSuccess: (data) => {
+      setSmartSuggestions(data.suggestions);
+      if (data.suggestions.length > 0) toast.success("AI found 3 optimal time slots!");
+      else toast.info("No suggestions available. Please enter a date manually.");
+    },
+    onError: () => toast.error("AI scheduling unavailable. Please set a date manually."),
+  });
 
   const { data: bookingList, isLoading } = trpc.bookings.list.useQuery({ status: "all" });
   const { data: clientList } = trpc.clients.list.useQuery({ search: "", status: "all" });
@@ -951,6 +961,29 @@ function SchedulingPanel() {
             </select>
           </div>
           <Field label="Notes" value={form.notes} onChange={v => setForm(p => ({ ...p, notes: v }))} placeholder="Session goals, preparation notes..." textarea />
+
+          {/* AI Smart Schedule */}
+          <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-amber-700 flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" />AI Time Suggestions</p>
+              <Button size="sm" variant="outline" className="h-6 text-xs px-2 border-amber-200 text-amber-700 hover:bg-amber-100" onClick={() => smartSchedule.mutate({ clientName: form.clientName || "client", service: form.service, notes: form.notes })} disabled={smartSchedule.isPending}>
+                {smartSchedule.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Suggest Times"}
+              </Button>
+            </div>
+            {smartSuggestions.length > 0 ? (
+              <div className="space-y-1.5">
+                {smartSuggestions.map((s, i) => (
+                  <button key={i} onClick={() => { setForm(p => ({ ...p, date: s.date, time: s.time })); setSmartSuggestions([]); toast.success("Time slot applied!"); }} className="w-full text-left px-3 py-2 rounded-lg bg-white border border-amber-100 hover:border-amber-300 transition-colors">
+                    <span className="text-xs font-semibold text-[#1C1C1E]">{s.date} at {s.time}</span>
+                    <span className="text-xs text-gray-400 ml-2">{s.reason}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-amber-600 opacity-70">Click "Suggest Times" to get AI-recommended slots based on your schedule.</p>
+            )}
+          </div>
+
           <div className="flex gap-3 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => setShowAdd(false)}>Cancel</Button>
             <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90" onClick={() => createBooking.mutate(form)} disabled={createBooking.isPending}>
@@ -1003,6 +1036,18 @@ function InvoicesPanel() {
   const payNow = trpc.invoices.payNow.useMutation({
     onSuccess: (data) => { window.open(data.url, "_blank"); toast.success("Opening secure payment page..."); },
     onError: (e) => toast.error(e.message),
+  });
+  const duplicateInvoice = trpc.invoices.duplicate.useMutation({
+    onSuccess: (data) => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); toast.success(`Invoice duplicated as ${data.invoiceNumber} (draft).`); },
+    onError: (e) => toast.error(e.message),
+  });
+  const categorizeInvoice = trpc.ai.categorizeInvoice.useMutation({
+    onSuccess: (data) => {
+      const tagStr = data.tags.length > 0 ? ` [${data.tags.join(", ")}]` : "";
+      setForm(p => ({ ...p, notes: p.notes ? `${p.notes}\nCategory: ${data.category}${tagStr}` : `Category: ${data.category}${tagStr}` }));
+      toast.success(`Categorized as: ${data.category} (${Math.round(data.confidence * 100)}% confidence)`);
+    },
+    onError: () => toast.error("AI categorization unavailable."),
   });
 
   const statusColor: Record<string, string> = {
@@ -1090,8 +1135,14 @@ function InvoicesPanel() {
                   </button>
                 </>
               )}
-              <button onClick={() => setPreviewInvoice(inv)} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Preview invoice">
+              <button onClick={() => setPreviewInvoice(inv)} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Preview invoice" title="Preview invoice">
                 <Eye className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-1 rounded hover:bg-blue-50 text-gray-300 hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => duplicateInvoice.mutate({ id: inv.id })} className="p-1 rounded hover:bg-[#E8A020]/10 text-gray-300 hover:text-[#E8A020] transition-colors" aria-label="Duplicate invoice" title="Duplicate invoice" disabled={duplicateInvoice.isPending}>
+                <Copy className="w-3.5 h-3.5" />
               </button>
               <button onClick={() => setInvConfirm({ open: true, title: "Delete Invoice?", description: "Delete this invoice? This cannot be undone.", onConfirm: () => deleteInvoice.mutate({ id: inv.id }) })} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete invoice">
                 <Trash2 className="w-3.5 h-3.5" />
@@ -1113,7 +1164,17 @@ function InvoicesPanel() {
           </div>
           <Field label="Client Name" value={form.clientName} onChange={v => setForm(p => ({ ...p, clientName: v }))} placeholder="Jane Smith" required />
           <Field label="Client Email" value={form.clientEmail} onChange={v => setForm(p => ({ ...p, clientEmail: v }))} placeholder="jane@example.com" type="email" />
-          <Field label="Service Description" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="3-month coaching program, web design..." />
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-semibold text-gray-600">Service Description</label>
+              {form.service && (
+                <Button size="sm" variant="outline" className="h-5 text-[10px] px-2 border-amber-200 text-amber-700 hover:bg-amber-50" onClick={() => categorizeInvoice.mutate({ service: form.service, notes: form.notes, amount: parseFloat(form.amount) || 0 })} disabled={categorizeInvoice.isPending}>
+                  {categorizeInvoice.isPending ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <><Sparkles className="w-2.5 h-2.5 mr-1" />AI Categorize</>}
+                </Button>
+              )}
+            </div>
+            <input value={form.service} onChange={e => setForm(p => ({ ...p, service: e.target.value }))} placeholder="3-month coaching program, web design..." className="form-input-light" />
+          </div>
           <Field label="Amount ($) *" value={form.amount} onChange={v => setForm(p => ({ ...p, amount: v }))} placeholder="500.00" type="number" required />
           <Field label="Due Date" value={form.dueDate} onChange={v => setForm(p => ({ ...p, dueDate: v }))} type="date" />
           <Field label="Notes" value={form.notes} onChange={v => setForm(p => ({ ...p, notes: v }))} placeholder="Payment terms, bank details..." textarea />
@@ -1288,6 +1349,9 @@ function FollowUpsPanel() {
                 <p className="text-xs text-gray-400 mt-1 line-clamp-2">{f.body}</p>
               </div>
               <div className="flex gap-1.5 flex-shrink-0">
+                <button onClick={() => copyToClipboard(f.body)} className="p-1.5 rounded-lg hover:bg-[#E8A020]/10 text-gray-400 hover:text-[#E8A020] transition-colors" aria-label="Copy email body to clipboard" title="Copy email body">
+                  <Copy className="w-4 h-4" />
+                </button>
                 <button onClick={() => setPreviewFollowUp(f)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Preview email">
                   <Eye className="w-4 h-4" />
                 </button>
@@ -1496,7 +1560,7 @@ function AnalyticsPanel() {
                   <span className="text-xs text-gray-400 w-4">{i + 1}</span>
                   <div className="flex-1">
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium text-[#1C1C1E]">{s.service}</span>
+                      <span className="text-sm font-medium text-[#1C1C1E]">{s.name ?? s.service}</span>
                       <span className="text-sm font-bold text-[#E8A020]">{formatCurrency(s.revenue)}</span>
                     </div>
                     <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -1505,6 +1569,86 @@ function AnalyticsPanel() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Revenue Forecast */}
+        {analytics?.forecast && analytics.forecast.some(d => d.revenue > 0) && (
+          <div className="bg-white rounded-2xl p-5 border border-gray-100 lg:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Revenue Forecast (90-Day)</h3>
+              <div className="flex items-center gap-4 text-xs text-gray-400">
+                <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-[#E8A020] inline-block" />Actual</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-[#E8A020] opacity-40 inline-block border-dashed border-t border-[#E8A020]" />Projected</span>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={analytics.forecast}>
+                <defs>
+                  <linearGradient id="forecastGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#E8A020" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#E8A020" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
+                <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: "12px" }} formatter={(v: number, _: string, p: any) => [formatCurrency(v), p.payload.projected ? "Projected" : "Actual"]} />
+                <Area type="monotone" dataKey="revenue" stroke="#E8A020" strokeWidth={2.5} fill="url(#forecastGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Client LTV */}
+        {analytics?.clientLTV && analytics.clientLTV.length > 0 && (
+          <div className="bg-white rounded-2xl p-5 border border-gray-100">
+            <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Top Clients by LTV</h3>
+            <div className="space-y-3">
+              {analytics.clientLTV.slice(0, 6).map((c: any, i: number) => (
+                <div key={c.clientId} className="flex items-center gap-3">
+                  <span className="text-xs text-gray-400 w-4">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm font-medium text-[#1C1C1E] truncate">{c.name}</span>
+                      <span className="text-sm font-bold text-[#E8A020] ml-2 flex-shrink-0">{formatCurrency(c.ltv)}</span>
+                    </div>
+                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${Math.min((c.ltv / analytics.clientLTV[0].ltv) * 100, 100)}%`, background: i === 0 ? "#E8A020" : "#6366F1" }} />
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{c.invoiceCount} invoice{c.invoiceCount !== 1 ? "s" : ""}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Referral Sources */}
+        {analytics?.referralSources && analytics.referralSources.length > 0 && (
+          <div className="bg-white rounded-2xl p-5 border border-gray-100">
+            <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Lead Sources</h3>
+            <div className="space-y-3">
+              {analytics.referralSources.slice(0, 6).map((s: any, i: number) => {
+                const total = analytics.referralSources.reduce((sum: number, r: any) => sum + r.count, 0);
+                const pct = total > 0 ? Math.round((s.count / total) * 100) : 0;
+                const colors = ["#E8A020", "#6366F1", "#5A9A7A", "#FF6B6B", "#F59E0B", "#8B5CF6"];
+                return (
+                  <div key={s.source} className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: colors[i % colors.length] }} />
+                    <div className="flex-1">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm font-medium text-[#1C1C1E] capitalize">{s.source.replace(/_/g, " ")}</span>
+                        <span className="text-xs font-bold text-gray-500">{s.count} ({pct}%)</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: colors[i % colors.length] }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -1635,6 +1779,86 @@ function CopyBookingLinkButton({ url }: { url: string }) {
         <><Copy className="w-4 h-4" />Copy Booking Link</>
       )}
     </button>
+  );
+}
+
+// ─── API Keys Section ────────────────────────────────────────────────────────
+function ApiKeysSection() {
+  const [newKeyName, setNewKeyName] = useState("");
+  const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const utils = trpc.useUtils();
+  const { data: keys, isLoading } = trpc.apiKeys.list.useQuery();
+  const createKey = trpc.apiKeys.create.useMutation({
+    onSuccess: (data) => { setCreatedKey(data.key); setNewKeyName(""); utils.apiKeys.list.invalidate(); toast.success("API key created! Copy it now — it won't be shown again."); },
+    onError: (e) => toast.error(e.message),
+  });
+  const revokeKey = trpc.apiKeys.revoke.useMutation({
+    onSuccess: () => { utils.apiKeys.list.invalidate(); toast.success("API key revoked."); },
+    onError: (e) => toast.error(e.message),
+  });
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Zap className="w-4 h-4 text-[#E8A020]" />API Keys</h3>
+      <p className="text-xs text-gray-500">Use API keys to integrate TrueAxis HQ with Zapier, Make, or your own tools.</p>
+      {createdKey && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+          <p className="text-xs font-semibold text-green-700 mb-1">Your new API key (copy it now — it won't be shown again):</p>
+          <div className="flex items-center gap-2">
+            <code className="text-xs font-mono bg-white px-2 py-1 rounded border border-green-200 flex-1 truncate">{createdKey}</code>
+            <button onClick={() => { navigator.clipboard.writeText(createdKey); toast.success("Copied!"); }} className="p-1.5 rounded hover:bg-green-100 text-green-600"><Copy className="w-3.5 h-3.5" /></button>
+          </div>
+          <button onClick={() => setCreatedKey(null)} className="text-xs text-green-600 hover:underline mt-1">Dismiss</button>
+        </div>
+      )}
+      {isLoading ? <Skeleton className="h-10" /> : keys && keys.length > 0 ? (
+        <div className="space-y-2">
+          {keys.map(k => (
+            <div key={k.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+              <div>
+                <p className="text-sm font-semibold text-[#1C1C1E]">{k.name}</p>
+                <p className="text-xs text-gray-400 font-mono">{k.keyPrefix}... · Created {new Date(k.createdAt).toLocaleDateString()}{k.lastUsedAt ? ` · Last used ${new Date(k.lastUsedAt).toLocaleDateString()}` : " · Never used"}</p>
+              </div>
+              <button onClick={() => revokeKey.mutate({ id: k.id })} className="text-xs text-red-500 hover:underline font-medium" disabled={revokeKey.isPending}>Revoke</button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-gray-400">No API keys yet.</p>
+      )}
+      <div className="flex gap-2">
+        <input value={newKeyName} onChange={e => setNewKeyName(e.target.value)} placeholder="Key name (e.g. Zapier)" className="form-input-light flex-1" onKeyDown={e => e.key === 'Enter' && newKeyName.trim() && createKey.mutate({ name: newKeyName.trim() })} />
+        <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90" onClick={() => newKeyName.trim() && createKey.mutate({ name: newKeyName.trim() })} disabled={createKey.isPending || !newKeyName.trim()}>
+          {createKey.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Generate"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Audit Log Section ────────────────────────────────────────────────────────
+function AuditLogSection() {
+  const { data: logs, isLoading } = trpc.auditLog.list.useQuery({ limit: 20, offset: 0 });
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Activity className="w-4 h-4 text-[#E8A020]" />Activity Log</h3>
+      <p className="text-xs text-gray-500">A record of your recent account activity.</p>
+      {isLoading ? <div className="space-y-2">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-8" />)}</div> : !logs || logs.length === 0 ? (
+        <p className="text-xs text-gray-400">No activity recorded yet.</p>
+      ) : (
+        <div className="space-y-1 max-h-64 overflow-y-auto">
+          {logs.map(log => (
+            <div key={log.id} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#E8A020] mt-1.5 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-[#1C1C1E]">{log.action.replace(/\./g, ' › ')}</p>
+                {log.details && <p className="text-xs text-gray-400 truncate">{log.details}</p>}
+              </div>
+              <p className="text-xs text-gray-400 shrink-0">{new Date(log.createdAt).toLocaleString()}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1896,6 +2120,12 @@ function SettingsPanel() {
           {settings?.subscriptionStatus === "active" ? "Manage Subscription" : "Upgrade to Pro — $99/month"}
         </Button>
       </div>
+
+      {/* API Keys */}
+      <ApiKeysSection />
+
+      {/* Audit Log */}
+      <AuditLogSection />
     </div>
   );
 }
@@ -2181,6 +2411,7 @@ export default function Dashboard() {
   // Notifications — real-time bell
   const { data: notifList } = trpc.notifications.list.useQuery(undefined, { refetchInterval: 30_000, enabled: isAuthenticated });
   const { data: unreadData } = trpc.notifications.unreadCount.useQuery(undefined, { refetchInterval: 30_000, enabled: isAuthenticated });
+  const { data: settings } = trpc.settings.get.useQuery(undefined, { enabled: isAuthenticated, retry: 1 });
   const markReadMutation = trpc.notifications.markRead.useMutation({ onSuccess: () => { utils.notifications.list.invalidate(); utils.notifications.unreadCount.invalidate(); } });
   const markAllReadMutation = trpc.notifications.markAllRead.useMutation({ onSuccess: () => { utils.notifications.list.invalidate(); utils.notifications.unreadCount.invalidate(); } });
   const dismissNotifMutation = trpc.notifications.dismiss.useMutation({ onSuccess: () => { utils.notifications.list.invalidate(); utils.notifications.unreadCount.invalidate(); } });
@@ -2331,6 +2562,13 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+
+            {/* Plan Badge */}
+            {settings?.subscriptionStatus === "active" && (
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8A020]/15 text-[#E8A020] border border-[#E8A020]/30 capitalize">
+                {settings.planId || "Pro"}
+              </span>
+            )}
 
             {/* User Avatar */}
             <div

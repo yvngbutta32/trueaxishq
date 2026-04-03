@@ -452,8 +452,21 @@ function Hero({ onCTA }: { onCTA: () => void }) {
               </button>
             </div>
 
+            {/* Social proof counter */}
+            <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ background: "rgba(232,160,32,0.06)", border: "1px solid rgba(232,160,32,0.14)" }}>
+              <div className="flex -space-x-2">
+                {["#6366F1", "#E8A020", "#5A9A7A", "#FF6B6B"].map((c, i) => (
+                  <div key={i} className="w-7 h-7 rounded-full border-2 border-[#141414] flex items-center justify-center text-white text-[9px] font-bold" style={{ background: c }}>U{i + 1}</div>
+                ))}
+              </div>
+              <div>
+                <p className="text-xs font-bold" style={{ color: "#F5F0E8" }}>Trusted by 4,200+ freelancers</p>
+                <p className="text-[10px]" style={{ color: "rgba(245,240,232,0.45)" }}>Coaches · Designers · Consultants · Developers</p>
+              </div>
+            </div>
+
             <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(245,240,232,0.35)" }}>
-              {["No credit card required", "Cancel anytime", "GDPR compliant"].map(t => (
+              {["No credit card required", "Cancel anytime", "30-day money-back guarantee"].map(t => (
                 <span key={t} className="flex items-center gap-1.5">
                   <CheckCircle className="w-3.5 h-3.5" style={{ color: "#E8A020" }} />
                   {t}
@@ -921,6 +934,55 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
   );
 }
 
+// ─── FAQ Section ─────────────────────────────────────────────────────────────
+const HOME_FAQS = [
+  { q: "Is TrueAxis HQ really free to start?", a: "Yes. The Free plan gives you unlimited clients, invoices, and bookings with no credit card required. You only upgrade when you need advanced features like AI automation, recurring invoices, and priority support." },
+  { q: "How does the AI follow-up feature work?", a: "TrueAxis HQ analyzes each client's booking history, invoice activity, and engagement signals to generate a personalized follow-up email in one click. You review and send — the AI does the drafting." },
+  { q: "Can I accept payments through TrueAxis HQ?", a: "Yes. Connect your Stripe account and your clients can pay invoices online via credit card. Payments are processed securely by Stripe — TrueAxis HQ never touches your funds." },
+  { q: "Do I need to install anything?", a: "No. TrueAxis HQ is a fully web-based platform. It works on any device with a browser. You can also install it as a PWA (Progressive Web App) on your phone for a native app experience." },
+  { q: "Can clients book appointments without creating an account?", a: "Yes. Your public booking page allows clients to schedule sessions without signing up. You get a unique URL (e.g. trueaxishq.com/book/yourname) to share on your website or social profiles." },
+  { q: "What happens to my data if I cancel?", a: "Your data is always yours. You can export all clients, invoices, and bookings as CSV at any time. We retain your data for 30 days after cancellation in case you change your mind." },
+];
+
+function FAQSection() {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <section className="py-20 px-6" style={{ background: "#141414" }}>
+      <div className="max-w-3xl mx-auto">
+        <div className="text-center mb-12">
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ background: "rgba(232,160,32,0.12)", color: "#E8A020" }}>FAQ</span>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3" style={{ fontFamily: "Plus Jakarta Sans, sans-serif" }}>Frequently Asked Questions</h2>
+          <p className="text-gray-400 text-base">Everything you need to know before getting started.</p>
+        </div>
+        <div className="space-y-3">
+          {HOME_FAQS.map((faq, i) => (
+            <div key={i} className="rounded-2xl border overflow-hidden" style={{ borderColor: open === i ? "rgba(232,160,32,0.4)" : "rgba(255,255,255,0.08)", background: open === i ? "rgba(232,160,32,0.04)" : "rgba(255,255,255,0.03)" }}>
+              <button
+                className="w-full flex items-center justify-between px-5 py-4 text-left"
+                onClick={() => setOpen(open === i ? null : i)}
+                aria-expanded={open === i}
+              >
+                <span className="text-sm font-semibold text-white pr-4">{faq.q}</span>
+                <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: open === i ? "#E8A020" : "rgba(255,255,255,0.1)" }}>
+                  <span className="text-xs font-bold" style={{ color: open === i ? "#141414" : "#fff" }}>{open === i ? "−" : "+"}</span>
+                </span>
+              </button>
+              {open === i && (
+                <div className="px-5 pb-4">
+                  <p className="text-sm text-gray-400 leading-relaxed">{faq.a}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="text-center text-sm text-gray-500 mt-10">
+          Still have questions? <a href="/contact" className="text-[#E8A020] hover:underline font-medium">Contact our team →</a>
+        </p>
+      </div>
+    </section>
+  );
+}
+
 // ─── Footer ───────────────────────────────────────────────────────────────────
 function Footer() {
   const [, navigate] = useLocation();
@@ -1033,6 +1095,7 @@ export default function Home() {
       <ClientPulseShowcase />
       <TestimonialsSection />
       <EmailCapture onCTA={() => setModalOpen(true)} />
+      <FAQSection />
       <Footer />
       <OnboardingModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </div>

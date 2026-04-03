@@ -164,6 +164,15 @@ export default function Pricing() {
         </div>
       </section>
 
+      {/* Urgency Banner */}
+      <div className="py-2.5 text-center text-xs font-semibold" style={{ background: "rgba(232,160,32,0.12)", borderTop: "1px solid rgba(232,160,32,0.20)", borderBottom: "1px solid rgba(232,160,32,0.20)", color: "#E8A020" }}>
+        <span className="inline-flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#E8A020] animate-pulse" />
+          Early-bird pricing ends soon — lock in your rate before the next price increase
+          <span className="w-1.5 h-1.5 rounded-full bg-[#E8A020] animate-pulse" />
+        </span>
+      </div>
+
       {/* Plans */}
       <section className="pb-20 px-4">
         <div className="container">
@@ -301,6 +310,21 @@ export default function Pricing() {
                 {text}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Money-Back Guarantee */}
+      <section className="py-12 px-4" style={{ background: "#141414" }}>
+        <div className="container max-w-2xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-center gap-6 p-7 rounded-2xl" style={{ background: "rgba(232,160,32,0.05)", border: "1px solid rgba(232,160,32,0.18)" }}>
+            <div className="flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(232,160,32,0.12)", border: "2px solid rgba(232,160,32,0.30)" }}>
+              <Shield className="w-8 h-8" style={{ color: "#E8A020" }} />
+            </div>
+            <div className="text-center sm:text-left">
+              <h3 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.125rem", color: "#F5F0E8" }}>30-Day Money-Back Guarantee</h3>
+              <p className="mt-1 text-sm" style={{ color: "rgba(245,240,232,0.50)" }}>Try TrueAxis HQ risk-free for 30 days. If you’re not completely satisfied, we’ll refund every cent — no questions asked, no hoops to jump through.</p>
+            </div>
           </div>
         </div>
       </section>

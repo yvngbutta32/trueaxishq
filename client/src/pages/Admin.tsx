@@ -317,9 +317,10 @@ export default function Admin() {
                 {[...Array(4)].map((_, i) => <div key={i} className="skeleton h-32 rounded-2xl" />)}
               </div>
             ) : (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 <StatCard icon={Users} label="Total Users" value={stats?.totalUsers ?? 0} color="bg-blue-500" />
                 <StatCard icon={Crown} label="Paid Subscribers" value={stats?.paidUsers ?? 0} sub={`${stats?.totalUsers ? Math.round((stats.paidUsers / stats.totalUsers) * 100) : 0}% conversion`} color="bg-[#E8A020]" />
+                <StatCard icon={Mail} label="Email Leads" value={stats?.totalLeads ?? 0} sub="Landing page captures" color="bg-green-500" />
                 <StatCard icon={DollarSign} label="MRR" value={`$${(stats?.mrr ?? 0).toLocaleString()}`} sub="Monthly recurring revenue" color="bg-purple-500" />
                 <StatCard icon={TrendingUp} label="ARR" value={`$${(stats?.arr ?? 0).toLocaleString()}`} sub="Annual run rate" color="bg-orange-500" />
               </div>

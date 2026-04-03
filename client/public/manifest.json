@@ -1,0 +1,39 @@
+{
+  "name": "TrueAxis HQ",
+  "short_name": "TrueAxis",
+  "description": "The AI-powered business platform for freelancers & coaches",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1C1C1E",
+  "theme_color": "#E8A020",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["business", "productivity", "finance"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Open your dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "name": "New Invoice",
+      "short_name": "Invoice",
+      "description": "Create a new invoice",
+      "url": "/dashboard?panel=invoices"
+    },
+    {
+      "name": "New Booking",
+      "short_name": "Booking",
+      "description": "Schedule a new booking",
+      "url": "/dashboard?panel=scheduling"
+    }
+  ]
+}

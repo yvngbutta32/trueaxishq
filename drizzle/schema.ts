@@ -417,3 +417,31 @@ export const recurringInvoices = mysqlTable("recurringInvoices", {
 
 export type RecurringInvoice = typeof recurringInvoices.$inferSelect;
 export type InsertRecurringInvoice = typeof recurringInvoices.$inferInsert;
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+export const auditLogs = mysqlTable("auditLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  action: varchar("action", { length: 128 }).notNull(),
+  entityType: varchar("entityType", { length: 64 }),
+  entityId: int("entityId"),
+  details: text("details"),
+  ip: varchar("ip", { length: 64 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
+// ─── User API Keys ─────────────────────────────────────────────────────────────
+export const userApiKeys = mysqlTable("userApiKeys", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 128 }).notNull(),
+  keyHash: varchar("keyHash", { length: 256 }).notNull(),
+  keyPrefix: varchar("keyPrefix", { length: 16 }).notNull(),
+  lastUsedAt: timestamp("lastUsedAt"),
+  expiresAt: timestamp("expiresAt"),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type UserApiKey = typeof userApiKeys.$inferSelect;
+export type InsertUserApiKey = typeof userApiKeys.$inferInsert;

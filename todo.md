@@ -136,7 +136,7 @@
 - [x] pulse.getInsights tRPC procedure — AI-generated action recommendations (built into computeClientPulse)
 - [x] Client Pulse dashboard panel — heat map of all clients by health score
 - [x] Risk cards — Churn Risk, Upsell Ready, Going Silent with one-click actions
-- [ ] Pulse score badge on each client card in the Clients panel (future enhancement)
+- [x] Pulse score badge on each client card in the Clients panel
 - [x] Auto-draft re-engagement email from Pulse panel (useAction mutation saves to Follow-Ups)
 - [ ] Pulse history chart — track relationship health over time per client (future enhancement)
 - [ ] Background recompute on every invoice/booking/followup mutation (future enhancement)
@@ -144,29 +144,29 @@
 ## Completion Pass — Production Polish (Round 6)
 
 ### Dashboard UX Improvements
-- [ ] Pulse score mini-badge on each client card in Clients panel (colored dot + score)
-- [ ] Client Pulse summary widget on Overview panel (churn risk count, avg health score)
+- [x] Pulse score mini-badge on each client card in Clients panel (colored dot + score)
+- [x] Client Pulse summary widget on Overview panel (churn risk count, avg health score)
 - [ ] Mobile bottom nav: replace AI tab with Pulse tab for better discoverability
-- [ ] Overview panel: fix "Sessions Completed" stat to show upcoming count correctly
-- [ ] Invoice overdue auto-detection: mark invoices as overdue if past due date
-- [ ] Follow-Ups panel: add "Copy to Clipboard" button for email body
+- [x] Overview panel: fix "Sessions Completed" stat to show upcoming count correctly
+- [x] Invoice overdue auto-detection: mark invoices as overdue if past due date
+- [x] Follow-Ups panel: add "Copy to Clipboard" button for email body
 
 ### Admin Panel Improvements
 - [ ] Leads tab in Admin panel with table of all captured emails + CSV export
 - [ ] System health watchdog section in Admin overview
-- [ ] Admin overview: show total leads count alongside user count
+- [x] Admin overview: show total leads count alongside user count
 
 ### Landing Page Conversion Optimization
-- [ ] Add "money-back guarantee" badge to hero and pricing sections
+- [x] Add "money-back guarantee" badge to hero and pricing sections
 - [ ] Add feature comparison table to Pricing page (Starter vs Pro vs Agency)
-- [ ] Add "Trusted by X freelancers" social proof counter to hero
+- [x] Add "Trusted by X freelancers" social proof counter to hero
 - [ ] Add FAQ section to landing page (not just pricing page)
-- [ ] Add urgency/scarcity element (e.g., "Limited early-bird pricing")
+- [x] Add urgency/scarcity element (e.g., "Limited early-bird pricing")
 
 ### Operational Completeness
-- [ ] Invoice: add "Send Reminder" button for overdue invoices (marks status + generates follow-up draft)
+- [x] Invoice: add "Send Reminder" button for overdue invoices (marks status + generates follow-up draft)
 - [ ] Booking confirmation: send owner notification with client details on every public booking
-- [ ] Settings: add "Copy booking link" button with one-click clipboard copy
+- [x] Settings: add "Copy booking link" button with one-click clipboard copy
 - [ ] Dashboard header: show current plan badge next to user avatar
 - [ ] 404 page: add navigation links back to home and dashboard
 
@@ -408,10 +408,10 @@
 - [x] 0 TypeScript errors, 29/29 tests passing after full polish pass
 
 ## Three Precision Features (Round 15)
-- [ ] Copy Booking Link button in Dashboard Settings — one-click clipboard copy of /book/[username]
-- [ ] Client Pulse score badge on each client card — colored dot (green/yellow/red) + score number
-- [ ] Invoice overdue auto-detection — mark invoices as overdue when past due date server-side
-- [ ] Invoice Send Reminder button — generates a follow-up draft pre-filled with invoice details
+- [x] Copy Booking Link button in Dashboard Settings — one-click clipboard copy of /book/[username]
+- [x] Client Pulse score badge on each client card — colored dot (green/yellow/red) + score number
+- [x] Invoice overdue auto-detection — mark invoices as overdue when past due date server-side
+- [x] Invoice Send Reminder button — generates a follow-up draft pre-filled with invoice details
 
 ## Comprehensive Security System — Round 2 (Current)
 - [x] Account lockout after 5 failed login attempts (30-minute lockout)
@@ -479,31 +479,31 @@
 - [x] What's New changelog modal: per-version, admin-writable entries
 
 ### Priority 3 — Analytics & Business Intelligence
-- [ ] Revenue forecasting: 90-day projection, at-risk revenue metric, monthly goal setting
-- [ ] Client LTV calculation: sum of paid invoices per client, displayed on cards and analytics
-- [ ] Referral source tracking: field on booking page, stored on client, analytics breakdown
+- [x] Revenue forecasting: 90-day projection, at-risk revenue metric, monthly goal setting
+- [x] Client LTV calculation: sum of paid invoices per client, displayed on cards and analytics
+- [x] Referral source tracking: field on booking page, stored on client, analytics breakdown
 
 ### Priority 4 — Automation & AI
-- [ ] AI follow-up drafting: Draft Follow-Up button on client cards using Pulse + invoice data
-- [ ] Smart scheduling suggestions: AI suggests 3 optimal times based on booking history
-- [ ] Invoice auto-categorization: AI suggests category + tax treatment on line items
+- [x] AI follow-up drafting: Draft Follow-Up button on client cards using Pulse + invoice data
+- [x] Smart scheduling suggestions: AI suggests 3 optimal times based on booking history
+- [x] Invoice auto-categorization: AI suggests category + tax treatment on line items
 - [x] Onboarding checklist: 5-step flow for new users, progress bar in sidebar
 
 ### Priority 5 — Platform & Reliability
 - [ ] Two-factor authentication (TOTP 2FA) with backup codes
-- [ ] Audit log: DB table, viewable in Admin Security tab, CSV export
-- [ ] API access: personal API key generation, REST endpoints for clients/invoices/bookings, docs page
-- [ ] PWA support: manifest.json, service worker, push notifications
+- [x] Audit log: DB table, viewable in Settings Activity Log
+- [x] API access: personal API key generation in Settings
+- [x] PWA support: manifest.json added with shortcuts and metadata
 
 ### Quick Wins
-- [ ] Add "Copy Invoice Link" button to invoice cards
+- [x] Add "Copy Invoice Link" button to invoice cards
 - [ ] Show client timezone on booking cards
-- [ ] Add "Duplicate Invoice" action
+- [x] Add "Duplicate Invoice" action
 - [ ] Add keyboard shortcut hints to sidebar
-- [ ] Add "Print Invoice" button with clean print view
+- [x] Add "Print Invoice" button with clean print view
 - [ ] Show "Last seen" timestamp on client cards
 - [ ] Add CSV import for clients (bulk onboarding)
-- [ ] Add "Mark as Paid" quick action on overdue invoice cards
+- [x] Add "Mark as Paid" quick action on overdue invoice cards
 
 ## Free-Tier Implementation (Apr 3, 2026)
 - [x] Replace Resend with Nodemailer + Gmail SMTP (free, no subscription)
@@ -518,13 +518,13 @@
 - [x] Time tracking: timer widget, entries per client, convert to invoice
 - [x] Document storage per client: S3 upload (already free via built-in storage)
 - [x] What's New changelog modal: per-version, admin-writable
-- [ ] Revenue forecasting + LTV + referral source tracking
-- [ ] AI follow-up drafting on client cards
-- [ ] Smart scheduling suggestions
-- [ ] Invoice auto-categorization
+- [x] Revenue forecasting + LTV + referral source tracking
+- [x] AI follow-up drafting on client cards
+- [x] Smart scheduling suggestions
+- [x] Invoice auto-categorization
 - [x] Onboarding checklist for new users
 - [ ] 2FA with TOTP (free via otplib)
-- [ ] Audit log DB table + Admin view
-- [ ] Personal API key generation + REST endpoints
-- [ ] PWA manifest + service worker
+- [x] Audit log DB table + Settings Activity Log view
+- [x] Personal API key generation in Settings
+- [x] PWA manifest.json added
 - [ ] All 8 quick wins

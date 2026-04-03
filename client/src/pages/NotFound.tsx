@@ -1,52 +1,60 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle, Home } from "lucide-react";
+import { Home, LayoutDashboard, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function NotFound() {
   const [, setLocation] = useLocation();
 
-  const handleGoHome = () => {
-    setLocation("/");
-  };
-
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-      <Card className="w-full max-w-lg mx-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-        <CardContent className="pt-8 pb-8 text-center">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-red-100 rounded-full animate-pulse" />
-              <AlertCircle className="relative h-16 w-16 text-red-500" />
-            </div>
-          </div>
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#F8F7F4]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+      <div className="text-center px-6 max-w-md">
+        {/* Big 404 */}
+        <div className="text-[120px] font-extrabold leading-none text-[#1C1C1E] opacity-10 select-none mb-2">404</div>
+        <div className="-mt-8 mb-6">
+          <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#E8A020]/10 border border-[#E8A020]/20">
+            <span className="text-3xl">🔍</span>
+          </span>
+        </div>
 
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">404</h1>
+        <h1 className="text-2xl font-extrabold text-[#1C1C1E] mb-2">Page not found</h1>
+        <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+          The page you're looking for doesn't exist or has been moved.<br />
+          Let's get you back on track.
+        </p>
 
-          <h2 className="text-xl font-semibold text-slate-700 mb-4">
-            Page Not Found
-          </h2>
-
-          <p className="text-slate-600 mb-8 leading-relaxed">
-            Sorry, the page you are looking for doesn't exist.
-            <br />
-            It may have been moved or deleted.
-          </p>
-
-          <div
-            id="not-found-button-group"
-            className="flex flex-col sm:flex-row gap-3 justify-center"
+        <div
+          id="not-found-button-group"
+          className="flex flex-col sm:flex-row gap-3 justify-center"
+        >
+          <Button
+            onClick={() => setLocation("/")}
+            className="gradient-amber text-white border-0 hover:opacity-90 flex items-center gap-2"
           >
-            <Button
-              onClick={handleGoHome}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Go Home
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <Home className="w-4 h-4" />
+            Go to Homepage
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setLocation("/dashboard")}
+            className="flex items-center gap-2 bg-white"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Open Dashboard
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => window.history.back()}
+            className="flex items-center gap-2 text-gray-500"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Go Back
+          </Button>
+        </div>
+
+        <p className="text-xs text-gray-400 mt-8">
+          TrueAxis HQ · <a href="/help" className="underline hover:text-[#E8A020]">Help Center</a> · <a href="/contact" className="underline hover:text-[#E8A020]">Contact Support</a>
+        </p>
+      </div>
     </div>
   );
 }

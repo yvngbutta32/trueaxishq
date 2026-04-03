@@ -9,7 +9,7 @@ import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -585,6 +585,29 @@ export const appRouter = router({
 
         return { url: session.url! };
       }),
+
+    duplicate: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [inv] = await db.select().from(invoices)
+          .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id))).limit(1);
+        if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
+        const invoiceNumber = generateInvoiceNumber();
+        const result = await db.insert(invoices).values({
+          userId: ctx.user.id,
+          clientId: inv.clientId,
+          invoiceNumber,
+          clientName: inv.clientName,
+          clientEmail: inv.clientEmail,
+          service: inv.service,
+          amount: inv.amount,
+          status: "draft",
+          dueDate: inv.dueDate,
+          notes: inv.notes,
+        });
+        return { id: Number((result as any).insertId), invoiceNumber, success: true };
+      }),
   }),
   // ── Bookings ──────────────────────────────────────────────────────────────
   bookings: router({
@@ -887,6 +910,22 @@ export const appRouter = router({
       const outstanding = allInvoices.filter(i => i.status === "sent").reduce((s, i) => s + parseFloat(String(i.amount)), 0);
       const activeClients = allClients.filter(c => c.status === "active").length;
       const completedSessions = allBookings.filter(b => b.status === "completed").length;
+      const upcomingSessions = allBookings.filter(b => b.status === "scheduled").length;
+
+      // Auto-detect overdue invoices (sent but past due date)
+      const nowMs = Date.now();
+      const overdueIds: number[] = [];
+      for (const inv of allInvoices) {
+        if (inv.status === "sent" && inv.dueDate) {
+          const dueMs = new Date(inv.dueDate).getTime();
+          if (dueMs < nowMs) overdueIds.push(inv.id);
+        }
+      }
+      if (overdueIds.length > 0) {
+        await db.update(invoices).set({ status: "overdue" }).where(
+          and(eq(invoices.userId, ctx.user.id), sql`${invoices.id} IN (${sql.join(overdueIds.map(id => sql`${id}`), sql`, `)})`)
+        ).catch(() => {});
+      }
 
       // Monthly revenue for last 6 months
       const now = new Date();
@@ -921,7 +960,51 @@ export const appRouter = router({
         .sort((a, b) => b[1] - a[1]).slice(0, 5)
         .map(([name, revenue]) => ({ name, revenue }));
 
-      return { totalRevenue, outstanding, activeClients, completedSessions, totalClients: allClients.length, totalInvoices: allInvoices.length, monthlyRevenue, clientGrowth, topServices };
+      // Revenue forecast: simple linear regression on last 6 months
+      const revenueValues = monthlyRevenue.map(m => m.revenue);
+      const n = revenueValues.length;
+      const avgX = (n - 1) / 2;
+      const avgY = revenueValues.reduce((a, b) => a + b, 0) / n;
+      const slope = revenueValues.reduce((sum, y, x) => sum + (x - avgX) * (y - avgY), 0) /
+        revenueValues.reduce((sum, _, x) => sum + Math.pow(x - avgX, 2), 0) || 0;
+      const intercept = avgY - slope * avgX;
+      const forecast: { month: string; revenue: number; projected: boolean }[] = [
+        ...monthlyRevenue.map((m, i) => ({ ...m, projected: false })),
+      ];
+      for (let i = 1; i <= 3; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const label = d.toLocaleString("default", { month: "short", year: "2-digit" });
+        const projected = Math.max(0, Math.round(intercept + slope * (n - 1 + i)));
+        forecast.push({ month: label, revenue: projected, projected: true });
+      }
+
+      // LTV per client: total paid invoices grouped by client
+      const ltvMap: Record<number, { name: string; ltv: number; invoiceCount: number }> = {};
+      for (const inv of allInvoices.filter(i => i.status === "paid" && i.clientId)) {
+        const cid = inv.clientId!;
+        if (!ltvMap[cid]) {
+          const c = allClients.find(c => c.id === cid);
+          ltvMap[cid] = { name: c?.name ?? inv.clientName, ltv: 0, invoiceCount: 0 };
+        }
+        ltvMap[cid].ltv += parseFloat(String(inv.amount));
+        ltvMap[cid].invoiceCount++;
+      }
+      const clientLTV = Object.entries(ltvMap)
+        .map(([id, v]) => ({ clientId: parseInt(id), ...v }))
+        .sort((a, b) => b.ltv - a.ltv).slice(0, 10);
+
+      // Referral source tracking from bookings (how clients found the user)
+      const allLeads = await db.select({ source: leads.source }).from(leads).catch(() => []);
+      const sourceMap: Record<string, number> = {};
+      for (const l of allLeads) {
+        const src = l.source || "direct";
+        sourceMap[src] = (sourceMap[src] || 0) + 1;
+      }
+      const referralSources = Object.entries(sourceMap)
+        .map(([source, count]) => ({ source, count }))
+        .sort((a, b) => b.count - a.count);
+
+      return { totalRevenue, outstanding, activeClients, completedSessions, upcomingSessions, totalClients: allClients.length, totalInvoices: allInvoices.length, monthlyRevenue, clientGrowth, topServices, forecast, clientLTV, referralSources };
     }),
   }),
 
@@ -962,9 +1045,71 @@ export const appRouter = router({
         const content = typeof rawContent === "string" ? rawContent : Array.isArray(rawContent) ? rawContent.map((c: any) => c.text ?? "").join("") : null;
         return { reply: content ?? "I'm here to help! What would you like to know?" };
       }),
+
+    smartSchedule: protectedProcedure
+      .input(z.object({
+        clientName: safeString(255),
+        service: safeOptionalString(255),
+        lastBookingDate: z.string().optional(),
+        notes: safeOptionalString(1000),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await requireDb();
+        const recentBookings = await db.select().from(bookings)
+          .where(eq(bookings.userId, ctx.user.id))
+          .orderBy(desc(bookings.createdAt)).limit(20);
+        const busyDays = recentBookings.map(b => b.date);
+        let result;
+        try {
+          result = await withTimeout(invokeLLM({
+            messages: [
+              { role: "system", content: `You are a scheduling assistant for a freelancer. Suggest 3 optimal meeting time slots for the next 2 weeks. The freelancer's recent bookings are on these dates: ${busyDays.slice(0, 10).join(", ") || "none yet"}. Avoid weekends unless necessary. Return JSON: { suggestions: [{ date: "YYYY-MM-DD", time: "HH:MM", reason: "brief reason" }] }` },
+              { role: "user", content: `Schedule a ${input.service || "session"} with ${input.clientName}. Last booking: ${input.lastBookingDate || "none"}. Notes: ${input.notes || "none"}.` },
+            ],
+            response_format: { type: "json_schema", json_schema: { name: "schedule_suggestions", strict: true, schema: { type: "object", properties: { suggestions: { type: "array", items: { type: "object", properties: { date: { type: "string" }, time: { type: "string" }, reason: { type: "string" } }, required: ["date", "time", "reason"], additionalProperties: false } } }, required: ["suggestions"], additionalProperties: false } } },
+          }), LLM_TIMEOUT_MS, "ai.smartSchedule");
+        } catch (_) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI scheduling temporarily unavailable." });
+        }
+        const raw = result.choices[0]?.message?.content;
+        try {
+          const parsed = JSON.parse(typeof raw === "string" ? raw : JSON.stringify(raw));
+          return { suggestions: parsed.suggestions ?? [] };
+        } catch {
+          return { suggestions: [] };
+        }
+      }),
+
+    categorizeInvoice: protectedProcedure
+      .input(z.object({
+        service: safeString(255),
+        notes: safeOptionalString(1000),
+        amount: z.number().min(0).max(1e9),
+      }))
+      .mutation(async ({ input }) => {
+        let result;
+        try {
+          result = await withTimeout(invokeLLM({
+            messages: [
+              { role: "system", content: `You are a bookkeeping assistant. Categorize this invoice into one of these categories: Consulting, Design, Development, Coaching, Marketing, Writing, Photography, Video, Legal, Accounting, Other. Return JSON: { category: string, confidence: number (0-1), tags: string[] }` },
+              { role: "user", content: `Service: ${input.service}. Notes: ${input.notes || "none"}. Amount: $${input.amount}.` },
+            ],
+            response_format: { type: "json_schema", json_schema: { name: "invoice_category", strict: true, schema: { type: "object", properties: { category: { type: "string" }, confidence: { type: "number" }, tags: { type: "array", items: { type: "string" } } }, required: ["category", "confidence", "tags"], additionalProperties: false } } },
+          }), LLM_TIMEOUT_MS, "ai.categorizeInvoice");
+        } catch (_) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI categorization temporarily unavailable." });
+        }
+        const raw = result.choices[0]?.message?.content;
+        try {
+          const parsed = JSON.parse(typeof raw === "string" ? raw : JSON.stringify(raw));
+          return { category: parsed.category ?? "Other", confidence: parsed.confidence ?? 0, tags: parsed.tags ?? [] };
+        } catch {
+          return { category: "Other", confidence: 0, tags: [] };
+        }
+      }),
   }),
 
-  // ── Stripe Billing ────────────────────────────────────────────────────────
+  // ── Stripe Billing ──────────────────────────────────────────────────────────────
   billing: router({
     getPlans: publicProcedure.query(() => PLAN_LIST),
 
@@ -1089,7 +1234,8 @@ export const appRouter = router({
         if (planId !== "free" && PLANS[planId as PlanId]) mrr += PLANS[planId as PlanId].monthlyPrice / 100;
       }
       byPlan.free = allUsers.length - paidUsers.length;
-      return { totalUsers: allUsers.length, paidUsers: paidUsers.length, mrr, arr: mrr * 12, byPlan };
+      const allLeads = await db.select({ id: leads.id }).from(leads);
+      return { totalUsers: allUsers.length, paidUsers: paidUsers.length, mrr, arr: mrr * 12, byPlan, totalLeads: allLeads.length };
     }),
 
     listLeads: adminProcedure
@@ -2132,5 +2278,73 @@ export const appRouter = router({
         return { ok: true };
       }),
   }),
+
+  // ── Audit Log ─────────────────────────────────────────────────────────────────
+  auditLog: router({
+    list: protectedProcedure
+      .input(z.object({
+        limit: z.number().int().min(1).max(100).default(50),
+        offset: z.number().int().min(0).default(0),
+      }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const rows = await db.select().from(auditLogs)
+          .where(eq(auditLogs.userId, ctx.user.id))
+          .orderBy(desc(auditLogs.createdAt))
+          .limit(input.limit)
+          .offset(input.offset);
+        return rows;
+      }),
+  }),
+
+  // ── API Keys ──────────────────────────────────────────────────────────────────
+  apiKeys: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const rows = await db.select({
+        id: userApiKeys.id,
+        name: userApiKeys.name,
+        keyPrefix: userApiKeys.keyPrefix,
+        lastUsedAt: userApiKeys.lastUsedAt,
+        expiresAt: userApiKeys.expiresAt,
+        active: userApiKeys.active,
+        createdAt: userApiKeys.createdAt,
+      }).from(userApiKeys)
+        .where(and(eq(userApiKeys.userId, ctx.user.id), eq(userApiKeys.active, true)))
+        .orderBy(desc(userApiKeys.createdAt));
+      return rows;
+    }),
+
+    create: protectedProcedure
+      .input(z.object({ name: z.string().trim().min(1).max(128) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        // Generate a secure random API key
+        const crypto = await import("crypto");
+        const rawKey = `sk_live_${crypto.randomBytes(24).toString("hex")}`;
+        const keyPrefix = rawKey.substring(0, 12);
+        const keyHash = crypto.createHash("sha256").update(rawKey).digest("hex");
+        await db.insert(userApiKeys).values({
+          userId: ctx.user.id,
+          name: input.name,
+          keyHash,
+          keyPrefix,
+          active: true,
+        });
+        // Return the raw key ONCE — it won't be shown again
+        return { key: rawKey, prefix: keyPrefix, name: input.name };
+      }),
+
+    revoke: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.update(userApiKeys)
+          .set({ active: false })
+          .where(and(eq(userApiKeys.id, input.id), eq(userApiKeys.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+  }),
+
 });
 export type AppRouter = typeof appRouter;
