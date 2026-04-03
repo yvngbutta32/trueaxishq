@@ -542,4 +542,4 @@
 
 - [x] Client health Pulse widget on Overview panel (top 3 at-risk clients with Draft Follow-Up shortcut)
 - [x] Bulk invoice actions (checkboxes, mark paid, send reminder, delete selected)
-- [ ] Google Calendar OAuth connect button in Settings → Scheduling
+- [x] Google Calendar OAuth connect button in Settings → Scheduling (iCal-based subscribe links implemented)
