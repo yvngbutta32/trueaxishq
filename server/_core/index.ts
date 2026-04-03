@@ -8,6 +8,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { handleStripeWebhook } from "../stripeWebhook";
 import { securityMiddleware } from "../security";
+import { avatarUploadRouter } from "../avatarUpload";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -86,6 +87,9 @@ async function startServer() {
       timestamp: new Date().toISOString(),
     });
   });
+
+  // ── Avatar Upload ─────────────────────────────────────────────────────────
+  app.use(avatarUploadRouter);
 
   // ── tRPC API────────────────────────────────────────────────────────────
   app.use(

@@ -24,7 +24,7 @@ import {
   Building, Save, Moon, Sun, Bot, CreditCard,
   ExternalLink, Bell, Search, ChevronDown, Loader2,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
-  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal
+  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -1455,6 +1455,50 @@ function SettingsPanel() {
   const [bookingPage, setBookingPage] = useState({ bookingUsername: "", bookingBio: "", bookingServices: ["Coaching Session", "Strategy Call", "Consultation"] });
   const [notifications, setNotifications] = useState({ notifyNewBooking: true, notifyInvoicePaid: true, notifyNewLead: true });
   const [newService, setNewService] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (settings?.avatarUrl) setAvatarUrl(settings.avatarUrl);
+  }, [settings?.avatarUrl]);
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5 MB."); return; }
+    setAvatarUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("avatar", file);
+      const res = await fetch("/api/upload/avatar", { method: "POST", body: fd, credentials: "include" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Upload failed");
+      setAvatarUrl(json.url);
+      utils.settings.get.invalidate();
+      toast.success("Profile photo updated!");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setAvatarUploading(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  }
+
+  async function handleAvatarRemove() {
+    setAvatarUploading(true);
+    try {
+      const res = await fetch("/api/upload/avatar", { method: "DELETE", credentials: "include" });
+      if (!res.ok) throw new Error("Failed to remove photo");
+      setAvatarUrl(null);
+      utils.settings.get.invalidate();
+      toast.success("Profile photo removed.");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Remove failed");
+    } finally {
+      setAvatarUploading(false);
+    }
+  }
 
   useEffect(() => {
     if (settings) {
@@ -1484,6 +1528,63 @@ function SettingsPanel() {
       {/* Profile */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
         <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><User className="w-4 h-4 text-[#E8A020]" />Profile</h3>
+
+        {/* Avatar Upload */}
+        <div className="flex items-center gap-4">
+          <div className="relative flex-shrink-0">
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-[#E8A020] to-[#D4911A] flex items-center justify-center">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Profile photo" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white text-lg font-bold">{profile.name?.slice(0, 2).toUpperCase() || "U"}</span>
+              )}
+            </div>
+            <button
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={avatarUploading}
+              className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-[#E8A020] flex items-center justify-center shadow-md hover:bg-[#D4911A] transition-colors disabled:opacity-50"
+              aria-label="Change profile photo"
+            >
+              {avatarUploading ? <Loader2 className="w-3 h-3 text-white animate-spin" /> : <Camera className="w-3 h-3 text-white" />}
+            </button>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-[#1C1C1E] mb-0.5">Profile Photo</p>
+            <p className="text-xs text-gray-400 mb-2">JPEG, PNG, WebP or GIF · Max 5 MB</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={avatarUploading}
+                className="text-xs font-semibold text-[#E8A020] hover:underline disabled:opacity-50 transition-opacity"
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: "auto", minWidth: "auto" }}
+              >
+                {avatarUrl ? "Change photo" : "Upload photo"}
+              </button>
+              {avatarUrl && (
+                <>
+                  <span className="text-gray-200">·</span>
+                  <button
+                    onClick={handleAvatarRemove}
+                    disabled={avatarUploading}
+                    className="text-xs font-semibold text-red-400 hover:underline disabled:opacity-50 transition-opacity"
+                    style={{ background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                  >
+                    Remove
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            onChange={handleAvatarUpload}
+            aria-label="Upload profile photo"
+          />
+        </div>
+
         <Field label="Your Name" value={profile.name} onChange={v => setProfile(p => ({ ...p, name: v }))} placeholder="Alex Smith" />
         <Field label="Phone Number" value={profile.phone} onChange={v => setProfile(p => ({ ...p, phone: v }))} placeholder="+1 (555) 000-0000" />
         <Field label="Bio (shown on booking page)" value={profile.bio} onChange={v => setProfile(p => ({ ...p, bio: v }))} placeholder="I help entrepreneurs build scalable businesses..." textarea rows={3} />
@@ -1846,8 +1947,19 @@ export default function Dashboard() {
             </div>
 
             {/* User Avatar */}
-            <div className="w-8 h-8 rounded-full gradient-amber flex items-center justify-center text-white text-xs font-bold" aria-label={`Logged in as ${user?.name || "User"}`}>
-              {user?.name?.slice(0, 2).toUpperCase() || "U"}
+            <div
+              className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+              aria-label={`Logged in as ${user?.name || "User"}`}
+              onClick={() => setActiveWithScroll("settings")}
+              title="Go to Settings"
+            >
+              {(user as any)?.avatarUrl ? (
+                <img src={(user as any).avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full gradient-amber flex items-center justify-center text-white text-xs font-bold">
+                  {user?.name?.slice(0, 2).toUpperCase() || "U"}
+                </div>
+              )}
             </div>
           </div>
         </header>

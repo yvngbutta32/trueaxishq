@@ -443,3 +443,17 @@
 - [x] Add scroll-to-top on panel switch in Dashboard (setActiveWithScroll + mainRef)
 - [x] Increase security rate limits to prevent blocking during normal use
 - [x] 29/29 tests passing, 0 TypeScript errors after all changes
+
+## Session: Apr 3, 2026 — Avatar Upload & UX Polish
+
+- [x] Implement avatar upload route (POST /api/upload/avatar) with multer + S3
+- [x] Implement avatar remove route (DELETE /api/upload/avatar)
+- [x] Add avatar upload UI to Dashboard Settings Profile card (circular preview, camera button, remove link)
+- [x] Update Dashboard header to show avatar photo when set (click to go to Settings)
+- [x] Verify Forgot Password (/forgot-password) and Reset Password (/reset-password) pages are fully implemented
+- [x] Fix all public page spacing (Home, Pricing, About, Help, Contact)
+- [x] Redesign Login and Register with split-panel layout
+- [x] Fix Billing page dark theme text contrast
+- [x] Add scroll-to-top on Dashboard panel switch
+- [x] Add autofill color override for dark form inputs
+- [x] 29/29 tests passing, 0 TypeScript errors
