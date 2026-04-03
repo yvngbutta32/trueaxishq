@@ -26,6 +26,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const ClientPortal = lazy(() => import("./pages/ClientPortal"));
 
 // ─── Full-screen page loader ──────────────────────────────────────────────────
 function PageLoader() {
@@ -83,6 +84,9 @@ function Router() {
         <Route path="/terms" component={Terms} />
         <Route path="/help" component={Help} />
         <Route path="/contact" component={Contact} />
+
+        {/* Client Portal — public, token-gated */}
+        <Route path="/portal/:token" component={ClientPortal} />
 
         {/* Auth routes */}
         <Route path="/login" component={Login} />

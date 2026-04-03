@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import Stripe from "stripe";
 import { eq } from "drizzle-orm";
 import { getDb } from "./db";
-import { users } from "../drizzle/schema";
+import { users, invoices } from "../drizzle/schema";
 import { notifyOwner } from "./_core/notification";
 
 // ─── Idempotency cache — prevents duplicate processing of retried webhooks ────
@@ -86,7 +86,27 @@ async function processEvent(eventType: string, data: Stripe.Event["data"]["objec
       const planId = (session.metadata?.plan_id ?? "starter") as string;
       const customerId = session.customer as string;
       const subscriptionId = session.subscription as string;
+      const invoiceIdMeta = session.metadata?.invoice_id;
 
+      // ── Invoice Pay Now: auto-mark the invoice as paid ────────────────────
+      if (invoiceIdMeta && !subscriptionId) {
+        const invIdNum = parseInt(invoiceIdMeta, 10);
+        if (!isNaN(invIdNum)) {
+          await db.update(invoices).set({
+            status: "paid",
+            paidAt: new Date(),
+            updatedAt: new Date(),
+          }).where(eq(invoices.id, invIdNum));
+          notifyOwner({
+            title: `💰 Invoice Paid — ${session.metadata?.client_name ?? "Client"}`,
+            content: `Invoice #${session.metadata?.invoice_number || invoiceIdMeta} has been paid via Stripe Checkout.`,
+          }).catch(() => {});
+          console.log(`[Webhook] Invoice ${invoiceIdMeta} auto-marked as paid via Stripe Checkout.`);
+          break;
+        }
+      }
+
+      // ── Subscription checkout ─────────────────────────────────────────────
       if (userId) {
         await db.update(users).set({
           stripeCustomerId: customerId,

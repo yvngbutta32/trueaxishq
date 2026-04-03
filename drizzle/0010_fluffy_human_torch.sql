@@ -1,0 +1,20 @@
+CREATE TABLE `contracts` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`clientId` int,
+	`clientName` varchar(255) NOT NULL,
+	`clientEmail` varchar(320),
+	`title` varchar(512) NOT NULL,
+	`type` enum('contract','proposal') NOT NULL DEFAULT 'contract',
+	`status` enum('draft','sent','signed','declined','expired') NOT NULL DEFAULT 'draft',
+	`body` text NOT NULL,
+	`linkedInvoiceId` int,
+	`proposalAmount` decimal(10,2),
+	`signedAt` timestamp,
+	`signatureData` text,
+	`expiresAt` timestamp,
+	`sentAt` timestamp,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `contracts_id` PRIMARY KEY(`id`)
+);

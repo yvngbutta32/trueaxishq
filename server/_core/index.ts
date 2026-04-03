@@ -9,6 +9,9 @@ import { serveStatic, setupVite } from "./vite";
 import { handleStripeWebhook } from "../stripeWebhook";
 import { securityMiddleware } from "../security";
 import { avatarUploadRouter } from "../avatarUpload";
+import { documentUploadRouter } from "../documentUpload";
+import { icalRouter } from "../icalExport";
+import { startBackgroundJobs } from "../backgroundJobs";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -91,6 +94,12 @@ async function startServer() {
   // ── Avatar Upload ─────────────────────────────────────────────────────────
   app.use(avatarUploadRouter);
 
+  // ── Document Upload ───────────────────────────────────────────────────────────────────────────────────────
+  app.use(documentUploadRouter);
+
+  // ── iCal Calendar Export ──────────────────────────────────────────────────
+  app.use("/api", icalRouter);
+
   // ── tRPC API────────────────────────────────────────────────────────────
   app.use(
     "/api/trpc",
@@ -116,6 +125,7 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    startBackgroundJobs();
   });
 }
 

@@ -9,12 +9,13 @@ import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
+import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail } from "./_core/email";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -185,12 +186,19 @@ export const appRouter = router({
           // Build reset URL from the request origin (works in any environment)
           const origin = input.origin || ctx.req.headers.origin || ctx.req.headers.referer?.replace(/\/[^/]*$/, '') || 'https://trueaxishq.manus.space';
           const resetUrl = `${origin}/reset-password?token=${token}`;
-          await notifyOwner({
-            title: "Password Reset Requested",
-            content: `A password reset was requested for ${user.email}.\n\nReset link (expires in 1 hour):\n${resetUrl}\n\nIf you did not request this, you can ignore this message.`,
+          // Send real email to the user
+          await sendEmail({
+            to: user.email!,
+            subject: "Reset Your TrueAxis HQ Password",
+            html: forgotPasswordEmail({ name: user.name || "there", resetUrl }),
           });
+          // Also notify owner for audit purposes
+          notifyOwner({
+            title: "Password Reset Requested",
+            content: `A password reset was requested for ${user.email}. Reset link sent to user.`,
+          }).catch(() => {});
 
-          console.log(`[Auth] Password reset token generated for user ${user.id}`);
+          console.log(`[Auth] Password reset email sent to user ${user.id}`);
         } catch (err) {
           console.error("[Auth] forgotPassword error:", err);
           // Still return success to prevent enumeration
@@ -486,7 +494,22 @@ export const appRouter = router({
           body,
           status: "draft",
         });
-        return { success: true, subject };
+        // Send real email to client if email is available
+        let emailSent = false;
+        if (inv.clientEmail) {
+          const result = await sendEmail({
+            to: inv.clientEmail,
+            subject,
+            html: invoiceReminderEmail({
+              clientName: inv.clientName,
+              invoiceNumber: inv.invoiceNumber || `#${inv.id}`,
+              amount: `$${parseFloat(String(inv.amount)).toFixed(2)}`,
+              dueDate: inv.dueDate || "As soon as possible",
+            }),
+          });
+          emailSent = result.success;
+        }
+        return { success: true, subject, emailSent };
       }),
 
     stats: protectedProcedure.query(async ({ ctx }) => {
@@ -515,8 +538,54 @@ export const appRouter = router({
         total: all.length,
       };
     }),
-  }),
 
+    payNow: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        origin: z.string().url().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [inv] = await db.select().from(invoices)
+          .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id))).limit(1);
+        if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
+        if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice has already been paid." });
+
+        const stripe = getStripe();
+        const origin = input.origin || ctx.req.headers.origin || "https://trueaxishq.manus.space";
+        const amountCents = Math.round(parseFloat(String(inv.amount)) * 100);
+        if (amountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
+
+        const session = await stripe.checkout.sessions.create({
+          mode: "payment",
+          payment_method_types: ["card"],
+          customer_email: inv.clientEmail || undefined,
+          line_items: [{
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: inv.service || `Invoice #${inv.invoiceNumber}`,
+                description: `Invoice #${inv.invoiceNumber} from ${ctx.user.name || "TrueAxis HQ"}`,
+              },
+              unit_amount: amountCents,
+            },
+            quantity: 1,
+          }],
+          metadata: {
+            invoice_id: String(inv.id),
+            user_id: String(ctx.user.id),
+            invoice_number: inv.invoiceNumber || "",
+            client_name: inv.clientName,
+          },
+          client_reference_id: String(inv.id),
+          success_url: `${origin}/dashboard?tab=invoices&paid=${inv.id}`,
+          cancel_url: `${origin}/dashboard?tab=invoices`,
+          allow_promotion_codes: true,
+        });
+
+        return { url: session.url! };
+      }),
+  }),
   // ── Bookings ──────────────────────────────────────────────────────────────
   bookings: router({
     list: protectedProcedure
@@ -1281,6 +1350,21 @@ export const appRouter = router({
             content: `${input.clientName} (${input.clientEmail}) booked a ${input.service} on ${input.preferredDate} at ${input.preferredTime}.`,
           }).catch(() => {});
         }
+        // Send booking confirmation email to client
+        const hostDetails = await db.select({ name: users.name, businessName: users.businessName })
+          .from(users).where(eq(users.id, host[0].id)).limit(1);
+        const freelancerName = hostDetails[0]?.businessName || hostDetails[0]?.name || "Your service provider";
+        sendEmail({
+          to: input.clientEmail,
+          subject: `Booking Confirmed: ${input.service} on ${input.preferredDate}`,
+          html: bookingConfirmationEmail({
+            clientName: input.clientName,
+            serviceName: input.service,
+            date: input.preferredDate,
+            time: input.preferredTime,
+            freelancerName,
+          }),
+        }).catch(() => {});
         return { success: true };
       }),
   }),
@@ -1543,6 +1627,510 @@ export const appRouter = router({
         checkedAt: new Date().toISOString(),
       };
     }),
+  }),
+
+  // ── Client Portal ────────────────────────────────────────────────────────────────
+  portal: router({
+    // Generate or retrieve a portal token for a specific client
+    getToken: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await requireDb();
+        // Check client belongs to this user
+        const [client] = await db.select().from(clients)
+          .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+
+        // Check for existing valid token
+        const [existing] = await db.select().from(clientPortalTokens)
+          .where(and(
+            eq(clientPortalTokens.userId, ctx.user.id),
+            eq(clientPortalTokens.clientId, input.clientId)
+          )).limit(1);
+
+        if (existing) {
+          const origin = ctx.req.headers.origin || "";
+          return { token: existing.token, url: `${origin}/portal/${existing.token}` };
+        }
+
+        // Create new token
+        const crypto = await import("crypto");
+        const token = crypto.randomBytes(32).toString("hex");
+        await db.insert(clientPortalTokens).values({
+          userId: ctx.user.id,
+          clientId: input.clientId,
+          token,
+        });
+        const origin = ctx.req.headers.origin || "";
+        return { token, url: `${origin}/portal/${token}` };
+      }),
+
+    // Public: view the portal (no auth required — token is the secret)
+    view: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128) }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+
+        if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found or expired." });
+        if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "This portal link has expired." });
+        }
+
+        // Update last viewed
+        await db.update(clientPortalTokens)
+          .set({ lastViewedAt: new Date() })
+          .where(eq(clientPortalTokens.id, portalRecord.id));
+
+        // Fetch freelancer info
+        const [freelancer] = await db.select({
+          name: users.name,
+          businessName: users.businessName,
+          email: users.email,
+          phone: users.phone,
+          avatarUrl: users.avatarUrl,
+        }).from(users).where(eq(users.id, portalRecord.userId)).limit(1);
+
+        // Fetch client info
+        const [client] = await db.select().from(clients)
+          .where(and(eq(clients.id, portalRecord.clientId), eq(clients.userId, portalRecord.userId))).limit(1);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client record not found." });
+
+        // Fetch client's invoices
+        const clientInvoices = await db.select().from(invoices)
+          .where(and(eq(invoices.userId, portalRecord.userId), eq(invoices.clientId, portalRecord.clientId)))
+          .orderBy(desc(invoices.createdAt));
+
+        // Fetch client's bookings
+        const clientBookings = await db.select().from(bookings)
+          .where(and(eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId)))
+          .orderBy(desc(bookings.createdAt));
+
+        return {
+          freelancer,
+          client,
+          invoices: clientInvoices,
+          bookings: clientBookings,
+        };
+      }),
+
+    // Pay an invoice from the portal (creates Stripe checkout)
+    payInvoice: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128), invoiceId: z.number().int().positive(), origin: z.string().url() }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+        if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found." });
+
+        const [inv] = await db.select().from(invoices)
+          .where(and(
+            eq(invoices.id, input.invoiceId),
+            eq(invoices.userId, portalRecord.userId),
+            eq(invoices.clientId, portalRecord.clientId)
+          )).limit(1);
+        if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
+        if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice is already paid." });
+
+        const stripe = getStripe();
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ["card"],
+          mode: "payment",
+          line_items: [{
+            price_data: {
+              currency: "usd",
+              product_data: { name: inv.service || "Professional Services", description: `Invoice ${inv.invoiceNumber}` },
+              unit_amount: Math.round(parseFloat(String(inv.amount)) * 100),
+            },
+            quantity: 1,
+          }],
+          metadata: {
+            invoice_id: String(inv.id),
+            invoice_number: inv.invoiceNumber,
+            client_name: inv.clientName,
+          },
+          customer_email: inv.clientEmail || undefined,
+          success_url: `${input.origin}/portal/${input.token}?paid=1`,
+          cancel_url: `${input.origin}/portal/${input.token}`,
+          allow_promotion_codes: true,
+        });
+        return { checkoutUrl: session.url };
+      }),
+  }),
+
+  // ── Contracts & Proposals ─────────────────────────────────────────────────
+  contracts: router({
+    list: protectedProcedure
+      .input(z.object({ type: z.enum(["all", "contract", "proposal"]).default("all") }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const rows = await db.select().from(contracts)
+          .where(eq(contracts.userId, ctx.user.id))
+          .orderBy(desc(contracts.createdAt));
+        return input.type === "all" ? rows : rows.filter(r => r.type === input.type);
+      }),
+
+    get: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [row] = await db.select().from(contracts)
+          .where(and(eq(contracts.id, input.id), eq(contracts.userId, ctx.user.id))).limit(1);
+        if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+        return row;
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        clientId: z.number().optional(),
+        clientName: z.string().min(1),
+        clientEmail: safeOptionalEmail,
+        title: z.string().min(1),
+        type: z.enum(["contract", "proposal"]),
+        body: z.string().min(1),
+        proposalAmount: z.string().optional(),
+        expiresAt: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [result] = await db.insert(contracts).values({
+          userId: ctx.user.id,
+          clientId: input.clientId ?? null,
+          clientName: input.clientName,
+          clientEmail: input.clientEmail || null,
+          title: input.title,
+          type: input.type,
+          body: input.body,
+          proposalAmount: input.proposalAmount || null,
+          expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+          status: "draft",
+        });
+        return { id: (result as any).insertId };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        title: z.string().min(1).optional(),
+        body: z.string().optional(),
+        clientName: z.string().optional(),
+        clientEmail: safeOptionalEmail,
+        proposalAmount: z.string().optional(),
+        status: z.enum(["draft", "sent", "signed", "declined", "expired"]).optional(),
+        expiresAt: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const { id, expiresAt, ...rest } = input;
+        await db.update(contracts).set({
+          ...rest,
+          ...(expiresAt ? { expiresAt: new Date(expiresAt) } : {}),
+          ...(rest.status === "sent" ? { sentAt: new Date() } : {}),
+          ...(rest.status === "signed" ? { signedAt: new Date() } : {}),
+        }).where(and(eq(contracts.id, id), eq(contracts.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(contracts).where(and(eq(contracts.id, input.id), eq(contracts.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+
+    convertToInvoice: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [contract] = await db.select().from(contracts)
+          .where(and(eq(contracts.id, input.id), eq(contracts.userId, ctx.user.id))).limit(1);
+        if (!contract) throw new TRPCError({ code: "NOT_FOUND" });
+        if (contract.type !== "proposal") throw new TRPCError({ code: "BAD_REQUEST", message: "Only proposals can be converted to invoices." });
+        const invoiceNumber = generateInvoiceNumber();
+        const [result] = await db.insert(invoices).values({
+          userId: ctx.user.id,
+          clientId: contract.clientId ?? null,
+          invoiceNumber,
+          clientName: contract.clientName,
+          clientEmail: contract.clientEmail || null,
+          service: contract.title,
+          amount: contract.proposalAmount || "0",
+          status: "draft",
+          notes: `Converted from proposal: ${contract.title}`,
+        });
+        const invoiceId = (result as any).insertId;
+        await db.update(contracts).set({ linkedInvoiceId: invoiceId }).where(eq(contracts.id, input.id));
+        return { invoiceId };
+      }),
+  }),
+
+  // ── Notifications ──────────────────────────────────────────────────────────
+  notifications: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(notifications)
+        .where(eq(notifications.userId, ctx.user.id))
+        .orderBy(desc(notifications.createdAt))
+        .limit(50);
+    }),
+    unreadCount: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const rows = await db.select({ id: notifications.id }).from(notifications)
+        .where(and(eq(notifications.userId, ctx.user.id), eq(notifications.read, false)));
+      return { count: rows.length };
+    }),
+    markRead: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.update(notifications).set({ read: true })
+          .where(and(eq(notifications.id, input.id), eq(notifications.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+    markAllRead: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await requireDb();
+      await db.update(notifications).set({ read: true })
+        .where(and(eq(notifications.userId, ctx.user.id), eq(notifications.read, false)));
+      return { ok: true };
+    }),
+    dismiss: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(notifications)
+          .where(and(eq(notifications.id, input.id), eq(notifications.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+  }),
+
+  // ── Time Tracking ──────────────────────────────────────────────────────────
+  time: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(timeEntries)
+        .where(eq(timeEntries.userId, ctx.user.id))
+        .orderBy(desc(timeEntries.startedAt))
+        .limit(200);
+    }),
+    start: protectedProcedure
+      .input(z.object({
+        clientId: z.number().optional(),
+        clientName: z.string().trim().max(255).optional(),
+        projectName: z.string().trim().max(255).optional(),
+        description: z.string().trim().max(1000).optional(),
+        hourlyRate: z.string().optional(),
+        billable: z.boolean().default(true),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        // Stop any running timer first
+        const running = await db.select().from(timeEntries)
+          .where(and(eq(timeEntries.userId, ctx.user.id), sql`${timeEntries.endedAt} IS NULL`))
+          .limit(1);
+        if (running.length > 0) {
+          const entry = running[0];
+          const durationMinutes = Math.round((Date.now() - entry.startedAt.getTime()) / 60000);
+          await db.update(timeEntries).set({ endedAt: new Date(), durationMinutes })
+            .where(eq(timeEntries.id, entry.id));
+        }
+        const [result] = await db.insert(timeEntries).values({
+          userId: ctx.user.id,
+          clientId: input.clientId ?? null,
+          clientName: input.clientName ?? null,
+          projectName: input.projectName ?? null,
+          description: input.description ?? null,
+          startedAt: new Date(),
+          hourlyRate: input.hourlyRate ?? null,
+          billable: input.billable,
+        });
+        return { id: (result as any).insertId };
+      }),
+    stop: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [entry] = await db.select().from(timeEntries)
+          .where(and(eq(timeEntries.id, input.id), eq(timeEntries.userId, ctx.user.id))).limit(1);
+        if (!entry) throw new TRPCError({ code: 'NOT_FOUND' });
+        if (entry.endedAt) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Timer already stopped.' });
+        const durationMinutes = Math.round((Date.now() - entry.startedAt.getTime()) / 60000);
+        await db.update(timeEntries).set({ endedAt: new Date(), durationMinutes })
+          .where(eq(timeEntries.id, input.id));
+        return { durationMinutes };
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        description: z.string().trim().max(1000).optional(),
+        projectName: z.string().trim().max(255).optional(),
+        clientName: z.string().trim().max(255).optional(),
+        hourlyRate: z.string().optional(),
+        billable: z.boolean().optional(),
+        durationMinutes: z.number().min(0).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const { id, ...fields } = input;
+        await db.update(timeEntries).set(fields as any)
+          .where(and(eq(timeEntries.id, id), eq(timeEntries.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(timeEntries)
+          .where(and(eq(timeEntries.id, input.id), eq(timeEntries.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+    runningEntry: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [entry] = await db.select().from(timeEntries)
+        .where(and(eq(timeEntries.userId, ctx.user.id), sql`${timeEntries.endedAt} IS NULL`))
+        .limit(1);
+      return entry ?? null;
+    }),
+    summary: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const rows = await db.select().from(timeEntries)
+        .where(and(eq(timeEntries.userId, ctx.user.id), sql`${timeEntries.endedAt} IS NOT NULL`));
+      const totalMinutes = rows.reduce((s, r) => s + (r.durationMinutes ?? 0), 0);
+      const billableRows = rows.filter(r => r.billable && r.hourlyRate);
+      const totalBillable = billableRows.reduce((s, r) => {
+        const hrs = (r.durationMinutes ?? 0) / 60;
+        return s + hrs * parseFloat(r.hourlyRate ?? '0');
+      }, 0);
+      const rates = billableRows.map(r => parseFloat(r.hourlyRate ?? '0')).filter(r => r > 0);
+      const avgRate = rates.length > 0 ? rates.reduce((a, b) => a + b, 0) / rates.length : null;
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayCount = rows.filter(r => r.startedAt.toISOString().split('T')[0] === todayStr).length;
+      return { totalMinutes, totalBillable, avgRate, todayCount };
+    }),
+    addManual: protectedProcedure
+      .input(z.object({
+        clientId: z.number().optional(),
+        clientName: z.string().trim().max(255).optional(),
+        description: z.string().trim().max(1000).optional(),
+        durationMinutes: z.number().min(1),
+        hourlyRate: z.string().optional(),
+        billable: z.boolean().default(true),
+        date: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const startedAt = input.date ? new Date(input.date + 'T09:00:00') : new Date();
+        const endedAt = new Date(startedAt.getTime() + input.durationMinutes * 60000);
+        const [result] = await db.insert(timeEntries).values({
+          userId: ctx.user.id,
+          clientId: input.clientId ?? null,
+          clientName: input.clientName ?? null,
+          projectName: null,
+          description: input.description ?? null,
+          startedAt,
+          endedAt,
+          durationMinutes: input.durationMinutes,
+          hourlyRate: input.hourlyRate ?? null,
+          billable: input.billable,
+        });
+        return { id: (result as any).insertId };
+      }),
+  }),
+
+  // ── Client Documents ───────────────────────────────────────────────────────
+  documents: router({
+    list: protectedProcedure
+      .input(z.object({ clientId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        return db.select().from(clientDocuments)
+          .where(and(eq(clientDocuments.userId, ctx.user.id), eq(clientDocuments.clientId, input.clientId)))
+          .orderBy(desc(clientDocuments.createdAt));
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(clientDocuments)
+          .where(and(eq(clientDocuments.id, input.id), eq(clientDocuments.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+    save: protectedProcedure
+      .input(z.object({
+        clientId: z.number(),
+        fileName: z.string().trim().min(1).max(255),
+        fileKey: z.string().min(1).max(512),
+        fileUrl: z.string().url().max(1024),
+        mimeType: z.string().max(128).optional(),
+        sizeBytes: z.number().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [result] = await db.insert(clientDocuments).values({
+          userId: ctx.user.id,
+          clientId: input.clientId,
+          fileName: input.fileName,
+          fileKey: input.fileKey,
+          fileUrl: input.fileUrl,
+          mimeType: input.mimeType ?? null,
+          sizeBytes: input.sizeBytes ?? null,
+        });
+        return { id: (result as any).insertId };
+      }),
+  }),
+
+  // ── Recurring Invoices ─────────────────────────────────────────────────────
+  recurring: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(recurringInvoices)
+        .where(eq(recurringInvoices.userId, ctx.user.id))
+        .orderBy(desc(recurringInvoices.createdAt));
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        clientId: z.number().optional(),
+        clientName: z.string().trim().min(1).max(255),
+        clientEmail: z.string().trim().email().max(320).optional().or(z.literal('')),
+        description: z.string().trim().max(2000).optional(),
+        amount: z.string().min(1),
+        currency: z.string().length(3).default('USD'),
+        frequency: z.enum(['weekly', 'biweekly', 'monthly', 'quarterly', 'yearly']),
+        nextDueAt: z.string().datetime(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [result] = await db.insert(recurringInvoices).values({
+          userId: ctx.user.id,
+          clientId: input.clientId ?? null,
+          clientName: input.clientName,
+          clientEmail: input.clientEmail || null,
+          description: input.description ?? null,
+          amount: input.amount,
+          currency: input.currency,
+          frequency: input.frequency,
+          nextDueAt: new Date(input.nextDueAt),
+          active: true,
+        });
+        return { id: (result as any).insertId };
+      }),
+    toggle: protectedProcedure
+      .input(z.object({ id: z.number(), active: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.update(recurringInvoices).set({ active: input.active })
+          .where(and(eq(recurringInvoices.id, input.id), eq(recurringInvoices.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(recurringInvoices)
+          .where(and(eq(recurringInvoices.id, input.id), eq(recurringInvoices.userId, ctx.user.id)));
+        return { ok: true };
+      }),
   }),
 });
 export type AppRouter = typeof appRouter;

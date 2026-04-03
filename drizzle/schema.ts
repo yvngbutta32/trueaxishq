@@ -300,3 +300,120 @@ export const userSessions = mysqlTable("userSessions", {
 
 export type UserSession = typeof userSessions.$inferSelect;
 export type InsertUserSession = typeof userSessions.$inferInsert;
+
+// ─── Client Portal Tokens ─────────────────────────────────────────────────────
+
+export const clientPortalTokens = mysqlTable("clientPortalTokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),       // freelancer who owns this portal
+  clientId: int("clientId").notNull(),   // client who can view it
+  token: varchar("token", { length: 128 }).notNull().unique(),
+  expiresAt: timestamp("expiresAt"),     // null = never expires
+  lastViewedAt: timestamp("lastViewedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ClientPortalToken = typeof clientPortalTokens.$inferSelect;
+export type InsertClientPortalToken = typeof clientPortalTokens.$inferInsert;
+
+// ─── Contracts & Proposals ────────────────────────────────────────────────────
+
+export const contracts = mysqlTable("contracts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  clientId: int("clientId"),
+  clientName: varchar("clientName", { length: 255 }).notNull(),
+  clientEmail: varchar("clientEmail", { length: 320 }),
+  title: varchar("title", { length: 512 }).notNull(),
+  type: mysqlEnum("type", ["contract", "proposal"]).default("contract").notNull(),
+  status: mysqlEnum("status", ["draft", "sent", "signed", "declined", "expired"]).default("draft").notNull(),
+  // Content stored as rich text (markdown)
+  body: text("body").notNull(),
+  // Linked invoice (for proposal → invoice conversion)
+  linkedInvoiceId: int("linkedInvoiceId"),
+  // Value / amount for proposals
+  proposalAmount: decimal("proposalAmount", { precision: 10, scale: 2 }),
+  // Signature
+  signedAt: timestamp("signedAt"),
+  signatureData: text("signatureData"), // base64 or typed name
+  // Expiry
+  expiresAt: timestamp("expiresAt"),
+  // Timestamps
+  sentAt: timestamp("sentAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Contract = typeof contracts.$inferSelect;
+export type InsertContract = typeof contracts.$inferInsert;
+
+// ─── In-App Notifications ─────────────────────────────────────────────────────
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  body: text("body").notNull(),
+  type: mysqlEnum("type", ["info", "success", "warning", "error"]).default("info").notNull(),
+  link: varchar("link", { length: 512 }),
+  read: boolean("read").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+// ─── Time Tracking ────────────────────────────────────────────────────────────
+export const timeEntries = mysqlTable("timeEntries", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  clientId: int("clientId"),
+  clientName: varchar("clientName", { length: 255 }),
+  projectName: varchar("projectName", { length: 255 }),
+  description: text("description"),
+  startedAt: timestamp("startedAt").notNull(),
+  endedAt: timestamp("endedAt"),
+  durationMinutes: int("durationMinutes"), // null = timer running
+  hourlyRate: decimal("hourlyRate", { precision: 10, scale: 2 }),
+  billable: boolean("billable").default(true).notNull(),
+  invoiced: boolean("invoiced").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type TimeEntry = typeof timeEntries.$inferSelect;
+export type InsertTimeEntry = typeof timeEntries.$inferInsert;
+
+// ─── Client Documents ─────────────────────────────────────────────────────────
+export const clientDocuments = mysqlTable("clientDocuments", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  clientId: int("clientId").notNull(),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  fileKey: varchar("fileKey", { length: 512 }).notNull(),
+  fileUrl: varchar("fileUrl", { length: 1024 }).notNull(),
+  mimeType: varchar("mimeType", { length: 128 }),
+  sizeBytes: int("sizeBytes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ClientDocument = typeof clientDocuments.$inferSelect;
+export type InsertClientDocument = typeof clientDocuments.$inferInsert;
+
+// ─── Recurring Invoices ───────────────────────────────────────────────────────
+export const recurringInvoices = mysqlTable("recurringInvoices", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  clientId: int("clientId"),
+  clientName: varchar("clientName", { length: 255 }).notNull(),
+  clientEmail: varchar("clientEmail", { length: 320 }),
+  description: text("description"),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  frequency: mysqlEnum("frequency", ["weekly", "biweekly", "monthly", "quarterly", "yearly"]).notNull(),
+  nextDueAt: timestamp("nextDueAt").notNull(),
+  active: boolean("active").default(true).notNull(),
+  lastInvoiceId: int("lastInvoiceId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type RecurringInvoice = typeof recurringInvoices.$inferSelect;
+export type InsertRecurringInvoice = typeof recurringInvoices.$inferInsert;

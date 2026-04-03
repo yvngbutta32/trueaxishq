@@ -5,7 +5,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import ClientPulsePanel from "./ClientPulse";
+import TimeTrackingPanel from "./TimeTracking";
+import RecurringInvoicesPanel from "./RecurringInvoices";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +27,7 @@ import {
   Building, Save, Moon, Sun, Bot, CreditCard,
   ExternalLink, Bell, Search, ChevronDown, Loader2,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
-  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera
+  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -32,7 +35,7 @@ import {
   PieChart, Pie, Cell
 } from "recharts";
 
-type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse";
+type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "recurring";
 
 interface ConfirmState {
   open: boolean;
@@ -122,6 +125,9 @@ const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; ba
   { icon: FileText, label: "Invoices", panel: "invoices" },
   { icon: Mail, label: "Follow-Ups", panel: "followups" },
   { icon: HeartPulse, label: "Client Pulse", panel: "pulse", badge: "AI" },
+  { icon: FileSignature, label: "Contracts", panel: "contracts" },
+  { icon: Clock, label: "Time Tracking", panel: "time" },
+  { icon: RefreshCw, label: "Recurring", panel: "recurring" },
   { icon: BarChart3, label: "Analytics", panel: "analytics" },
   { icon: Settings, label: "Settings", panel: "settings" },
   { icon: Bot, label: "AI Assistant", panel: "ai" },
@@ -228,6 +234,60 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
   );
 }
 
+// ─── Changelog Modal ─────────────────────────────────────────────────────────
+const CHANGELOG_VERSION = "1.4.0";
+const CHANGELOG_KEY = `trueaxis_changelog_${CHANGELOG_VERSION}`;
+
+function ChangelogModal() {
+  const [open, setOpen] = useState(() => !localStorage.getItem(CHANGELOG_KEY));
+  const dismiss = () => { localStorage.setItem(CHANGELOG_KEY, "1"); setOpen(false); };
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="What's new">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={dismiss} aria-hidden="true" />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+          <div>
+            <h2 className="font-extrabold text-[#1C1C1E] text-base" style={{ fontFamily: "Space Grotesk, sans-serif" }}>What's New in v{CHANGELOG_VERSION} 🎉</h2>
+            <p className="text-xs text-gray-400 mt-0.5">TrueAxis HQ — Latest Updates</p>
+          </div>
+          <button onClick={dismiss} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close">
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+        <div className="p-5 space-y-4">
+          {([
+            { emoji: "🔔", title: "Live Notifications", desc: "Real-time bell with unread badge — never miss an important event." },
+            { emoji: "⏱", title: "Time Tracking", desc: "Start/stop timer, log billable hours, and see summary stats per client." },
+            { emoji: "🔁", title: "Recurring Invoices", desc: "Set weekly, monthly, or custom billing schedules — invoices generate automatically." },
+            { emoji: "📄", title: "Contracts & Proposals", desc: "Write, send, and convert proposals to invoices with one click." },
+            { emoji: "🌐", title: "Client Portal", desc: "Clients can view their invoices and bookings via a secure token link." },
+            { emoji: "📅", title: "iCal Export", desc: "Share your booking calendar with any calendar app via a live iCal feed." },
+            { emoji: "💳", title: "Stripe Pay Now", desc: "Clients can pay invoices instantly — webhooks auto-mark them paid." },
+            { emoji: "🤖", title: "Background Automation", desc: "Overdue detection and recurring invoice generation run every 5 minutes, hands-free." },
+          ] as { emoji: string; title: string; desc: string }[]).map(item => (
+            <div key={item.title} className="flex items-start gap-3">
+              <span className="text-xl flex-shrink-0">{item.emoji}</span>
+              <div>
+                <p className="text-sm font-bold text-[#1C1C1E]">{item.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="px-5 pb-5">
+          <button
+            onClick={dismiss}
+            className="w-full gradient-amber text-white font-semibold py-2.5 rounded-xl text-sm hover:opacity-90 transition-opacity"
+          >
+            Got it, let's go! 🚀
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Overview Panel ───────────────────────────────────────────────────────────
 function OverviewPanel({ userName, setActivePanel }: { userName: string; setActivePanel: (p: ActivePanel) => void }) {
   const { data: analytics, isLoading } = trpc.analytics.overview.useQuery(undefined, { retry: 2 });
@@ -260,12 +320,14 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
 
   return (
     <div className="space-y-6">
+      <ChangelogModal />
       <div>
         <h1 className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
           {getGreeting()}, {userName || "there"} 👋
         </h1>
         <p className="text-sm text-gray-500 mt-1">Here's what's happening with your business today.</p>
       </div>
+      <OnboardingChecklist onNavigate={(panel) => setActivePanel(panel as ActivePanel)} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -470,6 +532,7 @@ function ClientsPanel() {
   const [showAdd, setShowAdd] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "", service: "", status: "active" as "active" | "inactive" | "prospect", notes: "" });
+  const [clientConfirm, setClientConfirm] = useState<ConfirmState>(defaultConfirm);
 
   const { data: clientList, isLoading } = trpc.clients.list.useQuery({ search, status: statusFilter });
   const { data: selectedClient } = trpc.clients.get.useQuery({ id: selectedId! }, { enabled: !!selectedId });
@@ -486,6 +549,48 @@ function ClientsPanel() {
   });
   const updateClient = trpc.clients.update.useMutation({
     onSuccess: () => { utils.clients.list.invalidate(); utils.clients.get.invalidate({ id: selectedId! }); toast.success("Client updated!"); },
+    onError: (e) => toast.error(e.message),
+  });
+  const { data: clientDocs, refetch: refetchDocs } = trpc.documents.list.useQuery(
+    { clientId: selectedId! },
+    { enabled: !!selectedId }
+  );
+  const saveDoc = trpc.documents.save.useMutation({
+    onSuccess: () => { refetchDocs(); toast.success("Document uploaded!"); },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteDoc = trpc.documents.delete.useMutation({
+    onSuccess: () => { refetchDocs(); toast.success("Document removed."); },
+    onError: (e) => toast.error(e.message),
+  });
+  const [docUploading, setDocUploading] = useState(false);
+
+  const handleDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedId) return;
+    if (file.size > 20 * 1024 * 1024) { toast.error("File must be under 20 MB."); return; }
+    setDocUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload/document", { method: "POST", body: formData, credentials: "include" });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || "Upload failed"); }
+      const data = await res.json();
+      await saveDoc.mutateAsync({ clientId: selectedId, fileName: data.fileName, fileKey: data.fileKey, fileUrl: data.fileUrl, mimeType: data.mimeType, sizeBytes: data.sizeBytes });
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setDocUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const getPortalToken = trpc.portal.getToken.useMutation({
+    onSuccess: (data) => {
+      navigator.clipboard.writeText(data.url)
+        .then(() => toast.success("Portal link copied to clipboard!"))
+        .catch(() => toast.info(`Portal link: ${data.url}`));
+    },
     onError: (e) => toast.error(e.message),
   });
 
@@ -593,7 +698,7 @@ function ClientsPanel() {
                 {c.status}
               </Badge>
               <button
-                onClick={e => { e.stopPropagation(); if (window.confirm(`Remove ${c.name} from your clients? This cannot be undone.`)) deleteClient.mutate({ id: c.id }); }}
+                onClick={e => { e.stopPropagation(); setClientConfirm({ open: true, title: "Remove Client?", description: `Remove ${c.name} from your clients? This cannot be undone.`, onConfirm: () => deleteClient.mutate({ id: c.id }) }); }}
                 className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors ml-3"
                 aria-label={`Delete ${c.name}`}
               >
@@ -667,7 +772,33 @@ function ClientsPanel() {
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedClient.notes}</p>
               </div>
             )}
-            <div className="flex gap-3">
+            {/* Document Storage */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-gray-500">Documents ({clientDocs?.length || 0})</p>
+                <label className={`text-xs font-semibold cursor-pointer px-3 py-1.5 rounded-lg transition-colors ${docUploading ? 'opacity-50 pointer-events-none' : 'bg-[#E8A020]/10 text-[#E8A020] hover:bg-[#E8A020]/20'}`}>
+                  {docUploading ? 'Uploading...' : '+ Upload'}
+                  <input type="file" className="sr-only" onChange={handleDocUpload} disabled={docUploading} accept="*/*" />
+                </label>
+              </div>
+              {!clientDocs || clientDocs.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-3">No documents yet. Upload contracts, briefs, or any files.</p>
+              ) : (
+                <div className="space-y-2">
+                  {clientDocs.map(doc => (
+                    <div key={doc.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-gray-100">
+                      <FileText className="w-3.5 h-3.5 text-[#E8A020] flex-shrink-0" />
+                      <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs font-medium text-[#1C1C1E] truncate hover:underline">{doc.fileName}</a>
+                      {doc.sizeBytes && <span className="text-[10px] text-gray-400 flex-shrink-0">{(doc.sizeBytes / 1024).toFixed(0)} KB</span>}
+                      <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex gap-3 flex-wrap">
               <Button
                 className="flex-1 gradient-amber text-white border-0 hover:opacity-90 gap-2"
                 onClick={() => { updateClient.mutate({ id: selectedClient.id, status: "active" }); }}
@@ -675,13 +806,30 @@ function ClientsPanel() {
               >
                 <CheckCircle className="w-4 h-4" />Mark Active
               </Button>
-              <Button variant="outline" className="flex-1 gap-2 border-red-200 text-red-500 hover:bg-red-50" onClick={() => { if (window.confirm(`Remove ${selectedClient.name}? This cannot be undone.`)) { deleteClient.mutate({ id: selectedClient.id }); setSelectedId(null); } }}>
-                <Trash2 className="w-4 h-4" />Remove
+              <Button
+                variant="outline"
+                className="flex-1 gap-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+                onClick={() => getPortalToken.mutate({ clientId: selectedClient.id })}
+                disabled={getPortalToken.isPending}
+              >
+                <ExternalLink className="w-4 h-4" />{getPortalToken.isPending ? "Generating..." : "Share Portal"}
+              </Button>
+              <Button variant="outline" className="gap-2 border-red-200 text-red-500 hover:bg-red-50" onClick={() => setClientConfirm({ open: true, title: "Remove Client?", description: `Remove ${selectedClient.name}? This cannot be undone.`, onConfirm: () => { deleteClient.mutate({ id: selectedClient.id }); setSelectedId(null); } })}>
+                <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           </div>
         )}
       </Modal>
+      <ConfirmDialog
+        open={clientConfirm.open}
+        onOpenChange={(open) => !open && setClientConfirm(defaultConfirm)}
+        title={clientConfirm.title}
+        description={clientConfirm.description}
+        onConfirm={() => { clientConfirm.onConfirm(); setClientConfirm(defaultConfirm); }}
+        confirmLabel="Remove"
+        variant="destructive"
+      />
     </div>
   );
 }
@@ -691,6 +839,7 @@ function SchedulingPanel() {
   const utils = trpc.useUtils();
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", date: "", time: "", duration: 60, notes: "" });
+  const [schedConfirm, setSchedConfirm] = useState<ConfirmState>(defaultConfirm);
 
   const { data: bookingList, isLoading } = trpc.bookings.list.useQuery({ status: "all" });
   const { data: clientList } = trpc.clients.list.useQuery({ search: "", status: "all" });
@@ -765,7 +914,7 @@ function SchedulingPanel() {
                 <option value="cancelled">Cancelled</option>
                 <option value="no_show">No Show</option>
               </select>
-              <button onClick={() => { if (window.confirm("Remove this booking? This cannot be undone.")) deleteBooking.mutate({ id: b.id }); }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors ml-2" aria-label="Delete booking">
+              <button onClick={() => setSchedConfirm({ open: true, title: "Remove Booking?", description: "Remove this booking? This cannot be undone.", onConfirm: () => deleteBooking.mutate({ id: b.id }) })} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors ml-2" aria-label="Delete booking">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -810,6 +959,15 @@ function SchedulingPanel() {
           </div>
         </div>
       </Modal>
+      <ConfirmDialog
+        open={schedConfirm.open}
+        onOpenChange={(open) => !open && setSchedConfirm(defaultConfirm)}
+        title={schedConfirm.title}
+        description={schedConfirm.description}
+        onConfirm={() => { schedConfirm.onConfirm(); setSchedConfirm(defaultConfirm); }}
+        confirmLabel="Remove"
+        variant="destructive"
+      />
     </div>
   );
 }
@@ -820,6 +978,7 @@ function InvoicesPanel() {
   const [showAdd, setShowAdd] = useState(false);
   const [previewInvoice, setPreviewInvoice] = useState<any>(null);
   const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" as "draft" | "sent" });
+  const [invConfirm, setInvConfirm] = useState<ConfirmState>(defaultConfirm);
 
   const { data: invoiceList, isLoading } = trpc.invoices.list.useQuery({ status: "all" });
   const { data: invoiceStats } = trpc.invoices.stats.useQuery();
@@ -838,7 +997,11 @@ function InvoicesPanel() {
     onError: (e) => toast.error(e.message),
   });
   const sendReminder = trpc.invoices.sendReminder.useMutation({
-    onSuccess: (data) => { utils.followUps.list.invalidate(); toast.success(`Reminder draft saved to Follow-Ups: "${data.subject}"`); },
+    onSuccess: (data) => { utils.followUps.list.invalidate(); toast.success(data.emailSent ? `Reminder sent to client & saved to Follow-Ups.` : `Reminder draft saved to Follow-Ups: "${data.subject}"`); },
+    onError: (e) => toast.error(e.message),
+  });
+  const payNow = trpc.invoices.payNow.useMutation({
+    onSuccess: (data) => { window.open(data.url, "_blank"); toast.success("Opening secure payment page..."); },
     onError: (e) => toast.error(e.message),
   });
 
@@ -908,19 +1071,29 @@ function InvoicesPanel() {
                 </button>
               )}
               {(inv.status === "sent" || inv.status === "overdue") && (
-                <button
-                  onClick={() => sendReminder.mutate({ id: inv.id })}
-                  className="text-xs text-[#FF6B6B] hover:underline font-medium flex items-center gap-1"
-                  disabled={sendReminder.isPending}
-                  title="Generate a payment reminder email draft"
-                >
-                  <Bell className="w-3 h-3" />Remind
-                </button>
+                <>
+                  <button
+                    onClick={() => payNow.mutate({ id: inv.id, origin: window.location.origin })}
+                    className="text-xs text-green-600 hover:underline font-medium flex items-center gap-1"
+                    disabled={payNow.isPending}
+                    title="Send client to Stripe checkout to pay this invoice"
+                  >
+                    <CreditCard className="w-3 h-3" />{payNow.isPending ? "..." : "Pay Now"}
+                  </button>
+                  <button
+                    onClick={() => sendReminder.mutate({ id: inv.id })}
+                    className="text-xs text-[#FF6B6B] hover:underline font-medium flex items-center gap-1"
+                    disabled={sendReminder.isPending}
+                    title="Send payment reminder to client"
+                  >
+                    <Bell className="w-3 h-3" />Remind
+                  </button>
+                </>
               )}
               <button onClick={() => setPreviewInvoice(inv)} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Preview invoice">
                 <Eye className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => { if (window.confirm("Delete this invoice? This cannot be undone.")) deleteInvoice.mutate({ id: inv.id }); }} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete invoice">
+              <button onClick={() => setInvConfirm({ open: true, title: "Delete Invoice?", description: "Delete this invoice? This cannot be undone.", onConfirm: () => deleteInvoice.mutate({ id: inv.id }) })} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete invoice">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -1017,6 +1190,15 @@ function InvoicesPanel() {
           </div>
         )}
       </Modal>
+      <ConfirmDialog
+        open={invConfirm.open}
+        onOpenChange={(open) => !open && setInvConfirm(defaultConfirm)}
+        title={invConfirm.title}
+        description={invConfirm.description}
+        onConfirm={() => { invConfirm.onConfirm(); setInvConfirm(defaultConfirm); }}
+        confirmLabel="Delete"
+        variant="destructive"
+      />
     </div>
   );
 }
@@ -1027,6 +1209,7 @@ function FollowUpsPanel() {
   const [showGenerate, setShowGenerate] = useState(false);
   const [previewFollowUp, setPreviewFollowUp] = useState<any>(null);
   const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", context: "", tone: "professional" as "professional" | "friendly" | "motivational" });
+  const [fuConfirm, setFuConfirm] = useState<ConfirmState>(defaultConfirm);
 
   const { data: followUpList, isLoading } = trpc.followUps.list.useQuery();
   const { data: clientList } = trpc.clients.list.useQuery({ search: "", status: "all" });
@@ -1113,7 +1296,7 @@ function FollowUpsPanel() {
                     <Send className="w-4 h-4" />
                   </button>
                 )}
-                <button onClick={() => { if (window.confirm("Delete this follow-up email? This cannot be undone.")) deleteFollowUp.mutate({ id: f.id }); }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete follow-up">
+                <button onClick={() => setFuConfirm({ open: true, title: "Delete Follow-Up?", description: "Delete this follow-up email? This cannot be undone.", onConfirm: () => deleteFollowUp.mutate({ id: f.id }) })} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete follow-up">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -1189,6 +1372,15 @@ function FollowUpsPanel() {
           </div>
         )}
       </Modal>
+      <ConfirmDialog
+        open={fuConfirm.open}
+        onOpenChange={(open) => !open && setFuConfirm(defaultConfirm)}
+        title={fuConfirm.title}
+        description={fuConfirm.description}
+        onConfirm={() => { fuConfirm.onConfirm(); setFuConfirm(defaultConfirm); }}
+        confirmLabel="Delete"
+        variant="destructive"
+      />
     </div>
   );
 }
@@ -1578,7 +1770,7 @@ function SettingsPanel() {
           <input
             ref={avatarInputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
+            accept="image/*"
             className="hidden"
             onChange={handleAvatarUpload}
             aria-label="Upload profile photo"
@@ -1708,6 +1900,159 @@ function SettingsPanel() {
   );
 }
 
+// ─── Contracts & Proposals Panel ────────────────────────────────────────────
+function ContractsPanel() {
+  const utils = trpc.useUtils();
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [filterType, setFilterType] = useState<"all" | "contract" | "proposal">("all");
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [confirm, setConfirm] = useState(defaultConfirm);
+  const emptyForm = { clientName: "", clientEmail: "", title: "", type: "contract" as "contract" | "proposal", body: "", proposalAmount: "", expiresAt: "" };
+  const [form, setForm] = useState(emptyForm);
+
+  const { data: list = [], isLoading } = trpc.contracts.list.useQuery({ type: filterType });
+  const { data: selected } = trpc.contracts.get.useQuery({ id: selectedId! }, { enabled: !!selectedId });
+  const { data: clientList = [] } = trpc.clients.list.useQuery();
+
+  const createMut = trpc.contracts.create.useMutation({ onSuccess: () => { utils.contracts.list.invalidate(); setShowForm(false); setForm(emptyForm); toast.success("Created!"); } });
+  const updateMut = trpc.contracts.update.useMutation({ onSuccess: () => { utils.contracts.list.invalidate(); utils.contracts.get.invalidate(); setShowForm(false); setEditingId(null); toast.success("Saved!"); } });
+  const deleteMut = trpc.contracts.delete.useMutation({ onSuccess: () => { utils.contracts.list.invalidate(); setSelectedId(null); toast.success("Deleted."); } });
+  const convertMut = trpc.contracts.convertToInvoice.useMutation({ onSuccess: (data) => { utils.contracts.list.invalidate(); toast.success(`Converted to invoice #${data.invoiceId}!`); } });
+
+  const statusColors: Record<string, string> = {
+    draft: "bg-gray-100 text-gray-600",
+    sent: "bg-blue-100 text-blue-700",
+    signed: "bg-green-100 text-green-700",
+    declined: "bg-red-100 text-red-700",
+    expired: "bg-orange-100 text-orange-700",
+  };
+
+  function openEdit(c: typeof list[0]) {
+    setForm({ clientName: c.clientName, clientEmail: c.clientEmail || "", title: c.title, type: c.type, body: c.body, proposalAmount: String(c.proposalAmount || ""), expiresAt: c.expiresAt ? new Date(c.expiresAt).toISOString().split("T")[0] : "" });
+    setEditingId(c.id);
+    setShowForm(true);
+  }
+
+  function handleSubmit() {
+    if (!form.clientName.trim() || !form.title.trim() || !form.body.trim()) { toast.error("Client name, title, and body are required."); return; }
+    if (editingId) {
+      updateMut.mutate({ id: editingId, ...form });
+    } else {
+      createMut.mutate(form);
+    }
+  }
+
+  return (
+    <div className="p-6 max-w-6xl mx-auto">
+      <ConfirmDialog open={confirm.open} onOpenChange={(o) => { if (!o) setConfirm(defaultConfirm); }} title={confirm.title} description={confirm.description} onConfirm={() => { confirm.onConfirm(); setConfirm(defaultConfirm); }} />
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Contracts & Proposals</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Create, send, and track contracts and proposals</p>
+        </div>
+        <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); }} className="bg-[#E8A020] hover:bg-[#D4911A] text-white gap-2">
+          <Plus className="w-4 h-4" /> New
+        </Button>
+      </div>
+
+      {/* Filter tabs */}
+      <div className="flex gap-2 mb-5">
+        {(["all", "contract", "proposal"] as const).map(t => (
+          <button key={t} onClick={() => setFilterType(t)} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all capitalize ${ filterType === t ? "bg-[#E8A020] text-white" : "bg-white text-gray-600 border border-gray-200 hover:border-[#E8A020]" }`}>{t === "all" ? "All" : t + "s"}</button>
+        ))}
+      </div>
+
+      {/* List */}
+      {isLoading ? (
+        <div className="space-y-3">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20" />)}</div>
+      ) : list.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <FileSignature className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+          <p className="font-semibold text-gray-700 mb-1">No {filterType === "all" ? "contracts or proposals" : filterType + "s"} yet</p>
+          <p className="text-sm text-gray-400 mb-4">Create your first one to get started</p>
+          <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); }} size="sm" className="bg-[#E8A020] hover:bg-[#D4911A] text-white">Create {filterType === "proposal" ? "Proposal" : "Contract"}</Button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {list.map(c => (
+            <div key={c.id} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedId(selectedId === c.id ? null : c.id)}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${ c.type === "proposal" ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700" }`}>{c.type}</span>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${statusColors[c.status] || "bg-gray-100 text-gray-600"}`}>{c.status}</span>
+                    {c.proposalAmount && <span className="text-xs font-semibold text-[#E8A020]">{formatCurrency(c.proposalAmount)}</span>}
+                  </div>
+                  <p className="font-semibold text-[#1C1C1E] truncate">{c.title}</p>
+                  <p className="text-sm text-gray-500">{c.clientName}{c.clientEmail ? ` · ${c.clientEmail}` : ""}</p>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <button onClick={e => { e.stopPropagation(); openEdit(c); }} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Edit"><Edit2 className="w-3.5 h-3.5 text-gray-500" /></button>
+                  {c.type === "proposal" && c.status === "signed" && !c.linkedInvoiceId && (
+                    <button onClick={e => { e.stopPropagation(); convertMut.mutate({ id: c.id }); }} className="p-1.5 rounded-lg hover:bg-green-50 transition-colors" aria-label="Convert to invoice" title="Convert to Invoice"><ArrowUpRight className="w-3.5 h-3.5 text-green-600" /></button>
+                  )}
+                  <button onClick={e => { e.stopPropagation(); setConfirm({ open: true, title: "Delete?", description: `Delete "${c.title}"? This cannot be undone.`, onConfirm: () => deleteMut.mutate({ id: c.id }) }); }} className="p-1.5 rounded-lg hover:bg-red-50 transition-colors" aria-label="Delete"><Trash2 className="w-3.5 h-3.5 text-red-400" /></button>
+                </div>
+              </div>
+              {/* Expanded detail */}
+              {selectedId === c.id && selected && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap font-mono leading-relaxed max-h-64 overflow-y-auto">{selected.body}</div>
+                  <div className="flex items-center gap-3 mt-3">
+                    {c.status === "draft" && <button onClick={e => { e.stopPropagation(); updateMut.mutate({ id: c.id, status: "sent" }); }} className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1"><Send className="w-3 h-3" /> Mark as Sent</button>}
+                    {c.status === "sent" && <button onClick={e => { e.stopPropagation(); updateMut.mutate({ id: c.id, status: "signed" }); }} className="text-xs font-semibold text-green-600 hover:underline flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Mark as Signed</button>}
+                    {c.status === "sent" && <button onClick={e => { e.stopPropagation(); updateMut.mutate({ id: c.id, status: "declined" }); }} className="text-xs font-semibold text-red-500 hover:underline">Mark as Declined</button>}
+                    {c.expiresAt && <span className="text-xs text-gray-400 ml-auto">Expires {formatDate(c.expiresAt)}</span>}
+                    {c.sentAt && <span className="text-xs text-gray-400">Sent {formatDate(c.sentAt)}</span>}
+                    {c.signedAt && <span className="text-xs text-green-600 font-medium">Signed {formatDate(c.signedAt)}</span>}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Create / Edit Modal */}
+      <Modal open={showForm} onClose={() => { setShowForm(false); setEditingId(null); }} title={editingId ? "Edit" : "New Contract / Proposal"} wide>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Type *</label>
+              <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value as "contract" | "proposal" }))} className="form-input-light">
+                <option value="contract">Contract</option>
+                <option value="proposal">Proposal</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client *</label>
+              <input list="contract-clients" value={form.clientName} onChange={e => { const c = clientList.find(c => c.name === e.target.value); setForm(p => ({ ...p, clientName: e.target.value, clientEmail: c?.email || p.clientEmail })); }} placeholder="Client name" className="form-input-light" />
+              <datalist id="contract-clients">{clientList.map(c => <option key={c.id} value={c.name} />)}</datalist>
+            </div>
+          </div>
+          <Field label="Title *" value={form.title} onChange={v => setForm(p => ({ ...p, title: v }))} placeholder="e.g. Freelance Web Design Contract" />
+          <Field label="Client Email" value={form.clientEmail} onChange={v => setForm(p => ({ ...p, clientEmail: v }))} type="email" placeholder="client@example.com" />
+          {form.type === "proposal" && <Field label="Proposal Amount ($)" value={form.proposalAmount} onChange={v => setForm(p => ({ ...p, proposalAmount: v }))} type="number" placeholder="1500" />}
+          <Field label="Expiry Date" value={form.expiresAt} onChange={v => setForm(p => ({ ...p, expiresAt: v }))} type="date" />
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Body / Terms *</label>
+            <textarea value={form.body} onChange={e => setForm(p => ({ ...p, body: e.target.value }))} rows={10} placeholder="Enter the contract terms, scope of work, deliverables, payment terms..." className="form-input-light resize-y" />
+            <p className="text-xs text-gray-400 mt-1">Markdown supported. Use **bold**, # headings, - bullet lists.</p>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="bg-[#E8A020] hover:bg-[#D4911A] text-white flex-1">
+              {(createMut.isPending || updateMut.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? "Save Changes" : "Create"}
+            </Button>
+            <Button variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }} className="flex-1">Cancel</Button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
 // ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
 function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive: (p: ActivePanel) => void }) {
   const [showMore, setShowMore] = useState(false);
@@ -1832,6 +2177,14 @@ export default function Dashboard() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
   const mainRef = useRef<HTMLElement>(null);
+  const utils = trpc.useUtils();
+  // Notifications — real-time bell
+  const { data: notifList } = trpc.notifications.list.useQuery(undefined, { refetchInterval: 30_000, enabled: isAuthenticated });
+  const { data: unreadData } = trpc.notifications.unreadCount.useQuery(undefined, { refetchInterval: 30_000, enabled: isAuthenticated });
+  const markReadMutation = trpc.notifications.markRead.useMutation({ onSuccess: () => { utils.notifications.list.invalidate(); utils.notifications.unreadCount.invalidate(); } });
+  const markAllReadMutation = trpc.notifications.markAllRead.useMutation({ onSuccess: () => { utils.notifications.list.invalidate(); utils.notifications.unreadCount.invalidate(); } });
+  const dismissNotifMutation = trpc.notifications.dismiss.useMutation({ onSuccess: () => { utils.notifications.list.invalidate(); utils.notifications.unreadCount.invalidate(); } });
+  const unreadCount = unreadData?.count ?? 0;
 
   // Scroll to top of main content when switching panels
   const setActiveWithScroll = (panel: ActivePanel) => {
@@ -1858,6 +2211,7 @@ export default function Dashboard() {
     overview: "Dashboard", clients: "Clients", scheduling: "Scheduling",
     invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics",
     settings: "Settings", ai: "AI Assistant", pulse: "Client Pulse",
+    contracts: "Contracts & Proposals", time: "Time Tracking", recurring: "Recurring Invoices",
   };
 
   const renderPanel = () => {
@@ -1871,6 +2225,9 @@ export default function Dashboard() {
       case "settings": return <SettingsPanel />;
       case "ai": return <AIAssistant />;
       case "pulse": return <ClientPulsePanel />;
+      case "contracts": return <ContractsPanel />;
+      case "time": return <TimeTrackingPanel />;
+      case "recurring": return <RecurringInvoicesPanel />;
       default: return null;
     }
   };
@@ -1931,17 +2288,46 @@ export default function Dashboard() {
             {/* Notifications */}
             <div className="relative">
               <button
-                onClick={() => setShowNotifications(!showNotifications)}
+                onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications && unreadCount > 0) markAllReadMutation.mutate(); }}
                 className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
-                aria-label="Notifications"
+                aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
                 aria-expanded={showNotifications}
               >
                 <Bell className="w-4 h-4 text-gray-500" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" aria-hidden="true" />
+                )}
               </button>
               {showNotifications && (
-                <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 p-4">
-                  <p className="text-sm font-bold text-[#1C1C1E] mb-2">Notifications</p>
-                  <p className="text-xs text-gray-400 text-center py-4">No new notifications</p>
+                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                    <p className="text-sm font-bold text-[#1C1C1E]">Notifications</p>
+                    {(notifList?.length ?? 0) > 0 && (
+                      <button onClick={() => markAllReadMutation.mutate()} className="text-xs text-[#E8A020] hover:underline font-medium">Mark all read</button>
+                    )}
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {!notifList || notifList.length === 0 ? (
+                      <div className="py-8 text-center">
+                        <Bell className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                        <p className="text-xs text-gray-400">No notifications yet</p>
+                      </div>
+                    ) : (
+                      notifList.map(n => (
+                        <div key={n.id} className={`flex items-start gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors ${!n.read ? 'bg-amber-50/50' : ''}`}>
+                          <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.type === 'success' ? 'bg-green-400' : n.type === 'error' ? 'bg-red-400' : 'bg-blue-400'}`} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-[#1C1C1E] truncate">{n.title}</p>
+                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>
+                            <p className="text-[10px] text-gray-400 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+                          </div>
+                          <button onClick={() => dismissNotifMutation.mutate({ id: n.id })} className="p-1 rounded hover:bg-gray-200 transition-colors flex-shrink-0" aria-label="Dismiss">
+                            <X className="w-3 h-3 text-gray-400" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               )}
             </div>

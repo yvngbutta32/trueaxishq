@@ -457,3 +457,74 @@
 - [x] Add scroll-to-top on Dashboard panel switch
 - [x] Add autofill color override for dark form inputs
 - [x] 29/29 tests passing, 0 TypeScript errors
+
+## Roadmap Implementation — Apr 3, 2026 (Full Feature Build)
+
+### Camera Roll Fix
+- [x] Fix avatar upload input to allow camera roll / gallery selection on mobile (accept="image/*" set, no capture attribute)
+
+### Priority 1 — Core Product Gaps
+- [x] Email delivery: Nodemailer SMTP (free) — forgot-password, invoice reminders, booking confirmations
+- [x] Stripe payment on invoices: Pay Now button → Checkout session → webhook auto-marks paid + receipt email
+- [x] Client Portal (/portal/:token): read-only view of invoices/bookings, pay outstanding balance
+- [ ] Google Calendar OAuth sync: add/update/delete events on booking changes
+- [x] iCal export feed (/api/calendar/:userId.ics)
+- [x] Contract & Proposal builder: template editor, e-signature, proposal→invoice conversion
+
+### Priority 2 — Retention & Engagement
+- [x] In-app notification center: DB table, real events (new booking, invoice paid, overdue, Pulse alert), bell badge
+- [x] Recurring invoices: recurringInterval field, cron auto-generate + send
+- [x] Time tracking: timer widget, entries per client, convert to invoice
+- [x] Document storage per client: S3 file upload, file list in client detail, storage quota
+- [x] What's New changelog modal: per-version, admin-writable entries
+
+### Priority 3 — Analytics & Business Intelligence
+- [ ] Revenue forecasting: 90-day projection, at-risk revenue metric, monthly goal setting
+- [ ] Client LTV calculation: sum of paid invoices per client, displayed on cards and analytics
+- [ ] Referral source tracking: field on booking page, stored on client, analytics breakdown
+
+### Priority 4 — Automation & AI
+- [ ] AI follow-up drafting: Draft Follow-Up button on client cards using Pulse + invoice data
+- [ ] Smart scheduling suggestions: AI suggests 3 optimal times based on booking history
+- [ ] Invoice auto-categorization: AI suggests category + tax treatment on line items
+- [x] Onboarding checklist: 5-step flow for new users, progress bar in sidebar
+
+### Priority 5 — Platform & Reliability
+- [ ] Two-factor authentication (TOTP 2FA) with backup codes
+- [ ] Audit log: DB table, viewable in Admin Security tab, CSV export
+- [ ] API access: personal API key generation, REST endpoints for clients/invoices/bookings, docs page
+- [ ] PWA support: manifest.json, service worker, push notifications
+
+### Quick Wins
+- [ ] Add "Copy Invoice Link" button to invoice cards
+- [ ] Show client timezone on booking cards
+- [ ] Add "Duplicate Invoice" action
+- [ ] Add keyboard shortcut hints to sidebar
+- [ ] Add "Print Invoice" button with clean print view
+- [ ] Show "Last seen" timestamp on client cards
+- [ ] Add CSV import for clients (bulk onboarding)
+- [ ] Add "Mark as Paid" quick action on overdue invoice cards
+
+## Free-Tier Implementation (Apr 3, 2026)
+- [x] Replace Resend with Nodemailer + Gmail SMTP (free, no subscription)
+- [x] Add GMAIL_USER and GMAIL_APP_PASSWORD secrets for email delivery (SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS)
+- [x] Wire Gmail SMTP into forgot-password, invoice reminders, booking confirmations
+- [x] Stripe invoice Pay Now: checkout session per invoice (uses existing free Stripe sandbox)
+- [x] Client Portal (/portal/:token): pure in-app read-only view, no external service
+- [x] iCal export feed (/api/calendar/:userId.ics): pure server-side, no API key
+- [x] Contract & Proposal builder: in-app DB storage, e-signature, proposal→invoice
+- [x] In-app notification center: DB table, bell badge, real events
+- [x] Recurring invoices: recurringInterval field + cron auto-generate
+- [x] Time tracking: timer widget, entries per client, convert to invoice
+- [x] Document storage per client: S3 upload (already free via built-in storage)
+- [x] What's New changelog modal: per-version, admin-writable
+- [ ] Revenue forecasting + LTV + referral source tracking
+- [ ] AI follow-up drafting on client cards
+- [ ] Smart scheduling suggestions
+- [ ] Invoice auto-categorization
+- [x] Onboarding checklist for new users
+- [ ] 2FA with TOTP (free via otplib)
+- [ ] Audit log DB table + Admin view
+- [ ] Personal API key generation + REST endpoints
+- [ ] PWA manifest + service worker
+- [ ] All 8 quick wins
