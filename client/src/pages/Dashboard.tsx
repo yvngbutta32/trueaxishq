@@ -1148,6 +1148,17 @@ function InvoicesPanel() {
   const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" as "draft" | "sent" });
   const [invConfirm, setInvConfirm] = useState<ConfirmState>(defaultConfirm);
   const [invFilter, setInvFilter] = useState<"all" | "unpaid" | "paid" | "overdue">("all");
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkPending, setBulkPending] = useState(false);
+
+  function toggleSelect(id: number) {
+    setSelectedIds(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  }
+  function toggleSelectAll() {
+    if (selectedIds.size === filteredInvoices.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(filteredInvoices.map(i => i.id)));
+  }
+  // bulkMarkPaid, bulkDelete, bulkRemind are handled via individual mutations below
 
   const { data: invoiceList, isLoading } = trpc.invoices.list.useQuery({ status: "all" });
 
@@ -1258,10 +1269,52 @@ function InvoicesPanel() {
         ))}
       </div>
 
+      {/* Bulk action toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-2 p-3 bg-[#1C1C1E] text-white rounded-xl">
+          <span className="text-xs font-semibold flex-1">{selectedIds.size} selected</span>
+          <button
+            onClick={() => {
+              const unpaidIds = Array.from(selectedIds).filter(id => filteredInvoices.find(i => i.id === id && i.status !== "paid"));
+              if (unpaidIds.length === 0) { toast.info("All selected invoices are already paid."); return; }
+              Promise.all(unpaidIds.map(id => markPaid.mutateAsync({ id })))
+                .then(() => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); setSelectedIds(new Set()); toast.success(`${unpaidIds.length} invoice${unpaidIds.length > 1 ? "s" : ""} marked as paid!`); })
+                .catch(e => toast.error(e.message));
+            }}
+            className="text-xs bg-[#E8A020] hover:bg-[#d4911c] text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
+            disabled={bulkPending}
+          >Mark Paid</button>
+          <button
+            onClick={() => {
+              const withEmail = Array.from(selectedIds).filter(id => filteredInvoices.find(i => i.id === id && i.clientEmail && i.status !== "paid"));
+              if (withEmail.length === 0) { toast.info("No unpaid invoices with client email selected."); return; }
+              Promise.all(withEmail.map(id => sendReminder.mutateAsync({ id })))
+                .then(() => { setSelectedIds(new Set()); toast.success(`Reminders sent for ${withEmail.length} invoice${withEmail.length > 1 ? "s" : ""}.`); })
+                .catch(e => toast.error(e.message));
+            }}
+            className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
+            disabled={bulkPending}
+          >Send Reminder</button>
+          <button
+            onClick={() => setInvConfirm({ open: true, title: "Delete Selected", description: `Delete ${selectedIds.size} invoice${selectedIds.size > 1 ? "s" : ""}? This cannot be undone.`, onConfirm: () => {
+              Promise.all(Array.from(selectedIds).map(id => deleteInvoice.mutateAsync({ id })))
+                .then(() => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); setSelectedIds(new Set()); toast.success("Selected invoices deleted."); })
+                .catch(e => toast.error(e.message));
+            }})}
+            className="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
+            disabled={bulkPending}
+          >Delete</button>
+          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-gray-300 hover:text-white px-2 py-1.5 transition-colors">✕ Clear</button>
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-          <span className="col-span-2">Client / Service</span>
+          <div className="col-span-2 flex items-center gap-2">
+            <input type="checkbox" className="rounded w-3.5 h-3.5 accent-[#E8A020] cursor-pointer" checked={filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length} onChange={toggleSelectAll} title="Select all" />
+            <span>Client / Service</span>
+          </div>
           <span>Amount</span>
           <span>Due Date</span>
           <span>Status</span>
@@ -1280,10 +1333,13 @@ function InvoicesPanel() {
             <p className="text-sm font-medium text-gray-500">No {invFilter !== "all" ? invFilter : ""} invoices</p>
           </div>
         ) : filteredInvoices.map(inv => (
-          <div key={inv.id} className="flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-5 py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors">
-            <div className="sm:col-span-2">
-              <p className="text-sm font-semibold text-[#1C1C1E]">{inv.clientName}</p>
-              <p className="text-xs text-gray-400">{inv.invoiceNumber} · {inv.service || "General Service"}</p>
+          <div key={inv.id} className={`flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-5 py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors ${selectedIds.has(inv.id) ? "bg-[#E8A020]/5" : ""}`}>
+            <div className="sm:col-span-2 flex items-start gap-2">
+              <input type="checkbox" className="mt-1 rounded w-3.5 h-3.5 accent-[#E8A020] cursor-pointer flex-shrink-0" checked={selectedIds.has(inv.id)} onChange={() => toggleSelect(inv.id)} />
+              <div>
+                <p className="text-sm font-semibold text-[#1C1C1E]">{inv.clientName}</p>
+                <p className="text-xs text-gray-400">{inv.invoiceNumber} · {inv.service || "General Service"}</p>
+              </div>
             </div>
             <p className="text-sm font-bold text-[#1C1C1E]">{formatCurrency(inv.amount)}</p>
             <p className="text-sm text-gray-500">{inv.dueDate || "—"}</p>
@@ -2286,6 +2342,26 @@ function SettingsPanel() {
           </div>
         ) : (
           <p className="text-xs text-gray-400">Sign in to access your iCal feed.</p>
+        )}
+        {user?.id && (
+          <div className="flex flex-col sm:flex-row gap-2 pt-1">
+            <a
+              href={`https://calendar.google.com/calendar/r?cid=webcal://${typeof window !== 'undefined' ? window.location.host : ''}/api/calendar/${user.id}.ics`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition-colors border border-blue-100"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.5 3h-3V1.5h-1.5V3h-6V1.5H7.5V3h-3C3.675 3 3 3.675 3 4.5v15C3 20.325 3.675 21 4.5 21h15c.825 0 1.5-.675 1.5-1.5v-15c0-.825-.675-1.5-1.5-1.5zm0 16.5h-15V9h15v10.5zM7.5 4.5V6H9V4.5h6V6h1.5V4.5h1.5V7.5h-12V4.5h1.5z"/></svg>
+              Add to Google Calendar
+            </a>
+            <a
+              href={`webcal://${typeof window !== 'undefined' ? window.location.host : ''}/api/calendar/${user.id}.ics`}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 text-xs font-semibold transition-colors border border-gray-100"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+              Subscribe (Apple / Outlook)
+            </a>
+          </div>
         )}
       </div>
 

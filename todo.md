@@ -537,3 +537,9 @@
 - [x] Invoice status filter tabs (All / Unpaid / Paid / Overdue) in InvoicesPanel
 - [x] Client notes field in client profile modal (free-text notes per client)
 - [x] "Send Receipt" button on paid invoices (email receipt to client)
+
+## Round 17 — Suggested Next Steps (Apr 2026)
+
+- [x] Client health Pulse widget on Overview panel (top 3 at-risk clients with Draft Follow-Up shortcut)
+- [x] Bulk invoice actions (checkboxes, mark paid, send reminder, delete selected)
+- [ ] Google Calendar OAuth connect button in Settings → Scheduling
