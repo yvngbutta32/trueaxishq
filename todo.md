@@ -138,37 +138,37 @@
 - [x] Risk cards — Churn Risk, Upsell Ready, Going Silent with one-click actions
 - [x] Pulse score badge on each client card in the Clients panel
 - [x] Auto-draft re-engagement email from Pulse panel (useAction mutation saves to Follow-Ups)
-- [ ] Pulse history chart — track relationship health over time per client (future enhancement)
-- [ ] Background recompute on every invoice/booking/followup mutation (future enhancement)
+- [x] Pulse history chart — track relationship health over time per client (future enhancement)
+- [x] Background recompute on every invoice/booking/followup mutation (future enhancement)
 
 ## Completion Pass — Production Polish (Round 6)
 
 ### Dashboard UX Improvements
 - [x] Pulse score mini-badge on each client card in Clients panel (colored dot + score)
 - [x] Client Pulse summary widget on Overview panel (churn risk count, avg health score)
-- [ ] Mobile bottom nav: replace AI tab with Pulse tab for better discoverability
+- [x] Mobile bottom nav: replace AI tab with Pulse tab for better discoverability
 - [x] Overview panel: fix "Sessions Completed" stat to show upcoming count correctly
 - [x] Invoice overdue auto-detection: mark invoices as overdue if past due date
 - [x] Follow-Ups panel: add "Copy to Clipboard" button for email body
 
 ### Admin Panel Improvements
-- [ ] Leads tab in Admin panel with table of all captured emails + CSV export
-- [ ] System health watchdog section in Admin overview
+- [x] Leads tab in Admin panel with table of all captured emails + CSV export
+- [x] System health watchdog section in Admin overview
 - [x] Admin overview: show total leads count alongside user count
 
 ### Landing Page Conversion Optimization
 - [x] Add "money-back guarantee" badge to hero and pricing sections
-- [ ] Add feature comparison table to Pricing page (Starter vs Pro vs Agency)
+- [x] Add feature comparison table to Pricing page (Starter vs Pro vs Agency)
 - [x] Add "Trusted by X freelancers" social proof counter to hero
-- [ ] Add FAQ section to landing page (not just pricing page)
+- [x] Add FAQ section to landing page (not just pricing page)
 - [x] Add urgency/scarcity element (e.g., "Limited early-bird pricing")
 
 ### Operational Completeness
 - [x] Invoice: add "Send Reminder" button for overdue invoices (marks status + generates follow-up draft)
-- [ ] Booking confirmation: send owner notification with client details on every public booking
+- [x] Booking confirmation: send owner notification with client details on every public booking
 - [x] Settings: add "Copy booking link" button with one-click clipboard copy
-- [ ] Dashboard header: show current plan badge next to user avatar
-- [ ] 404 page: add navigation links back to home and dashboard
+- [x] Dashboard header: show current plan badge next to user avatar
+- [x] 404 page: add navigation links back to home and dashboard
 
 ## Admin Dashboard Expansion (Round 7)
 
@@ -218,17 +218,17 @@
 - [x] 0 TypeScript errors, 29/29 tests passing after full redesign
 
 ## Visual Redesign: Polaroid Retro-Modern Theme (Round 10)
-- [ ] Define Polaroid design system — white base, rainbow stripe, bold primaries, Syne + Inter fonts
-- [ ] Rewrite index.css with new CSS variables, utility classes, rainbow stripe component
-- [ ] Update index.html with new Google Fonts (Syne + Inter)
-- [ ] Redesign Home.tsx with Polaroid retro-modern layout
-- [ ] Redesign Pricing.tsx with Polaroid theme
-- [ ] Update About.tsx with Polaroid theme
-- [ ] Update Dashboard.tsx with Polaroid accent colors
-- [ ] Update Admin.tsx with Polaroid accent colors
-- [ ] Update all remaining pages (Contact, Help, Terms, Privacy, Billing, BookingPage, CheckoutSuccess, NotFound)
-- [ ] Update all components (AIAssistant, ClientPulse, ErrorBoundary, InvoicePrint, HealthMonitor)
-- [ ] 0 TypeScript errors, 29/29 tests passing after redesign
+- [x] Define Polaroid design system — white base, rainbow stripe, bold primaries, Syne + Inter fonts
+- [x] Rewrite index.css with new CSS variables, utility classes, rainbow stripe component
+- [x] Update index.html with new Google Fonts (Syne + Inter)
+- [x] Redesign Home.tsx with Polaroid retro-modern layout
+- [x] Redesign Pricing.tsx with Polaroid theme
+- [x] Update About.tsx with Polaroid theme
+- [x] Update Dashboard.tsx with Polaroid accent colors
+- [x] Update Admin.tsx with Polaroid accent colors
+- [x] Update all remaining pages (Contact, Help, Terms, Privacy, Billing, BookingPage, CheckoutSuccess, NotFound)
+- [x] Update all components (AIAssistant, ClientPulse, ErrorBoundary, InvoicePrint, HealthMonitor)
+- [x] 0 TypeScript errors, 29/29 tests passing after redesign
 
 ## Logo Integration & CSS Build Fix (Round 11)
 - [x] Fix build failure — replace all `@apply btn-yellow`, `@apply glow-yellow`, `@apply pill-yellow`, `@apply pill-green`, `@apply tag-yellow`, `@apply tag-green`, `@apply tag-red`, `@apply shimmer-text` with inline CSS
@@ -261,61 +261,61 @@
 ## Auth Enhancements (Round 13)
 
 ### Forgot Password Flow
-- [ ] Add passwordResetTokens DB table (token, userId, expiresAt, used)
-- [ ] Add auth.forgotPassword tRPC procedure — generate token, send email via notifyOwner/email
-- [ ] Add auth.resetPassword tRPC procedure — validate token, update passwordHash, mark used
-- [ ] Create ForgotPassword page at /forgot-password
-- [ ] Create ResetPassword page at /reset-password?token=...
-- [ ] Add "Forgot password?" link on Login page
+- [x] Add passwordResetTokens DB table (token, userId, expiresAt, used)
+- [x] Add auth.forgotPassword tRPC procedure — generate token, send email via notifyOwner/email
+- [x] Add auth.resetPassword tRPC procedure — validate token, update passwordHash, mark used
+- [x] Create ForgotPassword page at /forgot-password
+- [x] Create ResetPassword page at /reset-password?token=...
+- [x] Add "Forgot password?" link on Login page
 
 ### Change Password in Dashboard Settings
-- [ ] Add auth.changePassword tRPC procedure (verify old password, set new)
-- [ ] Add Change Password section to Dashboard Settings panel
+- [x] Add auth.changePassword tRPC procedure (verify old password, set new)
+- [x] Add Change Password section to Dashboard Settings panel
 
 ### Invitation-Only Registration Gate
-- [ ] Add inviteCodes DB table (code, createdBy, usedBy, usedAt, expiresAt)
-- [ ] Add admin.createInvite tRPC procedure — generate invite code
-- [ ] Add admin.listInvites tRPC procedure — list all codes with status
-- [ ] Add admin.revokeInvite tRPC mutation — delete/expire a code
-- [ ] Update auth.register to require a valid invite code
-- [ ] Update Register page to include invite code field
-- [ ] Add Invite Codes tab to Admin panel — generate, list, revoke codes
+- [x] Add inviteCodes DB table (code, createdBy, usedBy, usedAt, expiresAt)
+- [x] Add admin.createInvite tRPC procedure — generate invite code
+- [x] Add admin.listInvites tRPC procedure — list all codes with status
+- [x] Add admin.revokeInvite tRPC mutation — delete/expire a code
+- [x] Update auth.register to require a valid invite code
+- [x] Update Register page to include invite code field
+- [x] Add Invite Codes tab to Admin panel — generate, list, revoke codes
 
 ## Comprehensive Platform Hardening (Round 13 — Full Pass)
 
 ### Migration & DB
-- [ ] Fix duplicate passwordHash migration conflict (mark 0006 as applied, push new tables only)
-- [ ] Verify passwordResetTokens and inviteCodes tables created in DB
+- [x] Fix duplicate passwordHash migration conflict (mark 0006 as applied, push new tables only)
+- [x] Verify passwordResetTokens and inviteCodes tables created in DB
 
 ### Forgot Password Flow
-- [ ] auth.forgotPassword tRPC procedure — generate secure token, store in DB, send email via notifyOwner
-- [ ] auth.resetPassword tRPC procedure — validate token expiry/used, update passwordHash, mark token used
-- [ ] ForgotPassword page at /forgot-password
-- [ ] ResetPassword page at /reset-password?token=...
-- [ ] "Forgot password?" link on Login page
+- [x] auth.forgotPassword tRPC procedure — generate secure token, store in DB, send email via notifyOwner
+- [x] auth.resetPassword tRPC procedure — validate token expiry/used, update passwordHash, mark token used
+- [x] ForgotPassword page at /forgot-password
+- [x] ResetPassword page at /reset-password?token=...
+- [x] "Forgot password?" link on Login page
 
 ### Change Password
-- [ ] auth.changePassword tRPC procedure — verify current password, hash and save new one
-- [ ] Change Password section in Dashboard Settings panel
+- [x] auth.changePassword tRPC procedure — verify current password, hash and save new one
+- [x] Change Password section in Dashboard Settings panel
 
 ### Invitation-Only Registration
-- [ ] admin.createInvite tRPC procedure — generate unique code, store with note/expiry
-- [ ] admin.listInvites tRPC procedure — list all codes with status (used/active/revoked/expired)
-- [ ] admin.revokeInvite tRPC mutation — mark code as revoked
-- [ ] Update auth.register to require valid invite code (check not used/revoked/expired)
-- [ ] Update Register page with invite code field
-- [ ] Invite Codes tab in Admin panel — generate, list, copy, revoke
+- [x] admin.createInvite tRPC procedure — generate unique code, store with note/expiry
+- [x] admin.listInvites tRPC procedure — list all codes with status (used/active/revoked/expired)
+- [x] admin.revokeInvite tRPC mutation — mark code as revoked
+- [x] Update auth.register to require valid invite code (check not used/revoked/expired)
+- [x] Update Register page with invite code field
+- [x] Invite Codes tab in Admin panel — generate, list, copy, revoke
 
 ### Data Integrity Audit
-- [ ] Verify all tRPC mutations return correct data shapes (no undefined fields)
-- [ ] Verify all analytics calculations use correct UTC timestamps
-- [ ] Verify invoice totals aggregate correctly (paid vs unpaid)
-- [ ] Verify client pulse scores recompute on relevant mutations
-- [ ] Verify admin user management shows accurate plan/role/subscription data
-- [ ] Verify Stripe webhook correctly updates subscriptionStatus and planId in DB
-- [ ] Verify lastSignedIn updates on every login
-- [ ] Verify all error paths return typed TRPCError (no raw throws)
-- [ ] Verify all admin procedures check role === 'admin' before executing
+- [x] Verify all tRPC mutations return correct data shapes (no undefined fields)
+- [x] Verify all analytics calculations use correct UTC timestamps
+- [x] Verify invoice totals aggregate correctly (paid vs unpaid)
+- [x] Verify client pulse scores recompute on relevant mutations
+- [x] Verify admin user management shows accurate plan/role/subscription data
+- [x] Verify Stripe webhook correctly updates subscriptionStatus and planId in DB
+- [x] Verify lastSignedIn updates on every login
+- [x] Verify all error paths return typed TRPCError (no raw throws)
+- [x] Verify all admin procedures check role === 'admin' before executing
 
 ## Auth Enhancements — Completed (Round 14)
 - [x] passwordResetTokens and inviteCodes DB tables created
@@ -335,47 +335,47 @@
 ## Visual Polish & UX Pass (Round 15)
 
 ### Global CSS & Typography
-- [ ] Audit and fix all input/textarea focus states — consistent amber ring, no browser default blue
-- [ ] Fix all controlled inputs to use value+onChange (no defaultValue anti-patterns causing stale state)
-- [ ] Ensure all select dropdowns have consistent amber focus ring
-- [ ] Add smooth transitions to all interactive elements (buttons, cards, nav items)
-- [ ] Ensure consistent font sizing hierarchy across all pages
-- [ ] Fix any text overflow/truncation issues on mobile
+- [x] Audit and fix all input/textarea focus states — consistent amber ring, no browser default blue
+- [x] Fix all controlled inputs to use value+onChange (no defaultValue anti-patterns causing stale state)
+- [x] Ensure all select dropdowns have consistent amber focus ring
+- [x] Add smooth transitions to all interactive elements (buttons, cards, nav items)
+- [x] Ensure consistent font sizing hierarchy across all pages
+- [x] Fix any text overflow/truncation issues on mobile
 
 ### Auth Pages
-- [ ] Login — fix autofill background color (browser yellow override)
-- [ ] Login — add loading disabled state visual feedback
-- [ ] Register — ensure invite code field auto-uppercases smoothly without cursor jump
-- [ ] ForgotPassword — ensure email field autofocuses on mount
-- [ ] ResetPassword — ensure token is read from URL on mount correctly
+- [x] Login — fix autofill background color (browser yellow override)
+- [x] Login — add loading disabled state visual feedback
+- [x] Register — ensure invite code field auto-uppercases smoothly without cursor jump
+- [x] ForgotPassword — ensure email field autofocuses on mount
+- [x] ResetPassword — ensure token is read from URL on mount correctly
 
 ### Dashboard
-- [ ] Fix mobile bottom nav — ensure all 5 tabs are tappable with 48px targets
-- [ ] Fix sidebar collapse animation — smooth width transition
-- [ ] Fix all modal inputs — ensure typing doesn't lag or lose focus
-- [ ] Fix client search input — debounce to prevent excessive re-renders
-- [ ] Fix invoice amount input — allow decimal typing without value reset
-- [ ] Fix booking date/time inputs — consistent styling with rest of form
-- [ ] Fix follow-up panel — textarea should auto-resize as user types
-- [ ] Add scroll-to-top when switching panels
-- [ ] Ensure all empty states have clear CTAs
+- [x] Fix mobile bottom nav — ensure all 5 tabs are tappable with 48px targets
+- [x] Fix sidebar collapse animation — smooth width transition
+- [x] Fix all modal inputs — ensure typing doesn't lag or lose focus
+- [x] Fix client search input — debounce to prevent excessive re-renders
+- [x] Fix invoice amount input — allow decimal typing without value reset
+- [x] Fix booking date/time inputs — consistent styling with rest of form
+- [x] Fix follow-up panel — textarea should auto-resize as user types
+- [x] Add scroll-to-top when switching panels
+- [x] Ensure all empty states have clear CTAs
 
 ### Admin Panel
-- [ ] Fix mobile tab overflow — horizontal scroll with snap
-- [ ] Fix user table on mobile — card layout instead of table
-- [ ] Fix broadcast textarea — smooth typing, character counter
-- [ ] Fix settings form inputs — consistent styling and focus states
-- [ ] Ensure all admin action buttons have loading states
+- [x] Fix mobile tab overflow — horizontal scroll with snap
+- [x] Fix user table on mobile — card layout instead of table
+- [x] Fix broadcast textarea — smooth typing, character counter
+- [x] Fix settings form inputs — consistent styling and focus states
+- [x] Ensure all admin action buttons have loading states
 
 ### Public Pages
-- [ ] Home — fix mobile nav hamburger menu animation
-- [ ] Home — fix email capture input focus and submit state
-- [ ] Pricing — fix plan toggle animation
-- [ ] Contact — fix all form inputs, ensure submit shows success state
-- [ ] Help — fix search input, ensure filtering is smooth
-- [ ] BookingPage — fix all form inputs, ensure date picker is mobile-friendly
-- [ ] All pages — ensure nav logo links back to homepage
-- [ ] All pages — ensure footer links are tappable on mobile (48px targets)
+- [x] Home — fix mobile nav hamburger menu animation
+- [x] Home — fix email capture input focus and submit state
+- [x] Pricing — fix plan toggle animation
+- [x] Contact — fix all form inputs, ensure submit shows success state
+- [x] Help — fix search input, ensure filtering is smooth
+- [x] BookingPage — fix all form inputs, ensure date picker is mobile-friendly
+- [x] All pages — ensure nav logo links back to homepage
+- [x] All pages — ensure footer links are tappable on mobile (48px targets)
 
 ## Visual Polish & UX Pass (Round 14)
 - [x] Add Space Grotesk font import to index.html (was referenced in 98 places but not imported)
@@ -467,7 +467,7 @@
 - [x] Email delivery: Nodemailer SMTP (free) — forgot-password, invoice reminders, booking confirmations
 - [x] Stripe payment on invoices: Pay Now button → Checkout session → webhook auto-marks paid + receipt email
 - [x] Client Portal (/portal/:token): read-only view of invoices/bookings, pay outstanding balance
-- [ ] Google Calendar OAuth sync: add/update/delete events on booking changes
+- [x] Google Calendar OAuth sync: add/update/delete events on booking changes
 - [x] iCal export feed (/api/calendar/:userId.ics)
 - [x] Contract & Proposal builder: template editor, e-signature, proposal→invoice conversion
 
@@ -490,19 +490,19 @@
 - [x] Onboarding checklist: 5-step flow for new users, progress bar in sidebar
 
 ### Priority 5 — Platform & Reliability
-- [ ] Two-factor authentication (TOTP 2FA) with backup codes
+- [x] Two-factor authentication (TOTP 2FA) with backup codes
 - [x] Audit log: DB table, viewable in Settings Activity Log
 - [x] API access: personal API key generation in Settings
 - [x] PWA support: manifest.json added with shortcuts and metadata
 
 ### Quick Wins
 - [x] Add "Copy Invoice Link" button to invoice cards
-- [ ] Show client timezone on booking cards
+- [x] Show client timezone on booking cards
 - [x] Add "Duplicate Invoice" action
-- [ ] Add keyboard shortcut hints to sidebar
+- [x] Add keyboard shortcut hints to sidebar
 - [x] Add "Print Invoice" button with clean print view
-- [ ] Show "Last seen" timestamp on client cards
-- [ ] Add CSV import for clients (bulk onboarding)
+- [x] Show "Last seen" timestamp on client cards
+- [x] Add CSV import for clients (bulk onboarding)
 - [x] Add "Mark as Paid" quick action on overdue invoice cards
 
 ## Free-Tier Implementation (Apr 3, 2026)
@@ -523,8 +523,8 @@
 - [x] Smart scheduling suggestions
 - [x] Invoice auto-categorization
 - [x] Onboarding checklist for new users
-- [ ] 2FA with TOTP (free via otplib)
+- [x] 2FA with TOTP (free via otplib)
 - [x] Audit log DB table + Settings Activity Log view
 - [x] Personal API key generation in Settings
 - [x] PWA manifest.json added
-- [ ] All 8 quick wins
+- [x] All 8 quick wins

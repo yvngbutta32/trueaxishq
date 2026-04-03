@@ -8,7 +8,7 @@ import {
   Megaphone, CheckCircle, XCircle, Clock, Mail, Download,
   Settings, Activity, Trash2, Edit2, Save, X, ToggleLeft,
   ToggleRight, Globe, Phone, Twitter, Linkedin, Instagram,
-  Youtube, Zap, Database, Server, Lock, Unlock, Eye
+  Youtube, Zap, Database, Server, Lock, Unlock, Eye, Key, Plus, Copy, Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
@@ -78,7 +78,7 @@ function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: bool
 }
 
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
-type AdminTab = "overview" | "users" | "leads" | "broadcast" | "settings" | "health" | "security";
+type AdminTab = "overview" | "users" | "leads" | "broadcast" | "settings" | "health" | "security" | "invites";
 
 export default function Admin() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -149,6 +149,19 @@ export default function Admin() {
     { page: leadsPage, limit: 50 },
     { enabled: isAuthenticated && user?.role === "admin" && activeTab === "leads" }
   );
+  const [newInviteNote, setNewInviteNote] = useState("");
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const invitesQuery = trpc.admin.listInvites.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === "admin" && activeTab === "invites",
+  });
+  const createInviteMutation = trpc.admin.createInvite.useMutation({
+    onSuccess: () => { invitesQuery.refetch(); toast.success("Invite code created!"); setNewInviteNote(""); },
+    onError: (e) => toast.error(e.message),
+  });
+  const revokeInviteMutation = trpc.admin.revokeInvite.useMutation({
+    onSuccess: () => { invitesQuery.refetch(); toast.success("Invite code revoked."); },
+    onError: (e) => toast.error(e.message),
+  });
   const settingsQuery = trpc.admin.getSettings.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin" && activeTab === "settings",
     onSuccess: (data: any) => {
@@ -242,6 +255,7 @@ export default function Admin() {
     { id: "overview", label: "Overview", icon: BarChart3 },
     { id: "users", label: "Users", icon: Users },
     { id: "leads", label: "Leads", icon: Mail },
+    { id: "invites", label: "Invite Codes", icon: Key },
     { id: "broadcast", label: "Broadcast", icon: Megaphone },
     { id: "settings", label: "Site Settings", icon: Settings },
     { id: "health", label: "System Health", icon: Activity },
@@ -1189,6 +1203,91 @@ export default function Admin() {
                 <div className="py-8 text-center text-gray-400">
                   <Shield className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">No security events found.</p>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Invite Codes Tab */}
+        {activeTab === "invites" && (
+          <section aria-label="Invite Codes" className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-base font-bold text-gray-900 mb-4">Generate Invite Code</h3>
+              <div className="flex gap-3">
+                <input
+                  value={newInviteNote}
+                  onChange={e => setNewInviteNote(e.target.value)}
+                  placeholder="Optional note (e.g. for Jane Smith)"
+                  className="form-input-light flex-1"
+                />
+                <Button
+                  className="bg-[#1C1C1E] text-white hover:bg-[#2C2C2E] gap-2"
+                  onClick={() => createInviteMutation.mutate({ note: newInviteNote || undefined })}
+                  disabled={createInviteMutation.isPending}
+                >
+                  <Plus className="w-4 h-4" />Generate Code
+                </Button>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-base font-bold text-gray-900 mb-4">Active Invite Codes</h3>
+              {invitesQuery.isLoading ? (
+                <div className="py-8 text-center text-gray-400">Loading...</div>
+              ) : !invitesQuery.data?.length ? (
+                <div className="py-8 text-center text-gray-400">
+                  <Key className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">No invite codes yet. Generate one above.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Code</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Note</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Status</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Created</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invitesQuery.data.map((inv: any) => (
+                        <tr key={inv.id} className="border-b border-gray-50 hover:bg-gray-50">
+                          <td className="py-2 px-3">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold text-[#1C1C1E]">{inv.code}</span>
+                              <button
+                                onClick={() => { navigator.clipboard.writeText(inv.code); setCopiedCode(inv.code); setTimeout(() => setCopiedCode(null), 2000); }}
+                                className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                              >
+                                {copiedCode === inv.code ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="py-2 px-3 text-gray-500">{inv.note || "—"}</td>
+                          <td className="py-2 px-3">
+                            {inv.usedBy ? (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Used</span>
+                            ) : (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-600">Available</span>
+                            )}
+                          </td>
+                          <td className="py-2 px-3 text-gray-400 text-xs">{new Date(inv.createdAt).toLocaleDateString()}</td>
+                          <td className="py-2 px-3">
+                            {!inv.usedBy && (
+                              <button
+                                onClick={() => revokeInviteMutation.mutate({ id: inv.id })}
+                                className="text-xs text-red-500 hover:text-red-700 font-medium"
+                              >
+                                Revoke
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

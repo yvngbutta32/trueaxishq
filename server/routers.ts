@@ -1,5 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
 import { TRPCError } from "@trpc/server";
@@ -135,6 +135,9 @@ export const appRouter = router({
           // Successful login — clear failed login counter
           clearFailedLogins(input.email);
           logSecurityEvent({ eventType: "login_success", severity: "low", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"] });
+          // Update lastSignedIn timestamp
+          const dbConn = await requireDb();
+          await dbConn.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
           const token = await createSessionToken(user.id, user.email ?? input.email);
           const cookieOptions = getSessionCookieOptions(ctx.req);
           ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
@@ -313,7 +316,32 @@ export const appRouter = router({
         if (input?.status && input.status !== "all") {
           filtered = filtered.filter(c => c.status === input.status);
         }
-        return filtered;
+        // Attach lastActivity: most recent booking or invoice date per client
+        const clientIds = filtered.map(c => c.id);
+        let lastActivityMap: Record<number, Date | null> = {};
+        if (clientIds.length > 0) {
+          const recentBookings = await db.select({ clientId: bookings.clientId, date: bookings.createdAt })
+            .from(bookings)
+            .where(and(eq(bookings.userId, ctx.user.id), inArray(bookings.clientId, clientIds)))
+            .orderBy(desc(bookings.createdAt));
+          const recentInvoices = await db.select({ clientId: invoices.clientId, date: invoices.createdAt })
+            .from(invoices)
+            .where(and(eq(invoices.userId, ctx.user.id), inArray(invoices.clientId, clientIds)))
+            .orderBy(desc(invoices.createdAt));
+          for (const b of recentBookings) {
+            if (!b.clientId) continue;
+            if (!lastActivityMap[b.clientId] || (b.date && b.date > lastActivityMap[b.clientId]!)) {
+              lastActivityMap[b.clientId] = b.date;
+            }
+          }
+          for (const inv of recentInvoices) {
+            if (!inv.clientId) continue;
+            if (!lastActivityMap[inv.clientId] || (inv.date && inv.date > lastActivityMap[inv.clientId]!)) {
+              lastActivityMap[inv.clientId] = inv.date;
+            }
+          }
+        }
+        return filtered.map(c => ({ ...c, lastActivity: lastActivityMap[c.id] ?? null }));
       }),
 
     get: protectedProcedure
@@ -376,6 +404,37 @@ export const appRouter = router({
         const db = await requireDb();
         await db.delete(clients).where(and(eq(clients.id, input.id), eq(clients.userId, ctx.user.id)));
         return { success: true };
+      }),
+
+    importCsv: protectedProcedure
+      .input(z.object({
+        rows: z.array(z.object({
+          name: z.string().trim().min(1).max(255),
+          email: z.string().email().optional().or(z.literal("")),
+          phone: z.string().max(32).optional().or(z.literal("")),
+          service: z.string().max(255).optional().or(z.literal("")),
+          status: z.enum(["active", "inactive", "prospect"]).optional(),
+        })).min(1).max(500),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        let imported = 0;
+        let skipped = 0;
+        for (const row of input.rows) {
+          if (!row.name.trim()) { skipped++; continue; }
+          const initials = row.name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
+          await db.insert(clients).values({
+            userId: ctx.user.id,
+            name: row.name.trim(),
+            email: row.email || null,
+            phone: row.phone || null,
+            service: row.service || null,
+            status: row.status || "active",
+            avatarInitials: initials,
+          }).onDuplicateKeyUpdate({ set: { name: row.name.trim() } });
+          imported++;
+        }
+        return { imported, skipped };
       }),
   }),
 

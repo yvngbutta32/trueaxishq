@@ -117,7 +117,7 @@
   --sidebar-ring:               oklch(0.28 0.08 240);
 
   /* Focus */
-  --focus-ring-color:  #1D3557;
+  --focus-ring-color:  #E8A020;
   --focus-ring-offset: 3px;
   --focus-ring-width:  2px;
 }
@@ -198,6 +198,25 @@
   label[for] { cursor: pointer; }
 
   :disabled, [aria-disabled="true"] { cursor: not-allowed; opacity: 0.5; }
+
+  /* ── Global autofill override (prevents browser yellow on all inputs) ── */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+    -webkit-text-fill-color: #1C1C1E !important;
+    caret-color: #E8A020 !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* ── Textarea auto-resize base ─────────────────────────────────────── */
+  textarea.auto-resize {
+    resize: none;
+    overflow: hidden;
+    min-height: 80px;
+  }
 
   /* ── Reduced Motion ────────────────────────────────────────────────────── */
   @media (prefers-reduced-motion: reduce) {

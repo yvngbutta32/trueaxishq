@@ -27,7 +27,7 @@ import {
   Building, Save, Moon, Sun, Bot, CreditCard,
   ExternalLink, Bell, Search, ChevronDown, Loader2,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
-  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles
+  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -110,8 +110,22 @@ function Field({ label, value, onChange, placeholder, type = "text", required, t
     <div>
       <label className="block text-xs font-semibold text-gray-600 mb-1.5">{label}{required && " *"}</label>
       {textarea
-        ? <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={rows} className={`${cls} resize-none`} />
-        : <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className={cls} />
+        ? <textarea
+            value={value}
+            onChange={e => { onChange(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
+            placeholder={placeholder}
+            rows={rows}
+            className={`${cls} resize-none overflow-hidden`}
+            style={{ minHeight: `${(rows ?? 3) * 1.6}rem` }}
+          />
+        : <input
+            type={type === "number" ? "text" : type}
+            inputMode={type === "number" ? "decimal" : undefined}
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            placeholder={placeholder}
+            className={cls}
+          />
       }
     </div>
   );
@@ -528,13 +542,23 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
 function ClientsPanel() {
   const utils = trpc.useUtils();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "prospect">("all");
   const [showAdd, setShowAdd] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "", service: "", status: "active" as "active" | "inactive" | "prospect", notes: "" });
   const [clientConfirm, setClientConfirm] = useState<ConfirmState>(defaultConfirm);
+  const [showCsvImport, setShowCsvImport] = useState(false);
+  const [csvText, setCsvText] = useState("");
+  const [csvPreview, setCsvPreview] = useState<Array<{ name: string; email: string; phone: string; service: string; status: string }>>([]);
 
-  const { data: clientList, isLoading } = trpc.clients.list.useQuery({ search, status: statusFilter });
+  // Debounce search to prevent excessive API calls
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const { data: clientList, isLoading } = trpc.clients.list.useQuery({ search: debouncedSearch, status: statusFilter });
   const { data: selectedClient } = trpc.clients.get.useQuery({ id: selectedId! }, { enabled: !!selectedId });
   const { data: pulseData } = trpc.pulse.getAll.useQuery(undefined, { retry: 1 });
   const pulseMap = new Map((pulseData ?? []).map(d => [d.client.id, d.pulse]));
@@ -551,6 +575,34 @@ function ClientsPanel() {
     onSuccess: () => { utils.clients.list.invalidate(); utils.clients.get.invalidate({ id: selectedId! }); toast.success("Client updated!"); },
     onError: (e) => toast.error(e.message),
   });
+  const importCsv = trpc.clients.importCsv.useMutation({
+    onSuccess: (data) => { utils.clients.list.invalidate(); toast.success(`Imported ${data.imported} clients${data.skipped ? `, skipped ${data.skipped}` : ""}.`); setShowCsvImport(false); setCsvText(""); setCsvPreview([]); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const parseCsv = (text: string) => {
+    const lines = text.trim().split("\n").filter(l => l.trim());
+    if (lines.length === 0) return;
+    const headers = lines[0].split(",").map(h => h.trim().toLowerCase().replace(/["']/g, ""));
+    const nameIdx = headers.findIndex(h => h.includes("name"));
+    const emailIdx = headers.findIndex(h => h.includes("email"));
+    const phoneIdx = headers.findIndex(h => h.includes("phone") || h.includes("tel"));
+    const serviceIdx = headers.findIndex(h => h.includes("service") || h.includes("niche") || h.includes("type"));
+    const statusIdx = headers.findIndex(h => h.includes("status"));
+    const dataLines = nameIdx >= 0 ? lines.slice(1) : lines;
+    const rows = dataLines.slice(0, 500).map(line => {
+      const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ""));
+      return {
+        name: nameIdx >= 0 ? cols[nameIdx] || "" : cols[0] || "",
+        email: emailIdx >= 0 ? cols[emailIdx] || "" : cols[1] || "",
+        phone: phoneIdx >= 0 ? cols[phoneIdx] || "" : cols[2] || "",
+        service: serviceIdx >= 0 ? cols[serviceIdx] || "" : cols[3] || "",
+        status: statusIdx >= 0 ? cols[statusIdx] || "active" : "active",
+      };
+    }).filter(r => r.name.trim());
+    setCsvPreview(rows);
+  };
+
   const { data: clientDocs, refetch: refetchDocs } = trpc.documents.list.useQuery(
     { clientId: selectedId! },
     { enabled: !!selectedId }
@@ -606,9 +658,14 @@ function ClientsPanel() {
           <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Clients</h2>
           <p className="text-sm text-gray-500">{clientList?.length || 0} clients in your roster</p>
         </div>
-        <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
-          <Plus className="w-3.5 h-3.5" />Add Client
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => setShowCsvImport(true)}>
+            <Upload className="w-3.5 h-3.5" />Import CSV
+          </Button>
+          <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
+            <Plus className="w-3.5 h-3.5" />Add Client
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -689,7 +746,12 @@ function ClientsPanel() {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-[#1C1C1E] truncate">{c.name}</p>
-                <p className="text-xs text-gray-400 truncate">{c.email || "No email"}</p>
+                <p className="text-xs text-gray-400 truncate">
+                  {c.email || "No email"}
+                  {(c as any).lastActivity && (
+                    <span className="ml-2 text-gray-300">· last seen {new Date((c as any).lastActivity).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                  )}
+                </p>
               </div>
             </div>
             <p className="hidden sm:block text-sm text-gray-600 truncate">{c.service || "—"}</p>
@@ -830,6 +892,55 @@ function ClientsPanel() {
         confirmLabel="Remove"
         variant="destructive"
       />
+
+      {/* CSV Import Modal */}
+      <Modal open={showCsvImport} onClose={() => { setShowCsvImport(false); setCsvText(""); setCsvPreview([]); }} title="Import Clients from CSV">
+        <div className="space-y-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
+            <strong>Expected columns:</strong> name, email, phone, service, status (active/inactive/prospect). First row can be a header row.
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Paste CSV content</label>
+            <textarea
+              value={csvText}
+              onChange={e => { setCsvText(e.target.value); parseCsv(e.target.value); }}
+              placeholder={`name,email,phone,service\nJane Smith,jane@example.com,+1555000,Coaching\nJohn Doe,john@example.com,,Web Design`}
+              rows={6}
+              className="form-input-light resize-none font-mono text-xs"
+            />
+          </div>
+          {csvPreview.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-600 mb-2">{csvPreview.length} client{csvPreview.length > 1 ? "s" : ""} detected — preview (first 5):</p>
+              <div className="border border-gray-100 rounded-xl overflow-hidden">
+                {csvPreview.slice(0, 5).map((row, i) => (
+                  <div key={i} className="flex items-center gap-3 px-3 py-2 border-t border-gray-50 first:border-t-0 text-xs">
+                    <div className="w-6 h-6 rounded-full gradient-amber flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                      {row.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-[#1C1C1E] truncate">{row.name}</p>
+                      <p className="text-gray-400 truncate">{row.email || "No email"}</p>
+                    </div>
+                    <span className="text-gray-400">{row.service || "—"}</span>
+                  </div>
+                ))}
+                {csvPreview.length > 5 && <div className="px-3 py-2 text-xs text-gray-400 border-t border-gray-50">+{csvPreview.length - 5} more...</div>}
+              </div>
+            </div>
+          )}
+          <div className="flex gap-3">
+            <Button variant="outline" className="flex-1" onClick={() => { setShowCsvImport(false); setCsvText(""); setCsvPreview([]); }}>Cancel</Button>
+            <Button
+              className="flex-1 gradient-amber text-white border-0 hover:opacity-90"
+              onClick={() => importCsv.mutate({ rows: csvPreview.map(r => ({ name: r.name, email: r.email || undefined, phone: r.phone || undefined, service: r.service || undefined, status: (r.status as any) || "active" })) })}
+              disabled={csvPreview.length === 0 || importCsv.isPending}
+            >
+              {importCsv.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : `Import ${csvPreview.length} Client${csvPreview.length !== 1 ? "s" : ""}`}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -2424,6 +2535,22 @@ export default function Dashboard() {
       mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     });
   };
+
+  // Global keyboard shortcuts: Alt+1..9 for panel navigation
+  useEffect(() => {
+    const panels: ActivePanel[] = ["overview", "clients", "scheduling", "invoices", "followups", "analytics", "ai", "pulse", "settings"];
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        const idx = parseInt(e.key) - 1;
+        if (idx >= 0 && idx < panels.length) {
+          e.preventDefault();
+          setActiveWithScroll(panels[idx]);
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, []);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) navigate("/");
