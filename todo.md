@@ -528,3 +528,12 @@
 - [x] Personal API key generation in Settings
 - [x] PWA manifest.json added
 - [x] All 8 quick wins
+
+## Round 16 — Final Polish (Apr 2026)
+
+- [x] CSV export for invoices (download all invoices as CSV from InvoicesPanel header)
+- [x] CSV export for clients (download all clients as CSV from ClientsPanel header)
+- [x] iCal feed link in Settings → Scheduling section (copy-able URL + download)
+- [x] Invoice status filter tabs (All / Unpaid / Paid / Overdue) in InvoicesPanel
+- [x] Client notes field in client profile modal (free-text notes per client)
+- [x] "Send Receipt" button on paid invoices (email receipt to client)

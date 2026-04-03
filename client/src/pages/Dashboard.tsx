@@ -580,6 +580,27 @@ function ClientsPanel() {
     onError: (e) => toast.error(e.message),
   });
 
+  function exportClientsCSV() {
+    if (!clientList || clientList.length === 0) { toast.info("No clients to export."); return; }
+    const headers = ["Name", "Email", "Phone", "Service", "Status", "Pulse Score", "Last Activity"];
+    const rows = clientList.map(c => {
+      const pulse = pulseMap.get(c.id);
+      return [
+        c.name, c.email || "", c.phone || "", c.service || "",
+        c.status, pulse?.healthScore ?? "",
+        (c as any).lastActivity ? new Date((c as any).lastActivity).toLocaleDateString() : ""
+      ];
+    });
+    const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `clients-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Clients exported!");
+  }
+
+
+
   const parseCsv = (text: string) => {
     const lines = text.trim().split("\n").filter(l => l.trim());
     if (lines.length === 0) return;
@@ -659,6 +680,9 @@ function ClientsPanel() {
           <p className="text-sm text-gray-500">{clientList?.length || 0} clients in your roster</p>
         </div>
         <div className="flex gap-2">
+          <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={exportClientsCSV} title="Export clients as CSV">
+            <Download className="w-3.5 h-3.5" />Export CSV
+          </Button>
           <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => setShowCsvImport(true)}>
             <Upload className="w-3.5 h-3.5" />Import CSV
           </Button>
@@ -1123,8 +1147,30 @@ function InvoicesPanel() {
   const [previewInvoice, setPreviewInvoice] = useState<any>(null);
   const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" as "draft" | "sent" });
   const [invConfirm, setInvConfirm] = useState<ConfirmState>(defaultConfirm);
+  const [invFilter, setInvFilter] = useState<"all" | "unpaid" | "paid" | "overdue">("all");
 
   const { data: invoiceList, isLoading } = trpc.invoices.list.useQuery({ status: "all" });
+
+  const filteredInvoices = (invoiceList || []).filter(inv => {
+    if (invFilter === "all") return true;
+    if (invFilter === "unpaid") return inv.status === "draft" || inv.status === "sent";
+    return inv.status === invFilter;
+  });
+
+  function exportInvoicesCSV() {
+    if (!invoiceList || invoiceList.length === 0) { toast.info("No invoices to export."); return; }
+    const headers = ["Invoice #", "Client", "Email", "Service", "Amount", "Due Date", "Status", "Notes"];
+    const rows = invoiceList.map(inv => [
+      inv.invoiceNumber, inv.clientName, inv.clientEmail || "",
+      inv.service || "", inv.amount, inv.dueDate || "", inv.status, (inv.notes || "").replace(/,/g, ";")
+    ]);
+    const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `invoices-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Invoices exported!");
+  }
   const { data: invoiceStats } = trpc.invoices.stats.useQuery();
   const { data: clientList } = trpc.clients.list.useQuery({ search: "", status: "all" });
 
@@ -1152,6 +1198,10 @@ function InvoicesPanel() {
     onSuccess: (data) => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); toast.success(`Invoice duplicated as ${data.invoiceNumber} (draft).`); },
     onError: (e) => toast.error(e.message),
   });
+  const sendReceipt = trpc.invoices.sendReceipt.useMutation({
+    onSuccess: (data) => toast.success(data.emailSent ? "Receipt sent to client!" : "Receipt prepared (email not configured)."),
+    onError: (e) => toast.error(e.message),
+  });
   const categorizeInvoice = trpc.ai.categorizeInvoice.useMutation({
     onSuccess: (data) => {
       const tagStr = data.tags.length > 0 ? ` [${data.tags.join(", ")}]` : "";
@@ -1175,9 +1225,22 @@ function InvoicesPanel() {
           <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Invoices</h2>
           <p className="text-sm text-gray-500">{invoiceList?.length || 0} total invoices</p>
         </div>
-        <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
-          <Plus className="w-3.5 h-3.5" />New Invoice
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" className="gap-1.5 text-gray-600 border-gray-200" onClick={exportInvoicesCSV} title="Export all invoices as CSV">
+            <Download className="w-3.5 h-3.5" />Export CSV
+          </Button>
+          <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
+            <Plus className="w-3.5 h-3.5" />New Invoice
+          </Button>
+        </div>
+      </div>
+      {/* Filter tabs */}
+      <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit">
+        {(["all", "unpaid", "paid", "overdue"] as const).map(f => (
+          <button key={f} onClick={() => setInvFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
+            invFilter === f ? "bg-white text-[#1C1C1E] shadow-sm" : "text-gray-500 hover:text-gray-700"
+          }`}>{f}</button>
+        ))}
       </div>
 
       {/* Stats */}
@@ -1211,7 +1274,12 @@ function InvoicesPanel() {
             <p className="text-sm font-medium text-gray-500">No invoices yet</p>
             <p className="text-xs mt-1">Create your first invoice to start tracking payments.</p>
           </div>
-        ) : invoiceList.map(inv => (
+        ) : filteredInvoices.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            <p className="text-sm font-medium text-gray-500">No {invFilter !== "all" ? invFilter : ""} invoices</p>
+          </div>
+        ) : filteredInvoices.map(inv => (
           <div key={inv.id} className="flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-5 py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors">
             <div className="sm:col-span-2">
               <p className="text-sm font-semibold text-[#1C1C1E]">{inv.clientName}</p>
@@ -1224,6 +1292,16 @@ function InvoicesPanel() {
               {inv.status !== "paid" && (
                 <button onClick={() => markPaid.mutate({ id: inv.id })} className="text-xs text-[#E8A020] hover:underline font-medium" disabled={markPaid.isPending}>
                   Mark Paid
+                </button>
+              )}
+              {inv.status === "paid" && inv.clientEmail && (
+                <button
+                  onClick={() => sendReceipt.mutate({ id: inv.id })}
+                  className="text-xs text-green-600 hover:underline font-medium flex items-center gap-1"
+                  disabled={sendReceipt.isPending}
+                  title="Email receipt to client"
+                >
+                  <Mail className="w-3 h-3" />{sendReceipt.isPending ? "..." : "Receipt"}
                 </button>
               )}
               {(inv.status === "sent" || inv.status === "overdue") && (
@@ -1976,6 +2054,7 @@ function AuditLogSection() {
 function SettingsPanel() {
   const utils = trpc.useUtils();
   const [, navigate] = useLocation();
+  const { user } = useAuth();
   const { data: settings, isLoading } = trpc.settings.get.useQuery(undefined, { retry: 1 });
   const [profile, setProfile] = useState({ name: "", bio: "", phone: "" });
   const [business, setBusiness] = useState({ businessName: "", businessPhone: "", businessAddress: "", businessWebsite: "" });
@@ -2181,6 +2260,33 @@ function SettingsPanel() {
         <Button className="gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => updateBookingPage.mutate(bookingPage)} disabled={updateBookingPage.isPending}>
           {updateBookingPage.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Booking Page</>}
         </Button>
+      </div>
+
+      {/* iCal Feed */}
+      <div className="space-y-3 p-5 bg-white rounded-2xl border border-gray-100">
+        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Calendar className="w-4 h-4 text-[#E8A020]" />Calendar Sync (iCal)</h3>
+        <p className="text-xs text-gray-500">Subscribe to your booking calendar in Google Calendar, Apple Calendar, or Outlook using this live iCal feed URL.</p>
+        {user?.id ? (
+          <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
+            <span className="text-xs text-gray-500 flex-1 truncate font-mono">{window.location.origin}/api/calendar/{user.id}.ics</span>
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/api/calendar/${user!.id}.ics`;
+                navigator.clipboard.writeText(url).then(() => toast.success("iCal URL copied!")).catch(() => toast.info(`iCal URL: ${url}`));
+              }}
+              className="text-gray-400 hover:text-[#E8A020] transition-colors flex-shrink-0 p-1 rounded hover:bg-[#E8A020]/10"
+              title="Copy iCal feed URL"
+              aria-label="Copy iCal feed URL"
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </button>
+            <a href={`${window.location.origin}/api/calendar/${user!.id}.ics`} download className="text-gray-400 hover:text-[#E8A020] transition-colors flex-shrink-0 p-1 rounded hover:bg-[#E8A020]/10" title="Download .ics file" aria-label="Download iCal file">
+              <Download className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        ) : (
+          <p className="text-xs text-gray-400">Sign in to access your iCal feed.</p>
+        )}
       </div>
 
       {/* Notifications */}

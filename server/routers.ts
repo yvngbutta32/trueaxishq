@@ -667,6 +667,33 @@ export const appRouter = router({
         });
         return { id: Number((result as any).insertId), invoiceNumber, success: true };
       }),
+    sendReceipt: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [inv] = await db.select().from(invoices)
+          .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id))).limit(1);
+        if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
+        if (inv.status !== "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "Only paid invoices can have receipts sent." });
+        if (!inv.clientEmail) throw new TRPCError({ code: "BAD_REQUEST", message: "No client email on this invoice." });
+        const { sendEmail } = await import("./_core/email");
+        const emailSent = await sendEmail({
+          to: inv.clientEmail,
+          subject: `Receipt for Invoice ${inv.invoiceNumber}`,
+          html: `<div style="font-family:sans-serif;max-width:520px;margin:auto">
+            <h2 style="color:#1C1C1E">Payment Receipt</h2>
+            <p>Hi ${inv.clientName},</p>
+            <p>Thank you for your payment! Here is your receipt for invoice <strong>${inv.invoiceNumber}</strong>.</p>
+            <table style="width:100%;border-collapse:collapse;margin:16px 0">
+              <tr><td style="padding:8px;border-bottom:1px solid #eee"><strong>Service</strong></td><td style="padding:8px;border-bottom:1px solid #eee">${inv.service || "General Service"}</td></tr>
+              <tr><td style="padding:8px;border-bottom:1px solid #eee"><strong>Amount Paid</strong></td><td style="padding:8px;border-bottom:1px solid #eee">$${Number(inv.amount).toFixed(2)}</td></tr>
+              <tr><td style="padding:8px"><strong>Date</strong></td><td style="padding:8px">${new Date().toLocaleDateString()}</td></tr>
+            </table>
+            <p style="color:#888;font-size:12px">This is an automated receipt. Please keep it for your records.</p>
+          </div>`,
+        });
+        return { success: true, emailSent };
+      }),
   }),
   // ── Bookings ──────────────────────────────────────────────────────────────
   bookings: router({
