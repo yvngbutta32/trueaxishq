@@ -6,7 +6,7 @@
  * All jobs are idempotent and safe to run repeatedly.
  */
 import { eq, and, lte, sql } from "drizzle-orm";
-import { getDb } from "./db";
+import { getDb, resetDbConnection } from "./db";
 import {
   invoices,
   recurringInvoices,
@@ -52,6 +52,7 @@ function nextDueDate(
 
 // ─── Job: Generate recurring invoices ────────────────────────────────────────
 async function runRecurringInvoices() {
+  for (let attempt = 1; attempt <= 2; attempt++) {
   try {
     const db = await getDb();
     if (!db) return;
@@ -128,42 +129,60 @@ async function runRecurringInvoices() {
         );
       }
     }
-  } catch (err) {
-    console.error("[Jobs] runRecurringInvoices error:", err);
+    return; // success
+  } catch (err: any) {
+    const isTransient = err?.code === 'ECONNRESET' || err?.code === 'ETIMEDOUT' || err?.code === 'ECONNREFUSED';
+    console.error(`[Jobs] runRecurringInvoices error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
+    if (isTransient && attempt < 2) {
+      resetDbConnection();
+      await new Promise(r => setTimeout(r, 500));
+    } else {
+      return;
+    }
   }
+  } // end retry loop
 }
 
 // ─── Job: Auto-detect overdue invoices ───────────────────────────────────────
 async function runOverdueDetection() {
-  try {
-    const db = await getDb();
-    if (!db) return;
-
-    const now = new Date();
-    // Mark sent invoices past their due date as overdue
-    // dueDate is stored as 'YYYY-MM-DD' string
-    const todayStr = now.toISOString().split('T')[0];
-    const result = await db
-      .update(invoices)
-      .set({ status: "overdue" })
-      .where(
-        and(
-          eq(invoices.status, "sent"),
-          sql`${invoices.dueDate} IS NOT NULL AND ${invoices.dueDate} < ${todayStr}`
-        )
-      );
-
-    const affected = (result as any)[0]?.affectedRows ?? 0;
-    if (affected > 0) {
-      console.log(`[Jobs] Marked ${affected} invoice(s) as overdue`);
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const db = await getDb();
+      if (!db) return;
+      const now = new Date();
+      // Mark sent invoices past their due date as overdue
+      // dueDate is stored as 'YYYY-MM-DD' string
+      const todayStr = now.toISOString().split('T')[0];
+      const result = await db
+        .update(invoices)
+        .set({ status: "overdue" })
+        .where(
+          and(
+            eq(invoices.status, "sent"),
+            sql`${invoices.dueDate} IS NOT NULL AND ${invoices.dueDate} < ${todayStr}`
+          )
+        );
+      const affected = (result as any)[0]?.affectedRows ?? 0;
+      if (affected > 0) {
+        console.log(`[Jobs] Marked ${affected} invoice(s) as overdue`);
+      }
+      return; // success
+    } catch (err: any) {
+      const isTransient = err?.code === 'ECONNRESET' || err?.code === 'ETIMEDOUT' || err?.code === 'ECONNREFUSED';
+      console.error(`[Jobs] runOverdueDetection error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
+      if (isTransient && attempt < 2) {
+        resetDbConnection();
+        await new Promise(r => setTimeout(r, 500));
+      } else {
+        return;
+      }
     }
-  } catch (err) {
-    console.error("[Jobs] runOverdueDetection error:", err);
   }
 }
 
 // ─── Job: Notify users of draft follow-ups older than 7 days ─────────────────
 async function runFollowUpReminders() {
+  for (let attempt = 1; attempt <= 2; attempt++) {
   try {
     const db = await getDb();
     if (!db) return;
@@ -208,9 +227,18 @@ async function runFollowUpReminders() {
         console.error(`[Jobs] Failed to notify stale follow-up ${fu.id}:`, err);
       }
     }
-  } catch (err) {
-    console.error("[Jobs] runFollowUpReminders error:", err);
+    return; // success
+  } catch (err: any) {
+    const isTransient = err?.code === 'ECONNRESET' || err?.code === 'ETIMEDOUT' || err?.code === 'ECONNREFUSED';
+    console.error(`[Jobs] runFollowUpReminders error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
+    if (isTransient && attempt < 2) {
+      resetDbConnection();
+      await new Promise(r => setTimeout(r, 500));
+    } else {
+      return;
+    }
   }
+  } // end retry loop
 }
 
 // ─── Main scheduler ───────────────────────────────────────────────────────────

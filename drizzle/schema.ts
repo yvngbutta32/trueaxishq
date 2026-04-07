@@ -445,3 +445,15 @@ export const userApiKeys = mysqlTable("userApiKeys", {
 });
 export type UserApiKey = typeof userApiKeys.$inferSelect;
 export type InsertUserApiKey = typeof userApiKeys.$inferInsert;
+
+// ─── Contact Messages ──────────────────────────────────────────────────────────
+export const contactMessages = mysqlTable("contactMessages", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  subject: varchar("subject", { length: 500 }).notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ContactMessage = typeof contactMessages.$inferSelect;
+export type InsertContactMessage = typeof contactMessages.$inferInsert;

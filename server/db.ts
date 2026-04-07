@@ -9,6 +9,7 @@
 
 import { and, eq, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql2, { type Pool as Mysql2Pool } from "mysql2";
 import {
   users, clients, invoices, bookings, followUps, leads,
   InsertUser,
@@ -17,6 +18,13 @@ import { ENV } from "./_core/env";
 
 // ─── Connection ───────────────────────────────────────────────────────────────
 let _db: ReturnType<typeof drizzle> | null = null;
+let _pool: Mysql2Pool | null = null;
+
+/** Reset cached connection so the next call creates a fresh pool */
+export function resetDbConnection() {
+  _db = null;
+  // Keep pool alive — mysql2 handles reconnects internally
+}
 
 export async function getDb() {
   if (_db) return _db;
@@ -24,7 +32,17 @@ export async function getDb() {
 
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      if (!_pool) {
+        _pool = mysql2.createPool({
+          uri: process.env.DATABASE_URL,
+          waitForConnections: true,
+          connectionLimit: 10,
+          queueLimit: 0,
+          enableKeepAlive: true,
+          keepAliveInitialDelay: 0,
+        });
+      }
+      _db = drizzle(_pool);
       return _db;
     } catch (error) {
       const delay = Math.pow(2, attempt) * 200;
@@ -66,6 +84,8 @@ async function withRetry<T>(
 
       if (error?.message === "TIME_CONFLICT") throw error;
       if (!isTransient || attempt === maxRetries) return fallback;
+      // Reset cached drizzle instance so next attempt gets a fresh connection from pool
+      if (isTransient) resetDbConnection();
       await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 100));
     }
   }

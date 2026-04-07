@@ -1,8 +1,10 @@
 import { useLocation } from "wouter";
 import { Target, Heart, Shield, CheckCircle, ArrowLeft, TrendingUp, Users, Clock } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function About() {
   const [, navigate] = useLocation();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div style={{ background: "#141414", minHeight: "100vh", color: "#F5F0E8" }}>
@@ -136,7 +138,7 @@ export default function About() {
           </h2>
           <p className="mt-3 mb-8" style={{ color: "rgba(245,240,232,0.40)" }}>Start your free 14-day trial. No credit card required.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button onClick={() => navigate("/dashboard")} className="btn-amber" style={{ fontSize: "0.9375rem" }}>
+            <button onClick={() => isAuthenticated ? navigate("/dashboard") : navigate("/register")} className="btn-amber" style={{ fontSize: "0.9375rem" }}>
               Start Free Trial
             </button>
             <button onClick={() => navigate("/pricing")} className="btn-ghost" style={{ fontSize: "0.9375rem" }}>

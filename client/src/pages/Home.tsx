@@ -215,7 +215,8 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
       setStep(s => s + 1);
     } else {
       onClose();
-      navigate("/dashboard");
+      // Redirect to register so users can create an account; they'll land on dashboard after auth
+      navigate("/register");
     }
   };
 
@@ -982,9 +983,8 @@ function FAQSection() {
     </section>
   );
 }
-
-// ─── Footer ───────────────────────────────────────────────────────────────────
-function Footer() {
+// ─── Footer ────────────────────────────────────────────────────────────────────────────────
+function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
   const [, navigate] = useLocation();
 
   const sections = [
@@ -994,7 +994,7 @@ function Footer() {
         { label: "Features", action: () => document.querySelector("#features")?.scrollIntoView({ behavior: "smooth" }) },
         { label: "Pricing", action: () => navigate("/pricing") },
         { label: "Dashboard", action: () => navigate("/dashboard") },
-        { label: "Changelog", action: () => toast.info("Changelog coming soon") },
+        { label: "Changelog", action: () => onChangelogOpen?.() },
       ],
     },
     {
@@ -1012,11 +1012,10 @@ function Footer() {
         { label: "Privacy Policy", action: () => navigate("/privacy") },
         { label: "Terms of Service", action: () => navigate("/terms") },
         { label: "Help Center", action: () => navigate("/help") },
-        { label: "Security", action: () => toast.info("Security page coming soon") },
+        { label: "Security", action: () => navigate("/help") },
       ],
     },
   ];
-
   return (
     <footer style={{ background: "#0A0A0A", borderTop: "1px solid rgba(232,160,32,0.08)" }}>
       <div className="container py-16">
@@ -1034,15 +1033,22 @@ function Footer() {
               The AI-powered business OS for freelancers and solo service professionals.
             </p>
             <div className="flex gap-2">
-              {["T", "in", "IG"].map(s => (
-                <button
-                  key={s}
-                  onClick={() => toast.info("Social links coming soon")}
+              {([
+                { label: "X", href: "https://x.com" },
+                { label: "in", href: "https://linkedin.com" },
+                { label: "IG", href: "https://instagram.com" },
+              ] as { label: string; href: string }[]).map(s => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`TrueAxis HQ on ${s.label}`}
                   className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold"
-                  style={{ background: "rgba(245,240,232,0.05)", color: "rgba(245,240,232,0.35)", border: "1px solid rgba(245,240,232,0.07)", minHeight: "auto", minWidth: "auto" }}
+                  style={{ background: "rgba(245,240,232,0.05)", color: "rgba(245,240,232,0.35)", border: "1px solid rgba(245,240,232,0.07)", textDecoration: "none" }}
                 >
-                  {s}
-                </button>
+                  {s.label}
+                </a>
               ))}
             </div>
           </div>
@@ -1083,6 +1089,7 @@ function Footer() {
 // ─── Main Export ──────────────────────────────────────────────────────────────
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [changelogOpen, setChangelogOpen] = useState(false);
 
   return (
     <div style={{ background: "#141414", minHeight: "100vh" }}>
@@ -1096,8 +1103,49 @@ export default function Home() {
       <TestimonialsSection />
       <EmailCapture onCTA={() => setModalOpen(true)} />
       <FAQSection />
-      <Footer />
+      <Footer onChangelogOpen={() => setChangelogOpen(true)} />
       <OnboardingModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      {changelogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Changelog">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setChangelogOpen(false)} aria-hidden="true" />
+          <div className="relative bg-[#1E1E1E] rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" style={{ border: "1px solid rgba(232,160,32,0.20)" }}>
+            <div className="flex items-center justify-between p-5 border-b border-white/5">
+              <div>
+                <h2 className="font-extrabold text-[#F5F0E8] text-base" style={{ fontFamily: "Space Grotesk, sans-serif" }}>What's New 🎉</h2>
+                <p className="text-xs text-gray-500 mt-0.5">TrueAxis HQ — Latest Updates</p>
+              </div>
+              <button onClick={() => setChangelogOpen(false)} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors" aria-label="Close">
+                <X className="w-4 h-4 text-gray-400" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              {([
+                { emoji: "🔔", title: "Live Notifications", desc: "Real-time bell with unread badge — never miss an important event." },
+                { emoji: "⏱", title: "Time Tracking", desc: "Start/stop timer, log billable hours, and see summary stats per client." },
+                { emoji: "🔁", title: "Recurring Invoices", desc: "Set weekly, monthly, or custom billing schedules — invoices generate automatically." },
+                { emoji: "📄", title: "Contracts & Proposals", desc: "Write, send, and convert proposals to invoices with one click." },
+                { emoji: "🌐", title: "Client Portal", desc: "Clients can view their invoices and bookings via a secure token link." },
+                { emoji: "📅", title: "iCal Export", desc: "Share your booking calendar with any calendar app via a live iCal feed." },
+                { emoji: "💳", title: "Stripe Pay Now", desc: "Clients can pay invoices instantly — webhooks auto-mark them paid." },
+                { emoji: "🤖", title: "Background Automation", desc: "Overdue detection and recurring invoice generation run every 5 minutes, hands-free." },
+              ] as { emoji: string; title: string; desc: string }[]).map(item => (
+                <div key={item.title} className="flex items-start gap-3">
+                  <span className="text-xl flex-shrink-0">{item.emoji}</span>
+                  <div>
+                    <p className="text-sm font-bold text-[#F5F0E8]">{item.title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="px-5 pb-5">
+              <button onClick={() => setChangelogOpen(false)} className="w-full gradient-amber text-white font-semibold py-2.5 rounded-xl text-sm hover:opacity-90 transition-opacity">
+                Got it, let's go! 🚀
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

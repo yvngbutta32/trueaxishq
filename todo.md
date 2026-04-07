@@ -543,3 +543,17 @@
 - [x] Client health Pulse widget on Overview panel (top 3 at-risk clients with Draft Follow-Up shortcut)
 - [x] Bulk invoice actions (checkboxes, mark paid, send reminder, delete selected)
 - [x] Google Calendar OAuth connect button in Settings → Scheduling (iCal-based subscribe links implemented)
+
+## Pre-Launch Audit Fixes (Apr 7, 2026)
+
+- [x] Fix header search bar — now navigates to Clients panel and pre-fills search on Enter
+- [x] Fix footer "Changelog" link — now opens Changelog modal
+- [x] Fix footer "Security" link — now navigates to Help Center
+- [x] Fix footer social icons — now real external links (X, LinkedIn, Instagram)
+- [x] Fix onboarding modal CTA — already correctly redirects to /register (confirmed)
+- [x] Fix contact form — new contactMessages table + contact.submit tRPC procedure saves name/email/subject/message
+- [x] Fix pricing page "Get Started" — unauthenticated users go to /register, authenticated go to /billing
+- [x] Add contactMessages table to schema — pushed to DB via pnpm db:push
+- [x] Fix About page "Start Free Trial" — unauthenticated users go to /register
+- [x] Fix DB connection pool — switched to mysql2 Pool for auto-reconnect on ECONNRESET
+- [x] 0 TypeScript errors, 29/29 tests passing after all pre-launch fixes

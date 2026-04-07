@@ -552,6 +552,16 @@ function ClientsPanel() {
   const [csvText, setCsvText] = useState("");
   const [csvPreview, setCsvPreview] = useState<Array<{ name: string; email: string; phone: string; service: string; status: string }>>([]);
 
+  // Read search from header quick-search on mount
+  useEffect(() => {
+    const stored = sessionStorage.getItem("dashboardSearch");
+    if (stored) {
+      setSearch(stored);
+      setDebouncedSearch(stored);
+      sessionStorage.removeItem("dashboardSearch");
+    }
+  }, []);
+
   // Debounce search to prevent excessive API calls
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -2817,9 +2827,16 @@ export default function Dashboard() {
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Quick search..."
-                className="form-input-light pl-8 pr-4 w-48"
-                aria-label="Quick search"
+                onKeyDown={e => {
+                  if (e.key === "Enter" && search.trim()) {
+                    sessionStorage.setItem("dashboardSearch", search.trim());
+                    setActiveWithScroll("clients");
+                    setSearch("");
+                  }
+                }}
+                placeholder="Search clients... (Enter)"
+                className="form-input-light pl-8 pr-4 w-52"
+                aria-label="Quick search — press Enter to search clients"
               />
             </div>
 

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { CheckCircle, Zap, ArrowLeft, Star, Shield, Sparkles, Brain, X } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 const plans = [
   {
@@ -97,6 +98,7 @@ export default function Pricing() {
   const [, navigate] = useLocation();
   const [annual, setAnnual] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { isAuthenticated } = useAuth();
 
   return (
     <div style={{ background: "#141414", minHeight: "100vh", color: "#F5F0E8" }}>
@@ -121,7 +123,7 @@ export default function Pricing() {
             className="h-8 w-auto object-contain"
           />
         </button>
-        <button onClick={() => navigate("/dashboard")} className="btn-amber" style={{ padding: "0.4rem 1rem", fontSize: "0.8125rem" }}>
+        <button onClick={() => isAuthenticated ? navigate("/dashboard") : navigate("/register")} className="btn-amber" style={{ padding: "0.4rem 1rem", fontSize: "0.8125rem" }}>
           Start Free Trial
         </button>
       </nav>
@@ -223,8 +225,10 @@ export default function Pricing() {
                   onClick={() => {
                     if (plan.name === "Agency") {
                       toast.info("Contact sales@trueaxishq.com for Agency pricing");
-                    } else {
+                    } else if (isAuthenticated) {
                       navigate("/dashboard");
+                    } else {
+                      navigate("/register");
                     }
                   }}
                   className={plan.popular ? "btn-amber w-full mb-6" : "btn-ghost w-full mb-6"}

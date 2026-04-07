@@ -9,7 +9,7 @@ import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -266,6 +266,36 @@ export const appRouter = router({
           .where(and(eq(userSessions.userId, ctx.user.id), eq(userSessions.isActive, true)));
         logSecurityEvent({ eventType: "password_changed", severity: "medium", userId: ctx.user.id, email: ctx.user.email ?? undefined, ip: getClientIp(ctx.req), details: "Password changed by user", userAgent: ctx.req.headers["user-agent"] });
         console.log(`[Auth] Password changed for user ${ctx.user.id}`);
+        return { success: true };
+      }),
+  }),
+
+  // ── Contact Form ───────────────────────────────────────────────────────────
+  contact: router({
+    submit: publicProcedure
+      .input(z.object({
+        name: z.string().trim().min(1).max(255),
+        email: safeEmail,
+        subject: z.string().trim().min(1).max(500),
+        message: z.string().trim().min(10).max(5000),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        await db.insert(contactMessages).values({
+          name: input.name,
+          email: input.email,
+          subject: input.subject,
+          message: input.message,
+        });
+        // Also capture as a lead so they appear in the leads list
+        const existing = await db.select().from(leads).where(eq(leads.email, input.email)).limit(1);
+        if (existing.length === 0) {
+          await db.insert(leads).values({ email: input.email, name: input.name, source: "landing_page" });
+        }
+        notifyOwner({
+          title: "New Contact Form Submission",
+          content: `From: ${input.name} <${input.email}>\nSubject: ${input.subject}\n\n${input.message.slice(0, 300)}${input.message.length > 300 ? '...' : ''}`,
+        }).catch(() => {});
         return { success: true };
       }),
   }),

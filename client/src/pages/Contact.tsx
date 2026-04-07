@@ -11,7 +11,7 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const captureLead = trpc.leads.capture.useMutation();
+  const submitContact = trpc.contact.submit.useMutation();
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -29,7 +29,12 @@ export default function Contact() {
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     try {
-      await captureLead.mutateAsync({ email: form.email, name: form.name, source: "landing_page" });
+      await submitContact.mutateAsync({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        subject: form.subject.trim(),
+        message: form.message.trim(),
+      });
       setSubmitted(true);
       toast.success("Message sent! We'll be in touch within 4 hours.");
     } catch {
@@ -143,10 +148,10 @@ export default function Contact() {
                 {field("message", "Message", "text", true)}
                 <Button
                   type="submit"
-                  disabled={captureLead.isPending}
+                  disabled={submitContact.isPending}
                   className="w-full bg-[#E8A020] hover:bg-[#D4911A] text-white border-0 py-3 rounded-xl text-sm font-semibold min-h-[48px] flex items-center justify-center gap-2"
                 >
-                  {captureLead.isPending ? (
+                  {submitContact.isPending ? (
                     <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Sending...</span>
                   ) : (
                     <span className="flex items-center gap-2"><Send className="w-4 h-4" />Send Message</span>
