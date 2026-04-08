@@ -1,0 +1,14 @@
+# TrueAxis HQ — robots.txt
+# Allow all crawlers to index public pages
+
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /billing
+Disallow: /checkout-success
+Disallow: /api/
+Disallow: /client-portal/
+
+# Sitemap location
+Sitemap: https://skillbridge-gipzwtye.manus.space/sitemap.xml

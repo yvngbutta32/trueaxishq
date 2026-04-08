@@ -557,3 +557,32 @@
 - [x] Fix About page "Start Free Trial" — unauthenticated users go to /register
 - [x] Fix DB connection pool — switched to mysql2 Pool for auto-reconnect on ECONNRESET
 - [x] 0 TypeScript errors, 29/29 tests passing after all pre-launch fixes
+
+## Launch Readiness — Full Execution (Apr 7, 2026)
+
+### Performance
+- [x] Add gzip compression middleware (compression npm package)
+- [x] Add aggressive cache headers for static assets (JS/CSS: 1 year immutable)
+- [x] Add Vite manual chunk splitting (vendor, react, trpc, charts, ui)
+- [x] Add dns-prefetch + preconnect hints for Google Fonts in index.html
+
+### SEO & Discoverability
+- [x] Add OG image meta tag (og:image, og:url, og:site_name)
+- [x] Add Twitter Card meta tags (twitter:card, twitter:title, twitter:description, twitter:image)
+- [x] Add canonical URL meta tag
+- [x] Create sitemap.xml with all public routes
+- [x] Create robots.txt allowing all crawlers, pointing to sitemap
+- [x] Add JSON-LD structured data (SoftwareApplication schema)
+
+### Security & Headers
+- [x] Fix CSP connect-src to include CDN domains (cloudfront, analytics, Manus OAuth)
+- [x] Add Cache-Control headers for static assets with immutable flag
+
+### PWA
+- [x] Add proper PWA icons (192x192 and 512x512) to manifest.json with 4 shortcuts
+
+### UX & Deep Linking
+- [x] Add ?panel= URL parameter support to Dashboard (deep-link to any panel)
+
+### Email
+- [x] Email works out-of-the-box via in-app notifications (SMTP optional — see email.ts for Brevo/Gmail setup)

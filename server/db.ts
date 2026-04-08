@@ -20,10 +20,13 @@ import { ENV } from "./_core/env";
 let _db: ReturnType<typeof drizzle> | null = null;
 let _pool: Mysql2Pool | null = null;
 
-/** Reset cached connection so the next call creates a fresh pool */
+/** Reset cached connection — destroys the pool so the next call creates a fresh one */
 export function resetDbConnection() {
   _db = null;
-  // Keep pool alive — mysql2 handles reconnects internally
+  if (_pool) {
+    try { _pool.end(() => {}); } catch (_) { /* ignore */ }
+    _pool = null;
+  }
 }
 
 export async function getDb() {

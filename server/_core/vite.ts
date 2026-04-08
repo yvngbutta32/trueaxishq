@@ -58,10 +58,30 @@ export function serveStatic(app: Express) {
     );
   }
 
-  app.use(express.static(distPath));
+  // Hashed assets (JS/CSS bundles) — cache 1 year, immutable
+  app.use("/assets", express.static(path.join(distPath, "assets"), {
+    maxAge: "1y",
+    immutable: true,
+    etag: true,
+    lastModified: false,
+  }));
+
+  // Everything else (index.html, manifest.json, etc.) — no cache
+  app.use(express.static(distPath, {
+    maxAge: 0,
+    etag: true,
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith(".html")) {
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+      } else if (filePath.endsWith(".json") || filePath.endsWith(".webmanifest")) {
+        res.setHeader("Cache-Control", "public, max-age=3600"); // 1 hour for manifest
+      }
+    },
+  }));
 
   // fall through to index.html if the file doesn't exist
   app.use("*", (_req, res) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }

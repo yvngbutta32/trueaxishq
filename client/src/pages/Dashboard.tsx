@@ -2702,7 +2702,15 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const [active, setActive] = useState<ActivePanel>("overview");
+  // Read ?panel= from URL on first render for deep-linking (e.g. /dashboard?panel=invoices)
+  const [active, setActive] = useState<ActivePanel>(() => {
+    if (typeof window !== "undefined") {
+      const param = new URLSearchParams(window.location.search).get("panel");
+      const valid: ActivePanel[] = ["overview","clients","scheduling","invoices","followups","analytics","settings","ai","pulse","contracts","time","recurring"];
+      if (param && valid.includes(param as ActivePanel)) return param as ActivePanel;
+    }
+    return "overview";
+  });
   const [collapsed, setCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [search, setSearch] = useState("");

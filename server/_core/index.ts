@@ -1,4 +1,5 @@
 import "dotenv/config";
+import compression from "compression";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
@@ -35,6 +36,9 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+
+  // ── Gzip/Brotli compression for all responses ────────────────────────────
+  app.use(compression({ level: 6, threshold: 1024 }));
 
   // ── Stripe webhook MUST use raw body — register BEFORE express.json() ──────
   app.post(
@@ -115,6 +119,12 @@ async function startServer() {
   } else {
     serveStatic(app);
   }
+
+  // ── Cache-Control for API responses (no caching) ─────────────────────────
+  app.use("/api", (_req, res, next) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    next();
+  });
 
   const preferredPort = parseInt(process.env.PORT || "3000");
   const port = await findAvailablePort(preferredPort);
