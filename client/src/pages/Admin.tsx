@@ -313,7 +313,7 @@ export default function Admin() {
       </nav>
 
       {/* Main Content */}
-      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-10 page-bottom">
 
         {/* ── Overview Tab ──────────────────────────────────────────────── */}
         {activeTab === "overview" && (

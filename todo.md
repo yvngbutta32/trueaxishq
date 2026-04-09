@@ -675,3 +675,10 @@
 - [x] Confirm all panels use responsive grid/flex layouts (no fixed-width overflow)
 - [x] Confirm Login, Pricing, Booking, Billing pages have no invisible buttons
 - [x] 29/29 tests pass, 0 TypeScript errors after all changes
+
+## Bottom Button Cut-off Fix (Apr 9, 2026)
+- [x] Add safe-area-inset-bottom padding to all pages so buttons aren't hidden by mobile nav bar
+- [x] Add sufficient bottom padding to Dashboard panel content so last item isn't behind mobile bottom nav
+- [x] Fix BookingPage bottom Continue button — ensure it's not clipped by screen edge
+- [x] Fix Billing page bottom buttons — not clipped by screen edge
+- [x] Add pb-safe (env(safe-area-inset-bottom)) to global CSS for mobile notch/home-bar clearance

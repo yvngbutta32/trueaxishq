@@ -95,7 +95,7 @@ export default function Billing() {
         </div>
       </nav>
 
-      <main id="main-content" className="max-w-4xl mx-auto px-4 py-10">
+      <main id="main-content" className="max-w-4xl mx-auto px-4 pt-10 pb-12 page-bottom">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-extrabold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>

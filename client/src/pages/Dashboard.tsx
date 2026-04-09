@@ -2892,7 +2892,7 @@ export default function Dashboard() {
       <main
         id="main-content"
         ref={mainRef}
-        className={`flex-1 min-w-0 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"} pb-20 md:pb-0 overflow-y-auto overflow-x-hidden h-screen`}
+        className={`flex-1 min-w-0 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"} pb-28 md:pb-8 overflow-y-auto overflow-x-hidden h-screen`}
         tabIndex={-1}
       >
         {/* Header */}

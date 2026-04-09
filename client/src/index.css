@@ -911,6 +911,22 @@
     line-height: 1.4;
   }
 
+  /* ── Page Bottom Safe Area ─────────────────────────────────────────────── */
+  /* Ensures last button/content is never clipped by mobile nav bar or screen edge */
+  .page-bottom {
+    padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+  }
+  /* On mobile (< 640px), add extra clearance for the fixed bottom nav bar (64px) */
+  @media (max-width: 639px) {
+    .page-bottom {
+      padding-bottom: calc(64px + max(1.5rem, env(safe-area-inset-bottom, 0px)));
+    }
+    /* Dashboard panels need extra bottom padding for the mobile bottom nav */
+    .dashboard-panel-content {
+      padding-bottom: calc(72px + max(1rem, env(safe-area-inset-bottom, 0px))) !important;
+    }
+  }
+
   /* select arrow fix */
   select.form-input, select.form-input-light {
     appearance: none;

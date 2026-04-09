@@ -195,7 +195,7 @@ export default function BookingPage() {
       </div>
 
       {/* Main */}
-      <main id="main-content" className="max-w-xl mx-auto px-4 py-8">
+      <main id="main-content" className="max-w-xl mx-auto px-4 pt-8 pb-10 page-bottom">
 
         {/* Step 1: Details */}
         {step === "details" && (

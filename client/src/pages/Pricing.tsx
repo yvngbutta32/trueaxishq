@@ -365,7 +365,7 @@ export default function Pricing() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 text-center relative overflow-hidden" style={{ background: "#141414" }}>
+      <section className="pt-20 pb-16 page-bottom text-center relative overflow-hidden" style={{ background: "#141414" }}>
         <div className="absolute inset-0 retro-grid opacity-25 pointer-events-none" />
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 70% at 50% 50%, rgba(232,160,32,0.06) 0%, transparent 70%)" }} />
         <div className="container relative z-10">

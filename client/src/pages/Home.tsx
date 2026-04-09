@@ -1018,7 +1018,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
   ];
   return (
     <footer style={{ background: "#0A0A0A", borderTop: "1px solid rgba(232,160,32,0.08)" }}>
-      <div className="container py-16">
+      <div className="container pt-16 pb-10 page-bottom">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-12">
           {/* Brand */}
           <div>
