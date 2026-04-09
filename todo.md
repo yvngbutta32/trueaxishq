@@ -604,3 +604,14 @@
 ## Booking Page Services Fix
 - [ ] Fix booking page "Needed Services" to only show services configured by the booking page owner
 - [ ] Expand the default services list in booking setup to a comprehensive professional list
+
+## Booking Page Services Fix (Apr 9, 2026)
+- [x] Fix booking page "Needed Services" to only show services configured by the booking page owner (was already fixed — host.bookingServices from API)
+- [x] Expand the default services list in booking setup to 50+ professional services with quick-add chip grid (organized by category: Coaching, Design, Tech, Education, Professional Services)
+
+## PWA Native App (Apr 9, 2026)
+- [x] Service worker (sw.js) — cache-first for static assets, network-first for API, offline fallback
+- [x] Service worker registered in index.html on page load
+- [x] PWAInstallBanner component — shows install prompt after 3s delay; Chrome/Android uses native beforeinstallprompt; iOS shows step-by-step Share → Add to Home Screen instructions
+- [x] Install banner dismissed state persisted in localStorage for 30 days
+- [x] Banner auto-hides when already running in standalone (installed) mode

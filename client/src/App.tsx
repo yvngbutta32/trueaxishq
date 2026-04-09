@@ -4,6 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import OfflineBanner from "./components/OfflineBanner";
+import PWAInstallBanner from "./components/PWAInstallBanner";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AppProvider } from "./contexts/AppContext";
 import { lazy, Suspense } from "react";
@@ -114,6 +115,9 @@ function App() {
 
             {/* Network status banner */}
             <OfflineBanner />
+
+            {/* PWA install prompt */}
+            <PWAInstallBanner />
 
             {/* Toast notifications */}
             <Toaster
