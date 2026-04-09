@@ -111,7 +111,7 @@ export default function Pricing() {
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-sm font-medium animated-underline"
-          style={{ color: "rgba(245,240,232,0.55)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
+          style={{ color: "rgba(245,240,232,0.90)", background: "rgba(245,240,232,0.06)", border: "1px solid rgba(245,240,232,0.18)", borderRadius: "0.5rem", padding: "0.35rem 0.75rem", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home

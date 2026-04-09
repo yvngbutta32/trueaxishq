@@ -104,7 +104,7 @@ export default function Login() {
               </div>
               <div>
                 <p className="text-xs font-semibold" style={{ color: "#F5F0E8" }}>Sarah Chen</p>
-                <p className="text-xs" style={{ color: "rgba(245,240,232,0.40)" }}>Life Coach · +$2,400/mo</p>
+                <p className="text-xs" style={{ color: "rgba(245,240,232,0.55)" }}>Life Coach · +$2,400/mo</p>
               </div>
             </div>
           </div>
@@ -228,7 +228,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="mt-6 text-sm" style={{ color: "rgba(245,240,232,0.40)" }}>
+          <p className="mt-6 text-sm" style={{ color: "rgba(245,240,232,0.70)" }}>
             Don't have an account?{" "}
             <button
               onClick={() => navigate("/register")}
@@ -239,11 +239,11 @@ export default function Login() {
             </button>
           </p>
 
-          <div className="mt-8 pt-6" style={{ borderTop: "1px solid rgba(245,240,232,0.08)" }}>
+          <div className="mt-8 pt-6" style={{ borderTop: "1px solid rgba(245,240,232,0.10)" }}>
             <button
               onClick={() => navigate("/")}
-              className="text-sm transition-colors hover:opacity-70 flex items-center gap-1.5"
-              style={{ color: "rgba(245,240,232,0.65)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+              className="text-sm font-medium transition-all hover:opacity-90 flex items-center gap-1.5 px-3 py-2 rounded-lg"
+              style={{ color: "rgba(245,240,232,0.85)", background: "rgba(245,240,232,0.06)", border: "1px solid rgba(245,240,232,0.15)", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
             >
               ← Back to homepage
             </button>
