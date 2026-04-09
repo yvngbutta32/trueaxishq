@@ -743,3 +743,13 @@
 - [x] Replaced with 5 clean direct tabs: Overview, Clients, Schedule, Invoices, Settings
 - [x] No More button, no drawer, no dead-end interactions — every tab navigates somewhere real
 - [x] 29/29 tests pass, 0 TypeScript errors
+
+## Full Feature Accessibility — Mobile Nav Redesign (Apr 9, 2026)
+- [x] Audited all 12 panels — 7 were completely unreachable on mobile
+- [x] Redesigned mobile nav: 4 primary daily-use tabs + smart "More" grid button
+- [x] "More" opens a categorized full-feature sheet with all 12 panels in 2 taps
+- [x] Sheet grouped into Business (Follow-Ups, Client Pulse, Analytics, AI Assistant), Finance (Recurring, Time Tracking, Contracts), Account (Settings)
+- [x] Quick-links row for Billing, Admin (role-gated), and Home
+- [x] Active panel highlighted in both nav tabs and sheet
+- [x] Backdrop dismisses sheet on tap outside
+- [x] 29/29 tests pass, 0 TypeScript errors

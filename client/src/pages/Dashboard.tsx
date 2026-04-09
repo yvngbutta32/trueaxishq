@@ -2655,52 +2655,204 @@ function ContractsPanel() {
 }
 
 // ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
+// Strategy: 4 primary daily-use tabs + 1 "All Features" tab that opens a
+// full-screen sheet listing every panel. 2 taps max to reach anything.
 function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive: (p: ActivePanel) => void }) {
-  // 5 direct tabs — no More button, no drawer. Every tab goes somewhere real.
-  const tabs = [
+  const [showSheet, setShowSheet] = useState(false);
+  const [, navigate] = useLocation();
+  const { user } = useAuth();
+
+  // Primary 4 tabs — the highest-frequency daily actions
+  const primaryTabs = [
     { icon: LayoutDashboard, label: "Overview",  panel: "overview"   as ActivePanel },
     { icon: Users,           label: "Clients",   panel: "clients"    as ActivePanel },
     { icon: Calendar,        label: "Schedule",  panel: "scheduling" as ActivePanel },
     { icon: FileText,        label: "Invoices",  panel: "invoices"   as ActivePanel },
-    { icon: Settings,        label: "Settings",  panel: "settings"   as ActivePanel },
   ];
 
+  // All panels available in the full-feature sheet, grouped by category
+  const sheetSections = [
+    {
+      label: "Business",
+      items: [
+        { icon: Mail,          label: "Follow-Ups",    panel: "followups"  as ActivePanel },
+        { icon: HeartPulse,    label: "Client Pulse",  panel: "pulse"      as ActivePanel, badge: "AI" },
+        { icon: BarChart3,     label: "Analytics",     panel: "analytics"  as ActivePanel },
+        { icon: Bot,           label: "AI Assistant",  panel: "ai"         as ActivePanel, badge: "AI" },
+      ],
+    },
+    {
+      label: "Finance",
+      items: [
+        { icon: RefreshCw,     label: "Recurring",     panel: "recurring"  as ActivePanel },
+        { icon: Clock,         label: "Time Tracking", panel: "time"       as ActivePanel },
+        { icon: FileSignature, label: "Contracts",     panel: "contracts"  as ActivePanel },
+      ],
+    },
+    {
+      label: "Account",
+      items: [
+        { icon: Settings,      label: "Settings",      panel: "settings"   as ActivePanel },
+      ],
+    },
+  ];
+
+  const isSheetPanelActive = !primaryTabs.some(t => t.panel === active);
+
+  const handleSheetNav = (panel: ActivePanel) => {
+    setActive(panel);
+    setShowSheet(false);
+  };
+
   return (
-    <nav
-      className="shrink-0 z-40 md:hidden w-full"
-      aria-label="Mobile navigation"
-      style={{
-        background: "rgba(28, 28, 30, 0.97)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
-        paddingBottom: "max(env(safe-area-inset-bottom, 0px), 10px)",
-        paddingLeft:  "max(env(safe-area-inset-left,   0px), 0px)",
-        paddingRight: "max(env(safe-area-inset-right,  0px), 0px)",
-      }}
-    >
-      <div className="flex items-stretch">
-        {tabs.map((tab) => {
-          const isActive = active === tab.panel;
-          return (
+    <>
+      {/* Full-feature sheet backdrop */}
+      {showSheet && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={() => setShowSheet(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Full-feature sheet — slides up from bottom */}
+      <div
+        className={`fixed left-0 right-0 z-50 md:hidden bg-[#1C1C1E] rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out ${
+          showSheet ? "translate-y-0" : "translate-y-full"
+        }`}
+        style={{ bottom: "calc(64px + env(safe-area-inset-bottom, 0px))", maxHeight: "70vh", overflowY: "auto" }}
+        role="dialog"
+        aria-label="All features"
+        aria-hidden={!showSheet}
+      >
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-10 h-1 rounded-full bg-white/20" />
+        </div>
+
+        <div className="px-4 pb-6 pt-1 space-y-5">
+          <p className="text-xs font-bold text-white/40 uppercase tracking-widest px-1">All Features</p>
+
+          {sheetSections.map((section) => (
+            <div key={section.label}>
+              <p className="text-[10px] font-semibold text-[#E8A020]/70 uppercase tracking-wider mb-2 px-1">{section.label}</p>
+              <div className="grid grid-cols-4 gap-1.5">
+                {section.items.map((item) => (
+                  <button
+                    key={item.panel}
+                    onClick={() => handleSheetNav(item.panel)}
+                    aria-label={item.label}
+                    className={`relative flex flex-col items-center justify-center py-3.5 px-1 rounded-2xl gap-1.5 transition-all active:scale-95 ${
+                      active === item.panel
+                        ? "bg-[#E8A020]/20 text-[#E8A020]"
+                        : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    {item.badge && (
+                      <span className="absolute top-1.5 right-1.5 text-[8px] font-bold bg-violet-500/30 text-violet-300 px-1 py-0.5 rounded-full leading-none">
+                        {item.badge}
+                      </span>
+                    )}
+                    <item.icon className="w-5 h-5" aria-hidden="true" />
+                    <span className="text-[10px] font-medium text-center leading-tight">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* Quick links row */}
+          <div className="border-t border-white/10 pt-4 flex gap-2">
             <button
-              key={tab.panel}
-              onClick={() => setActive(tab.panel)}
-              aria-label={tab.label}
-              aria-current={isActive ? "page" : undefined}
-              className="flex-1 flex flex-col items-center justify-center pt-2.5 pb-1 gap-1 min-h-[52px] transition-all active:scale-95 relative"
-              style={{ color: isActive ? "#E8A020" : "#6B7280" }}
+              onClick={() => { navigate("/billing"); setShowSheet(false); }}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
             >
-              {isActive && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-[#E8A020]" />
-              )}
-              <tab.icon className="w-[22px] h-[22px]" aria-hidden="true" />
-              <span className="text-[11px] font-medium leading-none">{tab.label}</span>
+              <CreditCard className="w-4 h-4" />
+              Billing
             </button>
-          );
-        })}
+            {user?.role === "admin" && (
+              <button
+                onClick={() => { navigate("/admin"); setShowSheet(false); }}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
+              >
+                <Star className="w-4 h-4" />
+                Admin
+              </button>
+            )}
+            <button
+              onClick={() => { navigate("/"); setShowSheet(false); }}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
+            >
+              <Home className="w-4 h-4" />
+              Home
+            </button>
+          </div>
+        </div>
       </div>
-    </nav>
+
+      {/* Bottom Nav Bar */}
+      <nav
+        className="shrink-0 z-40 md:hidden w-full"
+        aria-label="Mobile navigation"
+        style={{
+          background: "rgba(28, 28, 30, 0.97)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderTop: "1px solid rgba(255,255,255,0.08)",
+          paddingBottom: "max(env(safe-area-inset-bottom, 0px), 10px)",
+          paddingLeft:  "max(env(safe-area-inset-left,   0px), 0px)",
+          paddingRight: "max(env(safe-area-inset-right,  0px), 0px)",
+        }}
+      >
+        <div className="flex items-stretch">
+          {/* 4 primary tabs */}
+          {primaryTabs.map((tab) => {
+            const isActive = active === tab.panel && !showSheet;
+            return (
+              <button
+                key={tab.panel}
+                onClick={() => { setActive(tab.panel); setShowSheet(false); }}
+                aria-label={tab.label}
+                aria-current={isActive ? "page" : undefined}
+                className="flex-1 flex flex-col items-center justify-center pt-2.5 pb-1 gap-1 min-h-[52px] transition-all active:scale-95 relative"
+                style={{ color: isActive ? "#E8A020" : "#6B7280" }}
+              >
+                {isActive && (
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-[#E8A020]" />
+                )}
+                <tab.icon className="w-[22px] h-[22px]" aria-hidden="true" />
+                <span className="text-[11px] font-medium leading-none">{tab.label}</span>
+              </button>
+            );
+          })}
+
+          {/* All Features button — opens the full sheet */}
+          <button
+            onClick={() => setShowSheet(v => !v)}
+            aria-label="All features"
+            aria-expanded={showSheet}
+            className="flex-1 flex flex-col items-center justify-center pt-2.5 pb-1 gap-1 min-h-[52px] transition-all active:scale-95 relative"
+            style={{ color: isSheetPanelActive || showSheet ? "#E8A020" : "#6B7280" }}
+          >
+            {(isSheetPanelActive || showSheet) && (
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-[#E8A020]" />
+            )}
+            {/* 3×3 grid icon to signal "all features" */}
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+              <rect x="2" y="2" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.9" />
+              <rect x="10" y="2" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.9" />
+              <rect x="2" y="10" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.9" />
+              <rect x="10" y="10" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.9" />
+              <rect x="18" y="2" width="2" height="2" rx="0.5" fill="currentColor" opacity="0.5" />
+              <rect x="18" y="10" width="2" height="2" rx="0.5" fill="currentColor" opacity="0.5" />
+              <rect x="2" y="18" width="2" height="2" rx="0.5" fill="currentColor" opacity="0.5" />
+              <rect x="10" y="18" width="2" height="2" rx="0.5" fill="currentColor" opacity="0.5" />
+            </svg>
+            <span className="text-[11px] font-medium leading-none">More</span>
+          </button>
+        </div>
+      </nav>
+    </>
   );
 }
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
