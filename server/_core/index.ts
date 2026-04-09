@@ -37,6 +37,10 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
+  // ── Trust proxy: required for correct req.secure and req.protocol behind
+  //    reverse proxies (Nginx, Cloudflare, Manus hosting layer, etc.) ───────
+  app.set("trust proxy", 1);
+
   // ── Gzip/Brotli compression for all responses ────────────────────────────
   app.use(compression({ level: 6, threshold: 1024 }));
 

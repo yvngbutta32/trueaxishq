@@ -2,15 +2,17 @@ import type { CookieOptions, Request } from "express";
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
-function isIpAddress(host: string) {
-  // Basic IPv4 check and IPv6 presence detection.
-  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return true;
-  return host.includes(":");
+function isLocalRequest(req: Request): boolean {
+  const hostname = req.hostname;
+  return LOCAL_HOSTS.has(hostname) || hostname === "::1";
 }
 
 function isSecureRequest(req: Request) {
+  // Trust Express's req.secure which respects 'trust proxy' setting
+  if (req.secure) return true;
   if (req.protocol === "https") return true;
 
+  // Fallback: check X-Forwarded-Proto header directly
   const forwardedProto = req.headers["x-forwarded-proto"];
   if (!forwardedProto) return false;
 
@@ -24,25 +26,17 @@ function isSecureRequest(req: Request) {
 export function getSessionCookieOptions(
   req: Request
 ): Pick<CookieOptions, "domain" | "httpOnly" | "path" | "sameSite" | "secure"> {
-  // const hostname = req.hostname;
-  // const shouldSetDomain =
-  //   hostname &&
-  //   !LOCAL_HOSTS.has(hostname) &&
-  //   !isIpAddress(hostname) &&
-  //   hostname !== "127.0.0.1" &&
-  //   hostname !== "::1";
+  const isLocal = isLocalRequest(req);
+  const isSecure = isSecureRequest(req);
 
-  // const domain =
-  //   shouldSetDomain && !hostname.startsWith(".")
-  //     ? `.${hostname}`
-  //     : shouldSetDomain
-  //       ? hostname
-  //       : undefined;
-
+  // Use SameSite=Lax for same-origin requests (frontend + API on same domain).
+  // SameSite=None requires Secure=true and is only needed for cross-site cookies.
+  // Lax is safer and works correctly when frontend and /api are on the same origin.
+  // On localhost (dev), use SameSite=Lax without Secure so cookies work over HTTP.
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
-    secure: isSecureRequest(req),
+    sameSite: "lax",
+    secure: isLocal ? false : isSecure,
   };
 }

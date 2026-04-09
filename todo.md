@@ -688,3 +688,10 @@
 - [x] Fix every invisible control found in visual audit — Billing page plan card buttons (outline on dark #1C1C1E bg) now use transparent bg + white border/text
 - [x] Add safe-area edge padding to mobile bottom nav bar (suggestion 1)
 - [x] 29/29 tests pass after all fixes
+
+## Post-Login Loading Fix (Apr 9, 2026)
+- [x] Diagnose post-login failure on trueaxishq.com — root cause: SameSite=None cookie silently dropped by Chrome in production
+- [x] Fix: switch session cookie to SameSite=Lax (correct for same-origin frontend+API)
+- [x] Fix: add Express trust proxy setting so req.secure works correctly behind production reverse proxy
+- [x] Update auth.logout.test.ts to match new SameSite=Lax policy
+- [x] 29/29 tests pass after fix
