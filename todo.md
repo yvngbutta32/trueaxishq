@@ -592,3 +592,11 @@
 - [x] Fix blank screen on published domain — relaxed CSP frame-ancestors, COOP, CORP headers that blocked Manus platform shell
 - [x] Build production bundle and verify it works — 0 TS errors, 29/29 tests pass
 - [x] Save checkpoint for user to re-publish
+
+## Critical Fix — Rate Limiter Blocking Page Load (Apr 9, 2026)
+
+- [x] Root cause: rate limiter counted ALL requests (static assets + API) against per-IP quota — 30 req/min auth limit hit instantly on page load
+- [x] Fix: scope rate limiting to /api/ routes only (static assets never count against quota)
+- [x] Fix: exclude auth.me from strict auth rate limit (it's a read-only session check, not a login attempt)
+- [x] Raise limits: general 300→600/min, auth 30→100/min, AI 60→120/min
+- [x] 0 TypeScript errors, 29/29 tests passing after fix

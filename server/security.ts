@@ -20,9 +20,9 @@ import { securityEvents } from "../drizzle/schema";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const RATE_LIMIT_WINDOW_MS     = 60_000;   // 1-minute window
-const RATE_LIMIT_MAX_GENERAL   = 300;      // general requests per window per IP
-const RATE_LIMIT_MAX_AUTH      = 30;       // auth endpoints per window per IP
-const RATE_LIMIT_MAX_AI        = 60;       // AI endpoints per window per IP
+const RATE_LIMIT_MAX_GENERAL   = 600;      // general requests per window per IP
+const RATE_LIMIT_MAX_AUTH      = 100;      // auth endpoints per window per IP (login/register/oauth only)
+const RATE_LIMIT_MAX_AI        = 120;      // AI endpoints per window per IP
 const VIOLATION_BLOCK_THRESHOLD = 15;      // violations before auto-block
 const BLOCK_DURATION_MS        = 5 * 60_000; // 5-minute auto-block
 const FAILED_LOGIN_LOCKOUT     = 5;        // failed attempts before account lockout
@@ -224,8 +224,17 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
     return res.status(429).json({ error: "Too many requests. Please try again later." });
   }
 
-  // 3. Rate limiting (per-IP, endpoint-aware)
-  const isAuthRoute = req.path.includes("/auth") || req.path.includes("/oauth");
+  // 3. Rate limiting — only applies to /api/ routes, never to static assets
+  // Static assets (JS/CSS/images) must never count against the rate limit
+  const isApiRoute = req.path.startsWith("/api/");
+  if (!isApiRoute) {
+    // Still apply security headers but skip rate limiting for static assets
+    return next();
+  }
+  // auth.me is a read-only session check called on every page load — use general limit
+  const isAuthMeRoute = req.path.includes("auth.me") || req.path.includes("auth%2Eme");
+  // Strict auth limit only for actual login/register/password mutation endpoints
+  const isAuthRoute = !isAuthMeRoute && (req.path.includes("/oauth") || req.path.includes("auth.login") || req.path.includes("auth.register") || req.path.includes("auth.forgotPassword") || req.path.includes("auth.resetPassword"));
   const isAIRoute   = req.path.includes("/ai") || req.path.includes("/pulse") || req.path.includes("/followUps");
   const maxRequests = isAuthRoute ? RATE_LIMIT_MAX_AUTH : isAIRoute ? RATE_LIMIT_MAX_AI : RATE_LIMIT_MAX_GENERAL;
 

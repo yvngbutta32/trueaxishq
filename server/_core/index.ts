@@ -52,6 +52,9 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
   // ── Security middleware (rate limiting, blocklist, header hardening) ──────
+  // Apply full security (rate limiting + headers) to all routes
+  // but only count rate limits for /api/ paths to prevent static assets
+  // from consuming the per-IP quota and causing 429 on page load
   app.use(securityMiddleware);
 
   // ── Health Check ─────────────────────────────────────────────────────────
