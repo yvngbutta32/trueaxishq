@@ -27,7 +27,8 @@ import {
   Building, Save, Moon, Sun, Bot, CreditCard,
   ExternalLink, Bell, Search, ChevronDown, Loader2,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
-  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload
+  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload,
+  Home
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -149,7 +150,7 @@ const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; ba
 
 function Sidebar({ active, setActive, collapsed, setCollapsed }: {
   active: ActivePanel; setActive: (p: ActivePanel) => void;
-  collapsed: boolean; setCollapsed: (v: boolean) => void;
+  collapsed: boolean; setCollapsed: (v: boolean | ((prev: boolean) => boolean)) => void;
 }) {
   const [, navigate] = useLocation();
   const { theme, toggleTheme } = useTheme();
@@ -240,9 +241,24 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             {!collapsed && <span>Admin Panel</span>}
           </button>
         )}
-        <button onClick={() => navigate("/")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label="Back to website">
-          <LogOut className="w-4 h-4 flex-shrink-0" />
-          {!collapsed && <span>Back to Site</span>}
+        <button
+          onClick={() => navigate("/")}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
+          aria-label="Go to home page"
+          title="Home"
+        >
+          <Home className="w-4 h-4 flex-shrink-0" />
+          {!collapsed && <span>Home</span>}
+        </button>
+        {/* Collapse / Expand toggle */}
+        <button
+          onClick={() => setCollapsed(v => !v)}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand" : "Collapse"}
+        >
+          <ChevronRight className={`w-4 h-4 flex-shrink-0 transition-transform duration-300 ${collapsed ? "" : "rotate-180"}`} />
+          {!collapsed && <span>Collapse</span>}
         </button>
       </div>
     </aside>
@@ -2645,10 +2661,10 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
   const { user } = useAuth();
 
   const primaryItems = [
-    { icon: LayoutDashboard, label: "Home", panel: "overview" as ActivePanel },
     { icon: Users, label: "Clients", panel: "clients" as ActivePanel },
     { icon: Calendar, label: "Schedule", panel: "scheduling" as ActivePanel },
     { icon: FileText, label: "Invoices", panel: "invoices" as ActivePanel },
+    { icon: LayoutDashboard, label: "Overview", panel: "overview" as ActivePanel },
   ];
 
   const moreItems = [
@@ -2721,6 +2737,15 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
         aria-label="Mobile navigation"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
+        {/* Home — navigates to landing page */}
+        <button
+          onClick={() => { setShowMore(false); navigate("/"); }}
+          aria-label="Go to home page"
+          className="flex-1 flex flex-col items-center justify-center py-2.5 gap-1 min-h-[56px] transition-colors text-gray-500 hover:text-[#E8A020]"
+        >
+          <Home className="w-5 h-5" aria-hidden="true" />
+          <span className="text-[10px] font-medium">Home</span>
+        </button>
         {primaryItems.map((item) => (
           <button
             key={item.panel}
@@ -2763,7 +2788,16 @@ export default function Dashboard() {
     }
     return "overview";
   });
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem("trueaxis_sidebar_collapsed") === "1"; } catch { return false; }
+  });
+  const handleSetCollapsed = (v: boolean | ((prev: boolean) => boolean)) => {
+    setCollapsed(prev => {
+      const next = typeof v === "function" ? v(prev) : v;
+      try { localStorage.setItem("trueaxis_sidebar_collapsed", next ? "1" : "0"); } catch {}
+      return next;
+    });
+  };
   const [showNotifications, setShowNotifications] = useState(false);
   const [search, setSearch] = useState("");
   const [confirm, setConfirm] = useState<ConfirmState>(defaultConfirm);
@@ -2851,7 +2885,7 @@ export default function Dashboard() {
 
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
-        <Sidebar active={active} setActive={setActiveWithScroll} collapsed={collapsed} setCollapsed={setCollapsed} />
+        <Sidebar active={active} setActive={setActiveWithScroll} collapsed={collapsed} setCollapsed={handleSetCollapsed} />
       </div>
 
       {/* Main Content */}

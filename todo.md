@@ -628,3 +628,9 @@
 - [x] Fix dashboard logo to navigate to home (/) when clicked
 - [x] Fix mobile dashboard header logo to navigate home
 - [x] Audit all pages for content cutoff and fix padding/max-width issues
+
+## UX Improvements — Suggested (Apr 9, 2026)
+- [x] Add Home nav item to sidebar footer (house icon + "Home" label)
+- [x] Persist sidebar collapsed/expanded state in localStorage across refreshes
+- [x] Add Home tab to mobile bottom navigation bar
+- [x] Ensure all three integrate cleanly with existing nav and look flawless
