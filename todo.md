@@ -729,3 +729,11 @@
 - [x] All panels have correct padding-bottom to clear nav bar (100px + safe-area)
 - [x] No functionality changes — layout/visual upgrades only
 - [x] 29/29 tests pass after changes
+
+## CRITICAL: Mobile Nav Bar Covering Content (Apr 9, 2026)
+- [x] Bottom nav bar covers stat cards and content on every page — fixed permanently
+- [x] Root cause: fixed bottom nav sits on top of scrollable content area
+- [x] Fix: outer wrapper changed to flex-col on mobile (height: 100dvh)
+- [x] Fix: nav is now shrink-0 in flex column — takes its own space, never overlaps content
+- [x] Fix: main content is flex-1 with minHeight: 0 so it fills remaining space
+- [x] 29/29 tests pass after fix

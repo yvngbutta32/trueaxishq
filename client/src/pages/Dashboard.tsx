@@ -2752,7 +2752,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
 
       {/* Bottom Nav Bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
+        className="shrink-0 z-40 md:hidden w-full"
         aria-label="Mobile navigation"
         style={{
           background: "rgba(28, 28, 30, 0.97)",
@@ -2905,7 +2905,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] flex overflow-x-hidden w-full">
+    <div className="bg-[#F5F5F7] flex flex-col md:flex-row overflow-x-hidden w-full" style={{ height: '100dvh' }}>
       {/* Skip link */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-xl focus:shadow-lg focus:text-[#E8A020] focus:font-semibold">
         Skip to main content
@@ -2921,10 +2921,7 @@ export default function Dashboard() {
         id="main-content"
         ref={mainRef}
         className={`flex-1 min-w-0 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"} md:pb-8 overflow-y-auto overflow-x-hidden`}
-        style={{
-          height: "100dvh",
-          paddingBottom: "calc(100px + env(safe-area-inset-bottom, 0px))",
-        } as React.CSSProperties}
+        style={{ minHeight: 0 } as React.CSSProperties}
         tabIndex={-1}
       >
         {/* Header */}
