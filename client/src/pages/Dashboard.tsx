@@ -2705,19 +2705,21 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
   };
 
   return (
-    <>
+    // Single shrink-0 wrapper — keeps the nav as a proper flex child in the column layout
+    // The sheet and backdrop use fixed positioning so they don't affect the flex flow
+    <div className="shrink-0 md:hidden">
       {/* Full-feature sheet backdrop */}
       {showSheet && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
           onClick={() => setShowSheet(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* Full-feature sheet — slides up from bottom */}
+      {/* Full-feature sheet — slides up from bottom, above the nav bar */}
       <div
-        className={`fixed left-0 right-0 z-50 md:hidden bg-[#1C1C1E] rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out ${
+        className={`fixed left-0 right-0 z-50 bg-[#1C1C1E] rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out ${
           showSheet ? "translate-y-0" : "translate-y-full"
         }`}
         style={{ bottom: "calc(64px + env(safe-area-inset-bottom, 0px))", maxHeight: "70vh", overflowY: "auto" }}
@@ -2852,7 +2854,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
           </button>
         </div>
       </nav>
-    </>
+    </div>
   );
 }
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
@@ -3094,8 +3096,8 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Panel Content */}
-        <div className="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-x-hidden">
+        {/* Panel Content — pb-[72px] ensures content clears the fixed-height mobile nav bar */}
+        <div className="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-x-hidden pb-[72px] md:pb-6">
           {renderPanel()}
         </div>
       </main>

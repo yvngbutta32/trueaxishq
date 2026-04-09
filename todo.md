@@ -753,3 +753,9 @@
 - [x] Active panel highlighted in both nav tabs and sheet
 - [x] Backdrop dismisses sheet on tap outside
 - [x] 29/29 tests pass, 0 TypeScript errors
+
+## Mobile Nav Overlap Fix (Apr 9, 2026)
+- [x] Fixed root cause: MobileBottomNav was returning a React fragment, making the sheet/backdrop siblings in the flex column and pushing the nav off-screen
+- [x] Wrapped MobileBottomNav return in a single shrink-0 div — nav is now a proper flex child
+- [x] Added pb-[72px] md:pb-0 to panel content so content never hides behind the nav bar
+- [x] 29/29 tests pass, 0 TypeScript errors
