@@ -178,14 +178,12 @@
     line-height: 1.15;
     font-weight: 800;
     letter-spacing: -0.025em;
-    color: var(--ink);
+    /* Do NOT set color here — let each page control heading color explicitly
+       to avoid invisible headings on dark backgrounds */
   }
 
-  /* Touch targets — WCAG 2.5.5 */
-  button, [role="button"], a, input[type="checkbox"], input[type="radio"], select {
-    min-height: 44px;
-    min-width: 44px;
-  }
+  /* Touch targets — WCAG 2.5.5: applied only to primary action buttons via .touch-target class */
+  .touch-target { min-height: 44px; min-width: 44px; }
 
   p a, li a { text-decoration: underline; text-underline-offset: 3px; }
   img, video { max-width: 100%; height: auto; }
@@ -200,7 +198,9 @@
   input[type="radio"]:not(:disabled),
   label[for] { cursor: pointer; }
 
-  :disabled, [aria-disabled="true"] { cursor: not-allowed; opacity: 0.5; }
+  :disabled, [aria-disabled="true"] { cursor: not-allowed; }
+  /* Only reduce opacity on truly disabled form controls — NOT buttons (handled per-component) */
+  input:disabled, select:disabled, textarea:disabled { opacity: 0.55; }
 
   /* ── Global autofill override (prevents browser yellow on all inputs) ── */
   input:-webkit-autofill,
@@ -453,22 +453,22 @@
     gap: 0.5rem;
     padding: 0.75rem 1.75rem;
     background: transparent;
-    color: rgba(245,240,232,0.75);
+    color: rgba(245,240,232,0.92);
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-weight: 600;
     font-size: 0.9rem;
     letter-spacing: 0.01em;
     border-radius: 0.625rem;
-    border: 1.5px solid rgba(245,240,232,0.20);
+    border: 1.5px solid rgba(245,240,232,0.55);
     cursor: pointer;
     transition: all 0.18s ease;
     text-decoration: none;
     white-space: nowrap;
   }
   .btn-ghost:hover {
-    background: rgba(245,240,232,0.08);
-    border-color: rgba(245,240,232,0.35);
-    color: rgba(245,240,232,0.95);
+    background: rgba(245,240,232,0.10);
+    border-color: rgba(245,240,232,0.80);
+    color: #F5F0E8;
     transform: translateY(-1px);
   }
   .btn-ghost:focus-visible {

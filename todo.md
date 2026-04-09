@@ -642,3 +642,36 @@
 - [x] Authenticated users visiting / are auto-redirected to /dashboard
 - [x] New/logged-out visitors see the landing page normally
 - [x] Show a brief loading state while auth check resolves (no flash of landing page)
+
+## Comprehensive UI Fix Pass (Apr 9, 2026)
+- [ ] Login: "Back to homepage" button opacity 0.30 → increase to 0.70
+- [ ] Login: "Sign In →" button has disabled:opacity-50 applied even when enabled (empty email/password)
+- [ ] Pricing: btn-ghost border opacity 0.20 → increase to 0.50 so outline is visible
+- [ ] Pricing: btn-ghost text opacity 0.75 → increase to 1.0
+- [ ] Dashboard: ensure all panels are fully responsive at 390px mobile width
+- [ ] Dashboard: tables need horizontal scroll wrapper on mobile
+- [ ] All pages: overflow-x-hidden on html/body confirmed
+- [ ] Global: btn-ghost and btn-amber classes work correctly on dark and light backgrounds
+
+## Button System Overhaul (Apr 9, 2026)
+- [ ] Define unified button hierarchy: primary (amber), secondary (outline), danger (red), ghost (text-only), icon
+- [ ] Redesign button.tsx with complete, consistent variant system
+- [ ] Dashboard: consolidate redundant Cancel/Close buttons into one pattern
+- [ ] Dashboard: fix all action buttons (Export CSV, Import, Add) to use consistent sizes
+- [ ] Dashboard: fix inline action buttons (Mark Paid, Remind, Delete) to use consistent sm size
+- [ ] Home page: standardize CTA buttons (Start Free Trial, See How It Works)
+- [ ] Pricing page: standardize plan CTA buttons
+- [ ] Login page: standardize Sign In, Back to Homepage, Request Invite buttons
+- [ ] All pages: ensure every button has correct contrast on its background
+- [ ] All pages: no button should be cut off on mobile viewport
+
+## Button System & Layout Overhaul (Apr 9, 2026)
+- [x] Redesign button.tsx with unified variant system (primary/yellow/danger/outline/ghost/link)
+- [x] Remove global button:disabled opacity rule that makes loading-state buttons invisible
+- [x] Fix outline variant to have white bg + navy border/text (visible on all light backgrounds)
+- [x] Fix ghost variant to have explicit text color (not transparent) on light backgrounds
+- [x] Verify all pages use correct button variants for their background context
+- [x] Add overflow-x-hidden to html, body, Dashboard, Home, Admin wrappers
+- [x] Confirm all panels use responsive grid/flex layouts (no fixed-width overflow)
+- [x] Confirm Login, Pricing, Booking, Billing pages have no invisible buttons
+- [x] 29/29 tests pass, 0 TypeScript errors after all changes

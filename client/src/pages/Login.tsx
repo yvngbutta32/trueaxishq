@@ -209,8 +209,8 @@ export default function Login() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={loginMutation.isPending || !email || !password}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loginMutation.isPending}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               style={{
                 background: "linear-gradient(135deg, #E8A020, #F5C842)",
                 color: "#141414",
@@ -243,7 +243,7 @@ export default function Login() {
             <button
               onClick={() => navigate("/")}
               className="text-sm transition-colors hover:opacity-70 flex items-center gap-1.5"
-              style={{ color: "rgba(245,240,232,0.30)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+              style={{ color: "rgba(245,240,232,0.65)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
             >
               ← Back to homepage
             </button>
