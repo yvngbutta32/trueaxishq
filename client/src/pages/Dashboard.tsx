@@ -2705,24 +2705,25 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
   };
 
   return (
-    // Single shrink-0 wrapper — keeps the nav as a proper flex child in the column layout
-    // The sheet and backdrop use fixed positioning so they don't affect the flex flow
-    <div className="shrink-0 md:hidden">
-      {/* Full-feature sheet backdrop */}
+    // Outer wrapper: shrink-0 so the nav never gets squashed in the flex column.
+    // NO fixed/transform on the nav itself — avoids iOS stacking-context bugs.
+    // The sheet uses absolute positioning relative to this wrapper.
+    <div className="shrink-0 relative md:hidden">
+      {/* Full-feature sheet backdrop — covers only the viewport above the nav */}
       {showSheet && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-black/60"
           onClick={() => setShowSheet(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* Full-feature sheet — slides up from bottom, above the nav bar */}
+      {/* Full-feature sheet — absolutely positioned above the nav bar, no transforms */}
       <div
-        className={`fixed left-0 right-0 z-50 bg-[#1C1C1E] rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out ${
-          showSheet ? "translate-y-0" : "translate-y-full"
+        className={`absolute left-0 right-0 z-50 bg-[#1C1C1E] rounded-t-3xl shadow-2xl overflow-y-auto ${
+          showSheet ? "block" : "hidden"
         }`}
-        style={{ bottom: "calc(64px + env(safe-area-inset-bottom, 0px))", maxHeight: "70vh", overflowY: "auto" }}
+        style={{ bottom: "100%", maxHeight: "70vh" }}
         role="dialog"
         aria-label="All features"
         aria-hidden={!showSheet}
@@ -2792,9 +2793,9 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
         </div>
       </div>
 
-      {/* Bottom Nav Bar */}
+      {/* Bottom Nav Bar — wrapper div already has display:block; nav fills it */}
       <nav
-        className="shrink-0 z-40 md:hidden w-full"
+        className="w-full"
         aria-label="Mobile navigation"
         style={{
           background: "rgba(28, 28, 30, 0.97)",
