@@ -759,3 +759,13 @@
 - [x] Wrapped MobileBottomNav return in a single shrink-0 div — nav is now a proper flex child
 - [x] Added pb-[72px] md:pb-0 to panel content so content never hides behind the nav bar
 - [x] 29/29 tests pass, 0 TypeScript errors
+
+## Draggable Floating AI Assistant (Apr 9, 2026)
+- [x] Rewrite AIAssistant as a draggable floating widget (bubble + expandable chat)
+- [x] Closing X hides the bubble entirely (re-open from AI panel or More menu)
+- [x] Widget persists across all dashboard panels
+- [x] Touch drag support for mobile, mouse drag for desktop
+
+## Invite Code Hard Delete on Revoke (Apr 9, 2026)
+- [x] revokeInvite procedure: permanently DELETE the row instead of setting revoked=true
+- [x] Expired invite cleanup: DELETE expired rows instead of marking revoked=true

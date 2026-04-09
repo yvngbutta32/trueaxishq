@@ -2880,6 +2880,8 @@ export default function Dashboard() {
     });
   };
   const [showNotifications, setShowNotifications] = useState(false);
+  // Floating AI assistant — visible when user opens the AI panel or clicks the bubble
+  const [aiVisible, setAiVisible] = useState(false);
   const [search, setSearch] = useState("");
   const [confirm, setConfirm] = useState<ConfirmState>(defaultConfirm);
   const { user, isAuthenticated, loading } = useAuth();
@@ -2898,6 +2900,8 @@ export default function Dashboard() {
   // Scroll to top of main content when switching panels
   const setActiveWithScroll = (panel: ActivePanel) => {
     setActive(panel);
+    // Automatically show the floating AI widget when navigating to the AI panel
+    if (panel === "ai") setAiVisible(true);
     requestAnimationFrame(() => {
       mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -2948,7 +2952,28 @@ export default function Dashboard() {
       case "followups": return <FollowUpsPanel />;
       case "analytics": return <AnalyticsPanel />;
       case "settings": return <SettingsPanel />;
-      case "ai": return <AIAssistant />;
+      case "ai": return (
+        <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+          <div className="w-16 h-16 rounded-full gradient-amber flex items-center justify-center shadow-lg">
+            <span className="text-3xl">✨</span>
+          </div>
+          <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>AI Assistant</h2>
+          <p className="text-gray-500 text-sm max-w-xs">
+            Your AI assistant is floating on screen — drag it anywhere and chat while you work.
+          </p>
+          {!aiVisible && (
+            <button
+              onClick={() => setAiVisible(true)}
+              className="mt-2 px-5 py-2.5 rounded-xl gradient-amber text-white text-sm font-semibold shadow hover:opacity-90 transition-all"
+            >
+              Open AI Assistant
+            </button>
+          )}
+          {aiVisible && (
+            <p className="text-xs text-[#E8A020] font-medium">AI Assistant is open — look for the floating bubble ✨</p>
+          )}
+        </div>
+      );
       case "pulse": return <ClientPulsePanel />;
       case "contracts": return <ContractsPanel />;
       case "time": return <TimeTrackingPanel />;
@@ -3105,6 +3130,12 @@ export default function Dashboard() {
 
       {/* Mobile Bottom Nav */}
       <MobileBottomNav active={active} setActive={setActiveWithScroll} />
+      {/* Floating AI Assistant — persists across all panels, draggable */}
+      <AIAssistant
+        visible={aiVisible}
+        onClose={() => setAiVisible(false)}
+      />
+
       {/* Global Confirm Dialog */}
       <ConfirmDialog
         open={confirm.open}

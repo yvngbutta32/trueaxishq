@@ -1513,7 +1513,8 @@ export const appRouter = router({
           .from(inviteCodes).where(eq(inviteCodes.id, input.id)).limit(1);
         if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invite code not found." });
         if (inv.usedAt) throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot revoke an already-used invite code." });
-        await db.update(inviteCodes).set({ revoked: true }).where(eq(inviteCodes.id, input.id));
+        // Permanently delete the invite code — revoked codes have no value and should not persist
+        await db.delete(inviteCodes).where(eq(inviteCodes.id, input.id));
         return { success: true };
       }),
 
@@ -1817,7 +1818,7 @@ export const appRouter = router({
         fixes.push(`Cleaned up ${expiredTokens.length} expired password reset token(s)`);
       }
 
-      // Check 2: Expired invite codes (mark as revoked)
+      // Check 2: Expired invite codes — permanently delete them
       const expiredInvites = await db.select({ id: inviteCodes.id })
         .from(inviteCodes)
         .where(and(
@@ -1825,13 +1826,12 @@ export const appRouter = router({
           sql`${inviteCodes.expiresAt} IS NOT NULL AND ${inviteCodes.expiresAt} < NOW()`
         ));
       if (expiredInvites.length > 0) {
-        await db.update(inviteCodes)
-          .set({ revoked: true })
+        await db.delete(inviteCodes)
           .where(and(
             eq(inviteCodes.revoked, false),
             sql`${inviteCodes.expiresAt} IS NOT NULL AND ${inviteCodes.expiresAt} < NOW()`
           ));
-        fixes.push(`Revoked ${expiredInvites.length} expired invite code(s)`);
+        fixes.push(`Deleted ${expiredInvites.length} expired invite code(s)`);
       }
 
       // Check 3: Expired user sessions (deactivate)
