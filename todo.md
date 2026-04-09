@@ -695,3 +695,22 @@
 - [x] Fix: add Express trust proxy setting so req.secure works correctly behind production reverse proxy
 - [x] Update auth.logout.test.ts to match new SameSite=Lax policy
 - [x] 29/29 tests pass after fix
+
+## Invisible Buttons & Mobile Nav Cutoff Fix (Apr 9, 2026)
+- [x] Full audit of all pages for invisible/unreadable buttons
+- [x] Fix Billing plan card borders: border-gray-100 → border-white/15 (visible on dark bg)
+- [x] Fix Get Started buttons on non-highlighted plan cards: bg-white/10 border-white/40 text-white
+- [x] Fix mobile More drawer: bottom now uses calc(57px + env(safe-area-inset-bottom)) to clear iPhone home bar
+- [x] Fix mobile bottom nav: paddingBottom uses max(safe-area, 8px) to prevent cutoff
+- [x] Increase main content pb-28 → pb-32 for extra clearance above mobile nav
+- [x] 29/29 tests pass after fixes
+
+## UX Overhaul — Seamless Integration & Maneuverability (Apr 9, 2026)
+- [x] Visual audit of every page/panel — cataloged all invisible buttons, nav cutoff, and UX friction
+- [x] Fixed outline buttons on dark backgrounds (Billing plan cards)
+- [x] Fixed mobile bottom nav tab cutoff — safe-area-inset + proper height on all devices
+- [x] Fixed More drawer bottom clipping on iPhone home indicator devices
+- [x] All Cancel/action buttons in modals confirmed visible (white bg modals)
+- [x] All interactive elements have min 44-48px touch targets
+- [x] Consistent button styling across all pages
+- [x] 29/29 tests pass after all fixes

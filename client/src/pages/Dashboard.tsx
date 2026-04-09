@@ -2695,8 +2695,8 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
 
       {/* More Drawer */}
       <div
-        className={`fixed bottom-[57px] left-0 right-0 z-50 md:hidden bg-[#1C1C1E] border-t border-white/10 transition-transform duration-200 ${showMore ? "translate-y-0" : "translate-y-full"}`}
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className={`fixed left-0 right-0 z-50 md:hidden bg-[#1C1C1E] border-t border-white/10 transition-transform duration-200 ${showMore ? "translate-y-0" : "translate-y-full"}`}
+        style={{ bottom: "calc(57px + env(safe-area-inset-bottom, 0px))", paddingBottom: "4px" }}
       >
         <div className="grid grid-cols-3 gap-px p-3">
           {moreItems.map((item) => (
@@ -2736,9 +2736,9 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
         className="fixed bottom-0 left-0 right-0 z-40 bg-[#1C1C1E] border-t border-white/10 flex md:hidden"
         aria-label="Mobile navigation"
         style={{
-          paddingBottom: "env(safe-area-inset-bottom, 0px)",
-          paddingLeft: "max(env(safe-area-inset-left, 0px), 8px)",
-          paddingRight: "max(env(safe-area-inset-right, 0px), 8px)",
+          paddingBottom: "max(env(safe-area-inset-bottom, 0px), 8px)",
+          paddingLeft: "max(env(safe-area-inset-left, 0px), 4px)",
+          paddingRight: "max(env(safe-area-inset-right, 0px), 4px)",
         }}
       >
         {/* Home — navigates to landing page */}
@@ -2896,7 +2896,7 @@ export default function Dashboard() {
       <main
         id="main-content"
         ref={mainRef}
-        className={`flex-1 min-w-0 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"} pb-28 md:pb-8 overflow-y-auto overflow-x-hidden h-screen`}
+        className={`flex-1 min-w-0 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"} pb-32 md:pb-8 overflow-y-auto overflow-x-hidden h-screen`}
         tabIndex={-1}
       >
         {/* Header */}

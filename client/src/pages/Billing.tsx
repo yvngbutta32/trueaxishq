@@ -207,8 +207,8 @@ export default function Billing() {
                       plan.highlighted
                         ? "border-[#E8A020] shadow-lg shadow-[#E8A020]/10"
                         : isCurrent
-                        ? "border-blue-300"
-                        : "border-gray-100 hover:border-gray-200"
+                        ? "border-blue-400/60"
+                        : "border-white/15 hover:border-white/30"
                     }`}
                     aria-label={`${plan.name} plan — $${price} per ${interval === "annual" ? "month (billed annually)" : "month"}`}
                   >
@@ -260,7 +260,7 @@ export default function Billing() {
                       </Button>
                     ) : (
                       <Button
-                        className={`w-full gap-2 ${plan.highlighted ? "gradient-amber text-white border-0" : "bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white hover:border-white/50"}`}
+                        className={`w-full gap-2 ${plan.highlighted ? "gradient-amber text-white border-0" : "bg-white/10 border-white/40 text-white hover:bg-white/20 hover:text-white hover:border-white/60"}`}
                         variant={plan.highlighted ? "default" : "outline"}
                         onClick={() => {
                           if (!isAuthenticated) {
