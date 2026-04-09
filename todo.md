@@ -769,3 +769,6 @@
 ## Invite Code Hard Delete on Revoke (Apr 9, 2026)
 - [x] revokeInvite procedure: permanently DELETE the row instead of setting revoked=true
 - [x] Expired invite cleanup: DELETE expired rows instead of marking revoked=true
+
+## AI Widget Bubble Logo (Apr 9, 2026)
+- [x] PWA apple-touch-icon and manifest already use TrueAxis logo — confirmed correct, no change needed
