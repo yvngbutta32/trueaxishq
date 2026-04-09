@@ -261,20 +261,20 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
       "img-src 'self' data: blob: https:",
       "connect-src 'self' https://api.stripe.com https://fonts.googleapis.com https://d2xsxph8kpxj0f.cloudfront.net https://api.manus.im https://*.manus.space https://*.manus.computer wss: ws: https:",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
-      "frame-ancestors 'none'",
+      "frame-ancestors 'self' https://*.manus.space https://*.manus.computer https://*.trueaxishq.com",
       "base-uri 'self'",
       "form-action 'self'",
       "upgrade-insecure-requests",
     ].join("; ")
   );
   res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("X-XSS-Protection", "1; mode=block");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
   res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-  res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
   // Remove server fingerprinting headers
   res.removeHeader("X-Powered-By");
   res.removeHeader("Server");

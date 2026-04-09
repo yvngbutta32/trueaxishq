@@ -586,3 +586,9 @@
 
 ### Email
 - [x] Email works out-of-the-box via in-app notifications (SMTP optional — see email.ts for Brevo/Gmail setup)
+
+## Critical Fix — Blank Screen on Published Site (Apr 9, 2026)
+
+- [x] Fix blank screen on published domain — relaxed CSP frame-ancestors, COOP, CORP headers that blocked Manus platform shell
+- [x] Build production bundle and verify it works — 0 TS errors, 29/29 tests pass
+- [x] Save checkpoint for user to re-publish
