@@ -2983,9 +2983,9 @@ export default function Dashboard() {
             {/* Mobile logo + panel title */}
             <div className="flex items-center gap-2 md:hidden">
               <button
-                onClick={() => navigate("/dashboard")}
-                aria-label="Go to dashboard"
-                title="Dashboard"
+                onClick={() => setActiveWithScroll("overview")}
+                aria-label="Go to Overview"
+                title="Overview"
                 style={{ background: "none", border: "none", minHeight: "auto", minWidth: "auto", padding: 0 }}
               >
                 <img
