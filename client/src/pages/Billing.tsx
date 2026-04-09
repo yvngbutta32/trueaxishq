@@ -141,7 +141,7 @@ export default function Billing() {
               {hasActiveSubscription && (
                 <Button
                   variant="outline"
-                  className="gap-2"
+                  className="gap-2 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white hover:border-white/50"
                   onClick={() => portalMutation.mutate({ origin: window.location.origin })}
                   disabled={portalMutation.isPending}
                   aria-label="Open Stripe billing portal to manage subscription"
@@ -252,7 +252,7 @@ export default function Billing() {
                     {isCurrent ? (
                       <Button
                         variant="outline"
-                        className="w-full"
+                        className="w-full bg-transparent border-white/20 text-gray-400 cursor-not-allowed hover:bg-transparent hover:text-gray-400 hover:border-white/20"
                         disabled
                         aria-label={`You are currently on the ${plan.name} plan`}
                       >
@@ -260,7 +260,7 @@ export default function Billing() {
                       </Button>
                     ) : (
                       <Button
-                        className={`w-full gap-2 ${plan.highlighted ? "gradient-amber text-white border-0" : ""}`}
+                        className={`w-full gap-2 ${plan.highlighted ? "gradient-amber text-white border-0" : "bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white hover:border-white/50"}`}
                         variant={plan.highlighted ? "default" : "outline"}
                         onClick={() => {
                           if (!isAuthenticated) {

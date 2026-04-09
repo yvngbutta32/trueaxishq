@@ -682,3 +682,9 @@
 - [x] Fix BookingPage bottom Continue button — ensure it's not clipped by screen edge
 - [x] Fix Billing page bottom buttons — not clipped by screen edge
 - [x] Add pb-safe (env(safe-area-inset-bottom)) to global CSS for mobile notch/home-bar clearance
+
+## Visual Audit — Invisible Controls Fix (Apr 9, 2026)
+- [x] Screenshot every page and panel to visually identify invisible controls
+- [x] Fix every invisible control found in visual audit — Billing page plan card buttons (outline on dark #1C1C1E bg) now use transparent bg + white border/text
+- [x] Add safe-area edge padding to mobile bottom nav bar (suggestion 1)
+- [x] 29/29 tests pass after all fixes

@@ -2735,7 +2735,11 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
       <nav
         className="fixed bottom-0 left-0 right-0 z-40 bg-[#1C1C1E] border-t border-white/10 flex md:hidden"
         aria-label="Mobile navigation"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        style={{
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          paddingLeft: "max(env(safe-area-inset-left, 0px), 8px)",
+          paddingRight: "max(env(safe-area-inset-right, 0px), 8px)",
+        }}
       >
         {/* Home — navigates to landing page */}
         <button
