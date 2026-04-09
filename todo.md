@@ -737,3 +737,9 @@
 - [x] Fix: nav is now shrink-0 in flex column — takes its own space, never overlaps content
 - [x] Fix: main content is flex-1 with minHeight: 0 so it fills remaining space
 - [x] 29/29 tests pass after fix
+
+## Mobile Nav More Tab Removal (Apr 9, 2026)
+- [x] Removed non-functional More tab and entire drawer from mobile bottom nav
+- [x] Replaced with 5 clean direct tabs: Overview, Clients, Schedule, Invoices, Settings
+- [x] No More button, no drawer, no dead-end interactions — every tab navigates somewhere real
+- [x] 29/29 tests pass, 0 TypeScript errors
