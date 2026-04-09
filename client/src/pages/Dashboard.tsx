@@ -161,26 +161,27 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
       className={`fixed left-0 top-0 h-full bg-[#1C1C1E] flex flex-col transition-all duration-300 z-40 ${collapsed ? "w-16" : "w-60"}`}
       aria-label="Main navigation"
     >
-      {/* Logo */}
-      <div className="flex items-center px-3 py-4 border-b border-white/10">
+      {/* Logo — click navigates home only */}
+      <div className="flex items-center justify-center px-3 py-4 border-b border-white/10">
         <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="flex items-center justify-center flex-shrink-0"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          onClick={() => navigate("/")}
+          className="flex items-center justify-center"
+          aria-label="Go to home page"
+          title="Home"
           style={{ background: "none", border: "none", minHeight: "auto", minWidth: "auto", padding: 0 }}
         >
           {collapsed ? (
             <div className="w-8 h-8 rounded-lg overflow-hidden">
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-                alt="TrueAxis HQ"
+                alt="TrueAxis HQ — Home"
                 className="w-full h-full object-cover object-left"
               />
             </div>
           ) : (
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-              alt="TrueAxis HQ"
+              alt="TrueAxis HQ — Home"
               className="h-9 w-auto object-contain"
             />
           )}
@@ -2842,7 +2843,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] flex">
+    <div className="min-h-screen bg-[#F5F5F7] flex overflow-x-hidden w-full">
       {/* Skip link */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-xl focus:shadow-lg focus:text-[#E8A020] focus:font-semibold">
         Skip to main content
@@ -2857,7 +2858,7 @@ export default function Dashboard() {
       <main
         id="main-content"
         ref={mainRef}
-        className={`flex-1 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"} pb-20 md:pb-0 overflow-y-auto h-screen`}
+        className={`flex-1 min-w-0 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"} pb-20 md:pb-0 overflow-y-auto overflow-x-hidden h-screen`}
         tabIndex={-1}
       >
         {/* Header */}
@@ -2865,11 +2866,18 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             {/* Mobile logo + panel title */}
             <div className="flex items-center gap-2 md:hidden">
-              <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-                alt="TrueAxis HQ"
-                className="h-7 w-auto object-contain"
-              />
+              <button
+                onClick={() => navigate("/")}
+                aria-label="Go to home page"
+                title="Home"
+                style={{ background: "none", border: "none", minHeight: "auto", minWidth: "auto", padding: 0 }}
+              >
+                <img
+                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+                  alt="TrueAxis HQ — Home"
+                  className="h-7 w-auto object-contain"
+                />
+              </button>
               <span className="text-sm font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                 {panelTitles[active]}
               </span>
@@ -2974,7 +2982,7 @@ export default function Dashboard() {
         </header>
 
         {/* Panel Content */}
-        <div className="p-4 md:p-6 max-w-6xl mx-auto">
+        <div className="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-x-hidden">
           {renderPanel()}
         </div>
       </main>

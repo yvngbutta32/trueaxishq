@@ -1092,7 +1092,7 @@ export default function Home() {
   const [changelogOpen, setChangelogOpen] = useState(false);
 
   return (
-    <div style={{ background: "#141414", minHeight: "100vh" }}>
+    <div style={{ background: "#141414", minHeight: "100vh", overflowX: "hidden" }}>
       <Nav onCTA={() => setModalOpen(true)} />
       <Hero onCTA={() => setModalOpen(true)} />
       <TickerBar />

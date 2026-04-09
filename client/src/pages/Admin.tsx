@@ -263,7 +263,7 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* Header */}

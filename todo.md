@@ -615,3 +615,16 @@
 - [x] PWAInstallBanner component — shows install prompt after 3s delay; Chrome/Android uses native beforeinstallprompt; iOS shows step-by-step Share → Add to Home Screen instructions
 - [x] Install banner dismissed state persisted in localStorage for 30 days
 - [x] Banner auto-hides when already running in standalone (installed) mode
+
+## Layout & Navigation Fixes (Apr 9, 2026)
+- [x] Dashboard logo/icon should navigate to home (/) when clicked
+- [x] Fix horizontal overflow / content cutoff on all pages (landing, dashboard, booking, etc.)
+- [x] Ensure no page has horizontal scroll or clipped content at any viewport width
+- [x] Fix any oversized sections that push content off-screen on mobile/tablet
+
+## Invisible Buttons & Layout Fixes (Apr 9, 2026)
+- [x] Fix invisible buttons — outline/ghost buttons with transparent bg on white backgrounds show no text
+- [x] Fix layout overflow — add overflow-x-hidden to body/html, fix marquee, fix wide sections
+- [x] Fix dashboard logo to navigate to home (/) when clicked
+- [x] Fix mobile dashboard header logo to navigate home
+- [x] Audit all pages for content cutoff and fix padding/max-width issues

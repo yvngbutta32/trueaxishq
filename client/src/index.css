@@ -159,6 +159,7 @@
     font-size: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
   }
 
   body {
@@ -168,6 +169,8 @@
     -moz-osx-font-smoothing: grayscale;
     line-height: 1.65;
     min-height: 100dvh;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   h1, h2, h3, h4, h5, h6 {
