@@ -637,3 +637,8 @@
 
 ## Logo Navigation Fix (Apr 9, 2026)
 - [x] Logo click should navigate to /dashboard (not /)
+
+## Auth-Aware Landing Page Redirect (Apr 9, 2026)
+- [x] Authenticated users visiting / are auto-redirected to /dashboard
+- [x] New/logged-out visitors see the landing page normally
+- [x] Show a brief loading state while auth check resolves (no flash of landing page)

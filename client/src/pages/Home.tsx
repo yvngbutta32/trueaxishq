@@ -1090,6 +1090,40 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
   const [changelogOpen, setChangelogOpen] = useState(false);
+  const [, navigate] = useLocation();
+
+  // If the user is already authenticated, skip the landing page and go straight to the dashboard
+  const meQuery = trpc.auth.me.useQuery(undefined, { retry: false, refetchOnWindowFocus: false });
+
+  useEffect(() => {
+    if (!meQuery.isLoading && meQuery.data) {
+      // User is logged in — redirect to dashboard
+      navigate("/dashboard");
+    }
+  }, [meQuery.isLoading, meQuery.data, navigate]);
+
+  // While checking auth, show a minimal dark loader so there's no flash of the landing page
+  if (meQuery.isLoading) {
+    return (
+      <div
+        style={{ background: "#141414", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}
+        role="status"
+        aria-label="Loading"
+      >
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(232,160,32,0.10)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite" }}>
+              <circle cx="12" cy="12" r="10" stroke="#E8A020" strokeWidth="2" strokeDasharray="31.4" strokeDashoffset="10" strokeLinecap="round" />
+            </svg>
+          </div>
+          <p style={{ color: "rgba(245,240,232,0.40)", fontSize: 13, fontFamily: "DM Sans, sans-serif" }}>Loading…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is authenticated, render nothing (redirect is in flight)
+  if (meQuery.data) return null;
 
   return (
     <div style={{ background: "#141414", minHeight: "100vh", overflowX: "hidden" }}>
