@@ -162,27 +162,27 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
       className={`fixed left-0 top-0 h-full bg-[#1C1C1E] flex flex-col transition-all duration-300 z-40 ${collapsed ? "w-16" : "w-60"}`}
       aria-label="Main navigation"
     >
-      {/* Logo — click navigates home only */}
+      {/* Logo — click navigates to dashboard */}
       <div className="flex items-center justify-center px-3 py-4 border-b border-white/10">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/dashboard")}
           className="flex items-center justify-center"
-          aria-label="Go to home page"
-          title="Home"
+          aria-label="Go to dashboard"
+          title="Dashboard"
           style={{ background: "none", border: "none", minHeight: "auto", minWidth: "auto", padding: 0 }}
         >
           {collapsed ? (
             <div className="w-8 h-8 rounded-lg overflow-hidden">
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-                alt="TrueAxis HQ — Home"
+                alt="TrueAxis HQ — Dashboard"
                 className="w-full h-full object-cover object-left"
               />
             </div>
           ) : (
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-              alt="TrueAxis HQ — Home"
+              alt="TrueAxis HQ — Dashboard"
               className="h-9 w-auto object-contain"
             />
           )}
@@ -2901,14 +2901,14 @@ export default function Dashboard() {
             {/* Mobile logo + panel title */}
             <div className="flex items-center gap-2 md:hidden">
               <button
-                onClick={() => navigate("/")}
-                aria-label="Go to home page"
-                title="Home"
+                onClick={() => navigate("/dashboard")}
+                aria-label="Go to dashboard"
+                title="Dashboard"
                 style={{ background: "none", border: "none", minHeight: "auto", minWidth: "auto", padding: 0 }}
               >
                 <img
                   src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-                  alt="TrueAxis HQ — Home"
+                  alt="TrueAxis HQ — Dashboard"
                   className="h-7 w-auto object-contain"
                 />
               </button>

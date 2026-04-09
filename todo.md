@@ -634,3 +634,6 @@
 - [x] Persist sidebar collapsed/expanded state in localStorage across refreshes
 - [x] Add Home tab to mobile bottom navigation bar
 - [x] Ensure all three integrate cleanly with existing nav and look flawless
+
+## Logo Navigation Fix (Apr 9, 2026)
+- [x] Logo click should navigate to /dashboard (not /)
