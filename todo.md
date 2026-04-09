@@ -714,3 +714,18 @@
 - [x] All interactive elements have min 44-48px touch targets
 - [x] Consistent button styling across all pages
 - [x] 29/29 tests pass after all fixes
+
+## Mobile Bottom Nav Overlap Fix (Apr 9, 2026)
+- [x] Fix mobile bottom nav overlapping page content on every page — content needs more padding-bottom to clear fixed nav bar
+- [x] Fix bottom nav labels being cut off on iPhone (Follow-Ups, Client Pulse, Analytics)
+- [x] Ensure safe-area-inset-bottom is applied so nav clears iPhone home indicator
+
+## Mobile Layout Visual Upgrade (Apr 9, 2026)
+- [x] Fix bottom nav overlap — content uses height:100dvh + paddingBottom:calc(100px+safe-area)
+- [x] Fix bottom nav labels cut off — increased to text-[11px] + min-h-[52px] touch targets
+- [x] Redesign mobile bottom nav — 4 primary tabs + More, active indicator pill, frosted glass bg
+- [x] Redesign More drawer — 4-column grid, drag handle, rounded-t-2xl, smooth slide animation
+- [x] Polish mobile header — compact, clean, no overflow
+- [x] All panels have correct padding-bottom to clear nav bar (100px + safe-area)
+- [x] No functionality changes — layout/visual upgrades only
+- [x] 29/29 tests pass after changes

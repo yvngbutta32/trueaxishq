@@ -2660,11 +2660,12 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
   const [, navigate] = useLocation();
   const { user } = useAuth();
 
+  // 4 primary tabs + More — gives each tab plenty of width
   const primaryItems = [
+    { icon: LayoutDashboard, label: "Overview", panel: "overview" as ActivePanel },
     { icon: Users, label: "Clients", panel: "clients" as ActivePanel },
     { icon: Calendar, label: "Schedule", panel: "scheduling" as ActivePanel },
     { icon: FileText, label: "Invoices", panel: "invoices" as ActivePanel },
-    { icon: LayoutDashboard, label: "Overview", panel: "overview" as ActivePanel },
   ];
 
   const moreItems = [
@@ -2673,6 +2674,9 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
     { icon: BarChart3, label: "Analytics", panel: "analytics" as ActivePanel },
     { icon: Bot, label: "AI Assistant", panel: "ai" as ActivePanel },
     { icon: Settings, label: "Settings", panel: "settings" as ActivePanel },
+    { icon: FileSignature, label: "Contracts", panel: "contracts" as ActivePanel },
+    { icon: Clock, label: "Time", panel: "time" as ActivePanel },
+    { icon: RefreshCw, label: "Recurring", panel: "recurring" as ActivePanel },
   ];
 
   const isMoreActive = moreItems.some(i => i.panel === active);
@@ -2682,105 +2686,125 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
     setShowMore(false);
   };
 
+  // Nav bar height used to position the More drawer above it
+  const NAV_HEIGHT = "calc(64px + env(safe-area-inset-bottom, 0px))";
+
   return (
     <>
-      {/* More Drawer Overlay */}
+      {/* More Drawer Backdrop */}
       {showMore && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
           onClick={() => setShowMore(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* More Drawer */}
+      {/* More Drawer — slides up from above nav bar */}
       <div
-        className={`fixed left-0 right-0 z-50 md:hidden bg-[#1C1C1E] border-t border-white/10 transition-transform duration-200 ${showMore ? "translate-y-0" : "translate-y-full"}`}
-        style={{ bottom: "calc(57px + env(safe-area-inset-bottom, 0px))", paddingBottom: "4px" }}
+        className={`fixed left-0 right-0 z-50 md:hidden bg-[#242426] rounded-t-2xl shadow-2xl transition-transform duration-300 ease-out ${showMore ? "translate-y-0" : "translate-y-full"}`}
+        style={{ bottom: NAV_HEIGHT }}
+        role="dialog"
+        aria-label="More navigation options"
+        aria-hidden={!showMore}
       >
-        <div className="grid grid-cols-3 gap-px p-3">
-          {moreItems.map((item) => (
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full bg-white/20" />
+        </div>
+        <div className="px-4 pb-3 pt-1">
+          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">More</p>
+          <div className="grid grid-cols-4 gap-1">
+            {moreItems.map((item) => (
+              <button
+                key={item.panel}
+                onClick={() => handleMoreItem(item.panel)}
+                aria-label={item.label}
+                className={`flex flex-col items-center justify-center py-3 px-1 rounded-xl gap-1.5 transition-all active:scale-95 ${
+                  active === item.panel
+                    ? "bg-[#E8A020]/20 text-[#E8A020]"
+                    : "text-gray-400 hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                <span className="text-[10px] font-medium text-center leading-tight">{item.label}</span>
+              </button>
+            ))}
+            {user?.role === "admin" && (
+              <button
+                onClick={() => { navigate("/admin"); setShowMore(false); }}
+                className="flex flex-col items-center justify-center py-3 px-1 rounded-xl gap-1.5 text-gray-400 hover:bg-white/5 hover:text-white transition-all active:scale-95"
+              >
+                <Star className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                <span className="text-[10px] font-medium">Admin</span>
+              </button>
+            )}
             <button
-              key={item.panel}
-              onClick={() => handleMoreItem(item.panel)}
-              aria-label={item.label}
-              className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl gap-1.5 transition-colors ${
-                active === item.panel ? "bg-[#E8A020]/15 text-[#E8A020]" : "text-gray-400 hover:bg-white/5 hover:text-white"
-              }`}
+              onClick={() => { navigate("/billing"); setShowMore(false); }}
+              className="flex flex-col items-center justify-center py-3 px-1 rounded-xl gap-1.5 text-gray-400 hover:bg-white/5 hover:text-white transition-all active:scale-95"
             >
-              <item.icon className="w-5 h-5" aria-hidden="true" />
-              <span className="text-[10px] font-medium text-center leading-tight">{item.label}</span>
+              <CreditCard className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+              <span className="text-[10px] font-medium">Billing</span>
             </button>
-          ))}
-          {user?.role === "admin" && (
-            <button
-              onClick={() => { navigate("/admin"); setShowMore(false); }}
-              className="flex flex-col items-center justify-center py-3 px-2 rounded-xl gap-1.5 text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
-            >
-              <Star className="w-5 h-5" aria-hidden="true" />
-              <span className="text-[10px] font-medium">Admin</span>
-            </button>
-          )}
-          <button
-            onClick={() => { navigate("/billing"); setShowMore(false); }}
-            className="flex flex-col items-center justify-center py-3 px-2 rounded-xl gap-1.5 text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
-          >
-            <CreditCard className="w-5 h-5" aria-hidden="true" />
-            <span className="text-[10px] font-medium">Billing</span>
-          </button>
+          </div>
         </div>
       </div>
 
       {/* Bottom Nav Bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 bg-[#1C1C1E] border-t border-white/10 flex md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
         aria-label="Mobile navigation"
         style={{
-          paddingBottom: "max(env(safe-area-inset-bottom, 0px), 8px)",
-          paddingLeft: "max(env(safe-area-inset-left, 0px), 4px)",
-          paddingRight: "max(env(safe-area-inset-right, 0px), 4px)",
+          background: "rgba(28, 28, 30, 0.97)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderTop: "1px solid rgba(255,255,255,0.08)",
+          paddingBottom: "max(env(safe-area-inset-bottom, 0px), 10px)",
+          paddingLeft: "max(env(safe-area-inset-left, 0px), 0px)",
+          paddingRight: "max(env(safe-area-inset-right, 0px), 0px)",
         }}
       >
-        {/* Home — navigates to landing page */}
-        <button
-          onClick={() => { setShowMore(false); navigate("/"); }}
-          aria-label="Go to home page"
-          className="flex-1 flex flex-col items-center justify-center py-2.5 gap-1 min-h-[56px] transition-colors text-gray-500 hover:text-[#E8A020]"
-        >
-          <Home className="w-5 h-5" aria-hidden="true" />
-          <span className="text-[10px] font-medium">Home</span>
-        </button>
-        {primaryItems.map((item) => (
+        <div className="flex items-stretch">
+          {primaryItems.map((item) => {
+            const isActive = active === item.panel && !showMore;
+            return (
+              <button
+                key={item.panel}
+                onClick={() => { setActive(item.panel); setShowMore(false); }}
+                aria-label={item.label}
+                aria-current={isActive ? "page" : undefined}
+                className="flex-1 flex flex-col items-center justify-center pt-2.5 pb-1 gap-1 min-h-[52px] transition-all active:scale-95 relative"
+                style={{ color: isActive ? "#E8A020" : "#6B7280" }}
+              >
+                {/* Active top indicator */}
+                {isActive && (
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-[#E8A020]" />
+                )}
+                <item.icon className="w-[22px] h-[22px]" aria-hidden="true" />
+                <span className="text-[11px] font-medium leading-none">{item.label}</span>
+              </button>
+            );
+          })}
+
+          {/* More button */}
           <button
-            key={item.panel}
-            onClick={() => { setActive(item.panel); setShowMore(false); }}
-            aria-label={item.label}
-            aria-current={active === item.panel ? "page" : undefined}
-            className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 min-h-[56px] transition-colors ${
-              active === item.panel && !showMore ? "text-[#E8A020]" : "text-gray-500 hover:text-gray-300"
-            }`}
+            onClick={() => setShowMore(v => !v)}
+            aria-label="More panels"
+            aria-expanded={showMore}
+            className="flex-1 flex flex-col items-center justify-center pt-2.5 pb-1 gap-1 min-h-[52px] transition-all active:scale-95 relative"
+            style={{ color: isMoreActive || showMore ? "#E8A020" : "#6B7280" }}
           >
-            <item.icon className="w-5 h-5" aria-hidden="true" />
-            <span className="text-[10px] font-medium">{item.label}</span>
+            {(isMoreActive || showMore) && (
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-[#E8A020]" />
+            )}
+            <MoreHorizontal className="w-[22px] h-[22px]" aria-hidden="true" />
+            <span className="text-[11px] font-medium leading-none">More</span>
           </button>
-        ))}
-        {/* More button */}
-        <button
-          onClick={() => setShowMore(v => !v)}
-          aria-label="More panels"
-          aria-expanded={showMore}
-          className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 min-h-[56px] transition-colors ${
-            isMoreActive || showMore ? "text-[#E8A020]" : "text-gray-500 hover:text-gray-300"
-          }`}
-        >
-          <MoreHorizontal className="w-5 h-5" aria-hidden="true" />
-          <span className="text-[10px] font-medium">More</span>
-        </button>
+        </div>
       </nav>
     </>
   );
 }
-
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   // Read ?panel= from URL on first render for deep-linking (e.g. /dashboard?panel=invoices)
@@ -2896,7 +2920,11 @@ export default function Dashboard() {
       <main
         id="main-content"
         ref={mainRef}
-        className={`flex-1 min-w-0 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"} pb-32 md:pb-8 overflow-y-auto overflow-x-hidden h-screen`}
+        className={`flex-1 min-w-0 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"} md:pb-8 overflow-y-auto overflow-x-hidden`}
+        style={{
+          height: "100dvh",
+          paddingBottom: "calc(100px + env(safe-area-inset-bottom, 0px))",
+        } as React.CSSProperties}
         tabIndex={-1}
       >
         {/* Header */}
