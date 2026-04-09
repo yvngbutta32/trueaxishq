@@ -2127,6 +2127,32 @@ function SettingsPanel() {
   const [bookingPage, setBookingPage] = useState({ bookingUsername: "", bookingBio: "", bookingServices: ["Coaching Session", "Strategy Call", "Consultation"] });
   const [notifications, setNotifications] = useState({ notifyNewBooking: true, notifyInvoicePaid: true, notifyNewLead: true });
   const [newService, setNewService] = useState("");
+  const [showPresetServices, setShowPresetServices] = useState(false);
+  const PRESET_SERVICES = [
+    // Coaching & Consulting
+    "Life Coaching", "Business Coaching", "Executive Coaching", "Career Coaching",
+    "Health & Wellness Coaching", "Relationship Coaching", "Mindset Coaching",
+    "Business Consulting", "Strategy Consulting", "Financial Consulting",
+    "Marketing Consulting", "HR Consulting", "Operations Consulting",
+    // Creative & Design
+    "Graphic Design", "Logo Design", "Brand Identity", "UI/UX Design",
+    "Web Design", "Social Media Design", "Video Editing", "Photography",
+    "Videography", "Content Creation", "Copywriting", "Ghostwriting",
+    // Tech & Development
+    "Web Development", "Mobile App Development", "Software Development",
+    "WordPress Development", "Shopify Development", "SEO Services",
+    "Social Media Management", "Email Marketing", "Paid Ads Management",
+    // Education & Tutoring
+    "Tutoring", "Math Tutoring", "English Tutoring", "SAT/ACT Prep",
+    "Language Lessons", "Music Lessons", "Fitness Training", "Yoga Instruction",
+    // Professional Services
+    "Legal Advice", "Tax Preparation", "Bookkeeping", "Accounting",
+    "Real Estate Consulting", "Insurance Consulting", "Therapy / Counseling",
+    "Nutrition Consulting", "Personal Styling", "Interior Design",
+    // General
+    "Strategy Call", "Discovery Call", "Consultation", "Workshop",
+    "Group Session", "VIP Day", "Done-For-You Service", "Other",
+  ];
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -2316,12 +2342,37 @@ function SettingsPanel() {
               </div>
             ))}
           </div>
-          <div className="flex gap-2">
-            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Add a service..." className="form-input-light" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }} />
+          <div className="flex gap-2 mb-2">
+            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Type a custom service..." className="form-input-light" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }} />
             <Button size="sm" variant="outline" onClick={() => { if (newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }}>
               <Plus className="w-4 h-4" />
             </Button>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowPresetServices(p => !p)}
+            className="text-xs text-[#E8A020] hover:text-[#d4901c] font-semibold flex items-center gap-1 mb-2 transition-colors"
+          >
+            <Zap className="w-3 h-3" />
+            {showPresetServices ? "Hide" : "Browse"} 50+ preset services
+          </button>
+          {showPresetServices && (
+            <div className="flex flex-wrap gap-1.5 p-3 bg-gray-50 rounded-xl border border-gray-100 max-h-48 overflow-y-auto">
+              {PRESET_SERVICES.filter(s => !bookingPage.bookingServices.includes(s)).map(s => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, s] }))}
+                  className="text-xs bg-white border border-gray-200 hover:border-[#E8A020] hover:text-[#E8A020] text-gray-600 rounded-full px-2.5 py-1 transition-colors"
+                >
+                  + {s}
+                </button>
+              ))}
+              {PRESET_SERVICES.filter(s => !bookingPage.bookingServices.includes(s)).length === 0 && (
+                <p className="text-xs text-gray-400">All preset services added!</p>
+              )}
+            </div>
+          )}
         </div>
         <Button className="gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => updateBookingPage.mutate(bookingPage)} disabled={updateBookingPage.isPending}>
           {updateBookingPage.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Booking Page</>}

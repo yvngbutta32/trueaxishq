@@ -8,11 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const SERVICES = [
-  "Life Coaching", "Business Consulting", "Freelance Design",
-  "Tutoring", "Therapy / Counseling", "Web Development",
-  "Photography", "Marketing", "Legal Advice", "Other",
-];
+// Services are loaded dynamically from the booking page owner's configuration
 
 const TIME_SLOTS = [
   "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
@@ -265,7 +261,10 @@ export default function BookingPage() {
                     aria-required="true"
                   >
                     <option value="">Select a service…</option>
-                    {SERVICES.map(s => <option key={s} value={s}>{s}</option>)}
+                    {(host.bookingServices && host.bookingServices.length > 0
+                      ? host.bookingServices
+                      : ["Consultation", "Strategy Call", "General Session"]
+                    ).map((s: string) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
               </div>

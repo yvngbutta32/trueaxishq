@@ -600,3 +600,7 @@
 - [x] Fix: exclude auth.me from strict auth rate limit (it's a read-only session check, not a login attempt)
 - [x] Raise limits: general 300→600/min, auth 30→100/min, AI 60→120/min
 - [x] 0 TypeScript errors, 29/29 tests passing after fix
+
+## Booking Page Services Fix
+- [ ] Fix booking page "Needed Services" to only show services configured by the booking page owner
+- [ ] Expand the default services list in booking setup to a comprehensive professional list
