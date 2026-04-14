@@ -8,7 +8,7 @@ import {
   Megaphone, CheckCircle, XCircle, Clock, Mail, Download,
   Settings, Activity, Trash2, Edit2, Save, X, ToggleLeft,
   ToggleRight, Globe, Phone, Twitter, Linkedin, Instagram,
-  Youtube, Zap, Database, Server, Lock, Unlock, Eye, Key, Plus, Copy, Check
+  Youtube, Zap, Database, Server, Lock, Unlock, Eye, Key, Plus, Copy, Check, KeyRound, EyeOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
@@ -110,6 +110,13 @@ export default function Admin() {
   const [securityFilter, setSecurityFilter] = useState<"all" | "low" | "medium" | "high" | "critical">("all");
   const [showResolvedEvents, setShowResolvedEvents] = useState(false);
 
+  // Change password state
+  const [cpCurrent, setCpCurrent] = useState("");
+  const [cpNew, setCpNew] = useState("");
+  const [cpConfirm, setCpConfirm] = useState("");
+  const [cpShowCurrent, setCpShowCurrent] = useState(false);
+  const [cpShowNew, setCpShowNew] = useState(false);
+
   const securityEventsQuery = trpc.security.events.useQuery(
     { limit: 100, severity: securityFilter, resolved: showResolvedEvents ? undefined : false },
     { enabled: activeTab === "security", refetchInterval: 30_000 }
@@ -207,6 +214,22 @@ export default function Admin() {
     },
     onError: (e) => toast.error(e.message),
   });
+
+  const changePasswordMutation = trpc.auth.changePassword.useMutation({
+    onSuccess: () => {
+      toast.success("Password changed successfully. You will be logged out.");
+      setCpCurrent(""); setCpNew(""); setCpConfirm("");
+      setTimeout(() => { window.location.href = "/admin-login"; }, 1500);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleChangePassword = () => {
+    if (!cpCurrent || !cpNew || !cpConfirm) return toast.error("All password fields are required.");
+    if (cpNew.length < 8) return toast.error("New password must be at least 8 characters.");
+    if (cpNew !== cpConfirm) return toast.error("New passwords do not match.");
+    changePasswordMutation.mutate({ currentPassword: cpCurrent, newPassword: cpNew });
+  };
 
   const updateField = (key: string, value: any) => {
     setSettingsForm((prev: any) => ({ ...prev, [key]: value }));
@@ -776,6 +799,84 @@ export default function Admin() {
                   <div>
                     <label className="form-label">Maintenance Message</label>
                     <input type="text" value={settingsForm.maintenanceMessage ?? ""} onChange={e => updateField("maintenanceMessage", e.target.value)} className="form-input-light" placeholder="We're performing scheduled maintenance. Back in 30 minutes!" maxLength={512} />
+                  </div>
+                </div>
+
+                {/* Change Admin Password */}
+                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                  <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
+                    <KeyRound className="w-4 h-4 text-[#E8A020]" />
+                    Change Admin Password
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="form-label">Current Password</label>
+                      <div className="relative">
+                        <input
+                          type={cpShowCurrent ? "text" : "password"}
+                          value={cpCurrent}
+                          onChange={e => setCpCurrent(e.target.value)}
+                          className="form-input-light pr-10"
+                          placeholder="Current password"
+                          autoComplete="current-password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setCpShowCurrent(v => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          aria-label={cpShowCurrent ? "Hide password" : "Show password"}
+                        >
+                          {cpShowCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="form-label">New Password</label>
+                      <div className="relative">
+                        <input
+                          type={cpShowNew ? "text" : "password"}
+                          value={cpNew}
+                          onChange={e => setCpNew(e.target.value)}
+                          className="form-input-light pr-10"
+                          placeholder="Min. 8 characters"
+                          autoComplete="new-password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setCpShowNew(v => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          aria-label={cpShowNew ? "Hide password" : "Show password"}
+                        >
+                          {cpShowNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="form-label">Confirm New Password</label>
+                      <div className="relative">
+                        <input
+                          type={cpShowNew ? "text" : "password"}
+                          value={cpConfirm}
+                          onChange={e => setCpConfirm(e.target.value)}
+                          className="form-input-light"
+                          placeholder="Repeat new password"
+                          autoComplete="new-password"
+                          onKeyDown={e => e.key === "Enter" && handleChangePassword()}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-center gap-3">
+                    <Button
+                      onClick={handleChangePassword}
+                      disabled={changePasswordMutation.isPending || !cpCurrent || !cpNew || !cpConfirm}
+                      className="gradient-amber text-white border-0 gap-2"
+                    >
+                      {changePasswordMutation.isPending
+                        ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Updating…</>
+                        : <><KeyRound className="w-4 h-4" />Update Password</>}
+                    </Button>
+                    <p className="text-xs text-gray-500">You will be redirected to log in again after changing your password.</p>
                   </div>
                 </div>
 

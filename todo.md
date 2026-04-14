@@ -949,3 +949,8 @@
 - [x] Fixed adminLogin procedure with same dual check + bootstrap auto-promote
 - [x] Seeded aaron.anderson62901@gmail.com with role=admin and hashed password in DB
 - [x] Verified: id=1, role=admin, loginMethod=email, passwordHash present (60 chars bcrypt)
+
+## Security Improvements (Apr 14, 2026)
+- [x] Delete scripts/seed-admin.mjs (plaintext password removed from codebase)
+- [x] Enforce invite-only registration (already fully implemented — server validates invite code, UI has required invite code field)
+- [x] Add Change Password form in Admin panel Settings tab (current + new + confirm fields, show/hide toggles, redirects to /admin-login after success)
