@@ -194,10 +194,10 @@
     /* Remove tap highlight flash on iOS */
     -webkit-tap-highlight-color: transparent;
   }
-  /* Restore smaller font on desktop where zoom is not an issue */
+  /* Keep 16px minimum everywhere to prevent iOS Safari zoom on focus */
   @media (min-width: 768px) {
     input, textarea, select {
-      font-size: 0.9375rem;
+      font-size: 1rem; /* Keep at 1rem — prevents iOS zoom on all devices */
     }
   }
 

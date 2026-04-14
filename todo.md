@@ -772,3 +772,9 @@
 
 ## AI Widget Bubble Logo (Apr 9, 2026)
 - [x] PWA apple-touch-icon and manifest already use TrueAxis logo — confirmed correct, no change needed
+
+## Precision Layout Fixes (Apr 14, 2026)
+- [x] Analytics Client Breakdown pie chart — fixed hardcoded width, now uses responsive container with fixed h-36 wrapper
+- [x] Scheduling modal date/time grid — simplified to grid-cols-2 gap-3 (no xs: breakpoint needed)
+- [x] Pie chart legend — added flex-1 min-w-0 and truncate to prevent overflow on narrow screens
+- [x] Pie chart container — added mx-auto sm:mx-0 for centered layout on mobile

@@ -117,7 +117,7 @@ export default function Login() {
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 page-bottom lg:px-16">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 lg:px-16 page-bottom">
         {/* Mobile logo */}
         <button
           onClick={() => navigate("/")}

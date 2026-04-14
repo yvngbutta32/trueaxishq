@@ -53,94 +53,101 @@ function nextDueDate(
 // ─── Job: Generate recurring invoices ────────────────────────────────────────
 async function runRecurringInvoices() {
   for (let attempt = 1; attempt <= 2; attempt++) {
-  try {
-    const db = await getDb();
-    if (!db) return;
+    try {
+      const db = await getDb();
+      if (!db) return;
 
-    const now = new Date();
-    // Find all active recurring invoices that are due
-    const due = await db
-      .select()
-      .from(recurringInvoices)
-      .where(
-        and(
-          eq(recurringInvoices.active, true),
-          lte(recurringInvoices.nextDueAt, now)
-        )
-      );
+      const now = new Date();
+      // Find all active recurring invoices that are due
+      // nextDueAt is a timestamp column — compare with JS Date directly via Drizzle lte
+      const due = await db
+        .select()
+        .from(recurringInvoices)
+        .where(
+          and(
+            eq(recurringInvoices.active, true),
+            lte(recurringInvoices.nextDueAt, now)
+          )
+        );
 
-    for (const rec of due) {
-      try {
-        // Create the invoice
-        const invoiceNumber = generateInvoiceNumber();
-        const dueAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-        const dueDateStr = dueAt.toISOString().split('T')[0]; // YYYY-MM-DD
-        const [result] = await db.insert(invoices).values({
-          userId: rec.userId,
-          clientId: rec.clientId ?? null,
-          invoiceNumber,
-          clientName: rec.clientName,
-          clientEmail: rec.clientEmail ?? null,
-          service: rec.description ?? "Recurring Service",
-          amount: rec.amount,
-          status: "sent",
-          dueDate: dueDateStr,
-          notes: `Auto-generated recurring invoice (${rec.frequency})`,
-        });
-        const invoiceId = (result as any).insertId;
-
-        // Advance nextDueAt
-        const newNextDue = nextDueDate(rec.nextDueAt, rec.frequency);
-        await db
-          .update(recurringInvoices)
-          .set({ nextDueAt: newNextDue, lastInvoiceId: invoiceId })
-          .where(eq(recurringInvoices.id, rec.id));
-
-        // Create in-app notification for the user
-        await db.insert(notifications).values({
-          userId: rec.userId,
-          title: "Recurring Invoice Generated",
-          body: `Invoice ${invoiceNumber} for ${rec.clientName} ($${rec.amount}) has been automatically created and sent.`,
-          type: "success",
-          link: "/dashboard",
-        });
-
-        // Send email reminder to client if email available
-        if (rec.clientEmail) {
-          await sendEmail({
-            to: rec.clientEmail,
-            subject: `Invoice ${invoiceNumber} from TrueAxis HQ`,
-            html: invoiceReminderEmail({
-              clientName: rec.clientName,
-              invoiceNumber,
-              amount: rec.amount,
-              dueDate: dueAt.toLocaleDateString(),
-            }),
+      for (const rec of due) {
+        try {
+          // Create the invoice
+          const invoiceNumber = generateInvoiceNumber();
+          const dueAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+          const dueDateStr = dueAt.toISOString().split("T")[0]; // YYYY-MM-DD
+          const [result] = await db.insert(invoices).values({
+            userId: rec.userId,
+            clientId: rec.clientId ?? null,
+            invoiceNumber,
+            clientName: rec.clientName,
+            clientEmail: rec.clientEmail ?? null,
+            service: rec.description ?? "Recurring Service",
+            amount: rec.amount,
+            status: "sent",
+            dueDate: dueDateStr,
+            notes: `Auto-generated recurring invoice (${rec.frequency})`,
           });
-        }
+          const invoiceId = (result as any).insertId;
 
-        console.log(
-          `[Jobs] Generated recurring invoice ${invoiceNumber} for user ${rec.userId}`
-        );
-      } catch (err) {
-        console.error(
-          `[Jobs] Failed to generate recurring invoice ${rec.id}:`,
-          err
-        );
+          // Advance nextDueAt
+          const newNextDue = nextDueDate(rec.nextDueAt, rec.frequency);
+          await db
+            .update(recurringInvoices)
+            .set({ nextDueAt: newNextDue, lastInvoiceId: invoiceId })
+            .where(eq(recurringInvoices.id, rec.id));
+
+          // Create in-app notification for the user
+          await db.insert(notifications).values({
+            userId: rec.userId,
+            title: "Recurring Invoice Generated",
+            body: `Invoice ${invoiceNumber} for ${rec.clientName} ($${rec.amount}) has been automatically created and sent.`,
+            type: "success",
+            link: "/dashboard",
+          });
+
+          // Send email reminder to client if email available
+          if (rec.clientEmail) {
+            await sendEmail({
+              to: rec.clientEmail,
+              subject: `Invoice ${invoiceNumber} from TrueAxis HQ`,
+              html: invoiceReminderEmail({
+                clientName: rec.clientName,
+                invoiceNumber,
+                amount: rec.amount,
+                dueDate: dueAt.toLocaleDateString(),
+              }),
+            });
+          }
+
+          console.log(
+            `[Jobs] Generated recurring invoice ${invoiceNumber} for user ${rec.userId}`
+          );
+        } catch (err) {
+          console.error(
+            `[Jobs] Failed to generate recurring invoice ${rec.id}:`,
+            err
+          );
+        }
+      }
+      return; // success
+    } catch (err: any) {
+      const isTransient =
+        err?.code === "ECONNRESET" ||
+        err?.code === "ETIMEDOUT" ||
+        err?.code === "ECONNREFUSED";
+      console.error(
+        `[Jobs] runRecurringInvoices error (attempt ${attempt}/2):`,
+        { code: err?.code, message: err?.message }
+      );
+      if (isTransient && attempt < 2) {
+        resetDbConnection();
+        await new Promise((r) => setTimeout(r, 500));
+      } else {
+        return;
       }
     }
-    return; // success
-  } catch (err: any) {
-    const isTransient = err?.code === 'ECONNRESET' || err?.code === 'ETIMEDOUT' || err?.code === 'ECONNREFUSED';
-    console.error(`[Jobs] runRecurringInvoices error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
-    if (isTransient && attempt < 2) {
-      resetDbConnection();
-      await new Promise(r => setTimeout(r, 500));
-    } else {
-      return;
-    }
   }
-  } // end retry loop
 }
 
 // ─── Job: Auto-detect overdue invoices ───────────────────────────────────────
@@ -149,30 +156,28 @@ async function runOverdueDetection() {
     try {
       const db = await getDb();
       if (!db) return;
-      const now = new Date();
-      // Mark sent invoices past their due date as overdue
-      // dueDate is stored as 'YYYY-MM-DD' string
-      const todayStr = now.toISOString().split('T')[0];
-      const result = await db
-        .update(invoices)
-        .set({ status: "overdue" })
-        .where(
-          and(
-            eq(invoices.status, "sent"),
-            sql`${invoices.dueDate} IS NOT NULL AND ${invoices.dueDate} < ${todayStr}`
-          )
-        );
-      const affected = (result as any)[0]?.affectedRows ?? 0;
-      if (affected > 0) {
-        console.log(`[Jobs] Marked ${affected} invoice(s) as overdue`);
-      }
+
+      // dueDate is stored as 'YYYY-MM-DD' string — use raw SQL for string comparison
+      // This is the safest approach for MySQL varchar date fields
+      const todayStr = new Date().toISOString().split("T")[0];
+      await db.execute(
+        sql`UPDATE invoices SET status = 'overdue' WHERE status = 'sent' AND dueDate IS NOT NULL AND dueDate != '' AND dueDate < ${todayStr}`
+      );
+
+      console.log(`[Jobs] Overdue detection complete for ${todayStr}`);
       return; // success
     } catch (err: any) {
-      const isTransient = err?.code === 'ECONNRESET' || err?.code === 'ETIMEDOUT' || err?.code === 'ECONNREFUSED';
-      console.error(`[Jobs] runOverdueDetection error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
+      const isTransient =
+        err?.code === "ECONNRESET" ||
+        err?.code === "ETIMEDOUT" ||
+        err?.code === "ECONNREFUSED";
+      console.error(
+        `[Jobs] runOverdueDetection error (attempt ${attempt}/2):`,
+        { code: err?.code, message: err?.message }
+      );
       if (isTransient && attempt < 2) {
         resetDbConnection();
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise((r) => setTimeout(r, 500));
       } else {
         return;
       }
@@ -183,62 +188,71 @@ async function runOverdueDetection() {
 // ─── Job: Notify users of draft follow-ups older than 7 days ─────────────────
 async function runFollowUpReminders() {
   for (let attempt = 1; attempt <= 2; attempt++) {
-  try {
-    const db = await getDb();
-    if (!db) return;
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    // Find draft follow-ups older than 7 days — remind user to send them
-    const stale = await db
-      .select()
-      .from(followUps)
-      .where(
-        and(
-          eq(followUps.status, "draft"),
-          lte(followUps.createdAt, sevenDaysAgo)
-        )
-      )
-      .limit(20);
+    try {
+      const db = await getDb();
+      if (!db) return;
 
-    for (const fu of stale) {
-      try {
-        // Check if we already notified recently (avoid spam)
-        const existing = await db.select({ id: notifications.id }).from(notifications)
-          .where(
-            and(
-              eq(notifications.userId, fu.userId),
-              sql`${notifications.body} LIKE ${`%${fu.clientName}%`}`,
-              sql`${notifications.createdAt} > ${new Date(Date.now() - 24 * 60 * 60 * 1000)}`
-            )
-          ).limit(1);
-        if (existing.length > 0) continue;
+      // Use raw SQL for timestamp comparison to avoid Drizzle Date serialization issues
+      const sevenDaysAgoStr = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .replace("T", " ")
+        .split(".")[0]; // 'YYYY-MM-DD HH:MM:SS'
 
-        await db.insert(notifications).values({
-          userId: fu.userId,
-          title: `Unsent Follow-up: ${fu.clientName}`,
-          body: `You have a draft follow-up for ${fu.clientName} that hasn't been sent yet. Head to Follow-ups to review it.`,
-          type: "info",
-          link: "/dashboard",
-        });
+      // Find draft follow-ups older than 7 days — remind user to send them
+      const stale = await db.execute(
+        sql`SELECT id, userId, clientName FROM followUps WHERE status = 'draft' AND createdAt <= ${sevenDaysAgoStr} LIMIT 20`
+      ) as any;
 
-        console.log(
-          `[Jobs] Reminded user ${fu.userId} about stale follow-up for ${fu.clientName}`
-        );
-      } catch (err) {
-        console.error(`[Jobs] Failed to notify stale follow-up ${fu.id}:`, err);
+      const rows: Array<{ id: number; userId: number; clientName: string }> =
+        Array.isArray(stale) ? stale[0] ?? [] : stale?.rows ?? [];
+
+      for (const fu of rows) {
+        try {
+          // Check if we already notified recently (avoid spam)
+          const existing = await db.execute(
+            sql`SELECT id FROM notifications WHERE userId = ${fu.userId} AND body LIKE ${`%${fu.clientName}%`} AND createdAt > DATE_SUB(NOW(), INTERVAL 1 DAY) LIMIT 1`
+          ) as any;
+          const existingRows = Array.isArray(existing)
+            ? existing[0] ?? []
+            : existing?.rows ?? [];
+          if (existingRows.length > 0) continue;
+
+          await db.insert(notifications).values({
+            userId: fu.userId,
+            title: `Unsent Follow-up: ${fu.clientName}`,
+            body: `You have a draft follow-up for ${fu.clientName} that hasn't been sent yet. Head to Follow-ups to review it.`,
+            type: "info",
+            link: "/dashboard",
+          });
+
+          console.log(
+            `[Jobs] Reminded user ${fu.userId} about stale follow-up for ${fu.clientName}`
+          );
+        } catch (err) {
+          console.error(
+            `[Jobs] Failed to notify stale follow-up ${fu.id}:`,
+            err
+          );
+        }
+      }
+      return; // success
+    } catch (err: any) {
+      const isTransient =
+        err?.code === "ECONNRESET" ||
+        err?.code === "ETIMEDOUT" ||
+        err?.code === "ECONNREFUSED";
+      console.error(
+        `[Jobs] runFollowUpReminders error (attempt ${attempt}/2):`,
+        { code: err?.code, message: err?.message }
+      );
+      if (isTransient && attempt < 2) {
+        resetDbConnection();
+        await new Promise((r) => setTimeout(r, 500));
+      } else {
+        return;
       }
     }
-    return; // success
-  } catch (err: any) {
-    const isTransient = err?.code === 'ECONNRESET' || err?.code === 'ETIMEDOUT' || err?.code === 'ECONNREFUSED';
-    console.error(`[Jobs] runFollowUpReminders error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
-    if (isTransient && attempt < 2) {
-      resetDbConnection();
-      await new Promise(r => setTimeout(r, 500));
-    } else {
-      return;
-    }
   }
-  } // end retry loop
 }
 
 // ─── Main scheduler ───────────────────────────────────────────────────────────

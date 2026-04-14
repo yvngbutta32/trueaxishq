@@ -145,7 +145,7 @@ export default function Register() {
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 lg:px-16 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 lg:px-16 overflow-y-auto page-bottom">
         {/* Mobile logo */}
         <button
           onClick={() => navigate("/")}

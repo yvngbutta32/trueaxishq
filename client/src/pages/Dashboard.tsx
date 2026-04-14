@@ -364,24 +364,24 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       <OnboardingChecklist onNavigate={(panel) => setActivePanel(panel as ActivePanel)} />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map(s => (
-          <div key={s.label} className="bg-white rounded-2xl p-5 border border-gray-100 card-lift">
-            <div className="flex items-start justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: s.color }}>
-                <s.icon className="w-5 h-5" aria-hidden="true" />
+          <div key={s.label} className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 card-lift">
+            <div className="flex items-start justify-between mb-2 sm:mb-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: s.color }}>
+                <s.icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
               </div>
-              <ArrowUpRight className="w-4 h-4 text-gray-300" aria-hidden="true" />
+              <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-300" aria-hidden="true" />
             </div>
-            <p className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{s.value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
-            <p className="text-xs font-medium mt-1" style={{ color: s.color }}>{s.change}</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-[#1C1C1E] leading-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{s.value}</p>
+            <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 leading-snug">{s.label}</p>
+            <p className="text-[11px] sm:text-xs font-medium mt-1" style={{ color: s.color }}>{s.change}</p>
           </div>
         ))}
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {([
           { icon: Plus, label: "Add Client", color: "#6366F1", panel: "clients" },
           { icon: Calendar, label: "New Booking", color: "#F59E0B", panel: "scheduling" },
@@ -391,12 +391,12 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
           <button
             key={label}
             onClick={() => setActivePanel(panel)}
-            className="bg-white rounded-2xl p-4 border border-gray-100 card-lift flex flex-col items-center gap-2 text-center hover:border-[#E8A020]/30 transition-all group"
+            className="bg-white rounded-2xl p-3 sm:p-4 border border-gray-100 card-lift flex flex-col items-center gap-1.5 sm:gap-2 text-center hover:border-[#E8A020]/30 transition-all group"
           >
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white transition-transform group-hover:scale-110" style={{ backgroundColor: color }}>
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white transition-transform group-hover:scale-110" style={{ backgroundColor: color }}>
               <Icon className="w-4 h-4" aria-hidden="true" />
             </div>
-            <span className="text-xs font-semibold text-[#1C1C1E]">{label}</span>
+            <span className="text-[11px] sm:text-xs font-semibold text-[#1C1C1E] leading-tight">{label}</span>
           </button>
         ))}
       </div>
@@ -770,14 +770,14 @@ function ClientsPanel() {
         ) : clientList.map(c => (
           <div
             key={c.id}
-            className="flex sm:grid sm:grid-cols-4 gap-4 px-5 py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors items-center cursor-pointer"
+            className="flex sm:grid sm:grid-cols-4 gap-3 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors items-center cursor-pointer"
             onClick={() => setSelectedId(c.id)}
             role="button"
             tabIndex={0}
             onKeyDown={e => e.key === "Enter" && setSelectedId(c.id)}
             aria-label={`View ${c.name}'s profile`}
           >
-            <div className="col-span-2 flex items-center gap-3 min-w-0">
+            <div className="col-span-2 flex items-center gap-3 min-w-0 flex-1 sm:flex-none">
               <div className="relative flex-shrink-0">
                 <div className="w-9 h-9 rounded-full gradient-amber flex items-center justify-center text-white text-xs font-bold">
                   {c.avatarInitials || c.name.slice(0, 2).toUpperCase()}
@@ -812,13 +812,13 @@ function ClientsPanel() {
               </div>
             </div>
             <p className="hidden sm:block text-sm text-gray-600 truncate">{c.service || "—"}</p>
-            <div className="flex items-center justify-between ml-auto sm:ml-0">
+            <div className="flex items-center justify-between ml-auto sm:ml-0 flex-shrink-0 gap-2">
               <Badge className={`text-xs border-0 ${c.status === "active" ? "bg-green-50 text-green-600" : c.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-gray-100 text-gray-500"}`}>
                 {c.status}
               </Badge>
               <button
                 onClick={e => { e.stopPropagation(); setClientConfirm({ open: true, title: "Remove Client?", description: `Remove ${c.name} from your clients? This cannot be undone.`, onConfirm: () => deleteClient.mutate({ id: c.id }) }); }}
-                className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors ml-3"
+                className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors"
                 aria-label={`Delete ${c.name}`}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -1070,16 +1070,21 @@ function SchedulingPanel() {
             <p className="text-xs mt-1">Create your first booking or share your booking page with clients.</p>
           </div>
         ) : bookingList.map(b => (
-          <div key={b.id} className="flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-5 py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors">
+          <div key={b.id} className="flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors">
             <div className="sm:col-span-2">
               <p className="text-sm font-semibold text-[#1C1C1E]">{b.clientName}</p>
               <p className="text-xs text-gray-400">{b.service || "General Session"}</p>
+              {/* Mobile-only: show date/time inline */}
+              <div className="flex items-center gap-2 mt-0.5 sm:hidden">
+                <span className="text-xs text-gray-500">{b.date} · {b.time}</span>
+                <span className="text-xs text-gray-400">{b.duration}m</span>
+              </div>
             </div>
-            <div>
+            <div className="hidden sm:block">
               <p className="text-sm font-medium text-[#1C1C1E]">{b.date}</p>
               <p className="text-xs text-gray-400">{b.time}</p>
             </div>
-            <p className="text-sm text-gray-600">{b.duration} min</p>
+            <p className="hidden sm:block text-sm text-gray-600">{b.duration} min</p>
             <div className="flex items-center justify-between">
               <select
                 value={b.status}
@@ -1118,7 +1123,7 @@ function SchedulingPanel() {
           <Field label="Client Name" value={form.clientName} onChange={v => setForm(p => ({ ...p, clientName: v }))} placeholder="Jane Smith" required autoComplete="name" enterKeyHint="next" />
           <Field label="Client Email" value={form.clientEmail} onChange={v => setForm(p => ({ ...p, clientEmail: v }))} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
           <Field label="Service" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="Strategy Session, Coaching Call..." autoComplete="off" enterKeyHint="next" />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <Field label="Date *" value={form.date} onChange={v => setForm(p => ({ ...p, date: v }))} placeholder="2026-03-20" type="date" required />
             <Field label="Time *" value={form.time} onChange={v => setForm(p => ({ ...p, time: v }))} placeholder="14:00" type="time" required />
           </div>
@@ -1279,25 +1284,25 @@ function InvoicesPanel() {
         </div>
       </div>
       {/* Filter tabs */}
-      <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit">
+      <div className="flex gap-1 p-1 bg-gray-100 rounded-xl overflow-x-auto">
         {(["all", "unpaid", "paid", "overdue"] as const).map(f => (
-          <button key={f} onClick={() => setInvFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
+          <button key={f} onClick={() => setInvFilter(f)} className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
             invFilter === f ? "bg-white text-[#1C1C1E] shadow-sm" : "text-gray-500 hover:text-gray-700"
           }`}>{f}</button>
         ))}
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Total Paid", value: formatCurrency(invoiceStats?.totalRevenue || 0), color: "#E8A020", bg: "bg-[#E8A020]/10" },
           { label: "Outstanding", value: formatCurrency(invoiceStats?.outstanding || 0), color: "#6366F1", bg: "bg-indigo-50" },
           { label: "Overdue", value: String(invoiceStats?.overdue || 0), color: "#FF6B6B", bg: "bg-red-50" },
           { label: "Total Invoices", value: String(invoiceStats?.total || 0), color: "#F59E0B", bg: "bg-yellow-50" },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-2xl p-4`}>
-            <p className="text-xs font-semibold mb-1" style={{ color: s.color }}>{s.label}</p>
-            <p className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{s.value}</p>
+          <div key={s.label} className={`${s.bg} rounded-2xl p-3 sm:p-4`}>
+            <p className="text-[11px] sm:text-xs font-semibold mb-1" style={{ color: s.color }}>{s.label}</p>
+            <p className="text-lg sm:text-xl font-extrabold text-[#1C1C1E] leading-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -1366,18 +1371,23 @@ function InvoicesPanel() {
             <p className="text-sm font-medium text-gray-500">No {invFilter !== "all" ? invFilter : ""} invoices</p>
           </div>
         ) : filteredInvoices.map(inv => (
-          <div key={inv.id} className={`flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-5 py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors ${selectedIds.has(inv.id) ? "bg-[#E8A020]/5" : ""}`}>
+          <div key={inv.id} className={`flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors ${selectedIds.has(inv.id) ? "bg-[#E8A020]/5" : ""}`}>
             <div className="sm:col-span-2 flex items-start gap-2">
               <input type="checkbox" className="mt-1 rounded w-3.5 h-3.5 accent-[#E8A020] cursor-pointer flex-shrink-0" checked={selectedIds.has(inv.id)} onChange={() => toggleSelect(inv.id)} />
-              <div>
-                <p className="text-sm font-semibold text-[#1C1C1E]">{inv.clientName}</p>
-                <p className="text-xs text-gray-400">{inv.invoiceNumber} · {inv.service || "General Service"}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#1C1C1E] truncate">{inv.clientName}</p>
+                <p className="text-xs text-gray-400 truncate">{inv.invoiceNumber} · {inv.service || "General Service"}</p>
+                {/* Mobile-only inline amount + due date */}
+                <div className="flex items-center gap-3 mt-1 sm:hidden">
+                  <span className="text-xs font-bold text-[#1C1C1E]">{formatCurrency(inv.amount)}</span>
+                  {inv.dueDate && <span className="text-xs text-gray-400">Due {inv.dueDate}</span>}
+                </div>
               </div>
             </div>
-            <p className="text-sm font-bold text-[#1C1C1E]">{formatCurrency(inv.amount)}</p>
-            <p className="text-sm text-gray-500">{inv.dueDate || "—"}</p>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge className={`text-xs border-0 ${statusColor[inv.status] || "bg-gray-100 text-gray-500"}`}>{inv.status}</Badge>
+            <p className="hidden sm:block text-sm font-bold text-[#1C1C1E]">{formatCurrency(inv.amount)}</p>
+            <p className="hidden sm:block text-sm text-gray-500">{inv.dueDate || "—"}</p>
+            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+              <Badge className={`text-xs border-0 flex-shrink-0 ${statusColor[inv.status] || "bg-gray-100 text-gray-500"}`}>{inv.status}</Badge>
               {inv.status !== "paid" && (
                 <button onClick={() => markPaid.mutate({ id: inv.id })} className="text-xs text-[#E8A020] hover:underline font-medium" disabled={markPaid.isPending}>
                   Mark Paid
@@ -1803,20 +1813,22 @@ function AnalyticsPanel() {
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
           <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Client Breakdown</h3>
           {pieData.length > 0 ? (
-            <div className="flex items-center gap-6">
-              <ResponsiveContainer width={140} height={140}>
-                <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
-                    {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="space-y-2">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+              <div className="w-36 h-36 flex-shrink-0 mx-auto sm:mx-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
+                      {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="space-y-2 flex-1 min-w-0">
                 {pieData.map(d => (
                   <div key={d.name} className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
-                    <span className="text-sm text-gray-600">{d.name}</span>
-                    <span className="text-sm font-bold text-[#1C1C1E] ml-auto pl-4">{d.value}</span>
+                    <span className="text-sm text-gray-600 truncate">{d.name}</span>
+                    <span className="text-sm font-bold text-[#1C1C1E] ml-auto pl-2 flex-shrink-0">{d.value}</span>
                   </div>
                 ))}
               </div>
@@ -2240,7 +2252,7 @@ function SettingsPanel() {
   const bookingUrl = bookingPage.bookingUsername ? `${window.location.origin}/book/${bookingPage.bookingUsername}` : null;
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl w-full">
       <div>
         <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Settings</h2>
         <p className="text-sm text-gray-500">Manage your profile, business info, and preferences</p>
@@ -2331,13 +2343,13 @@ function SettingsPanel() {
         <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Globe className="w-4 h-4 text-[#E8A020]" />Booking Page</h3>
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1.5">Your Booking URL</label>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-400 flex-shrink-0">{window.location.origin}/book/</span>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <span className="text-sm text-gray-400 flex-shrink-0 truncate max-w-full">{window.location.origin}/book/</span>
             <input
               value={bookingPage.bookingUsername}
               onChange={e => setBookingPage(p => ({ ...p, bookingUsername: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
               placeholder="your-name"
-              className="form-input-light"
+              className="form-input-light flex-1 min-w-0"
               autoComplete="username"
               enterKeyHint="done"
               inputMode="url"
@@ -2345,8 +2357,8 @@ function SettingsPanel() {
           </div>
           {bookingUrl && (
             <div className="mt-3 space-y-2">
-              <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
-                <span className="text-xs text-gray-500 flex-1 truncate font-mono">{bookingUrl}</span>
+              <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 min-w-0">
+                <span className="text-xs text-gray-500 flex-1 truncate font-mono min-w-0">{bookingUrl}</span>
                 <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#E8A020] transition-colors flex-shrink-0" title="Preview booking page">
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
@@ -2410,8 +2422,8 @@ function SettingsPanel() {
         <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Calendar className="w-4 h-4 text-[#E8A020]" />Calendar Sync (iCal)</h3>
         <p className="text-xs text-gray-500">Subscribe to your booking calendar in Google Calendar, Apple Calendar, or Outlook using this live iCal feed URL.</p>
         {user?.id ? (
-          <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
-            <span className="text-xs text-gray-500 flex-1 truncate font-mono">{window.location.origin}/api/calendar/{user.id}.ics</span>
+          <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 min-w-0">
+            <span className="text-xs text-gray-500 flex-1 truncate font-mono min-w-0">{window.location.origin}/api/calendar/{user.id}.ics</span>
             <button
               onClick={() => {
                 const url = `${window.location.origin}/api/calendar/${user!.id}.ics`;
