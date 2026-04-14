@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Bot, Send, X, Minimize2, Sparkles, User, GripHorizontal } from "lucide-react";
@@ -36,49 +36,152 @@ const INITIAL_MESSAGE: Message = {
   timestamp: new Date(),
 };
 
+const STORAGE_KEY = "trueaxis-ai-widget-pos";
+const BUBBLE_SIZE = 56;   // w-14 h-14
+const PANEL_W = 380;
+const PANEL_H = 520;
+const EDGE_MARGIN = 16;   // minimum distance from screen edge
+const SNAP_THRESHOLD = 80; // px from edge to trigger snap
+
+// ── Persist helpers ───────────────────────────────────────────────────────────
+function loadPos(): { left: number; top: number } | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (typeof p.left === "number" && typeof p.top === "number") return p;
+  } catch { /* ignore */ }
+  return null;
+}
+
+function savePos(pos: { left: number; top: number }) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(pos)); } catch { /* ignore */ }
+}
+
+// Clamp position so the widget stays fully on-screen
+function clamp(pos: { left: number; top: number }, w: number, h: number) {
+  const maxLeft = Math.max(0, window.innerWidth  - w - EDGE_MARGIN);
+  const maxTop  = Math.max(0, window.innerHeight - h - EDGE_MARGIN);
+  return {
+    left: Math.max(EDGE_MARGIN, Math.min(maxLeft, pos.left)),
+    top:  Math.max(EDGE_MARGIN, Math.min(maxTop,  pos.top)),
+  };
+}
+
+// Snap to nearest horizontal edge if within SNAP_THRESHOLD
+function snapToEdge(pos: { left: number; top: number }, w: number) {
+  const distLeft  = pos.left - EDGE_MARGIN;
+  const distRight = (window.innerWidth - EDGE_MARGIN) - (pos.left + w);
+  if (distLeft < SNAP_THRESHOLD && distLeft <= distRight) {
+    return { ...pos, left: EDGE_MARGIN };
+  }
+  if (distRight < SNAP_THRESHOLD && distRight < distLeft) {
+    return { ...pos, left: window.innerWidth - w - EDGE_MARGIN };
+  }
+  return pos;
+}
+
 // ── Draggable hook ────────────────────────────────────────────────────────────
-// Uses left/top positioning with document-level listeners so pointer capture
-// works reliably on both mouse and touch (via pointer events API).
-function useDraggable(initialRight = 24, initialBottom = 24) {
-  // Convert initial right/bottom to left/top on first render
-  const [pos, setPos] = useState(() => ({
-    left: window.innerWidth - initialRight - 64,   // 64 = approx widget width for bubble
-    top: window.innerHeight - initialBottom - 64,
-  }));
+function useDraggable(expanded: boolean) {
+  const size = expanded ? { w: PANEL_W, h: PANEL_H } : { w: BUBBLE_SIZE, h: BUBBLE_SIZE };
+
+  const getDefaultPos = () => clamp(
+    { left: window.innerWidth - BUBBLE_SIZE - 24, top: window.innerHeight - BUBBLE_SIZE - 24 },
+    size.w, size.h
+  );
+
+  const [pos, setPos] = useState<{ left: number; top: number }>(() => {
+    const saved = loadPos();
+    if (saved) return clamp(saved, size.w, size.h);
+    return getDefaultPos();
+  });
+
+  // Re-clamp whenever expanded state or viewport changes
+  useEffect(() => {
+    setPos(prev => {
+      const clamped = clamp(prev, size.w, size.h);
+      savePos(clamped);
+      return clamped;
+    });
+  }, [expanded, size.w, size.h]);
+
+  // Re-clamp on window resize
+  useEffect(() => {
+    const onResize = () => {
+      setPos(prev => {
+        const clamped = clamp(prev, size.w, size.h);
+        savePos(clamped);
+        return clamped;
+      });
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [size.w, size.h]);
 
   const isDragging = useRef(false);
-  const startPointer = useRef({ x: 0, y: 0 });
-  const startPos = useRef({ left: 0, top: 0 });
+  const didMove    = useRef(false);
+  const startPtr   = useRef({ x: 0, y: 0 });
+  const startPos   = useRef({ left: 0, top: 0 });
   const elementRef = useRef<HTMLDivElement>(null);
 
-  const onDragStart = (e: React.PointerEvent<HTMLElement>) => {
-    // Don't start drag when clicking interactive elements
+  const onPointerDown = useCallback((e: React.PointerEvent<HTMLElement>) => {
+    // Only drag on primary button / single touch
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    // Don't start drag on interactive children
     const target = e.target as HTMLElement;
     if (target.closest("button, textarea, input, a, select")) return;
 
     e.preventDefault();
     isDragging.current = true;
-    startPointer.current = { x: e.clientX, y: e.clientY };
-    startPos.current = { left: pos.left, top: pos.top };
+    didMove.current    = false;
+    startPtr.current   = { x: e.clientX, y: e.clientY };
+    startPos.current   = { ...pos };
 
     const el = elementRef.current;
     if (el) el.setPointerCapture(e.pointerId);
-  };
+  }, [pos]);
 
-  const onDragMove = (e: React.PointerEvent<HTMLElement>) => {
+  const onPointerMove = useCallback((e: React.PointerEvent<HTMLElement>) => {
     if (!isDragging.current) return;
-    const dx = e.clientX - startPointer.current.x;
-    const dy = e.clientY - startPointer.current.y;
-    const newLeft = Math.max(0, Math.min(window.innerWidth - 64, startPos.current.left + dx));
-    const newTop = Math.max(0, Math.min(window.innerHeight - 64, startPos.current.top + dy));
-    setPos({ left: newLeft, top: newTop });
-  };
+    const dx = e.clientX - startPtr.current.x;
+    const dy = e.clientY - startPtr.current.y;
 
-  const onDragEnd = () => {
+    // Only start moving after 4px threshold (prevents accidental drags on click)
+    if (!didMove.current && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+    didMove.current = true;
+
+    const newPos = clamp(
+      { left: startPos.current.left + dx, top: startPos.current.top + dy },
+      size.w, size.h
+    );
+    setPos(newPos);
+  }, [size.w, size.h]);
+
+  const onPointerUp = useCallback((e: React.PointerEvent<HTMLElement>) => {
+    if (!isDragging.current) return;
     isDragging.current = false;
-  };
 
-  return { pos, setPos, elementRef, onDragStart, onDragMove, onDragEnd };
+    if (didMove.current) {
+      // Snap to nearest edge and persist
+      setPos(prev => {
+        const snapped = snapToEdge(clamp(prev, size.w, size.h), size.w);
+        savePos(snapped);
+        return snapped;
+      });
+    }
+  }, [size.w, size.h]);
+
+  const onPointerCancel = useCallback(() => {
+    isDragging.current = false;
+  }, []);
+
+  return {
+    pos,
+    setPos,
+    elementRef,
+    didMove,
+    dragProps: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel },
+  };
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -89,16 +192,16 @@ export default function AIAssistant({ visible, onClose, context }: AIAssistantPr
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const { pos, setPos, elementRef, onDragStart, onDragMove, onDragEnd } = useDraggable(24, 24);
+  const { pos, setPos, elementRef, didMove, dragProps } = useDraggable(expanded);
 
-  // When expanding, adjust position so the panel doesn't go off-screen
+  // When expanding, adjust position so the full panel fits on screen
   const handleExpand = () => {
     setExpanded(true);
-    // Ensure the 380×520 panel fits on screen
-    setPos(prev => ({
-      left: Math.min(prev.left, window.innerWidth - 388),
-      top: Math.min(prev.top, window.innerHeight - 528),
-    }));
+    setPos(prev => {
+      const clamped = clamp(prev, PANEL_W, PANEL_H);
+      savePos(clamped);
+      return clamped;
+    });
   };
 
   const chatMutation = trpc.ai.chat.useMutation({
@@ -157,14 +260,6 @@ export default function AIAssistant({ visible, onClose, context }: AIAssistantPr
 
   const unreadCount = messages.filter((m) => m.role === "assistant").length - 1;
 
-  // ── Shared drag props ──────────────────────────────────────────────────────
-  const dragProps = {
-    onPointerDown: onDragStart,
-    onPointerMove: onDragMove,
-    onPointerUp: onDragEnd,
-    onPointerCancel: onDragEnd,
-  };
-
   // ── Collapsed bubble ───────────────────────────────────────────────────────
   if (!expanded) {
     return (
@@ -178,16 +273,18 @@ export default function AIAssistant({ visible, onClose, context }: AIAssistantPr
           touchAction: "none",
           userSelect: "none",
           cursor: "grab",
+          willChange: "transform",
         }}
         {...dragProps}
       >
-        {/* Main bubble — click to expand */}
+        {/* Main bubble — click to expand (only if not dragging) */}
         <button
-          onPointerDown={(e) => e.stopPropagation()} // let wrapper handle drag
-          onClick={() => handleExpand()}
+          onClick={() => {
+            if (!didMove.current) handleExpand();
+          }}
           aria-label="Open AI Assistant"
-          className="w-14 h-14 rounded-full gradient-amber text-white shadow-xl hover:opacity-90 transition-opacity flex items-center justify-center focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2"
-          style={{ cursor: "inherit" }}
+          className="w-14 h-14 rounded-full gradient-amber text-white shadow-xl hover:opacity-90 active:scale-95 transition-all flex items-center justify-center focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2 relative"
+          style={{ cursor: "inherit", pointerEvents: "auto" }}
         >
           <Sparkles className="w-6 h-6" aria-hidden="true" />
           {unreadCount > 0 && (
@@ -199,10 +296,10 @@ export default function AIAssistant({ visible, onClose, context }: AIAssistantPr
 
         {/* Dismiss X — small badge above bubble */}
         <button
-          onPointerDown={(e) => e.stopPropagation()}
           onClick={onClose}
           aria-label="Dismiss AI Assistant"
           className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gray-700 text-white flex items-center justify-center hover:bg-gray-900 transition-colors shadow"
+          style={{ pointerEvents: "auto" }}
         >
           <X className="w-3 h-3" />
         </button>
@@ -222,10 +319,11 @@ export default function AIAssistant({ visible, onClose, context }: AIAssistantPr
         left: pos.left,
         top: pos.top,
         zIndex: 9999,
-        width: Math.min(380, window.innerWidth - 16),
-        height: 520,
+        width: Math.min(PANEL_W, window.innerWidth - EDGE_MARGIN * 2),
+        height: PANEL_H,
         touchAction: "none",
         userSelect: "none",
+        willChange: "transform",
       }}
       className="bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden"
     >
@@ -276,6 +374,7 @@ export default function AIAssistant({ visible, onClose, context }: AIAssistantPr
         role="log"
         aria-live="polite"
         style={{ touchAction: "pan-y" }}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-2.5 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
@@ -321,7 +420,10 @@ export default function AIAssistant({ visible, onClose, context }: AIAssistantPr
 
       {/* ── Suggested prompts ── */}
       {messages.length === 1 && (
-        <div className="px-4 pb-2 flex gap-2 overflow-x-auto">
+        <div
+          className="px-4 pb-2 flex gap-2 overflow-x-auto"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
           {SUGGESTED_PROMPTS.slice(0, 3).map((p, i) => (
             <button
               key={i}
@@ -337,7 +439,6 @@ export default function AIAssistant({ visible, onClose, context }: AIAssistantPr
       {/* ── Input ── */}
       <div
         className="p-3 border-t border-gray-100 flex gap-2 items-end flex-shrink-0"
-        style={{ touchAction: "none" }}
         onPointerDown={(e) => e.stopPropagation()}
       >
         <label htmlFor="ai-chat-input" className="sr-only">Message AI Assistant</label>

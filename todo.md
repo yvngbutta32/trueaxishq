@@ -851,3 +851,14 @@
 - [x] CSV import: status normalization (churned/lost/archived → inactive, lead/prospect/warm → prospect)
 - [x] CSV import: notes column mapped to client notes field
 - [x] CSV import: company column used as service fallback
+
+## AI Assistant Button Drag Fix (Apr 14, 2026)
+- [x] Fix drag logic — pointer capture via setPointerCapture, 4px movement threshold to distinguish click vs drag
+- [x] Fix floating away — size-aware clamping (BUBBLE_SIZE=56 for collapsed, PANEL_W=380 for expanded)
+- [x] Add edge snapping — snaps to nearest horizontal edge within 80px on drag end
+- [x] Persist position — saved to localStorage (trueaxis-ai-widget-pos), restored on mount
+- [x] Prevent text selection during drag — userSelect: none + touchAction: none on container
+- [x] Handle window resize — re-clamp position on resize event
+- [x] Fix click-on-bubble — removed stopPropagation from button, use didMove ref to distinguish click from drag
+- [x] Fix expanded panel position — clamp to PANEL_W/PANEL_H on expand so panel never goes off-screen
+- [x] willChange: transform on container for GPU-accelerated smooth dragging
