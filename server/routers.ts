@@ -173,15 +173,39 @@ export const appRouter = router({
         }
         try {
           const user = await loginUser({ email: input.email, password: input.password });
-          // Owner check — only the site owner can use this endpoint
-          if (!ENV.ownerOpenId || user.openId !== ENV.ownerOpenId) {
-            recordFailedLogin(input.email, ip, ctx.req);
-            logSecurityEvent({ eventType: "unauthorized_access", severity: "high", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"], details: "Admin login attempt by non-owner" });
-            throw new TRPCError({ code: "FORBIDDEN", message: "Access denied. Owner credentials required." });
+          const db = await requireDb();
+
+          // Determine if this user is the owner:
+          // 1. Their openId matches OWNER_OPEN_ID (OAuth-registered owner), OR
+          // 2. Their role is already 'admin', OR
+          // 3. They are the ONLY admin in the system (bootstrap: first admin account)
+          let isOwner = false;
+          if (ENV.ownerOpenId && user.openId === ENV.ownerOpenId) {
+            isOwner = true;
+          } else if (user.role === "admin") {
+            isOwner = true;
+          } else {
+            // Bootstrap: if no other admin exists, auto-promote this user
+            const adminCount = await db.select({ id: users.id })
+              .from(users)
+              .where(eq(users.role, "admin"))
+              .limit(1);
+            if (adminCount.length === 0) {
+              // No admin exists yet — promote this user and allow access
+              await db.update(users).set({ role: "admin" }).where(eq(users.id, user.id));
+              isOwner = true;
+              console.log(`[AdminLogin] Bootstrap: promoted user ${user.email} to admin (first admin account)`);
+            }
           }
+
+          if (!isOwner) {
+            recordFailedLogin(input.email, ip, ctx.req);
+            logSecurityEvent({ eventType: "unauthorized_access", severity: "high", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"], details: "Admin login attempt by non-admin" });
+            throw new TRPCError({ code: "FORBIDDEN", message: "Access denied. Admin credentials required." });
+          }
+
           clearFailedLogins(input.email);
           logSecurityEvent({ eventType: "login_success", severity: "low", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"], details: "Admin login" });
-          const db = await requireDb();
           await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
           const token = await createSessionToken(user.id, user.email ?? input.email);
           const cookieOptions = getSessionCookieOptions(ctx.req);

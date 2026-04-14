@@ -45,7 +45,9 @@ export const adminProcedure = t.procedure.use(
   }),
 );
 
-// ownerProcedure — restricted to the single platform owner (OWNER_OPEN_ID)
+// ownerProcedure — restricted to the platform owner/admin
+// Allows access if: role === 'admin' (covers email-registered admins)
+// OR openId === OWNER_OPEN_ID (covers OAuth-registered owner)
 export const ownerProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
@@ -53,7 +55,11 @@ export const ownerProcedure = t.procedure.use(
     if (!ctx.user) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
     }
-    if (!ENV.ownerOpenId || ctx.user.openId !== ENV.ownerOpenId) {
+
+    const isAdmin = ctx.user.role === 'admin';
+    const isOwnerById = ENV.ownerOpenId ? ctx.user.openId === ENV.ownerOpenId : false;
+
+    if (!isAdmin && !isOwnerById) {
       throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
 

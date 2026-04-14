@@ -942,3 +942,10 @@
 - [x] Wire /admin-login route in App.tsx
 - [x] Add "Back to site" link on admin login page
 - [x] Auto-redirect to /admin if already logged in as owner on /admin-login
+
+## Admin Login Fix (Apr 14, 2026)
+- [x] Diagnosed root cause: email-registered openId (email:addr) never matched OWNER_OPEN_ID (Manus OAuth format)
+- [x] Fixed ownerProcedure to check role===admin OR openId===OWNER_OPEN_ID (dual check)
+- [x] Fixed adminLogin procedure with same dual check + bootstrap auto-promote
+- [x] Seeded aaron.anderson62901@gmail.com with role=admin and hashed password in DB
+- [x] Verified: id=1, role=admin, loginMethod=email, passwordHash present (60 chars bcrypt)
