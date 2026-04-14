@@ -186,7 +186,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
             <p className="font-bold text-lg" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8" }}>
               Welcome{form.name ? `, ${form.name.split(" ")[0]}` : ""}!
             </p>
-            <p className="text-sm mt-1" style={{ color: "rgba(245,240,232,0.45)" }}>
+            <p className="text-sm mt-1" style={{ color: "rgba(245,240,232,0.80)" }}>
               14-day free trial · No credit card required
             </p>
           </div>
@@ -234,7 +234,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
             <h2 id="ob-title" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8", fontSize: "1.25rem", fontWeight: 700 }}>
               {current.title}
             </h2>
-            <p className="text-sm mt-1" style={{ color: "rgba(245,240,232,0.45)" }}>{current.subtitle}</p>
+            <p className="text-sm mt-1" style={{ color: "rgba(245,240,232,0.80)" }}>{current.subtitle}</p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded" style={{ color: "rgba(245,240,232,0.35)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }} aria-label="Close">
             <X className="w-5 h-5" />
@@ -462,11 +462,11 @@ function Hero({ onCTA }: { onCTA: () => void }) {
               </div>
               <div>
                 <p className="text-xs font-bold" style={{ color: "#F5F0E8" }}>Trusted by 4,200+ freelancers</p>
-                <p className="text-[10px]" style={{ color: "rgba(245,240,232,0.45)" }}>Coaches · Designers · Consultants · Developers</p>
+                <p className="text-[10px]" style={{ color: "rgba(245,240,232,0.75)" }}>Coaches · Designers · Consultants · Developers</p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(245,240,232,0.35)" }}>
+            <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(245,240,232,0.75)" }}>
               {["No credit card required", "Cancel anytime", "30-day money-back guarantee"].map(t => (
                 <span key={t} className="flex items-center gap-1.5">
                   <CheckCircle className="w-3.5 h-3.5" style={{ color: "#E8A020" }} />
@@ -485,7 +485,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C85A3A" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#E8A020" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#7A9A8A" }} />
-                <span className="ml-3 text-xs font-mono" style={{ color: "rgba(245,240,232,0.25)" }}>TrueAxis HQ — Dashboard</span>
+                <span className="ml-3 text-xs font-mono" style={{ color: "rgba(245,240,232,0.55)" }}>TrueAxis HQ — Dashboard</span>
               </div>
 
               <div className="p-5 space-y-4">
@@ -497,7 +497,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                     { label: "Pulse Score", value: "87", change: "Healthy" },
                   ].map(s => (
                     <div key={s.label} className="rounded-lg p-3" style={{ background: "#272727", border: "1px solid rgba(232,160,32,0.08)" }}>
-                      <div className="text-xs mb-1" style={{ color: "rgba(245,240,232,0.35)" }}>{s.label}</div>
+                      <div className="text-xs mb-1" style={{ color: "rgba(245,240,232,0.65)" }}>{s.label}</div>
                       <div className="font-bold text-sm" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8" }}>{s.value}</div>
                       <div className="text-xs mt-0.5" style={{ color: "#E8A020" }}>{s.change}</div>
                     </div>
@@ -507,7 +507,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                 {/* Pulse list */}
                 <div className="rounded-lg overflow-hidden" style={{ border: "1px solid rgba(232,160,32,0.10)" }}>
                   <div className="px-3 py-2 flex items-center justify-between" style={{ background: "#272727", borderBottom: "1px solid rgba(232,160,32,0.08)" }}>
-                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(245,240,232,0.40)" }}>Client Pulse AI</span>
+                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(245,240,232,0.70)" }}>Client Pulse AI</span>
                     <span className="tag tag-amber">Live</span>
                   </div>
                   {[
@@ -592,7 +592,7 @@ function StatsBar() {
               <div className="stat-number text-4xl md:text-5xl mb-2">
                 <AnimatedCounter end={s.value} suffix={s.suffix} />
               </div>
-              <div className="text-xs uppercase tracking-widest font-semibold" style={{ color: "rgba(245,240,232,0.35)" }}>
+              <div className="text-xs uppercase tracking-widest font-semibold" style={{ color: "rgba(245,240,232,0.65)" }}>
                 {s.label}
               </div>
             </div>
@@ -622,7 +622,7 @@ function FeaturesSection() {
           <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
             Stop juggling five different tools.
           </h2>
-          <p className="mt-4 max-w-xl mx-auto" style={{ color: "rgba(245,240,232,0.45)", fontSize: "1.0625rem" }}>
+          <p className="mt-4 max-w-xl mx-auto" style={{ color: "rgba(245,240,232,0.80)", fontSize: "1.0625rem" }}>
             TrueAxis HQ replaces your scheduling app, invoicing software, CRM, and email tool — in one platform.
           </p>
         </div>
@@ -645,7 +645,7 @@ function FeaturesSection() {
                       ? { background: "rgba(232,160,32,0.12)", color: "#E8A020", border: "1px solid rgba(232,160,32,0.25)" }
                       : f.tag === "AI"
                       ? { background: "rgba(90,122,106,0.12)", color: "#7A9A8A", border: "1px solid rgba(90,122,106,0.25)" }
-                      : { background: "rgba(245,240,232,0.05)", color: "rgba(245,240,232,0.35)", border: "1px solid rgba(245,240,232,0.08)" }
+                      : { background: "rgba(245,240,232,0.05)", color: "rgba(245,240,232,0.65)", border: "1px solid rgba(245,240,232,0.15)" }
                   }
                 >
                   {f.tag}
@@ -654,7 +654,7 @@ function FeaturesSection() {
               <h3 className="font-bold mb-2" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8", fontSize: "1.0625rem" }}>
                 {f.title}
               </h3>
-              <p className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.45)" }}>
+              <p className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.80)" }}>
                 {f.description}
               </p>
             </div>
@@ -699,7 +699,7 @@ function HowItWorksSection() {
               <h3 className="font-bold mb-2" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8", fontSize: "1rem" }}>
                 {s.title}
               </h3>
-              <p className="text-sm" style={{ color: "rgba(245,240,232,0.42)", lineHeight: 1.65 }}>
+              <p className="text-sm" style={{ color: "rgba(245,240,232,0.80)", lineHeight: 1.65 }}>
                 {s.description}
               </p>
             </div>
@@ -734,7 +734,7 @@ function ClientPulseShowcase() {
               <br />
               <span style={{ color: "#E8A020" }}>Know before they leave.</span>
             </h2>
-            <p className="mt-4 mb-8" style={{ color: "rgba(245,240,232,0.50)", fontSize: "1.0625rem", lineHeight: 1.7 }}>
+            <p className="mt-4 mb-8" style={{ color: "rgba(245,240,232,0.80)", fontSize: "1.0625rem", lineHeight: 1.7 }}>
               Our proprietary AI engine scores every client relationship 0–100 in real time. It detects churn risk, identifies upsell opportunities, and drafts personalized re-engagement messages — automatically.
             </p>
             <div className="space-y-3">
@@ -747,7 +747,7 @@ function ClientPulseShowcase() {
                   <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.18)" }}>
                     <item.icon className="w-4 h-4" style={{ color: "#E8A020" }} />
                   </div>
-                  <p className="text-sm" style={{ color: "rgba(245,240,232,0.55)", lineHeight: 1.65 }}>{item.text}</p>
+                  <p className="text-sm" style={{ color: "rgba(245,240,232,0.85)", lineHeight: 1.65 }}>{item.text}</p>
                 </div>
               ))}
             </div>
@@ -781,10 +781,10 @@ function ClientPulseShowcase() {
                       <span className="tag" style={{ background: `${c.color}18`, color: c.color, border: `1px solid ${c.color}28`, fontSize: "0.58rem" }}>{c.status}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="text-xs" style={{ color: "rgba(245,240,232,0.30)" }}>{c.role}</span>
-                      <span className="text-xs" style={{ color: "rgba(245,240,232,0.20)" }}>·</span>
-                      <span className="text-xs" style={{ color: "rgba(245,240,232,0.30)" }}>{c.days}d ago</span>
-                      <span className="text-xs" style={{ color: "rgba(245,240,232,0.20)" }}>·</span>
+                      <span className="text-xs" style={{ color: "rgba(245,240,232,0.60)" }}>{c.role}</span>
+                      <span className="text-xs" style={{ color: "rgba(245,240,232,0.55)" }}>·</span>
+                      <span className="text-xs" style={{ color: "rgba(245,240,232,0.60)" }}>{c.days}d ago</span>
+                      <span className="text-xs" style={{ color: "rgba(245,240,232,0.55)" }}>·</span>
                       <span className="text-xs font-semibold" style={{ color: "#E8A020" }}>{c.revenue}</span>
                     </div>
                   </div>
@@ -794,7 +794,7 @@ function ClientPulseShowcase() {
             <div className="px-5 py-3" style={{ background: "rgba(232,160,32,0.03)", borderTop: "1px solid rgba(232,160,32,0.08)" }}>
               <div className="flex items-start gap-2">
                 <Brain className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "#E8A020" }} />
-                <p className="text-xs" style={{ color: "rgba(245,240,232,0.45)" }}>
+                <p className="text-xs" style={{ color: "rgba(245,240,232,0.80)" }}>
                   <strong style={{ color: "#E8A020" }}>AI:</strong> Priya hasn't booked in 47 days. Her revenue is down 40%. Re-engagement email drafted and ready to send.
                 </p>
               </div>
@@ -853,7 +853,7 @@ function TestimonialsSection() {
                   <Star key={j} className="w-4 h-4 fill-current" style={{ color: "#E8A020" }} />
                 ))}
               </div>
-              <blockquote className="text-sm leading-relaxed mb-5" style={{ color: "rgba(245,240,232,0.60)" }}>
+              <blockquote className="text-sm leading-relaxed mb-5" style={{ color: "rgba(245,240,232,0.85)" }}>
                 "{t.quote}"
               </blockquote>
               <div className="flex items-center justify-between">
@@ -861,7 +861,7 @@ function TestimonialsSection() {
                   <img src={t.avatar} alt={t.name} className="w-9 h-9 rounded-full object-cover" style={{ border: "1px solid rgba(232,160,32,0.18)" }} />
                   <div>
                     <div className="text-sm font-semibold" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8" }}>{t.name}</div>
-                    <div className="text-xs" style={{ color: "rgba(245,240,232,0.35)" }}>{t.role}</div>
+                    <div className="text-xs" style={{ color: "rgba(245,240,232,0.70)" }}>{t.role}</div>
                   </div>
                 </div>
                 <span className="tag tag-amber">{t.revenue}</span>
@@ -901,7 +901,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
         <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
           Your business command center is waiting.
         </h2>
-        <p className="mt-4 mb-10" style={{ color: "rgba(245,240,232,0.45)", fontSize: "1.0625rem" }}>
+        <p className="mt-4 mb-10" style={{ color: "rgba(245,240,232,0.80)", fontSize: "1.0625rem" }}>
           Join 4,200+ freelancers who automated their business with TrueAxis HQ. 14-day free trial. No credit card required.
         </p>
 
@@ -927,7 +927,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
           </form>
         )}
 
-        <p className="mt-4 text-xs" style={{ color: "rgba(245,240,232,0.25)" }}>
+        <p className="mt-4 text-xs" style={{ color: "rgba(245,240,232,0.55)" }}>
           No spam. Unsubscribe anytime. We respect your privacy.
         </p>
       </div>
@@ -1029,7 +1029,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
                 className="h-9 w-auto object-contain"
               />
             </div>
-            <p className="text-sm mb-4" style={{ color: "rgba(245,240,232,0.35)", lineHeight: 1.7 }}>
+            <p className="text-sm mb-4" style={{ color: "rgba(245,240,232,0.75)", lineHeight: 1.7 }}>
               The AI-powered business OS for freelancers and solo service professionals.
             </p>
             <div className="flex gap-2">
@@ -1045,7 +1045,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
                   rel="noopener noreferrer"
                   aria-label={`TrueAxis HQ on ${s.label}`}
                   className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold"
-                  style={{ background: "rgba(245,240,232,0.05)", color: "rgba(245,240,232,0.35)", border: "1px solid rgba(245,240,232,0.07)", textDecoration: "none" }}
+                  style={{ background: "rgba(245,240,232,0.08)", color: "rgba(245,240,232,0.70)", border: "1px solid rgba(245,240,232,0.15)", textDecoration: "none" }}
                 >
                   {s.label}
                 </a>
@@ -1056,7 +1056,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
           {/* Link columns */}
           {sections.map(sec => (
             <div key={sec.title}>
-              <h4 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "rgba(245,240,232,0.25)" }}>
+              <h4 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "rgba(245,240,232,0.55)" }}>
                 {sec.title}
               </h4>
               <ul className="space-y-2.5">
@@ -1065,7 +1065,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
                     <button
                       onClick={l.action}
                       className="text-sm animated-underline"
-                      style={{ color: "rgba(245,240,232,0.45)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
+                      style={{ color: "rgba(245,240,232,0.80)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
                     >
                       {l.label}
                     </button>
@@ -1077,7 +1077,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
         </div>
 
         <div className="amber-line mb-6" />
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style={{ color: "rgba(245,240,232,0.22)" }}>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style={{ color: "rgba(245,240,232,0.55)" }}>
           <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
           <p>Built for the independent professional.</p>
         </div>
@@ -1116,7 +1116,7 @@ export default function Home() {
               <circle cx="12" cy="12" r="10" stroke="#E8A020" strokeWidth="2" strokeDasharray="31.4" strokeDashoffset="10" strokeLinecap="round" />
             </svg>
           </div>
-          <p style={{ color: "rgba(245,240,232,0.40)", fontSize: 13, fontFamily: "DM Sans, sans-serif" }}>Loading…</p>
+          <p style={{ color: "rgba(245,240,232,0.70)", fontSize: 13, fontFamily: "DM Sans, sans-serif" }}>Loading…</p>
         </div>
       </div>
     );

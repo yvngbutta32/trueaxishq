@@ -92,7 +92,7 @@ function Modal({ open, onClose, title, children, wide }: {
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <h2 className="font-bold text-[#1C1C1E] text-base" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{title}</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close dialog">
-            <X className="w-4 h-4 text-gray-500" />
+            <X className="w-4 h-4 text-gray-600" />
           </button>
         </div>
         <div className="p-5">{children}</div>
@@ -201,7 +201,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             aria-current={active === item.panel ? "page" : undefined}
             aria-label={item.label}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative ${
-              active === item.panel ? "bg-[#E8A020]/15 text-[#E8A020]" : "text-gray-400 hover:bg-white/5 hover:text-white"
+              active === item.panel ? "bg-[#E8A020]/15 text-[#E8A020]" : "text-gray-600 hover:bg-white/5 hover:text-white"
             }`}
           >
             <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
@@ -219,7 +219,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
         {!collapsed && settings?.subscriptionStatus === "active" && (
           <div className="bg-[#E8A020]/10 border border-[#E8A020]/20 rounded-xl p-3 mb-2">
             <p className="text-xs font-semibold text-[#E8A020] mb-0.5 capitalize">{settings.planId || "Pro"} Plan</p>
-            <p className="text-xs text-gray-400">Active subscription</p>
+            <p className="text-xs text-gray-600">Active subscription</p>
           </div>
         )}
         {!collapsed && (!settings?.subscriptionStatus || settings.subscriptionStatus === "inactive") && (
@@ -230,23 +230,23 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             Upgrade to Pro →
           </button>
         )}
-        <button onClick={toggleTheme} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
+        <button onClick={toggleTheme} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-white/5 hover:text-white transition-all" aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
           {theme === "dark" ? <Sun className="w-4 h-4 flex-shrink-0" /> : <Moon className="w-4 h-4 flex-shrink-0" />}
           {!collapsed && <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>}
         </button>
-        <button onClick={() => navigate("/billing")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label="Billing">
+        <button onClick={() => navigate("/billing")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-white/5 hover:text-white transition-all" aria-label="Billing">
           <CreditCard className="w-4 h-4 flex-shrink-0" />
           {!collapsed && <span>Billing</span>}
         </button>
         {user?.role === "admin" && (
-          <button onClick={() => navigate("/admin")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label="Admin panel">
+          <button onClick={() => navigate("/admin")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-white/5 hover:text-white transition-all" aria-label="Admin panel">
             <Star className="w-4 h-4 flex-shrink-0" />
             {!collapsed && <span>Admin Panel</span>}
           </button>
         )}
         <button
           onClick={() => navigate("/")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-white/5 hover:text-white transition-all"
           aria-label="Go to home page"
           title="Home"
         >
@@ -256,7 +256,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
         {/* Collapse / Expand toggle */}
         <button
           onClick={() => setCollapsed(v => !v)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-white/5 hover:text-white transition-all"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand" : "Collapse"}
         >
@@ -283,10 +283,10 @@ function ChangelogModal() {
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <div>
             <h2 className="font-extrabold text-[#1C1C1E] text-base" style={{ fontFamily: "Space Grotesk, sans-serif" }}>What's New in v{CHANGELOG_VERSION} 🎉</h2>
-            <p className="text-xs text-gray-400 mt-0.5">TrueAxis HQ — Latest Updates</p>
+            <p className="text-xs text-gray-600 mt-0.5">TrueAxis HQ — Latest Updates</p>
           </div>
           <button onClick={dismiss} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close">
-            <X className="w-4 h-4 text-gray-500" />
+            <X className="w-4 h-4 text-gray-600" />
           </button>
         </div>
         <div className="p-5 space-y-4">
@@ -304,7 +304,7 @@ function ChangelogModal() {
               <span className="text-xl flex-shrink-0">{item.emoji}</span>
               <div>
                 <p className="text-sm font-bold text-[#1C1C1E]">{item.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                <p className="text-xs text-gray-600 mt-0.5">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -359,7 +359,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
         <h1 className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
           {getGreeting()}, {userName || "there"} 👋
         </h1>
-        <p className="text-sm text-gray-500 mt-1">Here's what's happening with your business today.</p>
+        <p className="text-sm text-gray-600 mt-1">Here's what's happening with your business today.</p>
       </div>
       <OnboardingChecklist onNavigate={(panel) => setActivePanel(panel as ActivePanel)} />
 
@@ -371,10 +371,10 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: s.color }}>
                 <s.icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
               </div>
-              <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-300" aria-hidden="true" />
+              <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" aria-hidden="true" />
             </div>
             <p className="text-xl sm:text-2xl font-extrabold text-[#1C1C1E] leading-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{s.value}</p>
-            <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 leading-snug">{s.label}</p>
+            <p className="text-[11px] sm:text-xs text-gray-600 mt-0.5 leading-snug">{s.label}</p>
             <p className="text-[11px] sm:text-xs font-medium mt-1" style={{ color: s.color }}>{s.change}</p>
           </div>
         ))}
@@ -422,7 +422,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-48 flex flex-col items-center justify-center text-gray-400">
+            <div className="h-48 flex flex-col items-center justify-center text-gray-600">
               <Activity className="w-8 h-8 mb-2 opacity-40" />
               <p className="text-sm">Revenue data will appear once you create paid invoices.</p>
             </div>
@@ -442,7 +442,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-48 flex flex-col items-center justify-center text-gray-400">
+            <div className="h-48 flex flex-col items-center justify-center text-gray-600">
               <Users className="w-8 h-8 mb-2 opacity-40" />
               <p className="text-sm">Add your first client to see growth trends.</p>
             </div>
@@ -475,19 +475,19 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="text-center p-3 bg-gray-50 rounded-xl">
                 <p className="text-2xl font-extrabold" style={{ fontFamily: "Space Grotesk, sans-serif", color: avgScore !== null ? (avgScore >= 70 ? "#E8A020" : avgScore >= 40 ? "#F59E0B" : "#FF6B6B") : "#9CA3AF" }}>{avgScore ?? "—"}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Avg Health</p>
+                <p className="text-xs text-gray-600 mt-0.5">Avg Health</p>
               </div>
               <div className="text-center p-3 bg-red-50 rounded-xl">
                 <p className="text-2xl font-extrabold text-[#FF6B6B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{churnRisk}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Churn Risk</p>
+                <p className="text-xs text-gray-600 mt-0.5">Churn Risk</p>
               </div>
               <div className="text-center p-3 bg-yellow-50 rounded-xl">
                 <p className="text-2xl font-extrabold text-yellow-600" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{goingSilent}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Going Silent</p>
+                <p className="text-xs text-gray-600 mt-0.5">Going Silent</p>
               </div>
               <div className="text-center p-3 bg-[#E8A020]/10 rounded-xl">
                 <p className="text-2xl font-extrabold text-[#E8A020]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{upsellReady}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Upsell Ready</p>
+                <p className="text-xs text-gray-600 mt-0.5">Upsell Ready</p>
               </div>
             </div>
             {churnRisk > 0 && (
@@ -510,7 +510,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             <span className="text-xs text-[#E8A020] font-medium">{recentClients?.length || 0} total</span>
           </div>
           {!recentClients || recentClients.length === 0 ? (
-            <div className="py-10 text-center text-gray-400">
+            <div className="py-10 text-center text-gray-600">
               <Users className="w-7 h-7 mx-auto mb-2 opacity-40" />
               <p className="text-sm">No clients yet. Add your first client!</p>
             </div>
@@ -521,9 +521,9 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#1C1C1E] truncate">{c.name}</p>
-                <p className="text-xs text-gray-400 truncate">{c.service || "General Client"}</p>
+                <p className="text-xs text-gray-600 truncate">{c.service || "General Client"}</p>
               </div>
-              <Badge className={`text-xs border-0 ${c.status === "active" ? "bg-green-50 text-green-600" : c.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-gray-100 text-gray-500"}`}>
+              <Badge className={`text-xs border-0 ${c.status === "active" ? "bg-green-50 text-green-600" : c.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-gray-100 text-gray-600"}`}>
                 {c.status}
               </Badge>
             </div>
@@ -536,7 +536,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             <span className="text-xs text-[#E8A020] font-medium">{recentBookings?.length || 0} scheduled</span>
           </div>
           {!recentBookings || recentBookings.length === 0 ? (
-            <div className="py-10 text-center text-gray-400">
+            <div className="py-10 text-center text-gray-600">
               <Calendar className="w-7 h-7 mx-auto mb-2 opacity-40" />
               <p className="text-sm">No upcoming sessions. Create a booking!</p>
             </div>
@@ -547,9 +547,9 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#1C1C1E] truncate">{b.clientName}</p>
-                <p className="text-xs text-gray-400">{b.date} at {b.time}</p>
+                <p className="text-xs text-gray-600">{b.date} at {b.time}</p>
               </div>
-              <span className="text-xs text-gray-400">{b.duration}m</span>
+              <span className="text-xs text-gray-600">{b.duration}m</span>
             </div>
           ))}
         </div>
@@ -707,7 +707,7 @@ function ClientsPanel() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Clients</h2>
-          <p className="text-sm text-gray-500">{clientList?.length || 0} clients in your roster</p>
+          <p className="text-sm text-gray-600">{clientList?.length || 0} clients in your roster</p>
         </div>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={exportClientsCSV} title="Export clients as CSV">
@@ -725,7 +725,7 @@ function ClientsPanel() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" aria-hidden="true" />
           <input
             type="search"
             value={search}
@@ -752,7 +752,7 @@ function ClientsPanel() {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="hidden sm:grid grid-cols-4 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        <div className="hidden sm:grid grid-cols-4 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide">
           <span className="col-span-2">Client</span>
           <span>Service</span>
           <span>Status</span>
@@ -762,9 +762,9 @@ function ClientsPanel() {
             {[...Array(4)].map((_, i) => <div key={i} className="px-5 py-4 border-t border-gray-50"><Skeleton className="h-10" /></div>)}
           </div>
         ) : !clientList || clientList.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-16 text-gray-600">
             <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="text-sm font-medium text-gray-500">No clients found</p>
+            <p className="text-sm font-medium text-gray-600">No clients found</p>
             <p className="text-xs mt-1">{search ? "Try adjusting your search." : "Add your first client to get started."}</p>
           </div>
         ) : clientList.map(c => (
@@ -803,22 +803,22 @@ function ClientsPanel() {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-[#1C1C1E] truncate">{c.name}</p>
-                <p className="text-xs text-gray-400 truncate">
+                <p className="text-xs text-gray-600 truncate">
                   {c.email || "No email"}
                   {(c as any).lastActivity && (
-                    <span className="ml-2 text-gray-300">· last seen {new Date((c as any).lastActivity).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                    <span className="ml-2 text-gray-500">· last seen {new Date((c as any).lastActivity).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
                   )}
                 </p>
               </div>
             </div>
             <p className="hidden sm:block text-sm text-gray-600 truncate">{c.service || "—"}</p>
             <div className="flex items-center justify-between ml-auto sm:ml-0 flex-shrink-0 gap-2">
-              <Badge className={`text-xs border-0 ${c.status === "active" ? "bg-green-50 text-green-600" : c.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-gray-100 text-gray-500"}`}>
+              <Badge className={`text-xs border-0 ${c.status === "active" ? "bg-green-50 text-green-600" : c.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-gray-100 text-gray-600"}`}>
                 {c.status}
               </Badge>
               <button
                 onClick={e => { e.stopPropagation(); setClientConfirm({ open: true, title: "Remove Client?", description: `Remove ${c.name} from your clients? This cannot be undone.`, onConfirm: () => deleteClient.mutate({ id: c.id }) }); }}
-                className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
                 aria-label={`Delete ${c.name}`}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -863,8 +863,8 @@ function ClientsPanel() {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-[#1C1C1E]">{selectedClient.name}</h3>
-                <p className="text-sm text-gray-500">{selectedClient.service || "General Client"}</p>
-                <Badge className={`text-xs border-0 mt-1 ${selectedClient.status === "active" ? "bg-green-50 text-green-600" : selectedClient.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-gray-100 text-gray-500"}`}>
+                <p className="text-sm text-gray-600">{selectedClient.service || "General Client"}</p>
+                <Badge className={`text-xs border-0 mt-1 ${selectedClient.status === "active" ? "bg-green-50 text-green-600" : selectedClient.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-gray-100 text-gray-600"}`}>
                   {selectedClient.status}
                 </Badge>
               </div>
@@ -878,8 +878,8 @@ function ClientsPanel() {
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon className="w-3.5 h-3.5 text-gray-400" />
-                    <p className="text-xs text-gray-400">{label}</p>
+                    <Icon className="w-3.5 h-3.5 text-gray-600" />
+                    <p className="text-xs text-gray-600">{label}</p>
                   </div>
                   <p className="text-sm font-semibold text-[#1C1C1E] truncate">{value}</p>
                 </div>
@@ -887,29 +887,29 @@ function ClientsPanel() {
             </div>
             {selectedClient.notes && (
               <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs font-semibold text-gray-500 mb-1">Notes</p>
+                <p className="text-xs font-semibold text-gray-600 mb-1">Notes</p>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedClient.notes}</p>
               </div>
             )}
             {/* Document Storage */}
             <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold text-gray-500">Documents ({clientDocs?.length || 0})</p>
+                <p className="text-xs font-semibold text-gray-600">Documents ({clientDocs?.length || 0})</p>
                 <label className={`text-xs font-semibold cursor-pointer px-3 py-1.5 rounded-lg transition-colors ${docUploading ? 'opacity-50 pointer-events-none' : 'bg-[#E8A020]/10 text-[#E8A020] hover:bg-[#E8A020]/20'}`}>
                   {docUploading ? 'Uploading...' : '+ Upload'}
                   <input type="file" className="sr-only" onChange={handleDocUpload} disabled={docUploading} accept="*/*" />
                 </label>
               </div>
               {!clientDocs || clientDocs.length === 0 ? (
-                <p className="text-xs text-gray-400 text-center py-3">No documents yet. Upload contracts, briefs, or any files.</p>
+                <p className="text-xs text-gray-600 text-center py-3">No documents yet. Upload contracts, briefs, or any files.</p>
               ) : (
                 <div className="space-y-2">
                   {clientDocs.map(doc => (
                     <div key={doc.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-gray-100">
                       <FileText className="w-3.5 h-3.5 text-[#E8A020] flex-shrink-0" />
                       <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs font-medium text-[#1C1C1E] truncate hover:underline">{doc.fileName}</a>
-                      {doc.sizeBytes && <span className="text-[10px] text-gray-400 flex-shrink-0">{(doc.sizeBytes / 1024).toFixed(0)} KB</span>}
-                      <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
+                      {doc.sizeBytes && <span className="text-[10px] text-gray-600 flex-shrink-0">{(doc.sizeBytes / 1024).toFixed(0)} KB</span>}
+                      <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-1 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
                         <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
@@ -977,12 +977,12 @@ function ClientsPanel() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-[#1C1C1E] truncate">{row.name}</p>
-                      <p className="text-gray-400 truncate">{row.email || "No email"}</p>
+                      <p className="text-gray-600 truncate">{row.email || "No email"}</p>
                     </div>
-                    <span className="text-gray-400">{row.service || "—"}</span>
+                    <span className="text-gray-600">{row.service || "—"}</span>
                   </div>
                 ))}
-                {csvPreview.length > 5 && <div className="px-3 py-2 text-xs text-gray-400 border-t border-gray-50">+{csvPreview.length - 5} more...</div>}
+                {csvPreview.length > 5 && <div className="px-3 py-2 text-xs text-gray-600 border-t border-gray-50">+{csvPreview.length - 5} more...</div>}
               </div>
             </div>
           )}
@@ -1039,7 +1039,7 @@ function SchedulingPanel() {
     scheduled: "bg-green-50 text-green-600",
     completed: "bg-blue-50 text-blue-600",
     cancelled: "bg-red-50 text-red-500",
-    no_show: "bg-gray-100 text-gray-500",
+    no_show: "bg-gray-100 text-gray-600",
   };
 
   return (
@@ -1047,7 +1047,7 @@ function SchedulingPanel() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Scheduling</h2>
-          <p className="text-sm text-gray-500">{bookingList?.filter(b => b.status === "scheduled").length || 0} upcoming sessions</p>
+          <p className="text-sm text-gray-600">{bookingList?.filter(b => b.status === "scheduled").length || 0} upcoming sessions</p>
         </div>
         <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
           <Plus className="w-3.5 h-3.5" />New Booking
@@ -1055,7 +1055,7 @@ function SchedulingPanel() {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide">
           <span className="col-span-2">Client / Service</span>
           <span>Date & Time</span>
           <span>Duration</span>
@@ -1064,32 +1064,32 @@ function SchedulingPanel() {
         {isLoading ? (
           <div className="space-y-px">{[...Array(3)].map((_, i) => <div key={i} className="px-5 py-4 border-t border-gray-50"><Skeleton className="h-10" /></div>)}</div>
         ) : !bookingList || bookingList.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-16 text-gray-600">
             <Calendar className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="text-sm font-medium text-gray-500">No bookings yet</p>
+            <p className="text-sm font-medium text-gray-600">No bookings yet</p>
             <p className="text-xs mt-1">Create your first booking or share your booking page with clients.</p>
           </div>
         ) : bookingList.map(b => (
           <div key={b.id} className="flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors">
             <div className="sm:col-span-2">
               <p className="text-sm font-semibold text-[#1C1C1E]">{b.clientName}</p>
-              <p className="text-xs text-gray-400">{b.service || "General Session"}</p>
+              <p className="text-xs text-gray-600">{b.service || "General Session"}</p>
               {/* Mobile-only: show date/time inline */}
               <div className="flex items-center gap-2 mt-0.5 sm:hidden">
-                <span className="text-xs text-gray-500">{b.date} · {b.time}</span>
-                <span className="text-xs text-gray-400">{b.duration}m</span>
+                <span className="text-xs text-gray-600">{b.date} · {b.time}</span>
+                <span className="text-xs text-gray-600">{b.duration}m</span>
               </div>
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-medium text-[#1C1C1E]">{b.date}</p>
-              <p className="text-xs text-gray-400">{b.time}</p>
+              <p className="text-xs text-gray-600">{b.time}</p>
             </div>
             <p className="hidden sm:block text-sm text-gray-600">{b.duration} min</p>
             <div className="flex items-center justify-between">
               <select
                 value={b.status}
                 onChange={e => updateStatus.mutate({ id: b.id, status: e.target.value as any })}
-                className={`text-xs px-2 py-1 rounded-full font-medium border-0 cursor-pointer ${statusColor[b.status] || "bg-gray-100 text-gray-500"}`}
+                className={`text-xs px-2 py-1 rounded-full font-medium border-0 cursor-pointer ${statusColor[b.status] || "bg-gray-100 text-gray-600"}`}
                 aria-label="Update booking status"
               >
                 <option value="scheduled">Scheduled</option>
@@ -1097,7 +1097,7 @@ function SchedulingPanel() {
                 <option value="cancelled">Cancelled</option>
                 <option value="no_show">No Show</option>
               </select>
-              <button onClick={() => setSchedConfirm({ open: true, title: "Remove Booking?", description: "Remove this booking? This cannot be undone.", onConfirm: () => deleteBooking.mutate({ id: b.id }) })} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors ml-2" aria-label="Delete booking">
+              <button onClick={() => setSchedConfirm({ open: true, title: "Remove Booking?", description: "Remove this booking? This cannot be undone.", onConfirm: () => deleteBooking.mutate({ id: b.id }) })} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors ml-2" aria-label="Delete booking">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -1148,7 +1148,7 @@ function SchedulingPanel() {
                 {smartSuggestions.map((s, i) => (
                   <button key={i} onClick={() => { setForm(p => ({ ...p, date: s.date, time: s.time })); setSmartSuggestions([]); toast.success("Time slot applied!"); }} className="w-full text-left px-3 py-2 rounded-lg bg-white border border-amber-100 hover:border-amber-300 transition-colors">
                     <span className="text-xs font-semibold text-[#1C1C1E]">{s.date} at {s.time}</span>
-                    <span className="text-xs text-gray-400 ml-2">{s.reason}</span>
+                    <span className="text-xs text-gray-600 ml-2">{s.reason}</span>
                   </button>
                 ))}
               </div>
@@ -1284,7 +1284,7 @@ function InvoicesPanel() {
   });
 
   const statusColor: Record<string, string> = {
-    draft: "bg-gray-100 text-gray-500",
+    draft: "bg-gray-100 text-gray-600",
     sent: "bg-blue-50 text-blue-600",
     paid: "bg-green-50 text-green-600",
     overdue: "bg-red-50 text-red-500",
@@ -1295,7 +1295,7 @@ function InvoicesPanel() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Invoices</h2>
-          <p className="text-sm text-gray-500">{invoiceList?.length || 0} total invoices</p>
+          <p className="text-sm text-gray-600">{invoiceList?.length || 0} total invoices</p>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" className="gap-1.5 text-gray-600 border-gray-200" onClick={exportInvoicesCSV} title="Export all invoices as CSV">
@@ -1310,7 +1310,7 @@ function InvoicesPanel() {
       <div className="flex gap-1 p-1 bg-gray-100 rounded-xl overflow-x-auto">
         {(["all", "unpaid", "paid", "overdue"] as const).map(f => (
           <button key={f} onClick={() => setInvFilter(f)} className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
-            invFilter === f ? "bg-white text-[#1C1C1E] shadow-sm" : "text-gray-500 hover:text-gray-700"
+            invFilter === f ? "bg-white text-[#1C1C1E] shadow-sm" : "text-gray-600 hover:text-gray-700"
           }`}>{f}</button>
         ))}
       </div>
@@ -1365,13 +1365,13 @@ function InvoicesPanel() {
             className="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
             disabled={bulkPending}
           >Delete</button>
-          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-gray-300 hover:text-white px-2 py-1.5 transition-colors">✕ Clear</button>
+          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-gray-500 hover:text-white px-2 py-1.5 transition-colors">✕ Clear</button>
         </div>
       )}
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide">
           <div className="col-span-2 flex items-center gap-2">
             <input type="checkbox" className="rounded w-3.5 h-3.5 accent-[#E8A020] cursor-pointer" checked={filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length} onChange={toggleSelectAll} title="Select all" />
             <span>Client / Service</span>
@@ -1383,15 +1383,15 @@ function InvoicesPanel() {
         {isLoading ? (
           <div className="space-y-px">{[...Array(3)].map((_, i) => <div key={i} className="px-5 py-4 border-t border-gray-50"><Skeleton className="h-10" /></div>)}</div>
         ) : !invoiceList || invoiceList.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-16 text-gray-600">
             <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="text-sm font-medium text-gray-500">No invoices yet</p>
+            <p className="text-sm font-medium text-gray-600">No invoices yet</p>
             <p className="text-xs mt-1">Create your first invoice to start tracking payments.</p>
           </div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-gray-600">
             <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm font-medium text-gray-500">No {invFilter !== "all" ? invFilter : ""} invoices</p>
+            <p className="text-sm font-medium text-gray-600">No {invFilter !== "all" ? invFilter : ""} invoices</p>
           </div>
         ) : filteredInvoices.map(inv => (
           <div key={inv.id} className={`flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors ${selectedIds.has(inv.id) ? "bg-[#E8A020]/5" : ""}`}>
@@ -1399,18 +1399,18 @@ function InvoicesPanel() {
               <input type="checkbox" className="mt-1 rounded w-3.5 h-3.5 accent-[#E8A020] cursor-pointer flex-shrink-0" checked={selectedIds.has(inv.id)} onChange={() => toggleSelect(inv.id)} />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-[#1C1C1E] truncate">{inv.clientName}</p>
-                <p className="text-xs text-gray-400 truncate">{inv.invoiceNumber} · {inv.service || "General Service"}</p>
+                <p className="text-xs text-gray-600 truncate">{inv.invoiceNumber} · {inv.service || "General Service"}</p>
                 {/* Mobile-only inline amount + due date */}
                 <div className="flex items-center gap-3 mt-1 sm:hidden">
                   <span className="text-xs font-bold text-[#1C1C1E]">{formatCurrency(inv.amount)}</span>
-                  {inv.dueDate && <span className="text-xs text-gray-400">Due {inv.dueDate}</span>}
+                  {inv.dueDate && <span className="text-xs text-gray-600">Due {inv.dueDate}</span>}
                 </div>
               </div>
             </div>
             <p className="hidden sm:block text-sm font-bold text-[#1C1C1E]">{formatCurrency(inv.amount)}</p>
-            <p className="hidden sm:block text-sm text-gray-500">{inv.dueDate || "—"}</p>
+            <p className="hidden sm:block text-sm text-gray-600">{inv.dueDate || "—"}</p>
             <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-              <Badge className={`text-xs border-0 flex-shrink-0 ${statusColor[inv.status] || "bg-gray-100 text-gray-500"}`}>{inv.status}</Badge>
+              <Badge className={`text-xs border-0 flex-shrink-0 ${statusColor[inv.status] || "bg-gray-100 text-gray-600"}`}>{inv.status}</Badge>
               {inv.status !== "paid" && (
                 <button onClick={() => markPaid.mutate({ id: inv.id })} className="text-xs text-[#E8A020] hover:underline font-medium" disabled={markPaid.isPending}>
                   Mark Paid
@@ -1446,16 +1446,16 @@ function InvoicesPanel() {
                   </button>
                 </>
               )}
-              <button onClick={() => setPreviewInvoice(inv)} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Preview invoice" title="Preview invoice">
+              <button onClick={() => setPreviewInvoice(inv)} className="p-1 rounded hover:bg-gray-100 text-gray-600 hover:text-gray-600 transition-colors" aria-label="Preview invoice" title="Preview invoice">
                 <Eye className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-1 rounded hover:bg-blue-50 text-gray-300 hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
+              <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-1 rounded hover:bg-blue-50 text-gray-500 hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => duplicateInvoice.mutate({ id: inv.id })} className="p-1 rounded hover:bg-[#E8A020]/10 text-gray-300 hover:text-[#E8A020] transition-colors" aria-label="Duplicate invoice" title="Duplicate invoice" disabled={duplicateInvoice.isPending}>
+              <button onClick={() => duplicateInvoice.mutate({ id: inv.id })} className="p-1 rounded hover:bg-[#E8A020]/10 text-gray-500 hover:text-[#E8A020] transition-colors" aria-label="Duplicate invoice" title="Duplicate invoice" disabled={duplicateInvoice.isPending}>
                 <Copy className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => setInvConfirm({ open: true, title: "Delete Invoice?", description: "Delete this invoice? This cannot be undone.", onConfirm: () => deleteInvoice.mutate({ id: inv.id }) })} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete invoice">
+              <button onClick={() => setInvConfirm({ open: true, title: "Delete Invoice?", description: "Delete this invoice? This cannot be undone.", onConfirm: () => deleteInvoice.mutate({ id: inv.id }) })} className="p-1 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors" aria-label="Delete invoice">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -1512,30 +1512,30 @@ function InvoicesPanel() {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>INVOICE</h3>
-                <p className="text-sm text-gray-500 mt-1">{previewInvoice.invoiceNumber}</p>
+                <p className="text-sm text-gray-600 mt-1">{previewInvoice.invoiceNumber}</p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-gray-400">Issued</p>
+                <p className="text-xs text-gray-600">Issued</p>
                 <p className="text-sm font-semibold">{formatDate(previewInvoice.createdAt)}</p>
                 {previewInvoice.dueDate && <>
-                  <p className="text-xs text-gray-400 mt-1">Due</p>
+                  <p className="text-xs text-gray-600 mt-1">Due</p>
                   <p className="text-sm font-semibold">{previewInvoice.dueDate}</p>
                 </>}
               </div>
             </div>
             <div className="border-t border-b border-gray-100 py-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Client</span>
+                <span className="text-gray-600">Client</span>
                 <span className="font-semibold">{previewInvoice.clientName}</span>
               </div>
               {previewInvoice.clientEmail && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Email</span>
+                  <span className="text-gray-600">Email</span>
                   <span>{previewInvoice.clientEmail}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Service</span>
+                <span className="text-gray-600">Service</span>
                 <span>{previewInvoice.service || "Professional Services"}</span>
               </div>
             </div>
@@ -1545,7 +1545,7 @@ function InvoicesPanel() {
             </div>
             {previewInvoice.notes && (
               <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs font-semibold text-gray-500 mb-1">Notes</p>
+                <p className="text-xs font-semibold text-gray-600 mb-1">Notes</p>
                 <p className="text-sm text-gray-700">{previewInvoice.notes}</p>
               </div>
             )}
@@ -1614,7 +1614,7 @@ function FollowUpsPanel() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>AI Follow-Ups</h2>
-          <p className="text-sm text-gray-500">Let AI write personalized follow-up emails for your clients</p>
+          <p className="text-sm text-gray-600">Let AI write personalized follow-up emails for your clients</p>
         </div>
         <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowGenerate(true)}>
           <Zap className="w-3.5 h-3.5" />Generate Email
@@ -1641,9 +1641,9 @@ function FollowUpsPanel() {
         {isLoading ? (
           [...Array(3)].map((_, i) => <Skeleton key={i} className="h-20" />)
         ) : !followUpList || followUpList.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 text-center py-16 text-gray-400">
+          <div className="bg-white rounded-2xl border border-gray-100 text-center py-16 text-gray-600">
             <Mail className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="text-sm font-medium text-gray-500">No follow-ups generated yet</p>
+            <p className="text-sm font-medium text-gray-600">No follow-ups generated yet</p>
             <p className="text-xs mt-1">Generate your first AI follow-up email above.</p>
           </div>
         ) : followUpList.map(f => (
@@ -1656,22 +1656,22 @@ function FollowUpsPanel() {
                     {f.status}
                   </Badge>
                 </div>
-                <p className="text-xs text-gray-500 mt-0.5 font-medium">{f.subject}</p>
-                <p className="text-xs text-gray-400 mt-1 line-clamp-2">{f.body}</p>
+                <p className="text-xs text-gray-600 mt-0.5 font-medium">{f.subject}</p>
+                <p className="text-xs text-gray-600 mt-1 line-clamp-2">{f.body}</p>
               </div>
               <div className="flex gap-1.5 flex-shrink-0">
-                <button onClick={() => copyToClipboard(f.body)} className="p-1.5 rounded-lg hover:bg-[#E8A020]/10 text-gray-400 hover:text-[#E8A020] transition-colors" aria-label="Copy email body to clipboard" title="Copy email body">
+                <button onClick={() => copyToClipboard(f.body)} className="p-1.5 rounded-lg hover:bg-[#E8A020]/10 text-gray-600 hover:text-[#E8A020] transition-colors" aria-label="Copy email body to clipboard" title="Copy email body">
                   <Copy className="w-4 h-4" />
                 </button>
-                <button onClick={() => setPreviewFollowUp(f)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Preview email">
+                <button onClick={() => setPreviewFollowUp(f)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-600 transition-colors" aria-label="Preview email">
                   <Eye className="w-4 h-4" />
                 </button>
                 {f.status === "draft" && (
-                  <button onClick={() => markSent.mutate({ id: f.id })} className="p-1.5 rounded-lg hover:bg-green-50 text-gray-400 hover:text-green-600 transition-colors" aria-label="Mark as sent">
+                  <button onClick={() => markSent.mutate({ id: f.id })} className="p-1.5 rounded-lg hover:bg-green-50 text-gray-600 hover:text-green-600 transition-colors" aria-label="Mark as sent">
                     <Send className="w-4 h-4" />
                   </button>
                 )}
-                <button onClick={() => setFuConfirm({ open: true, title: "Delete Follow-Up?", description: "Delete this follow-up email? This cannot be undone.", onConfirm: () => deleteFollowUp.mutate({ id: f.id }) })} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete follow-up">
+                <button onClick={() => setFuConfirm({ open: true, title: "Delete Follow-Up?", description: "Delete this follow-up email? This cannot be undone.", onConfirm: () => deleteFollowUp.mutate({ id: f.id }) })} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors" aria-label="Delete follow-up">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -1701,7 +1701,7 @@ function FollowUpsPanel() {
                 <button
                   key={t}
                   onClick={() => setForm(p => ({ ...p, tone: t }))}
-                  className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${form.tone === t ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
+                  className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${form.tone === t ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}
                 >
                   {t}
                 </button>
@@ -1723,11 +1723,11 @@ function FollowUpsPanel() {
           <div className="space-y-4">
             <div className="bg-gray-50 rounded-xl p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-gray-500 w-12">To:</span>
+                <span className="text-xs font-semibold text-gray-600 w-12">To:</span>
                 <span className="text-sm text-gray-700">{previewFollowUp.clientEmail || previewFollowUp.clientName}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-gray-500 w-12">Subject:</span>
+                <span className="text-xs font-semibold text-gray-600 w-12">Subject:</span>
                 <span className="text-sm font-semibold text-[#1C1C1E]">{previewFollowUp.subject}</span>
               </div>
             </div>
@@ -1791,7 +1791,7 @@ function AnalyticsPanel() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Analytics</h2>
-        <p className="text-sm text-gray-500">Your business performance at a glance</p>
+        <p className="text-sm text-gray-600">Your business performance at a glance</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1801,7 +1801,7 @@ function AnalyticsPanel() {
               <s.icon className="w-4 h-4" />
             </div>
             <p className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{s.value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+            <p className="text-xs text-gray-600 mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
@@ -1826,7 +1826,7 @@ function AnalyticsPanel() {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-48 flex flex-col items-center justify-center text-gray-400">
+            <div className="h-48 flex flex-col items-center justify-center text-gray-600">
               <DollarSign className="w-8 h-8 mb-2 opacity-30" />
               <p className="text-sm text-center">Revenue data will appear once you create and mark invoices as paid.</p>
             </div>
@@ -1857,7 +1857,7 @@ function AnalyticsPanel() {
               </div>
             </div>
           ) : (
-            <div className="h-36 flex flex-col items-center justify-center text-gray-400">
+            <div className="h-36 flex flex-col items-center justify-center text-gray-600">
               <Users className="w-8 h-8 mb-2 opacity-30" />
               <p className="text-sm">Add clients to see breakdown.</p>
             </div>
@@ -1870,7 +1870,7 @@ function AnalyticsPanel() {
             <div className="space-y-3">
               {topServices.slice(0, 5).map((s: any, i: number) => (
                 <div key={i} className="flex items-center gap-3">
-                  <span className="text-xs text-gray-400 w-4">{i + 1}</span>
+                  <span className="text-xs text-gray-600 w-4">{i + 1}</span>
                   <div className="flex-1">
                     <div className="flex justify-between mb-1">
                       <span className="text-sm font-medium text-[#1C1C1E]">{s.name ?? s.service}</span>
@@ -1891,7 +1891,7 @@ function AnalyticsPanel() {
           <div className="bg-white rounded-2xl p-5 border border-gray-100 lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Revenue Forecast (90-Day)</h3>
-              <div className="flex items-center gap-4 text-xs text-gray-400">
+              <div className="flex items-center gap-4 text-xs text-gray-600">
                 <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-[#E8A020] inline-block" />Actual</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-[#E8A020] opacity-40 inline-block border-dashed border-t border-[#E8A020]" />Projected</span>
               </div>
@@ -1921,7 +1921,7 @@ function AnalyticsPanel() {
             <div className="space-y-3">
               {analytics.clientLTV.slice(0, 6).map((c: any, i: number) => (
                 <div key={c.clientId} className="flex items-center gap-3">
-                  <span className="text-xs text-gray-400 w-4">{i + 1}</span>
+                  <span className="text-xs text-gray-600 w-4">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between mb-1">
                       <span className="text-sm font-medium text-[#1C1C1E] truncate">{c.name}</span>
@@ -1930,7 +1930,7 @@ function AnalyticsPanel() {
                     <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${Math.min((c.ltv / analytics.clientLTV[0].ltv) * 100, 100)}%`, background: i === 0 ? "#E8A020" : "#6366F1" }} />
                     </div>
-                    <p className="text-[10px] text-gray-400 mt-0.5">{c.invoiceCount} invoice{c.invoiceCount !== 1 ? "s" : ""}</p>
+                    <p className="text-[10px] text-gray-600 mt-0.5">{c.invoiceCount} invoice{c.invoiceCount !== 1 ? "s" : ""}</p>
                   </div>
                 </div>
               ))}
@@ -1953,7 +1953,7 @@ function AnalyticsPanel() {
                     <div className="flex-1">
                       <div className="flex justify-between mb-1">
                         <span className="text-sm font-medium text-[#1C1C1E] capitalize">{s.source.replace(/_/g, " ")}</span>
-                        <span className="text-xs font-bold text-gray-500">{s.count} ({pct}%)</span>
+                        <span className="text-xs font-bold text-gray-600">{s.count} ({pct}%)</span>
                       </div>
                       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: colors[i % colors.length] }} />
@@ -2023,7 +2023,7 @@ function ChangePasswordSection() {
             <button
               type="button"
               onClick={() => setShowPasswords(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-600"
               aria-label={showPasswords ? "Hide passwords" : "Show passwords"}
             >
               {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -2112,7 +2112,7 @@ function ApiKeysSection() {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
       <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Zap className="w-4 h-4 text-[#E8A020]" />API Keys</h3>
-      <p className="text-xs text-gray-500">Use API keys to integrate TrueAxis HQ with Zapier, Make, or your own tools.</p>
+      <p className="text-xs text-gray-600">Use API keys to integrate TrueAxis HQ with Zapier, Make, or your own tools.</p>
       {createdKey && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-3">
           <p className="text-xs font-semibold text-green-700 mb-1">Your new API key (copy it now — it won't be shown again):</p>
@@ -2129,14 +2129,14 @@ function ApiKeysSection() {
             <div key={k.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
               <div>
                 <p className="text-sm font-semibold text-[#1C1C1E]">{k.name}</p>
-                <p className="text-xs text-gray-400 font-mono">{k.keyPrefix}... · Created {new Date(k.createdAt).toLocaleDateString()}{k.lastUsedAt ? ` · Last used ${new Date(k.lastUsedAt).toLocaleDateString()}` : " · Never used"}</p>
+                <p className="text-xs text-gray-600 font-mono">{k.keyPrefix}... · Created {new Date(k.createdAt).toLocaleDateString()}{k.lastUsedAt ? ` · Last used ${new Date(k.lastUsedAt).toLocaleDateString()}` : " · Never used"}</p>
               </div>
               <button onClick={() => revokeKey.mutate({ id: k.id })} className="text-xs text-red-500 hover:underline font-medium" disabled={revokeKey.isPending}>Revoke</button>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-xs text-gray-400">No API keys yet.</p>
+        <p className="text-xs text-gray-600">No API keys yet.</p>
       )}
       <div className="flex gap-2">
         <input value={newKeyName} onChange={e => setNewKeyName(e.target.value)} placeholder="Key name (e.g. Zapier)" className="form-input-light flex-1" autoComplete="off" enterKeyHint="done" onKeyDown={e => e.key === 'Enter' && newKeyName.trim() && createKey.mutate({ name: newKeyName.trim() })} />
@@ -2154,9 +2154,9 @@ function AuditLogSection() {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
       <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Activity className="w-4 h-4 text-[#E8A020]" />Activity Log</h3>
-      <p className="text-xs text-gray-500">A record of your recent account activity.</p>
+      <p className="text-xs text-gray-600">A record of your recent account activity.</p>
       {isLoading ? <div className="space-y-2">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-8" />)}</div> : !logs || logs.length === 0 ? (
-        <p className="text-xs text-gray-400">No activity recorded yet.</p>
+        <p className="text-xs text-gray-600">No activity recorded yet.</p>
       ) : (
         <div className="space-y-1 max-h-64 overflow-y-auto">
           {logs.map(log => (
@@ -2164,9 +2164,9 @@ function AuditLogSection() {
               <div className="w-1.5 h-1.5 rounded-full bg-[#E8A020] mt-1.5 shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-[#1C1C1E]">{log.action.replace(/\./g, ' › ')}</p>
-                {log.details && <p className="text-xs text-gray-400 truncate">{log.details}</p>}
+                {log.details && <p className="text-xs text-gray-600 truncate">{log.details}</p>}
               </div>
-              <p className="text-xs text-gray-400 shrink-0">{new Date(log.createdAt).toLocaleString()}</p>
+              <p className="text-xs text-gray-600 shrink-0">{new Date(log.createdAt).toLocaleString()}</p>
             </div>
           ))}
         </div>
@@ -2278,7 +2278,7 @@ function SettingsPanel() {
     <div className="space-y-6 max-w-2xl w-full">
       <div>
         <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Settings</h2>
-        <p className="text-sm text-gray-500">Manage your profile, business info, and preferences</p>
+        <p className="text-sm text-gray-600">Manage your profile, business info, and preferences</p>
       </div>
 
       {/* Profile */}
@@ -2306,7 +2306,7 @@ function SettingsPanel() {
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-[#1C1C1E] mb-0.5">Profile Photo</p>
-            <p className="text-xs text-gray-400 mb-2">JPEG, PNG, WebP or GIF · Max 5 MB</p>
+            <p className="text-xs text-gray-600 mb-2">JPEG, PNG, WebP or GIF · Max 5 MB</p>
             <div className="flex gap-2">
               <button
                 onClick={() => avatarInputRef.current?.click()}
@@ -2367,7 +2367,7 @@ function SettingsPanel() {
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1.5">Your Booking URL</label>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span className="text-sm text-gray-400 flex-shrink-0 truncate max-w-full">{window.location.origin}/book/</span>
+            <span className="text-sm text-gray-600 flex-shrink-0 truncate max-w-full">{window.location.origin}/book/</span>
             <input
               value={bookingPage.bookingUsername}
               onChange={e => setBookingPage(p => ({ ...p, bookingUsername: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
@@ -2381,8 +2381,8 @@ function SettingsPanel() {
           {bookingUrl && (
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 min-w-0">
-                <span className="text-xs text-gray-500 flex-1 truncate font-mono min-w-0">{bookingUrl}</span>
-                <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#E8A020] transition-colors flex-shrink-0" title="Preview booking page">
+                <span className="text-xs text-gray-600 flex-1 truncate font-mono min-w-0">{bookingUrl}</span>
+                <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-[#E8A020] transition-colors flex-shrink-0" title="Preview booking page">
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -2397,7 +2397,7 @@ function SettingsPanel() {
             {bookingPage.bookingServices.map((s, i) => (
               <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
                 <span className="text-sm flex-1">{s}</span>
-                <button onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.filter((_, j) => j !== i) }))} className="text-gray-400 hover:text-red-500 transition-colors" aria-label={`Remove ${s}`}>
+                <button onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.filter((_, j) => j !== i) }))} className="text-gray-600 hover:text-red-500 transition-colors" aria-label={`Remove ${s}`}>
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -2430,7 +2430,7 @@ function SettingsPanel() {
                 </button>
               ))}
               {PRESET_SERVICES.filter(s => !bookingPage.bookingServices.includes(s)).length === 0 && (
-                <p className="text-xs text-gray-400">All preset services added!</p>
+                <p className="text-xs text-gray-600">All preset services added!</p>
               )}
             </div>
           )}
@@ -2443,27 +2443,27 @@ function SettingsPanel() {
       {/* iCal Feed */}
       <div className="space-y-3 p-5 bg-white rounded-2xl border border-gray-100">
         <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Calendar className="w-4 h-4 text-[#E8A020]" />Calendar Sync (iCal)</h3>
-        <p className="text-xs text-gray-500">Subscribe to your booking calendar in Google Calendar, Apple Calendar, or Outlook using this live iCal feed URL.</p>
+        <p className="text-xs text-gray-600">Subscribe to your booking calendar in Google Calendar, Apple Calendar, or Outlook using this live iCal feed URL.</p>
         {user?.id ? (
           <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 min-w-0">
-            <span className="text-xs text-gray-500 flex-1 truncate font-mono min-w-0">{window.location.origin}/api/calendar/{user.id}.ics</span>
+            <span className="text-xs text-gray-600 flex-1 truncate font-mono min-w-0">{window.location.origin}/api/calendar/{user.id}.ics</span>
             <button
               onClick={() => {
                 const url = `${window.location.origin}/api/calendar/${user!.id}.ics`;
                 navigator.clipboard.writeText(url).then(() => toast.success("iCal URL copied!")).catch(() => toast.info(`iCal URL: ${url}`));
               }}
-              className="text-gray-400 hover:text-[#E8A020] transition-colors flex-shrink-0 p-1 rounded hover:bg-[#E8A020]/10"
+              className="text-gray-600 hover:text-[#E8A020] transition-colors flex-shrink-0 p-1 rounded hover:bg-[#E8A020]/10"
               title="Copy iCal feed URL"
               aria-label="Copy iCal feed URL"
             >
               <Copy className="w-3.5 h-3.5" />
             </button>
-            <a href={`${window.location.origin}/api/calendar/${user!.id}.ics`} download className="text-gray-400 hover:text-[#E8A020] transition-colors flex-shrink-0 p-1 rounded hover:bg-[#E8A020]/10" title="Download .ics file" aria-label="Download iCal file">
+            <a href={`${window.location.origin}/api/calendar/${user!.id}.ics`} download className="text-gray-600 hover:text-[#E8A020] transition-colors flex-shrink-0 p-1 rounded hover:bg-[#E8A020]/10" title="Download .ics file" aria-label="Download iCal file">
               <Download className="w-3.5 h-3.5" />
             </a>
           </div>
         ) : (
-          <p className="text-xs text-gray-400">Sign in to access your iCal feed.</p>
+          <p className="text-xs text-gray-600">Sign in to access your iCal feed.</p>
         )}
         {user?.id && (
           <div className="flex flex-col sm:flex-row gap-2 pt-1">
@@ -2498,7 +2498,7 @@ function SettingsPanel() {
           <div key={n.key} className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-[#1C1C1E]">{n.label}</p>
-              <p className="text-xs text-gray-400">{n.desc}</p>
+              <p className="text-xs text-gray-600">{n.desc}</p>
             </div>
             <button
               onClick={() => setNotifications(p => ({ ...p, [n.key]: !p[n.key] }))}
@@ -2525,9 +2525,9 @@ function SettingsPanel() {
         <div className="flex items-center justify-between p-3 bg-[#E8A020]/5 border border-[#E8A020]/20 rounded-xl">
           <div>
             <p className="text-sm font-semibold text-[#1C1C1E] capitalize">{settings?.subscriptionStatus ?? "free"} Plan</p>
-            <p className="text-xs text-gray-500">{settings?.subscriptionStatus === "active" ? "Active subscription" : "No active subscription"}</p>
+            <p className="text-xs text-gray-600">{settings?.subscriptionStatus === "active" ? "Active subscription" : "No active subscription"}</p>
           </div>
-          <Badge className={`border-0 ${settings?.subscriptionStatus === "active" ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"}`}>
+          <Badge className={`border-0 ${settings?.subscriptionStatus === "active" ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-600"}`}>
             {settings?.subscriptionStatus === "active" ? "Active" : "Free"}
           </Badge>
         </div>
@@ -2595,7 +2595,7 @@ function ContractsPanel() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Contracts & Proposals</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Create, send, and track contracts and proposals</p>
+          <p className="text-sm text-gray-600 mt-0.5">Create, send, and track contracts and proposals</p>
         </div>
         <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); }} className="bg-[#E8A020] hover:bg-[#D4911A] text-white gap-2">
           <Plus className="w-4 h-4" /> New
@@ -2614,9 +2614,9 @@ function ContractsPanel() {
         <div className="space-y-3">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20" />)}</div>
       ) : list.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <FileSignature className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+          <FileSignature className="w-10 h-10 text-gray-500 mx-auto mb-3" />
           <p className="font-semibold text-gray-700 mb-1">No {filterType === "all" ? "contracts or proposals" : filterType + "s"} yet</p>
-          <p className="text-sm text-gray-400 mb-4">Create your first one to get started</p>
+          <p className="text-sm text-gray-600 mb-4">Create your first one to get started</p>
           <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); }} size="sm" className="bg-[#E8A020] hover:bg-[#D4911A] text-white">Create {filterType === "proposal" ? "Proposal" : "Contract"}</Button>
         </div>
       ) : (
@@ -2631,10 +2631,10 @@ function ContractsPanel() {
                     {c.proposalAmount && <span className="text-xs font-semibold text-[#E8A020]">{formatCurrency(c.proposalAmount)}</span>}
                   </div>
                   <p className="font-semibold text-[#1C1C1E] truncate">{c.title}</p>
-                  <p className="text-sm text-gray-500">{c.clientName}{c.clientEmail ? ` · ${c.clientEmail}` : ""}</p>
+                  <p className="text-sm text-gray-600">{c.clientName}{c.clientEmail ? ` · ${c.clientEmail}` : ""}</p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <button onClick={e => { e.stopPropagation(); openEdit(c); }} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Edit"><Edit2 className="w-3.5 h-3.5 text-gray-500" /></button>
+                  <button onClick={e => { e.stopPropagation(); openEdit(c); }} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Edit"><Edit2 className="w-3.5 h-3.5 text-gray-600" /></button>
                   {c.type === "proposal" && c.status === "signed" && !c.linkedInvoiceId && (
                     <button onClick={e => { e.stopPropagation(); convertMut.mutate({ id: c.id }); }} className="p-1.5 rounded-lg hover:bg-green-50 transition-colors" aria-label="Convert to invoice" title="Convert to Invoice"><ArrowUpRight className="w-3.5 h-3.5 text-green-600" /></button>
                   )}
@@ -2649,8 +2649,8 @@ function ContractsPanel() {
                     {c.status === "draft" && <button onClick={e => { e.stopPropagation(); updateMut.mutate({ id: c.id, status: "sent" }); }} className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1"><Send className="w-3 h-3" /> Mark as Sent</button>}
                     {c.status === "sent" && <button onClick={e => { e.stopPropagation(); updateMut.mutate({ id: c.id, status: "signed" }); }} className="text-xs font-semibold text-green-600 hover:underline flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Mark as Signed</button>}
                     {c.status === "sent" && <button onClick={e => { e.stopPropagation(); updateMut.mutate({ id: c.id, status: "declined" }); }} className="text-xs font-semibold text-red-500 hover:underline">Mark as Declined</button>}
-                    {c.expiresAt && <span className="text-xs text-gray-400 ml-auto">Expires {formatDate(c.expiresAt)}</span>}
-                    {c.sentAt && <span className="text-xs text-gray-400">Sent {formatDate(c.sentAt)}</span>}
+                    {c.expiresAt && <span className="text-xs text-gray-600 ml-auto">Expires {formatDate(c.expiresAt)}</span>}
+                    {c.sentAt && <span className="text-xs text-gray-600">Sent {formatDate(c.sentAt)}</span>}
                     {c.signedAt && <span className="text-xs text-green-600 font-medium">Signed {formatDate(c.signedAt)}</span>}
                   </div>
                 </div>
@@ -2684,7 +2684,7 @@ function ContractsPanel() {
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Body / Terms *</label>
             <textarea value={form.body} onChange={e => setForm(p => ({ ...p, body: e.target.value }))} rows={10} placeholder="Enter the contract terms, scope of work, deliverables, payment terms..." className="form-input-light resize-y" />
-            <p className="text-xs text-gray-400 mt-1">Markdown supported. Use **bold**, # headings, - bullet lists.</p>
+            <p className="text-xs text-gray-600 mt-1">Markdown supported. Use **bold**, # headings, - bullet lists.</p>
           </div>
           <div className="flex gap-3 pt-2">
             <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="bg-[#E8A020] hover:bg-[#D4911A] text-white flex-1">
@@ -2792,7 +2792,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
                     className={`relative flex flex-col items-center justify-center py-3.5 px-1 rounded-2xl gap-1.5 transition-all active:scale-95 ${
                       active === item.panel
                         ? "bg-[#E8A020]/20 text-[#E8A020]"
-                        : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
+                        : "bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white"
                     }`}
                   >
                     {item.badge && (
@@ -2812,7 +2812,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
           <div className="border-t border-white/10 pt-4 flex gap-2">
             <button
               onClick={() => { navigate("/billing"); setShowSheet(false); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
             >
               <CreditCard className="w-4 h-4" />
               Billing
@@ -2820,7 +2820,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
             {user?.role === "admin" && (
               <button
                 onClick={() => { navigate("/admin"); setShowSheet(false); }}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
               >
                 <Star className="w-4 h-4" />
                 Admin
@@ -2828,7 +2828,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
             )}
             <button
               onClick={() => { navigate("/"); setShowSheet(false); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
             >
               <Home className="w-4 h-4" />
               Home
@@ -2975,7 +2975,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
       <div className="text-center">
         <Loader2 className="w-8 h-8 text-[#E8A020] animate-spin mx-auto mb-3" />
-        <p className="text-sm text-gray-500">Loading your dashboard...</p>
+        <p className="text-sm text-gray-600">Loading your dashboard...</p>
       </div>
     </div>
   );
@@ -3002,7 +3002,7 @@ export default function Dashboard() {
             <span className="text-3xl">✨</span>
           </div>
           <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>AI Assistant</h2>
-          <p className="text-gray-500 text-sm max-w-xs">
+          <p className="text-gray-600 text-sm max-w-xs">
             Your AI assistant is floating on screen — drag it anywhere and chat while you work.
           </p>
           {!aiVisible && (
@@ -3075,7 +3075,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             {/* Search */}
             <div className="relative hidden lg:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-600" aria-hidden="true" />
               <input
                 type="search"
                 value={search}
@@ -3105,7 +3105,7 @@ export default function Dashboard() {
                 aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
                 aria-expanded={showNotifications}
               >
-                <Bell className="w-4 h-4 text-gray-500" />
+                <Bell className="w-4 h-4 text-gray-600" />
                 {unreadCount > 0 && (
                   <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" aria-hidden="true" />
                 )}
@@ -3122,7 +3122,7 @@ export default function Dashboard() {
                     {!notifList || notifList.length === 0 ? (
                       <div className="py-8 text-center">
                         <Bell className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                        <p className="text-xs text-gray-400">No notifications yet</p>
+                        <p className="text-xs text-gray-600">No notifications yet</p>
                       </div>
                     ) : (
                       notifList.map(n => (
@@ -3130,11 +3130,11 @@ export default function Dashboard() {
                           <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.type === 'success' ? 'bg-green-400' : n.type === 'error' ? 'bg-red-400' : 'bg-blue-400'}`} />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-semibold text-[#1C1C1E] truncate">{n.title}</p>
-                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>
-                            <p className="text-[10px] text-gray-400 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+                            <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{n.body}</p>
+                            <p className="text-[10px] text-gray-600 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
                           </div>
                           <button onClick={() => dismissNotifMutation.mutate({ id: n.id })} className="p-1 rounded hover:bg-gray-200 transition-colors flex-shrink-0" aria-label="Dismiss">
-                            <X className="w-3 h-3 text-gray-400" />
+                            <X className="w-3 h-3 text-gray-600" />
                           </button>
                         </div>
                       ))

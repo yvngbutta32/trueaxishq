@@ -11,4 +11,4 @@ Disallow: /api/
 Disallow: /client-portal/
 
 # Sitemap location
-Sitemap: https://skillbridge-gipzwtye.manus.space/sitemap.xml
+Sitemap: https://trueaxishq.com/sitemap.xml

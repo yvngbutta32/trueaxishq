@@ -90,7 +90,7 @@
   --secondary:               oklch(0.94 0.005 240);           /* #EEF0F4 */
   --secondary-foreground:    oklch(0.28 0.08 240);
   --muted:                   oklch(0.94 0.005 240);
-  --muted-foreground:        oklch(0.45 0.02 240);            /* subdued ink */
+  --muted-foreground:        oklch(0.38 0.025 240);           /* subdued ink — improved contrast */
   --accent:                  oklch(0.91 0.008 240);           /* #DDE1E8 */
   --accent-foreground:       oklch(0.10 0.02 240);
   --destructive:             oklch(0.55 0.20 25);             /* red #E63946 */
@@ -840,7 +840,7 @@
     touch-action: manipulation;  /* removes 300ms tap delay on mobile */
   }
   .form-input::placeholder {
-    color: rgba(245, 240, 232, 0.30);
+    color: rgba(245, 240, 232, 0.50);  /* increased from 0.30 for legibility */
   }
   .form-input:focus {
     border-color: #E8A020;
@@ -880,7 +880,7 @@
     touch-action: manipulation;  /* removes 300ms tap delay on mobile */
   }
   .form-input-light::placeholder {
-    color: #9CA3AF;
+    color: #6B7280;  /* darkened from #9CA3AF for better contrast on white */
   }
   .form-input-light:focus {
     border-color: #E8A020;
@@ -909,7 +909,7 @@
     font-size: 0.8125rem;
     font-weight: 600;
     letter-spacing: 0.01em;
-    color: #4B5563;
+    color: #374151;  /* darkened from #4B5563 for better contrast on white */
     margin-bottom: 0.375rem;
     line-height: 1.4;
   }
@@ -921,7 +921,7 @@
   }
   .form-hint {
     font-size: 0.75rem;
-    color: #9CA3AF;
+    color: #6B7280;  /* darkened from #9CA3AF for better contrast on white */
     margin-top: 0.3rem;
     line-height: 1.4;
   }

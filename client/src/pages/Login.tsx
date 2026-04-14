@@ -72,7 +72,7 @@ export default function Login() {
               Your business,<br />
               <span style={{ color: "#E8A020" }}>running itself.</span>
             </h2>
-            <p className="text-base leading-relaxed" style={{ color: "rgba(245,240,232,0.55)" }}>
+            <p className="text-base leading-relaxed" style={{ color: "rgba(245,240,232,0.80)" }}>
               Join 4,200+ freelancers who automated their client work with TrueAxis HQ.
             </p>
           </div>
@@ -86,7 +86,7 @@ export default function Login() {
                 >
                   <Icon className="w-4 h-4" style={{ color: "#E8A020" }} />
                 </div>
-                <span className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.70)" }}>
+                <span className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.88)" }}>
                   {text}
                 </span>
               </li>
@@ -98,7 +98,7 @@ export default function Login() {
             className="rounded-xl p-5"
             style={{ background: "rgba(232,160,32,0.06)", border: "1px solid rgba(232,160,32,0.15)" }}
           >
-            <p className="text-sm italic leading-relaxed mb-3" style={{ color: "rgba(245,240,232,0.65)" }}>
+            <p className="text-sm italic leading-relaxed mb-3" style={{ color: "rgba(245,240,232,0.85)" }}>
               "I used to spend 3 hours every Monday on admin. Now it's zero. TrueAxis HQ paid for itself in the first week."
             </p>
             <div className="flex items-center gap-2">
@@ -110,14 +110,14 @@ export default function Login() {
               </div>
               <div>
                 <p className="text-xs font-semibold" style={{ color: "#F5F0E8" }}>Sarah Chen</p>
-                <p className="text-xs" style={{ color: "rgba(245,240,232,0.55)" }}>Life Coach · +$2,400/mo</p>
+                <p className="text-xs" style={{ color: "rgba(245,240,232,0.75)" }}>Sarah Chen · +$2,400/mo</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer note */}
-        <p className="relative z-10 text-xs" style={{ color: "rgba(245,240,232,0.25)" }}>
+          <p className="relative z-10 text-xs" style={{ color: "rgba(245,240,232,0.50)" }}>
           © 2026 TrueAxis HQ. All rights reserved.
         </p>
       </div>
@@ -142,7 +142,7 @@ export default function Login() {
             >
               Welcome back
             </h1>
-            <p style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.45)" }}>
+            <p style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.75)" }}>
               Sign in to access your dashboard
             </p>
           </div>
@@ -153,7 +153,7 @@ export default function Login() {
               <label
                 htmlFor="email"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(245,240,232,0.70)" }}
+                style={{ color: "rgba(245,240,232,0.90)" }}
               >
                 Email address
               </label>
@@ -176,7 +176,7 @@ export default function Login() {
                 <label
                   htmlFor="password"
                   className="text-sm font-semibold"
-                  style={{ color: "rgba(245,240,232,0.70)" }}
+                  style={{ color: "rgba(245,240,232,0.90)" }}
                 >
                   Password
                 </label>
@@ -204,7 +204,7 @@ export default function Login() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:opacity-80"
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(245,240,232,0.35)", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(245,240,232,0.60)", padding: 0, minHeight: "auto", minWidth: "auto" }}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -234,7 +234,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="mt-6 text-sm" style={{ color: "rgba(245,240,232,0.70)" }}>
+          <p className="mt-6 text-sm" style={{ color: "rgba(245,240,232,0.88)" }}>
             Don't have an account?{" "}
             <button
               onClick={() => navigate("/register")}

@@ -12,7 +12,7 @@ function statusBadge(status: string) {
     overdue:   { label: "Overdue",   color: "bg-red-100 text-red-700" },
     scheduled: { label: "Scheduled", color: "bg-blue-100 text-blue-700" },
     completed: { label: "Completed", color: "bg-green-100 text-green-700" },
-    cancelled: { label: "Cancelled", color: "bg-gray-100 text-gray-500" },
+    cancelled: { label: "Cancelled", color: "bg-gray-100 text-gray-600" },
     no_show:   { label: "No Show",   color: "bg-orange-100 text-orange-700" },
   };
   const s = map[status] ?? { label: status, color: "bg-gray-100 text-gray-600" };
@@ -64,7 +64,7 @@ export default function ClientPortal() {
       <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-[#E8A020] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500 text-sm">Loading your portal...</p>
+          <p className="text-gray-600 text-sm">Loading your portal...</p>
         </div>
       </div>
     );
@@ -78,7 +78,7 @@ export default function ClientPortal() {
             <AlertCircle className="w-7 h-7 text-red-500" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Portal Not Found</h2>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-600 text-sm">
             This portal link is invalid or has expired. Please contact your service provider for a new link.
           </p>
         </div>
@@ -105,12 +105,12 @@ export default function ClientPortal() {
               </div>
             )}
             <div>
-              <p className="text-xs text-gray-500 leading-none">Client Portal</p>
+              <p className="text-xs text-gray-600 leading-none">Client Portal</p>
               <p className="font-semibold text-gray-900 text-sm leading-tight">{providerName}</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-xs text-gray-500">Viewing as</p>
+            <p className="text-xs text-gray-600">Viewing as</p>
             <p className="font-medium text-gray-800 text-sm">{client.name}</p>
           </div>
         </div>
@@ -133,38 +133,38 @@ export default function ClientPortal() {
 
         {/* Client Info Card */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Your Information</h2>
+          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">Your Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex items-center gap-3">
-              <User className="w-4 h-4 text-gray-400" />
+              <User className="w-4 h-4 text-gray-600" />
               <div>
-                <p className="text-xs text-gray-400">Name</p>
+                <p className="text-xs text-gray-600">Name</p>
                 <p className="text-sm font-medium text-gray-900">{client.name}</p>
               </div>
             </div>
             {client.email && (
               <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-gray-400" />
+                <Mail className="w-4 h-4 text-gray-600" />
                 <div>
-                  <p className="text-xs text-gray-400">Email</p>
+                  <p className="text-xs text-gray-600">Email</p>
                   <p className="text-sm font-medium text-gray-900">{client.email}</p>
                 </div>
               </div>
             )}
             {client.phone && (
               <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-gray-400" />
+                <Phone className="w-4 h-4 text-gray-600" />
                 <div>
-                  <p className="text-xs text-gray-400">Phone</p>
+                  <p className="text-xs text-gray-600">Phone</p>
                   <p className="text-sm font-medium text-gray-900">{client.phone}</p>
                 </div>
               </div>
             )}
             {client.service && (
               <div className="flex items-center gap-3">
-                <Building2 className="w-4 h-4 text-gray-400" />
+                <Building2 className="w-4 h-4 text-gray-600" />
                 <div>
-                  <p className="text-xs text-gray-400">Service</p>
+                  <p className="text-xs text-gray-600">Service</p>
                   <p className="text-sm font-medium text-gray-900">{client.service}</p>
                 </div>
               </div>
@@ -177,10 +177,10 @@ export default function ClientPortal() {
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
             <FileText className="w-4 h-4 text-[#E8A020]" />
             <h2 className="font-semibold text-gray-900">Invoices</h2>
-            <span className="ml-auto text-xs text-gray-400">{invoices.length} total</span>
+            <span className="ml-auto text-xs text-gray-600">{invoices.length} total</span>
           </div>
           {invoices.length === 0 ? (
-            <div className="px-6 py-10 text-center text-gray-400 text-sm">No invoices yet.</div>
+            <div className="px-6 py-10 text-center text-gray-600 text-sm">No invoices yet.</div>
           ) : (
             <div className="divide-y divide-gray-100">
               {invoices.map((inv) => (
@@ -190,9 +190,9 @@ export default function ClientPortal() {
                       <span className="font-medium text-gray-900 text-sm">{inv.invoiceNumber}</span>
                       {statusBadge(inv.status)}
                     </div>
-                    <p className="text-xs text-gray-500 truncate">{inv.service || "Professional Services"}</p>
+                    <p className="text-xs text-gray-600 truncate">{inv.service || "Professional Services"}</p>
                     {inv.dueDate && (
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-gray-600 mt-0.5">
                         Due {new Date(inv.dueDate).toLocaleDateString()}
                       </p>
                     )}
@@ -234,10 +234,10 @@ export default function ClientPortal() {
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[#E8A020]" />
             <h2 className="font-semibold text-gray-900">Appointments</h2>
-            <span className="ml-auto text-xs text-gray-400">{bookings.length} total</span>
+            <span className="ml-auto text-xs text-gray-600">{bookings.length} total</span>
           </div>
           {bookings.length === 0 ? (
-            <div className="px-6 py-10 text-center text-gray-400 text-sm">No appointments yet.</div>
+            <div className="px-6 py-10 text-center text-gray-600 text-sm">No appointments yet.</div>
           ) : (
             <div className="divide-y divide-gray-100">
               {bookings.map((b) => (
@@ -247,7 +247,7 @@ export default function ClientPortal() {
                       <span className="font-medium text-gray-900 text-sm">{b.service || "Appointment"}</span>
                       {statusBadge(b.status)}
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                    <div className="flex items-center gap-3 text-xs text-gray-600">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         {b.date} at {b.time}
@@ -263,7 +263,7 @@ export default function ClientPortal() {
 
         {/* Provider Contact */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Contact Your Provider</h2>
+          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">Contact Your Provider</h2>
           <div className="flex items-center gap-4">
             {freelancer?.avatarUrl ? (
               <img src={freelancer.avatarUrl} alt={providerName} className="w-12 h-12 rounded-full object-cover" />
@@ -280,7 +280,7 @@ export default function ClientPortal() {
                 </a>
               )}
               {freelancer?.phone && (
-                <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+                <p className="text-sm text-gray-600 flex items-center gap-1 mt-0.5">
                   <Phone className="w-3 h-3" />{freelancer.phone}
                 </p>
               )}
@@ -288,8 +288,8 @@ export default function ClientPortal() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-gray-400 pb-4">
-          Powered by <span className="font-semibold text-gray-500">TrueAxis HQ</span>
+        <p className="text-center text-xs text-gray-600 pb-4">
+          Powered by <span className="font-semibold text-gray-600">TrueAxis HQ</span>
         </p>
       </main>
     </div>

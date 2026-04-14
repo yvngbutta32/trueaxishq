@@ -65,7 +65,7 @@ export default function About() {
                 <Icon className="w-5 h-5" style={{ color: "#E8A020" }} />
               </div>
               <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.0625rem", color: "#F5F0E8", marginBottom: "0.5rem" }}>{title}</h2>
-              <p className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.45)" }}>{body}</p>
+              <p className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.80)" }}>{body}</p>
             </div>
           ))}
         </div>
@@ -78,7 +78,7 @@ export default function About() {
           <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em", textAlign: "center", marginBottom: "2rem" }}>
             Why TrueAxis HQ exists
           </h2>
-          <div className="space-y-5 text-base leading-relaxed" style={{ color: "rgba(245,240,232,0.55)" }}>
+          <div className="space-y-5 text-base leading-relaxed" style={{ color: "rgba(245,240,232,0.85)" }}>
             <p>In 2024, the average freelancer in the United States was juggling five or more separate tools just to run their business: a scheduling app, an invoicing tool, a CRM, an email client, and a spreadsheet for everything else. They were paying $200–$400 per month for tools that didn't talk to each other — and spending 15–20 hours per week on admin work instead of billable work.</p>
             <p>TrueAxis HQ was built to collapse all of that into one intelligent platform. We combined AI-powered automation with the core workflows every service provider needs: client management, scheduling, invoicing, follow-ups, and analytics. The result is a platform that doesn't just organize your business — it actively runs it.</p>
             <p>Today, TrueAxis HQ serves thousands of freelancers across coaching, consulting, design, development, fitness, legal, and more. Our users report saving an average of 12 hours per week and increasing their revenue by 34% within their first six months.</p>
@@ -99,7 +99,7 @@ export default function About() {
             <div key={label} className="flex flex-col items-center justify-center py-10 px-6 text-center" style={{ background: "#141414" }}>
               <Icon className="w-5 h-5 mb-3" style={{ color: "rgba(232,160,32,0.50)" }} />
               <p className="stat-number text-3xl mb-1">{value}</p>
-              <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "rgba(245,240,232,0.30)" }}>{label}</p>
+              <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "rgba(245,240,232,0.65)" }}>{label}</p>
             </div>
           ))}
         </div>
@@ -136,7 +136,7 @@ export default function About() {
           <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
             Ready to join us?
           </h2>
-          <p className="mt-3 mb-8" style={{ color: "rgba(245,240,232,0.40)" }}>Start your free 14-day trial. No credit card required.</p>
+          <p className="mt-3 mb-8" style={{ color: "rgba(245,240,232,0.80)" }}>Start your free 14-day trial. No credit card required.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button onClick={() => isAuthenticated ? navigate("/dashboard") : navigate("/register")} className="btn-amber" style={{ fontSize: "0.9375rem" }}>
               Start Free Trial

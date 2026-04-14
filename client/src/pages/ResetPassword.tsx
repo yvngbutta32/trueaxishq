@@ -155,7 +155,7 @@ export default function ResetPassword() {
             >
               Set new password
             </h1>
-            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.45)" }}>
+            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.80)" }}>
               Choose a strong password for your account
             </p>
 
@@ -185,7 +185,7 @@ export default function ResetPassword() {
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:opacity-80"
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(245,240,232,0.35)", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(245,240,232,0.65)", padding: 0, minHeight: "auto", minWidth: "auto" }}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -252,7 +252,7 @@ export default function ResetPassword() {
       <button
         onClick={() => navigate("/login")}
         className="mt-6 flex items-center gap-1.5 text-sm transition-colors hover:opacity-70"
-        style={{ color: "rgba(245,240,232,0.30)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+        style={{ color: "rgba(245,240,232,0.65)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
       >
         <ArrowLeft size={14} />
         Back to Sign In

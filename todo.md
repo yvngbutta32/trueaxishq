@@ -787,3 +787,32 @@
 - [x] Portal getToken — accept origin from frontend input so URL is correct in all environments
 - [x] Dashboard portal Share Portal button — pass window.location.origin to getToken mutation
 - [x] 0 TypeScript errors, 29/29 tests passing
+
+## Legibility & Text Contrast Audit (Apr 14, 2026)
+- [ ] Audit global CSS — check all opacity-based text colors for contrast
+- [ ] Home page — fix all low-contrast text (muted grays on dark bg)
+- [ ] Login/Register pages — fix any low-contrast labels or helper text
+- [ ] Dashboard panels — fix all muted/gray text on light gray backgrounds
+- [ ] Pricing page — fix text contrast on dark gradient sections
+- [ ] About/Help/Contact/Terms/Privacy pages — fix any low-contrast text
+- [ ] BookingPage — fix text on dark background
+- [ ] ClientPortal — fix text contrast throughout
+- [ ] Admin panel — fix any low-contrast text
+- [ ] Billing page — fix text on dark background sections
+
+## Remove All SkillBridge References (Apr 14, 2026)
+- [ ] Find and replace all "SkillBridge" / "skillbridge" in all source files
+- [ ] Update package.json name if it still says skillbridge
+- [ ] Update any email templates, server strings, test files
+- [ ] Verify 0 remaining occurrences
+
+## Legibility & Text Contrast Audit (Apr 14, 2026)
+- [x] Dashboard.tsx — upgraded text-gray-400/300 to text-gray-600/500 (147 instances, light bg)
+- [x] Admin.tsx — same gray text upgrade for light background
+- [x] BookingPage.tsx + ClientPortal.tsx — same gray text upgrade
+- [x] CheckoutSuccess, Billing, ForgotPassword, ResetPassword — same gray text upgrade
+- [x] Home.tsx — fixed all low-opacity rgba text (0.25–0.45 range → 0.65–0.85)
+- [x] Pricing.tsx — fixed all low-opacity rgba text across plans, comparison table, FAQ
+- [x] About.tsx — fixed story text, stats labels, mission card body text
+- [x] ResetPassword.tsx + ForgotPassword.tsx — fixed subtitle and back-link text
+- [x] Removed remaining SkillBridge references from robots.txt

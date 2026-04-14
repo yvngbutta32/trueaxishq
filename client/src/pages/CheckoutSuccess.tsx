@@ -57,7 +57,7 @@ export default function CheckoutSuccess() {
         >
           You're all set! 🎉
         </h1>
-        <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+        <p className="text-gray-600 text-sm mb-8 leading-relaxed">
           Your subscription is now active. Welcome to TrueAxis HQ — your business is about to run on autopilot.
         </p>
 
@@ -89,7 +89,7 @@ export default function CheckoutSuccess() {
           </Button>
           <Button
             variant="ghost"
-            className="w-full text-gray-500 gap-2"
+            className="w-full text-gray-600 gap-2"
             onClick={() => navigate("/billing")}
             aria-label="View your billing details"
           >
@@ -98,7 +98,7 @@ export default function CheckoutSuccess() {
           </Button>
         </div>
 
-        <p className="text-xs text-gray-400 mt-6">
+        <p className="text-xs text-gray-600 mt-6">
           A receipt has been sent to your email. Questions? Email{" "}
           <a href="mailto:support@trueaxishq.com" className="text-[#E8A020] hover:underline focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-1 rounded">
             support@trueaxishq.com

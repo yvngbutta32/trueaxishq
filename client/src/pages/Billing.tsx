@@ -63,7 +63,7 @@ export default function Billing() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-sm">
-          <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" aria-hidden="true" />
+          <Shield className="w-12 h-12 text-gray-600 mx-auto mb-4" aria-hidden="true" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">Sign in to manage billing</h1>
           <Button className="gradient-amber text-white border-0 mt-4" onClick={() => window.location.href = "/login"}>
             Sign In
@@ -101,7 +101,7 @@ export default function Billing() {
           <h1 className="text-2xl font-extrabold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
             Billing & Subscription
           </h1>
-          <p className="text-gray-400 text-sm">Manage your plan, upgrade, or access your billing history.</p>
+          <p className="text-gray-600 text-sm">Manage your plan, upgrade, or access your billing history.</p>
         </div>
 
         {/* Current Plan Card */}
@@ -170,7 +170,7 @@ export default function Billing() {
                 className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all min-h-[40px] ${
                   interval === opt
                     ? "gradient-amber text-white shadow-sm"
-                    : "text-gray-400 hover:text-gray-200"
+                    : "text-gray-600 hover:text-gray-200"
                 }`}
               >
                 {opt === "monthly" ? "Monthly" : "Annual"}
@@ -230,11 +230,11 @@ export default function Billing() {
                     <h3 className="text-lg font-extrabold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                       {plan.name}
                     </h3>
-                    <p className="text-xs text-gray-400 mb-4">{plan.description}</p>
+                    <p className="text-xs text-gray-600 mb-4">{plan.description}</p>
 
                     <div className="mb-5">
                       <span className="text-3xl font-extrabold text-white">${price}</span>
-                      <span className="text-sm text-gray-400">/mo</span>
+                      <span className="text-sm text-gray-600">/mo</span>
                       {interval === "annual" && (
                         <p className="text-xs text-green-600 font-semibold mt-0.5">Billed annually</p>
                       )}
@@ -242,7 +242,7 @@ export default function Billing() {
 
                     <ul className="space-y-2 mb-6 flex-1" aria-label={`${plan.name} features`}>
                       {plan.features.map((feature: string) => (
-                        <li key={feature} className="flex items-start gap-2 text-sm text-gray-300">
+                        <li key={feature} className="flex items-start gap-2 text-sm text-gray-500">
                           <CheckCircle className="w-4 h-4 text-[#E8A020] flex-shrink-0 mt-0.5" aria-hidden="true" />
                           {feature}
                         </li>
@@ -252,7 +252,7 @@ export default function Billing() {
                     {isCurrent ? (
                       <Button
                         variant="outline"
-                        className="w-full bg-transparent border-white/20 text-gray-400 cursor-not-allowed hover:bg-transparent hover:text-gray-400 hover:border-white/20"
+                        className="w-full bg-transparent border-white/20 text-gray-600 cursor-not-allowed hover:bg-transparent hover:text-gray-600 hover:border-white/20"
                         disabled
                         aria-label={`You are currently on the ${plan.name} plan`}
                       >

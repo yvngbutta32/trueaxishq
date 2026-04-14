@@ -142,13 +142,13 @@ export default function Pricing() {
             <br />
             <span style={{ color: "#E8A020" }}>Get 10× back.</span>
           </h1>
-          <p className="mt-4 mb-10 max-w-xl mx-auto" style={{ color: "rgba(245,240,232,0.45)", fontSize: "1.0625rem" }}>
+          <p className="mt-4 mb-10 max-w-xl mx-auto" style={{ color: "rgba(245,240,232,0.80)", fontSize: "1.0625rem" }}>
             Every plan includes a 14-day free trial. No credit card required. Cancel anytime.
           </p>
 
           {/* Billing toggle */}
           <div className="flex items-center justify-center gap-4" role="group" aria-label="Billing period">
-            <span className="text-sm font-medium" style={{ color: !annual ? "#F5F0E8" : "rgba(245,240,232,0.35)" }}>Monthly</span>
+            <span className="text-sm font-medium" style={{ color: !annual ? "#F5F0E8" : "rgba(245,240,232,0.60)" }}>Monthly</span>
             <button
               onClick={() => setAnnual(!annual)}
               role="switch"
@@ -158,7 +158,7 @@ export default function Pricing() {
             >
               <div className="absolute top-0.5 w-5 h-5 rounded-full shadow transition-transform" style={{ background: "#F5F0E8", transform: annual ? "translateX(1.5rem)" : "translateX(0.125rem)" }} />
             </button>
-            <span className="text-sm font-medium flex items-center gap-2" style={{ color: annual ? "#F5F0E8" : "rgba(245,240,232,0.35)" }}>
+            <span className="text-sm font-medium flex items-center gap-2" style={{ color: annual ? "#F5F0E8" : "rgba(245,240,232,0.60)" }}>
               Annual
               <span className="tag tag-amber" style={{ fontSize: "0.65rem" }}>Save 20%</span>
             </span>
@@ -204,7 +204,7 @@ export default function Pricing() {
                     {plan.name === "Pro" ? <Brain className="w-5 h-5" style={{ color: plan.accentColor }} /> : <Zap className="w-5 h-5" style={{ color: plan.accentColor }} />}
                   </div>
                   <h3 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.25rem", color: "#F5F0E8" }}>{plan.name}</h3>
-                  <p className="text-sm mt-1" style={{ color: "rgba(245,240,232,0.40)" }}>{plan.description}</p>
+                  <p className="text-sm mt-1" style={{ color: "rgba(245,240,232,0.75)" }}>{plan.description}</p>
                 </div>
 
                 <div className="mb-6">
@@ -212,7 +212,7 @@ export default function Pricing() {
                     <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "2.5rem", color: "#F5F0E8", lineHeight: 1 }}>
                       ${annual ? plan.price.annual : plan.price.monthly}
                     </span>
-                    <span className="mb-1 text-sm" style={{ color: "rgba(245,240,232,0.35)" }}>/mo</span>
+                    <span className="mb-1 text-sm" style={{ color: "rgba(245,240,232,0.65)" }}>/mo</span>
                   </div>
                   {annual && (
                     <p className="text-xs mt-1" style={{ color: "#E8A020" }}>
@@ -245,9 +245,9 @@ export default function Pricing() {
                     </li>
                   ))}
                   {plan.notIncluded.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2.5 text-sm opacity-30">
-                      <X className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "rgba(245,240,232,0.30)" }} />
-                      <span style={{ color: "rgba(245,240,232,0.35)", textDecoration: "line-through" }}>{feature}</span>
+                    <li key={feature} className="flex items-start gap-2.5 text-sm opacity-50">
+                      <X className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "rgba(245,240,232,0.50)" }} />
+                      <span style={{ color: "rgba(245,240,232,0.55)", textDecoration: "line-through" }}>{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -271,10 +271,10 @@ export default function Pricing() {
             <div className="overflow-x-auto">
             {/* Header */}
             <div className="grid grid-cols-4 min-w-[480px] px-5 py-3" style={{ background: "#272727", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
-              <div className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(245,240,232,0.30)" }}>Feature</div>
+              <div className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(245,240,232,0.60)" }}>Feature</div>
               {["Starter", "Pro", "Agency"].map((p, i) => (
                 <div key={p} className="text-center">
-                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: i === 1 ? "#E8A020" : "rgba(245,240,232,0.50)" }}>{p}</span>
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: i === 1 ? "#E8A020" : "rgba(245,240,232,0.80)" }}>{p}</span>
                 </div>
               ))}
             </div>
@@ -286,9 +286,9 @@ export default function Pricing() {
                 className="grid grid-cols-4 min-w-[480px] px-5 py-3"
                 style={{ background: i % 2 === 0 ? "#1E1E1E" : "#141414", borderBottom: i < comparisonRows.length - 1 ? "1px solid rgba(245,240,232,0.04)" : "none" }}
               >
-                <div className="text-sm" style={{ color: "rgba(245,240,232,0.60)" }}>{row.feature}</div>
+                <div className="text-sm" style={{ color: "rgba(245,240,232,0.85)" }}>{row.feature}</div>
                 {[row.starter, row.pro, row.agency].map((val, j) => (
-                  <div key={j} className="text-center text-sm" style={{ color: val === "—" ? "rgba(245,240,232,0.18)" : j === 1 ? "#E8A020" : "rgba(245,240,232,0.55)" }}>
+                  <div key={j} className="text-center text-sm" style={{ color: val === "—" ? "rgba(245,240,232,0.50)" : j === 1 ? "#E8A020" : "rgba(245,240,232,0.85)" }}>
                     {val === "✓" ? <CheckCircle className="w-4 h-4 mx-auto" style={{ color: j === 1 ? "#E8A020" : "#7A9A8A" }} /> : val}
                   </div>
                 ))}
@@ -309,7 +309,7 @@ export default function Pricing() {
               { icon: Star, text: "4.9/5 on G2 (320+ reviews)" },
               { icon: Zap, text: "99.9% Uptime SLA" },
             ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-2" style={{ color: "rgba(245,240,232,0.40)" }}>
+              <div key={text} className="flex items-center gap-2" style={{ color: "rgba(245,240,232,0.80)" }}>
                 <Icon className="w-4 h-4" style={{ color: "#E8A020" }} />
                 {text}
               </div>
@@ -327,7 +327,7 @@ export default function Pricing() {
             </div>
             <div className="text-center sm:text-left">
               <h3 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.125rem", color: "#F5F0E8" }}>30-Day Money-Back Guarantee</h3>
-              <p className="mt-1 text-sm" style={{ color: "rgba(245,240,232,0.50)" }}>Try TrueAxis HQ risk-free for 30 days. If you’re not completely satisfied, we’ll refund every cent — no questions asked, no hoops to jump through.</p>
+              <p className="mt-1 text-sm" style={{ color: "rgba(245,240,232,0.80)" }}>Try TrueAxis HQ risk-free for 30 days. If you’re not completely satisfied, we’ll refund every cent — no questions asked, no hoops to jump through.</p>
             </div>
           </div>
         </div>
@@ -354,7 +354,7 @@ export default function Pricing() {
                   <span className="text-lg transition-transform" style={{ color: "#E8A020", transform: openFaq === i ? "rotate(45deg)" : "none", display: "inline-block" }}>+</span>
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-4 text-sm leading-relaxed" style={{ background: "rgba(232,160,32,0.02)", borderTop: "1px solid rgba(232,160,32,0.08)", color: "rgba(245,240,232,0.50)" }}>
+                  <div className="px-5 pb-4 text-sm leading-relaxed" style={{ background: "rgba(232,160,32,0.02)", borderTop: "1px solid rgba(232,160,32,0.08)", color: "rgba(245,240,232,0.85)" }}>
                     {faq.a}
                   </div>
                 )}
@@ -372,7 +372,7 @@ export default function Pricing() {
           <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
             Start your free trial today.
           </h2>
-          <p className="mt-3 mb-8" style={{ color: "rgba(245,240,232,0.40)" }}>14 days free. No credit card. Cancel anytime.</p>
+          <p className="mt-3 mb-8" style={{ color: "rgba(245,240,232,0.80)" }}>14 days free. No credit card. Cancel anytime.</p>
           <button onClick={() => navigate("/dashboard")} className="btn-amber" style={{ padding: "0.75rem 2.5rem", fontSize: "1rem" }}>
             Get Started Free
             <Zap className="w-4 h-4" />

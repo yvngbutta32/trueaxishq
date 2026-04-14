@@ -69,7 +69,7 @@ export default function BookingPage() {
       <div className="min-h-screen bg-[#141414] flex items-center justify-center" role="status" aria-label="Loading booking page">
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-[#E8A020] animate-spin mx-auto mb-3" aria-hidden="true" />
-          <p className="text-gray-500 text-sm">Loading booking page…</p>
+          <p className="text-gray-600 text-sm">Loading booking page…</p>
         </div>
       </div>
     );
@@ -81,10 +81,10 @@ export default function BookingPage() {
       <div className="min-h-screen bg-[#141414] flex items-center justify-center">
         <div className="text-center max-w-sm">
           <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-            <User className="w-8 h-8 text-gray-400" />
+            <User className="w-8 h-8 text-gray-600" />
           </div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">Page Not Found</h1>
-          <p className="text-gray-500 text-sm">The booking page for <strong>@{username}</strong> doesn't exist or has been removed.</p>
+          <p className="text-gray-600 text-sm">The booking page for <strong>@{username}</strong> doesn't exist or has been removed.</p>
         </div>
       </div>
     );
@@ -103,24 +103,24 @@ export default function BookingPage() {
           <h1 className="text-2xl font-extrabold text-gray-900 mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
             Booking Request Sent!
           </h1>
-          <p className="text-gray-500 mb-6">
+          <p className="text-gray-600 mb-6">
             Your request has been sent to <strong>{host.name}</strong>. They'll reach out to confirm your appointment at <strong>{form.preferredTime}</strong> on <strong>{form.preferredDate}</strong>.
           </p>
           <div className="bg-gray-50 rounded-2xl p-4 text-left space-y-2 mb-6">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Service</span>
+              <span className="text-gray-600">Service</span>
               <span className="font-semibold text-gray-900">{form.service}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Date</span>
+              <span className="text-gray-600">Date</span>
               <span className="font-semibold text-gray-900">{form.preferredDate}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Time</span>
+              <span className="text-gray-600">Time</span>
               <span className="font-semibold text-gray-900">{form.preferredTime}</span>
             </div>
           </div>
-          <p className="text-xs text-gray-400">A confirmation will be sent to <strong>{form.clientEmail}</strong></p>
+          <p className="text-xs text-gray-600">A confirmation will be sent to <strong>{form.clientEmail}</strong></p>
         </div>
       </div>
     );
@@ -140,7 +140,7 @@ export default function BookingPage() {
           />
           <div className="w-px h-5 bg-white/15 flex-shrink-0" aria-hidden="true" />
           <div>
-            <p className="text-xs text-gray-500">Booking with</p>
+            <p className="text-xs text-gray-600">Booking with</p>
             <h1 className="text-sm font-bold text-white" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               {host.name}
             </h1>
@@ -174,14 +174,14 @@ export default function BookingPage() {
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                         isDone ? "bg-[#E8A020] text-[#1C1C1E]" :
                         isCurrent ? "bg-[#E8A020]/20 text-[#E8A020] border-2 border-[#E8A020]" :
-                        "bg-white/10 text-gray-500"
+                        "bg-white/10 text-gray-600"
                       }`}
                       aria-current={isCurrent ? "step" : undefined}
                     >
                       {isDone ? <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" /> : i + 1}
                     </div>
                     <span className={`text-xs font-medium hidden sm:block ${
-                      isCurrent ? "text-[#E8A020]" : isDone ? "text-gray-300" : "text-gray-600"
+                      isCurrent ? "text-[#E8A020]" : isDone ? "text-gray-500" : "text-gray-600"
                     }`}>
                       {s.label}
                     </span>
@@ -203,7 +203,7 @@ export default function BookingPage() {
             <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               Tell us about yourself
             </h2>
-            <p className="text-sm text-gray-400 mb-6">We'll share this with {host.name} to prepare for your session.</p>
+            <p className="text-sm text-gray-600 mb-6">We'll share this with {host.name} to prepare for your session.</p>
 
             <div className="space-y-4">
               <div>
@@ -211,7 +211,7 @@ export default function BookingPage() {
                   Full Name <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" aria-hidden="true" />
                   <input
                     id="client-name"
                     type="text"
@@ -231,7 +231,7 @@ export default function BookingPage() {
                   Email Address <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" aria-hidden="true" />
                   <input
                     id="client-email"
                     type="email"
@@ -251,7 +251,7 @@ export default function BookingPage() {
                   Service Needed <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
+                  <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" aria-hidden="true" />
                   <select
                     id="service-select"
                     value={form.service}
@@ -271,10 +271,10 @@ export default function BookingPage() {
 
               <div>
                 <label htmlFor="client-message" className="form-label">
-                  Message <span className="text-gray-400 font-normal">(optional)</span>
+                  Message <span className="text-gray-600 font-normal">(optional)</span>
                 </label>
                 <div className="relative">
-                  <MessageSquare className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" aria-hidden="true" />
+                  <MessageSquare className="absolute left-3.5 top-3 w-4 h-4 text-gray-600" aria-hidden="true" />
                   <textarea
                     id="client-message"
                     value={form.message}
@@ -309,7 +309,7 @@ export default function BookingPage() {
           <section aria-label="Select date and time">
             <button
               onClick={() => setStep("details")}
-              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
+              className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
               aria-label="Back to your details"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
@@ -318,7 +318,7 @@ export default function BookingPage() {
             <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               Choose a date & time
             </h2>
-            <p className="text-sm text-gray-400 mb-6">All times are shown in your local timezone.</p>
+            <p className="text-sm text-gray-600 mb-6">All times are shown in your local timezone.</p>
 
             {/* Date picker */}
             <fieldset className="mb-6">
@@ -338,10 +338,10 @@ export default function BookingPage() {
                       className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2 ${
                         isSelected
                           ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]"
-                          : "border-white/15 bg-white/5 hover:border-white/25 text-gray-300"
+                          : "border-white/15 bg-white/5 hover:border-white/25 text-gray-500"
                       }`}
                     >
-                      <p className="text-xs text-gray-500">{dayName}</p>
+                      <p className="text-xs text-gray-600">{dayName}</p>
                       <p className="text-lg font-bold">{dayNum}</p>
                     </button>
                   );
@@ -365,7 +365,7 @@ export default function BookingPage() {
                         className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2 ${
                           isSelected
                             ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]"
-                            : "border-white/15 bg-white/5 hover:border-white/25 text-gray-300"
+                            : "border-white/15 bg-white/5 hover:border-white/25 text-gray-500"
                         }`}
                       >
                         {time}
@@ -396,7 +396,7 @@ export default function BookingPage() {
           <section aria-label="Confirm your booking">
             <button
               onClick={() => setStep("datetime")}
-              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
+              className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
               aria-label="Back to date and time selection"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
@@ -405,7 +405,7 @@ export default function BookingPage() {
             <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               Confirm your booking
             </h2>
-            <p className="text-sm text-gray-400 mb-6">Please review the details below before submitting.</p>
+            <p className="text-sm text-gray-600 mb-6">Please review the details below before submitting.</p>
 
             <div className="bg-white/5 rounded-2xl border border-white/10 p-5 space-y-4 mb-6">
               <div className="flex items-center gap-3 pb-4 border-b border-white/10">
@@ -414,7 +414,7 @@ export default function BookingPage() {
                 </div>
                 <div>
                   <p className="font-bold text-white">{host.name}</p>
-                  <p className="text-xs text-gray-500">Your service provider</p>
+                  <p className="text-xs text-gray-600">Your service provider</p>
                 </div>
               </div>
 
@@ -427,10 +427,10 @@ export default function BookingPage() {
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white/8 border border-white/10 flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                    <Icon className="w-4 h-4 text-gray-400" />
+                    <Icon className="w-4 h-4 text-gray-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">{label}</p>
+                    <p className="text-xs text-gray-600">{label}</p>
                     <p className="text-sm font-semibold text-white">{value}</p>
                   </div>
                 </div>
@@ -439,11 +439,11 @@ export default function BookingPage() {
               {form.message && (
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white/8 border border-white/10 flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
-                    <MessageSquare className="w-4 h-4 text-gray-400" />
+                    <MessageSquare className="w-4 h-4 text-gray-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Message</p>
-                    <p className="text-sm text-gray-300">{form.message}</p>
+                    <p className="text-xs text-gray-600">Message</p>
+                    <p className="text-sm text-gray-500">{form.message}</p>
                   </div>
                 </div>
               )}
@@ -468,7 +468,7 @@ export default function BookingPage() {
               )}
             </Button>
 
-            <p className="text-xs text-gray-400 text-center mt-3">
+            <p className="text-xs text-gray-600 text-center mt-3">
               By booking, you agree that {host.name} will contact you to confirm the appointment.
             </p>
           </section>

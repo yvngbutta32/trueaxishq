@@ -94,7 +94,7 @@ export default function ForgotPassword() {
             >
               Reset your password
             </h1>
-            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.45)" }}>
+            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.80)" }}>
               Enter your email and we'll send you a reset link
             </p>
 
@@ -141,7 +141,7 @@ export default function ForgotPassword() {
               </button>
             </form>
 
-            <p className="text-center mt-6 text-sm" style={{ color: "rgba(245,240,232,0.40)" }}>
+            <p className="text-center mt-6 text-sm" style={{ color: "rgba(245,240,232,0.75)" }}>
               Remember your password?{" "}
               <button
                 onClick={() => navigate("/login")}

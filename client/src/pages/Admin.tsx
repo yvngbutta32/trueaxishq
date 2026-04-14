@@ -26,7 +26,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
       </div>
       <p className="text-3xl font-extrabold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{value}</p>
       <p className="text-sm font-semibold text-gray-700 mt-1">{label}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-gray-600 mt-0.5">{sub}</p>}
     </article>
   );
 }
@@ -216,7 +216,7 @@ export default function Admin() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="w-12 h-12 rounded-full border-4 border-[#E8A020] border-t-transparent animate-spin mx-auto mb-4" />
-          <p className="text-gray-500 text-sm">Loading admin panel…</p>
+          <p className="text-gray-600 text-sm">Loading admin panel…</p>
         </div>
       </div>
     );
@@ -226,9 +226,9 @@ export default function Admin() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-sm">
-          <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <AlertCircle className="w-12 h-12 text-gray-600 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">Sign in required</h1>
-          <p className="text-gray-500 text-sm mb-6">You need to be signed in to access the admin panel.</p>
+          <p className="text-gray-600 text-sm mb-6">You need to be signed in to access the admin panel.</p>
           <Button className="gradient-amber text-white border-0" onClick={() => window.location.href = "/login"}>Sign In</Button>
         </div>
       </div>
@@ -239,9 +239,9 @@ export default function Admin() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-sm">
-          <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <Shield className="w-12 h-12 text-gray-600 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-500 text-sm mb-6">This area is restricted to administrators only.</p>
+          <p className="text-gray-600 text-sm mb-6">This area is restricted to administrators only.</p>
           <Button variant="outline" onClick={() => navigate("/dashboard")}>Back to Dashboard</Button>
         </div>
       </div>
@@ -277,11 +277,11 @@ export default function Admin() {
           <div className="hidden sm:block w-px h-6 bg-white/10" />
           <div className="hidden sm:flex items-center gap-1.5">
             <Crown className="w-3.5 h-3.5 text-[#E8A020]" />
-            <span className="text-sm font-semibold text-gray-300" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Admin Panel</span>
+            <span className="text-sm font-semibold text-gray-500" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Admin Panel</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-white/10 text-xs sm:text-sm" onClick={() => navigate("/dashboard")}>
+          <Button variant="ghost" size="sm" className="text-gray-500 hover:text-white hover:bg-white/10 text-xs sm:text-sm" onClick={() => navigate("/dashboard")}>
             <span className="hidden sm:inline">← Dashboard</span>
             <span className="sm:hidden">← Back</span>
           </Button>
@@ -302,7 +302,7 @@ export default function Admin() {
               className={`flex items-center gap-2 px-3 sm:px-4 py-3.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap min-h-[48px] ${
                 activeTab === tab.id
                   ? "border-[#E8A020] text-[#E8A020]"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200"
+                  : "border-transparent text-gray-600 hover:text-gray-700 hover:border-gray-200"
               }`}
             >
               <tab.icon className="w-4 h-4 flex-shrink-0" />
@@ -372,11 +372,11 @@ export default function Admin() {
           <section aria-label="User management">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>User Management</h2>
-              <p className="text-sm text-gray-500">{usersQuery.data?.total ?? 0} total users</p>
+              <p className="text-sm text-gray-600">{usersQuery.data?.total ?? 0} total users</p>
             </div>
 
             <div className="relative mb-5">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
               <input
                 type="search"
                 value={search}
@@ -391,12 +391,12 @@ export default function Admin() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-100 bg-gray-50">
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Plan</th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Joined</th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-                      <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">User</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Plan</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Joined</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
+                      <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -410,7 +410,7 @@ export default function Admin() {
                       ))
                     ) : usersQuery.data?.users.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-5 py-12 text-center text-gray-400">
+                        <td colSpan={6} className="px-5 py-12 text-center text-gray-600">
                           <Users className="w-8 h-8 mx-auto mb-2 opacity-40" />
                           <p>No users found</p>
                         </td>
@@ -425,7 +425,7 @@ export default function Admin() {
                               </div>
                               <div>
                                 <p className="font-semibold text-gray-900">{u.name ?? "Unknown"}</p>
-                                <p className="text-xs text-gray-400">{u.email ?? "No email"}</p>
+                                <p className="text-xs text-gray-600">{u.email ?? "No email"}</p>
                               </div>
                             </div>
                           </td>
@@ -460,7 +460,7 @@ export default function Admin() {
                                 >
                                   <Save className="w-3.5 h-3.5" />
                                 </button>
-                                <button onClick={() => setEditingPlanUserId(null)} className="p-1 text-gray-400 hover:text-gray-600" title="Cancel">
+                                <button onClick={() => setEditingPlanUserId(null)} className="p-1 text-gray-600 hover:text-gray-600" title="Cancel">
                                   <X className="w-3.5 h-3.5" />
                                 </button>
                               </div>
@@ -473,7 +473,7 @@ export default function Admin() {
                                     setEditPlanId(u.planId ?? "free");
                                     setEditSubStatus(u.subscriptionStatus ?? "free");
                                   }}
-                                  className="p-0.5 text-gray-300 hover:text-gray-500"
+                                  className="p-0.5 text-gray-500 hover:text-gray-600"
                                   title="Override plan"
                                 >
                                   <Edit2 className="w-3 h-3" />
@@ -482,9 +482,9 @@ export default function Admin() {
                             )}
                           </td>
                           <td className="px-5 py-4"><StatusBadge status={u.subscriptionStatus ?? "free"} /></td>
-                          <td className="px-5 py-4 text-gray-500 text-xs">{new Date(u.createdAt).toLocaleDateString()}</td>
+                          <td className="px-5 py-4 text-gray-600 text-xs">{new Date(u.createdAt).toLocaleDateString()}</td>
                           <td className="px-5 py-4">
-                            <span className={`inline-flex items-center gap-1 text-xs font-semibold ${u.role === "admin" ? "text-purple-700" : "text-gray-500"}`}>
+                            <span className={`inline-flex items-center gap-1 text-xs font-semibold ${u.role === "admin" ? "text-purple-700" : "text-gray-600"}`}>
                               {u.role === "admin" ? <Shield className="w-3 h-3" /> : null}
                               {u.role}
                             </span>
@@ -525,7 +525,7 @@ export default function Admin() {
 
               {(usersQuery.data?.total ?? 0) > 20 && (
                 <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-600">
                     Showing {((page - 1) * 20) + 1}–{Math.min(page * 20, usersQuery.data?.total ?? 0)} of {usersQuery.data?.total} users
                   </p>
                   <div className="flex gap-2">
@@ -544,7 +544,7 @@ export default function Admin() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Email Leads</h2>
-                <p className="text-sm text-gray-500 mt-0.5">{leadsQuery.data?.total ?? 0} leads captured from the landing page</p>
+                <p className="text-sm text-gray-600 mt-0.5">{leadsQuery.data?.total ?? 0} leads captured from the landing page</p>
               </div>
               <Button
                 variant="outline" size="sm"
@@ -564,33 +564,33 @@ export default function Admin() {
               </Button>
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-              <div className="hidden sm:grid grid-cols-4 gap-4 px-6 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <div className="hidden sm:grid grid-cols-4 gap-4 px-6 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide">
                 <span>Name</span><span>Email</span><span>Source</span><span>Date</span>
               </div>
               {leadsQuery.isLoading ? (
-                <div className="p-6 text-center text-gray-400">
+                <div className="p-6 text-center text-gray-600">
                   <div className="w-8 h-8 border-2 border-[#E8A020] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                   <p className="text-sm">Loading leads…</p>
                 </div>
               ) : !leadsQuery.data?.leads || leadsQuery.data.leads.length === 0 ? (
-                <div className="py-16 text-center text-gray-400">
+                <div className="py-16 text-center text-gray-600">
                   <Mail className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                  <p className="text-sm font-medium text-gray-500">No leads captured yet</p>
+                  <p className="text-sm font-medium text-gray-600">No leads captured yet</p>
                   <p className="text-xs mt-1">Email sign-ups from the landing page will appear here.</p>
                 </div>
               ) : leadsQuery.data.leads.map((lead, i) => (
                 <div key={lead.id} className={`grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 px-6 py-4 ${i > 0 ? "border-t border-gray-50" : ""} hover:bg-gray-50`}>
-                  <p className="text-sm font-medium text-gray-900">{lead.name || <span className="text-gray-400 italic">No name</span>}</p>
+                  <p className="text-sm font-medium text-gray-900">{lead.name || <span className="text-gray-600 italic">No name</span>}</p>
                   <p className="text-sm text-gray-600 truncate">{lead.email}</p>
                   <span className="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-xs font-medium bg-[#E8A020]/10 text-[#007A65]">{lead.source ?? "landing_page"}</span>
-                  <p className="text-sm text-gray-400">{new Date(lead.createdAt).toLocaleDateString()}</p>
+                  <p className="text-sm text-gray-600">{new Date(lead.createdAt).toLocaleDateString()}</p>
                 </div>
               ))}
             </div>
             {(leadsQuery.data?.total ?? 0) > 50 && (
               <div className="flex items-center justify-between mt-4">
                 <Button variant="outline" size="sm" onClick={() => setLeadsPage(p => Math.max(1, p - 1))} disabled={leadsPage === 1}>Previous</Button>
-                <span className="text-sm text-gray-500">Page {leadsPage} of {Math.ceil((leadsQuery.data?.total ?? 0) / 50)}</span>
+                <span className="text-sm text-gray-600">Page {leadsPage} of {Math.ceil((leadsQuery.data?.total ?? 0) / 50)}</span>
                 <Button variant="outline" size="sm" onClick={() => setLeadsPage(p => p + 1)} disabled={leadsPage >= Math.ceil((leadsQuery.data?.total ?? 0) / 50)}>Next</Button>
               </div>
             )}
@@ -601,7 +601,7 @@ export default function Admin() {
         {activeTab === "broadcast" && (
           <section aria-label="Broadcast notification">
             <h2 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Send Broadcast</h2>
-            <p className="text-sm text-gray-500 mb-6">Send an owner notification — useful for tracking important events or reminders.</p>
+            <p className="text-sm text-gray-600 mb-6">Send an owner notification — useful for tracking important events or reminders.</p>
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm max-w-xl">
               <form onSubmit={e => { e.preventDefault(); if (!broadcastTitle.trim() || !broadcastContent.trim()) { toast.error("Please fill in both fields"); return; } broadcastMutation.mutate({ title: broadcastTitle, content: broadcastContent }); }} noValidate>
                 <div className="mb-4">
@@ -631,7 +631,7 @@ export default function Admin() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Site Settings</h2>
-                <p className="text-sm text-gray-500 mt-0.5">Control every aspect of the platform from here</p>
+                <p className="text-sm text-gray-600 mt-0.5">Control every aspect of the platform from here</p>
               </div>
               {settingsDirty && (
                 <Button
@@ -750,7 +750,7 @@ export default function Admin() {
                   <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
                     <Zap className="w-4 h-4 text-[#E8A020]" />
                     Feature Flags
-                    <span className="text-xs font-normal text-gray-400 ml-1">— enable or disable platform features globally</span>
+                    <span className="text-xs font-normal text-gray-600 ml-1">— enable or disable platform features globally</span>
                   </h3>
                   <div className="space-y-4">
                     {[
@@ -764,7 +764,7 @@ export default function Admin() {
                       <div key={key} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
                         <div>
                           <p className="text-sm font-semibold text-gray-900">{label}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
+                          <p className="text-xs text-gray-600 mt-0.5">{desc}</p>
                         </div>
                         <Toggle
                           value={(settingsForm as any)[key] ?? true}
@@ -790,7 +790,7 @@ export default function Admin() {
                       label="Toggle maintenance mode"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mb-4">When enabled, all non-admin users will see a maintenance page instead of the app.</p>
+                  <p className="text-xs text-gray-600 mb-4">When enabled, all non-admin users will see a maintenance page instead of the app.</p>
                   <div>
                     <label className="form-label">Maintenance Message</label>
                     <input type="text" value={settingsForm.maintenanceMessage ?? ""} onChange={e => updateField("maintenanceMessage", e.target.value)} className="form-input-light" placeholder="We're performing scheduled maintenance. Back in 30 minutes!" maxLength={512} />
@@ -820,7 +820,7 @@ export default function Admin() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>System Health</h2>
-                <p className="text-sm text-gray-500 mt-0.5">Live platform diagnostics — auto-refreshes every 30 seconds</p>
+                <p className="text-sm text-gray-600 mt-0.5">Live platform diagnostics — auto-refreshes every 30 seconds</p>
               </div>
               <Button variant="outline" size="sm" onClick={() => healthQuery.refetch()} disabled={healthQuery.isFetching}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${healthQuery.isFetching ? "animate-spin" : ""}`} />
@@ -857,7 +857,7 @@ export default function Admin() {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-gray-900">Server Uptime</p>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-gray-600 mt-0.5">
                           {health.uptimeSeconds < 3600
                             ? `${Math.floor(health.uptimeSeconds / 60)}m ${health.uptimeSeconds % 60}s`
                             : `${Math.floor(health.uptimeSeconds / 3600)}h ${Math.floor((health.uptimeSeconds % 3600) / 60)}m`}
@@ -872,7 +872,7 @@ export default function Admin() {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-gray-900">New Signups (7d)</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{health.recentSignups} new users this week</p>
+                        <p className="text-xs text-gray-600 mt-0.5">{health.recentSignups} new users this week</p>
                       </div>
                     </div>
                   </div>
@@ -893,7 +893,7 @@ export default function Admin() {
                       <div key={label} className="text-center p-4 bg-gray-50 rounded-xl">
                         <p className="text-2xl font-extrabold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{value}</p>
                         <p className="text-xs font-semibold text-gray-700 mt-1">{label}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+                        <p className="text-xs text-gray-600 mt-0.5">{sub}</p>
                       </div>
                     ))}
                   </div>
@@ -919,7 +919,7 @@ export default function Admin() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-16 text-gray-400">
+              <div className="text-center py-16 text-gray-600">
                 <Activity className="w-10 h-10 mx-auto mb-3 opacity-30" />
                 <p className="text-sm">Could not load health data. Try refreshing.</p>
               </div>
@@ -947,7 +947,7 @@ export default function Admin() {
                   }`} />
                   <h2 className="text-lg font-bold text-gray-900">Watchdog Status</h2>
                   {watchdogQuery.data?.checkedAt && (
-                    <span className="text-xs text-gray-400">Last checked: {new Date(watchdogQuery.data.checkedAt).toLocaleTimeString()}</span>
+                    <span className="text-xs text-gray-600">Last checked: {new Date(watchdogQuery.data.checkedAt).toLocaleTimeString()}</span>
                   )}
                 </div>
                 <Button size="sm" variant="outline" onClick={() => watchdogQuery.refetch()} disabled={watchdogQuery.isFetching}>
@@ -984,7 +984,7 @@ export default function Admin() {
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-gray-400">Running watchdog check...</p>
+                <p className="text-sm text-gray-600">Running watchdog check...</p>
               )}
             </div>
 
@@ -999,7 +999,7 @@ export default function Admin() {
                 ].map(stat => (
                   <div key={stat.label} className={`${stat.bg} rounded-2xl p-5 border border-white shadow-sm`}>
                     <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                    <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
+                    <p className="text-xs text-gray-600 mt-1">{stat.label}</p>
                   </div>
                 ))}
               </div>
@@ -1060,7 +1060,7 @@ export default function Admin() {
                   {/* Blocked IPs list */}
                   {securityStatsQuery.data?.permanentBlocklist && securityStatsQuery.data.permanentBlocklist > 0 && (
                     <div className="mt-3">
-                      <p className="text-xs font-semibold text-gray-500 mb-2">{securityStatsQuery.data.permanentBlocklist} IP(s) in permanent blocklist</p>
+                      <p className="text-xs font-semibold text-gray-600 mb-2">{securityStatsQuery.data.permanentBlocklist} IP(s) in permanent blocklist</p>
                     </div>
                   )}
                 </div>
@@ -1093,7 +1093,7 @@ export default function Admin() {
                 </div>
                 {securityStatsQuery.data?.lockedAccounts && securityStatsQuery.data.lockedAccounts.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 mb-2">Currently Locked:</p>
+                    <p className="text-xs font-semibold text-gray-600 mb-2">Currently Locked:</p>
                     <div className="space-y-1 max-h-40 overflow-y-auto">
                       {securityStatsQuery.data.lockedAccounts.map((acct) => (
                         <div key={acct.email} className="flex items-center justify-between bg-amber-50 rounded-lg px-3 py-1.5">
@@ -1151,24 +1151,24 @@ export default function Admin() {
                 </div>
               </div>
               {securityEventsQuery.isLoading ? (
-                <div className="py-8 text-center text-gray-400 text-sm">Loading events...</div>
+                <div className="py-8 text-center text-gray-600 text-sm">Loading events...</div>
               ) : securityEventsQuery.data && securityEventsQuery.data.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-100">
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Time</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Event</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Severity</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">IP</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Details</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Action</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Time</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Event</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Severity</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">IP</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Details</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       {securityEventsQuery.data.map(event => (
                         <tr key={event.id} className={`hover:bg-gray-50 transition-colors ${event.resolved ? "opacity-50" : ""}`}>
-                          <td className="py-2 px-3 text-xs text-gray-400 whitespace-nowrap">
+                          <td className="py-2 px-3 text-xs text-gray-600 whitespace-nowrap">
                             {new Date(event.createdAt).toLocaleString()}
                           </td>
                           <td className="py-2 px-3 font-mono text-xs text-gray-700">{event.eventType}</td>
@@ -1182,7 +1182,7 @@ export default function Admin() {
                               {event.severity}
                             </span>
                           </td>
-                          <td className="py-2 px-3 font-mono text-xs text-gray-500">{event.ip ?? "—"}</td>
+                          <td className="py-2 px-3 font-mono text-xs text-gray-600">{event.ip ?? "—"}</td>
                           <td className="py-2 px-3 text-xs text-gray-600 max-w-xs truncate">{event.details ?? event.email ?? "—"}</td>
                           <td className="py-2 px-3">
                             {!event.resolved && (
@@ -1200,7 +1200,7 @@ export default function Admin() {
                   </table>
                 </div>
               ) : (
-                <div className="py-8 text-center text-gray-400">
+                <div className="py-8 text-center text-gray-600">
                   <Shield className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">No security events found.</p>
                 </div>
@@ -1233,9 +1233,9 @@ export default function Admin() {
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
               <h3 className="text-base font-bold text-gray-900 mb-4">Active Invite Codes</h3>
               {invitesQuery.isLoading ? (
-                <div className="py-8 text-center text-gray-400">Loading...</div>
+                <div className="py-8 text-center text-gray-600">Loading...</div>
               ) : !invitesQuery.data?.length ? (
-                <div className="py-8 text-center text-gray-400">
+                <div className="py-8 text-center text-gray-600">
                   <Key className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">No invite codes yet. Generate one above.</p>
                 </div>
@@ -1244,11 +1244,11 @@ export default function Admin() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-100">
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Code</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Note</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Status</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Created</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Actions</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Code</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Note</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Status</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Created</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1259,21 +1259,21 @@ export default function Admin() {
                               <span className="font-mono font-bold text-[#1C1C1E]">{inv.code}</span>
                               <button
                                 onClick={() => { navigator.clipboard.writeText(inv.code); setCopiedCode(inv.code); setTimeout(() => setCopiedCode(null), 2000); }}
-                                className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                                className="p-1 rounded hover:bg-gray-100 text-gray-600 hover:text-gray-600"
                               >
                                 {copiedCode === inv.code ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                               </button>
                             </div>
                           </td>
-                          <td className="py-2 px-3 text-gray-500">{inv.note || "—"}</td>
+                          <td className="py-2 px-3 text-gray-600">{inv.note || "—"}</td>
                           <td className="py-2 px-3">
                             {inv.usedBy ? (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Used</span>
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Used</span>
                             ) : (
                               <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-600">Available</span>
                             )}
                           </td>
-                          <td className="py-2 px-3 text-gray-400 text-xs">{new Date(inv.createdAt).toLocaleDateString()}</td>
+                          <td className="py-2 px-3 text-gray-600 text-xs">{new Date(inv.createdAt).toLocaleDateString()}</td>
                           <td className="py-2 px-3">
                             {!inv.usedBy && (
                               <button

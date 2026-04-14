@@ -102,7 +102,7 @@ export default function Register() {
               Start your free<br />
               <span style={{ color: "#E8A020" }}>14-day trial.</span>
             </h2>
-            <p className="text-base leading-relaxed" style={{ color: "rgba(245,240,232,0.55)" }}>
+            <p className="text-base leading-relaxed" style={{ color: "rgba(245,240,232,0.80)" }}>
               Everything you need to run your freelance business — in one place.
             </p>
           </div>
@@ -116,7 +116,7 @@ export default function Register() {
                 >
                   <Icon className="w-4 h-4" style={{ color: "#E8A020" }} />
                 </div>
-                <span className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.70)" }}>
+                <span className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.88)" }}>
                   {text}
                 </span>
               </li>
@@ -138,14 +138,14 @@ export default function Register() {
                 <p className="text-lg font-extrabold mb-0.5" style={{ color: "#E8A020", fontFamily: "Space Grotesk, sans-serif" }}>
                   {value}
                 </p>
-                <p className="text-xs" style={{ color: "rgba(245,240,232,0.40)" }}>{label}</p>
+                <p className="text-xs" style={{ color: "rgba(245,240,232,0.70)" }}>{label}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Footer note */}
-        <p className="relative z-10 text-xs" style={{ color: "rgba(245,240,232,0.25)" }}>
+        <p className="relative z-10 text-xs" style={{ color: "rgba(245,240,232,0.50)" }}>
           © 2026 TrueAxis HQ. All rights reserved.
         </p>
       </div>
@@ -170,7 +170,7 @@ export default function Register() {
             >
               Create your account
             </h1>
-            <p style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.45)" }}>
+            <p style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.75)" }}>
               An invite code is required to get started
             </p>
           </div>
@@ -181,7 +181,7 @@ export default function Register() {
               <label
                 htmlFor="inviteCode"
                 className="flex items-center gap-1.5 text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(245,240,232,0.70)" }}
+                style={{ color: "rgba(245,240,232,0.90)" }}
               >
                 <KeyRound size={13} style={{ color: "#E8A020" }} />
                 Invite Code
@@ -205,7 +205,7 @@ export default function Register() {
               <label
                 htmlFor="name"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(245,240,232,0.70)" }}
+                style={{ color: "rgba(245,240,232,0.90)" }}
               >
                 Full Name
               </label>
@@ -226,7 +226,7 @@ export default function Register() {
               <label
                 htmlFor="email"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(245,240,232,0.70)" }}
+                style={{ color: "rgba(245,240,232,0.90)" }}
               >
                 Email address
               </label>
@@ -247,7 +247,7 @@ export default function Register() {
               <label
                 htmlFor="password"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(245,240,232,0.70)" }}
+                style={{ color: "rgba(245,240,232,0.90)" }}
               >
                 Password
               </label>
@@ -266,7 +266,7 @@ export default function Register() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:opacity-80"
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(245,240,232,0.35)", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(245,240,232,0.60)", padding: 0, minHeight: "auto", minWidth: "auto" }}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -279,7 +279,7 @@ export default function Register() {
               <label
                 htmlFor="confirmPassword"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(245,240,232,0.70)" }}
+                style={{ color: "rgba(245,240,232,0.90)" }}
               >
                 Confirm Password
               </label>
@@ -321,7 +321,7 @@ export default function Register() {
             </button>
           </form>
 
-          <p className="mt-6 text-sm" style={{ color: "rgba(245,240,232,0.40)" }}>
+          <p className="mt-6 text-sm" style={{ color: "rgba(245,240,232,0.88)" }}>
             Already have an account?{" "}
             <button
               onClick={() => navigate("/login")}
@@ -335,8 +335,8 @@ export default function Register() {
           <div className="mt-8 pt-6" style={{ borderTop: "1px solid rgba(245,240,232,0.08)" }}>
             <button
               onClick={() => navigate("/")}
-              className="text-sm transition-colors hover:opacity-70 flex items-center gap-1.5"
-              style={{ color: "rgba(245,240,232,0.30)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+              className="text-sm font-medium transition-all hover:opacity-90 flex items-center gap-1.5 px-3 py-2 rounded-lg"
+              style={{ color: "rgba(245,240,232,0.85)", background: "rgba(245,240,232,0.06)", border: "1px solid rgba(245,240,232,0.15)", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
             >
               ← Back to homepage
             </button>
@@ -346,4 +346,3 @@ export default function Register() {
     </div>
   );
 }
-
