@@ -928,7 +928,7 @@ function ClientsPanel() {
               <Button
                 variant="outline"
                 className="flex-1 gap-2 border-blue-200 text-blue-600 hover:bg-blue-50"
-                onClick={() => getPortalToken.mutate({ clientId: selectedClient.id })}
+                onClick={() => getPortalToken.mutate({ clientId: selectedClient.id, origin: window.location.origin })}
                 disabled={getPortalToken.isPending}
               >
                 <ExternalLink className="w-4 h-4" />{getPortalToken.isPending ? "Generating..." : "Share Portal"}
@@ -1188,6 +1188,29 @@ function InvoicesPanel() {
   const [invFilter, setInvFilter] = useState<"all" | "unpaid" | "paid" | "overdue">("all");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkPending, setBulkPending] = useState(false);
+
+  // Handle Stripe redirect back: ?paid=<invoiceId> — auto-mark as paid and clean URL
+  const markPaidFromUrl = trpc.invoices.markPaid.useMutation({
+    onSuccess: () => {
+      utils.invoices.list.invalidate();
+      utils.invoices.stats.invalidate();
+      toast.success("Payment received! Invoice marked as paid.");
+    },
+  });
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paidId = params.get("paid");
+    if (paidId) {
+      const id = parseInt(paidId, 10);
+      if (!isNaN(id)) {
+        markPaidFromUrl.mutate({ id });
+      }
+      // Clean the URL so the param doesn't persist on refresh
+      const cleanUrl = window.location.pathname + "?panel=invoices";
+      window.history.replaceState({}, "", cleanUrl);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function toggleSelect(id: number) {
     setSelectedIds(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });

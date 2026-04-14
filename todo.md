@@ -778,3 +778,12 @@
 - [x] Scheduling modal date/time grid — simplified to grid-cols-2 gap-3 (no xs: breakpoint needed)
 - [x] Pie chart legend — added flex-1 min-w-0 and truncate to prevent overflow on narrow screens
 - [x] Pie chart container — added mx-auto sm:mx-0 for centered layout on mobile
+
+## Flow & System Fixes (Apr 14, 2026)
+- [x] Login — set auth.me cache immediately after login to prevent stale-cache redirect loop to /
+- [x] Register — set auth.me cache immediately after registration for same reason
+- [x] Invoice payNow success URL — changed ?tab=invoices to ?panel=invoices for correct deep-link
+- [x] InvoicesPanel — added ?paid=<id> URL handler to auto-mark invoice as paid on Stripe redirect
+- [x] Portal getToken — accept origin from frontend input so URL is correct in all environments
+- [x] Dashboard portal Share Portal button — pass window.location.origin to getToken mutation
+- [x] 0 TypeScript errors, 29/29 tests passing

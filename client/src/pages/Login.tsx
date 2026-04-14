@@ -19,9 +19,15 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const utils = trpc.useUtils();
 
   const loginMutation = trpc.auth.login.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Immediately populate the auth.me cache so Dashboard sees an authenticated user
+      // before the page even renders — prevents the stale-cache redirect loop
+      if (data.user) {
+        utils.auth.me.setData(undefined, data.user as any);
+      }
       toast.success("Welcome back!");
       navigate("/dashboard");
     },

@@ -667,8 +667,8 @@ export const appRouter = router({
             client_name: inv.clientName,
           },
           client_reference_id: String(inv.id),
-          success_url: `${origin}/dashboard?tab=invoices&paid=${inv.id}`,
-          cancel_url: `${origin}/dashboard?tab=invoices`,
+          success_url: `${origin}/dashboard?panel=invoices&paid=${inv.id}`,
+          cancel_url: `${origin}/dashboard?panel=invoices`,
           allow_promotion_codes: true,
         });
 
@@ -1895,13 +1895,20 @@ export const appRouter = router({
   portal: router({
     // Generate or retrieve a portal token for a specific client
     getToken: protectedProcedure
-      .input(z.object({ clientId: z.number().int().positive() }))
+      .input(z.object({
+        clientId: z.number().int().positive(),
+        // Frontend passes window.location.origin so the URL works in any environment
+        origin: z.string().url().optional(),
+      }))
       .mutation(async ({ input, ctx }) => {
         const db = await requireDb();
         // Check client belongs to this user
         const [client] = await db.select().from(clients)
           .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
         if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+
+        // Use frontend-provided origin (most reliable), fall back to request header
+        const origin = input.origin || ctx.req.headers.origin || "";
 
         // Check for existing valid token
         const [existing] = await db.select().from(clientPortalTokens)
@@ -1911,7 +1918,6 @@ export const appRouter = router({
           )).limit(1);
 
         if (existing) {
-          const origin = ctx.req.headers.origin || "";
           return { token: existing.token, url: `${origin}/portal/${existing.token}` };
         }
 
@@ -1923,7 +1929,6 @@ export const appRouter = router({
           clientId: input.clientId,
           token,
         });
-        const origin = ctx.req.headers.origin || "";
         return { token, url: `${origin}/portal/${token}` };
       }),
 
