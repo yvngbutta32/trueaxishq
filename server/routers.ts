@@ -1595,8 +1595,50 @@ export const appRouter = router({
           .from(users).where(eq(users.bookingUsername, input.hostUsername)).limit(1);
         if (!host[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Booking page not found." });
 
+        const hostId = host[0].id;
+
+        // ── Auto-upsert client record ──────────────────────────────────────────
+        // Check if a client with this email already exists for this host
+        let clientId: number | null = null;
+        let isNewClient = false;
+        if (input.clientEmail) {
+          const existing = await db.select({ id: clients.id })
+            .from(clients)
+            .where(and(eq(clients.userId, hostId), eq(clients.email, input.clientEmail)))
+            .limit(1);
+          if (existing[0]) {
+            // Update their session count and last contacted timestamp
+            clientId = existing[0].id;
+            await db.update(clients).set({
+              sessionsCount: sql`sessionsCount + 1`,
+              lastContactedAt: new Date(),
+              updatedAt: new Date(),
+            }).where(eq(clients.id, clientId));
+          } else {
+            // Create a new client record
+            const initials = input.clientName
+              .split(" ")
+              .map((w: string) => w[0]?.toUpperCase() ?? "")
+              .slice(0, 2)
+              .join("");
+            const inserted = await db.insert(clients).values({
+              userId: hostId,
+              name: input.clientName,
+              email: input.clientEmail,
+              service: input.service || null,
+              status: "active",
+              avatarInitials: initials || input.clientName[0]?.toUpperCase() || "?",
+              sessionsCount: 1,
+              lastContactedAt: new Date(),
+            });
+            clientId = Number((inserted as any).insertId);
+            isNewClient = true;
+          }
+        }
+
         await db.insert(bookings).values({
-          userId: host[0].id,
+          userId: hostId,
+          clientId: clientId || null,
           clientName: input.clientName,
           clientEmail: input.clientEmail,
           service: input.service,
@@ -1628,7 +1670,7 @@ export const appRouter = router({
             freelancerName,
           }),
         }).catch(() => {});
-        return { success: true };
+        return { success: true, isNewClient };
       }),
   }),
 

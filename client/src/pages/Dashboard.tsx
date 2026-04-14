@@ -947,16 +947,59 @@ function ClientsPanel() {
       {/* CSV Import Modal */}
       <Modal open={showCsvImport} onClose={() => { setShowCsvImport(false); setCsvText(""); setCsvPreview([]); }} title="Import Clients from CSV">
         <div className="space-y-4">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
-            <strong>Expected columns:</strong> name, email, phone, service, status (active/inactive/prospect). First row can be a header row.
+          {/* Info + Download Template */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800 flex items-start justify-between gap-3">
+            <div>
+              <strong>Expected columns:</strong> name, email, phone, service, status (active/inactive/prospect). First row can be a header row — works with exports from HoneyBook, Dubsado, 17hats, Notion, and most CRMs.
+            </div>
+            <button
+              onClick={() => {
+                const template = "name,email,phone,service,status\nJane Smith,jane@example.com,+15550001234,Coaching,active\nJohn Doe,john@example.com,,Web Design,active";
+                const blob = new Blob([template], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url; a.download = "clients-import-template.csv"; a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="flex-shrink-0 text-blue-700 underline underline-offset-2 font-semibold hover:text-blue-900 whitespace-nowrap"
+            >
+              Download Template
+            </button>
           </div>
+
+          {/* File upload */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Paste CSV content</label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Upload a CSV file</label>
+            <label className="flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-[#E8A020]/60 hover:bg-amber-50/30 transition-colors">
+              <Upload className="w-4 h-4 text-gray-500" />
+              <span className="text-xs text-gray-600">Click to choose a .csv file, or drag and drop</span>
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                className="sr-only"
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = ev => {
+                    const text = ev.target?.result as string;
+                    setCsvText(text);
+                    parseCsv(text);
+                  };
+                  reader.readAsText(file);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          </div>
+
+          {/* Or paste manually */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Or paste CSV content directly</label>
             <textarea
               value={csvText}
               onChange={e => { setCsvText(e.target.value); parseCsv(e.target.value); }}
               placeholder={`name,email,phone,service\nJane Smith,jane@example.com,+1555000,Coaching\nJohn Doe,john@example.com,,Web Design`}
-              rows={6}
+              rows={5}
               className="form-input-light resize-none font-mono text-xs"
             />
           </div>

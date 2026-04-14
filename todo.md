@@ -822,3 +822,14 @@
 - [x] Remove theme toggle from any other UI locations
 - [x] Lock ThemeProvider to dark mode only in App.tsx (defaultTheme="dark" switchable={false})
 - [x] Remove unused theme-related state/hooks/localStorage logic
+
+## Auto-Add Client on Booking + CSV Import (Apr 14, 2026)
+- [x] booking.submit — upsert client record when public booking is submitted (match by email, create if new)
+- [x] Existing clients get sessionsCount+1 and lastContactedAt updated on re-booking
+- [x] New clients get avatarInitials auto-generated from name
+- [x] booking.submit returns isNewClient flag
+- [x] clients.importCsv tRPC procedure — parse and bulk-insert clients (skip duplicates via onDuplicateKeyUpdate)
+- [x] CSV import modal enhanced with file upload (drag-and-drop / file picker)
+- [x] Download Template button in import modal (pre-filled with example rows)
+- [x] Import info banner mentions HoneyBook, Dubsado, 17hats, Notion compatibility
+- [x] Import result summary toast (X imported, Y skipped)
