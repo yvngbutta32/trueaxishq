@@ -15,6 +15,7 @@ const Home = lazy(() => import("./pages/Home"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Admin = lazy(() => import("./pages/Admin"));
+const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const Billing = lazy(() => import("./pages/Billing"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
 const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
@@ -76,6 +77,7 @@ function Router() {
         <Route path="/billing" component={Billing} />
 
         {/* Owner admin routes */}
+        <Route path="/admin-login" component={AdminLogin} />
         <Route path="/admin" component={Admin} />
         <Route path="/admin/:section" component={Admin} />
 

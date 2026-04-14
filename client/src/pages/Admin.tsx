@@ -224,30 +224,10 @@ export default function Admin() {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-sm">
-          <AlertCircle className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Sign in required</h1>
-          <p className="text-gray-600 text-sm mb-6">You need to be signed in to access the admin panel.</p>
-          <Button className="gradient-amber text-white border-0" onClick={() => window.location.href = "/login"}>Sign In</Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isOwner) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-sm">
-          <Shield className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600 text-sm mb-6">This area is restricted to administrators only.</p>
-          <Button variant="outline" onClick={() => navigate("/dashboard")}>Back to Dashboard</Button>
-        </div>
-      </div>
-    );
+  // Redirect to admin login if not authenticated or not owner
+  if (!loading && (!isAuthenticated || !isOwner)) {
+    navigate("/admin-login");
+    return null;
   }
 
   const stats = statsQuery.data;

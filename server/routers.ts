@@ -158,6 +158,46 @@ export const appRouter = router({
         }
       }),
 
+    adminLogin: publicProcedure
+      .input(z.object({
+        email: safeEmail,
+        password: z.string().min(1).max(128),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const ip = getClientIp(ctx.req);
+        // Check account lockout
+        const lockStatus = isAccountLocked(input.email);
+        if (lockStatus.locked) {
+          const remainingMin = Math.ceil((lockStatus.remainingMs ?? 0) / 60_000);
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: `Account locked. Try again in ${remainingMin} minute${remainingMin !== 1 ? 's' : ''}.` });
+        }
+        try {
+          const user = await loginUser({ email: input.email, password: input.password });
+          // Owner check — only the site owner can use this endpoint
+          if (!ENV.ownerOpenId || user.openId !== ENV.ownerOpenId) {
+            recordFailedLogin(input.email, ip, ctx.req);
+            logSecurityEvent({ eventType: "unauthorized_access", severity: "high", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"], details: "Admin login attempt by non-owner" });
+            throw new TRPCError({ code: "FORBIDDEN", message: "Access denied. Owner credentials required." });
+          }
+          clearFailedLogins(input.email);
+          logSecurityEvent({ eventType: "login_success", severity: "low", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"], details: "Admin login" });
+          const db = await requireDb();
+          await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
+          const token = await createSessionToken(user.id, user.email ?? input.email);
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+          return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
+        } catch (err: any) {
+          if (err instanceof TRPCError) throw err;
+          if (err?.message === "INVALID_CREDENTIALS" || err?.message === "NO_PASSWORD") {
+            recordFailedLogin(input.email, ip, ctx.req);
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });
+          }
+          console.error("[AdminLogin] Error:", err);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Login failed. Please try again." });
+        }
+      }),
+
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });

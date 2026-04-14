@@ -933,3 +933,12 @@
 - [x] Restrict Admin Panel link in sidebar to owner account only (user.isOwner check)
 - [x] Restrict /admin route and all admin procedures to owner account only (ownerProcedure server guard + isOwner frontend guard)
 - [x] auth.me now returns isOwner flag derived from OWNER_OPEN_ID comparison
+
+## Admin Login Page (Apr 14, 2026)
+- [x] Create /admin-login page with email + password form (dark theme, owner-only)
+- [x] Add adminLogin tRPC procedure that verifies email+password and sets session cookie
+- [x] Admin login only succeeds if the user is the owner (OWNER_OPEN_ID check)
+- [x] Redirect /admin to /admin-login if user is not authenticated as owner
+- [x] Wire /admin-login route in App.tsx
+- [x] Add "Back to site" link on admin login page
+- [x] Auto-redirect to /admin if already logged in as owner on /admin-login
