@@ -926,3 +926,10 @@
 - [x] checkout.session.completed webhook already marks invoice as paid
 - [x] Payment confirmation toast shown on redirect back from Stripe
 - [x] Mobile nav Billing button now navigates to Settings panel instead of /billing route
+
+## UI Fixes (Apr 14, 2026)
+- [x] Remove active subscription info and Upgrade button from sidebar footer
+- [x] Fix notification settings toggle switches (proper inline-flex geometry, smooth translate animation)
+- [x] Restrict Admin Panel link in sidebar to owner account only (user.isOwner check)
+- [x] Restrict /admin route and all admin procedures to owner account only (ownerProcedure server guard + isOwner frontend guard)
+- [x] auth.me now returns isOwner flag derived from OWNER_OPEN_ID comparison

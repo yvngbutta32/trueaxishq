@@ -214,21 +214,8 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
 
       {/* Footer */}
       <div className="p-3 border-t border-white/10 space-y-1">
-        {!collapsed && settings?.subscriptionStatus === "active" && (
-          <div className="bg-[#E8A020]/10 border border-[#E8A020]/20 rounded-xl p-3 mb-2">
-            <p className="text-xs font-semibold text-[#E8A020] mb-0.5 capitalize">{settings.planId || "Pro"} Plan</p>
-            <p className="text-xs text-gray-400">Active subscription</p>
-          </div>
-        )}
-        {!collapsed && (!settings?.subscriptionStatus || settings.subscriptionStatus === "inactive") && (
-          <button
-            onClick={() => navigate("/pricing")}
-            className="w-full bg-gradient-to-r from-[#E8A020] to-[#D4911A] text-white text-xs font-semibold px-3 py-2 rounded-xl mb-2 hover:opacity-90 transition-opacity"
-          >
-            Upgrade to Pro →
-          </button>
-        )}
-        {user?.role === "admin" && (
+
+        {(user as any)?.isOwner && (
           <button onClick={() => navigate("/admin")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label="Admin panel">
             <Star className="w-4 h-4 flex-shrink-0" />
             {!collapsed && <span>Admin Panel</span>}
@@ -2760,12 +2747,16 @@ function SettingsPanel() {
             </div>
             <button
               onClick={() => setNotifications(p => ({ ...p, [n.key]: !p[n.key] }))}
-              className={`w-11 h-6 rounded-full transition-colors relative ${notifications[n.key] ? "bg-[#E8A020]" : "bg-gray-200"}`}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A020] focus-visible:ring-offset-2 ${notifications[n.key] ? "bg-[#E8A020]" : "bg-gray-200"}`}
               aria-label={`${notifications[n.key] ? "Disable" : "Enable"} ${n.label} notifications`}
               role="switch"
               aria-checked={notifications[n.key]}
+              type="button"
             >
-              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notifications[n.key] ? "translate-x-5" : "translate-x-0.5"}`} />
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${notifications[n.key] ? "translate-x-5" : "translate-x-0"}`}
+              />
             </button>
           </div>
         ))}
@@ -3061,7 +3052,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
               <CreditCard className="w-4 h-4" />
               Billing
             </button>
-            {user?.role === "admin" && (
+            {(user as any)?.isOwner && (
               <button
                 onClick={() => { navigate("/admin"); setShowSheet(false); }}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"

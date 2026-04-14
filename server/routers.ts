@@ -5,7 +5,8 @@ import Stripe from "stripe";
 import { TRPCError } from "@trpc/server";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, adminProcedure, ownerProcedure, router } from "./_core/trpc";
+import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
@@ -59,7 +60,12 @@ export const appRouter = router({
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(opts => {
+      const user = opts.ctx.user;
+      if (!user) return null;
+      const isOwner = Boolean(ENV.ownerOpenId && user.openId === ENV.ownerOpenId);
+      return { ...user, isOwner };
+    }),
 
     register: publicProcedure
       .input(z.object({
@@ -1414,7 +1420,7 @@ Only include actions when you have actually generated a complete draft. For gene
 
   // ── Admin ─────────────────────────────────────────────────────────────────
   admin: router({
-    listUsers: adminProcedure
+    listUsers: ownerProcedure
       .input(z.object({
         search: z.string().trim().max(200).optional(),
         page: z.number().int().min(1).max(1000).default(1),
@@ -1433,7 +1439,7 @@ Only include actions when you have actually generated a complete draft. For gene
         return { users: filtered.slice(offset, offset + input.limit), total: filtered.length };
       }),
 
-    revenueStats: adminProcedure.query(async () => {
+    revenueStats: ownerProcedure.query(async () => {
       const db = await requireDb();
       const allUsers = await db.select().from(users);
       const paidUsers = allUsers.filter(u => u.subscriptionStatus === "active");
@@ -1449,7 +1455,7 @@ Only include actions when you have actually generated a complete draft. For gene
       return { totalUsers: allUsers.length, paidUsers: paidUsers.length, mrr, arr: mrr * 12, byPlan, totalLeads: allLeads.length };
     }),
 
-    listLeads: adminProcedure
+    listLeads: ownerProcedure
       .input(z.object({ page: z.number().int().min(1).default(1), limit: z.number().int().min(1).max(100).default(50) }))
       .query(async ({ input }) => {
         const db = await requireDb();
@@ -1458,7 +1464,7 @@ Only include actions when you have actually generated a complete draft. For gene
         return { leads: all.slice(offset, offset + input.limit), total: all.length };
       }),
 
-    setUserRole: adminProcedure
+    setUserRole: ownerProcedure
       .input(z.object({ userId: z.number().int().positive(), role: z.enum(["user", "admin"]) }))
       .mutation(async ({ input, ctx }) => {
         if (input.userId === ctx.user.id && input.role === "user") {
@@ -1471,7 +1477,7 @@ Only include actions when you have actually generated a complete draft. For gene
         return { success: true };
       }),
 
-    broadcast: adminProcedure
+    broadcast: ownerProcedure
       .input(z.object({ title: safeString(200), content: safeString(2000) }))
       .mutation(async ({ input }) => {
         const sent = await notifyOwner({ title: `[Broadcast] ${input.title}`, content: input.content });
@@ -1480,7 +1486,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
 
     // ── Platform Settings ───────────────────────────────────────────────────────
-    getSettings: adminProcedure.query(async () => {
+    getSettings: ownerProcedure.query(async () => {
       const db = await requireDb();
       const rows = await db.select().from(platformSettings).limit(1);
       if (rows[0]) return rows[0];
@@ -1490,7 +1496,7 @@ Only include actions when you have actually generated a complete draft. For gene
       return fresh[0]!;
     }),
 
-    updateSettings: adminProcedure
+    updateSettings: ownerProcedure
       .input(z.object({
         siteName: z.string().trim().min(1).max(255).optional(),
         siteTagline: z.string().trim().max(512).optional(),
@@ -1525,7 +1531,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
 
     // ── User Management (extended) ────────────────────────────────────────────
-    updateUserPlan: adminProcedure
+    updateUserPlan: ownerProcedure
       .input(z.object({
         userId: z.number().int().positive(),
         planId: z.enum(["free", "starter", "pro", "agency"]),
@@ -1542,7 +1548,7 @@ Only include actions when you have actually generated a complete draft. For gene
         return { success: true };
       }),
 
-    deleteUser: adminProcedure
+    deleteUser: ownerProcedure
       .input(z.object({ userId: z.number().int().positive() }))
       .mutation(async ({ input, ctx }) => {
         if (input.userId === ctx.user.id) {
@@ -1563,7 +1569,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
 
     // ── Invite Codes ────────────────────────────────────────────────────────────
-    createInvite: adminProcedure
+    createInvite: ownerProcedure
       .input(z.object({
         note: z.string().trim().max(255).optional(),
         expiresInDays: z.number().int().min(1).max(365).optional(), // undefined = never expires
@@ -1587,7 +1593,7 @@ Only include actions when you have actually generated a complete draft. For gene
         return { success: true, code };
       }),
 
-    listInvites: adminProcedure.query(async () => {
+    listInvites: ownerProcedure.query(async () => {
       const db = await requireDb();
       const all = await db.select().from(inviteCodes).orderBy(desc(inviteCodes.createdAt));
       const now = new Date();
@@ -1600,7 +1606,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }));
     }),
 
-    revokeInvite: adminProcedure
+    revokeInvite: ownerProcedure
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
@@ -1614,7 +1620,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
 
     // ── System Health ───────────────────────────────────────────────────────────────
-    getSystemHealth: adminProcedure.query(async () => {
+    getSystemHealth: ownerProcedure.query(async () => {
       const db = await requireDb();
       const now = Date.now();
       const uptimeSeconds = process.uptime();
@@ -1833,7 +1839,7 @@ Only include actions when you have actually generated a complete draft. For gene
   // ── Security (admin-only) ───────────────────────────────────────────────────
   security: router({
     // Get recent security events from DB
-    events: adminProcedure
+    events: ownerProcedure
       .input(z.object({
         limit: z.number().int().min(1).max(200).default(50),
         severity: z.enum(["low", "medium", "high", "critical", "all"]).default("all"),
@@ -1855,12 +1861,12 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
 
     // Get in-memory security stats (blocked IPs, locked accounts, etc.)
-    stats: adminProcedure.query(() => {
+    stats: ownerProcedure.query(() => {
       return getSecurityStats();
     }),
 
     // Resolve a security event (mark as handled)
-    resolveEvent: adminProcedure
+    resolveEvent: ownerProcedure
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
@@ -1871,7 +1877,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
 
     // Resolve all events matching a filter
-    resolveAll: adminProcedure
+    resolveAll: ownerProcedure
       .input(z.object({ severity: z.enum(["low", "medium", "high", "critical", "all"]).default("all") }).optional())
       .mutation(async ({ input }) => {
         const db = await requireDb();
@@ -1885,7 +1891,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
 
     // Block an IP address manually
-    blockIP: adminProcedure
+    blockIP: ownerProcedure
       .input(z.object({
         ip: z.string().min(7).max(45),
         reason: z.string().max(255).optional(),
@@ -1903,7 +1909,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
 
     // Unblock an IP address
-    unblockIP: adminProcedure
+    unblockIP: ownerProcedure
       .input(z.object({ ip: z.string().min(7).max(45) }))
       .mutation(async ({ ctx, input }) => {
         unblockIP(input.ip);
@@ -1918,7 +1924,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
 
     // Unlock a locked account
-    unlockAccount: adminProcedure
+    unlockAccount: ownerProcedure
       .input(z.object({ email: safeEmail }))
       .mutation(async ({ ctx, input }) => {
         clearFailedLogins(input.email);
@@ -1933,7 +1939,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
 
     // Watchdog: check system health and auto-fix issues
-    watchdog: adminProcedure.query(async () => {
+    watchdog: ownerProcedure.query(async () => {
       const db = await requireDb();
       const issues: string[] = [];
       const fixes: string[] = [];

@@ -101,7 +101,8 @@ export default function Admin() {
   const [settingsForm, setSettingsForm] = useState<Record<string, any>>({});
 
   // Queries
-  const statsQuery = trpc.admin.revenueStats.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
+  const isOwner = (user as any)?.isOwner === true;
+  const statsQuery = trpc.admin.revenueStats.useQuery(undefined, { enabled: isAuthenticated && isOwner });
   // Security queries & mutations
   const [blockIPInput, setBlockIPInput] = useState("");
   const [blockIPReason, setBlockIPReason] = useState("");
@@ -144,16 +145,16 @@ export default function Admin() {
 
   const usersQuery = trpc.admin.listUsers.useQuery(
     { search: search || undefined, page, limit: 20 },
-    { enabled: isAuthenticated && user?.role === "admin" }
+    { enabled: isAuthenticated && isOwner }
   );
   const leadsQuery = trpc.admin.listLeads.useQuery(
     { page: leadsPage, limit: 50 },
-    { enabled: isAuthenticated && user?.role === "admin" && activeTab === "leads" }
+    { enabled: isAuthenticated && isOwner && activeTab === "leads" }
   );
   const [newInviteNote, setNewInviteNote] = useState("");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const invitesQuery = trpc.admin.listInvites.useQuery(undefined, {
-    enabled: isAuthenticated && user?.role === "admin" && activeTab === "invites",
+    enabled: isAuthenticated && isOwner && activeTab === "invites",
   });
   const createInviteMutation = trpc.admin.createInvite.useMutation({
     onSuccess: () => { invitesQuery.refetch(); toast.success("Invite code created!"); setNewInviteNote(""); },
@@ -164,13 +165,13 @@ export default function Admin() {
     onError: (e) => toast.error(e.message),
   });
   const settingsQuery = trpc.admin.getSettings.useQuery(undefined, {
-    enabled: isAuthenticated && user?.role === "admin" && activeTab === "settings",
+    enabled: isAuthenticated && isOwner && activeTab === "settings",
     onSuccess: (data: any) => {
       if (!settingsDirty) setSettingsForm(data);
     },
   } as any);
   const healthQuery = trpc.admin.getSystemHealth.useQuery(undefined, {
-    enabled: isAuthenticated && user?.role === "admin" && activeTab === "health",
+    enabled: isAuthenticated && isOwner && activeTab === "health",
     refetchInterval: 30_000,
   });
 
@@ -236,7 +237,7 @@ export default function Admin() {
     );
   }
 
-  if (user?.role !== "admin") {
+  if (!isOwner) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-sm">
