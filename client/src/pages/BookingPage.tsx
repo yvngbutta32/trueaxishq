@@ -4,9 +4,131 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import {
   Calendar, Clock, User, Mail, MessageSquare, Briefcase,
-  CheckCircle, Zap, ArrowLeft, Loader2
+  CheckCircle, Zap, ArrowLeft, Loader2, Download, ExternalLink,
+  CalendarDays, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+// ─── .ics calendar file generator ────────────────────────────────────────────
+function generateICS({
+  title, description, date, time, durationMins, organizerName, organizerEmail, attendeeEmail, attendeeName,
+}: {
+  title: string; description: string; date: string; time: string;
+  durationMins: number; organizerName: string; organizerEmail: string;
+  attendeeEmail: string; attendeeName: string;
+}): string {
+  // Parse date (YYYY-MM-DD or "Mon Apr 14, 2026") and time ("2:00 PM")
+  const parseDateTime = (dateStr: string, timeStr: string): Date => {
+    // Try ISO format first
+    const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) {
+      const [, y, m, d] = isoMatch;
+      const t = parseTime12(timeStr);
+      return new Date(`${y}-${m}-${d}T${t}:00`);
+    }
+    // Try "Mon Apr 14, 2026" format
+    const parsed = new Date(`${dateStr} ${timeStr}`);
+    if (!isNaN(parsed.getTime())) return parsed;
+    // Fallback: tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(9, 0, 0, 0);
+    return tomorrow;
+  };
+
+  const parseTime12 = (t: string): string => {
+    const m = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!m) return "09:00";
+    let h = parseInt(m[1]);
+    const min = m[2];
+    const ampm = m[3].toUpperCase();
+    if (ampm === "PM" && h !== 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+    return `${String(h).padStart(2, "0")}:${min}`;
+  };
+
+  const formatICSDate = (d: Date): string => {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  };
+
+  const start = parseDateTime(date, time);
+  const end = new Date(start.getTime() + durationMins * 60 * 1000);
+  const now = new Date();
+  const uid = `booking-${Date.now()}@trueaxishq.com`;
+
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//TrueAxis HQ//Booking//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:REQUEST",
+    "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${formatICSDate(now)}`,
+    `DTSTART:${formatICSDate(start)}`,
+    `DTEND:${formatICSDate(end)}`,
+    `SUMMARY:${title}`,
+    `DESCRIPTION:${description.replace(/\n/g, "\\n")}`,
+    `ORGANIZER;CN=${organizerName}:mailto:${organizerEmail}`,
+    `ATTENDEE;CN=${attendeeName};RSVP=TRUE:mailto:${attendeeEmail}`,
+    "STATUS:TENTATIVE",
+    "BEGIN:VALARM",
+    "TRIGGER:-PT1H",
+    "ACTION:DISPLAY",
+    `DESCRIPTION:Reminder: ${title} in 1 hour`,
+    "END:VALARM",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+}
+
+function downloadICS(icsContent: string, filename: string) {
+  const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function buildGoogleCalendarUrl({
+  title, description, date, time, durationMins,
+}: { title: string; description: string; date: string; time: string; durationMins: number }): string {
+  const parseDateTime = (dateStr: string, timeStr: string): Date => {
+    const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) {
+      const [, y, m, d] = isoMatch;
+      const t = parseTime12(timeStr);
+      return new Date(`${y}-${m}-${d}T${t}:00`);
+    }
+    const parsed = new Date(`${dateStr} ${timeStr}`);
+    if (!isNaN(parsed.getTime())) return parsed;
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(9, 0, 0, 0); return tomorrow;
+  };
+  const parseTime12 = (t: string): string => {
+    const m = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!m) return "09:00";
+    let h = parseInt(m[1]); const min = m[2]; const ampm = m[3].toUpperCase();
+    if (ampm === "PM" && h !== 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+    return `${String(h).padStart(2, "0")}:${min}`;
+  };
+  const formatGCal = (d: Date): string => {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  };
+  const start = parseDateTime(date, time);
+  const end = new Date(start.getTime() + durationMins * 60 * 1000);
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: title,
+    details: description,
+    dates: `${formatGCal(start)}/${formatGCal(end)}`,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
 
 // Services are loaded dynamically from the booking page owner's configuration
 
@@ -92,35 +214,153 @@ export default function BookingPage() {
 
   const host = pageQuery.data;
 
-  // Success screen
+  // Success / Confirmation screen
   if (step === "success") {
+    const icsTitle = `${form.service} with ${host.name}`;
+    const icsDescription = `Service: ${form.service}\nClient: ${form.clientName}\nEmail: ${form.clientEmail}${form.message ? `\nMessage: ${form.message}` : ""}\n\nBooked via TrueAxis HQ`;
+    const icsContent = generateICS({
+      title: icsTitle,
+      description: icsDescription,
+      date: form.preferredDate,
+      time: form.preferredTime,
+      durationMins: 60,
+      organizerName: host.name ?? "Your Host",
+      organizerEmail: "noreply@trueaxishq.com",
+      attendeeEmail: form.clientEmail,
+      attendeeName: form.clientName,
+    });
+    const googleUrl = buildGoogleCalendarUrl({
+      title: icsTitle,
+      description: icsDescription,
+      date: form.preferredDate,
+      time: form.preferredTime,
+      durationMins: 60,
+    });
+
     return (
-      <div className="min-h-screen bg-[#141414] flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-lg border border-gray-100">
-          <div className="w-16 h-16 rounded-full bg-[#E8A020]/15 flex items-center justify-center mx-auto mb-5" aria-hidden="true">
-            <CheckCircle className="w-8 h-8 text-[#E8A020]" />
+      <div className="min-h-screen bg-[#141414]">
+        {/* Header */}
+        <header className="bg-[#1C1C1E] border-b border-white/10 px-4 py-3.5">
+          <div className="max-w-xl mx-auto flex items-center gap-3">
+            <img
+              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+              alt="TrueAxis HQ"
+              className="h-7 w-auto object-contain flex-shrink-0"
+            />
           </div>
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
-            Booking Request Sent!
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Your request has been sent to <strong>{host.name}</strong>. They'll reach out to confirm your appointment at <strong>{form.preferredTime}</strong> on <strong>{form.preferredDate}</strong>.
-          </p>
-          <div className="bg-gray-50 rounded-2xl p-4 text-left space-y-2 mb-6">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Service</span>
-              <span className="font-semibold text-gray-900">{form.service}</span>
+        </header>
+
+        <div className="max-w-lg mx-auto px-4 pt-10 pb-16 page-bottom">
+          {/* Animated checkmark */}
+          <div className="text-center mb-8">
+            <div className="relative inline-flex items-center justify-center w-20 h-20 mx-auto mb-5">
+              <div className="absolute inset-0 rounded-full bg-[#E8A020]/15 animate-ping opacity-40" />
+              <div className="relative w-20 h-20 rounded-full bg-[#E8A020]/15 flex items-center justify-center">
+                <CheckCircle className="w-10 h-10 text-[#E8A020]" />
+              </div>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Date</span>
-              <span className="font-semibold text-gray-900">{form.preferredDate}</span>
+            <h1 className="text-3xl font-extrabold text-white mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+              You're Booked!
+            </h1>
+            <p className="text-gray-400 text-sm max-w-sm mx-auto">
+              Your request has been sent to <strong className="text-white">{host.name}</strong>. They'll confirm your appointment shortly.
+            </p>
+          </div>
+
+          {/* Booking summary card */}
+          <div className="bg-[#1C1C1E] border border-white/10 rounded-2xl p-5 mb-5">
+            <div className="flex items-center gap-2 mb-4">
+              <CalendarDays className="w-4 h-4 text-[#E8A020]" />
+              <span className="text-xs font-bold text-[#E8A020] uppercase tracking-wider">Booking Summary</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Time</span>
-              <span className="font-semibold text-gray-900">{form.preferredTime}</span>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400 flex items-center gap-2"><Briefcase className="w-3.5 h-3.5" />Service</span>
+                <span className="text-sm font-semibold text-white">{form.service}</span>
+              </div>
+              <div className="h-px bg-white/5" />
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400 flex items-center gap-2"><Calendar className="w-3.5 h-3.5" />Date</span>
+                <span className="text-sm font-semibold text-white">{form.preferredDate}</span>
+              </div>
+              <div className="h-px bg-white/5" />
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400 flex items-center gap-2"><Clock className="w-3.5 h-3.5" />Time</span>
+                <span className="text-sm font-semibold text-white">{form.preferredTime}</span>
+              </div>
+              <div className="h-px bg-white/5" />
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400 flex items-center gap-2"><User className="w-3.5 h-3.5" />With</span>
+                <span className="text-sm font-semibold text-white">{host.name}</span>
+              </div>
             </div>
           </div>
-          <p className="text-xs text-gray-600">A confirmation will be sent to <strong>{form.clientEmail}</strong></p>
+
+          {/* Calendar add section */}
+          <div className="bg-[#1C1C1E] border border-white/10 rounded-2xl p-5 mb-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="w-4 h-4 text-[#E8A020]" />
+              <span className="text-xs font-bold text-[#E8A020] uppercase tracking-wider">Add to Your Calendar</span>
+            </div>
+            <p className="text-xs text-gray-400 mb-4">Save this appointment so you never miss it. Includes a 1-hour reminder.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {/* Download .ics */}
+              <button
+                onClick={() => {
+                  downloadICS(icsContent, `booking-${form.preferredDate}.ics`);
+                  toast.success("Calendar file downloaded!");
+                }}
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
+              >
+                <Download className="w-4 h-4 text-[#E8A020]" />
+                Download .ics
+              </button>
+
+              {/* Google Calendar */}
+              <a
+                href={googleUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
+              >
+                <ExternalLink className="w-4 h-4 text-[#4285F4]" />
+                Google Calendar
+              </a>
+
+              {/* Apple Calendar (same .ics, just labelled differently) */}
+              <button
+                onClick={() => {
+                  downloadICS(icsContent, `booking-${form.preferredDate}.ics`);
+                  toast.success("Calendar file downloaded — open it to add to Apple Calendar!");
+                }}
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
+              >
+                <CalendarDays className="w-4 h-4 text-[#A2AAAD]" />
+                Apple Calendar
+              </button>
+            </div>
+          </div>
+
+          {/* Email note */}
+          <div className="flex items-start gap-3 bg-[#E8A020]/8 border border-[#E8A020]/20 rounded-xl p-4 mb-6">
+            <Mail className="w-4 h-4 text-[#E8A020] flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-gray-300">
+              A confirmation has been sent to <strong className="text-white">{form.clientEmail}</strong>. Check your spam folder if you don't see it within a few minutes.
+            </p>
+          </div>
+
+          {/* Book another */}
+          <div className="text-center">
+            <button
+              onClick={() => {
+                setStep("details");
+                setForm({ clientName: "", clientEmail: "", service: "", message: "", preferredDate: "", preferredTime: "" });
+              }}
+              className="text-sm text-gray-400 hover:text-white underline underline-offset-2 transition-colors"
+            >
+              Book another appointment
+            </button>
+          </div>
         </div>
       </div>
     );

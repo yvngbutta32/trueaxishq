@@ -833,3 +833,21 @@
 - [x] Download Template button in import modal (pre-filled with example rows)
 - [x] Import info banner mentions HoneyBook, Dubsado, 17hats, Notion compatibility
 - [x] Import result summary toast (X imported, Y skipped)
+
+## Booking Confirmation Page + Expanded CSV Import (Apr 14, 2026)
+- [x] Booking confirmation page — full branded dark-theme page shown after successful booking submit
+- [x] Animated checkmark with pulsing ring on confirmation page
+- [x] Booking summary card (service, date, time, host name)
+- [x] .ics calendar file generator (RFC 4180, includes 1-hour VALARM reminder)
+- [x] Download .ics button (works for Outlook, Apple Calendar, Thunderbird, Yahoo Mail)
+- [x] Google Calendar deep-link button (opens pre-filled event in new tab)
+- [x] Apple Calendar button (downloads .ics with Apple-specific toast)
+- [x] Email confirmation note with client email address
+- [x] Book another appointment link resets form
+- [x] CSV import: auto-detect delimiter (comma, tab, semicolon)
+- [x] CSV import: RFC 4180 quoted field parser (handles commas/quotes inside fields)
+- [x] CSV import: first_name + last_name columns merged into full name
+- [x] CSV import: broad column aliases for 15+ CRM services
+- [x] CSV import: status normalization (churned/lost/archived → inactive, lead/prospect/warm → prospect)
+- [x] CSV import: notes column mapped to client notes field
+- [x] CSV import: company column used as service fallback

@@ -625,24 +625,101 @@ function ClientsPanel() {
 
 
 
+  // Detect delimiter: tab, semicolon, or comma
+  const detectDelimiter = (firstLine: string): string => {
+    const tabCount = (firstLine.match(/\t/g) || []).length;
+    const semiCount = (firstLine.match(/;/g) || []).length;
+    const commaCount = (firstLine.match(/,/g) || []).length;
+    if (tabCount >= semiCount && tabCount >= commaCount) return "\t";
+    if (semiCount > commaCount) return ";";
+    return ",";
+  };
+
+  // RFC 4180-compliant CSV field parser (handles quoted fields with commas/newlines)
+  const parseCSVLine = (line: string, delim: string): string[] => {
+    const fields: string[] = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+        else inQuotes = !inQuotes;
+      } else if (ch === delim && !inQuotes) {
+        fields.push(current.trim());
+        current = "";
+      } else {
+        current += ch;
+      }
+    }
+    fields.push(current.trim());
+    return fields;
+  };
+
   const parseCsv = (text: string) => {
-    const lines = text.trim().split("\n").filter(l => l.trim());
+    const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
     if (lines.length === 0) return;
-    const headers = lines[0].split(",").map(h => h.trim().toLowerCase().replace(/["']/g, ""));
-    const nameIdx = headers.findIndex(h => h.includes("name"));
-    const emailIdx = headers.findIndex(h => h.includes("email"));
-    const phoneIdx = headers.findIndex(h => h.includes("phone") || h.includes("tel"));
-    const serviceIdx = headers.findIndex(h => h.includes("service") || h.includes("niche") || h.includes("type"));
-    const statusIdx = headers.findIndex(h => h.includes("status"));
-    const dataLines = nameIdx >= 0 ? lines.slice(1) : lines;
+    const delim = detectDelimiter(lines[0]);
+    const rawHeaders = parseCSVLine(lines[0], delim).map(h => h.toLowerCase().replace(/["'\s_-]/g, ""));
+
+    // Column detection — broad aliases covering:
+    // HoneyBook, Dubsado, 17hats, Calendly, Acuity, Square, Stripe, Mailchimp,
+    // ActiveCampaign, Pipedrive, Salesforce, Zoho, Airtable, Google Contacts,
+    // Outlook Contacts, Notion, and generic CRM exports
+    const findCol = (aliases: string[]): number =>
+      rawHeaders.findIndex(h => aliases.some(a => h.includes(a)));
+
+    const fullNameIdx  = findCol(["fullname","clientname","contactname","displayname","name"]);
+    const firstNameIdx = findCol(["firstname","givenname","first"]);
+    const lastNameIdx  = findCol(["lastname","surname","familyname","last"]);
+    const emailIdx     = findCol(["email","emailaddress","mail","e-mail"]);
+    const phoneIdx     = findCol(["phone","mobile","cell","tel","phonenumber","mobilephone","cellphone","contactphone"]);
+    const serviceIdx   = findCol(["service","services","niche","type","category","product","package","plan","tier","offering","jobtype","appointmenttype","sessiontype"]);
+    const statusIdx    = findCol(["status","clientstatus","leadstatus","stage","state","relationship","tag","label"]);
+    const companyIdx   = findCol(["company","business","organization","org","employer","account"]);
+    const notesIdx     = findCol(["notes","note","memo","description","comment","comments","bio","details"]);
+
+    const hasHeaders = fullNameIdx >= 0 || firstNameIdx >= 0 || emailIdx >= 0;
+    const dataLines = hasHeaders ? lines.slice(1) : lines;
+
+    const normalizeStatus = (s: string): "active" | "inactive" | "prospect" => {
+      const v = s.toLowerCase().trim();
+      if (["inactive","churned","lost","closed","archived","unsubscribed","cancelled","canceled"].some(x => v.includes(x))) return "inactive";
+      if (["prospect","lead","potential","trial","new","pending","inquiry","interested","warm","cold","qualified"].some(x => v.includes(x))) return "prospect";
+      return "active";
+    };
+
     const rows = dataLines.slice(0, 500).map(line => {
-      const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ""));
+      const cols = parseCSVLine(line, delim);
+      const get = (idx: number) => (idx >= 0 ? cols[idx] || "" : "").trim();
+
+      // Build full name: prefer fullName column, fallback to first+last
+      let name = "";
+      if (fullNameIdx >= 0) {
+        name = get(fullNameIdx);
+      } else if (firstNameIdx >= 0 || lastNameIdx >= 0) {
+        name = [get(firstNameIdx), get(lastNameIdx)].filter(Boolean).join(" ");
+      } else {
+        name = get(0);
+      }
+
+      // Append company to service if no service column but company exists
+      let service = get(serviceIdx);
+      if (!service && companyIdx >= 0) service = get(companyIdx);
+
+      // Build notes from notes column
+      const notes = get(notesIdx);
+
+      const rawStatus = statusIdx >= 0 ? get(statusIdx) : "";
+      const status = rawStatus ? normalizeStatus(rawStatus) : "active";
+
       return {
-        name: nameIdx >= 0 ? cols[nameIdx] || "" : cols[0] || "",
-        email: emailIdx >= 0 ? cols[emailIdx] || "" : cols[1] || "",
-        phone: phoneIdx >= 0 ? cols[phoneIdx] || "" : cols[2] || "",
-        service: serviceIdx >= 0 ? cols[serviceIdx] || "" : cols[3] || "",
-        status: statusIdx >= 0 ? cols[statusIdx] || "active" : "active",
+        name,
+        email: get(emailIdx) || (emailIdx < 0 ? get(1) : ""),
+        phone: get(phoneIdx),
+        service,
+        status,
+        notes,
       };
     }).filter(r => r.name.trim());
     setCsvPreview(rows);
