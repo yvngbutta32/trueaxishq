@@ -206,6 +206,8 @@ export default function TimeTrackingPanel() {
                   onChange={e => setTimerDesc(e.target.value)}
                   placeholder="What are you working on?"
                   className="form-input-light w-full"
+                  enterKeyHint="next"
+                  autoComplete="off"
                 />
                 <div className="flex gap-2">
                   <select
@@ -224,9 +226,10 @@ export default function TimeTrackingPanel() {
                     value={timerRate}
                     onChange={e => setTimerRate(e.target.value)}
                     placeholder="$/hr"
-                    type="number"
-                    min="0"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
+                    enterKeyHint="done"
+                    autoComplete="off"
                     className="form-input-light w-24"
                   />
                 </div>
@@ -290,9 +293,9 @@ export default function TimeTrackingPanel() {
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">Duration (hours) *</label>
               <input
-                type="number"
-                min="0.1"
-                step="0.25"
+                type="text"
+                inputMode="decimal"
+                enterKeyHint="next"
                 value={form.durationHours}
                 onChange={e => setForm(p => ({ ...p, durationHours: e.target.value }))}
                 placeholder="e.g. 1.5"
@@ -302,9 +305,9 @@ export default function TimeTrackingPanel() {
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">Hourly Rate ($)</label>
               <input
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
+                enterKeyHint="next"
                 value={form.hourlyRate}
                 onChange={e => setForm(p => ({ ...p, hourlyRate: e.target.value }))}
                 placeholder="e.g. 75"
@@ -318,6 +321,8 @@ export default function TimeTrackingPanel() {
                 onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
                 placeholder="What did you work on?"
                 className="form-input-light"
+                enterKeyHint="done"
+                autoComplete="off"
               />
             </div>
             <div className="sm:col-span-2 flex items-center gap-2">

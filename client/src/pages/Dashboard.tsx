@@ -100,11 +100,11 @@ function Modal({ open, onClose, title, children, wide }: {
     </div>
   );
 }
-
-// ─── Input Field ─────────────────────────────────────────────────────────────
-function Field({ label, value, onChange, placeholder, type = "text", required, textarea, rows = 3 }: {
+// ─── Input Field ─────────────────────────────────────────────────────────────────────────────────
+function Field({ label, value, onChange, placeholder, type = "text", required, textarea, rows = 3, autoComplete, enterKeyHint }: {
   label: string; value: string; onChange: (v: string) => void;
   placeholder?: string; type?: string; required?: boolean; textarea?: boolean; rows?: number;
+  autoComplete?: string; enterKeyHint?: "enter" | "done" | "go" | "next" | "previous" | "search" | "send";
 }) {
   const cls = "form-input-light";
   return (
@@ -118,20 +118,23 @@ function Field({ label, value, onChange, placeholder, type = "text", required, t
             rows={rows}
             className={`${cls} resize-none overflow-hidden`}
             style={{ minHeight: `${(rows ?? 3) * 1.6}rem` }}
+            enterKeyHint={enterKeyHint}
+            autoComplete={autoComplete}
           />
         : <input
             type={type === "number" ? "text" : type}
-            inputMode={type === "number" ? "decimal" : undefined}
+            inputMode={type === "number" ? "decimal" : type === "email" ? "email" : type === "tel" ? "tel" : type === "url" ? "url" : undefined}
             value={value}
             onChange={e => onChange(e.target.value)}
             placeholder={placeholder}
             className={cls}
+            autoComplete={autoComplete}
+            enterKeyHint={enterKeyHint}
           />
       }
     </div>
   );
 }
-
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; badge?: string }[] = [
   { icon: LayoutDashboard, label: "Dashboard", panel: "overview" },
@@ -724,11 +727,14 @@ function ClientsPanel() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
           <input
+            type="search"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search clients by name, email, or service..."
             className="form-input-light pl-9"
             aria-label="Search clients"
+            autoComplete="off"
+            enterKeyHint="search"
           />
         </div>
         <select
@@ -825,10 +831,10 @@ function ClientsPanel() {
       {/* Add Client Modal */}
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add New Client">
         <div className="space-y-4">
-          <Field label="Full Name" value={form.name} onChange={v => setForm(p => ({ ...p, name: v }))} placeholder="Jane Smith" required />
-          <Field label="Email Address" value={form.email} onChange={v => setForm(p => ({ ...p, email: v }))} placeholder="jane@example.com" type="email" />
-          <Field label="Phone Number" value={form.phone} onChange={v => setForm(p => ({ ...p, phone: v }))} placeholder="+1 (555) 000-0000" />
-          <Field label="Service / Niche" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="Business Coaching, Web Design..." />
+          <Field label="Full Name" value={form.name} onChange={v => setForm(p => ({ ...p, name: v }))} placeholder="Jane Smith" required autoComplete="name" enterKeyHint="next" />
+          <Field label="Email Address" value={form.email} onChange={v => setForm(p => ({ ...p, email: v }))} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
+          <Field label="Phone Number" value={form.phone} onChange={v => setForm(p => ({ ...p, phone: v }))} placeholder="+1 (555) 000-0000" type="tel" autoComplete="tel" enterKeyHint="next" />
+          <Field label="Service / Niche" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="Business Coaching, Web Design..." autoComplete="off" enterKeyHint="next" />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Status</label>
             <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as typeof form.status }))} className="form-input-light">
@@ -1109,9 +1115,9 @@ function SchedulingPanel() {
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <Field label="Client Name" value={form.clientName} onChange={v => setForm(p => ({ ...p, clientName: v }))} placeholder="Jane Smith" required />
-          <Field label="Client Email" value={form.clientEmail} onChange={v => setForm(p => ({ ...p, clientEmail: v }))} placeholder="jane@example.com" type="email" />
-          <Field label="Service" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="Strategy Session, Coaching Call..." />
+          <Field label="Client Name" value={form.clientName} onChange={v => setForm(p => ({ ...p, clientName: v }))} placeholder="Jane Smith" required autoComplete="name" enterKeyHint="next" />
+          <Field label="Client Email" value={form.clientEmail} onChange={v => setForm(p => ({ ...p, clientEmail: v }))} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
+          <Field label="Service" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="Strategy Session, Coaching Call..." autoComplete="off" enterKeyHint="next" />
           <div className="grid grid-cols-2 gap-4">
             <Field label="Date *" value={form.date} onChange={v => setForm(p => ({ ...p, date: v }))} placeholder="2026-03-20" type="date" required />
             <Field label="Time *" value={form.time} onChange={v => setForm(p => ({ ...p, time: v }))} placeholder="14:00" type="time" required />
@@ -1434,8 +1440,8 @@ function InvoicesPanel() {
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <Field label="Client Name" value={form.clientName} onChange={v => setForm(p => ({ ...p, clientName: v }))} placeholder="Jane Smith" required />
-          <Field label="Client Email" value={form.clientEmail} onChange={v => setForm(p => ({ ...p, clientEmail: v }))} placeholder="jane@example.com" type="email" />
+          <Field label="Client Name" value={form.clientName} onChange={v => setForm(p => ({ ...p, clientName: v }))} placeholder="Jane Smith" required autoComplete="name" enterKeyHint="next" />
+          <Field label="Client Email" value={form.clientEmail} onChange={v => setForm(p => ({ ...p, clientEmail: v }))} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-semibold text-gray-600">Service Description</label>
@@ -1445,11 +1451,11 @@ function InvoicesPanel() {
                 </Button>
               )}
             </div>
-            <input value={form.service} onChange={e => setForm(p => ({ ...p, service: e.target.value }))} placeholder="3-month coaching program, web design..." className="form-input-light" />
+            <input value={form.service} onChange={e => setForm(p => ({ ...p, service: e.target.value }))} placeholder="3-month coaching program, web design..." className="form-input-light" autoComplete="off" enterKeyHint="next" />
           </div>
-          <Field label="Amount ($) *" value={form.amount} onChange={v => setForm(p => ({ ...p, amount: v }))} placeholder="500.00" type="number" required />
-          <Field label="Due Date" value={form.dueDate} onChange={v => setForm(p => ({ ...p, dueDate: v }))} type="date" />
-          <Field label="Notes" value={form.notes} onChange={v => setForm(p => ({ ...p, notes: v }))} placeholder="Payment terms, bank details..." textarea />
+          <Field label="Amount ($) *" value={form.amount} onChange={v => setForm(p => ({ ...p, amount: v }))} placeholder="500.00" type="number" required autoComplete="off" enterKeyHint="next" />
+          <Field label="Due Date" value={form.dueDate} onChange={v => setForm(p => ({ ...p, dueDate: v }))} type="date" autoComplete="off" />
+          <Field label="Notes" value={form.notes} onChange={v => setForm(p => ({ ...p, notes: v }))} placeholder="Payment terms, bank details..." textarea enterKeyHint="done" />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Send as</label>
             <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as "draft" | "sent" }))} className="form-input-light">
@@ -1651,10 +1657,10 @@ function FollowUpsPanel() {
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <Field label="Client Name *" value={form.clientName} onChange={v => setForm(p => ({ ...p, clientName: v }))} placeholder="Jane Smith" required />
-          <Field label="Client Email" value={form.clientEmail} onChange={v => setForm(p => ({ ...p, clientEmail: v }))} placeholder="jane@example.com" type="email" />
-          <Field label="Service / Context" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="Business coaching, web design..." />
-          <Field label="Additional Context (optional)" value={form.context} onChange={v => setForm(p => ({ ...p, context: v }))} placeholder="Last session was about goal-setting, they struggled with time management..." textarea />
+          <Field label="Client Name *" value={form.clientName} onChange={v => setForm(p => ({ ...p, clientName: v }))} placeholder="Jane Smith" required autoComplete="name" enterKeyHint="next" />
+          <Field label="Client Email" value={form.clientEmail} onChange={v => setForm(p => ({ ...p, clientEmail: v }))} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
+          <Field label="Service / Context" value={form.service} onChange={v => setForm(p => ({ ...p, service: v }))} placeholder="Business coaching, web design..." autoComplete="off" enterKeyHint="next" />
+          <Field label="Additional Context (optional)" value={form.context} onChange={v => setForm(p => ({ ...p, context: v }))} placeholder="Last session was about goal-setting, they struggled with time management..." textarea enterKeyHint="done" />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Email Tone</label>
             <div className="grid grid-cols-3 gap-2">
@@ -2098,7 +2104,7 @@ function ApiKeysSection() {
         <p className="text-xs text-gray-400">No API keys yet.</p>
       )}
       <div className="flex gap-2">
-        <input value={newKeyName} onChange={e => setNewKeyName(e.target.value)} placeholder="Key name (e.g. Zapier)" className="form-input-light flex-1" onKeyDown={e => e.key === 'Enter' && newKeyName.trim() && createKey.mutate({ name: newKeyName.trim() })} />
+        <input value={newKeyName} onChange={e => setNewKeyName(e.target.value)} placeholder="Key name (e.g. Zapier)" className="form-input-light flex-1" autoComplete="off" enterKeyHint="done" onKeyDown={e => e.key === 'Enter' && newKeyName.trim() && createKey.mutate({ name: newKeyName.trim() })} />
         <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90" onClick={() => newKeyName.trim() && createKey.mutate({ name: newKeyName.trim() })} disabled={createKey.isPending || !newKeyName.trim()}>
           {createKey.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Generate"}
         </Button>
@@ -2300,9 +2306,9 @@ function SettingsPanel() {
           />
         </div>
 
-        <Field label="Your Name" value={profile.name} onChange={v => setProfile(p => ({ ...p, name: v }))} placeholder="Alex Smith" />
-        <Field label="Phone Number" value={profile.phone} onChange={v => setProfile(p => ({ ...p, phone: v }))} placeholder="+1 (555) 000-0000" />
-        <Field label="Bio (shown on booking page)" value={profile.bio} onChange={v => setProfile(p => ({ ...p, bio: v }))} placeholder="I help entrepreneurs build scalable businesses..." textarea rows={3} />
+        <Field label="Your Name" value={profile.name} onChange={v => setProfile(p => ({ ...p, name: v }))} placeholder="Alex Smith" autoComplete="name" enterKeyHint="next" />
+        <Field label="Phone Number" value={profile.phone} onChange={v => setProfile(p => ({ ...p, phone: v }))} placeholder="+1 (555) 000-0000" type="tel" autoComplete="tel" enterKeyHint="next" />
+        <Field label="Bio (shown on booking page)" value={profile.bio} onChange={v => setProfile(p => ({ ...p, bio: v }))} placeholder="I help entrepreneurs build scalable businesses..." textarea rows={3} enterKeyHint="done" />
         <Button className="gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => updateProfile.mutate(profile)} disabled={updateProfile.isPending}>
           {updateProfile.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Profile</>}
         </Button>
@@ -2311,10 +2317,10 @@ function SettingsPanel() {
       {/* Business */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
         <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Building className="w-4 h-4 text-[#E8A020]" />Business Info</h3>
-        <Field label="Business Name" value={business.businessName} onChange={v => setBusiness(p => ({ ...p, businessName: v }))} placeholder="My Coaching Studio" />
-        <Field label="Business Phone" value={business.businessPhone} onChange={v => setBusiness(p => ({ ...p, businessPhone: v }))} placeholder="+1 (555) 000-0000" />
-        <Field label="Business Address" value={business.businessAddress} onChange={v => setBusiness(p => ({ ...p, businessAddress: v }))} placeholder="123 Main St, New York, NY 10001" />
-        <Field label="Website" value={business.businessWebsite} onChange={v => setBusiness(p => ({ ...p, businessWebsite: v }))} placeholder="https://yourwebsite.com" type="url" />
+        <Field label="Business Name" value={business.businessName} onChange={v => setBusiness(p => ({ ...p, businessName: v }))} placeholder="My Coaching Studio" autoComplete="organization" enterKeyHint="next" />
+        <Field label="Business Phone" value={business.businessPhone} onChange={v => setBusiness(p => ({ ...p, businessPhone: v }))} placeholder="+1 (555) 000-0000" type="tel" autoComplete="tel" enterKeyHint="next" />
+        <Field label="Business Address" value={business.businessAddress} onChange={v => setBusiness(p => ({ ...p, businessAddress: v }))} placeholder="123 Main St, New York, NY 10001" autoComplete="street-address" enterKeyHint="next" />
+        <Field label="Website" value={business.businessWebsite} onChange={v => setBusiness(p => ({ ...p, businessWebsite: v }))} placeholder="https://yourwebsite.com" type="url" autoComplete="url" enterKeyHint="done" />
         <Button className="gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => updateBusiness.mutate(business)} disabled={updateBusiness.isPending}>
           {updateBusiness.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Business Info</>}
         </Button>
@@ -2332,6 +2338,9 @@ function SettingsPanel() {
               onChange={e => setBookingPage(p => ({ ...p, bookingUsername: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
               placeholder="your-name"
               className="form-input-light"
+              autoComplete="username"
+              enterKeyHint="done"
+              inputMode="url"
             />
           </div>
           {bookingUrl && (
@@ -2346,7 +2355,7 @@ function SettingsPanel() {
             </div>
           )}
         </div>
-        <Field label="Booking Page Bio" value={bookingPage.bookingBio} onChange={v => setBookingPage(p => ({ ...p, bookingBio: v }))} placeholder="Book a session with me..." textarea rows={2} />
+        <Field label="Booking Page Bio" value={bookingPage.bookingBio} onChange={v => setBookingPage(p => ({ ...p, bookingBio: v }))} placeholder="Book a session with me..." textarea rows={2} enterKeyHint="done" />
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-2">Services Offered</label>
           <div className="space-y-2 mb-3">
@@ -2360,7 +2369,7 @@ function SettingsPanel() {
             ))}
           </div>
           <div className="flex gap-2 mb-2">
-            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Type a custom service..." className="form-input-light" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }} />
+            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Type a custom service..." className="form-input-light" autoComplete="off" enterKeyHint="done" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }} />
             <Button size="sm" variant="outline" onClick={() => { if (newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }}>
               <Plus className="w-4 h-4" />
             </Button>
@@ -3033,6 +3042,7 @@ export default function Dashboard() {
             <div className="relative hidden lg:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
               <input
+                type="search"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 onKeyDown={e => {
@@ -3045,6 +3055,8 @@ export default function Dashboard() {
                 placeholder="Search clients... (Enter)"
                 className="form-input-light pl-8 pr-4 w-52"
                 aria-label="Quick search — press Enter to search clients"
+                autoComplete="off"
+                enterKeyHint="search"
               />
             </div>
 

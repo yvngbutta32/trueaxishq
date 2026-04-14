@@ -185,6 +185,22 @@
   /* Touch targets — WCAG 2.5.5: applied only to primary action buttons via .touch-target class */
   .touch-target { min-height: 44px; min-width: 44px; }
 
+  /* ── Global input/select/textarea touch improvements ─────────────────── */
+  input, textarea, select {
+    /* Prevent iOS Safari from zooming on focus (requires font-size ≥ 16px) */
+    font-size: max(1rem, 16px);
+    /* Remove 300ms tap delay */
+    touch-action: manipulation;
+    /* Remove tap highlight flash on iOS */
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Restore smaller font on desktop where zoom is not an issue */
+  @media (min-width: 768px) {
+    input, textarea, select {
+      font-size: 0.9375rem;
+    }
+  }
+
   p a, li a { text-decoration: underline; text-underline-offset: 3px; }
   img, video { max-width: 100%; height: auto; }
 
@@ -793,10 +809,12 @@
     border: 2px solid #DDE1E8;
     border-radius: 0.625rem;
     font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
+    font-size: 1rem;           /* ≥16px prevents iOS Safari auto-zoom on focus */
     color: #0F1923;
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
     outline: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   .input-retro:focus {
     border-color: #1D3557;
@@ -812,12 +830,14 @@
     border: 1px solid rgba(232, 160, 32, 0.18);
     border-radius: 0.625rem;
     font-family: 'DM Sans', 'Inter', sans-serif;
-    font-size: 0.9375rem;
+    font-size: 1rem;           /* ≥16px prevents iOS Safari auto-zoom on focus */
     color: #F5F0E8;
     outline: none;
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
     caret-color: #E8A020;
     -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;  /* removes 300ms tap delay on mobile */
   }
   .form-input::placeholder {
     color: rgba(245, 240, 232, 0.30);
@@ -850,12 +870,14 @@
     border: 1.5px solid #E5E7EB;
     border-radius: 0.625rem;
     font-family: 'DM Sans', 'Inter', sans-serif;
-    font-size: 0.9375rem;
+    font-size: 1rem;           /* ≥16px prevents iOS Safari auto-zoom on focus */
     color: #1C1C1E;
     outline: none;
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
     caret-color: #E8A020;
     -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;  /* removes 300ms tap delay on mobile */
   }
   .form-input-light::placeholder {
     color: #9CA3AF;

@@ -158,28 +158,34 @@ export default function RecurringInvoicesPanel() {
                 onChange={e => setForm(p => ({ ...p, clientName: e.target.value }))}
                 placeholder="Client or company name"
                 className="form-input-light"
+                enterKeyHint="next"
+                autoComplete="organization"
               />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client Email</label>
               <input
                 type="email"
+                inputMode="email"
                 value={form.clientEmail}
                 onChange={e => setForm(p => ({ ...p, clientEmail: e.target.value }))}
                 placeholder="client@example.com"
                 className="form-input-light"
+                enterKeyHint="next"
+                autoComplete="email"
               />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">Amount ($) *</label>
               <input
-                type="number"
-                min="0.01"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
+                enterKeyHint="next"
                 value={form.amount}
                 onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
                 placeholder="e.g. 500"
                 className="form-input-light"
+                autoComplete="off"
               />
             </div>
             <div>
@@ -210,6 +216,8 @@ export default function RecurringInvoicesPanel() {
                 onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
                 placeholder="e.g. Monthly retainer — web maintenance"
                 className="form-input-light"
+                enterKeyHint="done"
+                autoComplete="off"
               />
             </div>
           </div>
