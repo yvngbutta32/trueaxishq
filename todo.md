@@ -862,3 +862,18 @@
 - [x] Fix click-on-bubble — removed stopPropagation from button, use didMove ref to distinguish click from drag
 - [x] Fix expanded panel position — clamp to PANEL_W/PANEL_H on expand so panel never goes off-screen
 - [x] willChange: transform on container for GPU-accelerated smooth dragging
+
+## AI Chat Mobile Fix + Save-to-Dashboard (Apr 14, 2026)
+- [x] Mobile chat — full-screen 85dvh bottom sheet on screens < 640px, no cut-off
+- [x] Mobile chat — keyboard-safe inset with env(safe-area-inset-bottom)
+- [x] Mobile chat — backdrop overlay with tap-to-close
+- [x] Mobile chat — proper scroll with overscrollBehavior: contain
+- [x] Mobile chat — minimum 36px touch targets on all buttons
+- [x] Desktop chat — drag handle in header, grip dots icon, grab cursor
+- [x] ai.chat procedure — returns { reply, actions[] } JSON envelope when AI generates a saveable artifact
+- [x] ai.saveAction procedure — routes to correct table (invoices, contracts, followUps) based on action type
+- [x] Save buttons — teal action buttons appear under AI messages with saveable content
+- [x] Save buttons — show CheckCircle + 'Saved!' after successful save, disabled state
+- [x] Save toast — shows 'View in [Panel]' action link that navigates to correct panel
+- [x] AI context — activePanel passed to system prompt so AI gives panel-aware suggestions
+- [x] Suggested prompts — include 'Draft an invoice' and 'Create a contract' to surface save feature

@@ -1137,20 +1137,38 @@ export const appRouter = router({
           revenue: z.number().min(0).max(1e9).optional(),
           bookingsThisWeek: z.number().min(0).max(10000).optional(),
           planId: z.string().max(50).optional(),
+          activePanel: z.string().max(64).optional(),
         }).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const contextStr = input.context
-          ? `User context: ${input.context.clientCount ?? 0} active clients, $${input.context.revenue ?? 0} revenue this month, ${input.context.bookingsThisWeek ?? 0} bookings this week, plan: ${input.context.planId ?? "free"}.`
+          ? `User context: ${input.context.clientCount ?? 0} active clients, $${input.context.revenue ?? 0} revenue this month, ${input.context.bookingsThisWeek ?? 0} bookings this week, plan: ${input.context.planId ?? "free"}, currently viewing: ${input.context.activePanel ?? "dashboard"}.`
           : "";
+        const systemPrompt = `You are TrueAxis HQ Assistant — a smart, friendly business advisor for freelancers and solo service providers. Help users grow their business, manage clients, understand analytics, write follow-up emails, create invoice descriptions, draft contracts, and give actionable advice. Be concise, warm, and practical. ${contextStr} The user's name is ${ctx.user.name ?? "there"}.
+
+IMPORTANT: When you generate a saveable artifact (invoice draft, contract draft, follow-up email draft, or a note), you MUST return your response as a JSON object with this exact structure:
+{
+  "reply": "your full response text here",
+  "actions": [
+    {
+      "type": "save_invoice_draft" | "save_contract_draft" | "save_followup_draft" | "save_note",
+      "label": "Save to Invoices" | "Save Contract Draft" | "Save as Follow-up" | "Save Note",
+      "data": { ...relevant fields }
+    }
+  ]
+}
+
+For save_invoice_draft, data must include: { clientName, service, amount (number), notes }
+For save_contract_draft, data must include: { clientName, title, body }
+For save_followup_draft, data must include: { clientName, subject, body }
+For save_note, data must include: { title, body }
+
+Only include actions when you have actually generated a complete draft. For general advice or questions, just return plain text (no JSON needed).`;
         let result;
         try {
           result = await withTimeout(invokeLLM({
             messages: [
-              {
-                role: "system",
-                content: `You are TrueAxis HQ Assistant — a smart, friendly business advisor for freelancers and solo service providers. Help users grow their business, manage clients, understand analytics, write follow-up emails, create invoice descriptions, and give actionable advice. Be concise, warm, and practical. ${contextStr} The user's name is ${ctx.user.name ?? "there"}.`,
-              },
+              { role: "system", content: systemPrompt },
               ...input.messages.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
             ],
           }), LLM_TIMEOUT_MS, "ai.chat");
@@ -1158,8 +1176,85 @@ export const appRouter = router({
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI service temporarily unavailable. Please try again in a moment." });
         }
         const rawContent = result.choices[0]?.message?.content;
-        const content = typeof rawContent === "string" ? rawContent : Array.isArray(rawContent) ? rawContent.map((c: any) => c.text ?? "").join("") : null;
-        return { reply: content ?? "I'm here to help! What would you like to know?" };
+        const rawStr = typeof rawContent === "string" ? rawContent : Array.isArray(rawContent) ? rawContent.map((c: any) => c.text ?? "").join("") : null;
+        if (!rawStr) return { reply: "I'm here to help! What would you like to know?", actions: [] };
+        // Try to parse as JSON envelope with actions
+        try {
+          const trimmed = rawStr.trim();
+          if (trimmed.startsWith("{")) {
+            const parsed = JSON.parse(trimmed);
+            if (parsed.reply && typeof parsed.reply === "string") {
+              return {
+                reply: parsed.reply,
+                actions: Array.isArray(parsed.actions) ? parsed.actions : [],
+              };
+            }
+          }
+        } catch { /* not JSON, fall through */ }
+        return { reply: rawStr, actions: [] };
+      }),
+
+    saveAction: protectedProcedure
+      .input(z.object({
+        type: z.enum(["save_invoice_draft", "save_contract_draft", "save_followup_draft", "save_note"]),
+        data: z.record(z.string(), z.unknown()),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await requireDb();
+        const userId = ctx.user.id;
+        if (input.type === "save_invoice_draft") {
+          const d = input.data as any;
+          const invNum = generateInvoiceNumber();
+          const [row] = await db.insert(invoices).values({
+            userId,
+            invoiceNumber: invNum,
+            clientName: String(d.clientName ?? "New Client"),
+            clientEmail: d.clientEmail ? String(d.clientEmail) : undefined,
+            service: d.service ? String(d.service) : undefined,
+            amount: String(parseFloat(String(d.amount ?? 0)).toFixed(2)),
+            status: "draft",
+            notes: d.notes ? String(d.notes) : undefined,
+          });
+          return { id: (row as any).insertId ?? 0, panel: "invoices", label: "Invoice Draft" };
+        }
+        if (input.type === "save_contract_draft") {
+          const d = input.data as any;
+          const [row] = await db.insert(contracts).values({
+            userId,
+            clientName: String(d.clientName ?? "New Client"),
+            clientEmail: d.clientEmail ? String(d.clientEmail) : undefined,
+            title: String(d.title ?? "AI-Generated Contract Draft"),
+            type: "contract",
+            status: "draft",
+            body: String(d.body ?? ""),
+          });
+          return { id: (row as any).insertId ?? 0, panel: "contracts", label: "Contract Draft" };
+        }
+        if (input.type === "save_followup_draft") {
+          const d = input.data as any;
+          const [row] = await db.insert(followUps).values({
+            userId,
+            clientName: String(d.clientName ?? "New Client"),
+            clientEmail: d.clientEmail ? String(d.clientEmail) : undefined,
+            subject: d.subject ? String(d.subject) : "Follow-up",
+            body: String(d.body ?? ""),
+            status: "draft",
+          });
+          return { id: (row as any).insertId ?? 0, panel: "followups", label: "Follow-up Draft" };
+        }
+        if (input.type === "save_note") {
+          const d = input.data as any;
+          // Save as a follow-up draft with type note
+          const [row] = await db.insert(followUps).values({
+            userId,
+            clientName: String(d.clientName ?? "General"),
+            subject: String(d.title ?? "AI Note"),
+            body: String(d.body ?? ""),
+            status: "draft",
+          });
+          return { id: (row as any).insertId ?? 0, panel: "followups", label: "Note" };
+        }
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Unknown action type" });
       }),
 
     smartSchedule: protectedProcedure
