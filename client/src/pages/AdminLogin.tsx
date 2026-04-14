@@ -26,9 +26,10 @@ export default function AdminLogin() {
 
   const adminLogin = trpc.auth.adminLogin.useMutation({
     onSuccess: async () => {
-      await utils.auth.me.invalidate();
       toast.success("Welcome back, Owner.");
-      navigate("/admin");
+      // Hard navigation ensures session cookie is fully committed before
+      // the Admin page mounts and checks isOwner.
+      window.location.href = "/admin";
     },
     onError: (err) => {
       toast.error(err.message ?? "Login failed.");

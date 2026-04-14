@@ -954,3 +954,6 @@
 - [x] Delete scripts/seed-admin.mjs (plaintext password removed from codebase)
 - [x] Enforce invite-only registration (already fully implemented — server validates invite code, UI has required invite code field)
 - [x] Add Change Password form in Admin panel Settings tab (current + new + confirm fields, show/hide toggles, redirects to /admin-login after success)
+
+## Admin Login Redirect Fix (Apr 14, 2026)
+- [ ] After successful admin login, redirect to /admin instead of home page
