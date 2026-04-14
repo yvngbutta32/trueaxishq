@@ -886,3 +886,7 @@
 ## Best-of-Best Platform Upgrade (Apr 14, 2026)
 - [x] Deep-scope audit of every page and panel
 - [x] Implement all highest-impact improvements identified in audit (contrast fixes across all dark-bg pages)
+
+## SEO Fixes — Home Page (Apr 14, 2026)
+- [x] Fix page title: set to 52 chars — "TrueAxis HQ — AI Business Platform for Freelancers" (via document.title in Home.tsx + index.html)
+- [x] Fix meta description: shortened to 114 chars — "AI-powered client management, invoicing, and scheduling for freelancers and coaches. Start your free 14-day trial."

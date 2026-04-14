@@ -1093,8 +1093,10 @@ export default function Home() {
   const [, navigate] = useLocation();
 
   // If the user is already authenticated, skip the landing page and go straight to the dashboard
-  const meQuery = trpc.auth.me.useQuery(undefined, { retry: false, refetchOnWindowFocus: false });
-
+   const meQuery = trpc.auth.me.useQuery(undefined, { retry: false, refetchOnWindowFocus: false });
+  useEffect(() => {
+    document.title = "TrueAxis HQ — AI Business Platform for Freelancers";
+  }, []);
   useEffect(() => {
     if (!meQuery.isLoading && meQuery.data) {
       // User is logged in — redirect to dashboard
