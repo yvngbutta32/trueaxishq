@@ -3055,8 +3055,8 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
           {/* Quick links row */}
           <div className="border-t border-white/10 pt-4 flex gap-2">
             <button
-              onClick={() => { navigate("/billing"); setShowSheet(false); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
+              onClick={() => { setActive("settings"); setShowSheet(false); }}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
             >
               <CreditCard className="w-4 h-4" />
               Billing

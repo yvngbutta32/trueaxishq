@@ -904,3 +904,25 @@
 - [x] Add visible scrollbar to sidebar nav (sidebar-scrollbar CSS class)
 - [x] Add Home button to top bar next to search bar
 - [x] Embed full Billing section inline into Settings panel (BillingSection component with plans grid, interval toggle, portal button, test mode notice)
+
+## Next Steps Implementation (Apr 14, 2026)
+
+### Email Notifications
+- [x] Email helper already built (server/_core/email.ts) with SMTP fallback to console logging
+- [x] Booking confirmation email already wired in public booking procedure (line 1757 in routers.ts)
+- [x] Invoice reminder email already wired in sendReminder procedure (line 589 in routers.ts)
+- [x] Invoice paid email already wired in stripeWebhook.ts on checkout.session.completed
+
+### Onboarding Checklist Widget
+- [x] OnboardingChecklist component already built (client/src/components/OnboardingChecklist.tsx)
+- [x] Already rendered in OverviewPanel (line 345 in Dashboard.tsx)
+- [x] 6-step checklist: profile, client, invoice, booking, followup, recurring
+- [x] Progress tracked in localStorage with dismiss state
+- [x] Auto-dismiss when all steps complete
+
+### Client Portal — Stripe Payment
+- [x] portal.payInvoice tRPC procedure already built (line 2123 in routers.ts)
+- [x] "Pay Now" button already on unpaid invoices in ClientPortal.tsx (line 205)
+- [x] checkout.session.completed webhook already marks invoice as paid
+- [x] Payment confirmation toast shown on redirect back from Stripe
+- [x] Mobile nav Billing button now navigates to Settings panel instead of /billing route
