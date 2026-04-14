@@ -816,3 +816,9 @@
 - [x] About.tsx — fixed story text, stats labels, mission card body text
 - [x] ResetPassword.tsx + ForgotPassword.tsx — fixed subtitle and back-link text
 - [x] Removed remaining SkillBridge references from robots.txt
+
+## Remove Light/Dark Mode Toggle (Apr 14, 2026)
+- [x] Remove theme toggle button from Dashboard sidebar
+- [x] Remove theme toggle from any other UI locations
+- [x] Lock ThemeProvider to dark mode only in App.tsx (defaultTheme="dark" switchable={false})
+- [x] Remove unused theme-related state/hooks/localStorage logic

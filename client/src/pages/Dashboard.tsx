@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { useTheme } from "@/contexts/ThemeContext";
 import AIAssistant from "@/components/AIAssistant";
 import { HealthMonitor } from "@/components/HealthMonitor";
 import {
@@ -24,7 +23,7 @@ import {
   DollarSign, Clock, CheckCircle, ArrowUpRight,
   ChevronRight, LogOut, X, Edit2, Trash2, Send,
   Download, Phone, AlertCircle, RefreshCw, User,
-  Building, Save, Moon, Sun, Bot, CreditCard,
+  Building, Save, Bot, CreditCard,
   ExternalLink, Bell, Search, ChevronDown, Loader2,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
   Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload,
@@ -156,7 +155,6 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
   collapsed: boolean; setCollapsed: (v: boolean | ((prev: boolean) => boolean)) => void;
 }) {
   const [, navigate] = useLocation();
-  const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { data: settings } = trpc.settings.get.useQuery(undefined, { retry: 1 });
 
@@ -230,10 +228,6 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             Upgrade to Pro →
           </button>
         )}
-        <button onClick={toggleTheme} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-white/5 hover:text-white transition-all" aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
-          {theme === "dark" ? <Sun className="w-4 h-4 flex-shrink-0" /> : <Moon className="w-4 h-4 flex-shrink-0" />}
-          {!collapsed && <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>}
-        </button>
         <button onClick={() => navigate("/billing")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-white/5 hover:text-white transition-all" aria-label="Billing">
           <CreditCard className="w-4 h-4 flex-shrink-0" />
           {!collapsed && <span>Billing</span>}
