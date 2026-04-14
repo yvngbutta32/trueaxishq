@@ -133,7 +133,7 @@ export default function Privacy() {
           <span className="text-xs font-semibold text-[#E8A020] uppercase tracking-wider">Legal</span>
         </div>
         <h1 className="text-4xl sm:text-5xl font-extrabold mb-3" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Privacy Policy</h1>
-        <p className="text-sm text-gray-500 mb-12">Last updated: {LAST_UPDATED}</p>
+        <p className="text-sm text-gray-400 mb-12">Last updated: {LAST_UPDATED}</p>
 
         <p className="text-gray-300 leading-relaxed mb-10 text-base">
           TrueAxis HQ ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform. Please read this policy carefully. If you disagree with its terms, please discontinue use of the platform.
@@ -157,7 +157,7 @@ export default function Privacy() {
         </div>
       </div>
 
-      <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-600">
+      <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-400">
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

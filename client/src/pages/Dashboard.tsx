@@ -190,8 +190,8 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
         </button>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto" aria-label="Dashboard sections">
+      {/* Nav — scrollable, footer stays pinned */}
+      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto min-h-0 scroll-smooth" aria-label="Dashboard sections">
         {navItems.map((item) => (
           <button
             key={item.panel}
@@ -217,7 +217,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
         {!collapsed && settings?.subscriptionStatus === "active" && (
           <div className="bg-[#E8A020]/10 border border-[#E8A020]/20 rounded-xl p-3 mb-2">
             <p className="text-xs font-semibold text-[#E8A020] mb-0.5 capitalize">{settings.planId || "Pro"} Plan</p>
-            <p className="text-xs text-gray-600">Active subscription</p>
+            <p className="text-xs text-gray-400">Active subscription</p>
           </div>
         )}
         {!collapsed && (!settings?.subscriptionStatus || settings.subscriptionStatus === "inactive") && (
@@ -228,19 +228,19 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             Upgrade to Pro →
           </button>
         )}
-        <button onClick={() => navigate("/billing")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-white/5 hover:text-white transition-all" aria-label="Billing">
+        <button onClick={() => navigate("/billing")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label="Billing">
           <CreditCard className="w-4 h-4 flex-shrink-0" />
           {!collapsed && <span>Billing</span>}
         </button>
         {user?.role === "admin" && (
-          <button onClick={() => navigate("/admin")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-white/5 hover:text-white transition-all" aria-label="Admin panel">
+          <button onClick={() => navigate("/admin")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label="Admin panel">
             <Star className="w-4 h-4 flex-shrink-0" />
             {!collapsed && <span>Admin Panel</span>}
           </button>
         )}
         <button
           onClick={() => navigate("/")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-white/5 hover:text-white transition-all"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
           aria-label="Go to home page"
           title="Home"
         >
@@ -250,7 +250,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
         {/* Collapse / Expand toggle */}
         <button
           onClick={() => setCollapsed(v => !v)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-white/5 hover:text-white transition-all"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand" : "Collapse"}
         >
@@ -2906,7 +2906,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
                     className={`relative flex flex-col items-center justify-center py-3.5 px-1 rounded-2xl gap-1.5 transition-all active:scale-95 ${
                       active === item.panel
                         ? "bg-[#E8A020]/20 text-[#E8A020]"
-                        : "bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white"
+                        : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
                     }`}
                   >
                     {item.badge && (
@@ -2934,7 +2934,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
             {user?.role === "admin" && (
               <button
                 onClick={() => { navigate("/admin"); setShowSheet(false); }}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
               >
                 <Star className="w-4 h-4" />
                 Admin
@@ -2942,7 +2942,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
             )}
             <button
               onClick={() => { navigate("/"); setShowSheet(false); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
             >
               <Home className="w-4 h-4" />
               Home

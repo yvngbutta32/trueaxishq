@@ -120,7 +120,7 @@ function ArticleAccordion({ q, a }: { q: string; a: string }) {
         <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="px-5 pb-5 text-sm text-gray-400 leading-relaxed border-t border-white/10 pt-4">
+        <div className="px-5 pb-5 text-sm text-gray-300 leading-relaxed border-t border-white/10 pt-4">
           {a}
         </div>
       )}
@@ -159,7 +159,7 @@ export default function Help() {
       {/* Hero */}
       <section className="py-10 sm:py-14 px-4 text-center bg-gradient-to-b from-[#1A2E2A] to-[#1C1C1E]">
         <h1 className="text-4xl sm:text-5xl font-extrabold mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Help Center</h1>
-        <p className="text-gray-400 mb-8 max-w-lg mx-auto">Find answers to common questions, or contact our support team.</p>
+        <p className="text-gray-300 mb-8 max-w-lg mx-auto">Find answers to common questions, or contact our support team.</p>
         <div className="relative max-w-lg mx-auto">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input

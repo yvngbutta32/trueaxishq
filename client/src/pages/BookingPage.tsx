@@ -262,7 +262,7 @@ export default function BookingPage() {
             <h1 className="text-3xl font-extrabold text-white mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               You're Booked!
             </h1>
-            <p className="text-gray-400 text-sm max-w-sm mx-auto">
+            <p className="text-gray-300 text-sm max-w-sm mx-auto">
               Your request has been sent to <strong className="text-white">{host.name}</strong>. They'll confirm your appointment shortly.
             </p>
           </div>
@@ -275,22 +275,22 @@ export default function BookingPage() {
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400 flex items-center gap-2"><Briefcase className="w-3.5 h-3.5" />Service</span>
+                <span className="text-sm text-gray-300 flex items-center gap-2"><Briefcase className="w-3.5 h-3.5" />Service</span>
                 <span className="text-sm font-semibold text-white">{form.service}</span>
               </div>
               <div className="h-px bg-white/5" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400 flex items-center gap-2"><Calendar className="w-3.5 h-3.5" />Date</span>
+                <span className="text-sm text-gray-300 flex items-center gap-2"><Calendar className="w-3.5 h-3.5" />Date</span>
                 <span className="text-sm font-semibold text-white">{form.preferredDate}</span>
               </div>
               <div className="h-px bg-white/5" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400 flex items-center gap-2"><Clock className="w-3.5 h-3.5" />Time</span>
+                <span className="text-sm text-gray-300 flex items-center gap-2"><Clock className="w-3.5 h-3.5" />Time</span>
                 <span className="text-sm font-semibold text-white">{form.preferredTime}</span>
               </div>
               <div className="h-px bg-white/5" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400 flex items-center gap-2"><User className="w-3.5 h-3.5" />With</span>
+                <span className="text-sm text-gray-300 flex items-center gap-2"><User className="w-3.5 h-3.5" />With</span>
                 <span className="text-sm font-semibold text-white">{host.name}</span>
               </div>
             </div>
@@ -302,7 +302,7 @@ export default function BookingPage() {
               <Sparkles className="w-4 h-4 text-[#E8A020]" />
               <span className="text-xs font-bold text-[#E8A020] uppercase tracking-wider">Add to Your Calendar</span>
             </div>
-            <p className="text-xs text-gray-400 mb-4">Save this appointment so you never miss it. Includes a 1-hour reminder.</p>
+            <p className="text-xs text-gray-300 mb-4">Save this appointment so you never miss it. Includes a 1-hour reminder.</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               {/* Download .ics */}
               <button
@@ -356,7 +356,7 @@ export default function BookingPage() {
                 setStep("details");
                 setForm({ clientName: "", clientEmail: "", service: "", message: "", preferredDate: "", preferredTime: "" });
               }}
-              className="text-sm text-gray-400 hover:text-white underline underline-offset-2 transition-colors"
+              className="text-sm text-gray-300 hover:text-white underline underline-offset-2 transition-colors"
             >
               Book another appointment
             </button>
@@ -380,7 +380,7 @@ export default function BookingPage() {
           />
           <div className="w-px h-5 bg-white/15 flex-shrink-0" aria-hidden="true" />
           <div>
-            <p className="text-xs text-gray-600">Booking with</p>
+            <p className="text-xs text-gray-400">Booking with</p>
             <h1 className="text-sm font-bold text-white" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               {host.name}
             </h1>
@@ -421,7 +421,7 @@ export default function BookingPage() {
                       {isDone ? <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" /> : i + 1}
                     </div>
                     <span className={`text-xs font-medium hidden sm:block ${
-                      isCurrent ? "text-[#E8A020]" : isDone ? "text-gray-500" : "text-gray-600"
+                      isCurrent ? "text-[#E8A020]" : isDone ? "text-gray-400" : "text-gray-500"
                     }`}>
                       {s.label}
                     </span>
@@ -443,7 +443,7 @@ export default function BookingPage() {
             <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               Tell us about yourself
             </h2>
-            <p className="text-sm text-gray-600 mb-6">We'll share this with {host.name} to prepare for your session.</p>
+            <p className="text-sm text-gray-400 mb-6">We'll share this with {host.name} to prepare for your session.</p>
 
             <div className="space-y-4">
               <div>
@@ -451,7 +451,7 @@ export default function BookingPage() {
                   Full Name <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" aria-hidden="true" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
                   <input
                     id="client-name"
                     type="text"
@@ -471,7 +471,7 @@ export default function BookingPage() {
                   Email Address <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" aria-hidden="true" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
                   <input
                     id="client-email"
                     type="email"
@@ -491,7 +491,7 @@ export default function BookingPage() {
                   Service Needed <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" aria-hidden="true" />
+                  <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
                   <select
                     id="service-select"
                     value={form.service}
@@ -503,7 +503,7 @@ export default function BookingPage() {
                     <option value="">Select a service…</option>
                     {(host.bookingServices && host.bookingServices.length > 0
                       ? host.bookingServices
-                      : ["Consultation", "Strategy Call", "General Session"]
+                      : ["Coaching Session", "Strategy Call", "Consultation"]
                     ).map((s: string) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
@@ -511,10 +511,10 @@ export default function BookingPage() {
 
               <div>
                 <label htmlFor="client-message" className="form-label">
-                  Message <span className="text-gray-600 font-normal">(optional)</span>
+                  Message <span className="text-gray-400 font-normal">(optional)</span>
                 </label>
                 <div className="relative">
-                  <MessageSquare className="absolute left-3.5 top-3 w-4 h-4 text-gray-600" aria-hidden="true" />
+                  <MessageSquare className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" aria-hidden="true" />
                   <textarea
                     id="client-message"
                     value={form.message}
@@ -549,7 +549,7 @@ export default function BookingPage() {
           <section aria-label="Select date and time">
             <button
               onClick={() => setStep("details")}
-              className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
+              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
               aria-label="Back to your details"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
@@ -578,10 +578,10 @@ export default function BookingPage() {
                       className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2 ${
                         isSelected
                           ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]"
-                          : "border-white/15 bg-white/5 hover:border-white/25 text-gray-500"
+                          : "border-white/15 bg-white/5 hover:border-white/25 text-gray-300"
                       }`}
                     >
-                      <p className="text-xs text-gray-600">{dayName}</p>
+                      <p className="text-xs text-gray-400">{dayName}</p>
                       <p className="text-lg font-bold">{dayNum}</p>
                     </button>
                   );
@@ -605,7 +605,7 @@ export default function BookingPage() {
                         className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2 ${
                           isSelected
                             ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]"
-                            : "border-white/15 bg-white/5 hover:border-white/25 text-gray-500"
+                            : "border-white/15 bg-white/5 hover:border-white/25 text-gray-300"
                         }`}
                       >
                         {time}
@@ -636,7 +636,7 @@ export default function BookingPage() {
           <section aria-label="Confirm your booking">
             <button
               onClick={() => setStep("datetime")}
-              className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
+              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
               aria-label="Back to date and time selection"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
@@ -645,7 +645,7 @@ export default function BookingPage() {
             <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               Confirm your booking
             </h2>
-            <p className="text-sm text-gray-600 mb-6">Please review the details below before submitting.</p>
+            <p className="text-sm text-gray-400 mb-6">Please review the details below before submitting.</p>
 
             <div className="bg-white/5 rounded-2xl border border-white/10 p-5 space-y-4 mb-6">
               <div className="flex items-center gap-3 pb-4 border-b border-white/10">
@@ -654,7 +654,7 @@ export default function BookingPage() {
                 </div>
                 <div>
                   <p className="font-bold text-white">{host.name}</p>
-                  <p className="text-xs text-gray-600">Your service provider</p>
+                  <p className="text-xs text-gray-400">Your service provider</p>
                 </div>
               </div>
 
@@ -667,10 +667,10 @@ export default function BookingPage() {
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white/8 border border-white/10 flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                    <Icon className="w-4 h-4 text-gray-600" />
+                    <Icon className="w-4 h-4 text-gray-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600">{label}</p>
+                    <p className="text-xs text-gray-400">{label}</p>
                     <p className="text-sm font-semibold text-white">{value}</p>
                   </div>
                 </div>
@@ -679,11 +679,11 @@ export default function BookingPage() {
               {form.message && (
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white/8 border border-white/10 flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
-                    <MessageSquare className="w-4 h-4 text-gray-600" />
+                    <MessageSquare className="w-4 h-4 text-gray-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600">Message</p>
-                    <p className="text-sm text-gray-500">{form.message}</p>
+                    <p className="text-xs text-gray-400">Message</p>
+                    <p className="text-sm text-gray-300">{form.message}</p>
                   </div>
                 </div>
               )}

@@ -953,7 +953,7 @@ function FAQSection() {
         <div className="text-center mb-12">
           <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ background: "rgba(232,160,32,0.12)", color: "#E8A020" }}>FAQ</span>
           <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3" style={{ fontFamily: "Plus Jakarta Sans, sans-serif" }}>Frequently Asked Questions</h2>
-          <p className="text-gray-400 text-base">Everything you need to know before getting started.</p>
+          <p className="text-gray-300 text-base">Everything you need to know before getting started.</p>
         </div>
         <div className="space-y-3">
           {HOME_FAQS.map((faq, i) => (
@@ -970,13 +970,13 @@ function FAQSection() {
               </button>
               {open === i && (
                 <div className="px-5 pb-4">
-                  <p className="text-sm text-gray-400 leading-relaxed">{faq.a}</p>
+                  <p className="text-sm text-gray-300 leading-relaxed">{faq.a}</p>
                 </div>
               )}
             </div>
           ))}
         </div>
-        <p className="text-center text-sm text-gray-500 mt-10">
+        <p className="text-center text-sm text-gray-400 mt-10">
           Still have questions? <a href="/contact" className="text-[#E8A020] hover:underline font-medium">Contact our team →</a>
         </p>
       </div>
@@ -1146,7 +1146,7 @@ export default function Home() {
             <div className="flex items-center justify-between p-5 border-b border-white/5">
               <div>
                 <h2 className="font-extrabold text-[#F5F0E8] text-base" style={{ fontFamily: "Space Grotesk, sans-serif" }}>What's New 🎉</h2>
-                <p className="text-xs text-gray-500 mt-0.5">TrueAxis HQ — Latest Updates</p>
+                <p className="text-xs text-gray-400 mt-0.5">TrueAxis HQ — Latest Updates</p>
               </div>
               <button onClick={() => setChangelogOpen(false)} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors" aria-label="Close">
                 <X className="w-4 h-4 text-gray-400" />
@@ -1167,7 +1167,7 @@ export default function Home() {
                   <span className="text-xl flex-shrink-0">{item.emoji}</span>
                   <div>
                     <p className="text-sm font-bold text-[#F5F0E8]">{item.title}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
                   </div>
                 </div>
               ))}

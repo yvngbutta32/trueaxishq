@@ -134,7 +134,7 @@ export default function Terms() {
           <span className="text-xs font-semibold text-[#E8A020] uppercase tracking-wider">Legal</span>
         </div>
         <h1 className="text-4xl sm:text-5xl font-extrabold mb-3" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Terms of Service</h1>
-        <p className="text-sm text-gray-500 mb-12">Last updated: {LAST_UPDATED}</p>
+        <p className="text-sm text-gray-400 mb-12">Last updated: {LAST_UPDATED}</p>
 
         <p className="text-gray-300 leading-relaxed mb-10 text-base">
           Please read these Terms of Service carefully before using the TrueAxis HQ platform. These Terms constitute a legally binding agreement between you and TrueAxis HQ governing your access to and use of the platform.
@@ -158,7 +158,7 @@ export default function Terms() {
         </div>
       </div>
 
-      <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-600">
+      <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-400">
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

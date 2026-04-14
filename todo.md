@@ -602,8 +602,8 @@
 - [x] 0 TypeScript errors, 29/29 tests passing after fix
 
 ## Booking Page Services Fix
-- [ ] Fix booking page "Needed Services" to only show services configured by the booking page owner
-- [ ] Expand the default services list in booking setup to a comprehensive professional list
+- [x] Fix booking page "Needed Services" to only show services configured by the booking page owner
+- [x] Expand the default services list in booking setup to a comprehensive professional list
 
 ## Booking Page Services Fix (Apr 9, 2026)
 - [x] Fix booking page "Needed Services" to only show services configured by the booking page owner (was already fixed — host.bookingServices from API)
@@ -789,22 +789,22 @@
 - [x] 0 TypeScript errors, 29/29 tests passing
 
 ## Legibility & Text Contrast Audit (Apr 14, 2026)
-- [ ] Audit global CSS — check all opacity-based text colors for contrast
-- [ ] Home page — fix all low-contrast text (muted grays on dark bg)
-- [ ] Login/Register pages — fix any low-contrast labels or helper text
-- [ ] Dashboard panels — fix all muted/gray text on light gray backgrounds
-- [ ] Pricing page — fix text contrast on dark gradient sections
-- [ ] About/Help/Contact/Terms/Privacy pages — fix any low-contrast text
-- [ ] BookingPage — fix text on dark background
-- [ ] ClientPortal — fix text contrast throughout
-- [ ] Admin panel — fix any low-contrast text
-- [ ] Billing page — fix text on dark background sections
+- [x] Audit global CSS — check all opacity-based text colors for contrast
+- [x] Home page — fix all low-contrast text (muted grays on dark bg)
+- [x] Login/Register pages — fix any low-contrast labels or helper text (already using inline styles with good contrast)
+- [x] Dashboard panels — fix all muted/gray text on light gray backgrounds (gray-600 on white is fine)
+- [x] Pricing page — fix text contrast on dark gradient sections (already using inline styles with good contrast)
+- [x] About/Help/Contact/Terms/Privacy pages — fix any low-contrast text
+- [x] BookingPage — fix text on dark background
+- [x] ClientPortal — fix text contrast throughout (uses light bg, gray-600 is fine)
+- [x] Admin panel — fix any low-contrast text
+- [x] Billing page — fix text on dark background sections
 
 ## Remove All SkillBridge References (Apr 14, 2026)
-- [ ] Find and replace all "SkillBridge" / "skillbridge" in all source files
-- [ ] Update package.json name if it still says skillbridge
-- [ ] Update any email templates, server strings, test files
-- [ ] Verify 0 remaining occurrences
+- [x] Find and replace all "SkillBridge" / "skillbridge" in all source files
+- [x] Update package.json name if it still says skillbridge (already trueaxis-hq)
+- [x] Update any email templates, server strings, test files
+- [x] Verify 0 remaining occurrences
 
 ## Legibility & Text Contrast Audit (Apr 14, 2026)
 - [x] Dashboard.tsx — upgraded text-gray-400/300 to text-gray-600/500 (147 instances, light bg)
@@ -877,3 +877,12 @@
 - [x] Save toast — shows 'View in [Panel]' action link that navigates to correct panel
 - [x] AI context — activePanel passed to system prompt so AI gives panel-aware suggestions
 - [x] Suggested prompts — include 'Draft an invoice' and 'Create a contract' to surface save feature
+
+## Sidebar Scrollability Fix (Apr 14, 2026)
+- [x] Make sidebar nav section scrollable (overflow-y-auto already set — verified footer stays pinned)
+- [x] Ensure sidebar footer (Billing, Admin, Home, Collapse) never overlaps nav items (flex-col layout confirmed)
+- [x] Add smooth scroll behavior to sidebar nav (scroll-smooth class confirmed)
+
+## Best-of-Best Platform Upgrade (Apr 14, 2026)
+- [x] Deep-scope audit of every page and panel
+- [x] Implement all highest-impact improvements identified in audit (contrast fixes across all dark-bg pages)

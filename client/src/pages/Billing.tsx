@@ -242,7 +242,7 @@ export default function Billing() {
 
                     <ul className="space-y-2 mb-6 flex-1" aria-label={`${plan.name} features`}>
                       {plan.features.map((feature: string) => (
-                        <li key={feature} className="flex items-start gap-2 text-sm text-gray-500">
+                        <li key={feature} className="flex items-start gap-2 text-sm text-gray-300">
                           <CheckCircle className="w-4 h-4 text-[#E8A020] flex-shrink-0 mt-0.5" aria-hidden="true" />
                           {feature}
                         </li>
@@ -252,7 +252,7 @@ export default function Billing() {
                     {isCurrent ? (
                       <Button
                         variant="outline"
-                        className="w-full bg-transparent border-white/20 text-gray-600 cursor-not-allowed hover:bg-transparent hover:text-gray-600 hover:border-white/20"
+                        className="w-full bg-transparent border-white/20 text-gray-400 cursor-not-allowed hover:bg-transparent hover:text-gray-400 hover:border-white/20"
                         disabled
                         aria-label={`You are currently on the ${plan.name} plan`}
                       >

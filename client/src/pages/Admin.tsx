@@ -277,11 +277,11 @@ export default function Admin() {
           <div className="hidden sm:block w-px h-6 bg-white/10" />
           <div className="hidden sm:flex items-center gap-1.5">
             <Crown className="w-3.5 h-3.5 text-[#E8A020]" />
-            <span className="text-sm font-semibold text-gray-500" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Admin Panel</span>
+            <span className="text-sm font-semibold text-gray-300" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Admin Panel</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="text-gray-500 hover:text-white hover:bg-white/10 text-xs sm:text-sm" onClick={() => navigate("/dashboard")}>
+          <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-white/10 text-xs sm:text-sm" onClick={() => navigate("/dashboard")}>
             <span className="hidden sm:inline">← Dashboard</span>
             <span className="sm:hidden">← Back</span>
           </Button>

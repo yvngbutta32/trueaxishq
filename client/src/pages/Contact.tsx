@@ -44,7 +44,7 @@ export default function Contact() {
 
   const field = (id: keyof typeof form, label: string, type = "text", multiline = false) => (
     <div>
-      <label htmlFor={id} className="block text-xs font-semibold text-gray-400 mb-1.5">{label} *</label>
+      <label htmlFor={id} className="block text-xs font-semibold text-gray-300 mb-1.5">{label} *</label>
       {multiline ? (
         <textarea
           id={id}
@@ -100,7 +100,7 @@ export default function Contact() {
             <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               We'd love to<br /><span className="text-[#E8A020]">hear from you.</span>
             </h1>
-            <p className="text-gray-400 leading-relaxed mb-10">
+            <p className="text-gray-300 leading-relaxed mb-10">
               Whether you have a question about features, pricing, need a demo, or just want to say hello — our team is here for you.
             </p>
 
@@ -115,9 +115,9 @@ export default function Contact() {
                     <Icon className="w-4 h-4 text-[#E8A020]" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-gray-400 mb-0.5">{title}</p>
+                    <p className="text-xs font-semibold text-gray-300 mb-0.5">{title}</p>
                     <p className="text-sm font-medium text-white">{value}</p>
-                    <p className="text-xs text-gray-500">{sub}</p>
+                    <p className="text-xs text-gray-400">{sub}</p>
                   </div>
                 </div>
               ))}
@@ -132,7 +132,7 @@ export default function Contact() {
                   <CheckCircle className="w-8 h-8 text-[#E8A020]" />
                 </div>
                 <h2 className="text-xl font-bold mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Message Received!</h2>
-                <p className="text-gray-400 text-sm mb-6">Thank you for reaching out. We'll get back to you at <strong className="text-white">{form.email}</strong> within 4 business hours.</p>
+                <p className="text-gray-300 text-sm mb-6">Thank you for reaching out. We'll get back to you at <strong className="text-white">{form.email}</strong> within 4 business hours.</p>
                 <Button onClick={() => navigate("/")} className="bg-[#E8A020] hover:bg-[#D4911A] text-white border-0 px-6 py-2.5 rounded-xl text-sm">
                   Back to Home
                 </Button>
