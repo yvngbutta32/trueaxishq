@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -154,6 +154,7 @@ function getNextDays(count: number) {
 export default function BookingPage() {
   const params = useParams<{ username: string }>();
   const username = params.username ?? "";
+  useEffect(() => { document.title = username ? `Book with @${username} — TrueAxis HQ` : "Book a Session — TrueAxis HQ"; }, [username]);
 
   const [step, setStep] = useState<"details" | "datetime" | "confirm" | "success">("details");
   const [form, setForm] = useState({

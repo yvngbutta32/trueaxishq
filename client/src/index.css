@@ -786,7 +786,7 @@
     overscroll-behavior: contain;
   }
 
-  /* ── Scrollbar ─────────────────────────────────────────────────────────── */
+  /* ── Scrollbar ─────────────────────────────────────────────────────────────────────── */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
@@ -794,6 +794,24 @@
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover { background: rgba(29,53,87,0.35); }
+
+  /* Sidebar nav — always-visible scrollbar on desktop */
+  .sidebar-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(232,160,32,0.35) rgba(255,255,255,0.05);
+  }
+  .sidebar-scrollbar::-webkit-scrollbar { width: 4px; }
+  .sidebar-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.04);
+    border-radius: 2px;
+  }
+  .sidebar-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(232,160,32,0.40);
+    border-radius: 2px;
+  }
+  .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(232,160,32,0.65);
+  }
 
   /* ── Feature Color Dots ────────────────────────────────────────────────── */
   .dot-navy   { width: 10px; height: 10px; border-radius: 50%; background: #1D3557; }

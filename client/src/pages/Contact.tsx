@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Zap, Mail, Clock, CheckCircle, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  useEffect(() => { document.title = "Contact — TrueAxis HQ"; }, []);
 
   const submitContact = trpc.contact.submit.useMutation();
 

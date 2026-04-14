@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -84,6 +84,7 @@ export default function Admin() {
   const { user, loading, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
+  useEffect(() => { document.title = "Admin — TrueAxis HQ"; }, []);
   const [page, setPage] = useState(1);
   const [broadcastTitle, setBroadcastTitle] = useState("");
   const [broadcastContent, setBroadcastContent] = useState("");

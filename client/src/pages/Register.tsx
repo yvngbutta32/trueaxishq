@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ const perks = [
 
 export default function Register() {
   const [, navigate] = useLocation();
+  useEffect(() => { document.title = "Create Account — TrueAxis HQ"; }, []);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

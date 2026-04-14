@@ -27,7 +27,7 @@ import {
   ExternalLink, Bell, Search, ChevronDown, Loader2,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
   Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload,
-  Home
+  Home, Crown, ArrowRight, Shield
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -191,7 +191,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
       </div>
 
       {/* Nav — scrollable, footer stays pinned */}
-      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto min-h-0 scroll-smooth" aria-label="Dashboard sections">
+      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto min-h-0 scroll-smooth sidebar-scrollbar" aria-label="Dashboard sections">
         {navItems.map((item) => (
           <button
             key={item.panel}
@@ -228,25 +228,12 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             Upgrade to Pro →
           </button>
         )}
-        <button onClick={() => navigate("/billing")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label="Billing">
-          <CreditCard className="w-4 h-4 flex-shrink-0" />
-          {!collapsed && <span>Billing</span>}
-        </button>
         {user?.role === "admin" && (
           <button onClick={() => navigate("/admin")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all" aria-label="Admin panel">
             <Star className="w-4 h-4 flex-shrink-0" />
             {!collapsed && <span>Admin Panel</span>}
           </button>
         )}
-        <button
-          onClick={() => navigate("/")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all"
-          aria-label="Go to home page"
-          title="Home"
-        >
-          <Home className="w-4 h-4 flex-shrink-0" />
-          {!collapsed && <span>Home</span>}
-        </button>
         {/* Collapse / Expand toggle */}
         <button
           onClick={() => setCollapsed(v => !v)}
@@ -2084,8 +2071,165 @@ function AnalyticsPanel() {
   );
 }
 
-// ─── Settings Panel ───────────────────────────────────────────────────────────
-// ─── Change Password Section ─────────────────────────────────────────────────
+// ─── Settings Panel ─────────────────────────────────────────────────────
+// ─── Billing Section (inline in Settings) ─────────────────────────────────────────────────────
+const BILLING_PLAN_ICONS: Record<string, React.ElementType> = { starter: Zap, pro: Star, agency: Crown };
+const BILLING_PLAN_COLORS: Record<string, string> = { starter: "bg-blue-500", pro: "bg-[#E8A020]", agency: "bg-purple-600" };
+
+function BillingSection() {
+  const { isAuthenticated } = useAuth();
+  const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">("monthly");
+  const subscriptionQuery = trpc.billing.getSubscription.useQuery(undefined, { enabled: isAuthenticated });
+  const plansQuery = trpc.billing.getPlans.useQuery();
+  const checkoutMutation = trpc.billing.createCheckout.useMutation({
+    onSuccess: (data) => { if (data.url) { toast.info("Redirecting to checkout…"); window.open(data.url, "_blank"); } },
+    onError: (e) => toast.error("Checkout error: " + e.message),
+  });
+  const portalMutation = trpc.billing.createPortal.useMutation({
+    onSuccess: (data) => { if (data.url) { toast.info("Opening billing portal…"); window.open(data.url, "_blank"); } },
+    onError: (e) => toast.error("Portal error: " + e.message),
+  });
+
+  const currentPlan = subscriptionQuery.data?.planId ?? "free";
+  const currentStatus = subscriptionQuery.data?.status ?? "free";
+  const hasActiveSubscription = currentStatus === "active";
+  const plans = plansQuery.data ?? [];
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+      <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2">
+        <CreditCard className="w-4 h-4 text-[#E8A020]" />Billing &amp; Subscription
+      </h3>
+
+      {/* Current plan status */}
+      <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-xl">
+        <div className="flex items-center gap-3">
+          {(() => {
+            const Icon = BILLING_PLAN_ICONS[currentPlan] ?? Zap;
+            const color = BILLING_PLAN_COLORS[currentPlan] ?? "bg-gray-400";
+            return <div className={`w-9 h-9 rounded-lg ${color} flex items-center justify-center flex-shrink-0`}><Icon className="w-4 h-4 text-white" /></div>;
+          })()}
+          <div>
+            <p className="text-sm font-semibold text-[#1C1C1E] capitalize">
+              {currentPlan === "free" ? "Free Plan" : `${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan`}
+            </p>
+            <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full mt-0.5 ${
+              currentStatus === "active" ? "bg-green-100 text-green-700" :
+              currentStatus === "past_due" ? "bg-yellow-100 text-yellow-700" :
+              currentStatus === "cancelled" ? "bg-red-100 text-red-700" :
+              "bg-gray-100 text-gray-600"
+            }`}>
+              {currentStatus === "active" && <CheckCircle className="w-3 h-3" />}
+              {currentStatus === "active" ? "Active" : currentStatus === "past_due" ? "Payment Due" : currentStatus === "cancelled" ? "Cancelled" : "Free"}
+            </span>
+          </div>
+        </div>
+        {hasActiveSubscription && (
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => portalMutation.mutate({ origin: window.location.origin })} disabled={portalMutation.isPending}>
+            {portalMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><CreditCard className="w-3.5 h-3.5" />Manage<ExternalLink className="w-3 h-3" /></>}
+          </Button>
+        )}
+      </div>
+
+      {/* Interval toggle */}
+      <div className="flex items-center gap-2">
+        {(["monthly", "annual"] as const).map(opt => (
+          <button
+            key={opt}
+            onClick={() => setBillingInterval(opt)}
+            className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all border ${
+              billingInterval === opt
+                ? "gradient-amber text-white border-transparent shadow-sm"
+                : "bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            {opt === "monthly" ? "Monthly" : (
+              <span className="flex items-center justify-center gap-1.5">
+                Annual
+                <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold">Save 20%</span>
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Plans grid */}
+      <div className="grid sm:grid-cols-3 gap-3">
+        {plansQuery.isLoading ? (
+          [...Array(3)].map((_, i) => <Skeleton key={i} className="h-64" />)
+        ) : (
+          plans.map((plan) => {
+            const isCurrent = plan.id === currentPlan;
+            const price = billingInterval === "annual"
+              ? Math.round((plan.annualPrice / 100) * 0.8)
+              : plan.monthlyPrice / 100;
+            const Icon = BILLING_PLAN_ICONS[plan.id] ?? Zap;
+            const color = BILLING_PLAN_COLORS[plan.id] ?? "bg-gray-400";
+            return (
+              <div
+                key={plan.id}
+                className={`rounded-xl border-2 p-4 flex flex-col transition-all ${
+                  plan.highlighted ? "border-[#E8A020] shadow-md shadow-[#E8A020]/10 bg-[#E8A020]/3" :
+                  isCurrent ? "border-blue-300 bg-blue-50/30" :
+                  "border-gray-100 bg-gray-50 hover:border-gray-200"
+                }`}
+              >
+                {plan.highlighted && (
+                  <div className="text-[10px] font-bold text-[#E8A020] bg-[#E8A020]/10 rounded-full px-2 py-0.5 text-center mb-3 -mt-0.5">Most Popular</div>
+                )}
+                {isCurrent && !plan.highlighted && (
+                  <div className="text-[10px] font-bold text-blue-600 bg-blue-50 rounded-full px-2 py-0.5 text-center mb-3 -mt-0.5">Current Plan</div>
+                )}
+                <div className={`w-8 h-8 rounded-lg ${color} flex items-center justify-center mb-3`}>
+                  <Icon className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-sm font-extrabold text-[#1C1C1E] mb-0.5" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{plan.name}</p>
+                <p className="text-[11px] text-gray-500 mb-3 leading-snug">{plan.description}</p>
+                <div className="mb-3">
+                  <span className="text-xl font-extrabold text-[#1C1C1E]">${price}</span>
+                  <span className="text-xs text-gray-500">/mo</span>
+                  {billingInterval === "annual" && <p className="text-[10px] text-green-600 font-semibold">Billed annually</p>}
+                </div>
+                <ul className="space-y-1.5 mb-4 flex-1">
+                  {plan.features.slice(0, 4).map((feature: string) => (
+                    <li key={feature} className="flex items-start gap-1.5 text-[11px] text-gray-600">
+                      <CheckCircle className="w-3 h-3 text-[#E8A020] flex-shrink-0 mt-0.5" />{feature}
+                    </li>
+                  ))}
+                </ul>
+                {isCurrent ? (
+                  <Button variant="outline" size="sm" className="w-full text-xs" disabled>Current Plan</Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className={`w-full gap-1.5 text-xs ${
+                      plan.highlighted ? "gradient-amber text-white border-0" : "bg-gray-200 text-gray-700 border-0 hover:bg-gray-300"
+                    }`}
+                    onClick={() => checkoutMutation.mutate({ planId: plan.id as "starter" | "pro" | "agency", interval: billingInterval, origin: window.location.origin })}
+                    disabled={checkoutMutation.isPending}
+                  >
+                    {checkoutMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <>Get Started<ArrowRight className="w-3 h-3" /></>}
+                  </Button>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Test mode notice */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex items-start gap-2">
+        <Shield className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-xs font-semibold text-yellow-800">Test Mode Active</p>
+          <p className="text-[11px] text-yellow-700 mt-0.5">Use card <code className="bg-yellow-100 px-1 rounded font-mono">4242 4242 4242 4242</code> with any future expiry to test payments.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Change Password Section ─────────────────────────────────────────────────────
 function ChangePasswordSection() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -2633,22 +2777,8 @@ function SettingsPanel() {
       {/* Change Password */}
       <ChangePasswordSection />
 
-      {/* Subscription */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><CreditCard className="w-4 h-4 text-[#E8A020]" />Subscription</h3>
-        <div className="flex items-center justify-between p-3 bg-[#E8A020]/5 border border-[#E8A020]/20 rounded-xl">
-          <div>
-            <p className="text-sm font-semibold text-[#1C1C1E] capitalize">{settings?.subscriptionStatus ?? "free"} Plan</p>
-            <p className="text-xs text-gray-600">{settings?.subscriptionStatus === "active" ? "Active subscription" : "No active subscription"}</p>
-          </div>
-          <Badge className={`border-0 ${settings?.subscriptionStatus === "active" ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-600"}`}>
-            {settings?.subscriptionStatus === "active" ? "Active" : "Free"}
-          </Badge>
-        </div>
-        <Button className="w-full gradient-amber text-white border-0 hover:opacity-90" onClick={() => navigate("/billing")}>
-          {settings?.subscriptionStatus === "active" ? "Manage Subscription" : "Upgrade to Pro — $99/month"}
-        </Button>
-      </div>
+      {/* Billing & Subscription — inline */}
+      <BillingSection />
 
       {/* API Keys */}
       <ApiKeysSection />
@@ -3065,6 +3195,25 @@ export default function Dashboard() {
     });
   };
 
+  // Update document title based on active panel
+  useEffect(() => {
+    const PANEL_TITLES: Record<ActivePanel, string> = {
+      overview: "Dashboard — TrueAxis HQ",
+      clients: "Clients — TrueAxis HQ",
+      scheduling: "Scheduling — TrueAxis HQ",
+      invoices: "Invoices — TrueAxis HQ",
+      followups: "Follow-Ups — TrueAxis HQ",
+      analytics: "Analytics — TrueAxis HQ",
+      settings: "Settings — TrueAxis HQ",
+      ai: "AI Assistant — TrueAxis HQ",
+      pulse: "Client Pulse — TrueAxis HQ",
+      contracts: "Contracts — TrueAxis HQ",
+      time: "Time Tracker — TrueAxis HQ",
+      recurring: "Recurring Revenue — TrueAxis HQ",
+    };
+    document.title = PANEL_TITLES[active] ?? "Dashboard — TrueAxis HQ";
+  }, [active]);
+
   // Global keyboard shortcuts: Alt+1..9 for panel navigation
   useEffect(() => {
     const panels: ActivePanel[] = ["overview", "clients", "scheduling", "invoices", "followups", "analytics", "ai", "pulse", "settings"];
@@ -3187,6 +3336,16 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Home button */}
+            <button
+              onClick={() => navigate("/")}
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-[#1C1C1E] transition-all"
+              aria-label="Go to homepage"
+              title="Homepage"
+            >
+              <Home className="w-4 h-4" aria-hidden="true" />
+              <span>Home</span>
+            </button>
             {/* Search */}
             <div className="relative hidden lg:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-600" aria-hidden="true" />

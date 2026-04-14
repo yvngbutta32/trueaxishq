@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Home, LayoutDashboard, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function NotFound() {
   const [, setLocation] = useLocation();
+  useEffect(() => { document.title = "Page Not Found — TrueAxis HQ"; }, []);
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#F8F7F4]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>

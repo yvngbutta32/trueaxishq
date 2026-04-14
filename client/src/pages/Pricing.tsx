@@ -2,7 +2,7 @@
  * Design: "Dark Amber Retro-Modern" — Charcoal #141414, Amber #E8A020, Cream #F5F0E8
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { CheckCircle, Zap, ArrowLeft, Star, Shield, Sparkles, Brain, X } from "lucide-react";
@@ -99,6 +99,7 @@ export default function Pricing() {
   const [annual, setAnnual] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { isAuthenticated } = useAuth();
+  useEffect(() => { document.title = "Pricing — TrueAxis HQ"; }, []);
 
   return (
     <div style={{ background: "#141414", minHeight: "100vh", color: "#F5F0E8" }}>

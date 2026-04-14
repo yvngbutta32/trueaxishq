@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Zap, Search, ChevronDown, ChevronRight, Mail, MessageCircle, BookOpen, Zap as ZapIcon } from "lucide-react";
 
@@ -132,6 +132,7 @@ export default function Help() {
   const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  useEffect(() => { document.title = "Help Center — TrueAxis HQ"; }, []);
 
   const filtered = categories.map(cat => ({
     ...cat,

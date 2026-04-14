@@ -890,3 +890,17 @@
 ## SEO Fixes — Home Page (Apr 14, 2026)
 - [x] Fix page title: set to 52 chars — "TrueAxis HQ — AI Business Platform for Freelancers" (via document.title in Home.tsx + index.html)
 - [x] Fix meta description: shortened to 114 chars — "AI-powered client management, invoicing, and scheduling for freelancers and coaches. Start your free 14-day trial."
+
+## SEO Enhancements — All Suggested Steps (Apr 14, 2026)
+- [x] Add unique document.title to all 13 routes (Dashboard, Pricing, Billing, About, Help, Contact, Terms, Privacy, BookingPage, Admin, Login, Register, NotFound)
+- [x] Generate 1200×630 OG social card image and update og:image / twitter:image in index.html
+- [x] Create /sitemap.xml listing all public routes (trueaxishq.com domain)
+- [x] robots.txt already references sitemap URL (verified)
+
+## Sidebar & Top Bar Refactor (Apr 14, 2026)
+
+- [x] Remove Billing button from sidebar footer
+- [x] Remove Home button from sidebar footer
+- [x] Add visible scrollbar to sidebar nav (sidebar-scrollbar CSS class)
+- [x] Add Home button to top bar next to search bar
+- [x] Embed full Billing section inline into Settings panel (BillingSection component with plans grid, interval toggle, portal button, test mode notice)

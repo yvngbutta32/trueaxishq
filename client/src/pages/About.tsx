@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { Target, Heart, Shield, CheckCircle, ArrowLeft, TrendingUp, Users, Clock } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -5,6 +6,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 export default function About() {
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
+  useEffect(() => { document.title = "About — TrueAxis HQ"; }, []);
 
   return (
     <div style={{ background: "#141414", minHeight: "100vh", color: "#F5F0E8" }}>

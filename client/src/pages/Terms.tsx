@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Zap, FileText } from "lucide-react";
 
@@ -110,6 +111,7 @@ You waive any right to participate in a class action lawsuit or class-wide arbit
 
 export default function Terms() {
   const [, navigate] = useLocation();
+  useEffect(() => { document.title = "Terms of Service — TrueAxis HQ"; }, []);
   return (
     <div className="min-h-screen bg-[#141414] text-white">
       <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">

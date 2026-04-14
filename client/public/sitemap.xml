@@ -2,66 +2,76 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+          http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
-  <!-- Homepage -->
+  <!-- Home -->
   <url>
-    <loc>https://skillbridge-gipzwtye.manus.space/</loc>
-    <lastmod>2026-04-07</lastmod>
+    <loc>https://trueaxishq.com/</loc>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
-  <!-- Marketing pages -->
+  <!-- Pricing -->
   <url>
-    <loc>https://skillbridge-gipzwtye.manus.space/pricing</loc>
-    <lastmod>2026-04-07</lastmod>
+    <loc>https://trueaxishq.com/pricing</loc>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
+
+  <!-- About -->
   <url>
-    <loc>https://skillbridge-gipzwtye.manus.space/about</loc>
-    <lastmod>2026-04-07</lastmod>
+    <loc>https://trueaxishq.com/about</loc>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://skillbridge-gipzwtye.manus.space/contact</loc>
-    <lastmod>2026-04-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://skillbridge-gipzwtye.manus.space/help</loc>
-    <lastmod>2026-04-07</lastmod>
-    <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
 
-  <!-- Auth pages -->
+  <!-- Help / Support -->
   <url>
-    <loc>https://skillbridge-gipzwtye.manus.space/register</loc>
-    <lastmod>2026-04-07</lastmod>
+    <loc>https://trueaxishq.com/help</loc>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
   </url>
+
+  <!-- Contact -->
   <url>
-    <loc>https://skillbridge-gipzwtye.manus.space/login</loc>
-    <lastmod>2026-04-07</lastmod>
+    <loc>https://trueaxishq.com/contact</loc>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
 
-  <!-- Legal pages -->
+  <!-- Register -->
   <url>
-    <loc>https://skillbridge-gipzwtye.manus.space/privacy</loc>
-    <lastmod>2026-04-07</lastmod>
+    <loc>https://trueaxishq.com/register</loc>
+    <lastmod>2026-04-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Login -->
+  <url>
+    <loc>https://trueaxishq.com/login</loc>
+    <lastmod>2026-04-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Terms of Service -->
+  <url>
+    <loc>https://trueaxishq.com/terms</loc>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
+
+  <!-- Privacy Policy -->
   <url>
-    <loc>https://skillbridge-gipzwtye.manus.space/terms</loc>
-    <lastmod>2026-04-07</lastmod>
+    <loc>https://trueaxishq.com/privacy</loc>
+    <lastmod>2026-04-14</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>

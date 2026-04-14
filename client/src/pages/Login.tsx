@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ const features = [
 
 export default function Login() {
   const [, navigate] = useLocation();
+  useEffect(() => { document.title = "Sign In — TrueAxis HQ"; }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

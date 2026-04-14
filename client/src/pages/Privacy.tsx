@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Zap, Shield } from "lucide-react";
 
@@ -109,6 +110,7 @@ We will respond to all privacy-related inquiries within 5 business days.`,
 
 export default function Privacy() {
   const [, navigate] = useLocation();
+  useEffect(() => { document.title = "Privacy Policy — TrueAxis HQ"; }, []);
   return (
     <div className="min-h-screen bg-[#141414] text-white">
       <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
