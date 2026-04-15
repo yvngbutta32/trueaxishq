@@ -970,3 +970,11 @@
 - [x] #8 Testimonial Engine — DB table, post-payment request, admin approval, booking page display
 - [x] #9 Mobile Quick-Stats Strip — MRR/active clients/pending invoices bar above mobile bottom nav
 - [x] #10 Google Calendar Two-Way Sync — OAuth connect, booking sync, availability blocking
+
+## Template Redesign & Preview System
+- [x] Redesign invoice template — clean, concise layout with clear line items, totals, and branding
+- [ ] Invoice Preview modal — live rendered view of how the PDF will look before downloading
+- [ ] Redesign all email templates — follow-up, testimonial request, booking confirmation, monthly report
+- [ ] Email Preview modal — inline HTML render showing exactly how the email will look when sent
+- [x] Redesign contract template — clean sections, clear headings, signature block
+- [ ] Contract Preview modal — full-page rendered view before sending to client

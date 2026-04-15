@@ -1672,58 +1672,83 @@ function InvoicesPanel() {
       {/* Invoice Preview Modal */}
       <Modal open={!!previewInvoice} onClose={() => setPreviewInvoice(null)} title="Invoice Preview" wide>
         {previewInvoice && (
-          <div className="space-y-6">
-            <div className="flex items-start justify-between">
+          <div className="font-sans">
+            {/* Accent bar */}
+            <div className="h-1 bg-[#E8A020] rounded-t-lg -mx-6 -mt-2 mb-5" />
+
+            {/* Header: INVOICE label + meta */}
+            <div className="flex items-start justify-between mb-5">
               <div>
-                <h3 className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>INVOICE</h3>
-                <p className="text-sm text-gray-600 mt-1">{previewInvoice.invoiceNumber}</p>
+                <p className="text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1">Invoice</p>
+                <p className="text-3xl font-extrabold text-[#E8A020] tracking-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                  {previewInvoice.invoiceNumber || `#${previewInvoice.id}`}
+                </p>
               </div>
-              <div className="text-right">
-                <p className="text-xs text-gray-600">Issued</p>
-                <p className="text-sm font-semibold">{formatDate(previewInvoice.createdAt)}</p>
-                {previewInvoice.dueDate && <>
-                  <p className="text-xs text-gray-600 mt-1">Due</p>
-                  <p className="text-sm font-semibold">{previewInvoice.dueDate}</p>
-                </>}
-              </div>
-            </div>
-            <div className="border-t border-b border-gray-100 py-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Client</span>
-                <span className="font-semibold">{previewInvoice.clientName}</span>
-              </div>
-              {previewInvoice.clientEmail && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Email</span>
-                  <span>{previewInvoice.clientEmail}</span>
+              <div className="text-right space-y-1">
+                <div className="flex items-center justify-end gap-2">
+                  <span className="text-[11px] text-gray-400 uppercase tracking-wide">Status</span>
+                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${
+                    previewInvoice.status === "paid" ? "bg-green-100 text-green-700" :
+                    previewInvoice.status === "overdue" ? "bg-red-100 text-red-700" :
+                    "bg-amber-100 text-amber-700"
+                  }`}>{previewInvoice.status}</span>
                 </div>
-              )}
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Service</span>
-                <span>{previewInvoice.service || "Professional Services"}</span>
+                <p className="text-xs text-gray-500">Issued {formatDate(previewInvoice.createdAt)}</p>
+                {previewInvoice.dueDate && (
+                  <p className="text-xs text-gray-500">Due {formatDate(previewInvoice.dueDate)}</p>
+                )}
               </div>
             </div>
-            <div className="flex justify-between items-center bg-[#E8A020]/10 rounded-xl p-4">
-              <span className="font-bold text-[#1C1C1E]">Total Amount</span>
-              <span className="text-2xl font-extrabold text-[#E8A020]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{formatCurrency(previewInvoice.amount)}</span>
+
+            {/* Bill To */}
+            <div className="mb-4">
+              <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-1">Bill To</p>
+              <p className="text-sm font-semibold text-[#18181B]">{previewInvoice.clientName}</p>
+              {previewInvoice.clientEmail && <p className="text-xs text-gray-500">{previewInvoice.clientEmail}</p>}
             </div>
+
+            {/* Line items table */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
+              <div className="grid grid-cols-[1fr_auto_auto] bg-gray-50 border-b border-gray-200">
+                <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase">Description</div>
+                <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase text-center">Qty</div>
+                <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase text-right">Amount</div>
+              </div>
+              <div className="grid grid-cols-[1fr_auto_auto] bg-white">
+                <div className="px-4 py-3">
+                  <p className="text-sm font-medium text-[#18181B]">{previewInvoice.service || "Professional Services"}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{previewInvoice.clientName}</p>
+                </div>
+                <div className="px-4 py-3 text-sm text-gray-600 text-center">1</div>
+                <div className="px-4 py-3 text-sm font-bold text-[#18181B] text-right">{formatCurrency(previewInvoice.amount)}</div>
+              </div>
+              {/* Total row */}
+              <div className="grid grid-cols-[1fr_auto] bg-[#E8A020]/8 border-t border-gray-200">
+                <div className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Total Due</div>
+                <div className="px-4 py-3 text-xl font-extrabold text-[#E8A020] text-right" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{formatCurrency(previewInvoice.amount)}</div>
+              </div>
+            </div>
+
+            {/* Notes */}
             {previewInvoice.notes && (
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs font-semibold text-gray-600 mb-1">Notes</p>
-                <p className="text-sm text-gray-700">{previewInvoice.notes}</p>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
+                <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-1">Notes</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{previewInvoice.notes}</p>
               </div>
             )}
-            <div className="flex gap-3">
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-1">
               <a
                 href={`/api/invoices/${previewInvoice.id}/pdf`}
                 download
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold gradient-amber text-white border-0 hover:opacity-90 transition-opacity"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-[#E8A020] text-white hover:bg-[#D4911A] transition-colors"
               >
-                <Download className="w-4 h-4" />Download PDF
+                <Download className="w-4 h-4" /> Download PDF
               </a>
               {previewInvoice.status !== "paid" && (
                 <Button variant="outline" className="flex-1 gap-2" onClick={() => { markPaid.mutate({ id: previewInvoice.id }); setPreviewInvoice(null); }}>
-                  <CheckCircle className="w-4 h-4 text-green-500" />Mark Paid
+                  <CheckCircle className="w-4 h-4 text-green-500" /> Mark Paid
                 </Button>
               )}
             </div>
@@ -1984,26 +2009,60 @@ function FollowUpsPanel() {
         </div>
       </Modal>
 
-      {/* Preview Modal */}
+      {/* Email Preview Modal */}
       <Modal open={!!previewFollowUp} onClose={() => setPreviewFollowUp(null)} title="Email Preview" wide>
         {previewFollowUp && (
-          <div className="space-y-4">
-            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-gray-600 w-12">To:</span>
+          <div className="font-sans">
+            {/* Email client header */}
+            <div className="bg-gray-50 border border-gray-200 rounded-xl mb-4 overflow-hidden">
+              <div className="px-4 py-2 border-b border-gray-200 flex items-center gap-2">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide w-14">From</span>
+                <span className="text-sm text-gray-700">TrueAxis HQ &lt;noreply@trueaxishq.com&gt;</span>
+              </div>
+              <div className="px-4 py-2 border-b border-gray-200 flex items-center gap-2">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide w-14">To</span>
                 <span className="text-sm text-gray-700">{previewFollowUp.clientEmail || previewFollowUp.clientName}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-gray-600 w-12">Subject:</span>
-                <span className="text-sm font-semibold text-[#1C1C1E]">{previewFollowUp.subject}</span>
+              <div className="px-4 py-2 flex items-center gap-2">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide w-14">Subject</span>
+                <span className="text-sm font-semibold text-[#18181B]">{previewFollowUp.subject}</span>
               </div>
             </div>
-            <div className="bg-white border border-gray-100 rounded-xl p-4">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{previewFollowUp.body}</p>
+
+            {/* Email body — rendered as it will appear */}
+            <div className="bg-[#F4F4F5] rounded-xl p-4 mb-4">
+              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                {/* Top accent bar */}
+                <div className="h-1 bg-[#E8A020]" />
+                {/* Brand header */}
+                <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-[#E8A020] flex items-center justify-center">
+                    <span className="text-white font-black text-xs">T</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#18181B] leading-none">TrueAxis HQ</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">AI-Powered Business OS for Freelancers</p>
+                  </div>
+                </div>
+                {/* Body */}
+                <div className="px-5 py-5">
+                  <h2 className="text-base font-bold text-[#18181B] mb-2">{previewFollowUp.subject}</h2>
+                  <p className="text-sm text-gray-500 mb-3">Hi {previewFollowUp.clientName},</p>
+                  {previewFollowUp.body.split("\n").filter((l: string) => l.trim()).map((line: string, i: number) => (
+                    <p key={i} className="text-sm text-gray-600 leading-relaxed mb-2">{line}</p>
+                  ))}
+                </div>
+                {/* Footer */}
+                <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
+                  <p className="text-[10px] text-gray-400 text-center">&copy; {new Date().getFullYear()} TrueAxis HQ &mdash; <span className="text-[#E8A020]">Unsubscribe</span></p>
+                </div>
+              </div>
             </div>
+
+            {/* Actions */}
             <div className="flex gap-3">
-              <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => copyToClipboard(previewFollowUp.body)}>
-                {copied ? <><Check className="w-4 h-4" />Copied!</> : <><Copy className="w-4 h-4" />Copy Email</>}
+              <Button className="flex-1 bg-[#E8A020] hover:bg-[#D4911A] text-white gap-2" onClick={() => copyToClipboard(previewFollowUp.body)}>
+                {copied ? <><Check className="w-4 h-4" />Copied!</> : <><Copy className="w-4 h-4" />Copy Body</>}
               </Button>
               {previewFollowUp.status === "draft" && previewFollowUp.id && (
                 <Button variant="outline" className="flex-1 gap-2" onClick={() => { markSent.mutate({ id: previewFollowUp.id }); setPreviewFollowUp(null); }}>
@@ -3050,6 +3109,7 @@ function ContractsPanel() {
   const [filterType, setFilterType] = useState<"all" | "contract" | "proposal">("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [confirm, setConfirm] = useState(defaultConfirm);
+  const [previewContract, setPreviewContract] = useState<any>(null);
   const emptyForm = { clientName: "", clientEmail: "", title: "", type: "contract" as "contract" | "proposal", body: "", proposalAmount: "", expiresAt: "" };
   const [form, setForm] = useState(emptyForm);
 
@@ -3131,6 +3191,7 @@ function ContractsPanel() {
                   <p className="text-sm text-gray-600">{c.clientName}{c.clientEmail ? ` · ${c.clientEmail}` : ""}</p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <button onClick={e => { e.stopPropagation(); setPreviewContract(c); }} className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors" aria-label="Preview" title="Preview"><Eye className="w-3.5 h-3.5 text-blue-500" /></button>
                   <button onClick={e => { e.stopPropagation(); openEdit(c); }} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Edit"><Edit2 className="w-3.5 h-3.5 text-gray-600" /></button>
                   {c.type === "proposal" && c.status === "signed" && !c.linkedInvoiceId && (
                     <button onClick={e => { e.stopPropagation(); convertMut.mutate({ id: c.id }); }} className="p-1.5 rounded-lg hover:bg-green-50 transition-colors" aria-label="Convert to invoice" title="Convert to Invoice"><ArrowUpRight className="w-3.5 h-3.5 text-green-600" /></button>
@@ -3190,6 +3251,96 @@ function ContractsPanel() {
             <Button variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }} className="flex-1">Cancel</Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Contract / Proposal Preview Modal */}
+      <Modal open={!!previewContract} onClose={() => setPreviewContract(null)} title="Document Preview" wide>
+        {previewContract && (
+          <div className="font-sans">
+            {/* Accent bar */}
+            <div className="h-1 bg-[#E8A020] rounded-t-lg -mx-6 -mt-2 mb-5" />
+
+            {/* Header */}
+            <div className="flex items-start justify-between mb-5">
+              <div>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide mr-2 ${
+                  previewContract.type === "proposal" ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700"
+                }`}>{previewContract.type}</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${
+                  previewContract.status === "signed" ? "bg-green-100 text-green-700" :
+                  previewContract.status === "sent" ? "bg-blue-100 text-blue-700" :
+                  previewContract.status === "declined" ? "bg-red-100 text-red-700" :
+                  "bg-gray-100 text-gray-600"
+                }`}>{previewContract.status}</span>
+                <h2 className="text-xl font-extrabold text-[#18181B] mt-2 tracking-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{previewContract.title}</h2>
+              </div>
+              {previewContract.proposalAmount && (
+                <div className="text-right">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Value</p>
+                  <p className="text-xl font-extrabold text-[#E8A020]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{formatCurrency(previewContract.proposalAmount)}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Parties */}
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Client</p>
+                <p className="text-sm font-semibold text-[#18181B]">{previewContract.clientName}</p>
+                {previewContract.clientEmail && <p className="text-xs text-gray-500">{previewContract.clientEmail}</p>}
+              </div>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Dates</p>
+                <p className="text-xs text-gray-600">Created {formatDate(previewContract.createdAt)}</p>
+                {previewContract.expiresAt && <p className="text-xs text-gray-500">Expires {formatDate(previewContract.expiresAt)}</p>}
+                {previewContract.signedAt && <p className="text-xs text-green-600 font-medium">Signed {formatDate(previewContract.signedAt)}</p>}
+              </div>
+            </div>
+
+            {/* Body — rendered as document */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden mb-5">
+              <div className="bg-gray-50 border-b border-gray-200 px-4 py-2">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Document Body</p>
+              </div>
+              <div className="bg-white px-5 py-5 max-h-72 overflow-y-auto">
+                {previewContract.body.split("\n").map((line: string, i: number) => {
+                  if (line.startsWith("# ")) return <h1 key={i} className="text-lg font-extrabold text-[#18181B] mt-4 mb-2 first:mt-0">{line.slice(2)}</h1>;
+                  if (line.startsWith("## ")) return <h2 key={i} className="text-base font-bold text-[#18181B] mt-3 mb-1.5">{line.slice(3)}</h2>;
+                  if (line.startsWith("### ")) return <h3 key={i} className="text-sm font-bold text-[#18181B] mt-2 mb-1">{line.slice(4)}</h3>;
+                  if (line.startsWith("- ") || line.startsWith("* ")) return <li key={i} className="text-sm text-gray-700 ml-4 list-disc leading-relaxed">{line.slice(2)}</li>;
+                  if (line.startsWith("**") && line.endsWith("**")) return <p key={i} className="text-sm font-bold text-[#18181B] my-1">{line.slice(2, -2)}</p>;
+                  if (line.trim() === "") return <div key={i} className="h-2" />;
+                  return <p key={i} className="text-sm text-gray-700 leading-relaxed my-1">{line}</p>;
+                })}
+              </div>
+            </div>
+
+            {/* Signature block */}
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center">
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-3">Client Signature</p>
+                <div className="h-8 border-b border-gray-300 mb-2" />
+                <p className="text-xs text-gray-500">{previewContract.clientName}</p>
+                {previewContract.signedAt && <p className="text-[10px] text-green-600 font-medium mt-1">Signed {formatDate(previewContract.signedAt)}</p>}
+              </div>
+              <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center">
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-3">Service Provider</p>
+                <div className="h-8 border-b border-gray-300 mb-2" />
+                <p className="text-xs text-gray-500">TrueAxis HQ</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <Button className="flex-1 bg-[#E8A020] hover:bg-[#D4911A] text-white gap-2" onClick={() => { openEdit(previewContract); setPreviewContract(null); }}>
+                <Edit2 className="w-4 h-4" /> Edit Document
+              </Button>
+              <Button variant="outline" className="flex-1 gap-2" onClick={() => setPreviewContract(null)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
