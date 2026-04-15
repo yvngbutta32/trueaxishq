@@ -1351,6 +1351,20 @@ function InvoicesPanel() {
   const [lineItems, setLineItems] = useState<{ description: string; qty: number; unitPrice: number }[]>([]);
   const [useLineItems, setUseLineItems] = useState(false);
   const lineItemsTotal = lineItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
+  // Edit invoice state
+  const [editInvoice, setEditInvoice] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" as "draft" | "sent" | "paid" | "overdue" });
+  const [editLineItems, setEditLineItems] = useState<{ description: string; qty: number; unitPrice: number }[]>([]);
+  const [editUseLineItems, setEditUseLineItems] = useState(false);
+  const editLineItemsTotal = editLineItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
+  function openEditInvoice(inv: any) {
+    const items = inv.lineItems ? (typeof inv.lineItems === "string" ? JSON.parse(inv.lineItems) : inv.lineItems) : [];
+    const hasItems = Array.isArray(items) && items.length > 0;
+    setEditForm({ clientName: inv.clientName || "", clientEmail: inv.clientEmail || "", service: inv.service || "", amount: String(inv.amount || ""), dueDate: inv.dueDate ? inv.dueDate.slice(0, 10) : "", notes: inv.notes || "", status: inv.status || "draft" });
+    setEditLineItems(hasItems ? items : []);
+    setEditUseLineItems(hasItems);
+    setEditInvoice(inv);
+  }
   const [invConfirm, setInvConfirm] = useState<ConfirmState>(defaultConfirm);
   const [invFilter, setInvFilter] = useState<"all" | "unpaid" | "paid" | "overdue">("all");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -1415,6 +1429,10 @@ function InvoicesPanel() {
 
   const createInvoice = trpc.invoices.create.useMutation({
     onSuccess: () => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); toast.success("Invoice created!"); setShowAdd(false); setForm({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" }); setLineItems([]); setUseLineItems(false); },
+    onError: (e) => toast.error(e.message),
+  });
+  const updateInvoice = trpc.invoices.update.useMutation({
+    onSuccess: () => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); toast.success("Invoice updated!"); setEditInvoice(null); },
     onError: (e) => toast.error(e.message),
   });
   const markPaid = trpc.invoices.markPaid.useMutation({
@@ -1616,6 +1634,9 @@ function InvoicesPanel() {
               <button onClick={() => setPreviewInvoice(inv)} className="p-1 rounded hover:bg-gray-100 text-gray-600 hover:text-gray-600 transition-colors" aria-label="Preview invoice" title="Preview invoice">
                 <Eye className="w-3.5 h-3.5" />
               </button>
+              <button onClick={() => openEditInvoice(inv)} className="p-1 rounded hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 transition-colors" aria-label="Edit invoice" title="Edit invoice">
+                <Edit2 className="w-3.5 h-3.5" />
+              </button>
               <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-1 rounded hover:bg-blue-50 text-gray-500 hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
@@ -1727,6 +1748,76 @@ function InvoicesPanel() {
             <Button variant="outline" className="flex-1" onClick={() => setShowAdd(false)}>Cancel</Button>
             <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90" onClick={() => createInvoice.mutate(useLineItems ? { ...form, amount: undefined, lineItems: lineItems.filter(i => i.description.trim()) } : { ...form, amount: parseFloat(form.amount) || 0 })} disabled={createInvoice.isPending || (useLineItems && lineItems.length === 0)}>
               {createInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Invoice"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Invoice Modal */}
+      <Modal open={!!editInvoice} onClose={() => setEditInvoice(null)} title={`Edit Invoice ${editInvoice?.invoiceNumber || ""}`}>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Select Client</label>
+            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setEditForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "" })); }} className="form-input-light">
+              <option value="">— Or enter manually below —</option>
+              {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <Field label="Client Name" value={editForm.clientName} onChange={v => setEditForm(p => ({ ...p, clientName: v }))} placeholder="Jane Smith" required />
+          <Field label="Client Email" value={editForm.clientEmail} onChange={v => setEditForm(p => ({ ...p, clientEmail: v }))} placeholder="jane@example.com" type="email" />
+          <Field label="Service Description" value={editForm.service} onChange={v => setEditForm(p => ({ ...p, service: v }))} placeholder="3-month coaching program..." />
+          {/* Line Items Toggle */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setEditUseLineItems(p => !p)}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${editUseLineItems ? 'bg-[#E8A020]' : 'bg-gray-300'}`}
+            >
+              <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${editUseLineItems ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
+            </button>
+            <span className="text-xs font-semibold text-gray-600">Itemized line items</span>
+          </div>
+          {editUseLineItems ? (
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-gray-600">Line Items</label>
+              {editLineItems.map((item, idx) => (
+                <div key={idx} className="grid grid-cols-[1fr_60px_80px_28px] gap-1.5 items-center">
+                  <input value={item.description} onChange={e => setEditLineItems(p => p.map((it, i) => i === idx ? { ...it, description: e.target.value } : it))} placeholder="Description" className="form-input-light text-xs" />
+                  <input type="number" min="1" value={item.qty} onChange={e => setEditLineItems(p => p.map((it, i) => i === idx ? { ...it, qty: parseFloat(e.target.value) || 1 } : it))} placeholder="Qty" className="form-input-light text-xs text-center" />
+                  <input type="number" min="0" step="0.01" value={item.unitPrice} onChange={e => setEditLineItems(p => p.map((it, i) => i === idx ? { ...it, unitPrice: parseFloat(e.target.value) || 0 } : it))} placeholder="Price" className="form-input-light text-xs" />
+                  <button type="button" onClick={() => setEditLineItems(p => p.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600 text-lg leading-none">&times;</button>
+                </div>
+              ))}
+              <button type="button" onClick={() => setEditLineItems(p => [...p, { description: "", qty: 1, unitPrice: 0 }])} className="text-xs text-[#E8A020] hover:underline font-semibold">+ Add line item</button>
+              {editLineItems.length > 0 && (
+                <div className="text-right text-sm font-bold text-[#18181B] pt-1">Total: {formatCurrency(editLineItemsTotal)}</div>
+              )}
+            </div>
+          ) : (
+            <Field label="Amount ($) *" value={editForm.amount} onChange={v => setEditForm(p => ({ ...p, amount: v }))} placeholder="500.00" type="number" required />
+          )}
+          <Field label="Due Date" value={editForm.dueDate} onChange={v => setEditForm(p => ({ ...p, dueDate: v }))} type="date" />
+          <Field label="Notes" value={editForm.notes} onChange={v => setEditForm(p => ({ ...p, notes: v }))} placeholder="Payment terms, bank details..." textarea />
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Status</label>
+            <select value={editForm.status} onChange={e => setEditForm(p => ({ ...p, status: e.target.value as any }))} className="form-input-light">
+              <option value="draft">Draft</option>
+              <option value="sent">Sent</option>
+              <option value="paid">Paid</option>
+              <option value="overdue">Overdue</option>
+            </select>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <Button variant="outline" className="flex-1" onClick={() => setEditInvoice(null)}>Cancel</Button>
+            <Button
+              className="flex-1 gradient-amber text-white border-0 hover:opacity-90"
+              onClick={() => updateInvoice.mutate(editUseLineItems
+                ? { id: editInvoice.id, ...editForm, amount: undefined, lineItems: editLineItems.filter(i => i.description.trim()) }
+                : { id: editInvoice.id, ...editForm, amount: parseFloat(editForm.amount) || 0 }
+              )}
+              disabled={updateInvoice.isPending || (editUseLineItems && editLineItems.length === 0)}
+            >
+              {updateInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Changes"}
             </Button>
           </div>
         </div>
