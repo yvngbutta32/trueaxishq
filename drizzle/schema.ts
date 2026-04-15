@@ -101,6 +101,7 @@ export const invoices = mysqlTable("invoices", {
   status: mysqlEnum("status", ["draft", "sent", "paid", "overdue"]).default("draft").notNull(),
   dueDate: varchar("dueDate", { length: 32 }),
   notes: text("notes"),
+  lineItems: text("lineItems"), // JSON: [{description, qty, unitPrice}]
   paidAt: timestamp("paidAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

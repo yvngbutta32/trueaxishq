@@ -559,7 +559,12 @@ export const appRouter = router({
         clientEmail: safeOptionalEmail,
         clientId: z.number().int().positive().optional(),
         service: safeOptionalString(1000),
-        amount: z.number().positive().max(999999),
+        amount: z.number().min(0).max(999999).optional(),
+        lineItems: z.array(z.object({
+          description: z.string().trim().max(500),
+          qty: z.number().positive().max(9999),
+          unitPrice: z.number().min(0).max(999999),
+        })).optional(),
         dueDate: safeOptionalString(32),
         notes: safeOptionalString(2000),
         status: z.enum(["draft", "sent"]).default("draft"),
@@ -567,6 +572,10 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const invoiceNumber = generateInvoiceNumber();
+        let totalAmount = input.amount ?? 0;
+        if (input.lineItems && input.lineItems.length > 0) {
+          totalAmount = input.lineItems.reduce((sum, item) => sum + item.qty * item.unitPrice, 0);
+        }
         const result = await db.insert(invoices).values({
           userId: ctx.user.id,
           clientId: input.clientId || null,
@@ -574,7 +583,8 @@ export const appRouter = router({
           clientName: input.clientName,
           clientEmail: input.clientEmail || null,
           service: input.service || null,
-          amount: String(input.amount),
+          amount: String(totalAmount),
+          lineItems: input.lineItems ? JSON.stringify(input.lineItems) : null,
           status: input.status,
           dueDate: input.dueDate || null,
           notes: input.notes || null,
@@ -588,16 +598,26 @@ export const appRouter = router({
         clientName: safeString(255).optional(),
         clientEmail: safeOptionalEmail,
         service: safeOptionalString(1000),
-        amount: z.number().positive().max(999999).optional(),
+        amount: z.number().min(0).max(999999).optional(),
+        lineItems: z.array(z.object({
+          description: z.string().trim().max(500),
+          qty: z.number().positive().max(9999),
+          unitPrice: z.number().min(0).max(999999),
+        })).optional(),
         dueDate: safeOptionalString(32),
         notes: safeOptionalString(2000),
         status: z.enum(["draft", "sent", "paid", "overdue"]).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
-        const { id, amount, ...rest } = input;
+        const { id, amount, lineItems, ...rest } = input;
         const updateData: any = { ...rest, updatedAt: new Date() };
-        if (amount !== undefined) updateData.amount = String(amount);
+        if (lineItems !== undefined) {
+          updateData.lineItems = JSON.stringify(lineItems);
+          updateData.amount = String(lineItems.reduce((sum, item) => sum + item.qty * item.unitPrice, 0));
+        } else if (amount !== undefined) {
+          updateData.amount = String(amount);
+        }
         if (input.status === "paid") updateData.paidAt = new Date();
         await db.update(invoices).set(updateData)
           .where(and(eq(invoices.id, id), eq(invoices.userId, ctx.user.id)));
@@ -975,6 +995,27 @@ export const appRouter = router({
         const db = await requireDb();
         await db.delete(followUps).where(and(eq(followUps.id, input.id), eq(followUps.userId, ctx.user.id)));
         return { success: true };
+      }),
+
+    sendEmail: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [fu] = await db.select().from(followUps)
+          .where(and(eq(followUps.id, input.id), eq(followUps.userId, ctx.user.id))).limit(1);
+        if (!fu) throw new TRPCError({ code: "NOT_FOUND", message: "Follow-up not found." });
+        if (!fu.clientEmail) throw new TRPCError({ code: "BAD_REQUEST", message: "No client email address on this follow-up." });
+        const [user] = await db.select({ name: users.name, businessName: users.businessName })
+          .from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        const senderName = user?.businessName || user?.name || "Your Service Provider";
+        const emailSent = await sendEmail({
+          to: fu.clientEmail as string,
+          subject: fu.subject ?? "",
+          html: followUpEmail({ clientName: fu.clientName, subject: fu.subject ?? "", body: fu.body ?? "" }),
+        });
+        await db.update(followUps).set({ status: "sent", sentAt: new Date() })
+          .where(eq(followUps.id, fu.id));
+        return { success: true, emailSent };
       }),
   }),
 

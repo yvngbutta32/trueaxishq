@@ -973,8 +973,13 @@
 
 ## Template Redesign & Preview System
 - [x] Redesign invoice template — clean, concise layout with clear line items, totals, and branding
-- [ ] Invoice Preview modal — live rendered view of how the PDF will look before downloading
-- [ ] Redesign all email templates — follow-up, testimonial request, booking confirmation, monthly report
-- [ ] Email Preview modal — inline HTML render showing exactly how the email will look when sent
+- [x] Invoice Preview modal — live rendered view of how the PDF will look before downloading
+- [x] Redesign all email templates — follow-up, testimonial request, booking confirmation, monthly report
+- [x] Email Preview modal — inline HTML render showing exactly how the email will look when sent
 - [x] Redesign contract template — clean sections, clear headings, signature block
-- [ ] Contract Preview modal — full-page rendered view before sending to client
+- [x] Contract Preview modal — full-page rendered view before sending to client
+
+## Remaining Features (Apr 15, 2026)
+- [x] Multi-line invoice items — description, qty, unit price per line; itemized PDF and preview
+- [x] Contract template library — pre-built templates (web design, coaching, consulting) in create modal
+- [x] Send via Email button in email preview modal — send follow-up directly from preview

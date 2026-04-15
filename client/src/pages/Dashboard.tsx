@@ -1348,6 +1348,9 @@ function InvoicesPanel() {
   const [showAdd, setShowAdd] = useState(false);
   const [previewInvoice, setPreviewInvoice] = useState<any>(null);
   const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" as "draft" | "sent" });
+  const [lineItems, setLineItems] = useState<{ description: string; qty: number; unitPrice: number }[]>([]);
+  const [useLineItems, setUseLineItems] = useState(false);
+  const lineItemsTotal = lineItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
   const [invConfirm, setInvConfirm] = useState<ConfirmState>(defaultConfirm);
   const [invFilter, setInvFilter] = useState<"all" | "unpaid" | "paid" | "overdue">("all");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -1411,7 +1414,7 @@ function InvoicesPanel() {
   const { data: clientList } = trpc.clients.list.useQuery({ search: "", status: "all" });
 
   const createInvoice = trpc.invoices.create.useMutation({
-    onSuccess: () => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); toast.success("Invoice created!"); setShowAdd(false); setForm({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" }); },
+    onSuccess: () => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); toast.success("Invoice created!"); setShowAdd(false); setForm({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" }); setLineItems([]); setUseLineItems(false); },
     onError: (e) => toast.error(e.message),
   });
   const markPaid = trpc.invoices.markPaid.useMutation({
@@ -1650,7 +1653,67 @@ function InvoicesPanel() {
             </div>
             <input value={form.service} onChange={e => setForm(p => ({ ...p, service: e.target.value }))} placeholder="3-month coaching program, web design..." className="form-input-light" autoComplete="off" enterKeyHint="next" />
           </div>
-          <Field label="Amount ($) *" value={form.amount} onChange={v => setForm(p => ({ ...p, amount: v }))} placeholder="500.00" type="number" required autoComplete="off" enterKeyHint="next" />
+          {/* Line Items Toggle */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setUseLineItems(p => !p)}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${useLineItems ? 'bg-[#E8A020]' : 'bg-gray-300'}`}
+            >
+              <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${useLineItems ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
+            </button>
+            <span className="text-xs font-semibold text-gray-600">Itemized line items</span>
+          </div>
+
+          {useLineItems ? (
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-gray-600">Line Items</label>
+              {lineItems.map((item, idx) => (
+                <div key={idx} className="grid grid-cols-[1fr_60px_80px_28px] gap-1.5 items-center">
+                  <input
+                    value={item.description}
+                    onChange={e => setLineItems(p => p.map((it, i) => i === idx ? { ...it, description: e.target.value } : it))}
+                    placeholder="Description"
+                    className="form-input-light text-xs"
+                  />
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.qty}
+                    onChange={e => setLineItems(p => p.map((it, i) => i === idx ? { ...it, qty: parseFloat(e.target.value) || 1 } : it))}
+                    placeholder="Qty"
+                    className="form-input-light text-xs text-center"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={item.unitPrice}
+                    onChange={e => setLineItems(p => p.map((it, i) => i === idx ? { ...it, unitPrice: parseFloat(e.target.value) || 0 } : it))}
+                    placeholder="Price"
+                    className="form-input-light text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setLineItems(p => p.filter((_, i) => i !== idx))}
+                    className="text-red-400 hover:text-red-600 text-lg leading-none"
+                  >&times;</button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setLineItems(p => [...p, { description: "", qty: 1, unitPrice: 0 }])}
+                className="text-xs text-[#E8A020] hover:underline font-semibold"
+              >+ Add line item</button>
+              {lineItems.length > 0 && (
+                <div className="text-right text-sm font-bold text-[#18181B] pt-1">
+                  Total: {formatCurrency(lineItemsTotal)}
+                </div>
+              )}
+            </div>
+          ) : (
+            <Field label="Amount ($) *" value={form.amount} onChange={v => setForm(p => ({ ...p, amount: v }))} placeholder="500.00" type="number" required autoComplete="off" enterKeyHint="next" />
+          )}
           <Field label="Due Date" value={form.dueDate} onChange={v => setForm(p => ({ ...p, dueDate: v }))} type="date" autoComplete="off" />
           <Field label="Notes" value={form.notes} onChange={v => setForm(p => ({ ...p, notes: v }))} placeholder="Payment terms, bank details..." textarea enterKeyHint="done" />
           <div>
@@ -1662,7 +1725,7 @@ function InvoicesPanel() {
           </div>
           <div className="flex gap-3 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90" onClick={() => createInvoice.mutate({ ...form, amount: parseFloat(form.amount) || 0 })} disabled={createInvoice.isPending}>
+            <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90" onClick={() => createInvoice.mutate(useLineItems ? { ...form, amount: undefined, lineItems: lineItems.filter(i => i.description.trim()) } : { ...form, amount: parseFloat(form.amount) || 0 })} disabled={createInvoice.isPending || (useLineItems && lineItems.length === 0)}>
               {createInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Invoice"}
             </Button>
           </div>
@@ -1708,26 +1771,40 @@ function InvoicesPanel() {
             </div>
 
             {/* Line items table */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
-              <div className="grid grid-cols-[1fr_auto_auto] bg-gray-50 border-b border-gray-200">
-                <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase">Description</div>
-                <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase text-center">Qty</div>
-                <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase text-right">Amount</div>
-              </div>
-              <div className="grid grid-cols-[1fr_auto_auto] bg-white">
-                <div className="px-4 py-3">
-                  <p className="text-sm font-medium text-[#18181B]">{previewInvoice.service || "Professional Services"}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{previewInvoice.clientName}</p>
+            {(() => {
+              let parsedItems: { description: string; qty: number; unitPrice: number }[] = [];
+              try { if (previewInvoice.lineItems) parsedItems = JSON.parse(previewInvoice.lineItems); } catch {}
+              const hasItems = parsedItems.length > 0;
+              return (
+                <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
+                  <div className="grid grid-cols-[1fr_60px_90px] bg-gray-50 border-b border-gray-200">
+                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase">Description</div>
+                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase text-center">Qty</div>
+                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase text-right">Amount</div>
+                  </div>
+                  {hasItems ? parsedItems.map((item, idx) => (
+                    <div key={idx} className="grid grid-cols-[1fr_60px_90px] bg-white border-b border-gray-100 last:border-0">
+                      <div className="px-4 py-2.5"><p className="text-sm font-medium text-[#18181B]">{item.description}</p></div>
+                      <div className="px-4 py-2.5 text-sm text-gray-600 text-center">{item.qty}</div>
+                      <div className="px-4 py-2.5 text-sm font-semibold text-[#18181B] text-right">{formatCurrency(item.qty * item.unitPrice)}</div>
+                    </div>
+                  )) : (
+                    <div className="grid grid-cols-[1fr_60px_90px] bg-white">
+                      <div className="px-4 py-3">
+                        <p className="text-sm font-medium text-[#18181B]">{previewInvoice.service || "Professional Services"}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{previewInvoice.clientName}</p>
+                      </div>
+                      <div className="px-4 py-3 text-sm text-gray-600 text-center">1</div>
+                      <div className="px-4 py-3 text-sm font-bold text-[#18181B] text-right">{formatCurrency(previewInvoice.amount)}</div>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-[1fr_auto] bg-amber-50 border-t border-gray-200">
+                    <div className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Total Due</div>
+                    <div className="px-4 py-3 text-xl font-extrabold text-[#E8A020] text-right" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{formatCurrency(previewInvoice.amount)}</div>
+                  </div>
                 </div>
-                <div className="px-4 py-3 text-sm text-gray-600 text-center">1</div>
-                <div className="px-4 py-3 text-sm font-bold text-[#18181B] text-right">{formatCurrency(previewInvoice.amount)}</div>
-              </div>
-              {/* Total row */}
-              <div className="grid grid-cols-[1fr_auto] bg-[#E8A020]/8 border-t border-gray-200">
-                <div className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Total Due</div>
-                <div className="px-4 py-3 text-xl font-extrabold text-[#E8A020] text-right" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{formatCurrency(previewInvoice.amount)}</div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Notes */}
             {previewInvoice.notes && (
@@ -1802,6 +1879,10 @@ function FollowUpsPanel() {
   });
   const deleteFollowUp = trpc.followUps.delete.useMutation({
     onSuccess: () => { utils.followUps.list.invalidate(); toast.success("Follow-up deleted."); },
+    onError: (e) => toast.error(e.message),
+  });
+  const sendEmailMut = trpc.followUps.sendEmail.useMutation({
+    onSuccess: () => { utils.followUps.list.invalidate(); setPreviewFollowUp(null); toast.success("Email sent successfully!"); },
     onError: (e) => toast.error(e.message),
   });
 
@@ -2064,7 +2145,12 @@ function FollowUpsPanel() {
               <Button className="flex-1 bg-[#E8A020] hover:bg-[#D4911A] text-white gap-2" onClick={() => copyToClipboard(previewFollowUp.body)}>
                 {copied ? <><Check className="w-4 h-4" />Copied!</> : <><Copy className="w-4 h-4" />Copy Body</>}
               </Button>
-              {previewFollowUp.status === "draft" && previewFollowUp.id && (
+              {previewFollowUp.clientEmail && previewFollowUp.status === "draft" && previewFollowUp.id && (
+                <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white gap-2" onClick={() => sendEmailMut.mutate({ id: previewFollowUp.id })} disabled={sendEmailMut.isPending}>
+                  {sendEmailMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4" />Send Email</>}
+                </Button>
+              )}
+              {(!previewFollowUp.clientEmail || previewFollowUp.status !== "draft") && previewFollowUp.id && previewFollowUp.status === "draft" && (
                 <Button variant="outline" className="flex-1 gap-2" onClick={() => { markSent.mutate({ id: previewFollowUp.id }); setPreviewFollowUp(null); }}>
                   <Send className="w-4 h-4" />Mark Sent
                 </Button>
@@ -3111,6 +3197,172 @@ function ContractsPanel() {
   const [confirm, setConfirm] = useState(defaultConfirm);
   const [previewContract, setPreviewContract] = useState<any>(null);
   const emptyForm = { clientName: "", clientEmail: "", title: "", type: "contract" as "contract" | "proposal", body: "", proposalAmount: "", expiresAt: "" };
+
+  const CONTRACT_TEMPLATES = [
+    {
+      label: "Web Design Contract",
+      type: "contract" as const,
+      title: "Freelance Web Design Contract",
+      body: `# Freelance Web Design Contract
+
+## Parties
+This agreement is between **[Your Business Name]** ("Designer") and **[Client Name]** ("Client").
+
+## Scope of Work
+Designer agrees to provide the following services:
+- Custom website design and development
+- Up to [X] pages / screens
+- Responsive design for desktop, tablet, and mobile
+- [X] rounds of revisions
+
+## Timeline
+- Project start: [Start Date]
+- First draft delivery: [Draft Date]
+- Final delivery: [End Date]
+
+## Payment
+- Total project fee: $[Amount]
+- 50% deposit due before work begins
+- Remaining 50% due upon final delivery
+- Late payments incur a 1.5% monthly fee
+
+## Intellectual Property
+All final deliverables become Client's property upon receipt of full payment. Designer retains the right to display the work in their portfolio.
+
+## Revisions
+This contract includes [X] rounds of revisions. Additional revisions are billed at $[Rate]/hour.
+
+## Termination
+Either party may terminate this agreement with 7 days written notice. Client is responsible for payment for all work completed to date.
+
+## Limitation of Liability
+Designer's total liability shall not exceed the total fees paid under this contract.
+
+## Governing Law
+This agreement is governed by the laws of [State/Country].`,
+    },
+    {
+      label: "Coaching Contract",
+      type: "contract" as const,
+      title: "Coaching Services Agreement",
+      body: `# Coaching Services Agreement
+
+## Parties
+This agreement is between **[Your Name / Business]** ("Coach") and **[Client Name]** ("Client").
+
+## Services
+Coach agrees to provide:
+- [X] coaching sessions per month, each [Duration] minutes
+- Session delivery via [Zoom / Phone / In-Person]
+- Email support between sessions (response within 48 hours)
+
+## Program Duration
+This agreement covers a [X]-month engagement beginning [Start Date].
+
+## Investment
+- Monthly fee: $[Amount]
+- Payment due on the [1st] of each month
+- Full program paid in advance: $[Discounted Amount]
+
+## Cancellation Policy
+Sessions cancelled with less than 24 hours notice are forfeited. Coach will make reasonable efforts to reschedule.
+
+## Confidentiality
+Coach agrees to keep all client information strictly confidential.
+
+## Results Disclaimer
+Coaching results depend on client effort and commitment. Coach makes no guarantees of specific outcomes.
+
+## Termination
+Either party may terminate with 30 days written notice. No refunds for sessions already paid.
+
+## Governing Law
+This agreement is governed by the laws of [State/Country].`,
+    },
+    {
+      label: "Consulting Proposal",
+      type: "proposal" as const,
+      title: "Consulting Services Proposal",
+      body: `# Consulting Services Proposal
+
+## Executive Summary
+Thank you for the opportunity to submit this proposal. We are excited to partner with **[Client Company]** to [brief description of goal].
+
+## Problem Statement
+[Client Company] is currently facing [describe the challenge or opportunity]. This proposal outlines how we will address this effectively.
+
+## Proposed Solution
+We recommend the following approach:
+- **Phase 1:** Discovery & Audit ([Duration])
+- **Phase 2:** Strategy Development ([Duration])
+- **Phase 3:** Implementation & Support ([Duration])
+
+## Deliverables
+- Comprehensive audit report
+- Strategic roadmap with prioritized recommendations
+- [X] implementation sessions
+- Final summary report and next-steps guide
+
+## Investment
+| Phase | Description | Fee |
+|-------|-------------|-----|
+| Phase 1 | Discovery & Audit | $[Amount] |
+| Phase 2 | Strategy | $[Amount] |
+| Phase 3 | Implementation | $[Amount] |
+| **Total** | | **$[Total]** |
+
+## Timeline
+Estimated project duration: [X] weeks from signed agreement.
+
+## Why Us
+- [X] years of experience in [field]
+- Proven track record with [type of clients]
+- [Key differentiator]
+
+## Next Steps
+To proceed, please sign and return this proposal. A 50% deposit will initiate the project.
+
+This proposal is valid for 30 days from the date above.`,
+    },
+    {
+      label: "Retainer Agreement",
+      type: "contract" as const,
+      title: "Monthly Retainer Agreement",
+      body: `# Monthly Retainer Agreement
+
+## Parties
+This retainer agreement is between **[Your Business Name]** ("Service Provider") and **[Client Name]** ("Client").
+
+## Retainer Services
+Service Provider will make available up to **[X] hours per month** for the following services:
+- [Service 1]
+- [Service 2]
+- [Service 3]
+
+## Monthly Retainer Fee
+- Fee: $[Amount] per month
+- Invoiced on the 1st of each month
+- Payment due within [X] days of invoice
+
+## Unused Hours
+Unused hours do not roll over to the following month.
+
+## Additional Hours
+Hours beyond the retainer are billed at $[Rate]/hour, invoiced separately.
+
+## Term
+This agreement begins [Start Date] and continues month-to-month until terminated.
+
+## Termination
+Either party may terminate with 30 days written notice. Client is responsible for fees through the notice period.
+
+## Confidentiality
+Both parties agree to keep proprietary information confidential.
+
+## Governing Law
+This agreement is governed by the laws of [State/Country].`,
+    },
+  ];
   const [form, setForm] = useState(emptyForm);
 
   const { data: list = [], isLoading } = trpc.contracts.list.useQuery({ type: filterType });
@@ -3240,7 +3492,26 @@ function ContractsPanel() {
           {form.type === "proposal" && <Field label="Proposal Amount ($)" value={form.proposalAmount} onChange={v => setForm(p => ({ ...p, proposalAmount: v }))} type="number" placeholder="1500" />}
           <Field label="Expiry Date" value={form.expiresAt} onChange={v => setForm(p => ({ ...p, expiresAt: v }))} type="date" />
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Body / Terms *</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-semibold text-gray-600">Body / Terms *</label>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-gray-400">Start from template:</span>
+                <select
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-700 hover:border-[#E8A020] focus:outline-none focus:ring-1 focus:ring-[#E8A020]"
+                  defaultValue=""
+                  onChange={e => {
+                    const tpl = CONTRACT_TEMPLATES.find(t => t.label === e.target.value);
+                    if (tpl) {
+                      setForm(p => ({ ...p, type: tpl.type, title: p.title || tpl.title, body: tpl.body }));
+                      e.target.value = "";
+                    }
+                  }}
+                >
+                  <option value="">— Choose template —</option>
+                  {CONTRACT_TEMPLATES.map(t => <option key={t.label} value={t.label}>{t.label}</option>)}
+                </select>
+              </div>
+            </div>
             <textarea value={form.body} onChange={e => setForm(p => ({ ...p, body: e.target.value }))} rows={10} placeholder="Enter the contract terms, scope of work, deliverables, payment terms..." className="form-input-light resize-y" />
             <p className="text-xs text-gray-600 mt-1">Markdown supported. Use **bold**, # headings, - bullet lists.</p>
           </div>
