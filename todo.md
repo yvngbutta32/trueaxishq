@@ -956,4 +956,17 @@
 - [x] Add Change Password form in Admin panel Settings tab (current + new + confirm fields, show/hide toggles, redirects to /admin-login after success)
 
 ## Admin Login Redirect Fix (Apr 14, 2026)
-- [ ] After successful admin login, redirect to /admin instead of home page
+- [x] After successful admin login, redirect to /admin instead of home page (window.location.href hard nav)
+
+## 10 Best-of-Best Features (Apr 14, 2026)
+
+- [x] #1 Smart Inbox — unified activity feed panel with all client events and inline actions
+- [x] #2 Client Portal Messaging — threaded messages per client, portal send UI, dashboard reply
+- [x] #3 Invoice PDF true download — server-side branded PDF, one-click download (no print dialog)
+- [x] #4 Automated Follow-Up Sequences — rule engine (no-booking-in-X-days), cron job, UI config
+- [x] #5 Client Tags & Smart Segments — tag chips on client cards, filter by tag, schema migration
+- [x] #6 Monthly Business Report Email — cron on 1st of month, email template, Settings opt-in toggle
+- [x] #7 Client Cancellation & Rescheduling — signed token in confirmation email, self-service page
+- [x] #8 Testimonial Engine — DB table, post-payment request, admin approval, booking page display
+- [x] #9 Mobile Quick-Stats Strip — MRR/active clients/pending invoices bar above mobile bottom nav
+- [x] #10 Google Calendar Two-Way Sync — OAuth connect, booking sync, availability blocking

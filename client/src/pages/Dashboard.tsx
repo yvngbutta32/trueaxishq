@@ -27,7 +27,7 @@ import {
   ExternalLink, Bell, Search, ChevronDown, Loader2,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
   Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload,
-  Home, Crown, ArrowRight, Shield
+  Home, Crown, ArrowRight, Shield, Inbox, MessageSquare, Tag, ThumbsUp, CalendarX, Link2, Wifi, WifiOff
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -35,7 +35,7 @@ import {
   PieChart, Pie, Cell
 } from "recharts";
 
-type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "recurring";
+type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "recurring" | "inbox" | "testimonials";
 
 interface ConfirmState {
   open: boolean;
@@ -137,6 +137,7 @@ function Field({ label, value, onChange, placeholder, type = "text", required, t
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; badge?: string }[] = [
   { icon: LayoutDashboard, label: "Dashboard", panel: "overview" },
+  { icon: Inbox, label: "Smart Inbox", panel: "inbox" },
   { icon: Users, label: "Clients", panel: "clients" },
   { icon: Calendar, label: "Scheduling", panel: "scheduling" },
   { icon: FileText, label: "Invoices", panel: "invoices" },
@@ -733,6 +734,16 @@ function ClientsPanel() {
     }
   };
 
+  // Tags & Messages
+  const [profileTab, setProfileTab] = useState<"info" | "tags" | "messages">("info");
+  const { data: clientTagsData = [] } = trpc.tags.listForClient.useQuery({ clientId: selectedId! }, { enabled: !!selectedId });
+  const [newTag, setNewTag] = useState("");
+  const addTag = trpc.tags.add.useMutation({ onSuccess: () => utils.tags.listForClient.invalidate({ clientId: selectedId! }) });
+  const removeTag = trpc.tags.remove.useMutation({ onSuccess: () => utils.tags.listForClient.invalidate({ clientId: selectedId! }) });
+  const { data: messages = [] } = trpc.portalMsg.list.useQuery({ clientId: selectedId! }, { enabled: !!selectedId && profileTab === "messages" });
+  const [msgText, setMsgText] = useState("");
+  const sendReply = trpc.portalMsg.reply.useMutation({ onSuccess: () => { utils.portalMsg.list.invalidate({ clientId: selectedId! }); setMsgText(""); } });
+
   const getPortalToken = trpc.portal.getToken.useMutation({
     onSuccess: (data) => {
       navigator.clipboard.writeText(data.url)
@@ -899,9 +910,20 @@ function ClientsPanel() {
       </Modal>
 
       {/* Client Profile Modal */}
-      <Modal open={!!selectedId} onClose={() => setSelectedId(null)} title="Client Profile" wide>
+      <Modal open={!!selectedId} onClose={() => { setSelectedId(null); setProfileTab("info"); }} title="Client Profile" wide>
         {selectedClient && (
-          <div className="space-y-5">
+          <div className="space-y-4">
+            {/* Profile Tab Bar */}
+            <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+              {(["info", "tags", "messages"] as const).map(t => (
+                <button key={t} onClick={() => setProfileTab(t)}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
+                    profileTab === t ? "bg-white text-[#1C1C1E] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                  }`}>
+                  {t === "messages" ? "Messages" : t === "tags" ? "Tags" : "Info"}
+                </button>
+              ))}
+            </div>
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl gradient-amber flex items-center justify-center text-white text-lg font-bold">
                 {selectedClient.avatarInitials || selectedClient.name.slice(0, 2).toUpperCase()}
@@ -930,58 +952,112 @@ function ClientsPanel() {
                 </div>
               ))}
             </div>
-            {selectedClient.notes && (
+            {profileTab === "tags" && (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <input value={newTag} onChange={e => setNewTag(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter" && newTag.trim()) { addTag.mutate({ clientId: selectedClient.id, tag: newTag.trim() }); setNewTag(""); } }}
+                    placeholder="Add tag (e.g. VIP, Referral, Hot Lead)" className="form-input-light flex-1 text-sm" />
+                  <Button size="sm" onClick={() => { if (newTag.trim()) { addTag.mutate({ clientId: selectedClient.id, tag: newTag.trim() }); setNewTag(""); } }}
+                    disabled={!newTag.trim() || addTag.isPending} className="gradient-amber text-white border-0">
+                    Add
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {clientTagsData.length === 0 && <p className="text-xs text-gray-400">No tags yet. Add your first tag above.</p>}
+                  {clientTagsData.map(t => (
+                    <span key={t.id} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8A020]/10 text-[#E8A020] text-xs font-semibold">
+                      {t.tag}
+                      <button onClick={() => removeTag.mutate({ clientId: selectedClient.id, tag: t.tag })} className="hover:text-red-500 transition-colors" aria-label={`Remove ${t.tag}`}>
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {profileTab === "messages" && (
+              <div className="space-y-3">
+                <div className="max-h-64 overflow-y-auto space-y-2 bg-gray-50 rounded-xl p-3">
+                  {messages.length === 0 && <p className="text-xs text-gray-400 text-center py-4">No messages yet. Clients can message you from their portal.</p>}
+                  {(messages as Array<{ id: number; senderRole: string; body: string; createdAt: Date }>).map(m => (
+                    <div key={m.id} className={`flex ${ m.senderRole === "owner" ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${
+                        m.senderRole === "owner" ? "bg-[#E8A020] text-white" : "bg-white border border-gray-200 text-[#1C1C1E]"
+                      }`}>
+                        <p>{m.body}</p>
+                        <p className={`text-[10px] mt-1 ${ m.senderRole === "owner" ? "text-white/70" : "text-gray-400"}`}>{new Date(m.createdAt).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input value={msgText} onChange={e => setMsgText(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter" && msgText.trim()) { sendReply.mutate({ clientId: selectedClient.id, body: msgText }); } }}
+                    placeholder="Reply to client..." className="form-input-light flex-1 text-sm" />
+                  <Button size="sm" onClick={() => { if (msgText.trim()) sendReply.mutate({ clientId: selectedClient.id, body: msgText }); }}
+                    disabled={!msgText.trim() || sendReply.isPending} className="gradient-amber text-white border-0">
+                    Send
+                  </Button>
+                </div>
+              </div>
+            )}
+            {profileTab === "info" && selectedClient.notes && (
               <div className="bg-gray-50 rounded-xl p-4">
                 <p className="text-xs font-semibold text-gray-600 mb-1">Notes</p>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedClient.notes}</p>
               </div>
             )}
-            {/* Document Storage */}
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold text-gray-600">Documents ({clientDocs?.length || 0})</p>
-                <label className={`text-xs font-semibold cursor-pointer px-3 py-1.5 rounded-lg transition-colors ${docUploading ? 'opacity-50 pointer-events-none' : 'bg-[#E8A020]/10 text-[#E8A020] hover:bg-[#E8A020]/20'}`}>
-                  {docUploading ? 'Uploading...' : '+ Upload'}
-                  <input type="file" className="sr-only" onChange={handleDocUpload} disabled={docUploading} accept="*/*" />
-                </label>
-              </div>
-              {!clientDocs || clientDocs.length === 0 ? (
-                <p className="text-xs text-gray-600 text-center py-3">No documents yet. Upload contracts, briefs, or any files.</p>
-              ) : (
-                <div className="space-y-2">
-                  {clientDocs.map(doc => (
-                    <div key={doc.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-gray-100">
-                      <FileText className="w-3.5 h-3.5 text-[#E8A020] flex-shrink-0" />
-                      <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs font-medium text-[#1C1C1E] truncate hover:underline">{doc.fileName}</a>
-                      {doc.sizeBytes && <span className="text-[10px] text-gray-600 flex-shrink-0">{(doc.sizeBytes / 1024).toFixed(0)} KB</span>}
-                      <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-1 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
-                        <Trash2 className="w-3 h-3" />
-                      </button>
+            {/* Document Storage & Actions - only show on Info tab */}
+            {profileTab === "info" && (
+              <>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-semibold text-gray-600">Documents ({clientDocs?.length || 0})</p>
+                    <label className={`text-xs font-semibold cursor-pointer px-3 py-1.5 rounded-lg transition-colors ${docUploading ? 'opacity-50 pointer-events-none' : 'bg-[#E8A020]/10 text-[#E8A020] hover:bg-[#E8A020]/20'}`}>
+                      {docUploading ? 'Uploading...' : '+ Upload'}
+                      <input type="file" className="sr-only" onChange={handleDocUpload} disabled={docUploading} accept="*/*" />
+                    </label>
+                  </div>
+                  {!clientDocs || clientDocs.length === 0 ? (
+                    <p className="text-xs text-gray-600 text-center py-3">No documents yet. Upload contracts, briefs, or any files.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {clientDocs.map(doc => (
+                        <div key={doc.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-gray-100">
+                          <FileText className="w-3.5 h-3.5 text-[#E8A020] flex-shrink-0" />
+                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs font-medium text-[#1C1C1E] truncate hover:underline">{doc.fileName}</a>
+                          {doc.sizeBytes && <span className="text-[10px] text-gray-600 flex-shrink-0">{(doc.sizeBytes / 1024).toFixed(0)} KB</span>}
+                          <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-1 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="flex gap-3 flex-wrap">
-              <Button
-                className="flex-1 gradient-amber text-white border-0 hover:opacity-90 gap-2"
-                onClick={() => { updateClient.mutate({ id: selectedClient.id, status: "active" }); }}
-                disabled={updateClient.isPending}
-              >
-                <CheckCircle className="w-4 h-4" />Mark Active
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1 gap-2 border-blue-200 text-blue-600 hover:bg-blue-50"
-                onClick={() => getPortalToken.mutate({ clientId: selectedClient.id, origin: window.location.origin })}
-                disabled={getPortalToken.isPending}
-              >
-                <ExternalLink className="w-4 h-4" />{getPortalToken.isPending ? "Generating..." : "Share Portal"}
-              </Button>
-              <Button variant="outline" className="gap-2 border-red-200 text-red-500 hover:bg-red-50" onClick={() => setClientConfirm({ open: true, title: "Remove Client?", description: `Remove ${selectedClient.name}? This cannot be undone.`, onConfirm: () => { deleteClient.mutate({ id: selectedClient.id }); setSelectedId(null); } })}>
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
+                <div className="flex gap-3 flex-wrap">
+                  <Button
+                    className="flex-1 gradient-amber text-white border-0 hover:opacity-90 gap-2"
+                    onClick={() => { updateClient.mutate({ id: selectedClient.id, status: "active" }); }}
+                    disabled={updateClient.isPending}
+                  >
+                    <CheckCircle className="w-4 h-4" />Mark Active
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1 gap-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+                    onClick={() => getPortalToken.mutate({ clientId: selectedClient.id, origin: window.location.origin })}
+                    disabled={getPortalToken.isPending}
+                  >
+                    <ExternalLink className="w-4 h-4" />{getPortalToken.isPending ? "Generating..." : "Share Portal"}
+                  </Button>
+                  <Button variant="outline" className="gap-2 border-red-200 text-red-500 hover:bg-red-50" onClick={() => setClientConfirm({ open: true, title: "Remove Client?", description: `Remove ${selectedClient.name}? This cannot be undone.`, onConfirm: () => { deleteClient.mutate({ id: selectedClient.id }); setSelectedId(null); } })}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </Modal>
@@ -1638,9 +1714,13 @@ function InvoicesPanel() {
               </div>
             )}
             <div className="flex gap-3">
-              <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => { window.print(); }}>
-                <Printer className="w-4 h-4" />Print / Save PDF
-              </Button>
+              <a
+                href={`/api/invoices/${previewInvoice.id}/pdf`}
+                download
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold gradient-amber text-white border-0 hover:opacity-90 transition-opacity"
+              >
+                <Download className="w-4 h-4" />Download PDF
+              </a>
               {previewInvoice.status !== "paid" && (
                 <Button variant="outline" className="flex-1 gap-2" onClick={() => { markPaid.mutate({ id: previewInvoice.id }); setPreviewInvoice(null); }}>
                   <CheckCircle className="w-4 h-4 text-green-500" />Mark Paid
@@ -1666,10 +1746,18 @@ function InvoicesPanel() {
 // ─── Follow-Ups Panel ─────────────────────────────────────────────────────────
 function FollowUpsPanel() {
   const utils = trpc.useUtils();
+  const [fuTab, setFuTab] = useState<"emails" | "sequences">("emails");
   const [showGenerate, setShowGenerate] = useState(false);
   const [previewFollowUp, setPreviewFollowUp] = useState<any>(null);
   const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", context: "", tone: "professional" as "professional" | "friendly" | "motivational" });
   const [fuConfirm, setFuConfirm] = useState<ConfirmState>(defaultConfirm);
+  // Sequences
+  const [showAddRule, setShowAddRule] = useState(false);
+  const [ruleForm, setRuleForm] = useState({ triggerDays: 30, tone: "friendly" as "professional" | "friendly" | "motivational", context: "" });
+  const { data: rules = [], isLoading: rulesLoading } = trpc.followUpRules.list.useQuery();
+  const addRule = trpc.followUpRules.create.useMutation({ onSuccess: () => { utils.followUpRules.list.invalidate(); setShowAddRule(false); toast.success("Sequence rule created!"); } });
+  const deleteRule = trpc.followUpRules.delete.useMutation({ onSuccess: () => { utils.followUpRules.list.invalidate(); toast.success("Rule deleted."); } });
+  const toggleRule = trpc.followUpRules.update.useMutation({ onSuccess: () => utils.followUpRules.list.invalidate() });
 
   const { data: followUpList, isLoading } = trpc.followUps.list.useQuery();
   const { data: clientList } = trpc.clients.list.useQuery({ search: "", status: "all" });
@@ -1704,11 +1792,102 @@ function FollowUpsPanel() {
           <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>AI Follow-Ups</h2>
           <p className="text-sm text-gray-600">Let AI write personalized follow-up emails for your clients</p>
         </div>
-        <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowGenerate(true)}>
-          <Zap className="w-3.5 h-3.5" />Generate Email
-        </Button>
+        {fuTab === "emails" ? (
+          <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowGenerate(true)}>
+            <Zap className="w-3.5 h-3.5" />Generate Email
+          </Button>
+        ) : (
+          <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAddRule(true)}>
+            <Plus className="w-3.5 h-3.5" />New Rule
+          </Button>
+        )}
+      </div>
+      {/* Tab Bar */}
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+        {(["emails", "sequences"] as const).map(t => (
+          <button key={t} onClick={() => setFuTab(t)}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
+              fuTab === t ? "bg-white text-[#1C1C1E] shadow-sm" : "text-gray-500 hover:text-gray-700"
+            }`}>
+            {t === "sequences" ? "Auto-Sequences" : "AI Emails"}
+          </button>
+        ))}
       </div>
 
+      {fuTab === "sequences" && (
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-[#6366F1]/10 to-[#E8A020]/10 border border-[#6366F1]/20 rounded-2xl p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#6366F1] flex items-center justify-center text-white flex-shrink-0">
+                <Zap className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-[#1C1C1E] text-sm">Automated Follow-Up Rules</h3>
+                <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                  Set a rule once and the system automatically generates and queues a follow-up email when a client hasn't booked in X days. Rules run daily — passive revenue recovery while you sleep.
+                </p>
+              </div>
+            </div>
+          </div>
+          {rulesLoading ? (
+            [...Array(2)].map((_, i) => <Skeleton key={i} className="h-16" />)
+          ) : rules.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 text-center py-12 text-gray-600">
+              <Zap className="w-8 h-8 mx-auto mb-3 opacity-30" />
+              <p className="text-sm font-medium">No automation rules yet</p>
+              <p className="text-xs mt-1">Create your first rule to start automating follow-ups.</p>
+            </div>
+          ) : (rules as Array<{ id: number; name: string; triggerDays: number; emailSubject: string; active: boolean }>).map(r => (
+            <div key={r.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
+              <div className={`w-2 h-10 rounded-full flex-shrink-0 ${r.active ? "bg-green-400" : "bg-gray-200"}`} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-[#1C1C1E]">{r.name}</p>
+                <p className="text-xs text-gray-600 mt-0.5">Triggers after <span className="font-semibold text-[#E8A020]">{r.triggerDays} days</span> of no booking · {r.emailSubject}</p>
+              </div>
+              <div className="flex gap-1.5 flex-shrink-0">
+                <button onClick={() => toggleRule.mutate({ id: r.id, active: !r.active })} className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${r.active ? "bg-green-50 text-green-600 hover:bg-green-100" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+                  {r.active ? "Active" : "Paused"}
+                </button>
+                <button onClick={() => deleteRule.mutate({ id: r.id })} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+          {/* Add Rule Modal */}
+          <Modal open={showAddRule} onClose={() => setShowAddRule(false)} title="New Automation Rule">
+            <div className="space-y-4">
+              <Field label="Rule Name *" value={ruleForm.context} onChange={v => setRuleForm(p => ({ ...p, context: v }))} placeholder="e.g. 30-Day Re-engagement" required />
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Trigger: No booking in</label>
+                <div className="flex items-center gap-2">
+                  <input type="number" min={1} max={365} value={ruleForm.triggerDays} onChange={e => setRuleForm(p => ({ ...p, triggerDays: parseInt(e.target.value) || 30 }))}
+                    className="form-input-light w-24 text-center" />
+                  <span className="text-sm text-gray-600">days</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Email Tone</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["professional", "friendly", "motivational"] as const).map(t => (
+                    <button key={t} onClick={() => setRuleForm(p => ({ ...p, tone: t }))}
+                      className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${ruleForm.tone === t ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button variant="outline" className="flex-1" onClick={() => setShowAddRule(false)}>Cancel</Button>
+                <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90" onClick={() => addRule.mutate({ name: ruleForm.context || `${ruleForm.triggerDays}-Day Rule`, triggerDays: ruleForm.triggerDays, emailSubject: `Checking in — let's reconnect`, emailBody: `Hi {{clientName}}, I noticed it's been a while since we last connected. I'd love to catch up and see how things are going. Would you like to schedule a session?` })} disabled={addRule.isPending}>
+                  {addRule.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Rule"}
+                </Button>
+              </div>
+            </div>
+          </Modal>
+        </div>
+      )}
+      {fuTab === "emails" && <>
       {/* Info Card */}
       <div className="bg-gradient-to-r from-[#E8A020]/10 to-[#6366F1]/10 border border-[#E8A020]/20 rounded-2xl p-5">
         <div className="flex items-start gap-3">
@@ -1835,6 +2014,8 @@ function FollowUpsPanel() {
           </div>
         )}
       </Modal>
+      </>
+      }
       <ConfirmDialog
         open={fuConfirm.open}
         onOpenChange={(open) => !open && setFuConfirm(defaultConfirm)}
@@ -2776,6 +2957,87 @@ function SettingsPanel() {
 
       {/* Audit Log */}
       <AuditLogSection />
+
+      {/* Integrations */}
+      <IntegrationsSection />
+    </div>
+  );
+}
+
+// ─── Integrations Section ────────────────────────────────────────────────────────
+function IntegrationsSection() {
+  const utils = trpc.useUtils();
+  const { data: calStatus } = trpc.googleCal.status.useQuery();
+  const { data: calAuthData } = trpc.googleCal.getAuthUrl.useQuery(
+    { origin: window.location.origin },
+    { enabled: !calStatus?.connected }
+  );
+  const disconnectCal = trpc.googleCal.disconnect.useMutation({
+    onSuccess: () => { utils.googleCal.status.invalidate(); toast.success("Google Calendar disconnected."); },
+    onError: (e: { message: string }) => toast.error(e.message),
+  });
+  const [monthlyEnabled, setMonthlyEnabled] = useState(true);
+  const toggleMonthly = trpc.reportSettings.toggle.useMutation({
+    onSuccess: () => toast.success("Preferences saved!"),
+    onError: (e: { message: string }) => toast.error(e.message),
+  });
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+      <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2">
+        <Zap className="w-4 h-4 text-[#E8A020]" />Integrations & Automation
+      </h3>
+
+      {/* Google Calendar */}
+      <div className="flex items-center justify-between gap-4 py-3 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+            <Calendar className="w-5 h-5 text-blue-500" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[#1C1C1E]">Google Calendar</p>
+            <p className="text-xs text-gray-600">
+              {calStatus?.connected ? `Connected · Google Calendar synced` : "Sync bookings to your Google Calendar"}
+            </p>
+          </div>
+        </div>
+        {calStatus?.connected ? (
+          <Button size="sm" variant="outline" className="border-red-200 text-red-500 hover:bg-red-50" onClick={() => disconnectCal.mutate()} disabled={disconnectCal.isPending}>
+            {disconnectCal.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Disconnect"}
+          </Button>
+        ) : (
+          <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90" onClick={() => { if (calAuthData?.url) window.open(calAuthData.url, "_blank"); }} disabled={!calAuthData?.url}>
+            Connect
+          </Button>
+        )}
+      </div>
+
+      {/* Monthly Business Report */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
+            <Mail className="w-5 h-5 text-green-500" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[#1C1C1E]">Monthly Business Report</p>
+            <p className="text-xs text-gray-600">Auto-sent on the 1st: MRR, new clients, top insights</p>
+          </div>
+        </div>
+        <button
+          onClick={() => { const next = !monthlyEnabled; setMonthlyEnabled(next); toggleMonthly.mutate({ enabled: next }); }}
+          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A020] ${
+            monthlyEnabled ? "bg-[#E8A020]" : "bg-gray-200"
+          }`}
+          role="switch"
+          aria-checked={monthlyEnabled}
+          aria-label="Toggle monthly business report email"
+          type="button"
+        >
+          <span aria-hidden="true" className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+            monthlyEnabled ? "translate-x-5" : "translate-x-0"
+          }`} />
+        </button>
+      </div>
     </div>
   );
 }
@@ -2933,6 +3195,283 @@ function ContractsPanel() {
   );
 }
 
+// ─── Smart Inbox Panel ───────────────────────────────────────────────────────
+function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) => void }) {
+  const utils = trpc.useUtils();
+  const { data: feed = [], isLoading } = trpc.inbox.list.useQuery({ limit: 50 });
+  const markRead = trpc.inbox.markRead.useMutation({ onSuccess: () => utils.inbox.list.invalidate() });
+  const markAll = trpc.inbox.markAllRead.useMutation({ onSuccess: () => utils.inbox.list.invalidate() });
+
+  const [filter, setFilter] = useState<"all" | "unread" | "messages" | "bookings" | "invoices">("all");
+
+  const filtered = (feed as Array<{ id: string; type: string; title: string; body: string; link?: string; createdAt: Date; read: boolean; meta?: Record<string, any> }>).filter(item => {
+    if (filter === "unread") return !item.read;
+    if (filter === "messages") return item.type === "message";
+    if (filter === "bookings") return item.type === "booking";
+    if (filter === "invoices") return ["invoice", "invoice_paid", "invoice_overdue"].includes(item.type);
+    return true;
+  });
+
+  const unreadCount = (feed as Array<{ read: boolean }>).filter(f => !f.read).length;
+
+  const typeIcon = (type: string) => {
+    if (type === "message") return <MessageSquare className="w-4 h-4 text-blue-500" />;
+    if (type === "booking") return <Calendar className="w-4 h-4 text-[#E8A020]" />;
+    if (type === "invoice_paid") return <CheckCircle className="w-4 h-4 text-green-500" />;
+    if (type === "invoice_overdue") return <AlertCircle className="w-4 h-4 text-red-500" />;
+    if (type === "invoice") return <FileText className="w-4 h-4 text-gray-500" />;
+    if (type === "success") return <CheckCircle className="w-4 h-4 text-green-500" />;
+    if (type === "warning") return <AlertCircle className="w-4 h-4 text-orange-500" />;
+    return <Bell className="w-4 h-4 text-gray-400" />;
+  };
+
+  const typeColor = (type: string) => {
+    if (type === "message") return "bg-blue-50 border-blue-100";
+    if (type === "booking") return "bg-amber-50 border-amber-100";
+    if (type === "invoice_paid") return "bg-green-50 border-green-100";
+    if (type === "invoice_overdue") return "bg-red-50 border-red-100";
+    if (type === "warning") return "bg-orange-50 border-orange-100";
+    if (type === "success") return "bg-green-50 border-green-100";
+    return "bg-gray-50 border-gray-100";
+  };
+
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Smart Inbox</h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {unreadCount > 0 ? `${unreadCount} unread item${unreadCount !== 1 ? "s" : ""}` : "All caught up"}
+          </p>
+        </div>
+        {unreadCount > 0 && (
+          <Button variant="outline" size="sm" onClick={() => markAll.mutate()} disabled={markAll.isPending}
+            className="text-xs gap-1.5">
+            <Check className="w-3.5 h-3.5" /> Mark all read
+          </Button>
+        )}
+      </div>
+
+      {/* Filter chips */}
+      <div className="flex gap-2 mb-5 flex-wrap">
+        {(["all", "unread", "messages", "bookings", "invoices"] as const).map(f => (
+          <button key={f} onClick={() => setFilter(f)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold capitalize transition-all ${
+              filter === f ? "bg-[#E8A020] text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-[#E8A020]"
+            }`}>
+            {f}{f === "unread" && unreadCount > 0 ? ` (${unreadCount})` : ""}
+          </button>
+        ))}
+      </div>
+
+      {/* Feed */}
+      {isLoading ? (
+        <div className="space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-20 bg-white rounded-xl animate-pulse" />)}</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-20">
+          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+            <Inbox className="w-8 h-8 text-gray-300" />
+          </div>
+          <p className="font-semibold text-gray-700">Nothing here</p>
+          <p className="text-sm text-gray-400 mt-1">Your activity feed will appear here</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map(item => (
+            <div key={item.id}
+              className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer hover:shadow-sm ${
+                item.read ? "bg-white border-gray-100" : typeColor(item.type)
+              }`}
+              onClick={() => {
+                if (!item.read && item.meta?.notifId) markRead.mutate({ notifId: item.meta.notifId });
+                if (item.link) setActivePanel(item.link.includes("panel=") ? (item.link.split("panel=")[1].split("&")[0] as ActivePanel) : "overview");
+              }}
+            >
+              <div className="w-8 h-8 rounded-lg bg-white/80 border border-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                {typeIcon(item.type)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <p className={`text-sm font-semibold truncate ${item.read ? "text-gray-700" : "text-[#1C1C1E]"}` }>{item.title}</p>
+                  {!item.read && <span className="w-2 h-2 rounded-full bg-[#E8A020] flex-shrink-0 mt-1" />}
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{item.body}</p>
+                <p className="text-[10px] text-gray-400 mt-1">{new Date(item.createdAt).toLocaleString()}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Testimonials Panel ────────────────────────────────────────────────────────
+function TestimonialsPanel() {
+  const utils = trpc.useUtils();
+  const [tab, setTab] = useState<"pending" | "approved" | "rejected" | "request">("pending");
+  const [form, setForm] = useState({ clientName: "", clientEmail: "", serviceName: "" });
+  const [sending, setSending] = useState(false);
+
+  const { data: list = [], isLoading } = trpc.testimonials.list.useQuery();
+  const reviewMut = trpc.testimonials.review.useMutation({ onSuccess: () => { utils.testimonials.list.invalidate(); toast.success("Done!"); } });
+  const requestMut = trpc.testimonials.request.useMutation({
+    onSuccess: () => { toast.success("Request sent!"); setForm({ clientName: "", clientEmail: "", serviceName: "" }); setSending(false); },
+    onError: (e) => { toast.error(e.message); setSending(false); },
+  });
+
+  const filtered = list.filter(t => {
+    if (tab === "pending") return ["requested", "submitted"].includes(t.status);
+    return t.status === tab;
+  });
+
+  const statusColors: Record<string, string> = {
+    requested: "bg-blue-100 text-blue-700",
+    submitted: "bg-amber-100 text-amber-700",
+    approved: "bg-green-100 text-green-700",
+    rejected: "bg-gray-100 text-gray-500",
+  };
+
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Testimonials</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Request, review, and publish client testimonials</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-5 flex-wrap">
+        {(["pending", "approved", "rejected", "request"] as const).map(t => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize transition-all ${
+              tab === t ? "bg-[#E8A020] text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-[#E8A020]"
+            }`}>
+            {t === "request" ? "+ New Request" : t}
+            {t === "pending" && list.filter(x => ["requested","submitted"].includes(x.status)).length > 0 && (
+              <span className="ml-1.5 bg-white/30 text-xs px-1.5 py-0.5 rounded-full">
+                {list.filter(x => ["requested","submitted"].includes(x.status)).length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {tab === "request" ? (
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 max-w-lg">
+          <h3 className="font-semibold text-[#1C1C1E]">Send Testimonial Request</h3>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client Name *</label>
+              <input value={form.clientName} onChange={e => setForm(p => ({ ...p, clientName: e.target.value }))}
+                placeholder="Jane Smith" className="form-input-light" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client Email *</label>
+              <input type="email" value={form.clientEmail} onChange={e => setForm(p => ({ ...p, clientEmail: e.target.value }))}
+                placeholder="jane@example.com" className="form-input-light" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Service Name</label>
+              <input value={form.serviceName} onChange={e => setForm(p => ({ ...p, serviceName: e.target.value }))}
+                placeholder="Brand Strategy Session" className="form-input-light" />
+            </div>
+          </div>
+          <Button
+            onClick={() => { setSending(true); requestMut.mutate({ ...form, origin: window.location.origin }); }}
+            disabled={!form.clientName.trim() || !form.clientEmail.trim() || sending}
+            className="w-full bg-[#E8A020] hover:bg-[#D4911A] text-white">
+            {sending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending…</> : "Send Request"}
+          </Button>
+        </div>
+      ) : isLoading ? (
+        <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-24 bg-white rounded-xl animate-pulse" />)}</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <ThumbsUp className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+          <p className="text-gray-500 font-medium">No {tab} testimonials yet</p>
+          <p className="text-sm text-gray-400 mt-1">Use the "+ New Request" tab to ask clients for reviews</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map(t => (
+            <div key={t.id} className="bg-white rounded-xl border border-gray-100 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-semibold text-[#1C1C1E] text-sm">{t.clientName}</p>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${statusColors[t.status] ?? "bg-gray-100 text-gray-500"}`}>{t.status}</span>
+                  </div>
+                  {t.rating && (
+                    <div className="flex gap-0.5 mb-1.5">
+                      {[1,2,3,4,5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= t.rating! ? "fill-[#E8A020] text-[#E8A020]" : "text-gray-200"}`} />)}
+                    </div>
+                  )}
+                  {t.body && <p className="text-sm text-gray-600 line-clamp-3">"{t.body}"</p>}
+                  {!t.body && <p className="text-xs text-gray-400 italic">Awaiting response…</p>}
+                  <p className="text-[10px] text-gray-400 mt-1.5">{new Date(t.createdAt).toLocaleDateString()}</p>
+                </div>
+                {t.status === "submitted" && (
+                  <div className="flex gap-2 flex-shrink-0">
+                    <Button size="sm" onClick={() => reviewMut.mutate({ id: t.id, action: "approve" })} disabled={reviewMut.isPending}
+                      className="bg-green-500 hover:bg-green-600 text-white text-xs px-3">Approve</Button>
+                    <Button size="sm" variant="outline" onClick={() => reviewMut.mutate({ id: t.id, action: "reject" })} disabled={reviewMut.isPending}
+                      className="text-xs px-3">Reject</Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Mobile Quick-Stats Strip ─────────────────────────────────────────────────
+function MobileQuickStats() {
+  const { data: stats } = trpc.analytics.overview.useQuery(undefined, { retry: 1 });
+  const { data: invoiceList = [] } = trpc.invoices.list.useQuery({ status: "sent" }, { retry: 1 });
+  const { data: clientList = [] } = trpc.clients.list.useQuery(undefined, { retry: 1 });
+
+  const mrr = (stats as any)?.mrr ?? 0;
+  const activeClients = clientList.length;
+  const pendingInvoices = invoiceList.length;
+
+  return (
+    <div
+      className="md:hidden shrink-0 px-3 py-2 flex items-center gap-2"
+      style={{
+        background: "rgba(28,28,30,0.97)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderTop: "1px solid rgba(255,255,255,0.06)",
+      }}
+    >
+      <div className="flex-1 flex items-center justify-center gap-1">
+        <DollarSign className="w-3.5 h-3.5 text-[#E8A020]" />
+        <span className="text-xs font-bold text-white">${mrr >= 1000 ? (mrr/1000).toFixed(1)+"k" : mrr.toFixed(0)}</span>
+        <span className="text-[10px] text-gray-500">MRR</span>
+      </div>
+      <div className="w-px h-6 bg-white/10" />
+      <div className="flex-1 flex items-center justify-center gap-1">
+        <Users className="w-3.5 h-3.5 text-blue-400" />
+        <span className="text-xs font-bold text-white">{activeClients}</span>
+        <span className="text-[10px] text-gray-500">Clients</span>
+      </div>
+      <div className="w-px h-6 bg-white/10" />
+      <div className="flex-1 flex items-center justify-center gap-1">
+        <FileText className="w-3.5 h-3.5 text-amber-400" />
+        <span className="text-xs font-bold text-white">{pendingInvoices}</span>
+        <span className="text-[10px] text-gray-500">Pending</span>
+      </div>
+    </div>
+  );
+}
+
 // ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
 // Strategy: 4 primary daily-use tabs + 1 "All Features" tab that opens a
 // full-screen sheet listing every panel. 2 taps max to reach anything.
@@ -2954,10 +3493,12 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
     {
       label: "Business",
       items: [
+        { icon: Inbox,         label: "Smart Inbox",   panel: "inbox"      as ActivePanel },
         { icon: Mail,          label: "Follow-Ups",    panel: "followups"  as ActivePanel },
         { icon: HeartPulse,    label: "Client Pulse",  panel: "pulse"      as ActivePanel, badge: "AI" },
         { icon: BarChart3,     label: "Analytics",     panel: "analytics"  as ActivePanel },
         { icon: Bot,           label: "AI Assistant",  panel: "ai"         as ActivePanel, badge: "AI" },
+        { icon: ThumbsUp,      label: "Testimonials",  panel: "testimonials" as ActivePanel },
       ],
     },
     {
@@ -3143,7 +3684,7 @@ export default function Dashboard() {
   const [active, setActive] = useState<ActivePanel>(() => {
     if (typeof window !== "undefined") {
       const param = new URLSearchParams(window.location.search).get("panel");
-      const valid: ActivePanel[] = ["overview","clients","scheduling","invoices","followups","analytics","settings","ai","pulse","contracts","time","recurring"];
+      const valid: ActivePanel[] = ["overview","clients","scheduling","invoices","followups","analytics","settings","ai","pulse","contracts","time","recurring","inbox","testimonials"];
       if (param && valid.includes(param as ActivePanel)) return param as ActivePanel;
     }
     return "overview";
@@ -3201,6 +3742,8 @@ export default function Dashboard() {
       contracts: "Contracts — TrueAxis HQ",
       time: "Time Tracker — TrueAxis HQ",
       recurring: "Recurring Revenue — TrueAxis HQ",
+      inbox: "Inbox — TrueAxis HQ",
+      testimonials: "Testimonials — TrueAxis HQ",
     };
     document.title = PANEL_TITLES[active] ?? "Dashboard — TrueAxis HQ";
   }, [active]);
@@ -3239,6 +3782,7 @@ export default function Dashboard() {
     invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics",
     settings: "Settings", ai: "AI Assistant", pulse: "Client Pulse",
     contracts: "Contracts & Proposals", time: "Time Tracking", recurring: "Recurring Invoices",
+    inbox: "Smart Inbox", testimonials: "Testimonials",
   };
 
   const renderPanel = () => {
@@ -3276,6 +3820,8 @@ export default function Dashboard() {
       case "contracts": return <ContractsPanel />;
       case "time": return <TimeTrackingPanel />;
       case "recurring": return <RecurringInvoicesPanel />;
+      case "inbox": return <SmartInboxPanel setActivePanel={setActiveWithScroll} />;
+      case "testimonials": return <TestimonialsPanel />;
       default: return null;
     }
   };
@@ -3439,6 +3985,8 @@ export default function Dashboard() {
         </div>
       </main>
 
+      {/* Mobile Quick-Stats Strip — always visible above bottom nav */}
+      <MobileQuickStats />
       {/* Mobile Bottom Nav */}
       <MobileBottomNav active={active} setActive={setActiveWithScroll} />
       {/* Floating AI Assistant — persists across all panels, draggable */}

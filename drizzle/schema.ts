@@ -43,6 +43,7 @@ export const users = mysqlTable("users", {
   notifyNewBooking: boolean("notifyNewBooking").default(true),
   notifyInvoicePaid: boolean("notifyInvoicePaid").default(true),
   notifyNewLead: boolean("notifyNewLead").default(true),
+  monthlyReportEnabled: boolean("monthlyReportEnabled").default(true),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -457,3 +458,91 @@ export const contactMessages = mysqlTable("contactMessages", {
 });
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type InsertContactMessage = typeof contactMessages.$inferInsert;
+
+// ─── Client Portal Messages ───────────────────────────────────────────────────
+export const portalMessages = mysqlTable("portalMessages", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),       // freelancer (owner)
+  clientId: int("clientId").notNull(),   // client who sent/received
+  senderRole: mysqlEnum("senderRole", ["client", "owner"]).notNull(),
+  body: text("body").notNull(),
+  read: boolean("read").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type PortalMessage = typeof portalMessages.$inferSelect;
+export type InsertPortalMessage = typeof portalMessages.$inferInsert;
+
+// ─── Follow-Up Sequence Rules ─────────────────────────────────────────────────
+export const followUpRules = mysqlTable("followUpRules", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  triggerDays: int("triggerDays").notNull().default(30), // days since last booking
+  emailSubject: varchar("emailSubject", { length: 512 }).notNull(),
+  emailBody: text("emailBody").notNull(),
+  active: boolean("active").default(true).notNull(),
+  lastRunAt: timestamp("lastRunAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type FollowUpRule = typeof followUpRules.$inferSelect;
+export type InsertFollowUpRule = typeof followUpRules.$inferInsert;
+
+// ─── Client Tags ──────────────────────────────────────────────────────────────
+export const clientTags = mysqlTable("clientTags", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  clientId: int("clientId").notNull(),
+  tag: varchar("tag", { length: 64 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ClientTag = typeof clientTags.$inferSelect;
+export type InsertClientTag = typeof clientTags.$inferInsert;
+
+// ─── Testimonials ─────────────────────────────────────────────────────────────
+export const testimonials = mysqlTable("testimonials", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),       // freelancer
+  clientId: int("clientId"),
+  clientName: varchar("clientName", { length: 255 }).notNull(),
+  clientEmail: varchar("clientEmail", { length: 320 }),
+  invoiceId: int("invoiceId"),           // invoice that triggered the request
+  body: text("body"),                    // testimonial text (filled by client)
+  rating: int("rating"),                 // 1-5
+  status: mysqlEnum("status", ["requested", "submitted", "approved", "rejected"]).default("requested").notNull(),
+  requestToken: varchar("requestToken", { length: 128 }).unique(), // for public submission link
+  approvedAt: timestamp("approvedAt"),
+  submittedAt: timestamp("submittedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type Testimonial = typeof testimonials.$inferSelect;
+export type InsertTestimonial = typeof testimonials.$inferInsert;
+
+// ─── Booking Cancel / Reschedule Tokens ───────────────────────────────────────
+export const bookingCancelTokens = mysqlTable("bookingCancelTokens", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull(),
+  userId: int("userId").notNull(),
+  token: varchar("token", { length: 128 }).notNull().unique(),
+  action: mysqlEnum("action", ["cancel", "reschedule"]).notNull(),
+  used: boolean("used").default(false).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type BookingCancelToken = typeof bookingCancelTokens.$inferSelect;
+export type InsertBookingCancelToken = typeof bookingCancelTokens.$inferInsert;
+
+// ─── Google Calendar Tokens ───────────────────────────────────────────────────
+export const googleCalendarTokens = mysqlTable("googleCalendarTokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  accessToken: text("accessToken").notNull(),
+  refreshToken: text("refreshToken"),
+  expiresAt: timestamp("expiresAt"),
+  calendarId: varchar("calendarId", { length: 255 }).default("primary"),
+  syncEnabled: boolean("syncEnabled").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type GoogleCalendarToken = typeof googleCalendarTokens.$inferSelect;
+export type InsertGoogleCalendarToken = typeof googleCalendarTokens.$inferInsert;

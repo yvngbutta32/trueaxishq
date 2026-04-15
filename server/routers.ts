@@ -10,13 +10,13 @@ import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
-import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail } from "./_core/email";
+import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail } from "./_core/email";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -2670,6 +2670,483 @@ Only include actions when you have actually generated a complete draft. For gene
         await db.update(userApiKeys)
           .set({ active: false })
           .where(and(eq(userApiKeys.id, input.id), eq(userApiKeys.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+  }),
+
+  // ── Smart Inbox ───────────────────────────────────────────────────────────────
+  inbox: router({
+    list: protectedProcedure
+      .input(z.object({ limit: z.number().int().min(1).max(100).default(50) }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const uid = ctx.user.id;
+        const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // last 30 days
+
+        const [recentBookings, recentInvoices, recentNotifs, unreadMessages] = await Promise.all([
+          db.select({ id: bookings.id, clientName: bookings.clientName, service: bookings.service, date: bookings.date, time: bookings.time, status: bookings.status, createdAt: bookings.createdAt })
+            .from(bookings).where(and(eq(bookings.userId, uid), sql`${bookings.createdAt} >= ${since}`)).orderBy(desc(bookings.createdAt)).limit(20),
+          db.select({ id: invoices.id, invoiceNumber: invoices.invoiceNumber, clientName: invoices.clientName, amount: invoices.amount, status: invoices.status, createdAt: invoices.createdAt, paidAt: invoices.paidAt })
+            .from(invoices).where(and(eq(invoices.userId, uid), sql`${invoices.createdAt} >= ${since}`)).orderBy(desc(invoices.createdAt)).limit(20),
+          db.select().from(notifications).where(and(eq(notifications.userId, uid), sql`${notifications.createdAt} >= ${since}`)).orderBy(desc(notifications.createdAt)).limit(20),
+          db.select({ id: portalMessages.id, clientId: portalMessages.clientId, body: portalMessages.body, createdAt: portalMessages.createdAt })
+            .from(portalMessages).where(and(eq(portalMessages.userId, uid), eq(portalMessages.senderRole, "client"), eq(portalMessages.read, false))).orderBy(desc(portalMessages.createdAt)).limit(10),
+        ]);
+
+        // Merge into unified feed
+        const feed: Array<{
+          id: string; type: string; title: string; body: string;
+          link?: string; createdAt: Date; read: boolean;
+          meta?: Record<string, any>;
+        }> = [];
+
+        for (const b of recentBookings) {
+          feed.push({
+            id: `booking-${b.id}`, type: "booking",
+            title: b.status === "scheduled" ? `New Booking — ${b.clientName}` : `Booking ${b.status} — ${b.clientName}`,
+            body: `${b.service ?? "Session"} on ${b.date} at ${b.time}`,
+            link: "/dashboard?panel=schedule", createdAt: b.createdAt, read: false,
+            meta: { bookingId: b.id, status: b.status },
+          });
+        }
+        for (const inv of recentInvoices) {
+          const isPaid = inv.status === "paid";
+          const isOverdue = inv.status === "overdue";
+          feed.push({
+            id: `invoice-${inv.id}`, type: isPaid ? "invoice_paid" : isOverdue ? "invoice_overdue" : "invoice",
+            title: isPaid ? `Invoice Paid — ${inv.clientName}` : isOverdue ? `Invoice Overdue — ${inv.clientName}` : `Invoice Created — ${inv.clientName}`,
+            body: `${inv.invoiceNumber} · $${parseFloat(String(inv.amount)).toFixed(2)}`,
+            link: "/dashboard?panel=invoices", createdAt: isPaid && inv.paidAt ? inv.paidAt : inv.createdAt, read: isPaid || false,
+            meta: { invoiceId: inv.id, status: inv.status },
+          });
+        }
+        for (const n of recentNotifs) {
+          feed.push({
+            id: `notif-${n.id}`, type: n.type,
+            title: n.title, body: n.body,
+            link: n.link ?? "/dashboard", createdAt: n.createdAt, read: n.read,
+            meta: { notifId: n.id },
+          });
+        }
+        for (const m of unreadMessages) {
+          feed.push({
+            id: `msg-${m.id}`, type: "message",
+            title: "New Message from Client",
+            body: m.body.length > 80 ? m.body.slice(0, 80) + "..." : m.body,
+            link: `/dashboard?panel=clients&clientId=${m.clientId}`, createdAt: m.createdAt, read: false,
+            meta: { messageId: m.id, clientId: m.clientId },
+          });
+        }
+
+        // Sort by createdAt desc, deduplicate, limit
+        feed.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        const seen = new Set<string>();
+        const deduped = feed.filter(f => { if (seen.has(f.id)) return false; seen.add(f.id); return true; });
+        return deduped.slice(0, input.limit);
+      }),
+
+    markRead: protectedProcedure
+      .input(z.object({ notifId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.update(notifications).set({ read: true })
+          .where(and(eq(notifications.id, input.notifId), eq(notifications.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+
+    markAllRead: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await requireDb();
+      await db.update(notifications).set({ read: true }).where(eq(notifications.userId, ctx.user.id));
+      return { ok: true };
+    }),
+  }),
+
+  // ── Portal Messaging ──────────────────────────────────────────────────────────
+  portalMsg: router({
+    // Owner: list messages for a client
+    list: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        return db.select().from(portalMessages)
+          .where(and(eq(portalMessages.userId, ctx.user.id), eq(portalMessages.clientId, input.clientId)))
+          .orderBy(portalMessages.createdAt);
+      }),
+
+    // Owner: send a reply
+    reply: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive(), body: z.string().trim().min(1).max(4000) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [client] = await db.select({ id: clients.id, name: clients.name })
+          .from(clients).where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+        await db.insert(portalMessages).values({
+          userId: ctx.user.id, clientId: input.clientId,
+          senderRole: "owner", body: input.body, read: true,
+        });
+        return { ok: true };
+      }),
+
+    // Public (portal): client sends a message
+    send: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128), body: z.string().trim().min(1).max(4000) }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+        if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found." });
+        if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Portal link has expired." });
+        }
+        await db.insert(portalMessages).values({
+          userId: portalRecord.userId, clientId: portalRecord.clientId,
+          senderRole: "client", body: input.body, read: false,
+        });
+        // Notify owner
+        const [client] = await db.select({ name: clients.name }).from(clients)
+          .where(eq(clients.id, portalRecord.clientId)).limit(1);
+        await db.insert(notifications).values({
+          userId: portalRecord.userId,
+          title: `New Message — ${client?.name ?? "Client"}`,
+          body: input.body.length > 100 ? input.body.slice(0, 100) + "..." : input.body,
+          type: "info",
+          link: `/dashboard?panel=clients&clientId=${portalRecord.clientId}`,
+        });
+        notifyOwner({ title: `New Portal Message from ${client?.name ?? "a client"}`, content: input.body }).catch(() => {});
+        return { ok: true };
+      }),
+
+    // Public (portal): list messages for a portal session
+    listForPortal: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128) }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+        if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND" });
+        return db.select().from(portalMessages)
+          .where(and(eq(portalMessages.userId, portalRecord.userId), eq(portalMessages.clientId, portalRecord.clientId)))
+          .orderBy(portalMessages.createdAt);
+      }),
+  }),
+
+  // ── Follow-Up Sequence Rules ──────────────────────────────────────────────────
+  followUpRules: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(followUpRules).where(eq(followUpRules.userId, ctx.user.id)).orderBy(desc(followUpRules.createdAt));
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().trim().min(1).max(255),
+        triggerDays: z.number().int().min(1).max(365).default(30),
+        emailSubject: z.string().trim().min(1).max(512),
+        emailBody: z.string().trim().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.insert(followUpRules).values({ userId: ctx.user.id, ...input, active: true });
+        return { ok: true };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        name: z.string().trim().min(1).max(255).optional(),
+        triggerDays: z.number().int().min(1).max(365).optional(),
+        emailSubject: z.string().trim().min(1).max(512).optional(),
+        emailBody: z.string().trim().min(1).optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const { id, ...rest } = input;
+        await db.update(followUpRules).set(rest).where(and(eq(followUpRules.id, id), eq(followUpRules.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(followUpRules).where(and(eq(followUpRules.id, input.id), eq(followUpRules.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+  }),
+
+  // ── Client Tags ───────────────────────────────────────────────────────────────
+  tags: router({
+    listForClient: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        return db.select().from(clientTags)
+          .where(and(eq(clientTags.userId, ctx.user.id), eq(clientTags.clientId, input.clientId)));
+      }),
+
+    listAll: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      // Return all unique tags for this user
+      const rows = await db.select({ tag: clientTags.tag, clientId: clientTags.clientId })
+        .from(clientTags).where(eq(clientTags.userId, ctx.user.id));
+      return rows;
+    }),
+
+    add: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive(), tag: z.string().trim().min(1).max(64) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        // Check client belongs to user
+        const [c] = await db.select({ id: clients.id }).from(clients)
+          .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
+        if (!c) throw new TRPCError({ code: "NOT_FOUND" });
+        // Avoid duplicate tags
+        const [existing] = await db.select({ id: clientTags.id }).from(clientTags)
+          .where(and(eq(clientTags.userId, ctx.user.id), eq(clientTags.clientId, input.clientId), eq(clientTags.tag, input.tag))).limit(1);
+        if (existing) return { ok: true };
+        await db.insert(clientTags).values({ userId: ctx.user.id, clientId: input.clientId, tag: input.tag });
+        return { ok: true };
+      }),
+
+    remove: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive(), tag: z.string().trim().min(1).max(64) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(clientTags)
+          .where(and(eq(clientTags.userId, ctx.user.id), eq(clientTags.clientId, input.clientId), eq(clientTags.tag, input.tag)));
+        return { ok: true };
+      }),
+  }),
+
+  // ── Testimonials ──────────────────────────────────────────────────────────────
+  testimonials: router({
+    // Owner: list all testimonials
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(testimonials).where(eq(testimonials.userId, ctx.user.id)).orderBy(desc(testimonials.createdAt));
+    }),
+
+    // Owner: request a testimonial from a client (after invoice paid)
+    request: protectedProcedure
+      .input(z.object({
+        clientId: z.number().int().positive().optional(),
+        clientName: z.string().trim().min(1).max(255),
+        clientEmail: safeEmail,
+        invoiceId: z.number().int().positive().optional(),
+        serviceName: z.string().trim().min(1).max(255).default("your session"),
+        origin: z.string().url(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const crypto = await import("crypto");
+        const token = crypto.randomBytes(24).toString("hex");
+        await db.insert(testimonials).values({
+          userId: ctx.user.id,
+          clientId: input.clientId ?? null,
+          clientName: input.clientName,
+          clientEmail: input.clientEmail,
+          invoiceId: input.invoiceId ?? null,
+          status: "requested",
+          requestToken: token,
+        });
+        const [user] = await db.select({ name: users.name, businessName: users.businessName })
+          .from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        const freelancerName = user?.businessName || user?.name || "Your provider";
+        const testimonialUrl = `${input.origin}/testimonial/${token}`;
+        sendEmail({
+          to: input.clientEmail,
+          subject: `How was your experience with ${freelancerName}?`,
+          html: testimonialRequestEmail({ clientName: input.clientName, freelancerName, serviceName: input.serviceName, testimonialUrl }),
+        }).catch(() => {});
+        return { ok: true, token };
+      }),
+
+    // Public: submit a testimonial (client fills in the form)
+    submit: publicProcedure
+      .input(z.object({
+        token: z.string().min(1).max(128),
+        body: z.string().trim().min(10).max(2000),
+        rating: z.number().int().min(1).max(5),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [t] = await db.select().from(testimonials)
+          .where(eq(testimonials.requestToken, input.token)).limit(1);
+        if (!t) throw new TRPCError({ code: "NOT_FOUND", message: "Testimonial link not found." });
+        if (t.status !== "requested") throw new TRPCError({ code: "BAD_REQUEST", message: "This testimonial has already been submitted." });
+        await db.update(testimonials).set({
+          body: input.body, rating: input.rating,
+          status: "submitted", submittedAt: new Date(),
+        }).where(eq(testimonials.id, t.id));
+        // Notify owner
+        await db.insert(notifications).values({
+          userId: t.userId,
+          title: `New Testimonial from ${t.clientName}`,
+          body: `${t.clientName} left a ${input.rating}-star review. Review it in your dashboard.`,
+          type: "success",
+          link: "/dashboard?panel=testimonials",
+        });
+        notifyOwner({ title: `New Testimonial — ${t.clientName}`, content: `${input.rating} stars: "${input.body.slice(0, 100)}..."` }).catch(() => {});
+        return { ok: true };
+      }),
+
+    // Public: get testimonial request info (for the submission page)
+    getByToken: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128) }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [t] = await db.select({
+          clientName: testimonials.clientName, status: testimonials.status,
+          userId: testimonials.userId,
+        }).from(testimonials).where(eq(testimonials.requestToken, input.token)).limit(1);
+        if (!t) throw new TRPCError({ code: "NOT_FOUND" });
+        const [user] = await db.select({ name: users.name, businessName: users.businessName })
+          .from(users).where(eq(users.id, t.userId)).limit(1);
+        return { clientName: t.clientName, status: t.status, freelancerName: user?.businessName || user?.name || "Your provider" };
+      }),
+
+    // Owner: approve or reject
+    review: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), action: z.enum(["approve", "reject"]) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [t] = await db.select({ id: testimonials.id, userId: testimonials.userId })
+          .from(testimonials).where(and(eq(testimonials.id, input.id), eq(testimonials.userId, ctx.user.id))).limit(1);
+        if (!t) throw new TRPCError({ code: "NOT_FOUND" });
+        await db.update(testimonials).set({
+          status: input.action === "approve" ? "approved" : "rejected",
+          approvedAt: input.action === "approve" ? new Date() : null,
+        }).where(eq(testimonials.id, input.id));
+        return { ok: true };
+      }),
+
+    // Public: get approved testimonials for a booking page (by username)
+    publicList: publicProcedure
+      .input(z.object({ username: z.string().min(1).max(64) }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [host] = await db.select({ id: users.id })
+          .from(users).where(eq(users.bookingUsername, input.username)).limit(1);
+        if (!host) return [];
+        return db.select({
+          id: testimonials.id, clientName: testimonials.clientName,
+          body: testimonials.body, rating: testimonials.rating, approvedAt: testimonials.approvedAt,
+        }).from(testimonials)
+          .where(and(eq(testimonials.userId, host.id), eq(testimonials.status, "approved")))
+          .orderBy(desc(testimonials.approvedAt)).limit(10);
+      }),
+  }),
+
+  // ── Booking Cancel / Reschedule ───────────────────────────────────────────────
+  bookingManage: router({
+    // Public: view booking info by cancel token
+    getByToken: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128) }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [tokenRow] = await db.select().from(bookingCancelTokens)
+          .where(eq(bookingCancelTokens.token, input.token)).limit(1);
+        if (!tokenRow) throw new TRPCError({ code: "NOT_FOUND", message: "Link not found or expired." });
+        if (tokenRow.used) throw new TRPCError({ code: "BAD_REQUEST", message: "This link has already been used." });
+        if (new Date() > tokenRow.expiresAt) throw new TRPCError({ code: "BAD_REQUEST", message: "This link has expired." });
+        const [booking] = await db.select().from(bookings)
+          .where(eq(bookings.id, tokenRow.bookingId)).limit(1);
+        if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
+        const [host] = await db.select({ name: users.name, businessName: users.businessName, bookingUsername: users.bookingUsername })
+          .from(users).where(eq(users.id, tokenRow.userId)).limit(1);
+        return { booking, action: tokenRow.action, freelancerName: host?.businessName || host?.name || "Your provider", bookingUsername: host?.bookingUsername };
+      }),
+
+    // Public: execute cancel
+    cancel: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128), origin: z.string().url() }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [tokenRow] = await db.select().from(bookingCancelTokens)
+          .where(eq(bookingCancelTokens.token, input.token)).limit(1);
+        if (!tokenRow || tokenRow.used) throw new TRPCError({ code: "BAD_REQUEST", message: "Link already used or not found." });
+        if (new Date() > tokenRow.expiresAt) throw new TRPCError({ code: "BAD_REQUEST", message: "Link expired." });
+        const [booking] = await db.select().from(bookings).where(eq(bookings.id, tokenRow.bookingId)).limit(1);
+        if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
+        // Cancel the booking
+        await db.update(bookings).set({ status: "cancelled" }).where(eq(bookings.id, booking.id));
+        await db.update(bookingCancelTokens).set({ used: true }).where(eq(bookingCancelTokens.id, tokenRow.id));
+        // Notify owner
+        await db.insert(notifications).values({
+          userId: tokenRow.userId,
+          title: `Booking Cancelled — ${booking.clientName}`,
+          body: `${booking.clientName} cancelled their ${booking.service} on ${booking.date}.`,
+          type: "warning", link: "/dashboard?panel=schedule",
+        });
+        // Send confirmation email to client
+        const [host] = await db.select({ bookingUsername: users.bookingUsername }).from(users).where(eq(users.id, tokenRow.userId)).limit(1);
+        const rebookUrl = host?.bookingUsername ? `${input.origin}/book/${host.bookingUsername}` : undefined;
+        if (booking.clientEmail) {
+          sendEmail({
+            to: booking.clientEmail,
+            subject: `Booking Cancelled — ${booking.service}`,
+            html: bookingCancelConfirmEmail({ clientName: booking.clientName, serviceName: booking.service ?? "Session", date: booking.date, time: booking.time, action: "cancel", rebookUrl }),
+          }).catch(() => {});
+        }
+        return { ok: true };
+      }),
+  }),
+
+  // ── Monthly Report Settings ───────────────────────────────────────────────────
+  reportSettings: router({
+    toggle: protectedProcedure
+      .input(z.object({ enabled: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.update(users).set({ monthlyReportEnabled: input.enabled }).where(eq(users.id, ctx.user.id));
+        return { ok: true };
+      }),
+  }),
+
+  // ── Google Calendar ───────────────────────────────────────────────────────────
+  googleCal: router({
+    // Get connection status
+    status: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [token] = await db.select({ syncEnabled: googleCalendarTokens.syncEnabled, calendarId: googleCalendarTokens.calendarId, createdAt: googleCalendarTokens.createdAt })
+        .from(googleCalendarTokens).where(eq(googleCalendarTokens.userId, ctx.user.id)).limit(1);
+      return { connected: !!token, syncEnabled: token?.syncEnabled ?? false, calendarId: token?.calendarId ?? null, connectedAt: token?.createdAt ?? null };
+    }),
+
+    // Get OAuth URL
+    getAuthUrl: protectedProcedure
+      .input(z.object({ origin: z.string().url() }))
+      .query(async ({ ctx, input }) => {
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+        if (!clientId) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Google Calendar integration requires GOOGLE_CLIENT_ID to be configured in Settings → Secrets." });
+        const params = new URLSearchParams({
+          client_id: clientId,
+          redirect_uri: `${input.origin}/api/google-calendar/callback`,
+          response_type: "code",
+          scope: "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
+          access_type: "offline",
+          prompt: "consent",
+          state: String(ctx.user.id),
+        });
+        return { url: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}` };
+      }),
+
+    // Disconnect
+    disconnect: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await requireDb();
+      await db.delete(googleCalendarTokens).where(eq(googleCalendarTokens.userId, ctx.user.id));
+      return { ok: true };
+    }),
+
+    // Toggle sync
+    toggleSync: protectedProcedure
+      .input(z.object({ enabled: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.update(googleCalendarTokens).set({ syncEnabled: input.enabled })
+          .where(eq(googleCalendarTokens.userId, ctx.user.id));
         return { ok: true };
       }),
   }),

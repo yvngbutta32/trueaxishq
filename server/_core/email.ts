@@ -239,3 +239,68 @@ export function followUpEmail(opts: {
     ${opts.body.split("\n").filter(l => l.trim()).map(line => `<p>${line}</p>`).join("")}
   `);
 }
+
+export function testimonialRequestEmail(opts: {
+  clientName: string;
+  freelancerName: string;
+  serviceName: string;
+  testimonialUrl: string;
+}): string {
+  return baseTemplate(`
+    <h2>How did we do? &#11088;</h2>
+    <p>Hi ${opts.clientName},</p>
+    <p>Thank you for working with <strong style="color:#E8A020;">${opts.freelancerName}</strong> on <strong>${opts.serviceName}</strong>. We'd love to hear your feedback!</p>
+    <p>It takes less than 60 seconds and means the world to us:</p>
+    <a href="${opts.testimonialUrl}" class="btn">Leave a Testimonial &rarr;</a>
+    <p style="font-size:13px;color:#999;">Your testimonial may be featured on our booking page. You can remain anonymous if you prefer.</p>
+  `);
+}
+
+export function monthlyReportEmail(opts: {
+  name: string;
+  month: string;
+  totalRevenue: string;
+  newClients: number;
+  invoicesPaid: number;
+  invoicesOutstanding: number;
+  topClient?: string;
+  aiInsight?: string;
+  dashboardUrl: string;
+}): string {
+  return baseTemplate(`
+    <h2>Your ${opts.month} Business Report &#128200;</h2>
+    <p>Hi ${opts.name || "there"},</p>
+    <p>Here's your monthly snapshot from TrueAxis HQ:</p>
+    <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:16px;margin:16px 0;">
+      <div class="detail-row"><span class="detail-label">Total Revenue</span><span class="detail-value badge badge-green">${opts.totalRevenue}</span></div>
+      <div class="detail-row"><span class="detail-label">New Clients</span><span class="detail-value">${opts.newClients}</span></div>
+      <div class="detail-row"><span class="detail-label">Invoices Paid</span><span class="detail-value">${opts.invoicesPaid}</span></div>
+      <div class="detail-row"><span class="detail-label">Outstanding Invoices</span><span class="detail-value ${opts.invoicesOutstanding > 0 ? 'badge badge-red' : ''}">${opts.invoicesOutstanding}</span></div>
+      ${opts.topClient ? `<div class="detail-row" style="border-bottom:none;"><span class="detail-label">Top Client</span><span class="detail-value">${opts.topClient}</span></div>` : ""}
+    </div>
+    ${opts.aiInsight ? `<div style="background:rgba(232,160,32,0.08);border:1px solid rgba(232,160,32,0.2);border-radius:10px;padding:16px;margin:16px 0;"><p style="margin:0;color:#E8A020;font-weight:700;font-size:13px;">&#129302; AI Insight</p><p style="margin:8px 0 0;font-size:14px;">${opts.aiInsight}</p></div>` : ""}
+    <a href="${opts.dashboardUrl}" class="btn">View Full Dashboard &rarr;</a>
+    <p style="font-size:12px;color:#666;">You're receiving this because monthly reports are enabled in your Settings. <a href="${opts.dashboardUrl}" style="color:#E8A020;">Manage preferences</a></p>
+  `);
+}
+
+export function bookingCancelConfirmEmail(opts: {
+  clientName: string;
+  serviceName: string;
+  date: string;
+  time: string;
+  action: "cancel" | "reschedule";
+  rebookUrl?: string;
+}): string {
+  const isCancelled = opts.action === "cancel";
+  return baseTemplate(`
+    <h2>${isCancelled ? "Booking Cancelled" : "Booking Rescheduled"}</h2>
+    <p>Hi ${opts.clientName},</p>
+    <p>${isCancelled
+      ? `Your booking for <strong>${opts.serviceName}</strong> on <strong>${opts.date} at ${opts.time}</strong> has been cancelled.`
+      : `Your booking for <strong>${opts.serviceName}</strong> on <strong>${opts.date} at ${opts.time}</strong> has been rescheduled.`
+    }</p>
+    ${opts.rebookUrl ? `<a href="${opts.rebookUrl}" class="btn">${isCancelled ? "Book a New Appointment" : "Book Again"} &rarr;</a>` : ""}
+    <p style="font-size:13px;color:#999;">If you have any questions, please reply to this email.</p>
+  `);
+}

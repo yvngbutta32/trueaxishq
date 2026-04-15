@@ -13,6 +13,7 @@ import { avatarUploadRouter } from "../avatarUpload";
 import { documentUploadRouter } from "../documentUpload";
 import { icalRouter } from "../icalExport";
 import { startBackgroundJobs } from "../backgroundJobs";
+import { invoicePdfRouter } from "../invoicePdf";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -110,6 +111,9 @@ async function startServer() {
 
   // ── iCal Calendar Export ──────────────────────────────────────────────────
   app.use("/api", icalRouter);
+
+  // ── Invoice PDF Download ─────────────────────────────────────────────────
+  app.use(invoicePdfRouter);
 
   // ── tRPC API────────────────────────────────────────────────────────────
   app.use(
