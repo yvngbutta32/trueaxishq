@@ -52,7 +52,7 @@ export default function Contact() {
           value={form[id]}
           onChange={e => { setForm(p => ({ ...p, [id]: e.target.value })); setErrors(p => ({ ...p, [id]: "" })); }}
           rows={5}
-          className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#E8A020] transition-colors resize-none ${errors[id] ? "border-red-400" : "border-white/20"}`}
+          className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4922A] transition-colors resize-none ${errors[id] ? "border-red-400" : "border-white/20"}`}
           placeholder={`Your ${label.toLowerCase()}...`}
           aria-invalid={!!errors[id]}
           aria-describedby={errors[id] ? `${id}-error` : undefined}
@@ -63,7 +63,7 @@ export default function Contact() {
           type={type}
           value={form[id]}
           onChange={e => { setForm(p => ({ ...p, [id]: e.target.value })); setErrors(p => ({ ...p, [id]: "" })); }}
-          className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#E8A020] transition-colors ${errors[id] ? "border-red-400" : "border-white/20"}`}
+          className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4922A] transition-colors ${errors[id] ? "border-red-400" : "border-white/20"}`}
           placeholder={`Your ${label.toLowerCase()}`}
           autoComplete={id === "email" ? "email" : id === "name" ? "name" : undefined}
           aria-invalid={!!errors[id]}
@@ -75,9 +75,9 @@ export default function Contact() {
   );
 
   return (
-    <div className="min-h-screen bg-[#141414] text-white">
+    <div className="min-h-screen bg-[#0D1117] text-white">
       <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#E8A020] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#E8A020] rounded px-2 py-1">
+        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Home</span>
         </button>
@@ -94,12 +94,12 @@ export default function Contact() {
         <div className="grid md:grid-cols-2 gap-12 items-start">
           {/* Left */}
           <div>
-            <div className="inline-flex items-center gap-2 bg-[#E8A020]/15 text-[#E8A020] border border-[#E8A020]/30 rounded-full px-4 py-1.5 text-xs font-semibold mb-6">
+            <div className="inline-flex items-center gap-2 bg-[#D4922A]/15 text-[#D4922A] border border-[#D4922A]/30 rounded-full px-4 py-1.5 text-xs font-semibold mb-6">
               <Mail className="w-3 h-3" />
               Get in Touch
             </div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
-              We'd love to<br /><span className="text-[#E8A020]">hear from you.</span>
+            <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight" style={{  }}>
+              We'd love to<br /><span className="text-[#D4922A]">hear from you.</span>
             </h1>
             <p className="text-gray-300 leading-relaxed mb-10">
               Whether you have a question about features, pricing, need a demo, or just want to say hello — our team is here for you.
@@ -112,8 +112,8 @@ export default function Contact() {
                 { icon: Clock, title: "Response Time", value: "Within 4 business hours", sub: "Monday – Friday, 9am – 6pm CT" },
               ].map(({ icon: Icon, title, value, sub }) => (
                 <div key={title} className="flex items-start gap-4 bg-white/5 border border-white/10 rounded-xl p-4">
-                  <div className="w-9 h-9 rounded-xl bg-[#E8A020]/15 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-4 h-4 text-[#E8A020]" />
+                  <div className="w-9 h-9 rounded-xl bg-[#D4922A]/15 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-4 h-4 text-[#D4922A]" />
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-gray-300 mb-0.5">{title}</p>
@@ -126,21 +126,21 @@ export default function Contact() {
           </div>
 
           {/* Right — Form */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 sm:p-8">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6 sm:p-8">
             {submitted ? (
               <div className="text-center py-8">
-                <div className="w-16 h-16 rounded-full bg-[#E8A020]/15 flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8 text-[#E8A020]" />
+                <div className="w-16 h-16 rounded-full bg-[#D4922A]/15 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-8 h-8 text-[#D4922A]" />
                 </div>
-                <h2 className="text-xl font-bold mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Message Received!</h2>
+                <h2 className="text-xl font-bold mb-2" style={{  }}>Message Received!</h2>
                 <p className="text-gray-300 text-sm mb-6">Thank you for reaching out. We'll get back to you at <strong className="text-white">{form.email}</strong> within 4 business hours.</p>
-                <Button onClick={() => navigate("/")} className="bg-[#E8A020] hover:bg-[#D4911A] text-white border-0 px-6 py-2.5 rounded-xl text-sm">
+                <Button onClick={() => navigate("/")} className="bg-[#D4922A] hover:bg-[#D4911A] text-white border-0 px-6 py-2.5 rounded-xl text-sm">
                   Back to Home
                 </Button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-                <h2 className="text-lg font-bold mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Send us a message</h2>
+                <h2 className="text-lg font-bold mb-1" style={{  }}>Send us a message</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {field("name", "Full Name")}
                   {field("email", "Email Address", "email")}
@@ -150,7 +150,7 @@ export default function Contact() {
                 <Button
                   type="submit"
                   disabled={submitContact.isPending}
-                  className="w-full bg-[#E8A020] hover:bg-[#D4911A] text-white border-0 py-3 rounded-xl text-sm font-semibold min-h-[48px] flex items-center justify-center gap-2"
+                  className="w-full bg-[#D4922A] hover:bg-[#D4911A] text-white border-0 py-3 rounded-xl text-sm font-semibold min-h-[48px] flex items-center justify-center gap-2"
                 >
                   {submitContact.isPending ? (
                     <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Sending...</span>

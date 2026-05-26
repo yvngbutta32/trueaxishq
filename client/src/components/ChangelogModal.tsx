@@ -17,7 +17,7 @@ const CHANGELOG = [
   },
   {
     icon: Clock,
-    color: "#E8A020",
+    color: "#D4922A",
     title: "Time Tracking",
     desc: "Live timer + manual entries. Track billable hours per client with automatic revenue calculation.",
   },
@@ -41,7 +41,7 @@ const CHANGELOG = [
   },
   {
     icon: Zap,
-    color: "#E8A020",
+    color: "#D4922A",
     title: "Pay Now on Invoices",
     desc: "Clients can pay invoices instantly via Stripe Checkout — invoices auto-mark paid.",
   },
@@ -69,15 +69,15 @@ export function ChangelogModal() {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="What's New">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={dismiss} aria-hidden="true" />
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white rounded-t-3xl px-6 pt-6 pb-4 border-b border-gray-100 flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-5 h-5 text-[#E8A020]" />
-              <span className="text-xs font-bold text-[#E8A020] uppercase tracking-wider">What's New</span>
+              <Sparkles className="w-5 h-5 text-[#D4922A]" />
+              <span className="text-xs font-bold text-[#D4922A] uppercase tracking-wider">What's New</span>
             </div>
-            <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <h2 className="text-xl font-bold text-[#0D1117]" style={{  }}>
               TrueAxis HQ v{CURRENT_VERSION}
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">Major update — 6 new features</p>
@@ -96,13 +96,13 @@ export function ChangelogModal() {
           {CHANGELOG.map((item, i) => (
             <div key={i} className="flex gap-4">
               <div
-                className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
                 style={{ background: item.color + "15" }}
               >
                 <item.icon className="w-5 h-5" style={{ color: item.color }} />
               </div>
               <div>
-                <p className="text-sm font-bold text-[#1C1C1E]">{item.title}</p>
+                <p className="text-sm font-bold text-[#0D1117]">{item.title}</p>
                 <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{item.desc}</p>
               </div>
             </div>

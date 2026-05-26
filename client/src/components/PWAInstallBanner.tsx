@@ -86,9 +86,9 @@ export default function PWAInstallBanner() {
         role="banner"
         aria-label="Install TrueAxis HQ app"
       >
-        <div className="bg-[#1C1C1E] border border-[#E8A020]/30 rounded-2xl shadow-2xl p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#E8A020]/10 flex items-center justify-center flex-shrink-0">
-            <Smartphone className="w-5 h-5 text-[#E8A020]" />
+        <div className="bg-[#0D1117] border border-[#D4922A]/30 rounded-xl shadow-2xl p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#D4922A]/10 flex items-center justify-center flex-shrink-0">
+            <Smartphone className="w-5 h-5 text-[#D4922A]" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white leading-tight">Install TrueAxis HQ</p>
@@ -100,7 +100,7 @@ export default function PWAInstallBanner() {
             <Button
               size="sm"
               onClick={handleInstall}
-              className="bg-[#E8A020] hover:bg-[#d4901c] text-white border-0 h-8 px-3 text-xs font-semibold"
+              className="bg-[#D4922A] hover:bg-[#d4901c] text-white border-0 h-8 px-3 text-xs font-semibold"
             >
               <Download className="w-3.5 h-3.5 mr-1" />
               Install
@@ -119,7 +119,7 @@ export default function PWAInstallBanner() {
       {/* iOS Instructions Modal */}
       {showIOSInstructions && (
         <div className="fixed inset-0 z-50 flex items-end justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#1C1C1E] border border-white/10 rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+          <div className="bg-[#0D1117] border border-white/10 rounded-xl shadow-2xl p-6 w-full max-w-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-white">Install TrueAxis HQ</h3>
               <button
@@ -135,7 +135,7 @@ export default function PWAInstallBanner() {
             </p>
             <ol className="space-y-3">
               <li className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-[#E8A020] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                <span className="w-6 h-6 rounded-full bg-[#D4922A] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
                 <p className="text-sm text-gray-300">
                   Tap the <strong className="text-white">Share</strong> button{" "}
                   <span className="inline-block bg-white/10 rounded px-1.5 py-0.5 text-xs">⬆</span>{" "}
@@ -143,21 +143,21 @@ export default function PWAInstallBanner() {
                 </p>
               </li>
               <li className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-[#E8A020] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                <span className="w-6 h-6 rounded-full bg-[#D4922A] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
                 <p className="text-sm text-gray-300">
                   Scroll down and tap{" "}
                   <strong className="text-white">"Add to Home Screen"</strong>
                 </p>
               </li>
               <li className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-[#E8A020] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                <span className="w-6 h-6 rounded-full bg-[#D4922A] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
                 <p className="text-sm text-gray-300">
                   Tap <strong className="text-white">"Add"</strong> — TrueAxis HQ will appear on your home screen
                 </p>
               </li>
             </ol>
             <Button
-              className="w-full mt-5 bg-[#E8A020] hover:bg-[#d4901c] text-white border-0"
+              className="w-full mt-5 bg-[#D4922A] hover:bg-[#d4901c] text-white border-0"
               onClick={handleDismiss}
             >
               Got it

@@ -61,7 +61,7 @@ interface PulseRecord {
 
 function HealthRing({ score }: { score: number }) {
   const color =
-    score >= 75 ? "#E8A020" :
+    score >= 75 ? "#D4922A" :
     score >= 50 ? "#F59E0B" :
     score >= 25 ? "#F97316" :
     "#EF4444";
@@ -253,7 +253,7 @@ export default function ClientPulse() {
       {records.length === 0 && (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-violet-100 dark:bg-violet-950/30 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-xl bg-violet-100 dark:bg-violet-950/30 flex items-center justify-center">
               <Users className="w-8 h-8 text-violet-500" />
             </div>
             <div>
@@ -268,7 +268,7 @@ export default function ClientPulse() {
       {records.length > 0 && analyzed.length === 0 && (
         <Card className="border-dashed border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-xl bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center">
               <Sparkles className="w-8 h-8 text-violet-500" />
             </div>
             <div>

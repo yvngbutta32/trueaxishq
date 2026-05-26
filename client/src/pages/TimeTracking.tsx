@@ -152,7 +152,7 @@ export default function TimeTrackingPanel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Time Tracking</h2>
+          <h2 className="text-xl font-bold text-[#0D1117]" style={{  }}>Time Tracking</h2>
           <p className="text-sm text-gray-500 mt-0.5">Track billable hours and manage your time</p>
         </div>
         <Button
@@ -167,26 +167,26 @@ export default function TimeTrackingPanel() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Total Hours", value: totalHours + "h", icon: Clock, color: "#6366F1" },
-          { label: "Billable Amount", value: formatCurrency(totalBillable), icon: DollarSign, color: "#E8A020" },
+          { label: "Billable Amount", value: formatCurrency(totalBillable), icon: DollarSign, color: "#D4922A" },
           { label: "Sessions Today", value: String(todayCount), icon: Timer, color: "#10B981" },
           { label: "Avg Rate/hr", value: avgRate !== null ? formatCurrency(avgRate) : "—", icon: TrendingUp, color: "#FF6B6B" },
         ].map(c => (
-          <div key={c.label} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div key={c.label} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: c.color + "15" }}>
                 <c.icon className="w-4 h-4" style={{ color: c.color }} />
               </div>
             </div>
-            <p className="text-xl font-bold text-[#1C1C1E]">{c.value}</p>
+            <p className="text-xl font-bold text-[#0D1117]">{c.value}</p>
             <p className="text-xs text-gray-500 mt-0.5">{c.label}</p>
           </div>
         ))}
       </div>
 
       {/* Live Timer */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-        <h3 className="font-bold text-sm text-[#1C1C1E] mb-4 flex items-center gap-2">
-          <Timer className="w-4 h-4 text-[#E8A020]" />
+      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <h3 className="font-bold text-sm text-[#0D1117] mb-4 flex items-center gap-2">
+          <Timer className="w-4 h-4 text-[#D4922A]" />
           Live Timer
           {runningEntry && (
             <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-semibold animate-pulse">
@@ -195,7 +195,7 @@ export default function TimeTrackingPanel() {
           )}
         </h3>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="text-4xl font-mono font-bold text-[#1C1C1E] tabular-nums min-w-[148px]">
+          <div className="text-4xl font-mono font-bold text-[#0D1117] tabular-nums min-w-[148px]">
             {formatDuration(elapsed)}
           </div>
           <div className="flex-1 space-y-2 w-full">
@@ -236,7 +236,7 @@ export default function TimeTrackingPanel() {
               </>
             ) : (
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-[#1C1C1E]">{runningEntry.description || "Timer running…"}</p>
+                <p className="text-sm font-semibold text-[#0D1117]">{runningEntry.description || "Timer running…"}</p>
                 {runningEntry.clientName && <p className="text-xs text-gray-400">{runningEntry.clientName}</p>}
               </div>
             )}
@@ -267,8 +267,8 @@ export default function TimeTrackingPanel() {
 
       {/* Manual Entry Form */}
       {showForm && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h3 className="font-bold text-sm text-[#1C1C1E] mb-4">Add Manual Entry</h3>
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <h3 className="font-bold text-sm text-[#0D1117] mb-4">Add Manual Entry</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client</label>
@@ -331,7 +331,7 @@ export default function TimeTrackingPanel() {
                 id="billable"
                 checked={form.billable}
                 onChange={e => setForm(p => ({ ...p, billable: e.target.checked }))}
-                className="w-4 h-4 accent-[#E8A020]"
+                className="w-4 h-4 accent-[#D4922A]"
               />
               <label htmlFor="billable" className="text-sm text-gray-700 cursor-pointer">Billable</label>
             </div>
@@ -351,16 +351,16 @@ export default function TimeTrackingPanel() {
       )}
 
       {/* Entries List */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="font-bold text-sm text-[#1C1C1E]">Recent Entries</h3>
+          <h3 className="font-bold text-sm text-[#0D1117]">Recent Entries</h3>
           {(entries?.length ?? 0) > 0 && (
             <span className="text-xs text-gray-400">{entries!.length} entries</span>
           )}
         </div>
         {isLoading ? (
           <div className="p-8 text-center">
-            <Loader2 className="w-6 h-6 text-[#E8A020] animate-spin mx-auto" />
+            <Loader2 className="w-6 h-6 text-[#D4922A] animate-spin mx-auto" />
           </div>
         ) : !entries || entries.length === 0 ? (
           <div className="p-10 text-center">
@@ -386,7 +386,7 @@ export default function TimeTrackingPanel() {
                     }
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#1C1C1E] truncate">
+                    <p className="text-sm font-semibold text-[#0D1117] truncate">
                       {entry.description || "Untitled session"}
                       {isRunning && <span className="ml-2 text-xs text-green-600 font-medium">● Running</span>}
                     </p>
@@ -395,7 +395,7 @@ export default function TimeTrackingPanel() {
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-bold text-[#1C1C1E]">{isRunning ? "Running" : hours + "h"}</p>
+                    <p className="text-sm font-bold text-[#0D1117]">{isRunning ? "Running" : hours + "h"}</p>
                     {billable !== null && !isRunning && (
                       <p className="text-xs text-green-600 font-medium">{formatCurrency(billable)}</p>
                     )}

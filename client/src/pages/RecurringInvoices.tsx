@@ -17,7 +17,7 @@ const FREQUENCY_LABELS: Record<string, string> = {
 
 const FREQUENCY_COLORS: Record<string, string> = {
   weekly: "#6366F1",
-  biweekly: "#E8A020",
+  biweekly: "#D4922A",
   monthly: "#10B981",
   quarterly: "#FF6B6B",
   yearly: "#8B5CF6",
@@ -104,7 +104,7 @@ export default function RecurringInvoicesPanel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Recurring Invoices</h2>
+          <h2 className="text-xl font-bold text-[#0D1117]" style={{  }}>Recurring Invoices</h2>
           <p className="text-sm text-gray-500 mt-0.5">Automate your regular billing — invoices are generated automatically</p>
         </div>
         <Button
@@ -117,20 +117,20 @@ export default function RecurringInvoicesPanel() {
 
       {/* Summary */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="text-2xl font-bold text-[#1C1C1E]">{activeCount}</p>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <p className="text-2xl font-bold text-[#0D1117]">{activeCount}</p>
           <p className="text-xs text-gray-500 mt-0.5">Active Schedules</p>
         </div>
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="text-2xl font-bold text-[#1C1C1E]">{formatCurrency(monthlyRevenue)}</p>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <p className="text-2xl font-bold text-[#0D1117]">{formatCurrency(monthlyRevenue)}</p>
           <p className="text-xs text-gray-500 mt-0.5">Est. Monthly Revenue</p>
         </div>
       </div>
 
       {/* Create Form */}
       {showForm && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h3 className="font-bold text-sm text-[#1C1C1E] mb-4">New Recurring Schedule</h3>
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <h3 className="font-bold text-sm text-[#0D1117] mb-4">New Recurring Schedule</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client *</label>
@@ -236,13 +236,13 @@ export default function RecurringInvoicesPanel() {
       )}
 
       {/* Schedules List */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="font-bold text-sm text-[#1C1C1E]">Active Schedules</h3>
+          <h3 className="font-bold text-sm text-[#0D1117]">Active Schedules</h3>
         </div>
         {isLoading ? (
           <div className="p-8 text-center">
-            <Loader2 className="w-6 h-6 text-[#E8A020] animate-spin mx-auto" />
+            <Loader2 className="w-6 h-6 text-[#D4922A] animate-spin mx-auto" />
           </div>
         ) : !schedules || schedules.length === 0 ? (
           <div className="p-10 text-center">
@@ -261,7 +261,7 @@ export default function RecurringInvoicesPanel() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold text-[#1C1C1E] truncate">{s.clientName}</p>
+                      <p className="text-sm font-semibold text-[#0D1117] truncate">{s.clientName}</p>
                       <span className="px-2 py-0.5 text-xs rounded-full font-semibold" style={{ background: color + "15", color }}>
                         {FREQUENCY_LABELS[s.frequency]}
                       </span>
@@ -274,7 +274,7 @@ export default function RecurringInvoicesPanel() {
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-bold text-[#1C1C1E]">{formatCurrency(s.amount)}</p>
+                    <p className="text-sm font-bold text-[#0D1117]">{formatCurrency(s.amount)}</p>
                     <p className="text-xs text-gray-400">{s.currency}</p>
                   </div>
                   <div className="flex items-center gap-1">
@@ -306,7 +306,7 @@ export default function RecurringInvoicesPanel() {
       </div>
 
       {/* Info box */}
-      <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
+      <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex gap-3">
         <Calendar className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-semibold text-amber-800">Automatic Invoice Generation</p>

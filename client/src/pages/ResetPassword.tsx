@@ -58,11 +58,11 @@ export default function ResetPassword() {
   const passwordMismatch = confirmPassword.length > 0 && confirmPassword !== newPassword;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ background: "#141414" }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ background: "#0D1117" }}>
       {/* Logo */}
       <button
         onClick={() => navigate("/")}
-        className="mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A020] rounded-lg"
+        className="mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] rounded-lg"
         aria-label="Go to homepage"
         style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
       >
@@ -71,8 +71,8 @@ export default function ResetPassword() {
 
       {/* Card */}
       <div
-        className="w-full max-w-md rounded-2xl p-8 sm:p-10"
-        style={{ background: "#1C1C1E", border: "1px solid rgba(232,160,32,0.15)" }}
+        className="w-full max-w-md rounded-xl p-8 sm:p-10"
+        style={{ background: "#0D1117", border: "1px solid rgba(232,160,32,0.15)" }}
       >
         {/* No token */}
         {!token ? (
@@ -85,7 +85,7 @@ export default function ResetPassword() {
             </div>
             <h1
               className="mb-3"
-              style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.5rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.5rem", color: "#F5F0E8" }}
             >
               Invalid reset link
             </h1>
@@ -96,9 +96,8 @@ export default function ResetPassword() {
               onClick={() => navigate("/forgot-password")}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm"
               style={{
-                background: "linear-gradient(135deg, #E8A020, #F5C842)",
-                color: "#141414",
-                fontFamily: "Space Grotesk, sans-serif",
+                background: "linear-gradient(135deg, #D4922A, #F5C842)",
+                color: "#0D1117",
                 fontSize: "0.9375rem",
                 border: "none",
                 cursor: "pointer",
@@ -114,11 +113,11 @@ export default function ResetPassword() {
               className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
               style={{ background: "rgba(232,160,32,0.10)", border: "1px solid rgba(232,160,32,0.20)" }}
             >
-              <CheckCircle2 size={32} style={{ color: "#E8A020" }} />
+              <CheckCircle2 size={32} style={{ color: "#D4922A" }} />
             </div>
             <h1
               className="mb-3"
-              style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.5rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.5rem", color: "#F5F0E8" }}
             >
               Password updated!
             </h1>
@@ -129,9 +128,8 @@ export default function ResetPassword() {
               onClick={() => navigate("/login")}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm"
               style={{
-                background: "linear-gradient(135deg, #E8A020, #F5C842)",
-                color: "#141414",
-                fontFamily: "Space Grotesk, sans-serif",
+                background: "linear-gradient(135deg, #D4922A, #F5C842)",
+                color: "#0D1117",
                 fontSize: "0.9375rem",
                 border: "none",
                 cursor: "pointer",
@@ -147,11 +145,11 @@ export default function ResetPassword() {
               className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-6"
               style={{ background: "rgba(232,160,32,0.10)", border: "1px solid rgba(232,160,32,0.20)" }}
             >
-              <ShieldCheck size={24} style={{ color: "#E8A020" }} />
+              <ShieldCheck size={24} style={{ color: "#D4922A" }} />
             </div>
             <h1
               className="text-center mb-2"
-              style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.625rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.625rem", color: "#F5F0E8" }}
             >
               Set new password
             </h1>
@@ -229,9 +227,8 @@ export default function ResetPassword() {
                 disabled={isDisabled}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
-                  background: "linear-gradient(135deg, #E8A020, #F5C842)",
-                  color: "#141414",
-                  fontFamily: "Space Grotesk, sans-serif",
+                  background: "linear-gradient(135deg, #D4922A, #F5C842)",
+                  color: "#0D1117",
                   fontSize: "0.9375rem",
                   border: "none",
                   cursor: isDisabled ? "not-allowed" : "pointer",

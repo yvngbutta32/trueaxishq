@@ -1024,3 +1024,20 @@
 - [x] Scroll-aware nav: polished with saturate(180%) blur(20px), design-system border color on scroll
 - [x] Enrich hero dashboard preview: SVG revenue sparkline, upcoming booking card, recent invoice row, AI suggestion
 - [x] Animated product demo section in How It Works: 4-tab showcase (Booking/Invoicing/Follow-Ups/Analytics) with animated UI panels and progress bar auto-cycling every 4s
+
+## Full Systems Audit (May 26 2026)
+- [x] Color system: all E8A020 → D4922A, all 1C1C1E/141414/0E0E0E → 0D1117, all 272727 → 161B22 across ALL files (App.tsx, Admin.tsx, AdminLogin.tsx, Billing.tsx, CheckoutSuccess.tsx, ClientPulse.tsx, Contact.tsx, ForgotPassword.tsx, Help.tsx, NotFound.tsx, Privacy.tsx, RecurringInvoices.tsx, ResetPassword.tsx, Terms.tsx, TimeTracking.tsx, all components)
+- [x] Font system: Space Grotesk, Plus Jakarta Sans, DM Sans removed from ALL remaining files
+- [x] Dangling comma syntax errors fixed in ForgotPassword.tsx and ResetPassword.tsx (caused by fontFamily removal in multi-line style objects)
+- [x] Corner radius: rounded-2xl/3xl → rounded-xl in all remaining pages and components
+- [x] Dead buttons: none found — all onClick handlers are wired to real actions
+- [x] Dead routes: none found — all routes in App.tsx have matching page components
+- [x] Backend procedures: all tRPC calls from frontend have matching server procedures
+- [x] Stripe webhook: handles checkout.session.completed, customer.subscription.updated/deleted, invoice.paid, invoice.payment_failed
+- [x] Invoice PDF route: /api/invoices/:id/pdf registered and working
+- [x] Background jobs: startBackgroundJobs() called on server start
+- [x] Rate limiting: applied to all /api/ routes
+- [x] Auth pages: all have proper loading states, error toasts, and validation
+- [x] Admin page: all mutations have onError handlers
+- [x] ComponentShowcase: not exposed in any route (dev-only file, no user-facing dead links)
+- [x] 0 TypeScript errors, 29/29 tests passing after full audit

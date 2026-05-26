@@ -76,7 +76,7 @@ export function HealthMonitor() {
 
       {showTooltip && (
         <div
-          className="absolute right-0 top-full mt-2 w-72 bg-[#1C1C1E] border border-white/10 rounded-2xl shadow-2xl z-50 p-4"
+          className="absolute right-0 top-full mt-2 w-72 bg-[#0D1117] border border-white/10 rounded-2xl shadow-2xl z-50 p-4"
           role="tooltip"
         >
           <div className="flex items-center justify-between mb-3">
@@ -128,7 +128,7 @@ export function HealthMonitor() {
 
           <button
             onClick={(e) => { e.stopPropagation(); checkHealth(); }}
-            className="mt-3 w-full text-xs text-[#E8A020] hover:text-[#D4911A] transition-colors text-center"
+            className="mt-3 w-full text-xs text-[#D4922A] hover:text-[#D4911A] transition-colors text-center"
           >
             Refresh status
           </button>

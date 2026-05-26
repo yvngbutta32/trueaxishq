@@ -28,11 +28,11 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ background: "#141414" }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ background: "#0D1117" }}>
       {/* Logo */}
       <button
         onClick={() => navigate("/")}
-        className="mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A020] rounded-lg"
+        className="mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] rounded-lg"
         aria-label="Go to homepage"
         style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
       >
@@ -41,8 +41,8 @@ export default function ForgotPassword() {
 
       {/* Card */}
       <div
-        className="w-full max-w-md rounded-2xl p-8 sm:p-10"
-        style={{ background: "#1C1C1E", border: "1px solid rgba(232,160,32,0.15)" }}
+        className="w-full max-w-md rounded-xl p-8 sm:p-10"
+        style={{ background: "#0D1117", border: "1px solid rgba(232,160,32,0.15)" }}
       >
         {sent ? (
           /* Success state */
@@ -51,26 +51,25 @@ export default function ForgotPassword() {
               className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
               style={{ background: "rgba(232,160,32,0.10)", border: "1px solid rgba(232,160,32,0.20)" }}
             >
-              <CheckCircle2 size={32} style={{ color: "#E8A020" }} />
+              <CheckCircle2 size={32} style={{ color: "#D4922A" }} />
             </div>
             <h1
               className="mb-3"
-              style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.5rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.5rem", color: "#F5F0E8" }}
             >
               Reset link sent
             </h1>
             <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.55)" }}>
               If an account exists for{" "}
-              <strong style={{ color: "#E8A020" }}>{email}</strong>, a password reset link has been
+              <strong style={{ color: "#D4922A" }}>{email}</strong>, a password reset link has been
               delivered to the account owner's notification inbox. The link expires in 1 hour.
             </p>
             <button
               onClick={() => navigate("/login")}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm"
               style={{
-                background: "linear-gradient(135deg, #E8A020, #F5C842)",
-                color: "#141414",
-                fontFamily: "Space Grotesk, sans-serif",
+                background: "linear-gradient(135deg, #D4922A, #F5C842)",
+                color: "#0D1117",
                 fontSize: "0.9375rem",
                 border: "none",
                 cursor: "pointer",
@@ -86,11 +85,11 @@ export default function ForgotPassword() {
               className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-6"
               style={{ background: "rgba(232,160,32,0.10)", border: "1px solid rgba(232,160,32,0.20)" }}
             >
-              <Mail size={24} style={{ color: "#E8A020" }} />
+              <Mail size={24} style={{ color: "#D4922A" }} />
             </div>
             <h1
               className="text-center mb-2"
-              style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 700, fontSize: "1.625rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.625rem", color: "#F5F0E8" }}
             >
               Reset your password
             </h1>
@@ -125,9 +124,8 @@ export default function ForgotPassword() {
                 disabled={forgotMutation.isPending || !email.trim()}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
-                  background: "linear-gradient(135deg, #E8A020, #F5C842)",
-                  color: "#141414",
-                  fontFamily: "Space Grotesk, sans-serif",
+                  background: "linear-gradient(135deg, #D4922A, #F5C842)",
+                  color: "#0D1117",
                   fontSize: "0.9375rem",
                   border: "none",
                   cursor: forgotMutation.isPending ? "not-allowed" : "pointer",
@@ -146,7 +144,7 @@ export default function ForgotPassword() {
               <button
                 onClick={() => navigate("/login")}
                 className="font-semibold transition-colors hover:opacity-80"
-                style={{ color: "#E8A020", background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                style={{ color: "#D4922A", background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: "auto", minWidth: "auto" }}
               >
                 Sign in
               </button>

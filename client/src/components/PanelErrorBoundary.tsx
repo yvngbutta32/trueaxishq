@@ -46,7 +46,7 @@ export class PanelErrorBoundary extends React.Component<Props, State> {
           <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
             <AlertTriangle className="w-7 h-7 text-red-400" />
           </div>
-          <h3 className="text-base font-bold text-[#1C1C1E] mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+          <h3 className="text-base font-bold text-[#0D1117] mb-1" style={{  }}>
             {this.props.panelName ? `${this.props.panelName} ran into a problem` : "Something went wrong"}
           </h3>
           <p className="text-sm text-gray-500 max-w-xs mb-5">
@@ -54,7 +54,7 @@ export class PanelErrorBoundary extends React.Component<Props, State> {
           </p>
           <button
             onClick={this.handleReset}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E8A020] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#D4922A] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
           >
             <RefreshCw className="w-4 h-4" />
             Try Again

@@ -17,7 +17,7 @@ const PLAN_ICONS: Record<string, React.ElementType> = {
 
 const PLAN_COLORS: Record<string, string> = {
   starter: "bg-blue-500",
-  pro: "bg-[#E8A020]",
+  pro: "bg-[#D4922A]",
   agency: "bg-purple-600",
 };
 
@@ -55,7 +55,7 @@ export default function Billing() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading billing">
-        <Loader2 className="w-8 h-8 text-[#E8A020] animate-spin" aria-hidden="true" />
+        <Loader2 className="w-8 h-8 text-[#D4922A] animate-spin" aria-hidden="true" />
       </div>
     );
   }
@@ -80,10 +80,10 @@ export default function Billing() {
   const plans = plansQuery.data ?? [];
 
   return (
-    <div className="min-h-screen bg-[#141414] text-white">
+    <div className="min-h-screen bg-[#0D1117] text-white">
       <a href="#main-content" className="skip-link">Skip to main content</a>
       <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
-        <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-[#E8A020] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#E8A020] rounded px-2 py-1">
+        <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Dashboard</span>
         </button>
@@ -99,14 +99,14 @@ export default function Billing() {
       <main id="main-content" className="max-w-4xl mx-auto px-4 pt-10 pb-12 page-bottom">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-extrabold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+          <h1 className="text-2xl font-extrabold text-white mb-1" style={{  }}>
             Billing & Subscription
           </h1>
           <p className="text-gray-600 text-sm">Manage your plan, upgrade, or access your billing history.</p>
         </div>
 
         {/* Current Plan Card */}
-        <section aria-label="Current subscription" className="bg-[#1C1C1E] rounded-2xl border border-white/10 shadow-sm p-6 mb-8">
+        <section aria-label="Current subscription" className="bg-[#0D1117] rounded-xl border border-white/10 shadow-sm p-6 mb-8">
           <h2 className="text-base font-bold text-white mb-4">Current Plan</h2>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
@@ -120,7 +120,7 @@ export default function Billing() {
                 );
               })()}
               <div>
-                <p className="text-lg font-extrabold text-white capitalize" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                <p className="text-lg font-extrabold text-white capitalize" style={{  }}>
                   {currentPlan === "free" ? "Free Plan" : `${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan`}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -162,7 +162,7 @@ export default function Billing() {
 
         {/* Interval Toggle */}
         <div className="flex items-center justify-center mb-6">
-          <div className="bg-[#1C1C1E] border border-white/10 rounded-xl p-1 flex" role="group" aria-label="Billing interval">
+          <div className="bg-[#0D1117] border border-white/10 rounded-xl p-1 flex" role="group" aria-label="Billing interval">
             {(["monthly", "annual"] as const).map(opt => (
               <button
                 key={opt}
@@ -190,7 +190,7 @@ export default function Billing() {
           <div className="grid md:grid-cols-3 gap-5">
             {plansQuery.isLoading ? (
               [...Array(3)].map((_, i) => (
-                <div key={i} className="skeleton h-80 rounded-2xl" aria-hidden="true" />
+                <div key={i} className="skeleton h-80 rounded-xl" aria-hidden="true" />
               ))
             ) : (
               plans.map((plan) => {
@@ -204,9 +204,9 @@ export default function Billing() {
                 return (
                   <article
                     key={plan.id}
-                    className={`bg-[#1C1C1E] rounded-2xl border-2 p-6 flex flex-col transition-all ${
+                    className={`bg-[#0D1117] rounded-xl border-2 p-6 flex flex-col transition-all ${
                       plan.highlighted
-                        ? "border-[#E8A020] shadow-lg shadow-[#E8A020]/10"
+                        ? "border-[#D4922A] shadow-lg shadow-[#D4922A]/10"
                         : isCurrent
                         ? "border-blue-400/60"
                         : "border-white/15 hover:border-white/30"
@@ -214,7 +214,7 @@ export default function Billing() {
                     aria-label={`${plan.name} plan — $${price} per ${interval === "annual" ? "month (billed annually)" : "month"}`}
                   >
                     {plan.highlighted && (
-                      <div className="text-xs font-bold text-[#007A65] bg-[#E8A020]/10 border border-[#E8A020]/20 rounded-full px-3 py-1 text-center mb-4 -mt-1" role="note">
+                      <div className="text-xs font-bold text-[#007A65] bg-[#D4922A]/10 border border-[#D4922A]/20 rounded-full px-3 py-1 text-center mb-4 -mt-1" role="note">
                         Most Popular
                       </div>
                     )}
@@ -228,7 +228,7 @@ export default function Billing() {
                       <Icon className="w-5 h-5 text-white" />
                     </div>
 
-                    <h3 className="text-lg font-extrabold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                    <h3 className="text-lg font-extrabold text-white mb-1" style={{  }}>
                       {plan.name}
                     </h3>
                     <p className="text-xs text-gray-600 mb-4">{plan.description}</p>
@@ -244,7 +244,7 @@ export default function Billing() {
                     <ul className="space-y-2 mb-6 flex-1" aria-label={`${plan.name} features`}>
                       {plan.features.map((feature: string) => (
                         <li key={feature} className="flex items-start gap-2 text-sm text-gray-300">
-                          <CheckCircle className="w-4 h-4 text-[#E8A020] flex-shrink-0 mt-0.5" aria-hidden="true" />
+                          <CheckCircle className="w-4 h-4 text-[#D4922A] flex-shrink-0 mt-0.5" aria-hidden="true" />
                           {feature}
                         </li>
                       ))}

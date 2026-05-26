@@ -45,7 +45,7 @@ export default function AdminLogin() {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center px-4"
-      style={{ background: "linear-gradient(135deg, #0a0a0a 0%, #141414 50%, #1a1a1a 100%)" }}
+      style={{ background: "linear-gradient(135deg, #0a0a0a 0%, #0D1117 50%, #1a1a1a 100%)" }}
     >
       {/* Back to site */}
       <a
@@ -58,7 +58,7 @@ export default function AdminLogin() {
 
       {/* Card */}
       <div
-        className="w-full max-w-sm rounded-2xl p-8 space-y-6"
+        className="w-full max-w-sm rounded-xl p-8 space-y-6"
         style={{
           background: "rgba(255,255,255,0.04)",
           border: "1px solid rgba(255,255,255,0.08)",
@@ -71,7 +71,7 @@ export default function AdminLogin() {
             className="w-12 h-12 rounded-xl flex items-center justify-center"
             style={{ background: "rgba(232,160,32,0.15)", border: "1px solid rgba(232,160,32,0.3)" }}
           >
-            <Shield className="w-6 h-6 text-[#E8A020]" />
+            <Shield className="w-6 h-6 text-[#D4922A]" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-white tracking-tight">Admin Access</h1>
@@ -141,7 +141,7 @@ export default function AdminLogin() {
             type="submit"
             disabled={adminLogin.isPending || !email.trim() || !password}
             className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            style={{ background: "linear-gradient(135deg, #E8A020 0%, #d4901a 100%)" }}
+            style={{ background: "linear-gradient(135deg, #D4922A 0%, #d4901a 100%)" }}
           >
             {adminLogin.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />

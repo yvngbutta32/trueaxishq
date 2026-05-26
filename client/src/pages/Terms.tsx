@@ -113,9 +113,9 @@ export default function Terms() {
   const [, navigate] = useLocation();
   useEffect(() => { document.title = "Terms of Service — TrueAxis HQ"; }, []);
   return (
-    <div className="min-h-screen bg-[#141414] text-white">
+    <div className="min-h-screen bg-[#0D1117] text-white">
       <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#E8A020] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#E8A020] rounded px-2 py-1">
+        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Home</span>
         </button>
@@ -130,12 +130,12 @@ export default function Terms() {
 
       <div className="max-w-3xl mx-auto px-4 py-16 sm:py-20">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-[#E8A020]/15 flex items-center justify-center">
-            <FileText className="w-5 h-5 text-[#E8A020]" />
+          <div className="w-10 h-10 rounded-xl bg-[#D4922A]/15 flex items-center justify-center">
+            <FileText className="w-5 h-5 text-[#D4922A]" />
           </div>
-          <span className="text-xs font-semibold text-[#E8A020] uppercase tracking-wider">Legal</span>
+          <span className="text-xs font-semibold text-[#D4922A] uppercase tracking-wider">Legal</span>
         </div>
-        <h1 className="text-4xl sm:text-5xl font-extrabold mb-3" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Terms of Service</h1>
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-3" style={{  }}>Terms of Service</h1>
         <p className="text-sm text-gray-400 mb-12">Last updated: {LAST_UPDATED}</p>
 
         <p className="text-gray-300 leading-relaxed mb-10 text-base">
@@ -145,7 +145,7 @@ export default function Terms() {
         <div className="space-y-10">
           {sections.map(({ title, content }) => (
             <section key={title}>
-              <h2 className="text-xl font-bold mb-4 text-white" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{title}</h2>
+              <h2 className="text-xl font-bold mb-4 text-white" style={{  }}>{title}</h2>
               <div className="text-gray-300 text-sm leading-relaxed space-y-3">
                 {content.split("\n\n").map((para, i) => (
                   <p key={i} dangerouslySetInnerHTML={{

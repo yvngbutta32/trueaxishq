@@ -18,13 +18,13 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
   icon: React.ElementType; label: string; value: string | number; sub?: string; color: string;
 }) {
   return (
-    <article className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+    <article className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${color}`}>
           <Icon className="w-5 h-5 text-white" />
         </div>
       </div>
-      <p className="text-3xl font-extrabold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{value}</p>
+      <p className="text-3xl font-extrabold text-gray-900" style={{  }}>{value}</p>
       <p className="text-sm font-semibold text-gray-700 mt-1">{label}</p>
       {sub && <p className="text-xs text-gray-600 mt-0.5">{sub}</p>}
     </article>
@@ -70,7 +70,7 @@ function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: bool
       aria-checked={value}
       aria-label={label}
       onClick={() => onChange(!value)}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A020] ${value ? "bg-[#E8A020]" : "bg-gray-200"}`}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] ${value ? "bg-[#D4922A]" : "bg-gray-200"}`}
     >
       <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${value ? "translate-x-6" : "translate-x-1"}`} />
     </button>
@@ -240,7 +240,7 @@ export default function Admin() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-full border-4 border-[#E8A020] border-t-transparent animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 rounded-full border-4 border-[#D4922A] border-t-transparent animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-sm">Loading admin panel…</p>
         </div>
       </div>
@@ -272,7 +272,7 @@ export default function Admin() {
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* Header */}
-      <header className="bg-[#1C1C1E] text-white px-4 sm:px-6 py-3.5 flex items-center justify-between">
+      <header className="bg-[#0D1117] text-white px-4 sm:px-6 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
@@ -281,8 +281,8 @@ export default function Admin() {
           />
           <div className="hidden sm:block w-px h-6 bg-white/10" />
           <div className="hidden sm:flex items-center gap-1.5">
-            <Crown className="w-3.5 h-3.5 text-[#E8A020]" />
-            <span className="text-sm font-semibold text-gray-300" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Admin Panel</span>
+            <Crown className="w-3.5 h-3.5 text-[#D4922A]" />
+            <span className="text-sm font-semibold text-gray-300" style={{  }}>Admin Panel</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -290,7 +290,7 @@ export default function Admin() {
             <span className="hidden sm:inline">← Dashboard</span>
             <span className="sm:hidden">← Back</span>
           </Button>
-          <div className="w-8 h-8 rounded-full bg-[#E8A020]/20 flex items-center justify-center text-[#E8A020] text-sm font-bold">
+          <div className="w-8 h-8 rounded-full bg-[#D4922A]/20 flex items-center justify-center text-[#D4922A] text-sm font-bold">
             {user?.name?.[0]?.toUpperCase() ?? "A"}
           </div>
         </div>
@@ -306,7 +306,7 @@ export default function Admin() {
               aria-current={activeTab === tab.id ? "page" : undefined}
               className={`flex items-center gap-2 px-3 sm:px-4 py-3.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap min-h-[48px] ${
                 activeTab === tab.id
-                  ? "border-[#E8A020] text-[#E8A020]"
+                  ? "border-[#D4922A] text-[#D4922A]"
                   : "border-transparent text-gray-600 hover:text-gray-700 hover:border-gray-200"
               }`}
             >
@@ -324,7 +324,7 @@ export default function Admin() {
         {activeTab === "overview" && (
           <section aria-label="Revenue overview">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Revenue Overview</h2>
+              <h2 className="text-xl font-bold text-gray-900" style={{  }}>Revenue Overview</h2>
               <Button variant="outline" size="sm" onClick={() => statsQuery.refetch()} disabled={statsQuery.isFetching}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${statsQuery.isFetching ? "animate-spin" : ""}`} />
                 Refresh
@@ -333,24 +333,24 @@ export default function Admin() {
 
             {statsQuery.isLoading ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                {[...Array(4)].map((_, i) => <div key={i} className="skeleton h-32 rounded-2xl" />)}
+                {[...Array(4)].map((_, i) => <div key={i} className="skeleton h-32 rounded-xl" />)}
               </div>
             ) : (
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 <StatCard icon={Users} label="Total Users" value={stats?.totalUsers ?? 0} color="bg-blue-500" />
-                <StatCard icon={Crown} label="Paid Subscribers" value={stats?.paidUsers ?? 0} sub={`${stats?.totalUsers ? Math.round((stats.paidUsers / stats.totalUsers) * 100) : 0}% conversion`} color="bg-[#E8A020]" />
+                <StatCard icon={Crown} label="Paid Subscribers" value={stats?.paidUsers ?? 0} sub={`${stats?.totalUsers ? Math.round((stats.paidUsers / stats.totalUsers) * 100) : 0}% conversion`} color="bg-[#D4922A]" />
                 <StatCard icon={Mail} label="Email Leads" value={stats?.totalLeads ?? 0} sub="Landing page captures" color="bg-green-500" />
                 <StatCard icon={DollarSign} label="MRR" value={`$${(stats?.mrr ?? 0).toLocaleString()}`} sub="Monthly recurring revenue" color="bg-purple-500" />
                 <StatCard icon={TrendingUp} label="ARR" value={`$${(stats?.arr ?? 0).toLocaleString()}`} sub="Annual run rate" color="bg-orange-500" />
               </div>
             )}
 
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
               <h3 className="text-base font-bold text-gray-900 mb-5">Plan Distribution</h3>
               <div className="space-y-4">
                 {[
                   { id: "agency", label: "Agency ($199/mo)", color: "bg-purple-500" },
-                  { id: "pro", label: "Pro ($99/mo)", color: "bg-[#E8A020]" },
+                  { id: "pro", label: "Pro ($99/mo)", color: "bg-[#D4922A]" },
                   { id: "starter", label: "Starter ($49/mo)", color: "bg-blue-500" },
                   { id: "free", label: "Free", color: "bg-gray-300" },
                 ].map(plan => {
@@ -376,7 +376,7 @@ export default function Admin() {
         {activeTab === "users" && (
           <section aria-label="User management">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>User Management</h2>
+              <h2 className="text-xl font-bold text-gray-900" style={{  }}>User Management</h2>
               <p className="text-sm text-gray-600">{usersQuery.data?.total ?? 0} total users</p>
             </div>
 
@@ -391,7 +391,7 @@ export default function Admin() {
               />
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -425,7 +425,7 @@ export default function Admin() {
                         <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-[#E8A020]/15 flex items-center justify-center text-[#007A65] text-xs font-bold flex-shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-[#D4922A]/15 flex items-center justify-center text-[#007A65] text-xs font-bold flex-shrink-0">
                                 {u.name?.[0]?.toUpperCase() ?? "?"}
                               </div>
                               <div>
@@ -440,7 +440,7 @@ export default function Admin() {
                                 <select
                                   value={editPlanId}
                                   onChange={e => setEditPlanId(e.target.value)}
-                                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#E8A020]"
+                                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#D4922A]"
                                 >
                                   <option value="free">Free</option>
                                   <option value="starter">Starter</option>
@@ -450,7 +450,7 @@ export default function Admin() {
                                 <select
                                   value={editSubStatus}
                                   onChange={e => setEditSubStatus(e.target.value)}
-                                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#E8A020]"
+                                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#D4922A]"
                                 >
                                   <option value="free">Free</option>
                                   <option value="active">Active</option>
@@ -548,7 +548,7 @@ export default function Admin() {
           <section aria-label="Leads management">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Email Leads</h2>
+                <h2 className="text-xl font-bold text-gray-900" style={{  }}>Email Leads</h2>
                 <p className="text-sm text-gray-600 mt-0.5">{leadsQuery.data?.total ?? 0} leads captured from the landing page</p>
               </div>
               <Button
@@ -568,13 +568,13 @@ export default function Admin() {
                 Export CSV
               </Button>
             </div>
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
               <div className="hidden sm:grid grid-cols-4 gap-4 px-6 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide">
                 <span>Name</span><span>Email</span><span>Source</span><span>Date</span>
               </div>
               {leadsQuery.isLoading ? (
                 <div className="p-6 text-center text-gray-600">
-                  <div className="w-8 h-8 border-2 border-[#E8A020] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <div className="w-8 h-8 border-2 border-[#D4922A] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                   <p className="text-sm">Loading leads…</p>
                 </div>
               ) : !leadsQuery.data?.leads || leadsQuery.data.leads.length === 0 ? (
@@ -587,7 +587,7 @@ export default function Admin() {
                 <div key={lead.id} className={`grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 px-6 py-4 ${i > 0 ? "border-t border-gray-50" : ""} hover:bg-gray-50`}>
                   <p className="text-sm font-medium text-gray-900">{lead.name || <span className="text-gray-600 italic">No name</span>}</p>
                   <p className="text-sm text-gray-600 truncate">{lead.email}</p>
-                  <span className="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-xs font-medium bg-[#E8A020]/10 text-[#007A65]">{lead.source ?? "landing_page"}</span>
+                  <span className="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-xs font-medium bg-[#D4922A]/10 text-[#007A65]">{lead.source ?? "landing_page"}</span>
                   <p className="text-sm text-gray-600">{new Date(lead.createdAt).toLocaleDateString()}</p>
                 </div>
               ))}
@@ -605,9 +605,9 @@ export default function Admin() {
         {/* ── Broadcast Tab ─────────────────────────────────────────────── */}
         {activeTab === "broadcast" && (
           <section aria-label="Broadcast notification">
-            <h2 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Send Broadcast</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-2" style={{  }}>Send Broadcast</h2>
             <p className="text-sm text-gray-600 mb-6">Send an owner notification — useful for tracking important events or reminders.</p>
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm max-w-xl">
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm max-w-xl">
               <form onSubmit={e => { e.preventDefault(); if (!broadcastTitle.trim() || !broadcastContent.trim()) { toast.error("Please fill in both fields"); return; } broadcastMutation.mutate({ title: broadcastTitle, content: broadcastContent }); }} noValidate>
                 <div className="mb-4">
                   <label htmlFor="broadcast-title" className="form-label">Title *</label>
@@ -635,7 +635,7 @@ export default function Admin() {
           <section aria-label="Site settings">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Site Settings</h2>
+                <h2 className="text-xl font-bold text-gray-900" style={{  }}>Site Settings</h2>
                 <p className="text-sm text-gray-600 mt-0.5">Control every aspect of the platform from here</p>
               </div>
               {settingsDirty && (
@@ -650,14 +650,14 @@ export default function Admin() {
             </div>
 
             {settingsQuery.isLoading ? (
-              <div className="space-y-4">{[...Array(4)].map((_, i) => <div key={i} className="skeleton h-32 rounded-2xl" />)}</div>
+              <div className="space-y-4">{[...Array(4)].map((_, i) => <div key={i} className="skeleton h-32 rounded-xl" />)}</div>
             ) : (
               <div className="space-y-6">
 
                 {/* Site Identity */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                   <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-[#E8A020]" />
+                    <Globe className="w-4 h-4 text-[#D4922A]" />
                     Site Identity
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -685,10 +685,10 @@ export default function Admin() {
                 </div>
 
                 {/* Announcement Banner */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                   <div className="flex items-center justify-between mb-5">
                     <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                      <Megaphone className="w-4 h-4 text-[#E8A020]" />
+                      <Megaphone className="w-4 h-4 text-[#D4922A]" />
                       Announcement Banner
                     </h3>
                     <Toggle
@@ -719,7 +719,7 @@ export default function Admin() {
                       settingsForm.announcementColor === "purple" ? "bg-purple-100 text-purple-800" :
                       settingsForm.announcementColor === "yellow" ? "bg-yellow-100 text-yellow-800" :
                       settingsForm.announcementColor === "blue" ? "bg-blue-100 text-blue-800" :
-                      "bg-[#E8A020]/15 text-[#007A65]"
+                      "bg-[#D4922A]/15 text-[#007A65]"
                     }`}>
                       Preview: {settingsForm.announcementText}
                     </div>
@@ -727,9 +727,9 @@ export default function Admin() {
                 </div>
 
                 {/* Social Links */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                   <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-[#E8A020]" />
+                    <Globe className="w-4 h-4 text-[#D4922A]" />
                     Social Media Links
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -751,9 +751,9 @@ export default function Admin() {
                 </div>
 
                 {/* Feature Flags */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                   <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-[#E8A020]" />
+                    <Zap className="w-4 h-4 text-[#D4922A]" />
                     Feature Flags
                     <span className="text-xs font-normal text-gray-600 ml-1">— enable or disable platform features globally</span>
                   </h3>
@@ -782,7 +782,7 @@ export default function Admin() {
                 </div>
 
                 {/* Maintenance Mode */}
-                <div className={`bg-white rounded-2xl p-6 border shadow-sm ${settingsForm.maintenanceMode ? "border-red-200 bg-red-50/30" : "border-gray-100"}`}>
+                <div className={`bg-white rounded-xl p-6 border shadow-sm ${settingsForm.maintenanceMode ? "border-red-200 bg-red-50/30" : "border-gray-100"}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
                       <Lock className="w-4 h-4 text-red-500" />
@@ -803,9 +803,9 @@ export default function Admin() {
                 </div>
 
                 {/* Change Admin Password */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                   <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
-                    <KeyRound className="w-4 h-4 text-[#E8A020]" />
+                    <KeyRound className="w-4 h-4 text-[#D4922A]" />
                     Change Admin Password
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -902,7 +902,7 @@ export default function Admin() {
           <section aria-label="System health">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>System Health</h2>
+                <h2 className="text-xl font-bold text-gray-900" style={{  }}>System Health</h2>
                 <p className="text-sm text-gray-600 mt-0.5">Live platform diagnostics — auto-refreshes every 30 seconds</p>
               </div>
               <Button variant="outline" size="sm" onClick={() => healthQuery.refetch()} disabled={healthQuery.isFetching}>
@@ -912,12 +912,12 @@ export default function Admin() {
             </div>
 
             {healthQuery.isLoading ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">{[...Array(6)].map((_, i) => <div key={i} className="skeleton h-28 rounded-2xl" />)}</div>
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">{[...Array(6)].map((_, i) => <div key={i} className="skeleton h-28 rounded-xl" />)}</div>
             ) : health ? (
               <div className="space-y-6">
                 {/* Status indicators */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                  <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${health.dbStatus === "healthy" ? "bg-emerald-100" : "bg-red-100"}`}>
                         <Database className={`w-5 h-5 ${health.dbStatus === "healthy" ? "text-emerald-600" : "text-red-600"}`} />
@@ -933,7 +933,7 @@ export default function Admin() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                  <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
                         <Server className="w-5 h-5 text-blue-600" />
@@ -948,7 +948,7 @@ export default function Admin() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                  <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
                         <Activity className="w-5 h-5 text-purple-600" />
@@ -962,7 +962,7 @@ export default function Admin() {
                 </div>
 
                 {/* Data counts */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                   <h3 className="text-base font-bold text-gray-900 mb-5">Platform Data</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                     {[
@@ -974,7 +974,7 @@ export default function Admin() {
                       { label: "Checked At", value: new Date(health.checkedAt).toLocaleTimeString(), sub: "Last check" },
                     ].map(({ label, value, sub }) => (
                       <div key={label} className="text-center p-4 bg-gray-50 rounded-xl">
-                        <p className="text-2xl font-extrabold text-gray-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{value}</p>
+                        <p className="text-2xl font-extrabold text-gray-900" style={{  }}>{value}</p>
                         <p className="text-xs font-semibold text-gray-700 mt-1">{label}</p>
                         <p className="text-xs text-gray-600 mt-0.5">{sub}</p>
                       </div>
@@ -983,7 +983,7 @@ export default function Admin() {
                 </div>
 
                 {/* Quick actions */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                   <h3 className="text-base font-bold text-gray-900 mb-4">Quick Actions</h3>
                   <div className="flex flex-wrap gap-3">
                     <Button variant="outline" size="sm" className="gap-2" onClick={() => { healthQuery.refetch(); statsQuery.refetch(); toast.success("All data refreshed"); }}>
@@ -1015,7 +1015,7 @@ export default function Admin() {
           <section id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
 
             {/* Watchdog Status */}
-            <div className={`rounded-2xl p-6 border shadow-sm ${
+            <div className={`rounded-xl p-6 border shadow-sm ${
               watchdogQuery.data?.healthy === false
                 ? "bg-red-50 border-red-200"
                 : watchdogQuery.data?.healthy === true
@@ -1080,7 +1080,7 @@ export default function Admin() {
                   { label: "Rate Limited IPs", value: securityStatsQuery.data.activeWindows, color: "text-orange-600", bg: "bg-orange-50" },
                   { label: "Unresolved Events", value: securityEventsQuery.data?.length ?? 0, color: "text-purple-600", bg: "bg-purple-50" },
                 ].map(stat => (
-                  <div key={stat.label} className={`${stat.bg} rounded-2xl p-5 border border-white shadow-sm`}>
+                  <div key={stat.label} className={`${stat.bg} rounded-xl p-5 border border-white shadow-sm`}>
                     <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
                     <p className="text-xs text-gray-600 mt-1">{stat.label}</p>
                   </div>
@@ -1089,7 +1089,7 @@ export default function Admin() {
             )}
 
             {/* IP Management */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
               <h3 className="text-base font-bold text-gray-900 mb-4">IP Management</h3>
               <div className="grid sm:grid-cols-2 gap-6">
                 {/* Block IP */}
@@ -1151,7 +1151,7 @@ export default function Admin() {
             </div>
 
             {/* Account Lockout Management */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
               <h3 className="text-base font-bold text-gray-900 mb-4">Account Lockout Management</h3>
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="space-y-3">
@@ -1196,7 +1196,7 @@ export default function Admin() {
             </div>
 
             {/* Security Events Log */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <h3 className="text-base font-bold text-gray-900">Security Event Log</h3>
                 <div className="flex flex-wrap items-center gap-2">
@@ -1295,7 +1295,7 @@ export default function Admin() {
         {/* Invite Codes Tab */}
         {activeTab === "invites" && (
           <section aria-label="Invite Codes" className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
               <h3 className="text-base font-bold text-gray-900 mb-4">Generate Invite Code</h3>
               <div className="flex gap-3">
                 <input
@@ -1305,7 +1305,7 @@ export default function Admin() {
                   className="form-input-light flex-1"
                 />
                 <Button
-                  className="bg-[#1C1C1E] text-white hover:bg-[#2C2C2E] gap-2"
+                  className="bg-[#0D1117] text-white hover:bg-[#2C2C2E] gap-2"
                   onClick={() => createInviteMutation.mutate({ note: newInviteNote || undefined })}
                   disabled={createInviteMutation.isPending}
                 >
@@ -1313,7 +1313,7 @@ export default function Admin() {
                 </Button>
               </div>
             </div>
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
               <h3 className="text-base font-bold text-gray-900 mb-4">Active Invite Codes</h3>
               {invitesQuery.isLoading ? (
                 <div className="py-8 text-center text-gray-600">Loading...</div>
@@ -1339,7 +1339,7 @@ export default function Admin() {
                         <tr key={inv.id} className="border-b border-gray-50 hover:bg-gray-50">
                           <td className="py-2 px-3">
                             <div className="flex items-center gap-2">
-                              <span className="font-mono font-bold text-[#1C1C1E]">{inv.code}</span>
+                              <span className="font-mono font-bold text-[#0D1117]">{inv.code}</span>
                               <button
                                 onClick={() => { navigator.clipboard.writeText(inv.code); setCopiedCode(inv.code); setTimeout(() => setCopiedCode(null), 2000); }}
                                 className="p-1 rounded hover:bg-gray-100 text-gray-600 hover:text-gray-600"

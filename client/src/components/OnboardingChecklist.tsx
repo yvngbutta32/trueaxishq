@@ -62,7 +62,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
   const allDone = doneCount === total;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Header */}
       <div
         className="flex items-center justify-between px-5 py-4 cursor-pointer select-none"
@@ -74,17 +74,17 @@ export function OnboardingChecklist({ onNavigate }: Props) {
               <circle cx="18" cy="18" r="15.9" fill="none" stroke="#F3F4F6" strokeWidth="3.2" />
               <circle
                 cx="18" cy="18" r="15.9" fill="none"
-                stroke={allDone ? "#10B981" : "#E8A020"} strokeWidth="3.2"
+                stroke={allDone ? "#10B981" : "#D4922A"} strokeWidth="3.2"
                 strokeDasharray={`${pct} ${100 - pct}`}
                 strokeLinecap="round"
               />
             </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#1C1C1E]">
+            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#0D1117]">
               {doneCount}/{total}
             </span>
           </div>
           <div>
-            <p className="text-sm font-bold text-[#1C1C1E]">
+            <p className="text-sm font-bold text-[#0D1117]">
               {allDone ? "Setup complete! 🎉" : "Getting started"}
             </p>
             <p className="text-xs text-gray-400">
@@ -110,7 +110,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${pct}%`, background: allDone ? "#10B981" : "#E8A020" }}
+              style={{ width: `${pct}%`, background: allDone ? "#10B981" : "#D4922A" }}
             />
           </div>
         </div>
@@ -134,7 +134,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
                   }
                 </button>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold ${done ? "line-through text-gray-400" : "text-[#1C1C1E]"}`}>
+                  <p className={`text-sm font-semibold ${done ? "line-through text-gray-400" : "text-[#0D1117]"}`}>
                     {step.label}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">{step.desc}</p>
@@ -142,7 +142,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
                 {step.panel && !done && (
                   <button
                     onClick={() => onNavigate(step.panel!)}
-                    className="text-xs text-[#E8A020] font-semibold hover:underline flex-shrink-0 mt-0.5"
+                    className="text-xs text-[#D4922A] font-semibold hover:underline flex-shrink-0 mt-0.5"
                   >
                     Go →
                   </button>

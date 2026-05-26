@@ -330,7 +330,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, conte
         <button
           onClick={() => { if (!didMove.current) handleExpand(); }}
           aria-label="Open AI Assistant"
-          className="w-14 h-14 rounded-full gradient-amber text-white shadow-xl hover:opacity-90 active:scale-95 transition-all flex items-center justify-center focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2 relative"
+          className="w-14 h-14 rounded-full gradient-amber text-white shadow-xl hover:opacity-90 active:scale-95 transition-all flex items-center justify-center focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 relative"
           style={{ cursor: "inherit", pointerEvents: "auto" }}
         >
           <Sparkles className="w-6 h-6" aria-hidden="true" />
@@ -373,7 +373,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, conte
               : <User className="w-3.5 h-3.5 text-gray-600" />}
           </div>
           <div className={`max-w-[82%] flex flex-col gap-1.5 ${msg.role === "user" ? "items-end" : "items-start"}`}>
-            <div className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+            <div className={`px-3.5 py-2.5 rounded-xl text-sm leading-relaxed whitespace-pre-wrap ${
               msg.role === "assistant"
                 ? "bg-gray-100 text-gray-800 rounded-tl-sm"
                 : "gradient-amber text-white rounded-tr-sm"
@@ -417,7 +417,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, conte
           <div className="w-7 h-7 rounded-full gradient-amber flex items-center justify-center flex-shrink-0">
             <Bot className="w-3.5 h-3.5 text-white" />
           </div>
-          <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1">
+          <div className="bg-gray-100 rounded-xl rounded-tl-sm px-4 py-3 flex items-center gap-1">
             {[0, 1, 2].map((i) => (
               <div key={i} className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
                 style={{ animationDelay: `${i * 0.15}s` }} />
@@ -445,7 +445,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, conte
         onKeyDown={handleTextareaKey}
         placeholder="Ask anything, or say 'draft an invoice for…'"
         rows={1}
-        className="flex-1 resize-none text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#E8A020] focus:ring-2 focus:ring-[#E8A020]/20 transition-colors"
+        className="flex-1 resize-none text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#D4922A] focus:ring-2 focus:ring-[#D4922A]/20 transition-colors"
         disabled={chatMutation.isPending}
         style={{ minHeight: 44, maxHeight: 120, touchAction: "pan-y" }}
       />
@@ -569,7 +569,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, conte
         userSelect: "none",
         willChange: "transform",
       }}
-      className="bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden"
+      className="bg-white rounded-xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden"
     >
       <Header withDrag />
       <MessageList />
