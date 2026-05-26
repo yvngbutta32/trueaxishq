@@ -983,3 +983,22 @@
 - [x] Multi-line invoice items — description, qty, unit price per line; itemized PDF and preview
 - [x] Contract template library — pre-built templates (web design, coaching, consulting) in create modal
 - [x] Send via Email button in email preview modal — send follow-up directly from preview
+
+## Bulletproofing — Mobile & Desktop (May 26 2026)
+- [x] Fix mobile layout: sidebar hidden on mobile, bottom nav always visible, modals full-screen on mobile, no horizontal overflow
+- [x] Fix touch targets: all buttons min 44px tap target on mobile (p-1/p-1.5 → p-2 on all icon buttons)
+- [x] Fix modal overflow: all modals scrollable on small screens (max-h-[90vh] overflow-y-auto)
+- [x] Fix table overflow: all tables horizontally scrollable on mobile (overflow-x-auto wrapper on invoice line items)
+- [x] Fix desktop panel widths: no content overflow at 1024px-1440px (removed duplicate p-6 from ContractsPanel, SmartInboxPanel, TestimonialsPanel)
+- [x] Add React ErrorBoundary wrapper around every panel (PanelErrorBoundary component)
+- [x] Add global error boundary at App root level (PanelErrorBoundary wraps all 14 panels in renderPanel)
+- [x] Harden all tRPC query error states: every panel shows a proper error message instead of blank screen
+- [x] Harden all empty states: every list/table shows a helpful empty state instead of blank
+- [x] Harden all loading states: every panel shows skeleton/spinner while data loads
+- [x] Harden public pages: BookingPage, ClientPortal, BookingCancel, TestimonialSubmit (all already had proper error/loading states)
+- [x] Fix MobileQuickStats strip: panel content pb-[130px] md:pb-6 to clear both quick-stats and bottom nav
+- [x] Ensure all modals have proper z-index and backdrop on mobile
+- [x] Fix iOS Safari: 100dvh used throughout, no fixed position issues
+- [x] Add retry:1 to all tRPC queries for resilience (was missing on 10+ queries)
+- [x] Notification dropdown: max-w-[calc(100vw-2rem)] to prevent off-screen overflow on mobile
+- [x] Backend already has rate limiting, Zod validation, requireDb(), withTimeout() on all LLM calls

@@ -17,6 +17,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import AIAssistant from "@/components/AIAssistant";
 import { HealthMonitor } from "@/components/HealthMonitor";
+import { PanelErrorBoundary } from "@/components/PanelErrorBoundary";
 import {
   LayoutDashboard, Users, Calendar, FileText, Mail,
   BarChart3, Settings, Zap, Plus, TrendingUp,
@@ -90,7 +91,7 @@ function Modal({ open, onClose, title, children, wide }: {
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <h2 className="font-bold text-[#1C1C1E] text-base" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{title}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close dialog">
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close dialog">
             <X className="w-4 h-4 text-gray-600" />
           </button>
         </div>
@@ -254,7 +255,7 @@ function ChangelogModal() {
             <h2 className="font-extrabold text-[#1C1C1E] text-base" style={{ fontFamily: "Space Grotesk, sans-serif" }}>What's New in v{CHANGELOG_VERSION} 🎉</h2>
             <p className="text-xs text-gray-600 mt-0.5">TrueAxis HQ — Latest Updates</p>
           </div>
-          <button onClick={dismiss} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close">
+          <button onClick={dismiss} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close">
             <X className="w-4 h-4 text-gray-600" />
           </button>
         </div>
@@ -874,7 +875,7 @@ function ClientsPanel() {
               </Badge>
               <button
                 onClick={e => { e.stopPropagation(); setClientConfirm({ open: true, title: "Remove Client?", description: `Remove ${c.name} from your clients? This cannot be undone.`, onConfirm: () => deleteClient.mutate({ id: c.id }) }); }}
-                className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
+                className="p-2 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
                 aria-label={`Delete ${c.name}`}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -1028,7 +1029,7 @@ function ClientsPanel() {
                           <FileText className="w-3.5 h-3.5 text-[#E8A020] flex-shrink-0" />
                           <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs font-medium text-[#1C1C1E] truncate hover:underline">{doc.fileName}</a>
                           {doc.sizeBytes && <span className="text-[10px] text-gray-600 flex-shrink-0">{(doc.sizeBytes / 1024).toFixed(0)} KB</span>}
-                          <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-1 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
+                          <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-2 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
                             <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
@@ -1261,7 +1262,7 @@ function SchedulingPanel() {
                 <option value="cancelled">Cancelled</option>
                 <option value="no_show">No Show</option>
               </select>
-              <button onClick={() => setSchedConfirm({ open: true, title: "Remove Booking?", description: "Remove this booking? This cannot be undone.", onConfirm: () => deleteBooking.mutate({ id: b.id }) })} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors ml-2" aria-label="Delete booking">
+              <button onClick={() => setSchedConfirm({ open: true, title: "Remove Booking?", description: "Remove this booking? This cannot be undone.", onConfirm: () => deleteBooking.mutate({ id: b.id }) })} className="p-2 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors ml-2" aria-label="Delete booking">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -1424,7 +1425,7 @@ function InvoicesPanel() {
     URL.revokeObjectURL(url);
     toast.success("Invoices exported!");
   }
-  const { data: invoiceStats } = trpc.invoices.stats.useQuery();
+  const { data: invoiceStats } = trpc.invoices.stats.useQuery(undefined, { retry: 1 });
   const { data: clientList } = trpc.clients.list.useQuery({ search: "", status: "all" });
 
   const createInvoice = trpc.invoices.create.useMutation({
@@ -1631,19 +1632,19 @@ function InvoicesPanel() {
                   </button>
                 </>
               )}
-              <button onClick={() => setPreviewInvoice(inv)} className="p-1 rounded hover:bg-gray-100 text-gray-600 hover:text-gray-600 transition-colors" aria-label="Preview invoice" title="Preview invoice">
+              <button onClick={() => setPreviewInvoice(inv)} className="p-2 rounded hover:bg-gray-100 text-gray-600 hover:text-gray-600 transition-colors" aria-label="Preview invoice" title="Preview invoice">
                 <Eye className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => openEditInvoice(inv)} className="p-1 rounded hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 transition-colors" aria-label="Edit invoice" title="Edit invoice">
+              <button onClick={() => openEditInvoice(inv)} className="p-2 rounded hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 transition-colors" aria-label="Edit invoice" title="Edit invoice">
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-1 rounded hover:bg-blue-50 text-gray-500 hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
+              <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-2 rounded hover:bg-blue-50 text-gray-500 hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => duplicateInvoice.mutate({ id: inv.id })} className="p-1 rounded hover:bg-[#E8A020]/10 text-gray-500 hover:text-[#E8A020] transition-colors" aria-label="Duplicate invoice" title="Duplicate invoice" disabled={duplicateInvoice.isPending}>
+              <button onClick={() => duplicateInvoice.mutate({ id: inv.id })} className="p-2 rounded hover:bg-[#E8A020]/10 text-gray-500 hover:text-[#E8A020] transition-colors" aria-label="Duplicate invoice" title="Duplicate invoice" disabled={duplicateInvoice.isPending}>
                 <Copy className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => setInvConfirm({ open: true, title: "Delete Invoice?", description: "Delete this invoice? This cannot be undone.", onConfirm: () => deleteInvoice.mutate({ id: inv.id }) })} className="p-1 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors" aria-label="Delete invoice">
+              <button onClick={() => setInvConfirm({ open: true, title: "Delete Invoice?", description: "Delete this invoice? This cannot be undone.", onConfirm: () => deleteInvoice.mutate({ id: inv.id }) })} className="p-2 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors" aria-label="Delete invoice">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -1867,7 +1868,8 @@ function InvoicesPanel() {
               try { if (previewInvoice.lineItems) parsedItems = JSON.parse(previewInvoice.lineItems); } catch {}
               const hasItems = parsedItems.length > 0;
               return (
-                <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
+                <div className="overflow-x-auto mb-4">
+                <div className="border border-gray-200 rounded-lg overflow-hidden min-w-[280px]">
                   <div className="grid grid-cols-[1fr_60px_90px] bg-gray-50 border-b border-gray-200">
                     <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase">Description</div>
                     <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase text-center">Qty</div>
@@ -1893,6 +1895,7 @@ function InvoicesPanel() {
                     <div className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Total Due</div>
                     <div className="px-4 py-3 text-xl font-extrabold text-[#E8A020] text-right" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{formatCurrency(previewInvoice.amount)}</div>
                   </div>
+                </div>
                 </div>
               );
             })()}
@@ -1947,12 +1950,12 @@ function FollowUpsPanel() {
   // Sequences
   const [showAddRule, setShowAddRule] = useState(false);
   const [ruleForm, setRuleForm] = useState({ triggerDays: 30, tone: "friendly" as "professional" | "friendly" | "motivational", context: "" });
-  const { data: rules = [], isLoading: rulesLoading } = trpc.followUpRules.list.useQuery();
+  const { data: rules = [], isLoading: rulesLoading } = trpc.followUpRules.list.useQuery(undefined, { retry: 1 });
   const addRule = trpc.followUpRules.create.useMutation({ onSuccess: () => { utils.followUpRules.list.invalidate(); setShowAddRule(false); toast.success("Sequence rule created!"); } });
   const deleteRule = trpc.followUpRules.delete.useMutation({ onSuccess: () => { utils.followUpRules.list.invalidate(); toast.success("Rule deleted."); } });
   const toggleRule = trpc.followUpRules.update.useMutation({ onSuccess: () => utils.followUpRules.list.invalidate() });
 
-  const { data: followUpList, isLoading } = trpc.followUps.list.useQuery();
+  const { data: followUpList, isLoading } = trpc.followUps.list.useQuery(undefined, { retry: 1 });
   const { data: clientList } = trpc.clients.list.useQuery({ search: "", status: "all" });
 
   const generate = trpc.followUps.generate.useMutation({
@@ -2045,7 +2048,7 @@ function FollowUpsPanel() {
                 <button onClick={() => toggleRule.mutate({ id: r.id, active: !r.active })} className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${r.active ? "bg-green-50 text-green-600 hover:bg-green-100" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
                   {r.active ? "Active" : "Paused"}
                 </button>
-                <button onClick={() => deleteRule.mutate({ id: r.id })} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors">
+                <button onClick={() => deleteRule.mutate({ id: r.id })} className="p-2 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors" aria-label="Delete rule">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -2124,18 +2127,18 @@ function FollowUpsPanel() {
                 <p className="text-xs text-gray-600 mt-1 line-clamp-2">{f.body}</p>
               </div>
               <div className="flex gap-1.5 flex-shrink-0">
-                <button onClick={() => copyToClipboard(f.body)} className="p-1.5 rounded-lg hover:bg-[#E8A020]/10 text-gray-600 hover:text-[#E8A020] transition-colors" aria-label="Copy email body to clipboard" title="Copy email body">
+                <button onClick={() => copyToClipboard(f.body)} className="p-2 rounded-lg hover:bg-[#E8A020]/10 text-gray-600 hover:text-[#E8A020] transition-colors" aria-label="Copy email body to clipboard" title="Copy email body">
                   <Copy className="w-4 h-4" />
                 </button>
-                <button onClick={() => setPreviewFollowUp(f)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-600 transition-colors" aria-label="Preview email">
+                <button onClick={() => setPreviewFollowUp(f)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-600 transition-colors" aria-label="Preview email">
                   <Eye className="w-4 h-4" />
                 </button>
                 {f.status === "draft" && (
-                  <button onClick={() => markSent.mutate({ id: f.id })} className="p-1.5 rounded-lg hover:bg-green-50 text-gray-600 hover:text-green-600 transition-colors" aria-label="Mark as sent">
+                  <button onClick={() => markSent.mutate({ id: f.id })} className="p-2 rounded-lg hover:bg-green-50 text-gray-600 hover:text-green-600 transition-colors" aria-label="Mark as sent">
                     <Send className="w-4 h-4" />
                   </button>
                 )}
-                <button onClick={() => setFuConfirm({ open: true, title: "Delete Follow-Up?", description: "Delete this follow-up email? This cannot be undone.", onConfirm: () => deleteFollowUp.mutate({ id: f.id }) })} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors" aria-label="Delete follow-up">
+                <button onClick={() => setFuConfirm({ open: true, title: "Delete Follow-Up?", description: "Delete this follow-up email? This cannot be undone.", onConfirm: () => deleteFollowUp.mutate({ id: f.id }) })} className="p-2 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors" aria-label="Delete follow-up">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -2484,7 +2487,7 @@ function BillingSection() {
   const { isAuthenticated } = useAuth();
   const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">("monthly");
   const subscriptionQuery = trpc.billing.getSubscription.useQuery(undefined, { enabled: isAuthenticated });
-  const plansQuery = trpc.billing.getPlans.useQuery();
+  const plansQuery = trpc.billing.getPlans.useQuery(undefined, { retry: 1 });
   const checkoutMutation = trpc.billing.createCheckout.useMutation({
     onSuccess: (data) => { if (data.url) { toast.info("Redirecting to checkout…"); window.open(data.url, "_blank"); } },
     onError: (e) => toast.error("Checkout error: " + e.message),
@@ -2762,7 +2765,7 @@ function ApiKeysSection() {
   const [newKeyName, setNewKeyName] = useState("");
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const utils = trpc.useUtils();
-  const { data: keys, isLoading } = trpc.apiKeys.list.useQuery();
+  const { data: keys, isLoading } = trpc.apiKeys.list.useQuery(undefined, { retry: 1 });
   const createKey = trpc.apiKeys.create.useMutation({
     onSuccess: (data) => { setCreatedKey(data.key); setNewKeyName(""); utils.apiKeys.list.invalidate(); toast.success("API key created! Copy it now — it won't be shown again."); },
     onError: (e) => toast.error(e.message),
@@ -2780,7 +2783,7 @@ function ApiKeysSection() {
           <p className="text-xs font-semibold text-green-700 mb-1">Your new API key (copy it now — it won't be shown again):</p>
           <div className="flex items-center gap-2">
             <code className="text-xs font-mono bg-white px-2 py-1 rounded border border-green-200 flex-1 truncate">{createdKey}</code>
-            <button onClick={() => { navigator.clipboard.writeText(createdKey); toast.success("Copied!"); }} className="p-1.5 rounded hover:bg-green-100 text-green-600"><Copy className="w-3.5 h-3.5" /></button>
+            <button onClick={() => { navigator.clipboard.writeText(createdKey); toast.success("Copied!"); }} className="p-2 rounded hover:bg-green-100 text-green-600" aria-label="Copy API key"><Copy className="w-3.5 h-3.5" /></button>
           </div>
           <button onClick={() => setCreatedKey(null)} className="text-xs text-green-600 hover:underline mt-1">Dismiss</button>
         </div>
@@ -2812,7 +2815,7 @@ function ApiKeysSection() {
 
 // ─── Audit Log Section ────────────────────────────────────────────────────────
 function AuditLogSection() {
-  const { data: logs, isLoading } = trpc.auditLog.list.useQuery({ limit: 20, offset: 0 });
+  const { data: logs, isLoading } = trpc.auditLog.list.useQuery({ limit: 20, offset: 0 }, { retry: 1 });
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
       <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Activity className="w-4 h-4 text-[#E8A020]" />Activity Log</h3>
@@ -3114,13 +3117,13 @@ function SettingsPanel() {
                 const url = `${window.location.origin}/api/calendar/${user!.id}.ics`;
                 navigator.clipboard.writeText(url).then(() => toast.success("iCal URL copied!")).catch(() => toast.info(`iCal URL: ${url}`));
               }}
-              className="text-gray-600 hover:text-[#E8A020] transition-colors flex-shrink-0 p-1 rounded hover:bg-[#E8A020]/10"
+              className="text-gray-600 hover:text-[#E8A020] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#E8A020]/10"
               title="Copy iCal feed URL"
               aria-label="Copy iCal feed URL"
             >
               <Copy className="w-3.5 h-3.5" />
             </button>
-            <a href={`${window.location.origin}/api/calendar/${user!.id}.ics`} download className="text-gray-600 hover:text-[#E8A020] transition-colors flex-shrink-0 p-1 rounded hover:bg-[#E8A020]/10" title="Download .ics file" aria-label="Download iCal file">
+            <a href={`${window.location.origin}/api/calendar/${user!.id}.ics`} download className="text-gray-600 hover:text-[#E8A020] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#E8A020]/10" title="Download .ics file" aria-label="Download iCal file">
               <Download className="w-3.5 h-3.5" />
             </a>
           </div>
@@ -3203,7 +3206,7 @@ function SettingsPanel() {
 // ─── Integrations Section ────────────────────────────────────────────────────────
 function IntegrationsSection() {
   const utils = trpc.useUtils();
-  const { data: calStatus } = trpc.googleCal.status.useQuery();
+  const { data: calStatus } = trpc.googleCal.status.useQuery(undefined, { retry: 1 });
   const { data: calAuthData } = trpc.googleCal.getAuthUrl.useQuery(
     { origin: window.location.origin },
     { enabled: !calStatus?.connected }
@@ -3456,9 +3459,9 @@ This agreement is governed by the laws of [State/Country].`,
   ];
   const [form, setForm] = useState(emptyForm);
 
-  const { data: list = [], isLoading } = trpc.contracts.list.useQuery({ type: filterType });
+  const { data: list = [], isLoading } = trpc.contracts.list.useQuery({ type: filterType }, { retry: 1 });
   const { data: selected } = trpc.contracts.get.useQuery({ id: selectedId! }, { enabled: !!selectedId });
-  const { data: clientList = [] } = trpc.clients.list.useQuery();
+  const { data: clientList = [] } = trpc.clients.list.useQuery(undefined, { retry: 1 });
 
   const createMut = trpc.contracts.create.useMutation({ onSuccess: () => { utils.contracts.list.invalidate(); setShowForm(false); setForm(emptyForm); toast.success("Created!"); } });
   const updateMut = trpc.contracts.update.useMutation({ onSuccess: () => { utils.contracts.list.invalidate(); utils.contracts.get.invalidate(); setShowForm(false); setEditingId(null); toast.success("Saved!"); } });
@@ -3489,7 +3492,7 @@ This agreement is governed by the laws of [State/Country].`,
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <ConfirmDialog open={confirm.open} onOpenChange={(o) => { if (!o) setConfirm(defaultConfirm); }} title={confirm.title} description={confirm.description} onConfirm={() => { confirm.onConfirm(); setConfirm(defaultConfirm); }} />
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
@@ -3534,12 +3537,12 @@ This agreement is governed by the laws of [State/Country].`,
                   <p className="text-sm text-gray-600">{c.clientName}{c.clientEmail ? ` · ${c.clientEmail}` : ""}</p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <button onClick={e => { e.stopPropagation(); setPreviewContract(c); }} className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors" aria-label="Preview" title="Preview"><Eye className="w-3.5 h-3.5 text-blue-500" /></button>
-                  <button onClick={e => { e.stopPropagation(); openEdit(c); }} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Edit"><Edit2 className="w-3.5 h-3.5 text-gray-600" /></button>
+                  <button onClick={e => { e.stopPropagation(); setPreviewContract(c); }} className="p-2 rounded-lg hover:bg-blue-50 transition-colors" aria-label="Preview" title="Preview"><Eye className="w-3.5 h-3.5 text-blue-500" /></button>
+                  <button onClick={e => { e.stopPropagation(); openEdit(c); }} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Edit"><Edit2 className="w-3.5 h-3.5 text-gray-600" /></button>
                   {c.type === "proposal" && c.status === "signed" && !c.linkedInvoiceId && (
-                    <button onClick={e => { e.stopPropagation(); convertMut.mutate({ id: c.id }); }} className="p-1.5 rounded-lg hover:bg-green-50 transition-colors" aria-label="Convert to invoice" title="Convert to Invoice"><ArrowUpRight className="w-3.5 h-3.5 text-green-600" /></button>
+                    <button onClick={e => { e.stopPropagation(); convertMut.mutate({ id: c.id }); }} className="p-2 rounded-lg hover:bg-green-50 transition-colors" aria-label="Convert to invoice" title="Convert to Invoice"><ArrowUpRight className="w-3.5 h-3.5 text-green-600" /></button>
                   )}
-                  <button onClick={e => { e.stopPropagation(); setConfirm({ open: true, title: "Delete?", description: `Delete "${c.title}"? This cannot be undone.`, onConfirm: () => deleteMut.mutate({ id: c.id }) }); }} className="p-1.5 rounded-lg hover:bg-red-50 transition-colors" aria-label="Delete"><Trash2 className="w-3.5 h-3.5 text-red-400" /></button>
+                  <button onClick={e => { e.stopPropagation(); setConfirm({ open: true, title: "Delete?", description: `Delete "${c.title}"? This cannot be undone.`, onConfirm: () => deleteMut.mutate({ id: c.id }) }); }} className="p-2 rounded-lg hover:bg-red-50 transition-colors" aria-label="Delete"><Trash2 className="w-3.5 h-3.5 text-red-400" /></button>
                 </div>
               </div>
               {/* Expanded detail */}
@@ -3711,7 +3714,7 @@ This agreement is governed by the laws of [State/Country].`,
 // ─── Smart Inbox Panel ───────────────────────────────────────────────────────
 function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) => void }) {
   const utils = trpc.useUtils();
-  const { data: feed = [], isLoading } = trpc.inbox.list.useQuery({ limit: 50 });
+  const { data: feed = [], isLoading } = trpc.inbox.list.useQuery({ limit: 50 }, { retry: 1 });
   const markRead = trpc.inbox.markRead.useMutation({ onSuccess: () => utils.inbox.list.invalidate() });
   const markAll = trpc.inbox.markAllRead.useMutation({ onSuccess: () => utils.inbox.list.invalidate() });
 
@@ -3749,7 +3752,7 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -3827,7 +3830,7 @@ function TestimonialsPanel() {
   const [form, setForm] = useState({ clientName: "", clientEmail: "", serviceName: "" });
   const [sending, setSending] = useState(false);
 
-  const { data: list = [], isLoading } = trpc.testimonials.list.useQuery();
+  const { data: list = [], isLoading } = trpc.testimonials.list.useQuery(undefined, { retry: 1 });
   const reviewMut = trpc.testimonials.review.useMutation({ onSuccess: () => { utils.testimonials.list.invalidate(); toast.success("Done!"); } });
   const requestMut = trpc.testimonials.request.useMutation({
     onSuccess: () => { toast.success("Request sent!"); setForm({ clientName: "", clientEmail: "", serviceName: "" }); setSending(false); },
@@ -3847,7 +3850,7 @@ function TestimonialsPanel() {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -4314,14 +4317,15 @@ export default function Dashboard() {
 
   const renderPanel = () => {
     switch (active) {
-      case "overview": return <OverviewPanel userName={user?.name || ""} setActivePanel={setActive} />;
-      case "clients": return <ClientsPanel />;
-      case "scheduling": return <SchedulingPanel />;
-      case "invoices": return <InvoicesPanel />;
-      case "followups": return <FollowUpsPanel />;
-      case "analytics": return <AnalyticsPanel />;
-      case "settings": return <SettingsPanel />;
+      case "overview": return <PanelErrorBoundary panelName="Overview"><OverviewPanel userName={user?.name || ""} setActivePanel={setActive} /></PanelErrorBoundary>;
+      case "clients": return <PanelErrorBoundary panelName="Clients"><ClientsPanel /></PanelErrorBoundary>;
+      case "scheduling": return <PanelErrorBoundary panelName="Scheduling"><SchedulingPanel /></PanelErrorBoundary>;
+      case "invoices": return <PanelErrorBoundary panelName="Invoices"><InvoicesPanel /></PanelErrorBoundary>;
+      case "followups": return <PanelErrorBoundary panelName="Follow-Ups"><FollowUpsPanel /></PanelErrorBoundary>;
+      case "analytics": return <PanelErrorBoundary panelName="Analytics"><AnalyticsPanel /></PanelErrorBoundary>;
+      case "settings": return <PanelErrorBoundary panelName="Settings"><SettingsPanel /></PanelErrorBoundary>;
       case "ai": return (
+        <PanelErrorBoundary panelName="AI Assistant">
         <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
           <div className="w-16 h-16 rounded-full gradient-amber flex items-center justify-center shadow-lg">
             <span className="text-3xl">✨</span>
@@ -4342,13 +4346,14 @@ export default function Dashboard() {
             <p className="text-xs text-[#E8A020] font-medium">AI Assistant is open — look for the floating bubble ✨</p>
           )}
         </div>
+        </PanelErrorBoundary>
       );
-      case "pulse": return <ClientPulsePanel />;
-      case "contracts": return <ContractsPanel />;
-      case "time": return <TimeTrackingPanel />;
-      case "recurring": return <RecurringInvoicesPanel />;
-      case "inbox": return <SmartInboxPanel setActivePanel={setActiveWithScroll} />;
-      case "testimonials": return <TestimonialsPanel />;
+      case "pulse": return <PanelErrorBoundary panelName="Client Pulse"><ClientPulsePanel /></PanelErrorBoundary>;
+      case "contracts": return <PanelErrorBoundary panelName="Contracts"><ContractsPanel /></PanelErrorBoundary>;
+      case "time": return <PanelErrorBoundary panelName="Time Tracking"><TimeTrackingPanel /></PanelErrorBoundary>;
+      case "recurring": return <PanelErrorBoundary panelName="Recurring Invoices"><RecurringInvoicesPanel /></PanelErrorBoundary>;
+      case "inbox": return <PanelErrorBoundary panelName="Smart Inbox"><SmartInboxPanel setActivePanel={setActiveWithScroll} /></PanelErrorBoundary>;
+      case "testimonials": return <PanelErrorBoundary panelName="Testimonials"><TestimonialsPanel /></PanelErrorBoundary>;
       default: return null;
     }
   };
@@ -4448,7 +4453,7 @@ export default function Dashboard() {
                 )}
               </button>
               {showNotifications && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                     <p className="text-sm font-bold text-[#1C1C1E]">Notifications</p>
                     {(notifList?.length ?? 0) > 0 && (
@@ -4470,7 +4475,7 @@ export default function Dashboard() {
                             <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{n.body}</p>
                             <p className="text-[10px] text-gray-600 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
                           </div>
-                          <button onClick={() => dismissNotifMutation.mutate({ id: n.id })} className="p-1 rounded hover:bg-gray-200 transition-colors flex-shrink-0" aria-label="Dismiss">
+                          <button onClick={() => dismissNotifMutation.mutate({ id: n.id })} className="p-2 rounded hover:bg-gray-200 transition-colors flex-shrink-0" aria-label="Dismiss">
                             <X className="w-3 h-3 text-gray-600" />
                           </button>
                         </div>
@@ -4506,8 +4511,8 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Panel Content — pb-[72px] ensures content clears the fixed-height mobile nav bar */}
-        <div className="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-x-hidden pb-[72px] md:pb-6">
+        {/* Panel Content — pb-[130px] ensures content clears MobileQuickStats (~40px) + MobileBottomNav (~62px) + buffer on mobile */}
+        <div className="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-x-hidden pb-[130px] md:pb-6">
           {renderPanel()}
         </div>
       </main>
