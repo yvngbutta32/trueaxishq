@@ -628,9 +628,58 @@ export const appRouter = router({
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        // Fetch invoice before marking paid so we can send emails
+        const [inv] = await db.select().from(invoices)
+          .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id))).limit(1);
+        if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
+        const paidAt = new Date();
         await db.update(invoices)
-          .set({ status: "paid", paidAt: new Date(), updatedAt: new Date() })
+          .set({ status: "paid", paidAt, updatedAt: new Date() })
           .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id)));
+        // Send invoice paid confirmation email to client
+        if (inv.clientEmail) {
+          const [user] = await db.select({ name: users.name, businessName: users.businessName })
+            .from(users).where(eq(users.id, ctx.user.id)).limit(1);
+          sendEmail({
+            to: inv.clientEmail,
+            subject: `Payment Received — Invoice #${inv.invoiceNumber}`,
+            html: invoicePaidEmail({
+              clientName: inv.clientName,
+              invoiceNumber: inv.invoiceNumber,
+              amount: `$${parseFloat(String(inv.amount)).toFixed(2)}`,
+              paidDate: paidAt.toLocaleDateString(),
+            }),
+          }).catch(() => {});
+          // Auto-send testimonial request if client email available
+          const crypto = await import("crypto");
+          const reqToken = crypto.randomBytes(32).toString("hex");
+          const freelancerName = user?.businessName || user?.name || "Your service provider";
+          const [existing] = await db.select({ id: testimonials.id }).from(testimonials)
+            .where(and(eq(testimonials.userId, ctx.user.id), eq(testimonials.invoiceId, inv.id))).limit(1);
+          if (!existing) {
+            await db.insert(testimonials).values({
+              userId: ctx.user.id,
+              clientId: inv.clientId ?? null,
+              clientName: inv.clientName,
+              clientEmail: inv.clientEmail ?? null,
+              invoiceId: inv.id,
+              serviceName: inv.service ?? "Service",
+              requestToken: reqToken,
+              status: "requested",
+            });
+            const origin = process.env.VITE_FRONTEND_FORGE_API_URL?.replace("/api", "") || "https://trueaxishq.com";
+            sendEmail({
+              to: inv.clientEmail,
+              subject: `How did we do? Share your feedback`,
+              html: testimonialRequestEmail({
+                clientName: inv.clientName,
+                freelancerName,
+                serviceName: inv.service ?? "Service",
+                testimonialUrl: `${origin}/testimonial/${reqToken}`,
+              }),
+            }).catch(() => {});
+          }
+        }
         return { success: true };
       }),
 
@@ -1842,7 +1891,7 @@ Only include actions when you have actually generated a complete draft. For gene
           }
         }
 
-        await db.insert(bookings).values({
+        const bookingResult = await db.insert(bookings).values({
           userId: hostId,
           clientId: clientId || null,
           clientName: input.clientName,
@@ -1854,6 +1903,7 @@ Only include actions when you have actually generated a complete draft. For gene
           isPublicBooking: true,
           status: "scheduled",
         });
+        const newBookingId = Number((bookingResult as any).insertId);
 
         if (host[0].notifyNewBooking !== false) {
           notifyOwner({
@@ -1861,10 +1911,25 @@ Only include actions when you have actually generated a complete draft. For gene
             content: `${input.clientName} (${input.clientEmail}) booked a ${input.service} on ${input.preferredDate} at ${input.preferredTime}.`,
           }).catch(() => {});
         }
+
+        // Create cancel and reschedule tokens for the booking confirmation email
+        const cryptoMod = await import("crypto");
+        const cancelToken = cryptoMod.randomBytes(32).toString("hex");
+        const rescheduleToken = cryptoMod.randomBytes(32).toString("hex");
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+        if (newBookingId) {
+          await db.insert(bookingCancelTokens).values([
+            { bookingId: newBookingId, userId: hostId, token: cancelToken, action: "cancel", expiresAt },
+            { bookingId: newBookingId, userId: hostId, token: rescheduleToken, action: "reschedule", expiresAt },
+          ]);
+        }
+
         // Send booking confirmation email to client
         const hostDetails = await db.select({ name: users.name, businessName: users.businessName })
           .from(users).where(eq(users.id, host[0].id)).limit(1);
         const freelancerName = hostDetails[0]?.businessName || hostDetails[0]?.name || "Your service provider";
+        const siteOrigin = process.env.VITE_FRONTEND_FORGE_API_URL?.replace("/api", "") || "https://trueaxishq.com";
+        const cancelUrl = newBookingId ? `${siteOrigin}/booking/cancel/${cancelToken}` : undefined;
         sendEmail({
           to: input.clientEmail,
           subject: `Booking Confirmed: ${input.service} on ${input.preferredDate}`,
@@ -1874,6 +1939,7 @@ Only include actions when you have actually generated a complete draft. For gene
             date: input.preferredDate,
             time: input.preferredTime,
             freelancerName,
+            cancelUrl,
           }),
         }).catch(() => {});
         return { success: true, isNewClient };

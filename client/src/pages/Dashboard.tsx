@@ -4281,6 +4281,20 @@ export default function Dashboard() {
     if (!loading && !isAuthenticated) navigate("/");
   }, [loading, isAuthenticated, navigate]);
 
+  // Handle Google Calendar OAuth callback params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("gcal_connected") === "1") {
+      toast.success("Google Calendar connected successfully!");
+      setActiveWithScroll("settings");
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (params.get("gcal_error")) {
+      const errMsg = params.get("gcal_error");
+      toast.error(`Google Calendar connection failed: ${errMsg?.replace(/_/g, " ")}`);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
   if (loading) return (
     <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
       <div className="text-center">

@@ -3,6 +3,8 @@
  * 1. Recurring invoice auto-generation
  * 2. Overdue invoice auto-detection
  * 3. Follow-up reminder auto-scheduling
+ * 4. Follow-up rules auto-send (new)
+ * 5. Monthly business report email (new, runs on 1st of month)
  * All jobs are idempotent and safe to run repeatedly.
  */
 import { eq, and, lte, sql } from "drizzle-orm";
@@ -12,8 +14,12 @@ import {
   recurringInvoices,
   notifications,
   followUps,
+  followUpRules,
+  users,
+  clients,
+  bookings,
 } from "../drizzle/schema";
-import { sendEmail, invoiceReminderEmail } from "./_core/email";
+import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail } from "./_core/email";
 
 // ─── Invoice number generator ─────────────────────────────────────────────────
 function generateInvoiceNumber(): string {
@@ -58,8 +64,6 @@ async function runRecurringInvoices() {
       if (!db) return;
 
       const now = new Date();
-      // Find all active recurring invoices that are due
-      // nextDueAt is a timestamp column — compare with JS Date directly via Drizzle lte
       const due = await db
         .select()
         .from(recurringInvoices)
@@ -72,10 +76,9 @@ async function runRecurringInvoices() {
 
       for (const rec of due) {
         try {
-          // Create the invoice
           const invoiceNumber = generateInvoiceNumber();
-          const dueAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-          const dueDateStr = dueAt.toISOString().split("T")[0]; // YYYY-MM-DD
+          const dueAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+          const dueDateStr = dueAt.toISOString().split("T")[0];
           const [result] = await db.insert(invoices).values({
             userId: rec.userId,
             clientId: rec.clientId ?? null,
@@ -90,14 +93,12 @@ async function runRecurringInvoices() {
           });
           const invoiceId = (result as any).insertId;
 
-          // Advance nextDueAt
           const newNextDue = nextDueDate(rec.nextDueAt, rec.frequency);
           await db
             .update(recurringInvoices)
             .set({ nextDueAt: newNextDue, lastInvoiceId: invoiceId })
             .where(eq(recurringInvoices.id, rec.id));
 
-          // Create in-app notification for the user
           await db.insert(notifications).values({
             userId: rec.userId,
             title: "Recurring Invoice Generated",
@@ -106,7 +107,6 @@ async function runRecurringInvoices() {
             link: "/dashboard",
           });
 
-          // Send email reminder to client if email available
           if (rec.clientEmail) {
             await sendEmail({
               to: rec.clientEmail,
@@ -120,26 +120,15 @@ async function runRecurringInvoices() {
             });
           }
 
-          console.log(
-            `[Jobs] Generated recurring invoice ${invoiceNumber} for user ${rec.userId}`
-          );
+          console.log(`[Jobs] Generated recurring invoice ${invoiceNumber} for user ${rec.userId}`);
         } catch (err) {
-          console.error(
-            `[Jobs] Failed to generate recurring invoice ${rec.id}:`,
-            err
-          );
+          console.error(`[Jobs] Failed to generate recurring invoice ${rec.id}:`, err);
         }
       }
-      return; // success
+      return;
     } catch (err: any) {
-      const isTransient =
-        err?.code === "ECONNRESET" ||
-        err?.code === "ETIMEDOUT" ||
-        err?.code === "ECONNREFUSED";
-      console.error(
-        `[Jobs] runRecurringInvoices error (attempt ${attempt}/2):`,
-        { code: err?.code, message: err?.message }
-      );
+      const isTransient = err?.code === "ECONNRESET" || err?.code === "ETIMEDOUT" || err?.code === "ECONNREFUSED";
+      console.error(`[Jobs] runRecurringInvoices error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
       if (isTransient && attempt < 2) {
         resetDbConnection();
         await new Promise((r) => setTimeout(r, 500));
@@ -157,24 +146,16 @@ async function runOverdueDetection() {
       const db = await getDb();
       if (!db) return;
 
-      // dueDate is stored as 'YYYY-MM-DD' string — use raw SQL for string comparison
-      // This is the safest approach for MySQL varchar date fields
       const todayStr = new Date().toISOString().split("T")[0];
       await db.execute(
         sql`UPDATE invoices SET status = 'overdue' WHERE status = 'sent' AND dueDate IS NOT NULL AND dueDate != '' AND dueDate < ${todayStr}`
       );
 
       console.log(`[Jobs] Overdue detection complete for ${todayStr}`);
-      return; // success
+      return;
     } catch (err: any) {
-      const isTransient =
-        err?.code === "ECONNRESET" ||
-        err?.code === "ETIMEDOUT" ||
-        err?.code === "ECONNREFUSED";
-      console.error(
-        `[Jobs] runOverdueDetection error (attempt ${attempt}/2):`,
-        { code: err?.code, message: err?.message }
-      );
+      const isTransient = err?.code === "ECONNRESET" || err?.code === "ETIMEDOUT" || err?.code === "ECONNREFUSED";
+      console.error(`[Jobs] runOverdueDetection error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
       if (isTransient && attempt < 2) {
         resetDbConnection();
         await new Promise((r) => setTimeout(r, 500));
@@ -192,13 +173,11 @@ async function runFollowUpReminders() {
       const db = await getDb();
       if (!db) return;
 
-      // Use raw SQL for timestamp comparison to avoid Drizzle Date serialization issues
       const sevenDaysAgoStr = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
         .toISOString()
         .replace("T", " ")
-        .split(".")[0]; // 'YYYY-MM-DD HH:MM:SS'
+        .split(".")[0];
 
-      // Find draft follow-ups older than 7 days — remind user to send them
       const stale = await db.execute(
         sql`SELECT id, userId, clientName FROM followUps WHERE status = 'draft' AND createdAt <= ${sevenDaysAgoStr} LIMIT 20`
       ) as any;
@@ -208,13 +187,10 @@ async function runFollowUpReminders() {
 
       for (const fu of rows) {
         try {
-          // Check if we already notified recently (avoid spam)
           const existing = await db.execute(
             sql`SELECT id FROM notifications WHERE userId = ${fu.userId} AND body LIKE ${`%${fu.clientName}%`} AND createdAt > DATE_SUB(NOW(), INTERVAL 1 DAY) LIMIT 1`
           ) as any;
-          const existingRows = Array.isArray(existing)
-            ? existing[0] ?? []
-            : existing?.rows ?? [];
+          const existingRows = Array.isArray(existing) ? existing[0] ?? [] : existing?.rows ?? [];
           if (existingRows.length > 0) continue;
 
           await db.insert(notifications).values({
@@ -225,26 +201,222 @@ async function runFollowUpReminders() {
             link: "/dashboard",
           });
 
-          console.log(
-            `[Jobs] Reminded user ${fu.userId} about stale follow-up for ${fu.clientName}`
-          );
+          console.log(`[Jobs] Reminded user ${fu.userId} about stale follow-up for ${fu.clientName}`);
         } catch (err) {
-          console.error(
-            `[Jobs] Failed to notify stale follow-up ${fu.id}:`,
-            err
-          );
+          console.error(`[Jobs] Failed to notify stale follow-up ${fu.id}:`, err);
         }
       }
-      return; // success
+      return;
     } catch (err: any) {
-      const isTransient =
-        err?.code === "ECONNRESET" ||
-        err?.code === "ETIMEDOUT" ||
-        err?.code === "ECONNREFUSED";
-      console.error(
-        `[Jobs] runFollowUpReminders error (attempt ${attempt}/2):`,
-        { code: err?.code, message: err?.message }
-      );
+      const isTransient = err?.code === "ECONNRESET" || err?.code === "ETIMEDOUT" || err?.code === "ECONNREFUSED";
+      console.error(`[Jobs] runFollowUpReminders error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
+      if (isTransient && attempt < 2) {
+        resetDbConnection();
+        await new Promise((r) => setTimeout(r, 500));
+      } else {
+        return;
+      }
+    }
+  }
+}
+
+// ─── Job: Auto-send follow-up rules ──────────────────────────────────────────
+// Checks all active follow-up rules and sends emails to clients who haven't
+// booked in `triggerDays` days and haven't already received this rule's email.
+async function runFollowUpRules() {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const db = await getDb();
+      if (!db) return;
+
+      // Get all active rules
+      const rules = await db.select().from(followUpRules).where(eq(followUpRules.active, true));
+
+      for (const rule of rules) {
+        try {
+          const cutoffDate = new Date(Date.now() - rule.triggerDays * 24 * 60 * 60 * 1000);
+          const cutoffStr = cutoffDate.toISOString().replace("T", " ").split(".")[0];
+
+          // Find clients for this user who haven't booked since cutoff
+          // and haven't received this rule's email in the last triggerDays days
+          const eligibleClients = await db.execute(
+            sql`
+              SELECT c.id, c.name, c.email
+              FROM clients c
+              WHERE c.userId = ${rule.userId}
+                AND c.email IS NOT NULL
+                AND c.email != ''
+                AND (
+                  SELECT MAX(b.createdAt) FROM bookings b
+                  WHERE b.clientId = c.id AND b.userId = c.userId
+                ) < ${cutoffStr}
+                AND NOT EXISTS (
+                  SELECT 1 FROM followUps fu
+                  WHERE fu.clientId = c.id
+                    AND fu.userId = ${rule.userId}
+                    AND fu.subject = ${rule.emailSubject}
+                    AND fu.createdAt > DATE_SUB(NOW(), INTERVAL ${rule.triggerDays} DAY)
+                )
+              LIMIT 10
+            `
+          ) as any;
+
+          const clientRows: Array<{ id: number; name: string; email: string }> =
+            Array.isArray(eligibleClients) ? eligibleClients[0] ?? [] : eligibleClients?.rows ?? [];
+
+          for (const client of clientRows) {
+            try {
+              // Get user info for email sender name
+              const [user] = await db.select({ name: users.name, businessName: users.businessName })
+                .from(users).where(eq(users.id, rule.userId)).limit(1);
+              const senderName = user?.businessName || user?.name || "Your service provider";
+
+              // Personalize email body
+              const personalizedBody = rule.emailBody
+                .replace(/\{clientName\}/g, client.name)
+                .replace(/\{name\}/g, client.name)
+                .replace(/\{senderName\}/g, senderName);
+
+              // Save as a sent follow-up record
+              await db.insert(followUps).values({
+                userId: rule.userId,
+                clientId: client.id,
+                clientName: client.name,
+                clientEmail: client.email,
+                subject: rule.emailSubject,
+                body: personalizedBody,
+                status: "sent",
+                sentAt: new Date(),
+              });
+
+              // Send the actual email
+              await sendEmail({
+                to: client.email,
+                subject: rule.emailSubject,
+                html: followUpEmail({
+                  clientName: client.name,
+                  subject: rule.emailSubject,
+                  body: personalizedBody,
+                }),
+              });
+
+              console.log(`[Jobs] Auto follow-up rule "${rule.name}" sent to ${client.email} (user ${rule.userId})`);
+            } catch (err) {
+              console.error(`[Jobs] Failed to send follow-up rule to client ${client.id}:`, err);
+            }
+          }
+
+          // Update lastRunAt
+          await db.update(followUpRules)
+            .set({ lastRunAt: new Date() })
+            .where(eq(followUpRules.id, rule.id));
+
+        } catch (err) {
+          console.error(`[Jobs] Failed to process follow-up rule ${rule.id}:`, err);
+        }
+      }
+      return;
+    } catch (err: any) {
+      const isTransient = err?.code === "ECONNRESET" || err?.code === "ETIMEDOUT" || err?.code === "ECONNREFUSED";
+      console.error(`[Jobs] runFollowUpRules error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
+      if (isTransient && attempt < 2) {
+        resetDbConnection();
+        await new Promise((r) => setTimeout(r, 500));
+      } else {
+        return;
+      }
+    }
+  }
+}
+
+// ─── Job: Monthly business report email (runs on 1st of month) ───────────────
+async function runMonthlyReport() {
+  const now = new Date();
+  // Only run on the 1st of the month (check within the hourly window)
+  if (now.getDate() !== 1) return;
+
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const db = await getDb();
+      if (!db) return;
+
+      // Get all users who have monthly reports enabled
+      const allUsers = await db.execute(
+        sql`SELECT id, name, email, businessName FROM users WHERE monthlyReportEnabled = 1 AND email IS NOT NULL AND email != ''`
+      ) as any;
+
+      const userRows: Array<{ id: number; name: string; email: string; businessName: string | null }> =
+        Array.isArray(allUsers) ? allUsers[0] ?? [] : allUsers?.rows ?? [];
+
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+      const monthLabel = lastMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      const lastMonthStartStr = lastMonth.toISOString().replace("T", " ").split(".")[0];
+      const lastMonthEndStr = lastMonthEnd.toISOString().replace("T", " ").split(".")[0];
+
+      for (const user of userRows) {
+        try {
+          // Revenue from paid invoices last month
+          const revenueResult = await db.execute(
+            sql`SELECT COALESCE(SUM(CAST(amount AS DECIMAL(10,2))), 0) as total FROM invoices WHERE userId = ${user.id} AND status = 'paid' AND paidAt BETWEEN ${lastMonthStartStr} AND ${lastMonthEndStr}`
+          ) as any;
+          const revenueRows = Array.isArray(revenueResult) ? revenueResult[0] ?? [] : revenueResult?.rows ?? [];
+          const totalRevenue = parseFloat(String(revenueRows[0]?.total ?? 0)).toFixed(2);
+
+          // New clients last month
+          const newClientsResult = await db.execute(
+            sql`SELECT COUNT(*) as count FROM clients WHERE userId = ${user.id} AND createdAt BETWEEN ${lastMonthStartStr} AND ${lastMonthEndStr}`
+          ) as any;
+          const newClientsRows = Array.isArray(newClientsResult) ? newClientsResult[0] ?? [] : newClientsResult?.rows ?? [];
+          const newClients = Number(newClientsRows[0]?.count ?? 0);
+
+          // Invoices paid last month
+          const paidResult = await db.execute(
+            sql`SELECT COUNT(*) as count FROM invoices WHERE userId = ${user.id} AND status = 'paid' AND paidAt BETWEEN ${lastMonthStartStr} AND ${lastMonthEndStr}`
+          ) as any;
+          const paidRows = Array.isArray(paidResult) ? paidResult[0] ?? [] : paidResult?.rows ?? [];
+          const invoicesPaid = Number(paidRows[0]?.count ?? 0);
+
+          // Outstanding invoices
+          const outstandingResult = await db.execute(
+            sql`SELECT COUNT(*) as count FROM invoices WHERE userId = ${user.id} AND status IN ('sent', 'overdue')`
+          ) as any;
+          const outstandingRows = Array.isArray(outstandingResult) ? outstandingResult[0] ?? [] : outstandingResult?.rows ?? [];
+          const invoicesOutstanding = Number(outstandingRows[0]?.count ?? 0);
+
+          // Total bookings last month
+          const bookingsResult = await db.execute(
+            sql`SELECT COUNT(*) as count FROM bookings WHERE userId = ${user.id} AND createdAt BETWEEN ${lastMonthStartStr} AND ${lastMonthEndStr}`
+          ) as any;
+          const bookingsRows = Array.isArray(bookingsResult) ? bookingsResult[0] ?? [] : bookingsResult?.rows ?? [];
+          const totalBookings = Number(bookingsRows[0]?.count ?? 0);
+
+          const displayName = user.businessName || user.name || "there";
+
+          await sendEmail({
+            to: user.email,
+            subject: `Your ${monthLabel} Business Report — TrueAxis HQ`,
+            html: monthlyReportEmail({
+              name: displayName,
+              month: monthLabel,
+              totalRevenue: `$${totalRevenue}`,
+              newClients,
+              invoicesPaid,
+              invoicesOutstanding,
+              aiInsight: `You completed ${totalBookings} booking${totalBookings !== 1 ? "s" : ""} this month.`,
+              dashboardUrl: process.env.VITE_FRONTEND_FORGE_API_URL?.replace("/api", "") || "https://trueaxishq.com",
+            }),
+          });
+
+          console.log(`[Jobs] Monthly report sent to user ${user.id} (${user.email}) for ${monthLabel}`);
+        } catch (err) {
+          console.error(`[Jobs] Failed to send monthly report to user ${user.id}:`, err);
+        }
+      }
+      return;
+    } catch (err: any) {
+      const isTransient = err?.code === "ECONNRESET" || err?.code === "ETIMEDOUT" || err?.code === "ECONNREFUSED";
+      console.error(`[Jobs] runMonthlyReport error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
       if (isTransient && attempt < 2) {
         resetDbConnection();
         await new Promise((r) => setTimeout(r, 500));
@@ -259,11 +431,12 @@ async function runFollowUpReminders() {
 export function startBackgroundJobs() {
   console.log("[Jobs] Background job scheduler starting...");
 
-  // Run immediately on startup
   const runAll = async () => {
     await runOverdueDetection();
     await runRecurringInvoices();
     await runFollowUpReminders();
+    await runFollowUpRules();
+    await runMonthlyReport();
   };
 
   // Initial run after 10 seconds (let server fully start)
@@ -272,5 +445,5 @@ export function startBackgroundJobs() {
   // Then every hour
   setInterval(runAll, 60 * 60 * 1000);
 
-  console.log("[Jobs] Background jobs scheduled (every 1 hour)");
+  console.log("[Jobs] Background jobs scheduled (every 1 hour, 5 jobs)");
 }

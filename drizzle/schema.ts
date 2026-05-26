@@ -508,6 +508,7 @@ export const testimonials = mysqlTable("testimonials", {
   clientName: varchar("clientName", { length: 255 }).notNull(),
   clientEmail: varchar("clientEmail", { length: 320 }),
   invoiceId: int("invoiceId"),           // invoice that triggered the request
+  serviceName: varchar("serviceName", { length: 255 }),  // service name for context
   body: text("body"),                    // testimonial text (filled by client)
   rating: int("rating"),                 // 1-5
   status: mysqlEnum("status", ["requested", "submitted", "approved", "rejected"]).default("requested").notNull(),

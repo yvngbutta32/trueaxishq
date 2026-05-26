@@ -115,6 +115,91 @@ async function startServer() {
   // ── Invoice PDF Download ─────────────────────────────────────────────────
   app.use(invoicePdfRouter);
 
+  // ── Google Calendar OAuth Callback ───────────────────────────────────────
+  app.get("/api/google-calendar/callback", async (req, res) => {
+    const { code, state, error } = req.query as Record<string, string>;
+    const origin = `${req.protocol}://${req.get("host")}`;
+
+    if (error || !code) {
+      return res.redirect(`${origin}/dashboard?gcal_error=${encodeURIComponent(error || "no_code")}`);
+    }
+
+    const userId = parseInt(state || "0", 10);
+    if (!userId) {
+      return res.redirect(`${origin}/dashboard?gcal_error=invalid_state`);
+    }
+
+    try {
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+      if (!clientId || !clientSecret) {
+        return res.redirect(`${origin}/dashboard?gcal_error=not_configured`);
+      }
+
+      // Exchange code for tokens
+      const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          code,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: `${origin}/api/google-calendar/callback`,
+          grant_type: "authorization_code",
+        }),
+      });
+      const tokenData = await tokenRes.json() as any;
+
+      if (!tokenData.access_token) {
+        console.error("[Google Calendar] Token exchange failed:", tokenData);
+        return res.redirect(`${origin}/dashboard?gcal_error=token_exchange_failed`);
+      }
+
+      // Get primary calendar ID
+      let calendarId = "primary";
+      try {
+        const calRes = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList/primary", {
+          headers: { Authorization: `Bearer ${tokenData.access_token}` },
+        });
+        const calData = await calRes.json() as any;
+        calendarId = calData.id || "primary";
+      } catch { /* use 'primary' as fallback */ }
+
+      // Save tokens to DB
+      const { getDb } = await import("../db");
+      const { googleCalendarTokens } = await import("../../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const db = await getDb();
+      if (db) {
+        const existing = await db.select({ id: googleCalendarTokens.id })
+          .from(googleCalendarTokens).where(eq(googleCalendarTokens.userId, userId)).limit(1);
+        if (existing.length > 0) {
+          await db.update(googleCalendarTokens).set({
+            accessToken: tokenData.access_token,
+            refreshToken: tokenData.refresh_token || null,
+            expiresAt: new Date(Date.now() + (tokenData.expires_in || 3600) * 1000),
+            calendarId,
+            syncEnabled: true,
+          }).where(eq(googleCalendarTokens.userId, userId));
+        } else {
+          await db.insert(googleCalendarTokens).values({
+            userId,
+            accessToken: tokenData.access_token,
+            refreshToken: tokenData.refresh_token || null,
+            expiresAt: new Date(Date.now() + (tokenData.expires_in || 3600) * 1000),
+            calendarId,
+            syncEnabled: true,
+          });
+        }
+      }
+
+      return res.redirect(`${origin}/dashboard?gcal_connected=1`);
+    } catch (err) {
+      console.error("[Google Calendar] OAuth callback error:", err);
+      return res.redirect(`${origin}/dashboard?gcal_error=server_error`);
+    }
+  });
+
   // ── tRPC API────────────────────────────────────────────────────────────
   app.use(
     "/api/trpc",
