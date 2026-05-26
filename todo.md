@@ -1002,3 +1002,20 @@
 - [x] Add retry:1 to all tRPC queries for resilience (was missing on 10+ queries)
 - [x] Notification dropdown: max-w-[calc(100vw-2rem)] to prevent off-screen overflow on mobile
 - [x] Backend already has rate limiting, Zod validation, requireDb(), withTimeout() on all LLM calls
+
+## Professional Redesign — Color + Typography (May 26 2026)
+- [x] Global CSS: consolidate to Inter font only, remove Space Grotesk and Plus Jakarta Sans
+- [x] Global CSS: refine heading weights and letter-spacing (less aggressive)
+- [x] Global CSS: card-lift hover — subtle shadow + amber border tint (no translateY)
+- [x] Global CSS: remove scanlines from dashboard preview, retro-grid from HowItWorks section
+- [x] Global CSS: refine section-label — smaller, less aggressive tracking (0.08em)
+- [x] Global CSS: gradient-amber — solid #D4922A instead of flashy gradient
+- [x] Home: hero — removed shimmer-text, amber span accent, removed Space Grotesk inline styles
+- [x] Home: how-it-works — removed retro-grid background, cleaner section
+- [x] Home: email capture — navy background (#1B2D4F) for stronger CTA contrast
+- [x] Home: all section backgrounds unified to design system colors (#0D1117, #161B22, #1B2D4F)
+- [x] Dashboard: all old amber #E8A020 → #D4922A, all old darks → design system darks
+- [x] Dashboard: rounded-2xl/3xl → rounded-xl throughout (less bubbly)
+- [x] All pages: Space Grotesk, Plus Jakarta Sans, DM Sans → Inter everywhere
+- [x] All pages: old color values (#141414, #0E0E0E, #1C1C1E, #272727) → design system values
+- [x] 0 TypeScript errors, 29/29 tests passing after redesign

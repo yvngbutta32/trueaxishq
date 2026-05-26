@@ -1,6 +1,6 @@
 /* TrueAxis HQ — Landing Page
- * Design: "Dark Amber Retro-Modern" — Charcoal #141414, Amber #E8A020, Cream #F5F0E8
- * Fonts: Space Grotesk (headings) + DM Sans (body)
+ * Design: Dark Navy + Amber — #0D1117 base, #D4922A amber, #F5EFE3 cream
+ * Font: Inter (single family, variable)
  * All functions intact: email capture, onboarding modal, smooth scroll, animated counters
  */
 
@@ -93,7 +93,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
       content: (
         <div className="space-y-4">
           <div>
-            <label htmlFor="ob-name" className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#E8A020" }}>
+            <label htmlFor="ob-name" className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#D4922A" }}>
               Your Name <span aria-hidden="true">*</span>
             </label>
             <input
@@ -111,7 +111,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
             {errors.name && <p role="alert" className="text-xs mt-1" style={{ color: "#C85A3A" }}>{errors.name}</p>}
           </div>
           <div>
-            <label htmlFor="ob-email" className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#E8A020" }}>
+            <label htmlFor="ob-email" className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#D4922A" }}>
               Email Address <span aria-hidden="true">*</span>
             </label>
             <input
@@ -137,7 +137,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
       content: (
         <div className="space-y-4">
           <div>
-            <label htmlFor="ob-business" className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#E8A020" }}>
+            <label htmlFor="ob-business" className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#D4922A" }}>
               Business Name
             </label>
             <input
@@ -151,7 +151,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
             />
           </div>
           <div>
-            <label htmlFor="ob-service" className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#E8A020" }}>
+            <label htmlFor="ob-service" className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#D4922A" }}>
               What do you do?
             </label>
             <select
@@ -180,10 +180,10 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
       content: (
         <div className="text-center py-4 space-y-5">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "rgba(232,160,32,0.12)", border: "1px solid rgba(232,160,32,0.25)" }}>
-            <CheckCircle className="w-8 h-8" style={{ color: "#E8A020" }} />
+            <CheckCircle className="w-8 h-8" style={{ color: "#D4922A" }} />
           </div>
           <div>
-            <p className="font-bold text-lg" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8" }}>
+            <p className="font-bold text-lg" style={{ color: "#F5F0E8" }}>
               Welcome{form.name ? `, ${form.name.split(" ")[0]}` : ""}!
             </p>
             <p className="text-sm mt-1" style={{ color: "rgba(245,240,232,0.80)" }}>
@@ -192,7 +192,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
             {["Client CRM", "AI Scheduling", "Smart Invoices", "Client Pulse AI"].map(f => (
-              <div key={f} className="rounded p-2 text-center flex items-center justify-center gap-1.5" style={{ background: "rgba(232,160,32,0.07)", border: "1px solid rgba(232,160,32,0.15)", color: "#E8A020" }}>
+              <div key={f} className="rounded p-2 text-center flex items-center justify-center gap-1.5" style={{ background: "rgba(232,160,32,0.07)", border: "1px solid rgba(232,160,32,0.15)", color: "#D4922A" }}>
                 <CheckCircle className="w-3 h-3" />
                 {f}
               </div>
@@ -223,15 +223,15 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="ob-title">
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.80)", backdropFilter: "blur(8px)" }} onClick={onClose} aria-hidden="true" />
-      <div ref={modalRef} className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl" style={{ background: "#1E1E1E", border: "1px solid rgba(232,160,32,0.20)", boxShadow: "0 32px 80px rgba(0,0,0,0.60)" }}>
+      <div ref={modalRef} className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl" style={{ background: "#161B22", border: "1px solid rgba(232,160,32,0.20)", boxShadow: "0 32px 80px rgba(0,0,0,0.60)" }}>
         {/* Top accent line */}
-        <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #E8A020, transparent)" }} />
+        <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #D4922A, transparent)" }} />
 
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-0">
           <div>
             <div className="section-label mb-2">Step {step + 1} of {steps.length}</div>
-            <h2 id="ob-title" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8", fontSize: "1.25rem", fontWeight: 700 }}>
+            <h2 id="ob-title" style={{ color: "#F5F0E8", fontSize: "1.25rem", fontWeight: 700 }}>
               {current.title}
             </h2>
             <p className="text-sm mt-1" style={{ color: "rgba(245,240,232,0.80)" }}>{current.subtitle}</p>
@@ -244,7 +244,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
         {/* Progress */}
         <div className="px-6 pt-4">
           <div className="h-1 rounded-full" style={{ background: "rgba(245,240,232,0.06)" }}>
-            <div className="h-1 rounded-full transition-all duration-500" style={{ width: `${((step + 1) / steps.length) * 100}%`, background: "linear-gradient(90deg, #E8A020, #F5C842)" }} />
+            <div className="h-1 rounded-full transition-all duration-500" style={{ width: `${((step + 1) / steps.length) * 100}%`, background: "linear-gradient(90deg, #D4922A, #F5C842)" }} />
           </div>
         </div>
 
@@ -408,7 +408,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
       {/* Radial amber glow */}
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 60% at 65% 40%, rgba(232,160,32,0.09) 0%, transparent 70%)" }} />
       {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent, #141414)" }} />
+      <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent, #161B22)" }} />
 
       <div className="container relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center py-20">
@@ -423,7 +423,6 @@ function Hero({ onCTA }: { onCTA: () => void }) {
               id="hero-heading"
               className="mb-6"
               style={{
-                fontFamily: "Space Grotesk, sans-serif",
                 fontWeight: 800,
                 fontSize: "clamp(2.4rem, 5vw, 3.75rem)",
                 lineHeight: 1.05,
@@ -432,7 +431,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
               }}
             >
               Your Business,{" "}
-              <span className="shimmer-text">Running Itself</span>
+              <span style={{ color: "#D4922A" }}>Running Itself</span>
             </h1>
 
             <p className="mb-8 max-w-lg" style={{ fontSize: "1.125rem", color: "rgba(245,240,232,0.55)", lineHeight: 1.7 }}>
@@ -456,8 +455,8 @@ function Hero({ onCTA }: { onCTA: () => void }) {
             {/* Social proof counter */}
             <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ background: "rgba(232,160,32,0.06)", border: "1px solid rgba(232,160,32,0.14)" }}>
               <div className="flex -space-x-2">
-                {["#6366F1", "#E8A020", "#5A9A7A", "#FF6B6B"].map((c, i) => (
-                  <div key={i} className="w-7 h-7 rounded-full border-2 border-[#141414] flex items-center justify-center text-white text-[9px] font-bold" style={{ background: c }}>U{i + 1}</div>
+                {["#6366F1", "#D4922A", "#5A9A7A", "#FF6B6B"].map((c, i) => (
+                  <div key={i} className="w-7 h-7 rounded-full border-2 border-[#161B22] flex items-center justify-center text-white text-[9px] font-bold" style={{ background: c }}>U{i + 1}</div>
                 ))}
               </div>
               <div>
@@ -469,7 +468,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
             <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(245,240,232,0.75)" }}>
               {["No credit card required", "Cancel anytime", "30-day money-back guarantee"].map(t => (
                 <span key={t} className="flex items-center gap-1.5">
-                  <CheckCircle className="w-3.5 h-3.5" style={{ color: "#E8A020" }} />
+                  <CheckCircle className="w-3.5 h-3.5" style={{ color: "#D4922A" }} />
                   {t}
                 </span>
               ))}
@@ -478,12 +477,12 @@ function Hero({ onCTA }: { onCTA: () => void }) {
 
           {/* Right — dashboard preview */}
           <div className="relative hidden lg:block">
-            <div className="absolute inset-0 rounded-2xl glow-amber opacity-30 blur-xl" />
-            <div className="relative rounded-2xl overflow-hidden scanlines" style={{ background: "#1E1E1E", border: "1px solid rgba(232,160,32,0.22)", boxShadow: "0 32px 80px rgba(0,0,0,0.60)" }}>
+            <div className="absolute inset-0 rounded-xl glow-amber opacity-30 blur-xl" />
+            <div className="relative rounded-xl overflow-hidden" style={{ background: "#161B22", border: "1px solid rgba(212,146,42,0.20)", boxShadow: "0 24px 60px rgba(0,0,0,0.55)" }}>
               {/* Window bar */}
-              <div className="flex items-center gap-2 px-4 py-3" style={{ background: "#272727", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
+              <div className="flex items-center gap-2 px-4 py-3" style={{ background: "#1C2333", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C85A3A" }} />
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#E8A020" }} />
+                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#D4922A" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#7A9A8A" }} />
                 <span className="ml-3 text-xs font-mono" style={{ color: "rgba(245,240,232,0.55)" }}>TrueAxis HQ — Dashboard</span>
               </div>
@@ -496,34 +495,34 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                     { label: "Clients", value: "34", change: "+3 this mo" },
                     { label: "Pulse Score", value: "87", change: "Healthy" },
                   ].map(s => (
-                    <div key={s.label} className="rounded-lg p-3" style={{ background: "#272727", border: "1px solid rgba(232,160,32,0.08)" }}>
+                    <div key={s.label} className="rounded-lg p-3" style={{ background: "#1C2333", border: "1px solid rgba(232,160,32,0.08)" }}>
                       <div className="text-xs mb-1" style={{ color: "rgba(245,240,232,0.65)" }}>{s.label}</div>
-                      <div className="font-bold text-sm" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8" }}>{s.value}</div>
-                      <div className="text-xs mt-0.5" style={{ color: "#E8A020" }}>{s.change}</div>
+                      <div className="font-bold text-sm" style={{ color: "#F5F0E8" }}>{s.value}</div>
+                      <div className="text-xs mt-0.5" style={{ color: "#D4922A" }}>{s.change}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* Pulse list */}
                 <div className="rounded-lg overflow-hidden" style={{ border: "1px solid rgba(232,160,32,0.10)" }}>
-                  <div className="px-3 py-2 flex items-center justify-between" style={{ background: "#272727", borderBottom: "1px solid rgba(232,160,32,0.08)" }}>
+                  <div className="px-3 py-2 flex items-center justify-between" style={{ background: "#1C2333", borderBottom: "1px solid rgba(232,160,32,0.08)" }}>
                     <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(245,240,232,0.70)" }}>Client Pulse AI</span>
                     <span className="tag tag-amber">Live</span>
                   </div>
                   {[
-                    { name: "Sarah Chen", score: 94, status: "Upsell Ready", color: "#E8A020" },
+                    { name: "Sarah Chen", score: 94, status: "Upsell Ready", color: "#D4922A" },
                     { name: "Marcus Lee", score: 62, status: "Going Silent", color: "#7A9A8A" },
                     { name: "Priya Patel", score: 28, status: "Churn Risk", color: "#C85A3A" },
                   ].map(c => (
                     <div key={c.name} className="px-3 py-2.5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(232,160,32,0.05)" }}>
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "rgba(232,160,32,0.12)", color: "#E8A020" }}>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "rgba(232,160,32,0.12)", color: "#D4922A" }}>
                           {c.name[0]}
                         </div>
                         <span className="text-sm" style={{ color: "#F5F0E8" }}>{c.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold" style={{ color: c.color, fontFamily: "Space Grotesk, sans-serif" }}>{c.score}</span>
+                        <span className="text-xs font-bold" style={{ color: c.color }}>{c.score}</span>
                         <span className="tag" style={{ background: `${c.color}18`, color: c.color, border: `1px solid ${c.color}28`, fontSize: "0.60rem" }}>{c.status}</span>
                       </div>
                     </div>
@@ -532,9 +531,9 @@ function Hero({ onCTA }: { onCTA: () => void }) {
 
                 {/* AI suggestion */}
                 <div className="rounded-lg p-3 flex items-start gap-3" style={{ background: "rgba(232,160,32,0.05)", border: "1px solid rgba(232,160,32,0.14)" }}>
-                  <Brain className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#E8A020" }} />
+                  <Brain className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#D4922A" }} />
                   <div>
-                    <div className="text-xs font-bold mb-0.5" style={{ color: "#E8A020" }}>AI Suggestion</div>
+                    <div className="text-xs font-bold mb-0.5" style={{ color: "#D4922A" }}>AI Suggestion</div>
                     <div className="text-xs" style={{ color: "rgba(245,240,232,0.50)" }}>Priya hasn't booked in 47 days. Draft a re-engagement email?</div>
                   </div>
                 </div>
@@ -565,7 +564,7 @@ function TickerBar() {
       <div className="marquee-track">
         {doubled.map((item, i) => (
           <span key={i} className="flex items-center gap-3 px-6 whitespace-nowrap text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(232,160,32,0.60)" }}>
-            <span style={{ color: "#E8A020" }}>◆</span>
+            <span style={{ color: "#D4922A" }}>◆</span>
             {item}
           </span>
         ))}
@@ -584,11 +583,11 @@ function StatsBar() {
   ];
 
   return (
-    <section className="py-12" style={{ background: "#0E0E0E" }}>
+    <section className="py-12" style={{ background: "#0D1117" }}>
       <div className="container">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl overflow-hidden" style={{ background: "rgba(232,160,32,0.08)" }}>
           {stats.map((s, i) => (
-            <div key={i} className="flex flex-col items-center justify-center py-10 px-6 text-center" style={{ background: "#141414" }}>
+            <div key={i} className="flex flex-col items-center justify-center py-10 px-6 text-center" style={{ background: "#161B22" }}>
               <div className="stat-number text-4xl md:text-5xl mb-2">
                 <AnimatedCounter end={s.value} suffix={s.suffix} />
               </div>
@@ -615,11 +614,11 @@ function FeaturesSection() {
   ];
 
   return (
-    <section id="features" className="py-16" style={{ background: "#141414" }}>
+    <section id="features" className="py-16" style={{ background: "#161B22" }}>
       <div className="container">
         <div className="text-center mb-10">
           <div className="section-label mb-3">Platform Features</div>
-          <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
             Stop juggling five different tools.
           </h2>
           <p className="mt-4 max-w-xl mx-auto" style={{ color: "rgba(245,240,232,0.80)", fontSize: "1.0625rem" }}>
@@ -636,13 +635,13 @@ function FeaturesSection() {
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: f.highlight ? "rgba(232,160,32,0.12)" : "rgba(245,240,232,0.05)", border: `1px solid ${f.highlight ? "rgba(232,160,32,0.22)" : "rgba(245,240,232,0.07)"}` }}>
-                  <f.icon className="w-5 h-5" style={{ color: f.highlight ? "#E8A020" : "rgba(245,240,232,0.55)" }} />
+                  <f.icon className="w-5 h-5" style={{ color: f.highlight ? "#D4922A" : "rgba(245,240,232,0.55)" }} />
                 </div>
                 <span
                   className="tag"
                   style={
                     f.tag === "Exclusive"
-                      ? { background: "rgba(232,160,32,0.12)", color: "#E8A020", border: "1px solid rgba(232,160,32,0.25)" }
+                      ? { background: "rgba(232,160,32,0.12)", color: "#D4922A", border: "1px solid rgba(232,160,32,0.25)" }
                       : f.tag === "AI"
                       ? { background: "rgba(90,122,106,0.12)", color: "#7A9A8A", border: "1px solid rgba(90,122,106,0.25)" }
                       : { background: "rgba(245,240,232,0.05)", color: "rgba(245,240,232,0.65)", border: "1px solid rgba(245,240,232,0.15)" }
@@ -651,7 +650,7 @@ function FeaturesSection() {
                   {f.tag}
                 </span>
               </div>
-              <h3 className="font-bold mb-2" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8", fontSize: "1.0625rem" }}>
+              <h3 className="font-bold mb-2" style={{ color: "#F5F0E8", fontSize: "1.0625rem" }}>
                 {f.title}
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.80)" }}>
@@ -675,12 +674,11 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section id="how-it-works" className="py-16 relative" style={{ background: "#0E0E0E" }}>
-      <div className="absolute inset-0 retro-grid opacity-40 pointer-events-none" />
-      <div className="container relative z-10">
+    <section id="how-it-works" className="py-16" style={{ background: "#0D1117" }}>
+      <div className="container">
         <div className="text-center mb-10">
           <div className="section-label mb-3">How It Works</div>
-          <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
             From signup to autopilot in 4 steps
           </h2>
         </div>
@@ -689,14 +687,14 @@ function HowItWorksSection() {
           {steps.map((s, i) => (
             <div key={i} className="retro-card p-6">
               <div className="flex items-center gap-3 mb-4">
-                <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "2rem", color: "rgba(232,160,32,0.18)", lineHeight: 1 }}>
+                <span style={{ fontWeight: 800, fontSize: "2rem", color: "rgba(212,146,42,0.22)", lineHeight: 1 }}>
                   {s.number}
                 </span>
                 <div className="w-9 h-9 rounded flex items-center justify-center" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.18)" }}>
-                  <s.icon className="w-4 h-4" style={{ color: "#E8A020" }} />
+                  <s.icon className="w-4 h-4" style={{ color: "#D4922A" }} />
                 </div>
               </div>
-              <h3 className="font-bold mb-2" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8", fontSize: "1rem" }}>
+              <h3 className="font-bold mb-2" style={{ color: "#F5F0E8", fontSize: "1rem" }}>
                 {s.title}
               </h3>
               <p className="text-sm" style={{ color: "rgba(245,240,232,0.80)", lineHeight: 1.65 }}>
@@ -713,14 +711,14 @@ function HowItWorksSection() {
 // ─── Client Pulse Showcase ────────────────────────────────────────────────────
 function ClientPulseShowcase() {
   const clients = [
-    { name: "Sarah Chen", role: "Life Coach", score: 94, status: "Upsell Ready", color: "#E8A020", days: 2, revenue: "$3,200" },
+    { name: "Sarah Chen", role: "Life Coach", score: 94, status: "Upsell Ready", color: "#D4922A", days: 2, revenue: "$3,200" },
     { name: "Marcus Lee", role: "Consultant", score: 62, status: "Going Silent", color: "#7A9A8A", days: 18, revenue: "$1,800" },
-    { name: "Priya Patel", role: "Designer", score: 28, status: "Churn Risk", color: "#C85A3A", days: 47, revenue: "$950" },
-    { name: "James Wu", role: "Developer", score: 81, status: "Healthy", color: "#5A9A7A", days: 5, revenue: "$4,100" },
+    { name: "Priya Patel", role: "Designer", score: 28, status: "Churn Risk", color: "#C0392B", days: 47, revenue: "$950" },
+    { name: "James Wu", role: "Developer", score: 81, status: "Healthy", color: "#1E6B45", days: 5, revenue: "$4,100" },
   ];
 
   return (
-    <section className="py-16" style={{ background: "#141414" }}>
+    <section className="py-16" style={{ background: "#0D1117" }}>
       <div className="container">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left — copy */}
@@ -729,10 +727,10 @@ function ClientPulseShowcase() {
               <Sparkles className="w-3 h-3" />
               Exclusive to TrueAxis HQ
             </div>
-            <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em", lineHeight: 1.1 }}>
+            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em", lineHeight: 1.1 }}>
               Client Pulse AI™
               <br />
-              <span style={{ color: "#E8A020" }}>Know before they leave.</span>
+              <span style={{ color: "#D4922A" }}>Know before they leave.</span>
             </h2>
             <p className="mt-4 mb-8" style={{ color: "rgba(245,240,232,0.80)", fontSize: "1.0625rem", lineHeight: 1.7 }}>
               Our proprietary AI engine scores every client relationship 0–100 in real time. It detects churn risk, identifies upsell opportunities, and drafts personalized re-engagement messages — automatically.
@@ -745,7 +743,7 @@ function ClientPulseShowcase() {
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.18)" }}>
-                    <item.icon className="w-4 h-4" style={{ color: "#E8A020" }} />
+                    <item.icon className="w-4 h-4" style={{ color: "#D4922A" }} />
                   </div>
                   <p className="text-sm" style={{ color: "rgba(245,240,232,0.85)", lineHeight: 1.65 }}>{item.text}</p>
                 </div>
@@ -755,29 +753,29 @@ function ClientPulseShowcase() {
 
           {/* Right — live UI preview */}
           <div className="retro-card overflow-hidden" style={{ border: "1px solid rgba(232,160,32,0.18)" }}>
-            <div className="px-5 py-3 flex items-center justify-between" style={{ background: "#272727", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
+            <div className="px-5 py-3 flex items-center justify-between" style={{ background: "#1C2333", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
               <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4" style={{ color: "#E8A020" }} />
-                <span style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 600, fontSize: "0.875rem", color: "#F5F0E8" }}>Client Pulse</span>
+                <Activity className="w-4 h-4" style={{ color: "#D4922A" }} />
+                <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "#F5F0E8" }}>Client Pulse</span>
               </div>
               <span className="tag tag-amber">Live</span>
             </div>
             <div className="p-4 space-y-2">
               {clients.map((c, i) => (
-                <div key={i} className="rounded-lg p-3 flex items-center gap-3" style={{ background: "#1E1E1E", border: "1px solid rgba(245,240,232,0.04)" }}>
+                <div key={i} className="rounded-lg p-3 flex items-center gap-3" style={{ background: "#161B22", border: "1px solid rgba(245,240,232,0.04)" }}>
                   {/* Score ring */}
                   <div className="relative w-10 h-10 flex-shrink-0">
                     <svg viewBox="0 0 36 36" className="w-10 h-10 -rotate-90">
                       <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(245,240,232,0.05)" strokeWidth="3" />
                       <circle cx="18" cy="18" r="15" fill="none" stroke={c.color} strokeWidth="3" strokeDasharray={`${(c.score / 100) * 94.25} 94.25`} strokeLinecap="round" />
                     </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold" style={{ fontFamily: "Space Grotesk, sans-serif", color: c.color }}>
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold" style={{ color: c.color }}>
                       {c.score}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-sm" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8" }}>{c.name}</span>
+                      <span className="font-semibold text-sm" style={{ color: "#F5F0E8" }}>{c.name}</span>
                       <span className="tag" style={{ background: `${c.color}18`, color: c.color, border: `1px solid ${c.color}28`, fontSize: "0.58rem" }}>{c.status}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-1">
@@ -785,7 +783,7 @@ function ClientPulseShowcase() {
                       <span className="text-xs" style={{ color: "rgba(245,240,232,0.55)" }}>·</span>
                       <span className="text-xs" style={{ color: "rgba(245,240,232,0.60)" }}>{c.days}d ago</span>
                       <span className="text-xs" style={{ color: "rgba(245,240,232,0.55)" }}>·</span>
-                      <span className="text-xs font-semibold" style={{ color: "#E8A020" }}>{c.revenue}</span>
+                      <span className="text-xs font-semibold" style={{ color: "#D4922A" }}>{c.revenue}</span>
                     </div>
                   </div>
                 </div>
@@ -793,9 +791,9 @@ function ClientPulseShowcase() {
             </div>
             <div className="px-5 py-3" style={{ background: "rgba(232,160,32,0.03)", borderTop: "1px solid rgba(232,160,32,0.08)" }}>
               <div className="flex items-start gap-2">
-                <Brain className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "#E8A020" }} />
+                <Brain className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "#D4922A" }} />
                 <p className="text-xs" style={{ color: "rgba(245,240,232,0.80)" }}>
-                  <strong style={{ color: "#E8A020" }}>AI:</strong> Priya hasn't booked in 47 days. Her revenue is down 40%. Re-engagement email drafted and ready to send.
+                  <strong style={{ color: "#D4922A" }}>AI:</strong> Priya hasn't booked in 47 days. Her revenue is down 40%. Re-engagement email drafted and ready to send.
                 </p>
               </div>
             </div>
@@ -836,11 +834,11 @@ function TestimonialsSection() {
   ];
 
   return (
-    <section className="py-12" style={{ background: "#0E0E0E" }}>
+    <section className="py-16" style={{ background: "#161B22" }}>
       <div className="container">
         <div className="text-center mb-8">
           <div className="section-label mb-3">What Freelancers Say</div>
-          <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
             Join thousands who scaled with TrueAxis HQ.
           </h2>
         </div>
@@ -850,7 +848,7 @@ function TestimonialsSection() {
             <div key={i} className="retro-card card-lift p-6">
               <div className="flex gap-0.5 mb-4">
                 {Array.from({ length: t.stars }).map((_, j) => (
-                  <Star key={j} className="w-4 h-4 fill-current" style={{ color: "#E8A020" }} />
+                  <Star key={j} className="w-4 h-4 fill-current" style={{ color: "#D4922A" }} />
                 ))}
               </div>
               <blockquote className="text-sm leading-relaxed mb-5" style={{ color: "rgba(245,240,232,0.85)" }}>
@@ -860,7 +858,7 @@ function TestimonialsSection() {
                 <div className="flex items-center gap-3">
                   <img src={t.avatar} alt={t.name} className="w-9 h-9 rounded-full object-cover" style={{ border: "1px solid rgba(232,160,32,0.18)" }} />
                   <div>
-                    <div className="text-sm font-semibold" style={{ fontFamily: "Space Grotesk, sans-serif", color: "#F5F0E8" }}>{t.name}</div>
+                    <div className="text-sm font-semibold" style={{ color: "#F5F0E8" }}>{t.name}</div>
                     <div className="text-xs" style={{ color: "rgba(245,240,232,0.70)" }}>{t.role}</div>
                   </div>
                 </div>
@@ -893,12 +891,10 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
   };
 
   return (
-    <section className="py-12 relative overflow-hidden" style={{ background: "#141414" }}>
-      <div className="absolute inset-0 retro-grid opacity-25 pointer-events-none" />
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 80% at 50% 50%, rgba(232,160,32,0.06) 0%, transparent 70%)" }} />
-      <div className="container relative z-10 text-center max-w-2xl mx-auto">
+    <section className="py-16" style={{ background: "#1B2D4F" }}>
+      <div className="container text-center max-w-2xl mx-auto">
         <div className="section-label mb-4">Start Today</div>
-        <h2 style={{ fontFamily: "Space Grotesk, sans-serif", fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
           Your business command center is waiting.
         </h2>
         <p className="mt-4 mb-10" style={{ color: "rgba(245,240,232,0.80)", fontSize: "1.0625rem" }}>
@@ -907,8 +903,8 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
 
         {submitted ? (
           <div className="inline-flex items-center gap-3 px-6 py-4 rounded-lg" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.22)" }}>
-            <CheckCircle className="w-5 h-5" style={{ color: "#E8A020" }} />
-            <span style={{ color: "#F5F0E8", fontFamily: "Space Grotesk, sans-serif", fontWeight: 600 }}>You're on the list — check your inbox!</span>
+            <CheckCircle className="w-5 h-5" style={{ color: "#D4922A" }} />
+            <span style={{ color: "#F5F0E8", fontWeight: 600 }}>You're on the list — check your inbox!</span>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
@@ -948,24 +944,24 @@ const HOME_FAQS = [
 function FAQSection() {
   const [open, setOpen] = useState<number | null>(null);
   return (
-    <section className="py-20 px-6" style={{ background: "#141414" }}>
+    <section className="py-20 px-6" style={{ background: "#0D1117" }}>
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
-          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ background: "rgba(232,160,32,0.12)", color: "#E8A020" }}>FAQ</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3" style={{ fontFamily: "Plus Jakarta Sans, sans-serif" }}>Frequently Asked Questions</h2>
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ background: "rgba(232,160,32,0.12)", color: "#D4922A" }}>FAQ</span>
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-3" style={{ color: "#F5EFE3", letterSpacing: "-0.02em" }}>Frequently Asked Questions</h2>
           <p className="text-gray-300 text-base">Everything you need to know before getting started.</p>
         </div>
         <div className="space-y-3">
           {HOME_FAQS.map((faq, i) => (
-            <div key={i} className="rounded-2xl border overflow-hidden" style={{ borderColor: open === i ? "rgba(232,160,32,0.4)" : "rgba(255,255,255,0.08)", background: open === i ? "rgba(232,160,32,0.04)" : "rgba(255,255,255,0.03)" }}>
+            <div key={i} className="rounded-xl border overflow-hidden" style={{ borderColor: open === i ? "rgba(232,160,32,0.4)" : "rgba(255,255,255,0.08)", background: open === i ? "rgba(232,160,32,0.04)" : "rgba(255,255,255,0.03)" }}>
               <button
                 className="w-full flex items-center justify-between px-5 py-4 text-left"
                 onClick={() => setOpen(open === i ? null : i)}
                 aria-expanded={open === i}
               >
                 <span className="text-sm font-semibold text-white pr-4">{faq.q}</span>
-                <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: open === i ? "#E8A020" : "rgba(255,255,255,0.1)" }}>
-                  <span className="text-xs font-bold" style={{ color: open === i ? "#141414" : "#fff" }}>{open === i ? "−" : "+"}</span>
+                <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: open === i ? "#D4922A" : "rgba(255,255,255,0.1)" }}>
+                  <span className="text-xs font-bold" style={{ color: open === i ? "#161B22" : "#fff" }}>{open === i ? "−" : "+"}</span>
                 </span>
               </button>
               {open === i && (
@@ -977,7 +973,7 @@ function FAQSection() {
           ))}
         </div>
         <p className="text-center text-sm text-gray-400 mt-10">
-          Still have questions? <a href="/contact" className="text-[#E8A020] hover:underline font-medium">Contact our team →</a>
+          Still have questions? <a href="/contact" className="text-[#D4922A] hover:underline font-medium">Contact our team →</a>
         </p>
       </div>
     </section>
@@ -1017,7 +1013,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
     },
   ];
   return (
-    <footer style={{ background: "#0A0A0A", borderTop: "1px solid rgba(232,160,32,0.08)" }}>
+    <footer style={{ background: "#0D1117", borderTop: "1px solid rgba(212,146,42,0.12)" }}>
       <div className="container pt-16 pb-10 page-bottom">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-12">
           {/* Brand */}
@@ -1107,18 +1103,17 @@ export default function Home() {
   // While checking auth, show a minimal dark loader so there's no flash of the landing page
   if (meQuery.isLoading) {
     return (
-      <div
-        style={{ background: "#141414", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}
+          <div style={{ background: "#0D1117", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}
         role="status"
         aria-label="Loading"
       >
         <div style={{ textAlign: "center" }}>
           <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(232,160,32,0.10)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite" }}>
-              <circle cx="12" cy="12" r="10" stroke="#E8A020" strokeWidth="2" strokeDasharray="31.4" strokeDashoffset="10" strokeLinecap="round" />
+              <circle cx="12" cy="12" r="10" stroke="#D4922A" strokeWidth="2" strokeDasharray="31.4" strokeDashoffset="10" strokeLinecap="round" />
             </svg>
           </div>
-          <p style={{ color: "rgba(245,240,232,0.70)", fontSize: 13, fontFamily: "DM Sans, sans-serif" }}>Loading…</p>
+          <p style={{ color: "rgba(245,239,227,0.70)", fontSize: 13 }}>Loading…</p>
         </div>
       </div>
     );
@@ -1128,7 +1123,7 @@ export default function Home() {
   if (meQuery.data) return null;
 
   return (
-    <div style={{ background: "#141414", minHeight: "100vh", overflowX: "hidden" }}>
+    <div style={{ background: "#0D1117", minHeight: "100vh", overflowX: "hidden" }}>
       <Nav onCTA={() => setModalOpen(true)} />
       <Hero onCTA={() => setModalOpen(true)} />
       <TickerBar />
@@ -1144,10 +1139,10 @@ export default function Home() {
       {changelogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Changelog">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setChangelogOpen(false)} aria-hidden="true" />
-          <div className="relative bg-[#1E1E1E] rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" style={{ border: "1px solid rgba(232,160,32,0.20)" }}>
+          <div className="relative bg-[#161B22] rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" style={{ border: "1px solid rgba(232,160,32,0.20)" }}>
             <div className="flex items-center justify-between p-5 border-b border-white/5">
               <div>
-                <h2 className="font-extrabold text-[#F5F0E8] text-base" style={{ fontFamily: "Space Grotesk, sans-serif" }}>What's New 🎉</h2>
+                <h2 className="font-bold text-[#F5F0E8] text-base">What's New</h2>
                 <p className="text-xs text-gray-400 mt-0.5">TrueAxis HQ — Latest Updates</p>
               </div>
               <button onClick={() => setChangelogOpen(false)} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors" aria-label="Close">

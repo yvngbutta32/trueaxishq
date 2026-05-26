@@ -25,7 +25,7 @@ export default function BookingCancel() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#E8A020] animate-spin" />
+        <Loader2 className="w-8 h-8 text-[#D4922A] animate-spin" />
       </div>
     );
   }
@@ -57,7 +57,7 @@ export default function BookingCancel() {
           {rebookUrl && (
             <Button
               onClick={() => navigate(rebookUrl)}
-              className="bg-[#E8A020] hover:bg-[#D4911A] text-white"
+              className="bg-[#D4922A] hover:bg-[#D4911A] text-white"
             >
               Book a New Appointment
             </Button>
@@ -73,7 +73,7 @@ export default function BookingCancel() {
     <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden max-w-md w-full">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#1C1C1E] to-[#2A2A2C] p-6 text-white">
+        <div className="bg-gradient-to-r from-[#1C2333] to-[#2A2A2C] p-6 text-white">
           <h1 className="text-xl font-bold">
             {action === "cancel" ? "Cancel Booking" : "Reschedule Booking"}
           </h1>
@@ -84,8 +84,8 @@ export default function BookingCancel() {
           {/* Booking details */}
           <div className="bg-gray-50 rounded-xl p-4 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#E8A020]/10 flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-[#E8A020]" />
+              <div className="w-8 h-8 rounded-lg bg-[#D4922A]/10 flex items-center justify-center">
+                <Calendar className="w-4 h-4 text-[#D4922A]" />
               </div>
               <div>
                 <p className="text-xs text-gray-500">Service</p>
@@ -158,7 +158,7 @@ export default function BookingCancel() {
                       cancelMutation.mutate({ token, origin: window.location.origin });
                     }}
                     disabled={cancelMutation.isPending}
-                    className="flex-1 bg-[#E8A020] hover:bg-[#D4911A] text-white"
+                    className="flex-1 bg-[#D4922A] hover:bg-[#D4911A] text-white"
                   >
                     {cancelMutation.isPending ? (
                       <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing…</>

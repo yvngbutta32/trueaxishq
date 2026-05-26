@@ -189,9 +189,9 @@ export default function BookingPage() {
   // Loading state
   if (pageQuery.isLoading) {
     return (
-      <div className="min-h-screen bg-[#141414] flex items-center justify-center" role="status" aria-label="Loading booking page">
+      <div className="min-h-screen bg-[#161B22] flex items-center justify-center" role="status" aria-label="Loading booking page">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 text-[#E8A020] animate-spin mx-auto mb-3" aria-hidden="true" />
+          <Loader2 className="w-10 h-10 text-[#D4922A] animate-spin mx-auto mb-3" aria-hidden="true" />
           <p className="text-gray-600 text-sm">Loading booking page…</p>
         </div>
       </div>
@@ -201,9 +201,9 @@ export default function BookingPage() {
   // Not found
   if (!pageQuery.data) {
     return (
-      <div className="min-h-screen bg-[#141414] flex items-center justify-center">
+      <div className="min-h-screen bg-[#161B22] flex items-center justify-center">
         <div className="text-center max-w-sm">
-          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
+          <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
             <User className="w-8 h-8 text-gray-600" />
           </div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">Page Not Found</h1>
@@ -239,9 +239,9 @@ export default function BookingPage() {
     });
 
     return (
-      <div className="min-h-screen bg-[#141414]">
+      <div className="min-h-screen bg-[#161B22]">
         {/* Header */}
-        <header className="bg-[#1C1C1E] border-b border-white/10 px-4 py-3.5">
+        <header className="bg-[#1C2333] border-b border-white/10 px-4 py-3.5">
           <div className="max-w-xl mx-auto flex items-center gap-3">
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
@@ -255,12 +255,12 @@ export default function BookingPage() {
           {/* Animated checkmark */}
           <div className="text-center mb-8">
             <div className="relative inline-flex items-center justify-center w-20 h-20 mx-auto mb-5">
-              <div className="absolute inset-0 rounded-full bg-[#E8A020]/15 animate-ping opacity-40" />
-              <div className="relative w-20 h-20 rounded-full bg-[#E8A020]/15 flex items-center justify-center">
-                <CheckCircle className="w-10 h-10 text-[#E8A020]" />
+              <div className="absolute inset-0 rounded-full bg-[#D4922A]/15 animate-ping opacity-40" />
+              <div className="relative w-20 h-20 rounded-full bg-[#D4922A]/15 flex items-center justify-center">
+                <CheckCircle className="w-10 h-10 text-[#D4922A]" />
               </div>
             </div>
-            <h1 className="text-3xl font-extrabold text-white mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <h1 className="text-3xl font-extrabold text-white mb-2" style={{ fontFamily: "Inter, sans-serif" }}>
               You're Booked!
             </h1>
             <p className="text-gray-300 text-sm max-w-sm mx-auto">
@@ -269,10 +269,10 @@ export default function BookingPage() {
           </div>
 
           {/* Booking summary card */}
-          <div className="bg-[#1C1C1E] border border-white/10 rounded-2xl p-5 mb-5">
+          <div className="bg-[#1C2333] border border-white/10 rounded-xl p-5 mb-5">
             <div className="flex items-center gap-2 mb-4">
-              <CalendarDays className="w-4 h-4 text-[#E8A020]" />
-              <span className="text-xs font-bold text-[#E8A020] uppercase tracking-wider">Booking Summary</span>
+              <CalendarDays className="w-4 h-4 text-[#D4922A]" />
+              <span className="text-xs font-bold text-[#D4922A] uppercase tracking-wider">Booking Summary</span>
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -298,10 +298,10 @@ export default function BookingPage() {
           </div>
 
           {/* Calendar add section */}
-          <div className="bg-[#1C1C1E] border border-white/10 rounded-2xl p-5 mb-5">
+          <div className="bg-[#1C2333] border border-white/10 rounded-xl p-5 mb-5">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-4 h-4 text-[#E8A020]" />
-              <span className="text-xs font-bold text-[#E8A020] uppercase tracking-wider">Add to Your Calendar</span>
+              <Sparkles className="w-4 h-4 text-[#D4922A]" />
+              <span className="text-xs font-bold text-[#D4922A] uppercase tracking-wider">Add to Your Calendar</span>
             </div>
             <p className="text-xs text-gray-300 mb-4">Save this appointment so you never miss it. Includes a 1-hour reminder.</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -313,7 +313,7 @@ export default function BookingPage() {
                 }}
                 className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
               >
-                <Download className="w-4 h-4 text-[#E8A020]" />
+                <Download className="w-4 h-4 text-[#D4922A]" />
                 Download .ics
               </button>
 
@@ -343,8 +343,8 @@ export default function BookingPage() {
           </div>
 
           {/* Email note */}
-          <div className="flex items-start gap-3 bg-[#E8A020]/8 border border-[#E8A020]/20 rounded-xl p-4 mb-6">
-            <Mail className="w-4 h-4 text-[#E8A020] flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 bg-[#D4922A]/8 border border-[#D4922A]/20 rounded-xl p-4 mb-6">
+            <Mail className="w-4 h-4 text-[#D4922A] flex-shrink-0 mt-0.5" />
             <p className="text-xs text-gray-300">
               A confirmation has been sent to <strong className="text-white">{form.clientEmail}</strong>. Check your spam folder if you don't see it within a few minutes.
             </p>
@@ -368,11 +368,11 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#141414]">
+    <div className="min-h-screen bg-[#161B22]">
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* Header */}
-      <header className="bg-[#1C1C1E] border-b border-white/10 px-4 py-3.5" role="banner">
+      <header className="bg-[#1C2333] border-b border-white/10 px-4 py-3.5" role="banner">
         <div className="max-w-xl mx-auto flex items-center gap-3">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
@@ -382,12 +382,12 @@ export default function BookingPage() {
           <div className="w-px h-5 bg-white/15 flex-shrink-0" aria-hidden="true" />
           <div>
             <p className="text-xs text-gray-400">Booking with</p>
-            <h1 className="text-sm font-bold text-white" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <h1 className="text-sm font-bold text-white" style={{ fontFamily: "Inter, sans-serif" }}>
               {host.name}
             </h1>
           </div>
           <div className="ml-auto">
-            <span className="text-xs bg-[#E8A020]/15 text-[#E8A020] border border-[#E8A020]/25 rounded-full px-3 py-1 font-semibold">
+            <span className="text-xs bg-[#D4922A]/15 text-[#D4922A] border border-[#D4922A]/25 rounded-full px-3 py-1 font-semibold">
               Secure Booking
             </span>
           </div>
@@ -395,7 +395,7 @@ export default function BookingPage() {
       </header>
 
       {/* Progress */}
-      <div className="bg-[#1C1C1E] border-b border-white/10" role="navigation" aria-label="Booking progress">
+      <div className="bg-[#1C2333] border-b border-white/10" role="navigation" aria-label="Booking progress">
         <div className="max-w-xl mx-auto px-4 py-3">
           <div className="flex items-center gap-2" role="list">
             {[
@@ -413,8 +413,8 @@ export default function BookingPage() {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                        isDone ? "bg-[#E8A020] text-[#1C1C1E]" :
-                        isCurrent ? "bg-[#E8A020]/20 text-[#E8A020] border-2 border-[#E8A020]" :
+                        isDone ? "bg-[#D4922A] text-[#1C2333]" :
+                        isCurrent ? "bg-[#D4922A]/20 text-[#D4922A] border-2 border-[#D4922A]" :
                         "bg-white/10 text-gray-600"
                       }`}
                       aria-current={isCurrent ? "step" : undefined}
@@ -422,7 +422,7 @@ export default function BookingPage() {
                       {isDone ? <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" /> : i + 1}
                     </div>
                     <span className={`text-xs font-medium hidden sm:block ${
-                      isCurrent ? "text-[#E8A020]" : isDone ? "text-gray-400" : "text-gray-500"
+                      isCurrent ? "text-[#D4922A]" : isDone ? "text-gray-400" : "text-gray-500"
                     }`}>
                       {s.label}
                     </span>
@@ -441,7 +441,7 @@ export default function BookingPage() {
         {/* Step 1: Details */}
         {step === "details" && (
           <section aria-label="Your contact details">
-            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Inter, sans-serif" }}>
               Tell us about yourself
             </h2>
             <p className="text-sm text-gray-400 mb-6">We'll share this with {host.name} to prepare for your session.</p>
@@ -556,7 +556,7 @@ export default function BookingPage() {
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
             </button>
 
-            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Inter, sans-serif" }}>
               Choose a date & time
             </h2>
             <p className="text-sm text-gray-600 mb-6">All times are shown in your local timezone.</p>
@@ -576,9 +576,9 @@ export default function BookingPage() {
                       onClick={() => setForm(p => ({ ...p, preferredDate: dateStr }))}
                       aria-pressed={isSelected}
                       aria-label={`${dayName} ${dateStr}`}
-                      className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2 ${
+                      className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 ${
                         isSelected
-                          ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]"
+                          ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]"
                           : "border-white/15 bg-white/5 hover:border-white/25 text-gray-300"
                       }`}
                     >
@@ -603,9 +603,9 @@ export default function BookingPage() {
                         onClick={() => setForm(p => ({ ...p, preferredTime: time }))}
                         aria-pressed={isSelected}
                         aria-label={`${time}`}
-                        className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] focus-visible:outline-[3px] focus-visible:outline-[#E8A020] focus-visible:outline-offset-2 ${
+                        className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 ${
                           isSelected
-                            ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]"
+                            ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]"
                             : "border-white/15 bg-white/5 hover:border-white/25 text-gray-300"
                         }`}
                       >
@@ -643,15 +643,15 @@ export default function BookingPage() {
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
             </button>
 
-            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Inter, sans-serif" }}>
               Confirm your booking
             </h2>
             <p className="text-sm text-gray-400 mb-6">Please review the details below before submitting.</p>
 
-            <div className="bg-white/5 rounded-2xl border border-white/10 p-5 space-y-4 mb-6">
+            <div className="bg-white/5 rounded-xl border border-white/10 p-5 space-y-4 mb-6">
               <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-                <div className="w-10 h-10 rounded-xl bg-[#E8A020]/15 border border-[#E8A020]/25 flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                  <User className="w-5 h-5 text-[#E8A020]" />
+                <div className="w-10 h-10 rounded-xl bg-[#D4922A]/15 border border-[#D4922A]/25 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                  <User className="w-5 h-5 text-[#D4922A]" />
                 </div>
                 <div>
                   <p className="font-bold text-white">{host.name}</p>

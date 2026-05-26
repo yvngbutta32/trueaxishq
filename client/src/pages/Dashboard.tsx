@@ -1,6 +1,6 @@
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C1C1E), Teal (#E8A020), Coral (#FF6B6B)
+ * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
  */
 
 import { useState, useEffect, useRef } from "react";
@@ -87,10 +87,10 @@ function Modal({ open, onClose, title, children, wide }: {
       <div
         ref={ref}
         tabIndex={-1}
-        className={`relative bg-white rounded-2xl shadow-2xl w-full ${wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto outline-none`}
+        className={`relative bg-white rounded-xl shadow-2xl w-full ${wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto outline-none`}
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="font-bold text-[#1C1C1E] text-base" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{title}</h2>
+          <h2 className="font-bold text-[#1C2333] text-base" style={{ fontFamily: "Inter, sans-serif" }}>{title}</h2>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close dialog">
             <X className="w-4 h-4 text-gray-600" />
           </button>
@@ -162,7 +162,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-full bg-[#1C1C1E] flex flex-col transition-all duration-300 z-40 ${collapsed ? "w-16" : "w-60"}`}
+      className={`fixed left-0 top-0 h-full bg-[#1C2333] flex flex-col transition-all duration-300 z-40 ${collapsed ? "w-16" : "w-60"}`}
       aria-label="Main navigation"
     >
       {/* Logo — click navigates to dashboard */}
@@ -201,7 +201,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             aria-current={active === item.panel ? "page" : undefined}
             aria-label={item.label}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative ${
-              active === item.panel ? "bg-[#E8A020]/15 text-[#E8A020]" : "text-gray-600 hover:bg-white/5 hover:text-white"
+              active === item.panel ? "bg-[#D4922A]/15 text-[#D4922A]" : "text-gray-600 hover:bg-white/5 hover:text-white"
             }`}
           >
             <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
@@ -249,10 +249,10 @@ function ChangelogModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="What's new">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={dismiss} aria-hidden="true" />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <div>
-            <h2 className="font-extrabold text-[#1C1C1E] text-base" style={{ fontFamily: "Space Grotesk, sans-serif" }}>What's New in v{CHANGELOG_VERSION} 🎉</h2>
+            <h2 className="font-extrabold text-[#1C2333] text-base" style={{ fontFamily: "Inter, sans-serif" }}>What's New in v{CHANGELOG_VERSION} 🎉</h2>
             <p className="text-xs text-gray-600 mt-0.5">TrueAxis HQ — Latest Updates</p>
           </div>
           <button onClick={dismiss} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Close">
@@ -273,7 +273,7 @@ function ChangelogModal() {
             <div key={item.title} className="flex items-start gap-3">
               <span className="text-xl flex-shrink-0">{item.emoji}</span>
               <div>
-                <p className="text-sm font-bold text-[#1C1C1E]">{item.title}</p>
+                <p className="text-sm font-bold text-[#1C2333]">{item.title}</p>
                 <p className="text-xs text-gray-600 mt-0.5">{item.desc}</p>
               </div>
             </div>
@@ -313,7 +313,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
   );
 
   const stats = [
-    { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), change: "+12% this month", icon: DollarSign, color: "#E8A020" },
+    { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), change: "+12% this month", icon: DollarSign, color: "#D4922A" },
     { label: "Active Clients", value: String(analytics?.activeClients || 0), change: `${analytics?.totalClients || 0} total`, icon: Users, color: "#6366F1" },
     { label: "Sessions Completed", value: String(analytics?.completedSessions || 0), change: `${analytics?.upcomingSessions || 0} upcoming`, icon: CheckCircle, color: "#F59E0B" },
     { label: "Outstanding", value: formatCurrency(analytics?.outstanding || 0), change: "Awaiting payment", icon: Clock, color: "#FF6B6B" },
@@ -326,7 +326,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
     <div className="space-y-6">
       <ChangelogModal />
       <div>
-        <h1 className="text-2xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+        <h1 className="text-2xl font-extrabold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>
           {getGreeting()}, {userName || "there"} 👋
         </h1>
         <p className="text-sm text-gray-600 mt-1">Here's what's happening with your business today.</p>
@@ -336,14 +336,14 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map(s => (
-          <div key={s.label} className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 card-lift">
+          <div key={s.label} className="bg-white rounded-xl p-4 sm:p-5 border border-gray-100 card-lift">
             <div className="flex items-start justify-between mb-2 sm:mb-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: s.color }}>
                 <s.icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
               </div>
               <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" aria-hidden="true" />
             </div>
-            <p className="text-xl sm:text-2xl font-extrabold text-[#1C1C1E] leading-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{s.value}</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-[#1C2333] leading-tight" style={{ fontFamily: "Inter, sans-serif" }}>{s.value}</p>
             <p className="text-[11px] sm:text-xs text-gray-600 mt-0.5 leading-snug">{s.label}</p>
             <p className="text-[11px] sm:text-xs font-medium mt-1" style={{ color: s.color }}>{s.change}</p>
           </div>
@@ -355,40 +355,40 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
         {([
           { icon: Plus, label: "Add Client", color: "#6366F1", panel: "clients" },
           { icon: Calendar, label: "New Booking", color: "#F59E0B", panel: "scheduling" },
-          { icon: FileText, label: "New Invoice", color: "#E8A020", panel: "invoices" },
+          { icon: FileText, label: "New Invoice", color: "#D4922A", panel: "invoices" },
           { icon: Mail, label: "AI Follow-Up", color: "#5A9A7A", panel: "followups" },
         ] as { icon: React.ElementType; label: string; color: string; panel: ActivePanel }[]).map(({ icon: Icon, label, color, panel }) => (
           <button
             key={label}
             onClick={() => setActivePanel(panel)}
-            className="bg-white rounded-2xl p-3 sm:p-4 border border-gray-100 card-lift flex flex-col items-center gap-1.5 sm:gap-2 text-center hover:border-[#E8A020]/30 transition-all group"
+            className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100 card-lift flex flex-col items-center gap-1.5 sm:gap-2 text-center hover:border-[#D4922A]/30 transition-all group"
           >
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white transition-transform group-hover:scale-110" style={{ backgroundColor: color }}>
               <Icon className="w-4 h-4" aria-hidden="true" />
             </div>
-            <span className="text-[11px] sm:text-xs font-semibold text-[#1C1C1E] leading-tight">{label}</span>
+            <span className="text-[11px] sm:text-xs font-semibold text-[#1C2333] leading-tight">{label}</span>
           </button>
         ))}
       </div>
 
       {/* Charts */}
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Revenue (Last 6 Months)</h3>
+        <div className="bg-white rounded-xl p-5 border border-gray-100">
+          <h3 className="font-bold text-[#1C2333] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Revenue (Last 6 Months)</h3>
           {monthlyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={monthlyData}>
                 <defs>
                   <linearGradient id="amberGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#E8A020" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#E8A020" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#D4922A" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#D4922A" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: "12px" }} formatter={(v: number) => [formatCurrency(v), "Revenue"]} />
-                <Area type="monotone" dataKey="revenue" stroke="#E8A020" strokeWidth={2.5} fill="url(#amberGrad)" />
+                <Area type="monotone" dataKey="revenue" stroke="#D4922A" strokeWidth={2.5} fill="url(#amberGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
@@ -399,8 +399,8 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
           )}
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Client Growth</h3>
+        <div className="bg-white rounded-xl p-5 border border-gray-100">
+          <h3 className="font-bold text-[#1C2333] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Client Growth</h3>
           {clientGrowthData.some(d => d.count > 0) ? (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={clientGrowthData}>
@@ -408,7 +408,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: "12px" }} />
-                <Bar dataKey="count" fill="#E8A020" radius={[6, 6, 0, 0]} name="New Clients" />
+                <Bar dataKey="count" fill="#D4922A" radius={[6, 6, 0, 0]} name="New Clients" />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -431,32 +431,32 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
           : null;
         if (withPulse.length === 0) return null;
         return (
-          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="bg-white rounded-xl border border-gray-100 p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <HeartPulse className="w-4 h-4 text-[#E8A020]" />
-                <h3 className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Client Pulse</h3>
-                <span className="text-xs bg-[#E8A020]/10 text-[#E8A020] font-semibold px-2 py-0.5 rounded-full">AI</span>
+                <HeartPulse className="w-4 h-4 text-[#D4922A]" />
+                <h3 className="font-bold text-sm text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>Client Pulse</h3>
+                <span className="text-xs bg-[#D4922A]/10 text-[#D4922A] font-semibold px-2 py-0.5 rounded-full">AI</span>
               </div>
-              <button onClick={() => setActivePanel("pulse")} className="text-xs text-[#E8A020] hover:underline font-medium flex items-center gap-1">
+              <button onClick={() => setActivePanel("pulse")} className="text-xs text-[#D4922A] hover:underline font-medium flex items-center gap-1">
                 View All <ChevronRight className="w-3 h-3" />
               </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="text-center p-3 bg-gray-50 rounded-xl">
-                <p className="text-2xl font-extrabold" style={{ fontFamily: "Space Grotesk, sans-serif", color: avgScore !== null ? (avgScore >= 70 ? "#E8A020" : avgScore >= 40 ? "#F59E0B" : "#FF6B6B") : "#9CA3AF" }}>{avgScore ?? "—"}</p>
+                <p className="text-2xl font-extrabold" style={{ fontFamily: "Inter, sans-serif", color: avgScore !== null ? (avgScore >= 70 ? "#D4922A" : avgScore >= 40 ? "#F59E0B" : "#FF6B6B") : "#9CA3AF" }}>{avgScore ?? "—"}</p>
                 <p className="text-xs text-gray-600 mt-0.5">Avg Health</p>
               </div>
               <div className="text-center p-3 bg-red-50 rounded-xl">
-                <p className="text-2xl font-extrabold text-[#FF6B6B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{churnRisk}</p>
+                <p className="text-2xl font-extrabold text-[#FF6B6B]" style={{ fontFamily: "Inter, sans-serif" }}>{churnRisk}</p>
                 <p className="text-xs text-gray-600 mt-0.5">Churn Risk</p>
               </div>
               <div className="text-center p-3 bg-yellow-50 rounded-xl">
-                <p className="text-2xl font-extrabold text-yellow-600" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{goingSilent}</p>
+                <p className="text-2xl font-extrabold text-yellow-600" style={{ fontFamily: "Inter, sans-serif" }}>{goingSilent}</p>
                 <p className="text-xs text-gray-600 mt-0.5">Going Silent</p>
               </div>
-              <div className="text-center p-3 bg-[#E8A020]/10 rounded-xl">
-                <p className="text-2xl font-extrabold text-[#E8A020]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{upsellReady}</p>
+              <div className="text-center p-3 bg-[#D4922A]/10 rounded-xl">
+                <p className="text-2xl font-extrabold text-[#D4922A]" style={{ fontFamily: "Inter, sans-serif" }}>{upsellReady}</p>
                 <p className="text-xs text-gray-600 mt-0.5">Upsell Ready</p>
               </div>
             </div>
@@ -474,10 +474,10 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
 
       {/* Recent Activity */}
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
-            <h3 className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Recent Clients</h3>
-            <span className="text-xs text-[#E8A020] font-medium">{recentClients?.length || 0} total</span>
+            <h3 className="font-bold text-sm text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>Recent Clients</h3>
+            <span className="text-xs text-[#D4922A] font-medium">{recentClients?.length || 0} total</span>
           </div>
           {!recentClients || recentClients.length === 0 ? (
             <div className="py-10 text-center text-gray-600">
@@ -490,7 +490,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
                 {c.avatarInitials || c.name.slice(0, 2).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#1C1C1E] truncate">{c.name}</p>
+                <p className="text-sm font-semibold text-[#1C2333] truncate">{c.name}</p>
                 <p className="text-xs text-gray-600 truncate">{c.service || "General Client"}</p>
               </div>
               <Badge className={`text-xs border-0 ${c.status === "active" ? "bg-green-50 text-green-600" : c.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-gray-100 text-gray-600"}`}>
@@ -500,10 +500,10 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
           ))}
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
-            <h3 className="font-bold text-sm text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Upcoming Sessions</h3>
-            <span className="text-xs text-[#E8A020] font-medium">{recentBookings?.length || 0} scheduled</span>
+            <h3 className="font-bold text-sm text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>Upcoming Sessions</h3>
+            <span className="text-xs text-[#D4922A] font-medium">{recentBookings?.length || 0} scheduled</span>
           </div>
           {!recentBookings || recentBookings.length === 0 ? (
             <div className="py-10 text-center text-gray-600">
@@ -512,11 +512,11 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             </div>
           ) : recentBookings.slice(0, 5).map(b => (
             <div key={b.id} className="flex items-center gap-3 px-5 py-3 border-t border-gray-50 hover:bg-gray-50 transition-colors">
-              <div className="w-8 h-8 rounded-xl bg-[#E8A020]/10 flex items-center justify-center flex-shrink-0">
-                <Calendar className="w-4 h-4 text-[#E8A020]" />
+              <div className="w-8 h-8 rounded-xl bg-[#D4922A]/10 flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-4 h-4 text-[#D4922A]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#1C1C1E] truncate">{b.clientName}</p>
+                <p className="text-sm font-semibold text-[#1C2333] truncate">{b.clientName}</p>
                 <p className="text-xs text-gray-600">{b.date} at {b.time}</p>
               </div>
               <span className="text-xs text-gray-600">{b.duration}m</span>
@@ -763,7 +763,7 @@ function ClientsPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Clients</h2>
+          <h2 className="text-xl font-extrabold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>Clients</h2>
           <p className="text-sm text-gray-600">{clientList?.length || 0} clients in your roster</p>
         </div>
         <div className="flex gap-2">
@@ -808,7 +808,7 @@ function ClientsPanel() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <div className="hidden sm:grid grid-cols-4 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide">
           <span className="col-span-2">Client</span>
           <span>Service</span>
@@ -859,7 +859,7 @@ function ClientsPanel() {
                 })()}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#1C1C1E] truncate">{c.name}</p>
+                <p className="text-sm font-semibold text-[#1C2333] truncate">{c.name}</p>
                 <p className="text-xs text-gray-600 truncate">
                   {c.email || "No email"}
                   {(c as any).lastActivity && (
@@ -919,18 +919,18 @@ function ClientsPanel() {
               {(["info", "tags", "messages"] as const).map(t => (
                 <button key={t} onClick={() => setProfileTab(t)}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-                    profileTab === t ? "bg-white text-[#1C1C1E] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                    profileTab === t ? "bg-white text-[#1C2333] shadow-sm" : "text-gray-500 hover:text-gray-700"
                   }`}>
                   {t === "messages" ? "Messages" : t === "tags" ? "Tags" : "Info"}
                 </button>
               ))}
             </div>
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl gradient-amber flex items-center justify-center text-white text-lg font-bold">
+              <div className="w-14 h-14 rounded-xl gradient-amber flex items-center justify-center text-white text-lg font-bold">
                 {selectedClient.avatarInitials || selectedClient.name.slice(0, 2).toUpperCase()}
               </div>
               <div>
-                <h3 className="text-lg font-bold text-[#1C1C1E]">{selectedClient.name}</h3>
+                <h3 className="text-lg font-bold text-[#1C2333]">{selectedClient.name}</h3>
                 <p className="text-sm text-gray-600">{selectedClient.service || "General Client"}</p>
                 <Badge className={`text-xs border-0 mt-1 ${selectedClient.status === "active" ? "bg-green-50 text-green-600" : selectedClient.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-gray-100 text-gray-600"}`}>
                   {selectedClient.status}
@@ -949,7 +949,7 @@ function ClientsPanel() {
                     <Icon className="w-3.5 h-3.5 text-gray-600" />
                     <p className="text-xs text-gray-600">{label}</p>
                   </div>
-                  <p className="text-sm font-semibold text-[#1C1C1E] truncate">{value}</p>
+                  <p className="text-sm font-semibold text-[#1C2333] truncate">{value}</p>
                 </div>
               ))}
             </div>
@@ -967,7 +967,7 @@ function ClientsPanel() {
                 <div className="flex flex-wrap gap-2">
                   {clientTagsData.length === 0 && <p className="text-xs text-gray-400">No tags yet. Add your first tag above.</p>}
                   {clientTagsData.map(t => (
-                    <span key={t.id} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8A020]/10 text-[#E8A020] text-xs font-semibold">
+                    <span key={t.id} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4922A]/10 text-[#D4922A] text-xs font-semibold">
                       {t.tag}
                       <button onClick={() => removeTag.mutate({ clientId: selectedClient.id, tag: t.tag })} className="hover:text-red-500 transition-colors" aria-label={`Remove ${t.tag}`}>
                         <X className="w-3 h-3" />
@@ -984,7 +984,7 @@ function ClientsPanel() {
                   {(messages as Array<{ id: number; senderRole: string; body: string; createdAt: Date }>).map(m => (
                     <div key={m.id} className={`flex ${ m.senderRole === "owner" ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${
-                        m.senderRole === "owner" ? "bg-[#E8A020] text-white" : "bg-white border border-gray-200 text-[#1C1C1E]"
+                        m.senderRole === "owner" ? "bg-[#D4922A] text-white" : "bg-white border border-gray-200 text-[#1C2333]"
                       }`}>
                         <p>{m.body}</p>
                         <p className={`text-[10px] mt-1 ${ m.senderRole === "owner" ? "text-white/70" : "text-gray-400"}`}>{new Date(m.createdAt).toLocaleString()}</p>
@@ -1015,7 +1015,7 @@ function ClientsPanel() {
                 <div className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-xs font-semibold text-gray-600">Documents ({clientDocs?.length || 0})</p>
-                    <label className={`text-xs font-semibold cursor-pointer px-3 py-1.5 rounded-lg transition-colors ${docUploading ? 'opacity-50 pointer-events-none' : 'bg-[#E8A020]/10 text-[#E8A020] hover:bg-[#E8A020]/20'}`}>
+                    <label className={`text-xs font-semibold cursor-pointer px-3 py-1.5 rounded-lg transition-colors ${docUploading ? 'opacity-50 pointer-events-none' : 'bg-[#D4922A]/10 text-[#D4922A] hover:bg-[#D4922A]/20'}`}>
                       {docUploading ? 'Uploading...' : '+ Upload'}
                       <input type="file" className="sr-only" onChange={handleDocUpload} disabled={docUploading} accept="*/*" />
                     </label>
@@ -1026,8 +1026,8 @@ function ClientsPanel() {
                     <div className="space-y-2">
                       {clientDocs.map(doc => (
                         <div key={doc.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-gray-100">
-                          <FileText className="w-3.5 h-3.5 text-[#E8A020] flex-shrink-0" />
-                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs font-medium text-[#1C1C1E] truncate hover:underline">{doc.fileName}</a>
+                          <FileText className="w-3.5 h-3.5 text-[#D4922A] flex-shrink-0" />
+                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs font-medium text-[#1C2333] truncate hover:underline">{doc.fileName}</a>
                           {doc.sizeBytes && <span className="text-[10px] text-gray-600 flex-shrink-0">{(doc.sizeBytes / 1024).toFixed(0)} KB</span>}
                           <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-2 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
                             <Trash2 className="w-3 h-3" />
@@ -1097,7 +1097,7 @@ function ClientsPanel() {
           {/* File upload */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Upload a CSV file</label>
-            <label className="flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-[#E8A020]/60 hover:bg-amber-50/30 transition-colors">
+            <label className="flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-[#D4922A]/60 hover:bg-amber-50/30 transition-colors">
               <Upload className="w-4 h-4 text-gray-500" />
               <span className="text-xs text-gray-600">Click to choose a .csv file, or drag and drop</span>
               <input
@@ -1141,7 +1141,7 @@ function ClientsPanel() {
                       {row.name.slice(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-[#1C1C1E] truncate">{row.name}</p>
+                      <p className="font-semibold text-[#1C2333] truncate">{row.name}</p>
                       <p className="text-gray-600 truncate">{row.email || "No email"}</p>
                     </div>
                     <span className="text-gray-600">{row.service || "—"}</span>
@@ -1211,7 +1211,7 @@ function SchedulingPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Scheduling</h2>
+          <h2 className="text-xl font-extrabold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>Scheduling</h2>
           <p className="text-sm text-gray-600">{bookingList?.filter(b => b.status === "scheduled").length || 0} upcoming sessions</p>
         </div>
         <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
@@ -1219,7 +1219,7 @@ function SchedulingPanel() {
         </Button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide">
           <span className="col-span-2">Client / Service</span>
           <span>Date & Time</span>
@@ -1237,7 +1237,7 @@ function SchedulingPanel() {
         ) : bookingList.map(b => (
           <div key={b.id} className="flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors">
             <div className="sm:col-span-2">
-              <p className="text-sm font-semibold text-[#1C1C1E]">{b.clientName}</p>
+              <p className="text-sm font-semibold text-[#1C2333]">{b.clientName}</p>
               <p className="text-xs text-gray-600">{b.service || "General Session"}</p>
               {/* Mobile-only: show date/time inline */}
               <div className="flex items-center gap-2 mt-0.5 sm:hidden">
@@ -1246,7 +1246,7 @@ function SchedulingPanel() {
               </div>
             </div>
             <div className="hidden sm:block">
-              <p className="text-sm font-medium text-[#1C1C1E]">{b.date}</p>
+              <p className="text-sm font-medium text-[#1C2333]">{b.date}</p>
               <p className="text-xs text-gray-600">{b.time}</p>
             </div>
             <p className="hidden sm:block text-sm text-gray-600">{b.duration} min</p>
@@ -1312,7 +1312,7 @@ function SchedulingPanel() {
               <div className="space-y-1.5">
                 {smartSuggestions.map((s, i) => (
                   <button key={i} onClick={() => { setForm(p => ({ ...p, date: s.date, time: s.time })); setSmartSuggestions([]); toast.success("Time slot applied!"); }} className="w-full text-left px-3 py-2 rounded-lg bg-white border border-amber-100 hover:border-amber-300 transition-colors">
-                    <span className="text-xs font-semibold text-[#1C1C1E]">{s.date} at {s.time}</span>
+                    <span className="text-xs font-semibold text-[#1C2333]">{s.date} at {s.time}</span>
                     <span className="text-xs text-gray-600 ml-2">{s.reason}</span>
                   </button>
                 ))}
@@ -1480,7 +1480,7 @@ function InvoicesPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Invoices</h2>
+          <h2 className="text-xl font-extrabold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>Invoices</h2>
           <p className="text-sm text-gray-600">{invoiceList?.length || 0} total invoices</p>
         </div>
         <div className="flex items-center gap-2">
@@ -1496,7 +1496,7 @@ function InvoicesPanel() {
       <div className="flex gap-1 p-1 bg-gray-100 rounded-xl overflow-x-auto">
         {(["all", "unpaid", "paid", "overdue"] as const).map(f => (
           <button key={f} onClick={() => setInvFilter(f)} className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
-            invFilter === f ? "bg-white text-[#1C1C1E] shadow-sm" : "text-gray-600 hover:text-gray-700"
+            invFilter === f ? "bg-white text-[#1C2333] shadow-sm" : "text-gray-600 hover:text-gray-700"
           }`}>{f}</button>
         ))}
       </div>
@@ -1504,21 +1504,21 @@ function InvoicesPanel() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Total Paid", value: formatCurrency(invoiceStats?.totalRevenue || 0), color: "#E8A020", bg: "bg-[#E8A020]/10" },
+          { label: "Total Paid", value: formatCurrency(invoiceStats?.totalRevenue || 0), color: "#D4922A", bg: "bg-[#D4922A]/10" },
           { label: "Outstanding", value: formatCurrency(invoiceStats?.outstanding || 0), color: "#6366F1", bg: "bg-indigo-50" },
           { label: "Overdue", value: String(invoiceStats?.overdue || 0), color: "#FF6B6B", bg: "bg-red-50" },
           { label: "Total Invoices", value: String(invoiceStats?.total || 0), color: "#F59E0B", bg: "bg-yellow-50" },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-2xl p-3 sm:p-4`}>
+          <div key={s.label} className={`${s.bg} rounded-xl p-3 sm:p-4`}>
             <p className="text-[11px] sm:text-xs font-semibold mb-1" style={{ color: s.color }}>{s.label}</p>
-            <p className="text-lg sm:text-xl font-extrabold text-[#1C1C1E] leading-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{s.value}</p>
+            <p className="text-lg sm:text-xl font-extrabold text-[#1C2333] leading-tight" style={{ fontFamily: "Inter, sans-serif" }}>{s.value}</p>
           </div>
         ))}
       </div>
 
       {/* Bulk action toolbar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-2 p-3 bg-[#1C1C1E] text-white rounded-xl">
+        <div className="flex items-center gap-2 p-3 bg-[#1C2333] text-white rounded-xl">
           <span className="text-xs font-semibold flex-1">{selectedIds.size} selected</span>
           <button
             onClick={() => {
@@ -1528,7 +1528,7 @@ function InvoicesPanel() {
                 .then(() => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); setSelectedIds(new Set()); toast.success(`${unpaidIds.length} invoice${unpaidIds.length > 1 ? "s" : ""} marked as paid!`); })
                 .catch(e => toast.error(e.message));
             }}
-            className="text-xs bg-[#E8A020] hover:bg-[#d4911c] text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
+            className="text-xs bg-[#D4922A] hover:bg-[#d4911c] text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
             disabled={bulkPending}
           >Mark Paid</button>
           <button
@@ -1556,10 +1556,10 @@ function InvoicesPanel() {
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide">
           <div className="col-span-2 flex items-center gap-2">
-            <input type="checkbox" className="rounded w-3.5 h-3.5 accent-[#E8A020] cursor-pointer" checked={filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length} onChange={toggleSelectAll} title="Select all" />
+            <input type="checkbox" className="rounded w-3.5 h-3.5 accent-[#D4922A] cursor-pointer" checked={filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length} onChange={toggleSelectAll} title="Select all" />
             <span>Client / Service</span>
           </div>
           <span>Amount</span>
@@ -1580,25 +1580,25 @@ function InvoicesPanel() {
             <p className="text-sm font-medium text-gray-600">No {invFilter !== "all" ? invFilter : ""} invoices</p>
           </div>
         ) : filteredInvoices.map(inv => (
-          <div key={inv.id} className={`flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors ${selectedIds.has(inv.id) ? "bg-[#E8A020]/5" : ""}`}>
+          <div key={inv.id} className={`flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors ${selectedIds.has(inv.id) ? "bg-[#D4922A]/5" : ""}`}>
             <div className="sm:col-span-2 flex items-start gap-2">
-              <input type="checkbox" className="mt-1 rounded w-3.5 h-3.5 accent-[#E8A020] cursor-pointer flex-shrink-0" checked={selectedIds.has(inv.id)} onChange={() => toggleSelect(inv.id)} />
+              <input type="checkbox" className="mt-1 rounded w-3.5 h-3.5 accent-[#D4922A] cursor-pointer flex-shrink-0" checked={selectedIds.has(inv.id)} onChange={() => toggleSelect(inv.id)} />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-[#1C1C1E] truncate">{inv.clientName}</p>
+                <p className="text-sm font-semibold text-[#1C2333] truncate">{inv.clientName}</p>
                 <p className="text-xs text-gray-600 truncate">{inv.invoiceNumber} · {inv.service || "General Service"}</p>
                 {/* Mobile-only inline amount + due date */}
                 <div className="flex items-center gap-3 mt-1 sm:hidden">
-                  <span className="text-xs font-bold text-[#1C1C1E]">{formatCurrency(inv.amount)}</span>
+                  <span className="text-xs font-bold text-[#1C2333]">{formatCurrency(inv.amount)}</span>
                   {inv.dueDate && <span className="text-xs text-gray-600">Due {inv.dueDate}</span>}
                 </div>
               </div>
             </div>
-            <p className="hidden sm:block text-sm font-bold text-[#1C1C1E]">{formatCurrency(inv.amount)}</p>
+            <p className="hidden sm:block text-sm font-bold text-[#1C2333]">{formatCurrency(inv.amount)}</p>
             <p className="hidden sm:block text-sm text-gray-600">{inv.dueDate || "—"}</p>
             <div className="flex items-center gap-1.5 flex-wrap min-w-0">
               <Badge className={`text-xs border-0 flex-shrink-0 ${statusColor[inv.status] || "bg-gray-100 text-gray-600"}`}>{inv.status}</Badge>
               {inv.status !== "paid" && (
-                <button onClick={() => markPaid.mutate({ id: inv.id })} className="text-xs text-[#E8A020] hover:underline font-medium" disabled={markPaid.isPending}>
+                <button onClick={() => markPaid.mutate({ id: inv.id })} className="text-xs text-[#D4922A] hover:underline font-medium" disabled={markPaid.isPending}>
                   Mark Paid
                 </button>
               )}
@@ -1641,7 +1641,7 @@ function InvoicesPanel() {
               <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-2 rounded hover:bg-blue-50 text-gray-500 hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => duplicateInvoice.mutate({ id: inv.id })} className="p-2 rounded hover:bg-[#E8A020]/10 text-gray-500 hover:text-[#E8A020] transition-colors" aria-label="Duplicate invoice" title="Duplicate invoice" disabled={duplicateInvoice.isPending}>
+              <button onClick={() => duplicateInvoice.mutate({ id: inv.id })} className="p-2 rounded hover:bg-[#D4922A]/10 text-gray-500 hover:text-[#D4922A] transition-colors" aria-label="Duplicate invoice" title="Duplicate invoice" disabled={duplicateInvoice.isPending}>
                 <Copy className="w-3.5 h-3.5" />
               </button>
               <button onClick={() => setInvConfirm({ open: true, title: "Delete Invoice?", description: "Delete this invoice? This cannot be undone.", onConfirm: () => deleteInvoice.mutate({ id: inv.id }) })} className="p-2 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors" aria-label="Delete invoice">
@@ -1680,7 +1680,7 @@ function InvoicesPanel() {
             <button
               type="button"
               onClick={() => setUseLineItems(p => !p)}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${useLineItems ? 'bg-[#E8A020]' : 'bg-gray-300'}`}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${useLineItems ? 'bg-[#D4922A]' : 'bg-gray-300'}`}
             >
               <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${useLineItems ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
             </button>
@@ -1725,7 +1725,7 @@ function InvoicesPanel() {
               <button
                 type="button"
                 onClick={() => setLineItems(p => [...p, { description: "", qty: 1, unitPrice: 0 }])}
-                className="text-xs text-[#E8A020] hover:underline font-semibold"
+                className="text-xs text-[#D4922A] hover:underline font-semibold"
               >+ Add line item</button>
               {lineItems.length > 0 && (
                 <div className="text-right text-sm font-bold text-[#18181B] pt-1">
@@ -1772,7 +1772,7 @@ function InvoicesPanel() {
             <button
               type="button"
               onClick={() => setEditUseLineItems(p => !p)}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${editUseLineItems ? 'bg-[#E8A020]' : 'bg-gray-300'}`}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${editUseLineItems ? 'bg-[#D4922A]' : 'bg-gray-300'}`}
             >
               <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${editUseLineItems ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
             </button>
@@ -1789,7 +1789,7 @@ function InvoicesPanel() {
                   <button type="button" onClick={() => setEditLineItems(p => p.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600 text-lg leading-none">&times;</button>
                 </div>
               ))}
-              <button type="button" onClick={() => setEditLineItems(p => [...p, { description: "", qty: 1, unitPrice: 0 }])} className="text-xs text-[#E8A020] hover:underline font-semibold">+ Add line item</button>
+              <button type="button" onClick={() => setEditLineItems(p => [...p, { description: "", qty: 1, unitPrice: 0 }])} className="text-xs text-[#D4922A] hover:underline font-semibold">+ Add line item</button>
               {editLineItems.length > 0 && (
                 <div className="text-right text-sm font-bold text-[#18181B] pt-1">Total: {formatCurrency(editLineItemsTotal)}</div>
               )}
@@ -1829,13 +1829,13 @@ function InvoicesPanel() {
         {previewInvoice && (
           <div className="font-sans">
             {/* Accent bar */}
-            <div className="h-1 bg-[#E8A020] rounded-t-lg -mx-6 -mt-2 mb-5" />
+            <div className="h-1 bg-[#D4922A] rounded-t-lg -mx-6 -mt-2 mb-5" />
 
             {/* Header: INVOICE label + meta */}
             <div className="flex items-start justify-between mb-5">
               <div>
                 <p className="text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-1">Invoice</p>
-                <p className="text-3xl font-extrabold text-[#E8A020] tracking-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                <p className="text-3xl font-extrabold text-[#D4922A] tracking-tight" style={{ fontFamily: "Inter, sans-serif" }}>
                   {previewInvoice.invoiceNumber || `#${previewInvoice.id}`}
                 </p>
               </div>
@@ -1893,7 +1893,7 @@ function InvoicesPanel() {
                   )}
                   <div className="grid grid-cols-[1fr_auto] bg-amber-50 border-t border-gray-200">
                     <div className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Total Due</div>
-                    <div className="px-4 py-3 text-xl font-extrabold text-[#E8A020] text-right" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{formatCurrency(previewInvoice.amount)}</div>
+                    <div className="px-4 py-3 text-xl font-extrabold text-[#D4922A] text-right" style={{ fontFamily: "Inter, sans-serif" }}>{formatCurrency(previewInvoice.amount)}</div>
                   </div>
                 </div>
                 </div>
@@ -1913,7 +1913,7 @@ function InvoicesPanel() {
               <a
                 href={`/api/invoices/${previewInvoice.id}/pdf`}
                 download
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-[#E8A020] text-white hover:bg-[#D4911A] transition-colors"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-[#D4922A] text-white hover:bg-[#D4911A] transition-colors"
               >
                 <Download className="w-4 h-4" /> Download PDF
               </a>
@@ -1989,7 +1989,7 @@ function FollowUpsPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>AI Follow-Ups</h2>
+          <h2 className="text-xl font-extrabold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>AI Follow-Ups</h2>
           <p className="text-sm text-gray-600">Let AI write personalized follow-up emails for your clients</p>
         </div>
         {fuTab === "emails" ? (
@@ -2007,7 +2007,7 @@ function FollowUpsPanel() {
         {(["emails", "sequences"] as const).map(t => (
           <button key={t} onClick={() => setFuTab(t)}
             className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-              fuTab === t ? "bg-white text-[#1C1C1E] shadow-sm" : "text-gray-500 hover:text-gray-700"
+              fuTab === t ? "bg-white text-[#1C2333] shadow-sm" : "text-gray-500 hover:text-gray-700"
             }`}>
             {t === "sequences" ? "Auto-Sequences" : "AI Emails"}
           </button>
@@ -2016,13 +2016,13 @@ function FollowUpsPanel() {
 
       {fuTab === "sequences" && (
         <div className="space-y-4">
-          <div className="bg-gradient-to-r from-[#6366F1]/10 to-[#E8A020]/10 border border-[#6366F1]/20 rounded-2xl p-5">
+          <div className="bg-gradient-to-r from-[#6366F1]/10 to-[#D4922A]/10 border border-[#6366F1]/20 rounded-xl p-5">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#6366F1] flex items-center justify-center text-white flex-shrink-0">
                 <Zap className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-[#1C1C1E] text-sm">Automated Follow-Up Rules</h3>
+                <h3 className="font-bold text-[#1C2333] text-sm">Automated Follow-Up Rules</h3>
                 <p className="text-xs text-gray-600 mt-1 leading-relaxed">
                   Set a rule once and the system automatically generates and queues a follow-up email when a client hasn't booked in X days. Rules run daily — passive revenue recovery while you sleep.
                 </p>
@@ -2032,17 +2032,17 @@ function FollowUpsPanel() {
           {rulesLoading ? (
             [...Array(2)].map((_, i) => <Skeleton key={i} className="h-16" />)
           ) : rules.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-100 text-center py-12 text-gray-600">
+            <div className="bg-white rounded-xl border border-gray-100 text-center py-12 text-gray-600">
               <Zap className="w-8 h-8 mx-auto mb-3 opacity-30" />
               <p className="text-sm font-medium">No automation rules yet</p>
               <p className="text-xs mt-1">Create your first rule to start automating follow-ups.</p>
             </div>
           ) : (rules as Array<{ id: number; name: string; triggerDays: number; emailSubject: string; active: boolean }>).map(r => (
-            <div key={r.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
+            <div key={r.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3">
               <div className={`w-2 h-10 rounded-full flex-shrink-0 ${r.active ? "bg-green-400" : "bg-gray-200"}`} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-[#1C1C1E]">{r.name}</p>
-                <p className="text-xs text-gray-600 mt-0.5">Triggers after <span className="font-semibold text-[#E8A020]">{r.triggerDays} days</span> of no booking · {r.emailSubject}</p>
+                <p className="text-sm font-bold text-[#1C2333]">{r.name}</p>
+                <p className="text-xs text-gray-600 mt-0.5">Triggers after <span className="font-semibold text-[#D4922A]">{r.triggerDays} days</span> of no booking · {r.emailSubject}</p>
               </div>
               <div className="flex gap-1.5 flex-shrink-0">
                 <button onClick={() => toggleRule.mutate({ id: r.id, active: !r.active })} className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${r.active ? "bg-green-50 text-green-600 hover:bg-green-100" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
@@ -2071,7 +2071,7 @@ function FollowUpsPanel() {
                 <div className="grid grid-cols-3 gap-2">
                   {(["professional", "friendly", "motivational"] as const).map(t => (
                     <button key={t} onClick={() => setRuleForm(p => ({ ...p, tone: t }))}
-                      className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${ruleForm.tone === t ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
+                      className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${ruleForm.tone === t ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
                       {t}
                     </button>
                   ))}
@@ -2089,13 +2089,13 @@ function FollowUpsPanel() {
       )}
       {fuTab === "emails" && <>
       {/* Info Card */}
-      <div className="bg-gradient-to-r from-[#E8A020]/10 to-[#6366F1]/10 border border-[#E8A020]/20 rounded-2xl p-5">
+      <div className="bg-gradient-to-r from-[#D4922A]/10 to-[#6366F1]/10 border border-[#D4922A]/20 rounded-xl p-5">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl gradient-amber flex items-center justify-center text-white flex-shrink-0">
             <Zap className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-[#1C1C1E] text-sm">How AI Follow-Ups Work</h3>
+            <h3 className="font-bold text-[#1C2333] text-sm">How AI Follow-Ups Work</h3>
             <p className="text-xs text-gray-600 mt-1 leading-relaxed">
               Select a client, choose a tone, and our AI writes a personalized follow-up email in seconds. The email checks in on their progress, encourages rebooking, and sounds like it came directly from you. Copy the email and send it from your preferred email client.
             </p>
@@ -2108,17 +2108,17 @@ function FollowUpsPanel() {
         {isLoading ? (
           [...Array(3)].map((_, i) => <Skeleton key={i} className="h-20" />)
         ) : !followUpList || followUpList.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 text-center py-16 text-gray-600">
+          <div className="bg-white rounded-xl border border-gray-100 text-center py-16 text-gray-600">
             <Mail className="w-10 h-10 mx-auto mb-3 opacity-30" />
             <p className="text-sm font-medium text-gray-600">No follow-ups generated yet</p>
             <p className="text-xs mt-1">Generate your first AI follow-up email above.</p>
           </div>
         ) : followUpList.map(f => (
-          <div key={f.id} className="bg-white rounded-2xl border border-gray-100 p-4 hover:border-[#E8A020]/30 transition-colors">
+          <div key={f.id} className="bg-white rounded-xl border border-gray-100 p-4 hover:border-[#D4922A]/30 transition-colors">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-bold text-[#1C1C1E]">{f.clientName}</p>
+                  <p className="text-sm font-bold text-[#1C2333]">{f.clientName}</p>
                   <Badge className={`text-xs border-0 ${f.status === "sent" ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600"}`}>
                     {f.status}
                   </Badge>
@@ -2127,7 +2127,7 @@ function FollowUpsPanel() {
                 <p className="text-xs text-gray-600 mt-1 line-clamp-2">{f.body}</p>
               </div>
               <div className="flex gap-1.5 flex-shrink-0">
-                <button onClick={() => copyToClipboard(f.body)} className="p-2 rounded-lg hover:bg-[#E8A020]/10 text-gray-600 hover:text-[#E8A020] transition-colors" aria-label="Copy email body to clipboard" title="Copy email body">
+                <button onClick={() => copyToClipboard(f.body)} className="p-2 rounded-lg hover:bg-[#D4922A]/10 text-gray-600 hover:text-[#D4922A] transition-colors" aria-label="Copy email body to clipboard" title="Copy email body">
                   <Copy className="w-4 h-4" />
                 </button>
                 <button onClick={() => setPreviewFollowUp(f)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-600 transition-colors" aria-label="Preview email">
@@ -2168,7 +2168,7 @@ function FollowUpsPanel() {
                 <button
                   key={t}
                   onClick={() => setForm(p => ({ ...p, tone: t }))}
-                  className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${form.tone === t ? "border-[#E8A020] bg-[#E8A020]/10 text-[#E8A020]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}
+                  className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${form.tone === t ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}
                 >
                   {t}
                 </button>
@@ -2208,10 +2208,10 @@ function FollowUpsPanel() {
             <div className="bg-[#F4F4F5] rounded-xl p-4 mb-4">
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                 {/* Top accent bar */}
-                <div className="h-1 bg-[#E8A020]" />
+                <div className="h-1 bg-[#D4922A]" />
                 {/* Brand header */}
                 <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-[#E8A020] flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-lg bg-[#D4922A] flex items-center justify-center">
                     <span className="text-white font-black text-xs">T</span>
                   </div>
                   <div>
@@ -2229,14 +2229,14 @@ function FollowUpsPanel() {
                 </div>
                 {/* Footer */}
                 <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
-                  <p className="text-[10px] text-gray-400 text-center">&copy; {new Date().getFullYear()} TrueAxis HQ &mdash; <span className="text-[#E8A020]">Unsubscribe</span></p>
+                  <p className="text-[10px] text-gray-400 text-center">&copy; {new Date().getFullYear()} TrueAxis HQ &mdash; <span className="text-[#D4922A]">Unsubscribe</span></p>
                 </div>
               </div>
             </div>
 
             {/* Actions */}
             <div className="flex gap-3">
-              <Button className="flex-1 bg-[#E8A020] hover:bg-[#D4911A] text-white gap-2" onClick={() => copyToClipboard(previewFollowUp.body)}>
+              <Button className="flex-1 bg-[#D4922A] hover:bg-[#D4911A] text-white gap-2" onClick={() => copyToClipboard(previewFollowUp.body)}>
                 {copied ? <><Check className="w-4 h-4" />Copied!</> : <><Copy className="w-4 h-4" />Copy Body</>}
               </Button>
               {previewFollowUp.clientEmail && previewFollowUp.status === "draft" && previewFollowUp.id && (
@@ -2281,14 +2281,14 @@ function AnalyticsPanel() {
   );
 
   const stats = [
-    { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), icon: DollarSign, color: "#E8A020" },
+    { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), icon: DollarSign, color: "#D4922A" },
     { label: "Active Clients", value: String(analytics?.activeClients || 0), icon: Users, color: "#6366F1" },
     { label: "Sessions Booked", value: String((analytics?.completedSessions || 0) + (analytics?.completedSessions || 0)), icon: Calendar, color: "#F59E0B" },
     { label: "Conversion Rate", value: analytics?.totalClients ? `${Math.round((analytics.activeClients / analytics.totalClients) * 100)}%` : "0%", icon: TrendingUp, color: "#FF6B6B" },
   ];
 
   const pieData = [
-    { name: "Active", value: analytics?.activeClients || 0, color: "#E8A020" },
+    { name: "Active", value: analytics?.activeClients || 0, color: "#D4922A" },
     { name: "Prospects", value: analytics?.totalClients || 0, color: "#6366F1" },
     { name: "Inactive", value: analytics?.activeClients || 0, color: "#E5E7EB" },
   ].filter(d => d.value > 0);
@@ -2298,39 +2298,39 @@ function AnalyticsPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Analytics</h2>
+        <h2 className="text-xl font-extrabold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>Analytics</h2>
         <p className="text-sm text-gray-600">Your business performance at a glance</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map(s => (
-          <div key={s.label} className="bg-white rounded-2xl p-4 border border-gray-100">
+          <div key={s.label} className="bg-white rounded-xl p-4 border border-gray-100">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white mb-3" style={{ backgroundColor: s.color }}>
               <s.icon className="w-4 h-4" />
             </div>
-            <p className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{s.value}</p>
+            <p className="text-xl font-extrabold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>{s.value}</p>
             <p className="text-xs text-gray-600 mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Revenue Trend</h3>
+        <div className="bg-white rounded-xl p-5 border border-gray-100">
+          <h3 className="font-bold text-[#1C2333] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Revenue Trend</h3>
           {analytics?.monthlyRevenue?.some(d => d.revenue > 0) ? (
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={analytics.monthlyRevenue}>
                 <defs>
                   <linearGradient id="amberGrad3" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#E8A020" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#E8A020" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#D4922A" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#D4922A" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: "12px" }} formatter={(v: number) => [formatCurrency(v), "Revenue"]} />
-                <Area type="monotone" dataKey="revenue" stroke="#E8A020" strokeWidth={2.5} fill="url(#amberGrad3)" />
+                <Area type="monotone" dataKey="revenue" stroke="#D4922A" strokeWidth={2.5} fill="url(#amberGrad3)" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
@@ -2341,8 +2341,8 @@ function AnalyticsPanel() {
           )}
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Client Breakdown</h3>
+        <div className="bg-white rounded-xl p-5 border border-gray-100">
+          <h3 className="font-bold text-[#1C2333] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Client Breakdown</h3>
           {pieData.length > 0 ? (
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <div className="w-36 h-36 flex-shrink-0 mx-auto sm:mx-0">
@@ -2359,7 +2359,7 @@ function AnalyticsPanel() {
                   <div key={d.name} className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
                     <span className="text-sm text-gray-600 truncate">{d.name}</span>
-                    <span className="text-sm font-bold text-[#1C1C1E] ml-auto pl-2 flex-shrink-0">{d.value}</span>
+                    <span className="text-sm font-bold text-[#1C2333] ml-auto pl-2 flex-shrink-0">{d.value}</span>
                   </div>
                 ))}
               </div>
@@ -2373,19 +2373,19 @@ function AnalyticsPanel() {
         </div>
 
         {topServices.length > 0 && (
-          <div className="bg-white rounded-2xl p-5 border border-gray-100 lg:col-span-2">
-            <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Top Services by Revenue</h3>
+          <div className="bg-white rounded-xl p-5 border border-gray-100 lg:col-span-2">
+            <h3 className="font-bold text-[#1C2333] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Top Services by Revenue</h3>
             <div className="space-y-3">
               {topServices.slice(0, 5).map((s: any, i: number) => (
                 <div key={i} className="flex items-center gap-3">
                   <span className="text-xs text-gray-600 w-4">{i + 1}</span>
                   <div className="flex-1">
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium text-[#1C1C1E]">{s.name ?? s.service}</span>
-                      <span className="text-sm font-bold text-[#E8A020]">{formatCurrency(s.revenue)}</span>
+                      <span className="text-sm font-medium text-[#1C2333]">{s.name ?? s.service}</span>
+                      <span className="text-sm font-bold text-[#D4922A]">{formatCurrency(s.revenue)}</span>
                     </div>
                     <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#E8A020] rounded-full" style={{ width: `${Math.min((s.revenue / topServices[0].revenue) * 100, 100)}%` }} />
+                      <div className="h-full bg-[#D4922A] rounded-full" style={{ width: `${Math.min((s.revenue / topServices[0].revenue) * 100, 100)}%` }} />
                     </div>
                   </div>
                 </div>
@@ -2396,27 +2396,27 @@ function AnalyticsPanel() {
 
         {/* Revenue Forecast */}
         {analytics?.forecast && analytics.forecast.some(d => d.revenue > 0) && (
-          <div className="bg-white rounded-2xl p-5 border border-gray-100 lg:col-span-2">
+          <div className="bg-white rounded-xl p-5 border border-gray-100 lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-[#1C1C1E] text-sm" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Revenue Forecast (90-Day)</h3>
+              <h3 className="font-bold text-[#1C2333] text-sm" style={{ fontFamily: "Inter, sans-serif" }}>Revenue Forecast (90-Day)</h3>
               <div className="flex items-center gap-4 text-xs text-gray-600">
-                <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-[#E8A020] inline-block" />Actual</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-[#E8A020] opacity-40 inline-block border-dashed border-t border-[#E8A020]" />Projected</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-[#D4922A] inline-block" />Actual</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-[#D4922A] opacity-40 inline-block border-dashed border-t border-[#D4922A]" />Projected</span>
               </div>
             </div>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={analytics.forecast}>
                 <defs>
                   <linearGradient id="forecastGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#E8A020" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#E8A020" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#D4922A" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#D4922A" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: "12px" }} formatter={(v: number, _: string, p: any) => [formatCurrency(v), p.payload.projected ? "Projected" : "Actual"]} />
-                <Area type="monotone" dataKey="revenue" stroke="#E8A020" strokeWidth={2.5} fill="url(#forecastGrad)" />
+                <Area type="monotone" dataKey="revenue" stroke="#D4922A" strokeWidth={2.5} fill="url(#forecastGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -2424,19 +2424,19 @@ function AnalyticsPanel() {
 
         {/* Client LTV */}
         {analytics?.clientLTV && analytics.clientLTV.length > 0 && (
-          <div className="bg-white rounded-2xl p-5 border border-gray-100">
-            <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Top Clients by LTV</h3>
+          <div className="bg-white rounded-xl p-5 border border-gray-100">
+            <h3 className="font-bold text-[#1C2333] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Top Clients by LTV</h3>
             <div className="space-y-3">
               {analytics.clientLTV.slice(0, 6).map((c: any, i: number) => (
                 <div key={c.clientId} className="flex items-center gap-3">
                   <span className="text-xs text-gray-600 w-4">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium text-[#1C1C1E] truncate">{c.name}</span>
-                      <span className="text-sm font-bold text-[#E8A020] ml-2 flex-shrink-0">{formatCurrency(c.ltv)}</span>
+                      <span className="text-sm font-medium text-[#1C2333] truncate">{c.name}</span>
+                      <span className="text-sm font-bold text-[#D4922A] ml-2 flex-shrink-0">{formatCurrency(c.ltv)}</span>
                     </div>
                     <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${Math.min((c.ltv / analytics.clientLTV[0].ltv) * 100, 100)}%`, background: i === 0 ? "#E8A020" : "#6366F1" }} />
+                      <div className="h-full rounded-full" style={{ width: `${Math.min((c.ltv / analytics.clientLTV[0].ltv) * 100, 100)}%`, background: i === 0 ? "#D4922A" : "#6366F1" }} />
                     </div>
                     <p className="text-[10px] text-gray-600 mt-0.5">{c.invoiceCount} invoice{c.invoiceCount !== 1 ? "s" : ""}</p>
                   </div>
@@ -2448,19 +2448,19 @@ function AnalyticsPanel() {
 
         {/* Referral Sources */}
         {analytics?.referralSources && analytics.referralSources.length > 0 && (
-          <div className="bg-white rounded-2xl p-5 border border-gray-100">
-            <h3 className="font-bold text-[#1C1C1E] text-sm mb-4" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Lead Sources</h3>
+          <div className="bg-white rounded-xl p-5 border border-gray-100">
+            <h3 className="font-bold text-[#1C2333] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Lead Sources</h3>
             <div className="space-y-3">
               {analytics.referralSources.slice(0, 6).map((s: any, i: number) => {
                 const total = analytics.referralSources.reduce((sum: number, r: any) => sum + r.count, 0);
                 const pct = total > 0 ? Math.round((s.count / total) * 100) : 0;
-                const colors = ["#E8A020", "#6366F1", "#5A9A7A", "#FF6B6B", "#F59E0B", "#8B5CF6"];
+                const colors = ["#D4922A", "#6366F1", "#5A9A7A", "#FF6B6B", "#F59E0B", "#8B5CF6"];
                 return (
                   <div key={s.source} className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: colors[i % colors.length] }} />
                     <div className="flex-1">
                       <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium text-[#1C1C1E] capitalize">{s.source.replace(/_/g, " ")}</span>
+                        <span className="text-sm font-medium text-[#1C2333] capitalize">{s.source.replace(/_/g, " ")}</span>
                         <span className="text-xs font-bold text-gray-600">{s.count} ({pct}%)</span>
                       </div>
                       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -2481,7 +2481,7 @@ function AnalyticsPanel() {
 // ─── Settings Panel ─────────────────────────────────────────────────────
 // ─── Billing Section (inline in Settings) ─────────────────────────────────────────────────────
 const BILLING_PLAN_ICONS: Record<string, React.ElementType> = { starter: Zap, pro: Star, agency: Crown };
-const BILLING_PLAN_COLORS: Record<string, string> = { starter: "bg-blue-500", pro: "bg-[#E8A020]", agency: "bg-purple-600" };
+const BILLING_PLAN_COLORS: Record<string, string> = { starter: "bg-blue-500", pro: "bg-[#D4922A]", agency: "bg-purple-600" };
 
 function BillingSection() {
   const { isAuthenticated } = useAuth();
@@ -2503,9 +2503,9 @@ function BillingSection() {
   const plans = plansQuery.data ?? [];
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
-      <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2">
-        <CreditCard className="w-4 h-4 text-[#E8A020]" />Billing &amp; Subscription
+    <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-5">
+      <h3 className="font-bold text-sm text-[#1C2333] flex items-center gap-2">
+        <CreditCard className="w-4 h-4 text-[#D4922A]" />Billing &amp; Subscription
       </h3>
 
       {/* Current plan status */}
@@ -2517,7 +2517,7 @@ function BillingSection() {
             return <div className={`w-9 h-9 rounded-lg ${color} flex items-center justify-center flex-shrink-0`}><Icon className="w-4 h-4 text-white" /></div>;
           })()}
           <div>
-            <p className="text-sm font-semibold text-[#1C1C1E] capitalize">
+            <p className="text-sm font-semibold text-[#1C2333] capitalize">
               {currentPlan === "free" ? "Free Plan" : `${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan`}
             </p>
             <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full mt-0.5 ${
@@ -2576,13 +2576,13 @@ function BillingSection() {
               <div
                 key={plan.id}
                 className={`rounded-xl border-2 p-4 flex flex-col transition-all ${
-                  plan.highlighted ? "border-[#E8A020] shadow-md shadow-[#E8A020]/10 bg-[#E8A020]/3" :
+                  plan.highlighted ? "border-[#D4922A] shadow-md shadow-[#D4922A]/10 bg-[#D4922A]/3" :
                   isCurrent ? "border-blue-300 bg-blue-50/30" :
                   "border-gray-100 bg-gray-50 hover:border-gray-200"
                 }`}
               >
                 {plan.highlighted && (
-                  <div className="text-[10px] font-bold text-[#E8A020] bg-[#E8A020]/10 rounded-full px-2 py-0.5 text-center mb-3 -mt-0.5">Most Popular</div>
+                  <div className="text-[10px] font-bold text-[#D4922A] bg-[#D4922A]/10 rounded-full px-2 py-0.5 text-center mb-3 -mt-0.5">Most Popular</div>
                 )}
                 {isCurrent && !plan.highlighted && (
                   <div className="text-[10px] font-bold text-blue-600 bg-blue-50 rounded-full px-2 py-0.5 text-center mb-3 -mt-0.5">Current Plan</div>
@@ -2590,17 +2590,17 @@ function BillingSection() {
                 <div className={`w-8 h-8 rounded-lg ${color} flex items-center justify-center mb-3`}>
                   <Icon className="w-4 h-4 text-white" />
                 </div>
-                <p className="text-sm font-extrabold text-[#1C1C1E] mb-0.5" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{plan.name}</p>
+                <p className="text-sm font-extrabold text-[#1C2333] mb-0.5" style={{ fontFamily: "Inter, sans-serif" }}>{plan.name}</p>
                 <p className="text-[11px] text-gray-500 mb-3 leading-snug">{plan.description}</p>
                 <div className="mb-3">
-                  <span className="text-xl font-extrabold text-[#1C1C1E]">${price}</span>
+                  <span className="text-xl font-extrabold text-[#1C2333]">${price}</span>
                   <span className="text-xs text-gray-500">/mo</span>
                   {billingInterval === "annual" && <p className="text-[10px] text-green-600 font-semibold">Billed annually</p>}
                 </div>
                 <ul className="space-y-1.5 mb-4 flex-1">
                   {plan.features.slice(0, 4).map((feature: string) => (
                     <li key={feature} className="flex items-start gap-1.5 text-[11px] text-gray-600">
-                      <CheckCircle className="w-3 h-3 text-[#E8A020] flex-shrink-0 mt-0.5" />{feature}
+                      <CheckCircle className="w-3 h-3 text-[#D4922A] flex-shrink-0 mt-0.5" />{feature}
                     </li>
                   ))}
                 </ul>
@@ -2669,9 +2669,9 @@ function ChangePasswordSection() {
   const isDisabled = changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-      <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2">
-        <Settings className="w-4 h-4 text-[#E8A020]" />Change Password
+    <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[#1C2333] flex items-center gap-2">
+        <Settings className="w-4 h-4 text-[#D4922A]" />Change Password
       </h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -2747,7 +2747,7 @@ function CopyBookingLinkButton({ url }: { url: string }) {
       className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
         copied
           ? "bg-green-50 text-green-600 border border-green-200"
-          : "bg-[#E8A020]/10 text-[#E8A020] border border-[#E8A020]/30 hover:bg-[#E8A020]/20"
+          : "bg-[#D4922A]/10 text-[#D4922A] border border-[#D4922A]/30 hover:bg-[#D4922A]/20"
       }`}
       aria-label="Copy booking link to clipboard"
     >
@@ -2775,8 +2775,8 @@ function ApiKeysSection() {
     onError: (e) => toast.error(e.message),
   });
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-      <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Zap className="w-4 h-4 text-[#E8A020]" />API Keys</h3>
+    <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[#1C2333] flex items-center gap-2"><Zap className="w-4 h-4 text-[#D4922A]" />API Keys</h3>
       <p className="text-xs text-gray-600">Use API keys to integrate TrueAxis HQ with Zapier, Make, or your own tools.</p>
       {createdKey && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-3">
@@ -2793,7 +2793,7 @@ function ApiKeysSection() {
           {keys.map(k => (
             <div key={k.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
               <div>
-                <p className="text-sm font-semibold text-[#1C1C1E]">{k.name}</p>
+                <p className="text-sm font-semibold text-[#1C2333]">{k.name}</p>
                 <p className="text-xs text-gray-600 font-mono">{k.keyPrefix}... · Created {new Date(k.createdAt).toLocaleDateString()}{k.lastUsedAt ? ` · Last used ${new Date(k.lastUsedAt).toLocaleDateString()}` : " · Never used"}</p>
               </div>
               <button onClick={() => revokeKey.mutate({ id: k.id })} className="text-xs text-red-500 hover:underline font-medium" disabled={revokeKey.isPending}>Revoke</button>
@@ -2817,8 +2817,8 @@ function ApiKeysSection() {
 function AuditLogSection() {
   const { data: logs, isLoading } = trpc.auditLog.list.useQuery({ limit: 20, offset: 0 }, { retry: 1 });
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-      <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Activity className="w-4 h-4 text-[#E8A020]" />Activity Log</h3>
+    <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[#1C2333] flex items-center gap-2"><Activity className="w-4 h-4 text-[#D4922A]" />Activity Log</h3>
       <p className="text-xs text-gray-600">A record of your recent account activity.</p>
       {isLoading ? <div className="space-y-2">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-8" />)}</div> : !logs || logs.length === 0 ? (
         <p className="text-xs text-gray-600">No activity recorded yet.</p>
@@ -2826,9 +2826,9 @@ function AuditLogSection() {
         <div className="space-y-1 max-h-64 overflow-y-auto">
           {logs.map(log => (
             <div key={log.id} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#E8A020] mt-1.5 shrink-0" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#D4922A] mt-1.5 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-[#1C1C1E]">{log.action.replace(/\./g, ' › ')}</p>
+                <p className="text-xs font-medium text-[#1C2333]">{log.action.replace(/\./g, ' › ')}</p>
                 {log.details && <p className="text-xs text-gray-600 truncate">{log.details}</p>}
               </div>
               <p className="text-xs text-gray-600 shrink-0">{new Date(log.createdAt).toLocaleString()}</p>
@@ -2942,18 +2942,18 @@ function SettingsPanel() {
   return (
     <div className="space-y-6 max-w-2xl w-full">
       <div>
-        <h2 className="text-xl font-extrabold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Settings</h2>
+        <h2 className="text-xl font-extrabold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>Settings</h2>
         <p className="text-sm text-gray-600">Manage your profile, business info, and preferences</p>
       </div>
 
       {/* Profile */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><User className="w-4 h-4 text-[#E8A020]" />Profile</h3>
+      <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+        <h3 className="font-bold text-sm text-[#1C2333] flex items-center gap-2"><User className="w-4 h-4 text-[#D4922A]" />Profile</h3>
 
         {/* Avatar Upload */}
         <div className="flex items-center gap-4">
           <div className="relative flex-shrink-0">
-            <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-[#E8A020] to-[#D4911A] flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-[#D4922A] to-[#D4911A] flex items-center justify-center">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Profile photo" className="w-full h-full object-cover" />
               ) : (
@@ -2963,20 +2963,20 @@ function SettingsPanel() {
             <button
               onClick={() => avatarInputRef.current?.click()}
               disabled={avatarUploading}
-              className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-[#E8A020] flex items-center justify-center shadow-md hover:bg-[#D4911A] transition-colors disabled:opacity-50"
+              className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-[#D4922A] flex items-center justify-center shadow-md hover:bg-[#D4911A] transition-colors disabled:opacity-50"
               aria-label="Change profile photo"
             >
               {avatarUploading ? <Loader2 className="w-3 h-3 text-white animate-spin" /> : <Camera className="w-3 h-3 text-white" />}
             </button>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-[#1C1C1E] mb-0.5">Profile Photo</p>
+            <p className="text-sm font-semibold text-[#1C2333] mb-0.5">Profile Photo</p>
             <p className="text-xs text-gray-600 mb-2">JPEG, PNG, WebP or GIF · Max 5 MB</p>
             <div className="flex gap-2">
               <button
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={avatarUploading}
-                className="text-xs font-semibold text-[#E8A020] hover:underline disabled:opacity-50 transition-opacity"
+                className="text-xs font-semibold text-[#D4922A] hover:underline disabled:opacity-50 transition-opacity"
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: "auto", minWidth: "auto" }}
               >
                 {avatarUrl ? "Change photo" : "Upload photo"}
@@ -3015,8 +3015,8 @@ function SettingsPanel() {
       </div>
 
       {/* Business */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Building className="w-4 h-4 text-[#E8A020]" />Business Info</h3>
+      <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+        <h3 className="font-bold text-sm text-[#1C2333] flex items-center gap-2"><Building className="w-4 h-4 text-[#D4922A]" />Business Info</h3>
         <Field label="Business Name" value={business.businessName} onChange={v => setBusiness(p => ({ ...p, businessName: v }))} placeholder="My Coaching Studio" autoComplete="organization" enterKeyHint="next" />
         <Field label="Business Phone" value={business.businessPhone} onChange={v => setBusiness(p => ({ ...p, businessPhone: v }))} placeholder="+1 (555) 000-0000" type="tel" autoComplete="tel" enterKeyHint="next" />
         <Field label="Business Address" value={business.businessAddress} onChange={v => setBusiness(p => ({ ...p, businessAddress: v }))} placeholder="123 Main St, New York, NY 10001" autoComplete="street-address" enterKeyHint="next" />
@@ -3027,8 +3027,8 @@ function SettingsPanel() {
       </div>
 
       {/* Booking Page */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Globe className="w-4 h-4 text-[#E8A020]" />Booking Page</h3>
+      <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+        <h3 className="font-bold text-sm text-[#1C2333] flex items-center gap-2"><Globe className="w-4 h-4 text-[#D4922A]" />Booking Page</h3>
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1.5">Your Booking URL</label>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -3047,7 +3047,7 @@ function SettingsPanel() {
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 min-w-0">
                 <span className="text-xs text-gray-600 flex-1 truncate font-mono min-w-0">{bookingUrl}</span>
-                <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-[#E8A020] transition-colors flex-shrink-0" title="Preview booking page">
+                <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-[#D4922A] transition-colors flex-shrink-0" title="Preview booking page">
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -3077,7 +3077,7 @@ function SettingsPanel() {
           <button
             type="button"
             onClick={() => setShowPresetServices(p => !p)}
-            className="text-xs text-[#E8A020] hover:text-[#d4901c] font-semibold flex items-center gap-1 mb-2 transition-colors"
+            className="text-xs text-[#D4922A] hover:text-[#d4901c] font-semibold flex items-center gap-1 mb-2 transition-colors"
           >
             <Zap className="w-3 h-3" />
             {showPresetServices ? "Hide" : "Browse"} 50+ preset services
@@ -3089,7 +3089,7 @@ function SettingsPanel() {
                   key={s}
                   type="button"
                   onClick={() => setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, s] }))}
-                  className="text-xs bg-white border border-gray-200 hover:border-[#E8A020] hover:text-[#E8A020] text-gray-600 rounded-full px-2.5 py-1 transition-colors"
+                  className="text-xs bg-white border border-gray-200 hover:border-[#D4922A] hover:text-[#D4922A] text-gray-600 rounded-full px-2.5 py-1 transition-colors"
                 >
                   + {s}
                 </button>
@@ -3106,8 +3106,8 @@ function SettingsPanel() {
       </div>
 
       {/* iCal Feed */}
-      <div className="space-y-3 p-5 bg-white rounded-2xl border border-gray-100">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Calendar className="w-4 h-4 text-[#E8A020]" />Calendar Sync (iCal)</h3>
+      <div className="space-y-3 p-5 bg-white rounded-xl border border-gray-100">
+        <h3 className="font-bold text-sm text-[#1C2333] flex items-center gap-2"><Calendar className="w-4 h-4 text-[#D4922A]" />Calendar Sync (iCal)</h3>
         <p className="text-xs text-gray-600">Subscribe to your booking calendar in Google Calendar, Apple Calendar, or Outlook using this live iCal feed URL.</p>
         {user?.id ? (
           <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 min-w-0">
@@ -3117,13 +3117,13 @@ function SettingsPanel() {
                 const url = `${window.location.origin}/api/calendar/${user!.id}.ics`;
                 navigator.clipboard.writeText(url).then(() => toast.success("iCal URL copied!")).catch(() => toast.info(`iCal URL: ${url}`));
               }}
-              className="text-gray-600 hover:text-[#E8A020] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#E8A020]/10"
+              className="text-gray-600 hover:text-[#D4922A] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#D4922A]/10"
               title="Copy iCal feed URL"
               aria-label="Copy iCal feed URL"
             >
               <Copy className="w-3.5 h-3.5" />
             </button>
-            <a href={`${window.location.origin}/api/calendar/${user!.id}.ics`} download className="text-gray-600 hover:text-[#E8A020] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#E8A020]/10" title="Download .ics file" aria-label="Download iCal file">
+            <a href={`${window.location.origin}/api/calendar/${user!.id}.ics`} download className="text-gray-600 hover:text-[#D4922A] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#D4922A]/10" title="Download .ics file" aria-label="Download iCal file">
               <Download className="w-3.5 h-3.5" />
             </a>
           </div>
@@ -3153,8 +3153,8 @@ function SettingsPanel() {
       </div>
 
       {/* Notifications */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2"><Bell className="w-4 h-4 text-[#E8A020]" />Notifications</h3>
+      <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+        <h3 className="font-bold text-sm text-[#1C2333] flex items-center gap-2"><Bell className="w-4 h-4 text-[#D4922A]" />Notifications</h3>
         {[
           { key: "notifyNewBooking" as const, label: "New Booking", desc: "Get notified when a client books a session" },
           { key: "notifyInvoicePaid" as const, label: "Invoice Paid", desc: "Get notified when an invoice is marked as paid" },
@@ -3162,12 +3162,12 @@ function SettingsPanel() {
         ].map(n => (
           <div key={n.key} className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-[#1C1C1E]">{n.label}</p>
+              <p className="text-sm font-semibold text-[#1C2333]">{n.label}</p>
               <p className="text-xs text-gray-600">{n.desc}</p>
             </div>
             <button
               onClick={() => setNotifications(p => ({ ...p, [n.key]: !p[n.key] }))}
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A020] focus-visible:ring-offset-2 ${notifications[n.key] ? "bg-[#E8A020]" : "bg-gray-200"}`}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] focus-visible:ring-offset-2 ${notifications[n.key] ? "bg-[#D4922A]" : "bg-gray-200"}`}
               aria-label={`${notifications[n.key] ? "Disable" : "Enable"} ${n.label} notifications`}
               role="switch"
               aria-checked={notifications[n.key]}
@@ -3222,9 +3222,9 @@ function IntegrationsSection() {
   });
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
-      <h3 className="font-bold text-sm text-[#1C1C1E] flex items-center gap-2">
-        <Zap className="w-4 h-4 text-[#E8A020]" />Integrations & Automation
+    <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-5">
+      <h3 className="font-bold text-sm text-[#1C2333] flex items-center gap-2">
+        <Zap className="w-4 h-4 text-[#D4922A]" />Integrations & Automation
       </h3>
 
       {/* Google Calendar */}
@@ -3234,7 +3234,7 @@ function IntegrationsSection() {
             <Calendar className="w-5 h-5 text-blue-500" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#1C1C1E]">Google Calendar</p>
+            <p className="text-sm font-semibold text-[#1C2333]">Google Calendar</p>
             <p className="text-xs text-gray-600">
               {calStatus?.connected ? `Connected · Google Calendar synced` : "Sync bookings to your Google Calendar"}
             </p>
@@ -3258,14 +3258,14 @@ function IntegrationsSection() {
             <Mail className="w-5 h-5 text-green-500" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#1C1C1E]">Monthly Business Report</p>
+            <p className="text-sm font-semibold text-[#1C2333]">Monthly Business Report</p>
             <p className="text-xs text-gray-600">Auto-sent on the 1st: MRR, new clients, top insights</p>
           </div>
         </div>
         <button
           onClick={() => { const next = !monthlyEnabled; setMonthlyEnabled(next); toggleMonthly.mutate({ enabled: next }); }}
-          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A020] ${
-            monthlyEnabled ? "bg-[#E8A020]" : "bg-gray-200"
+          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] ${
+            monthlyEnabled ? "bg-[#D4922A]" : "bg-gray-200"
           }`}
           role="switch"
           aria-checked={monthlyEnabled}
@@ -3497,10 +3497,10 @@ This agreement is governed by the laws of [State/Country].`,
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Contracts & Proposals</h2>
+          <h2 className="text-xl font-bold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>Contracts & Proposals</h2>
           <p className="text-sm text-gray-600 mt-0.5">Create, send, and track contracts and proposals</p>
         </div>
-        <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); }} className="bg-[#E8A020] hover:bg-[#D4911A] text-white gap-2">
+        <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); }} className="bg-[#D4922A] hover:bg-[#D4911A] text-white gap-2">
           <Plus className="w-4 h-4" /> New
         </Button>
       </div>
@@ -3508,7 +3508,7 @@ This agreement is governed by the laws of [State/Country].`,
       {/* Filter tabs */}
       <div className="flex gap-2 mb-5">
         {(["all", "contract", "proposal"] as const).map(t => (
-          <button key={t} onClick={() => setFilterType(t)} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all capitalize ${ filterType === t ? "bg-[#E8A020] text-white" : "bg-white text-gray-600 border border-gray-200 hover:border-[#E8A020]" }`}>{t === "all" ? "All" : t + "s"}</button>
+          <button key={t} onClick={() => setFilterType(t)} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all capitalize ${ filterType === t ? "bg-[#D4922A] text-white" : "bg-white text-gray-600 border border-gray-200 hover:border-[#D4922A]" }`}>{t === "all" ? "All" : t + "s"}</button>
         ))}
       </div>
 
@@ -3516,24 +3516,24 @@ This agreement is governed by the laws of [State/Country].`,
       {isLoading ? (
         <div className="space-y-3">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20" />)}</div>
       ) : list.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+        <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
           <FileSignature className="w-10 h-10 text-gray-500 mx-auto mb-3" />
           <p className="font-semibold text-gray-700 mb-1">No {filterType === "all" ? "contracts or proposals" : filterType + "s"} yet</p>
           <p className="text-sm text-gray-600 mb-4">Create your first one to get started</p>
-          <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); }} size="sm" className="bg-[#E8A020] hover:bg-[#D4911A] text-white">Create {filterType === "proposal" ? "Proposal" : "Contract"}</Button>
+          <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); }} size="sm" className="bg-[#D4922A] hover:bg-[#D4911A] text-white">Create {filterType === "proposal" ? "Proposal" : "Contract"}</Button>
         </div>
       ) : (
         <div className="space-y-3">
           {list.map(c => (
-            <div key={c.id} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedId(selectedId === c.id ? null : c.id)}>
+            <div key={c.id} className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedId(selectedId === c.id ? null : c.id)}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${ c.type === "proposal" ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700" }`}>{c.type}</span>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${statusColors[c.status] || "bg-gray-100 text-gray-600"}`}>{c.status}</span>
-                    {c.proposalAmount && <span className="text-xs font-semibold text-[#E8A020]">{formatCurrency(c.proposalAmount)}</span>}
+                    {c.proposalAmount && <span className="text-xs font-semibold text-[#D4922A]">{formatCurrency(c.proposalAmount)}</span>}
                   </div>
-                  <p className="font-semibold text-[#1C1C1E] truncate">{c.title}</p>
+                  <p className="font-semibold text-[#1C2333] truncate">{c.title}</p>
                   <p className="text-sm text-gray-600">{c.clientName}{c.clientEmail ? ` · ${c.clientEmail}` : ""}</p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -3591,7 +3591,7 @@ This agreement is governed by the laws of [State/Country].`,
               <div className="flex items-center gap-1.5">
                 <span className="text-[10px] text-gray-400">Start from template:</span>
                 <select
-                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-700 hover:border-[#E8A020] focus:outline-none focus:ring-1 focus:ring-[#E8A020]"
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-700 hover:border-[#D4922A] focus:outline-none focus:ring-1 focus:ring-[#D4922A]"
                   defaultValue=""
                   onChange={e => {
                     const tpl = CONTRACT_TEMPLATES.find(t => t.label === e.target.value);
@@ -3610,7 +3610,7 @@ This agreement is governed by the laws of [State/Country].`,
             <p className="text-xs text-gray-600 mt-1">Markdown supported. Use **bold**, # headings, - bullet lists.</p>
           </div>
           <div className="flex gap-3 pt-2">
-            <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="bg-[#E8A020] hover:bg-[#D4911A] text-white flex-1">
+            <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="bg-[#D4922A] hover:bg-[#D4911A] text-white flex-1">
               {(createMut.isPending || updateMut.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? "Save Changes" : "Create"}
             </Button>
             <Button variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }} className="flex-1">Cancel</Button>
@@ -3623,7 +3623,7 @@ This agreement is governed by the laws of [State/Country].`,
         {previewContract && (
           <div className="font-sans">
             {/* Accent bar */}
-            <div className="h-1 bg-[#E8A020] rounded-t-lg -mx-6 -mt-2 mb-5" />
+            <div className="h-1 bg-[#D4922A] rounded-t-lg -mx-6 -mt-2 mb-5" />
 
             {/* Header */}
             <div className="flex items-start justify-between mb-5">
@@ -3637,12 +3637,12 @@ This agreement is governed by the laws of [State/Country].`,
                   previewContract.status === "declined" ? "bg-red-100 text-red-700" :
                   "bg-gray-100 text-gray-600"
                 }`}>{previewContract.status}</span>
-                <h2 className="text-xl font-extrabold text-[#18181B] mt-2 tracking-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{previewContract.title}</h2>
+                <h2 className="text-xl font-extrabold text-[#18181B] mt-2 tracking-tight" style={{ fontFamily: "Inter, sans-serif" }}>{previewContract.title}</h2>
               </div>
               {previewContract.proposalAmount && (
                 <div className="text-right">
                   <p className="text-[10px] text-gray-400 uppercase tracking-wide">Value</p>
-                  <p className="text-xl font-extrabold text-[#E8A020]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{formatCurrency(previewContract.proposalAmount)}</p>
+                  <p className="text-xl font-extrabold text-[#D4922A]" style={{ fontFamily: "Inter, sans-serif" }}>{formatCurrency(previewContract.proposalAmount)}</p>
                 </div>
               )}
             </div>
@@ -3697,7 +3697,7 @@ This agreement is governed by the laws of [State/Country].`,
 
             {/* Actions */}
             <div className="flex gap-3">
-              <Button className="flex-1 bg-[#E8A020] hover:bg-[#D4911A] text-white gap-2" onClick={() => { openEdit(previewContract); setPreviewContract(null); }}>
+              <Button className="flex-1 bg-[#D4922A] hover:bg-[#D4911A] text-white gap-2" onClick={() => { openEdit(previewContract); setPreviewContract(null); }}>
                 <Edit2 className="w-4 h-4" /> Edit Document
               </Button>
               <Button variant="outline" className="flex-1 gap-2" onClick={() => setPreviewContract(null)}>
@@ -3732,7 +3732,7 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
 
   const typeIcon = (type: string) => {
     if (type === "message") return <MessageSquare className="w-4 h-4 text-blue-500" />;
-    if (type === "booking") return <Calendar className="w-4 h-4 text-[#E8A020]" />;
+    if (type === "booking") return <Calendar className="w-4 h-4 text-[#D4922A]" />;
     if (type === "invoice_paid") return <CheckCircle className="w-4 h-4 text-green-500" />;
     if (type === "invoice_overdue") return <AlertCircle className="w-4 h-4 text-red-500" />;
     if (type === "invoice") return <FileText className="w-4 h-4 text-gray-500" />;
@@ -3756,7 +3756,7 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Smart Inbox</h2>
+          <h2 className="text-xl font-bold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>Smart Inbox</h2>
           <p className="text-sm text-gray-500 mt-0.5">
             {unreadCount > 0 ? `${unreadCount} unread item${unreadCount !== 1 ? "s" : ""}` : "All caught up"}
           </p>
@@ -3774,7 +3774,7 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
         {(["all", "unread", "messages", "bookings", "invoices"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold capitalize transition-all ${
-              filter === f ? "bg-[#E8A020] text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-[#E8A020]"
+              filter === f ? "bg-[#D4922A] text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-[#D4922A]"
             }`}>
             {f}{f === "unread" && unreadCount > 0 ? ` (${unreadCount})` : ""}
           </button>
@@ -3786,7 +3786,7 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
         <div className="space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-20 bg-white rounded-xl animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
-          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
             <Inbox className="w-8 h-8 text-gray-300" />
           </div>
           <p className="font-semibold text-gray-700">Nothing here</p>
@@ -3809,8 +3809,8 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
-                  <p className={`text-sm font-semibold truncate ${item.read ? "text-gray-700" : "text-[#1C1C1E]"}` }>{item.title}</p>
-                  {!item.read && <span className="w-2 h-2 rounded-full bg-[#E8A020] flex-shrink-0 mt-1" />}
+                  <p className={`text-sm font-semibold truncate ${item.read ? "text-gray-700" : "text-[#1C2333]"}` }>{item.title}</p>
+                  {!item.read && <span className="w-2 h-2 rounded-full bg-[#D4922A] flex-shrink-0 mt-1" />}
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{item.body}</p>
                 <p className="text-[10px] text-gray-400 mt-1">{new Date(item.createdAt).toLocaleString()}</p>
@@ -3854,7 +3854,7 @@ function TestimonialsPanel() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Testimonials</h2>
+          <h2 className="text-xl font-bold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>Testimonials</h2>
           <p className="text-sm text-gray-500 mt-0.5">Request, review, and publish client testimonials</p>
         </div>
       </div>
@@ -3864,7 +3864,7 @@ function TestimonialsPanel() {
         {(["pending", "approved", "rejected", "request"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize transition-all ${
-              tab === t ? "bg-[#E8A020] text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-[#E8A020]"
+              tab === t ? "bg-[#D4922A] text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-[#D4922A]"
             }`}>
             {t === "request" ? "+ New Request" : t}
             {t === "pending" && list.filter(x => ["requested","submitted"].includes(x.status)).length > 0 && (
@@ -3877,8 +3877,8 @@ function TestimonialsPanel() {
       </div>
 
       {tab === "request" ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 max-w-lg">
-          <h3 className="font-semibold text-[#1C1C1E]">Send Testimonial Request</h3>
+        <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4 max-w-lg">
+          <h3 className="font-semibold text-[#1C2333]">Send Testimonial Request</h3>
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client Name *</label>
@@ -3899,7 +3899,7 @@ function TestimonialsPanel() {
           <Button
             onClick={() => { setSending(true); requestMut.mutate({ ...form, origin: window.location.origin }); }}
             disabled={!form.clientName.trim() || !form.clientEmail.trim() || sending}
-            className="w-full bg-[#E8A020] hover:bg-[#D4911A] text-white">
+            className="w-full bg-[#D4922A] hover:bg-[#D4911A] text-white">
             {sending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending…</> : "Send Request"}
           </Button>
         </div>
@@ -3918,12 +3918,12 @@ function TestimonialsPanel() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-[#1C1C1E] text-sm">{t.clientName}</p>
+                    <p className="font-semibold text-[#1C2333] text-sm">{t.clientName}</p>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${statusColors[t.status] ?? "bg-gray-100 text-gray-500"}`}>{t.status}</span>
                   </div>
                   {t.rating && (
                     <div className="flex gap-0.5 mb-1.5">
-                      {[1,2,3,4,5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= t.rating! ? "fill-[#E8A020] text-[#E8A020]" : "text-gray-200"}`} />)}
+                      {[1,2,3,4,5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= t.rating! ? "fill-[#D4922A] text-[#D4922A]" : "text-gray-200"}`} />)}
                     </div>
                   )}
                   {t.body && <p className="text-sm text-gray-600 line-clamp-3">"{t.body}"</p>}
@@ -3968,7 +3968,7 @@ function MobileQuickStats() {
       }}
     >
       <div className="flex-1 flex items-center justify-center gap-1">
-        <DollarSign className="w-3.5 h-3.5 text-[#E8A020]" />
+        <DollarSign className="w-3.5 h-3.5 text-[#D4922A]" />
         <span className="text-xs font-bold text-white">${mrr >= 1000 ? (mrr/1000).toFixed(1)+"k" : mrr.toFixed(0)}</span>
         <span className="text-[10px] text-gray-500">MRR</span>
       </div>
@@ -4056,7 +4056,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
 
       {/* Full-feature sheet — absolutely positioned above the nav bar, no transforms */}
       <div
-        className={`absolute left-0 right-0 z-50 bg-[#1C1C1E] rounded-t-3xl shadow-2xl overflow-y-auto ${
+        className={`absolute left-0 right-0 z-50 bg-[#1C2333] rounded-t-3xl shadow-2xl overflow-y-auto ${
           showSheet ? "block" : "hidden"
         }`}
         style={{ bottom: "100%", maxHeight: "70vh" }}
@@ -4074,16 +4074,16 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
 
           {sheetSections.map((section) => (
             <div key={section.label}>
-              <p className="text-[10px] font-semibold text-[#E8A020]/70 uppercase tracking-wider mb-2 px-1">{section.label}</p>
+              <p className="text-[10px] font-semibold text-[#D4922A]/70 uppercase tracking-wider mb-2 px-1">{section.label}</p>
               <div className="grid grid-cols-4 gap-1.5">
                 {section.items.map((item) => (
                   <button
                     key={item.panel}
                     onClick={() => handleSheetNav(item.panel)}
                     aria-label={item.label}
-                    className={`relative flex flex-col items-center justify-center py-3.5 px-1 rounded-2xl gap-1.5 transition-all active:scale-95 ${
+                    className={`relative flex flex-col items-center justify-center py-3.5 px-1 rounded-xl gap-1.5 transition-all active:scale-95 ${
                       active === item.panel
-                        ? "bg-[#E8A020]/20 text-[#E8A020]"
+                        ? "bg-[#D4922A]/20 text-[#D4922A]"
                         : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
                     }`}
                   >
@@ -4154,10 +4154,10 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
                 aria-label={tab.label}
                 aria-current={isActive ? "page" : undefined}
                 className="flex-1 flex flex-col items-center justify-center pt-2.5 pb-1 gap-1 min-h-[52px] transition-all active:scale-95 relative"
-                style={{ color: isActive ? "#E8A020" : "#6B7280" }}
+                style={{ color: isActive ? "#D4922A" : "#6B7280" }}
               >
                 {isActive && (
-                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-[#E8A020]" />
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-[#D4922A]" />
                 )}
                 <tab.icon className="w-[22px] h-[22px]" aria-hidden="true" />
                 <span className="text-[11px] font-medium leading-none">{tab.label}</span>
@@ -4171,10 +4171,10 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
             aria-label="All features"
             aria-expanded={showSheet}
             className="flex-1 flex flex-col items-center justify-center pt-2.5 pb-1 gap-1 min-h-[52px] transition-all active:scale-95 relative"
-            style={{ color: isSheetPanelActive || showSheet ? "#E8A020" : "#6B7280" }}
+            style={{ color: isSheetPanelActive || showSheet ? "#D4922A" : "#6B7280" }}
           >
             {(isSheetPanelActive || showSheet) && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-[#E8A020]" />
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-[#D4922A]" />
             )}
             {/* 3×3 grid icon to signal "all features" */}
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
@@ -4301,7 +4301,7 @@ export default function Dashboard() {
   if (loading) return (
     <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
       <div className="text-center">
-        <Loader2 className="w-8 h-8 text-[#E8A020] animate-spin mx-auto mb-3" />
+        <Loader2 className="w-8 h-8 text-[#D4922A] animate-spin mx-auto mb-3" />
         <p className="text-sm text-gray-600">Loading your dashboard...</p>
       </div>
     </div>
@@ -4330,7 +4330,7 @@ export default function Dashboard() {
           <div className="w-16 h-16 rounded-full gradient-amber flex items-center justify-center shadow-lg">
             <span className="text-3xl">✨</span>
           </div>
-          <h2 className="text-xl font-bold text-[#1C1C1E]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>AI Assistant</h2>
+          <h2 className="text-xl font-bold text-[#1C2333]" style={{ fontFamily: 'Inter, sans-serif' }}>AI Assistant</h2>
           <p className="text-gray-600 text-sm max-w-xs">
             Your AI assistant is floating on screen — drag it anywhere and chat while you work.
           </p>
@@ -4343,7 +4343,7 @@ export default function Dashboard() {
             </button>
           )}
           {aiVisible && (
-            <p className="text-xs text-[#E8A020] font-medium">AI Assistant is open — look for the floating bubble ✨</p>
+            <p className="text-xs text-[#D4922A] font-medium">AI Assistant is open — look for the floating bubble ✨</p>
           )}
         </div>
         </PanelErrorBoundary>
@@ -4361,7 +4361,7 @@ export default function Dashboard() {
   return (
     <div className="bg-[#F5F5F7] flex flex-col md:flex-row overflow-x-hidden w-full" style={{ height: '100dvh' }}>
       {/* Skip link */}
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-xl focus:shadow-lg focus:text-[#E8A020] focus:font-semibold">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-xl focus:shadow-lg focus:text-[#D4922A] focus:font-semibold">
         Skip to main content
       </a>
 
@@ -4395,11 +4395,11 @@ export default function Dashboard() {
                   className="h-7 w-auto object-contain"
                 />
               </button>
-              <span className="text-sm font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+              <span className="text-sm font-bold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>
                 {panelTitles[active]}
               </span>
             </div>
-            <h1 className="hidden md:block text-base font-bold text-[#1C1C1E]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <h1 className="hidden md:block text-base font-bold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>
               {panelTitles[active]}
             </h1>
           </div>
@@ -4408,7 +4408,7 @@ export default function Dashboard() {
             {/* Home button */}
             <button
               onClick={() => navigate("/")}
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-[#1C1C1E] transition-all"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-[#1C2333] transition-all"
               aria-label="Go to homepage"
               title="Homepage"
             >
@@ -4453,11 +4453,11 @@ export default function Dashboard() {
                 )}
               </button>
               {showNotifications && (
-                <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                    <p className="text-sm font-bold text-[#1C1C1E]">Notifications</p>
+                    <p className="text-sm font-bold text-[#1C2333]">Notifications</p>
                     {(notifList?.length ?? 0) > 0 && (
-                      <button onClick={() => markAllReadMutation.mutate()} className="text-xs text-[#E8A020] hover:underline font-medium">Mark all read</button>
+                      <button onClick={() => markAllReadMutation.mutate()} className="text-xs text-[#D4922A] hover:underline font-medium">Mark all read</button>
                     )}
                   </div>
                   <div className="max-h-80 overflow-y-auto">
@@ -4471,7 +4471,7 @@ export default function Dashboard() {
                         <div key={n.id} className={`flex items-start gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors ${!n.read ? 'bg-amber-50/50' : ''}`}>
                           <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.type === 'success' ? 'bg-green-400' : n.type === 'error' ? 'bg-red-400' : 'bg-blue-400'}`} />
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-[#1C1C1E] truncate">{n.title}</p>
+                            <p className="text-xs font-semibold text-[#1C2333] truncate">{n.title}</p>
                             <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{n.body}</p>
                             <p className="text-[10px] text-gray-600 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
                           </div>
@@ -4488,7 +4488,7 @@ export default function Dashboard() {
 
             {/* Plan Badge */}
             {settings?.subscriptionStatus === "active" && (
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8A020]/15 text-[#E8A020] border border-[#E8A020]/30 capitalize">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#D4922A]/15 text-[#D4922A] border border-[#D4922A]/30 capitalize">
                 {settings.planId || "Pro"}
               </span>
             )}

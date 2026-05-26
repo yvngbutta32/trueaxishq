@@ -28,7 +28,7 @@ export default function TestimonialSubmit() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#E8A020] animate-spin" />
+        <Loader2 className="w-8 h-8 text-[#D4922A] animate-spin" />
       </div>
     );
   }
@@ -62,7 +62,7 @@ export default function TestimonialSubmit() {
     <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden max-w-lg w-full">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#E8A020] to-[#D4911A] p-6 text-white">
+        <div className="bg-gradient-to-r from-[#D4922A] to-[#D4911A] p-6 text-white">
           <h1 className="text-xl font-bold">How was your experience?</h1>
           <p className="text-white/80 text-sm mt-1">
             Hi {data.clientName} — {data.freelancerName} would love your feedback.
@@ -87,7 +87,7 @@ export default function TestimonialSubmit() {
                   <Star
                     className={`w-9 h-9 transition-colors ${
                       star <= (hovered || rating)
-                        ? "fill-[#E8A020] text-[#E8A020]"
+                        ? "fill-[#D4922A] text-[#D4922A]"
                         : "text-gray-300"
                     }`}
                   />
@@ -120,7 +120,7 @@ export default function TestimonialSubmit() {
           <Button
             onClick={() => submitMutation.mutate({ token, body, rating })}
             disabled={rating === 0 || body.trim().length < 10 || submitMutation.isPending}
-            className="w-full bg-[#E8A020] hover:bg-[#D4911A] text-white font-semibold py-3"
+            className="w-full bg-[#D4922A] hover:bg-[#D4911A] text-white font-semibold py-3"
           >
             {submitMutation.isPending ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting…</>

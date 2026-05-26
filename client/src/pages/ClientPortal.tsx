@@ -63,7 +63,7 @@ export default function ClientPortal() {
     return (
       <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 border-4 border-[#E8A020] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-10 h-10 border-4 border-[#D4922A] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-sm">Loading your portal...</p>
         </div>
       </div>
@@ -73,7 +73,7 @@ export default function ClientPortal() {
   if (error || !data) {
     return (
       <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 max-w-md w-full text-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 max-w-md w-full text-center">
           <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-7 h-7 text-red-500" />
           </div>
@@ -100,7 +100,7 @@ export default function ClientPortal() {
             {freelancer?.avatarUrl ? (
               <img src={freelancer.avatarUrl} alt={providerName} className="w-9 h-9 rounded-full object-cover" />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-[#E8A020] flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-9 h-9 rounded-full bg-[#D4922A] flex items-center justify-center text-white font-bold text-sm">
                 {providerName.charAt(0).toUpperCase()}
               </div>
             )}
@@ -132,7 +132,7 @@ export default function ClientPortal() {
         )}
 
         {/* Client Info Card */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">Your Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex items-center gap-3">
@@ -173,9 +173,9 @@ export default function ClientPortal() {
         </div>
 
         {/* Invoices */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[#E8A020]" />
+            <FileText className="w-4 h-4 text-[#D4922A]" />
             <h2 className="font-semibold text-gray-900">Invoices</h2>
             <span className="ml-auto text-xs text-gray-600">{invoices.length} total</span>
           </div>
@@ -210,7 +210,7 @@ export default function ClientPortal() {
                           });
                         }}
                         disabled={payInvoice.isPending && payingId === inv.id}
-                        className="flex items-center gap-1.5 bg-[#E8A020] hover:bg-[#d4911c] text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60"
+                        className="flex items-center gap-1.5 bg-[#D4922A] hover:bg-[#d4911c] text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60"
                       >
                         <CreditCard className="w-3 h-3" />
                         {payInvoice.isPending && payingId === inv.id ? "..." : "Pay Now"}
@@ -230,9 +230,9 @@ export default function ClientPortal() {
         </div>
 
         {/* Bookings */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#E8A020]" />
+            <Calendar className="w-4 h-4 text-[#D4922A]" />
             <h2 className="font-semibold text-gray-900">Appointments</h2>
             <span className="ml-auto text-xs text-gray-600">{bookings.length} total</span>
           </div>
@@ -262,20 +262,20 @@ export default function ClientPortal() {
         </div>
 
         {/* Provider Contact */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">Contact Your Provider</h2>
           <div className="flex items-center gap-4">
             {freelancer?.avatarUrl ? (
               <img src={freelancer.avatarUrl} alt={providerName} className="w-12 h-12 rounded-full object-cover" />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-[#E8A020] flex items-center justify-center text-white font-bold">
+              <div className="w-12 h-12 rounded-full bg-[#D4922A] flex items-center justify-center text-white font-bold">
                 {providerName.charAt(0).toUpperCase()}
               </div>
             )}
             <div>
               <p className="font-semibold text-gray-900">{providerName}</p>
               {freelancer?.email && (
-                <a href={`mailto:${freelancer.email}`} className="text-sm text-[#E8A020] hover:underline flex items-center gap-1">
+                <a href={`mailto:${freelancer.email}`} className="text-sm text-[#D4922A] hover:underline flex items-center gap-1">
                   <Mail className="w-3 h-3" />{freelancer.email}
                 </a>
               )}
