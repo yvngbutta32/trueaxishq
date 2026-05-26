@@ -1019,3 +1019,8 @@
 - [x] All pages: Space Grotesk, Plus Jakarta Sans, DM Sans → Inter everywhere
 - [x] All pages: old color values (#141414, #0E0E0E, #1C1C1E, #272727) → design system values
 - [x] 0 TypeScript errors, 29/29 tests passing after redesign
+
+## Three Suggested Improvements (May 26 2026)
+- [x] Scroll-aware nav: polished with saturate(180%) blur(20px), design-system border color on scroll
+- [x] Enrich hero dashboard preview: SVG revenue sparkline, upcoming booking card, recent invoice row, AI suggestion
+- [x] Animated product demo section in How It Works: 4-tab showcase (Booking/Invoicing/Follow-Ups/Analytics) with animated UI panels and progress bar auto-cycling every 4s
