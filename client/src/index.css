@@ -784,6 +784,12 @@
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
+  /* iOS Safari zoom prevention: font-size must be >= 16px on focus.
+     Tailwind text-xs (0.75rem) overrides the @layer base rule, so we
+     enforce 16px here in @layer components which wins on mobile. */
+  @media (max-width: 767px) {
+    .form-input-light { font-size: 16px !important; }
+  }
   .form-input-light::placeholder {
     color: #9CA3AF;
   }

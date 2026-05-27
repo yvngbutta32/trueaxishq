@@ -164,6 +164,65 @@ function useFormField<T extends Record<string, unknown>>(setter: React.Dispatch<
   return useCallback((v: string) => setter(p => ({ ...p, [field]: v })), [setter, field]);
 }
 
+// ─── LineItemRow ──────────────────────────────────────────────────────────────
+// Memoized row for invoice line items. Stable onChangeDesc/onChangeQty/onChangePrice
+// callbacks prevent re-renders of sibling rows when one field changes.
+interface LineItem { description: string; qty: number; unitPrice: number; }
+const LineItemRow = memo(function LineItemRow({
+  item, idx, onChangeDesc, onChangeQty, onChangePrice, onRemove
+}: {
+  item: LineItem; idx: number;
+  onChangeDesc: (idx: number, v: string) => void;
+  onChangeQty: (idx: number, v: string) => void;
+  onChangePrice: (idx: number, v: string) => void;
+  onRemove: (idx: number) => void;
+}) {
+  const handleDesc  = useCallback((e: React.ChangeEvent<HTMLInputElement>) => onChangeDesc(idx, e.target.value), [idx, onChangeDesc]);
+  const handleQty   = useCallback((e: React.ChangeEvent<HTMLInputElement>) => onChangeQty(idx, e.target.value), [idx, onChangeQty]);
+  const handlePrice = useCallback((e: React.ChangeEvent<HTMLInputElement>) => onChangePrice(idx, e.target.value), [idx, onChangePrice]);
+  const handleRemove = useCallback(() => onRemove(idx), [idx, onRemove]);
+  return (
+    <div className="grid grid-cols-[1fr_60px_80px_28px] gap-1.5 items-center">
+      <input
+        value={item.description}
+        onChange={handleDesc}
+        placeholder="Description"
+        className="form-input-light text-xs"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="sentences"
+        spellCheck={false}
+      />
+      <input
+        type="text"
+        inputMode="decimal"
+        min="1"
+        value={item.qty}
+        onChange={handleQty}
+        placeholder="Qty"
+        className="form-input-light text-xs text-center"
+        autoComplete="off"
+      />
+      <input
+        type="text"
+        inputMode="decimal"
+        min="0"
+        value={item.unitPrice}
+        onChange={handlePrice}
+        placeholder="Price"
+        className="form-input-light text-xs"
+        autoComplete="off"
+      />
+      <button
+        type="button"
+        onClick={handleRemove}
+        className="text-red-400 hover:text-red-600 text-lg leading-none"
+        aria-label={`Remove line item ${idx + 1}`}
+      >&times;</button>
+    </div>
+  );
+});
+
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; badge?: string }[] = [
   { icon: LayoutDashboard, label: "Dashboard", panel: "overview" },
@@ -1457,6 +1516,16 @@ function InvoicesPanel() {
   const [editLineItems, setEditLineItems] = useState<{ description: string; qty: number; unitPrice: number }[]>([]);
   const [editUseLineItems, setEditUseLineItems] = useState(false);
   const editLineItemsTotal = editLineItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
+  // Stable callbacks for create line items — prevent re-renders of sibling rows
+  const handleLineDesc  = useCallback((idx: number, v: string) => setLineItems(p => p.map((it, i) => i === idx ? { ...it, description: v } : it)), []);
+  const handleLineQty   = useCallback((idx: number, v: string) => setLineItems(p => p.map((it, i) => i === idx ? { ...it, qty: parseFloat(v) || 1 } : it)), []);
+  const handleLinePrice = useCallback((idx: number, v: string) => setLineItems(p => p.map((it, i) => i === idx ? { ...it, unitPrice: parseFloat(v) || 0 } : it)), []);
+  const handleLineRemove = useCallback((idx: number) => setLineItems(p => p.filter((_, i) => i !== idx)), []);
+  // Stable callbacks for edit line items
+  const handleEditLineDesc  = useCallback((idx: number, v: string) => setEditLineItems(p => p.map((it, i) => i === idx ? { ...it, description: v } : it)), []);
+  const handleEditLineQty   = useCallback((idx: number, v: string) => setEditLineItems(p => p.map((it, i) => i === idx ? { ...it, qty: parseFloat(v) || 1 } : it)), []);
+  const handleEditLinePrice = useCallback((idx: number, v: string) => setEditLineItems(p => p.map((it, i) => i === idx ? { ...it, unitPrice: parseFloat(v) || 0 } : it)), []);
+  const handleEditLineRemove = useCallback((idx: number) => setEditLineItems(p => p.filter((_, i) => i !== idx)), []);
   function openEditInvoice(inv: any) {
     const items = inv.lineItems ? (typeof inv.lineItems === "string" ? JSON.parse(inv.lineItems) : inv.lineItems) : [];
     const hasItems = Array.isArray(items) && items.length > 0;
@@ -1665,13 +1734,13 @@ function InvoicesPanel() {
                 <Field label="Amount ($)" required value={recurringForm.amount} onChange={setRecurringFormField("amount")} placeholder="e.g. 500" type="number" enterKeyHint="next" />
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5">Frequency *</label>
-                  <select value={recurringForm.frequency} onChange={e => setRecurringForm(p => ({ ...p, frequency: e.target.value as any }))} className="form-input-light">
+                  <select value={recurringForm.frequency} onChange={e => setRecurringFormField("frequency")(e.target.value)} className="form-input-light">
                     {Object.entries(FREQUENCY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5">First Due Date *</label>
-                  <input type="date" value={recurringForm.nextDueAt} onChange={e => setRecurringForm(p => ({ ...p, nextDueAt: e.target.value }))} className="form-input-light" />
+                  <input type="date" value={recurringForm.nextDueAt} onChange={e => setRecurringFormField("nextDueAt")(e.target.value)} className="form-input-light" />
                 </div>
                 <div className="sm:col-span-2">
                   <Field label="Description" value={recurringForm.description} onChange={setRecurringFormField("description")} placeholder="e.g. Monthly retainer — web maintenance" enterKeyHint="done" />
@@ -1964,7 +2033,7 @@ function InvoicesPanel() {
                 </Button>
               )}
             </div>
-            <input value={form.service} onChange={e => setForm(p => ({ ...p, service: e.target.value }))} placeholder="3-month coaching program, web design..." className="form-input-light" autoComplete="off" enterKeyHint="next" />
+            <input value={form.service} onChange={e => setInvFormField("service")(e.target.value)} placeholder="3-month coaching program, web design..." className="form-input-light" autoComplete="off" autoCorrect="off" autoCapitalize="sentences" spellCheck={false} enterKeyHint="next" />
           </div>
           {/* Line Items Toggle */}
           <div className="flex items-center gap-2">
@@ -1982,36 +2051,15 @@ function InvoicesPanel() {
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-gray-600">Line Items</label>
               {lineItems.map((item, idx) => (
-                <div key={idx} className="grid grid-cols-[1fr_60px_80px_28px] gap-1.5 items-center">
-                  <input
-                    value={item.description}
-                    onChange={e => setLineItems(p => p.map((it, i) => i === idx ? { ...it, description: e.target.value } : it))}
-                    placeholder="Description"
-                    className="form-input-light text-xs"
-                  />
-                  <input
-                    type="number"
-                    min="1"
-                    value={item.qty}
-                    onChange={e => setLineItems(p => p.map((it, i) => i === idx ? { ...it, qty: parseFloat(e.target.value) || 1 } : it))}
-                    placeholder="Qty"
-                    className="form-input-light text-xs text-center"
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={item.unitPrice}
-                    onChange={e => setLineItems(p => p.map((it, i) => i === idx ? { ...it, unitPrice: parseFloat(e.target.value) || 0 } : it))}
-                    placeholder="Price"
-                    className="form-input-light text-xs"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setLineItems(p => p.filter((_, i) => i !== idx))}
-                    className="text-red-400 hover:text-red-600 text-lg leading-none"
-                  >&times;</button>
-                </div>
+                <LineItemRow
+                  key={idx}
+                  item={item}
+                  idx={idx}
+                  onChangeDesc={handleLineDesc}
+                  onChangeQty={handleLineQty}
+                  onChangePrice={handleLinePrice}
+                  onRemove={handleLineRemove}
+                />
               ))}
               <button
                 type="button"
@@ -2031,7 +2079,7 @@ function InvoicesPanel() {
           <Field label="Notes" value={form.notes} onChange={setInvFormField("notes")} placeholder="Payment terms, bank details..." textarea enterKeyHint="done" />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Send as</label>
-            <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as "draft" | "sent" }))} className="form-input-light">
+            <select value={form.status} onChange={e => setInvFormField("status")(e.target.value)} className="form-input-light">
               <option value="draft">Save as Draft</option>
               <option value="sent">Mark as Sent</option>
             </select>
@@ -2073,12 +2121,15 @@ function InvoicesPanel() {
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-gray-600">Line Items</label>
               {editLineItems.map((item, idx) => (
-                <div key={idx} className="grid grid-cols-[1fr_60px_80px_28px] gap-1.5 items-center">
-                  <input value={item.description} onChange={e => setEditLineItems(p => p.map((it, i) => i === idx ? { ...it, description: e.target.value } : it))} placeholder="Description" className="form-input-light text-xs" />
-                  <input type="number" min="1" value={item.qty} onChange={e => setEditLineItems(p => p.map((it, i) => i === idx ? { ...it, qty: parseFloat(e.target.value) || 1 } : it))} placeholder="Qty" className="form-input-light text-xs text-center" />
-                  <input type="number" min="0" step="0.01" value={item.unitPrice} onChange={e => setEditLineItems(p => p.map((it, i) => i === idx ? { ...it, unitPrice: parseFloat(e.target.value) || 0 } : it))} placeholder="Price" className="form-input-light text-xs" />
-                  <button type="button" onClick={() => setEditLineItems(p => p.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600 text-lg leading-none">&times;</button>
-                </div>
+                <LineItemRow
+                  key={idx}
+                  item={item}
+                  idx={idx}
+                  onChangeDesc={handleEditLineDesc}
+                  onChangeQty={handleEditLineQty}
+                  onChangePrice={handleEditLinePrice}
+                  onRemove={handleEditLineRemove}
+                />
               ))}
               <button type="button" onClick={() => setEditLineItems(p => [...p, { description: "", qty: 1, unitPrice: 0 }])} className="text-xs text-[#D4922A] hover:underline font-semibold">+ Add line item</button>
               {editLineItems.length > 0 && (
@@ -2092,7 +2143,7 @@ function InvoicesPanel() {
           <Field label="Notes" value={editForm.notes} onChange={setEditFormField("notes")} placeholder="Payment terms, bank details..." textarea />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Status</label>
-            <select value={editForm.status} onChange={e => setEditForm(p => ({ ...p, status: e.target.value as any }))} className="form-input-light">
+            <select value={editForm.status} onChange={e => setEditFormField("status")(e.target.value)} className="form-input-light">
               <option value="draft">Draft</option>
               <option value="sent">Sent</option>
               <option value="paid">Paid</option>

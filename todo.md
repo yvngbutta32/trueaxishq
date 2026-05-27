@@ -1065,19 +1065,29 @@
 - [x] 0 TypeScript errors, 29/29 tests passing
 
 ## Typing Smoothness — Mobile & Desktop (May 26 2026)
-- [ ] Global CSS: add touch-action: manipulation to all inputs/textareas/selects (eliminates 300ms tap delay on mobile)
-- [ ] Global CSS: add -webkit-overflow-scrolling: touch and overscroll-behavior: contain to scroll containers
-- [ ] Field component: fix textarea auto-resize — use useLayoutEffect + ref instead of inline scrollHeight read/write (eliminates layout reflow on every keystroke)
-- [ ] Field component: add autocorrect="off" autocapitalize="sentences" spellCheck={false} to all non-prose inputs
-- [ ] Dashboard: extract ClientsPanel form into isolated FormState component (stops full panel re-render on every keystroke)
-- [ ] Dashboard: extract SchedulingPanel form into isolated FormState component
-- [ ] Dashboard: extract InvoicesPanel form into isolated FormState component
-- [ ] Dashboard: extract FollowUpsPanel form into isolated FormState component
-- [ ] Dashboard: extract ContractsPanel form into isolated FormState component
-- [ ] Dashboard: extract SettingsPanel form into isolated FormState component
-- [ ] Dashboard: add -webkit-overflow-scrolling: touch to main panel scroll container
-- [ ] Dashboard: add overscroll-behavior: contain to main panel scroll container
-- [ ] All pages: add inputMode, autocorrect, autocapitalize, spellCheck to all inputs
-- [ ] TimeTracking: fix form inputs for mobile keyboard
-- [ ] Admin: fix form inputs for mobile keyboard
-- [ ] BookingPage: fix form inputs for mobile keyboard
+- [x] Global CSS: add touch-action: manipulation to all inputs/textareas/selects (eliminates 300ms tap delay on mobile)
+- [x] Global CSS: add -webkit-overflow-scrolling: touch and overscroll-behavior: contain to scroll containers
+- [x] Field component: fix textarea auto-resize — use useLayoutEffect + ref instead of inline scrollHeight read/write (eliminates layout reflow on every keystroke)
+- [x] Field component: add autocorrect="off" autocapitalize="sentences" spellCheck={false} to all non-prose inputs
+- [x] Dashboard: useFormFields hook — stable useCallback setters for all panel forms (stops full panel re-render on every keystroke)
+- [x] Dashboard: SchedulingPanel stable onChange callbacks via useFormFields
+- [x] Dashboard: InvoicesPanel stable onChange callbacks via useFormFields
+- [x] Dashboard: FollowUpsPanel stable onChange callbacks via useFormFields
+- [x] Dashboard: ContractsPanel stable onChange callbacks via useFormFields
+- [x] Dashboard: SettingsPanel stable onChange callbacks via useFormFields
+- [x] Dashboard: add -webkit-overflow-scrolling: touch to main panel scroll container
+- [x] Dashboard: add overscroll-behavior: contain to main panel scroll container
+- [x] All pages: add inputMode, autocorrect, autocapitalize, spellCheck to all inputs
+- [x] TimeTracking: fix form inputs for mobile keyboard
+- [x] Admin: fix form inputs for mobile keyboard
+- [x] BookingPage: fix form inputs for mobile keyboard
+
+## Remaining Features — Next Session
+- [ ] Bulk time-entry invoicing — checkboxes on entries, consolidated invoice from multiple entries
+- [ ] Client default rate — defaultRate field on clients table, auto-fill in time tracker
+- [ ] Email delivery for password resets — transactional email so reset link goes to user inbox
+- [ ] Recurring invoice auto-send — background job auto-generates and sends invoice PDF on due date
+- [ ] Audit log CSV export — CSV export button in Admin → Security/Audit tab
+- [ ] Onboarding checklist wiring — wire checklist steps to real DB events (not localStorage)
+- [ ] Google Calendar OAuth — complete the full OAuth flow (token exchange + event sync)
+- [ ] PWA service worker — verify sw.js is registered and caching correctly on production
