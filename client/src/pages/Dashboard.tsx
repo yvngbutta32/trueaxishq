@@ -3,7 +3,7 @@
  * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
  */
 
-import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo } from "react";
+import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo } from "react";
 import { useFormFields } from "@/hooks/useFormFields";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
@@ -4666,7 +4666,11 @@ export default function Dashboard() {
     inbox: "Smart Inbox", testimonials: "Testimonials",
   };
 
-  const renderPanel = () => {
+  // useMemo ensures the panel JSX element is only recreated when `active` changes.
+  // Without this, every Dashboard re-render (notification poll, search state, etc.)
+  // returns a brand-new element reference, causing React to unmount+remount the
+  // active panel and losing input focus mid-typing.
+  const activePanel = useMemo(() => {
     switch (active) {
       case "overview": return <PanelErrorBoundary panelName="Overview"><OverviewPanel userName={user?.name || ""} setActivePanel={setActive} /></PanelErrorBoundary>;
       case "clients": return <PanelErrorBoundary panelName="Clients"><ClientsPanel /></PanelErrorBoundary>;
@@ -4707,7 +4711,8 @@ export default function Dashboard() {
       case "testimonials": return <PanelErrorBoundary panelName="Testimonials"><TestimonialsPanel /></PanelErrorBoundary>;
       default: return null;
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, user?.name]);
 
   return (
     <div className="bg-[#F5F5F7] flex flex-col md:flex-row overflow-x-hidden w-full" style={{ height: '100dvh' }}>
@@ -4864,7 +4869,7 @@ export default function Dashboard() {
 
         {/* Panel Content — pb-[130px] ensures content clears MobileQuickStats (~40px) + MobileBottomNav (~62px) + buffer on mobile */}
         <div className="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-x-hidden pb-[130px] md:pb-6">
-          {renderPanel()}
+          {activePanel}
         </div>
       </main>
 
