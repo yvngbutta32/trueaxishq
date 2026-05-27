@@ -2617,6 +2617,80 @@ Only include actions when you have actually generated a complete draft. For gene
         });
         return { id: (result as any).insertId };
       }),
+
+    // Generate an invoice directly from a completed time entry
+    generateInvoice: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        // Optional overrides the user can supply before generating
+        dueDate: z.string().optional(),
+        notes: z.string().max(1000).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+
+        // 1. Fetch and validate the time entry
+        const [entry] = await db.select().from(timeEntries)
+          .where(and(eq(timeEntries.id, input.id), eq(timeEntries.userId, ctx.user.id)))
+          .limit(1);
+        if (!entry) throw new TRPCError({ code: 'NOT_FOUND', message: 'Time entry not found.' });
+        if (!entry.endedAt) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot invoice a running timer — stop it first.' });
+        if (entry.invoiced) throw new TRPCError({ code: 'BAD_REQUEST', message: 'This entry has already been invoiced.' });
+        if (!entry.billable) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Entry is marked non-billable.' });
+
+        // 2. Compute amount
+        const hours = (entry.durationMinutes ?? 0) / 60;
+        const rate = entry.hourlyRate ? parseFloat(String(entry.hourlyRate)) : 0;
+        if (rate <= 0) throw new TRPCError({ code: 'BAD_REQUEST', message: 'No hourly rate set on this entry. Edit the entry to add a rate first.' });
+        const amount = parseFloat((hours * rate).toFixed(2));
+
+        // 3. Generate invoice number (INV-XXXX)
+        const existing = await db.select({ invoiceNumber: invoices.invoiceNumber })
+          .from(invoices).where(eq(invoices.userId, ctx.user.id));
+        const maxNum = existing.reduce((max, r) => {
+          const n = parseInt(r.invoiceNumber.replace(/\D/g, ''), 10);
+          return isNaN(n) ? max : Math.max(max, n);
+        }, 0);
+        const invoiceNumber = `INV-${String(maxNum + 1).padStart(4, '0')}`;
+
+        // 4. Build line items JSON
+        const lineItems = JSON.stringify([{
+          description: entry.description
+            ? `${entry.description} (${hours.toFixed(2)}h @ $${rate}/hr)`
+            : `Time tracked: ${hours.toFixed(2)}h @ $${rate}/hr`,
+          qty: 1,
+          unitPrice: amount,
+        }]);
+
+        // 5. Due date — default 30 days from now
+        const dueDateStr = input.dueDate ?? (() => {
+          const d = new Date();
+          d.setDate(d.getDate() + 30);
+          return d.toISOString().split('T')[0];
+        })();
+
+        // 6. Create the invoice
+        const [result] = await db.insert(invoices).values({
+          userId: ctx.user.id,
+          clientId: entry.clientId ?? undefined,
+          invoiceNumber,
+          clientName: entry.clientName ?? 'Unknown Client',
+          service: entry.description ?? entry.projectName ?? 'Time Tracking',
+          amount: String(amount),
+          status: 'draft',
+          dueDate: dueDateStr,
+          notes: input.notes ?? `Generated from time entry on ${entry.startedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}.`,
+          lineItems,
+        });
+        const invoiceId = (result as any).insertId;
+
+        // 7. Mark the time entry as invoiced
+        await db.update(timeEntries)
+          .set({ invoiced: true })
+          .where(eq(timeEntries.id, input.id));
+
+        return { invoiceId, invoiceNumber, amount };
+      }),
   }),
 
   // ── Client Documents ───────────────────────────────────────────────────────

@@ -1052,3 +1052,14 @@
 - [x] Remove RecurringInvoicesPanel import and case from Dashboard.tsx
 - [x] Remove recurring from ActivePanel type
 - [x] 0 TypeScript errors, 29/29 tests passing after integration
+
+## Time Tracker → Invoice Generation (May 26 2026)
+- [x] Add time.generateInvoice tRPC procedure — validates entry ownership, checks billable + rate, computes amount, generates INV-XXXX number, creates invoice with line items, marks entry as invoiced
+- [x] Add "Invoice" button to each completed, billable, un-invoiced entry row in TimeTrackingPanel
+- [x] Wire button to create invoice, show success toast with invoice number + amount, navigate to Invoices panel after 600ms
+- [x] timeEntries.invoiced boolean column already existed in schema — no migration needed
+- [x] Show green "Invoiced" badge on time entries that have been converted
+- [x] Prevent duplicate invoice generation: server throws BAD_REQUEST if entry.invoiced is true
+- [x] Error handling: running timer, non-billable entry, missing rate all show clear error messages
+- [x] onInvoiceGenerated callback wired in Dashboard.tsx to switch to Invoices panel
+- [x] 0 TypeScript errors, 29/29 tests passing

@@ -4601,7 +4601,7 @@ export default function Dashboard() {
       );
       case "pulse": return <PanelErrorBoundary panelName="Client Pulse"><ClientPulsePanel /></PanelErrorBoundary>;
       case "contracts": return <PanelErrorBoundary panelName="Contracts"><ContractsPanel /></PanelErrorBoundary>;
-      case "time": return <PanelErrorBoundary panelName="Time Tracking"><TimeTrackingPanel /></PanelErrorBoundary>;
+      case "time": return <PanelErrorBoundary panelName="Time Tracking"><TimeTrackingPanel onInvoiceGenerated={() => setActiveWithScroll("invoices")} /></PanelErrorBoundary>;
 
       case "inbox": return <PanelErrorBoundary panelName="Smart Inbox"><SmartInboxPanel setActivePanel={setActiveWithScroll} /></PanelErrorBoundary>;
       case "testimonials": return <PanelErrorBoundary panelName="Testimonials"><TestimonialsPanel /></PanelErrorBoundary>;

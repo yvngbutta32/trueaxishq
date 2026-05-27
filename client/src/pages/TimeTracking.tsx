@@ -1,5 +1,6 @@
 /* TrueAxis HQ — Time Tracking Panel
- * Track billable hours per client/project with start/stop timer and manual entry
+ * Track billable hours per client/project with start/stop timer and manual entry.
+ * Each completed, billable entry can generate an invoice with one click.
  */
 import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
   Clock, Play, Square, Plus, Trash2, DollarSign,
-  Loader2, Timer, TrendingUp
+  Loader2, Timer, TrendingUp, FileText, CheckCircle2,
 } from "lucide-react";
 
 function formatDuration(seconds: number) {
@@ -21,7 +22,12 @@ function formatCurrency(n: number) {
   return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-export default function TimeTrackingPanel() {
+interface Props {
+  /** Called after a successful invoice generation so the parent can switch to the Invoices panel */
+  onInvoiceGenerated?: (invoiceId: number) => void;
+}
+
+export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
   const utils = trpc.useUtils();
 
   const { data: entries, isLoading } = trpc.time.list.useQuery();
@@ -49,6 +55,9 @@ export default function TimeTrackingPanel() {
   const [timerClientId, setTimerClientId] = useState("");
   const [timerClientName, setTimerClientName] = useState("");
   const [timerRate, setTimerRate] = useState("");
+
+  // Track which entry is currently being invoiced (for per-row loading state)
+  const [invoicingId, setInvoicingId] = useState<number | null>(null);
 
   // Keep elapsed in sync with running entry
   useEffect(() => {
@@ -108,6 +117,26 @@ export default function TimeTrackingPanel() {
     onError: (e) => toast.error(e.message),
   });
 
+  const generateInvoice = trpc.time.generateInvoice.useMutation({
+    onSuccess: (data) => {
+      utils.time.list.invalidate();
+      utils.invoices.list.invalidate();
+      setInvoicingId(null);
+      toast.success(`Invoice ${data.invoiceNumber} created — ${formatCurrency(data.amount)}`, {
+        description: "Switching to Invoices panel…",
+        duration: 4000,
+      });
+      // Navigate to invoices panel after a short delay
+      setTimeout(() => {
+        onInvoiceGenerated?.(data.invoiceId);
+      }, 600);
+    },
+    onError: (e) => {
+      setInvoicingId(null);
+      toast.error(e.message);
+    },
+  });
+
   const handleStartTimer = () => {
     const client = clients?.find(c => String(c.id) === timerClientId);
     startTimer.mutate({
@@ -142,6 +171,11 @@ export default function TimeTrackingPanel() {
     });
   };
 
+  const handleGenerateInvoice = (entryId: number) => {
+    setInvoicingId(entryId);
+    generateInvoice.mutate({ id: entryId });
+  };
+
   const totalHours = summary ? (summary.totalMinutes / 60).toFixed(1) : "0.0";
   const totalBillable = summary?.totalBillable ?? 0;
   const avgRate = summary?.avgRate ?? null;
@@ -152,8 +186,8 @@ export default function TimeTrackingPanel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-[#0D1117]" style={{  }}>Time Tracking</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Track billable hours and manage your time</p>
+          <h2 className="text-xl font-bold text-[#0D1117]">Time Tracking</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Track billable hours and generate invoices instantly</p>
         </div>
         <Button
           onClick={() => setShowForm(!showForm)}
@@ -373,38 +407,80 @@ export default function TimeTrackingPanel() {
             {entries.map((entry: any) => {
               const mins = entry.durationMinutes ?? 0;
               const hours = (mins / 60).toFixed(2);
-              const billable = entry.billable && entry.hourlyRate
-                ? (mins / 60) * parseFloat(String(entry.hourlyRate))
+              const rate = entry.hourlyRate ? parseFloat(String(entry.hourlyRate)) : 0;
+              const billableAmount = entry.billable && rate > 0
+                ? (mins / 60) * rate
                 : null;
               const isRunning = !entry.endedAt;
+              const canInvoice = !isRunning && entry.billable && rate > 0 && !entry.invoiced;
+              const isThisInvoicing = invoicingId === entry.id;
+
               return (
-                <div key={entry.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 transition-colors">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${isRunning ? "bg-green-100" : "bg-[#6366F1]/10"}`}>
-                    {isRunning
-                      ? <Play className="w-4 h-4 text-green-600" />
-                      : <Clock className="w-4 h-4 text-[#6366F1]" />
+                <div
+                  key={entry.id}
+                  className={`flex items-center gap-3 px-5 py-3.5 transition-colors ${entry.invoiced ? "bg-green-50/40" : "hover:bg-gray-50"}`}
+                >
+                  {/* Status icon */}
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    entry.invoiced ? "bg-green-100" : isRunning ? "bg-green-100" : "bg-[#6366F1]/10"
+                  }`}>
+                    {entry.invoiced
+                      ? <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      : isRunning
+                        ? <Play className="w-4 h-4 text-green-600" />
+                        : <Clock className="w-4 h-4 text-[#6366F1]" />
                     }
                   </div>
+
+                  {/* Description + client */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#0D1117] truncate">
-                      {entry.description || "Untitled session"}
-                      {isRunning && <span className="ml-2 text-xs text-green-600 font-medium">● Running</span>}
-                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold text-[#0D1117] truncate">
+                        {entry.description || "Untitled session"}
+                        {isRunning && <span className="ml-2 text-xs text-green-600 font-medium">● Running</span>}
+                      </p>
+                      {entry.invoiced && (
+                        <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-[10px] font-semibold rounded-full uppercase tracking-wide flex-shrink-0">
+                          Invoiced
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {entry.clientName || "No client"} · {new Date(entry.startedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {rate > 0 && !isRunning && <span className="ml-1 text-gray-300">· ${rate}/hr</span>}
                     </p>
                   </div>
+
+                  {/* Duration + billable amount */}
                   <div className="text-right flex-shrink-0">
                     <p className="text-sm font-bold text-[#0D1117]">{isRunning ? "Running" : hours + "h"}</p>
-                    {billable !== null && !isRunning && (
-                      <p className="text-xs text-green-600 font-medium">{formatCurrency(billable)}</p>
+                    {billableAmount !== null && !isRunning && (
+                      <p className="text-xs text-green-600 font-medium">{formatCurrency(billableAmount)}</p>
                     )}
                   </div>
+
+                  {/* Generate Invoice button — only for completed, billable, un-invoiced entries with a rate */}
+                  {canInvoice && (
+                    <button
+                      onClick={() => handleGenerateInvoice(entry.id)}
+                      disabled={isThisInvoicing || generateInvoice.isPending}
+                      title="Generate invoice from this entry"
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#D4922A]/10 hover:bg-[#D4922A]/20 text-[#D4922A] text-xs font-semibold transition-colors disabled:opacity-50 flex-shrink-0"
+                    >
+                      {isThisInvoicing
+                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        : <FileText className="w-3.5 h-3.5" />
+                      }
+                      <span className="hidden sm:inline">Invoice</span>
+                    </button>
+                  )}
+
+                  {/* Delete button */}
                   {!isRunning && (
                     <button
                       onClick={() => deleteEntry.mutate({ id: entry.id })}
                       disabled={deleteEntry.isPending}
-                      className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400 transition-colors"
+                      className="p-2 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400 transition-colors"
                       aria-label="Delete entry"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -416,6 +492,13 @@ export default function TimeTrackingPanel() {
           </div>
         )}
       </div>
+
+      {/* Invoice generation hint */}
+      {(entries?.some((e: any) => !e.endedAt === false && e.billable && parseFloat(String(e.hourlyRate ?? "0")) > 0 && !e.invoiced)) && (
+        <p className="text-xs text-gray-400 text-center pb-2">
+          Click <span className="font-semibold text-[#D4922A]">Invoice</span> on any completed billable entry to generate an invoice instantly.
+        </p>
+      )}
     </div>
   );
 }
