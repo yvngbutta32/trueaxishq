@@ -1506,6 +1506,15 @@ function InvoicesPanel() {
   const [previewInvoice, setPreviewInvoice] = useState<any>(null);
   const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" as "draft" | "sent" });
   const setInvFormField = useFormFields(setForm);
+  // Pre-called stable setters — NEVER call setInvFormField("x") inline in JSX
+  // because that creates a new function reference every render, bypassing React.memo
+  const setInvClientName  = setInvFormField("clientName");
+  const setInvClientEmail = setInvFormField("clientEmail");
+  const setInvService     = setInvFormField("service");
+  const setInvAmount      = setInvFormField("amount");
+  const setInvDueDate     = setInvFormField("dueDate");
+  const setInvNotes       = setInvFormField("notes");
+  const setInvStatus      = setInvFormField("status");
   const [lineItems, setLineItems] = useState<{ description: string; qty: number; unitPrice: number }[]>([]);
   const [useLineItems, setUseLineItems] = useState(false);
   const lineItemsTotal = lineItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
@@ -1513,6 +1522,14 @@ function InvoicesPanel() {
   const [editInvoice, setEditInvoice] = useState<any>(null);
   const [editForm, setEditForm] = useState({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" as "draft" | "sent" | "paid" | "overdue" });
   const setEditFormField = useFormFields(setEditForm);
+  // Pre-called stable setters for edit form
+  const setEditClientName  = setEditFormField("clientName");
+  const setEditClientEmail = setEditFormField("clientEmail");
+  const setEditService     = setEditFormField("service");
+  const setEditAmount      = setEditFormField("amount");
+  const setEditDueDate     = setEditFormField("dueDate");
+  const setEditNotes       = setEditFormField("notes");
+  const setEditStatus      = setEditFormField("status");
   const [editLineItems, setEditLineItems] = useState<{ description: string; qty: number; unitPrice: number }[]>([]);
   const [editUseLineItems, setEditUseLineItems] = useState(false);
   const editLineItemsTotal = editLineItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
@@ -2022,8 +2039,8 @@ function InvoicesPanel() {
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <Field label="Client Name" value={form.clientName} onChange={setInvFormField("clientName")} placeholder="Jane Smith" required autoComplete="name" enterKeyHint="next" />
-          <Field label="Client Email" value={form.clientEmail} onChange={setInvFormField("clientEmail")} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
+          <Field label="Client Name" value={form.clientName} onChange={setInvClientName} placeholder="Jane Smith" required autoComplete="name" enterKeyHint="next" />
+          <Field label="Client Email" value={form.clientEmail} onChange={setInvClientEmail} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-semibold text-gray-600">Service Description</label>
@@ -2033,7 +2050,7 @@ function InvoicesPanel() {
                 </Button>
               )}
             </div>
-            <input value={form.service} onChange={e => setInvFormField("service")(e.target.value)} placeholder="3-month coaching program, web design..." className="form-input-light" autoComplete="off" autoCorrect="off" autoCapitalize="sentences" spellCheck={false} enterKeyHint="next" />
+            <input value={form.service} onChange={e => setInvService(e.target.value)} placeholder="3-month coaching program, web design..." className="form-input-light" autoComplete="off" autoCorrect="off" autoCapitalize="sentences" spellCheck={false} enterKeyHint="next" />
           </div>
           {/* Line Items Toggle */}
           <div className="flex items-center gap-2">
@@ -2073,13 +2090,13 @@ function InvoicesPanel() {
               )}
             </div>
           ) : (
-            <Field label="Amount ($) *" value={form.amount} onChange={setInvFormField("amount")} placeholder="500.00" type="number" required autoComplete="off" enterKeyHint="next" />
+            <Field label="Amount ($) *" value={form.amount} onChange={setInvAmount} placeholder="500.00" type="number" required autoComplete="off" enterKeyHint="next" />
           )}
-          <Field label="Due Date" value={form.dueDate} onChange={setInvFormField("dueDate")} type="date" autoComplete="off" />
-          <Field label="Notes" value={form.notes} onChange={setInvFormField("notes")} placeholder="Payment terms, bank details..." textarea enterKeyHint="done" />
+          <Field label="Due Date" value={form.dueDate} onChange={setInvDueDate} type="date" autoComplete="off" />
+          <Field label="Notes" value={form.notes} onChange={setInvNotes} placeholder="Payment terms, bank details..." textarea enterKeyHint="done" />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Send as</label>
-            <select value={form.status} onChange={e => setInvFormField("status")(e.target.value)} className="form-input-light">
+            <select value={form.status} onChange={e => setInvStatus(e.target.value)} className="form-input-light">
               <option value="draft">Save as Draft</option>
               <option value="sent">Mark as Sent</option>
             </select>
@@ -2103,9 +2120,9 @@ function InvoicesPanel() {
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <Field label="Client Name" value={editForm.clientName} onChange={setEditFormField("clientName")} placeholder="Jane Smith" required />
-          <Field label="Client Email" value={editForm.clientEmail} onChange={setEditFormField("clientEmail")} placeholder="jane@example.com" type="email" />
-          <Field label="Service Description" value={editForm.service} onChange={setEditFormField("service")} placeholder="3-month coaching program..." />
+          <Field label="Client Name" value={editForm.clientName} onChange={setEditClientName} placeholder="Jane Smith" required />
+          <Field label="Client Email" value={editForm.clientEmail} onChange={setEditClientEmail} placeholder="jane@example.com" type="email" />
+          <Field label="Service Description" value={editForm.service} onChange={setEditService} placeholder="3-month coaching program..." />
           {/* Line Items Toggle */}
           <div className="flex items-center gap-2">
             <button
@@ -2137,13 +2154,13 @@ function InvoicesPanel() {
               )}
             </div>
           ) : (
-            <Field label="Amount ($) *" value={editForm.amount} onChange={setEditFormField("amount")} placeholder="500.00" type="number" required />
+            <Field label="Amount ($) *" value={editForm.amount} onChange={setEditAmount} placeholder="500.00" type="number" required />
           )}
-          <Field label="Due Date" value={editForm.dueDate} onChange={setEditFormField("dueDate")} type="date" />
-          <Field label="Notes" value={editForm.notes} onChange={setEditFormField("notes")} placeholder="Payment terms, bank details..." textarea />
+          <Field label="Due Date" value={editForm.dueDate} onChange={setEditDueDate} type="date" />
+          <Field label="Notes" value={editForm.notes} onChange={setEditNotes} placeholder="Payment terms, bank details..." textarea />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Status</label>
-            <select value={editForm.status} onChange={e => setEditFormField("status")(e.target.value)} className="form-input-light">
+            <select value={editForm.status} onChange={e => setEditStatus(e.target.value)} className="form-input-light">
               <option value="draft">Draft</option>
               <option value="sent">Sent</option>
               <option value="paid">Paid</option>
