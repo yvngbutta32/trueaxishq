@@ -1041,3 +1041,14 @@
 - [x] Admin page: all mutations have onError handlers
 - [x] ComponentShowcase: not exposed in any route (dev-only file, no user-facing dead links)
 - [x] 0 TypeScript errors, 29/29 tests passing after full audit
+
+## Recurring Invoices Integration (May 26 2026)
+- [x] Add invTab state to InvoicesPanel (invoices | recurring)
+- [x] Add top-level tab switcher (Invoices / Recurring) to InvoicesPanel header
+- [x] Embed recurring schedules UI inline in InvoicesPanel when recurring tab is active
+- [x] Move recurring queries/mutations into InvoicesPanel
+- [x] Update header CTA button to show New Invoice or New Schedule based on active tab
+- [x] Remove Recurring nav entry from sidebar and mobile bottom nav
+- [x] Remove RecurringInvoicesPanel import and case from Dashboard.tsx
+- [x] Remove recurring from ActivePanel type
+- [x] 0 TypeScript errors, 29/29 tests passing after integration

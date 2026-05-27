@@ -8,7 +8,6 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import ClientPulsePanel from "./ClientPulse";
 import TimeTrackingPanel from "./TimeTracking";
-import RecurringInvoicesPanel from "./RecurringInvoices";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +35,7 @@ import {
   PieChart, Pie, Cell
 } from "recharts";
 
-type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "recurring" | "inbox" | "testimonials";
+type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials";
 
 interface ConfirmState {
   open: boolean;
@@ -146,7 +145,6 @@ const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; ba
   { icon: HeartPulse, label: "Client Pulse", panel: "pulse", badge: "AI" },
   { icon: FileSignature, label: "Contracts", panel: "contracts" },
   { icon: Clock, label: "Time Tracking", panel: "time" },
-  { icon: RefreshCw, label: "Recurring", panel: "recurring" },
   { icon: BarChart3, label: "Analytics", panel: "analytics" },
   { icon: Settings, label: "Settings", panel: "settings" },
   { icon: Bot, label: "AI Assistant", panel: "ai" },
@@ -1343,9 +1341,68 @@ function SchedulingPanel() {
   );
 }
 
+// ─── Frequency helpers (shared by InvoicesPanel) ────────────────────────────
+const FREQUENCY_LABELS: Record<string, string> = {
+  weekly: "Weekly",
+  biweekly: "Every 2 Weeks",
+  monthly: "Monthly",
+  quarterly: "Quarterly",
+  yearly: "Yearly",
+};
+const FREQUENCY_COLORS: Record<string, string> = {
+  weekly: "#6366F1",
+  biweekly: "#D4922A",
+  monthly: "#10B981",
+  quarterly: "#FF6B6B",
+  yearly: "#8B5CF6",
+};
+
 // ─── Invoices Panel ───────────────────────────────────────────────────────────
 function InvoicesPanel() {
   const utils = trpc.useUtils();
+
+  // ── Top-level tab: invoices vs recurring ──────────────────────────────────
+  const [invTab, setInvTab] = useState<"invoices" | "recurring">("invoices");
+
+  // ── Recurring state ───────────────────────────────────────────────────────
+  const [showRecurringForm, setShowRecurringForm] = useState(false);
+  const defaultRecurringForm = {
+    clientId: "",
+    clientName: "",
+    clientEmail: "",
+    description: "",
+    amount: "",
+    currency: "USD",
+    frequency: "monthly" as "weekly" | "biweekly" | "monthly" | "quarterly" | "yearly",
+    nextDueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+  };
+  const [recurringForm, setRecurringForm] = useState(defaultRecurringForm);
+  const { data: schedules, isLoading: schedulesLoading } = trpc.recurring.list.useQuery(undefined, { retry: 1 });
+  const createSchedule = trpc.recurring.create.useMutation({
+    onSuccess: () => {
+      utils.recurring.list.invalidate();
+      toast.success("Recurring schedule created!");
+      setShowRecurringForm(false);
+      setRecurringForm(defaultRecurringForm);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const toggleSchedule = trpc.recurring.toggle.useMutation({
+    onSuccess: () => utils.recurring.list.invalidate(),
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteScheduleM = trpc.recurring.delete.useMutation({
+    onSuccess: () => { utils.recurring.list.invalidate(); toast.success("Schedule deleted"); },
+    onError: (e) => toast.error(e.message),
+  });
+  const activeScheduleCount = schedules?.filter((s: any) => s.active).length ?? 0;
+  const estMonthlyRevenue = schedules?.filter((s: any) => s.active).reduce((sum: number, s: any) => {
+    const amt = parseFloat(String(s.amount));
+    const mult = s.frequency === "weekly" ? 4.33 : s.frequency === "biweekly" ? 2.17 : s.frequency === "monthly" ? 1 : s.frequency === "quarterly" ? 0.33 : 0.083;
+    return sum + amt * mult;
+  }, 0) ?? 0;
+
+  // ── Invoice state ─────────────────────────────────────────────────────────
   const [showAdd, setShowAdd] = useState(false);
   const [previewInvoice, setPreviewInvoice] = useState<any>(null);
   const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", amount: "", dueDate: "", notes: "", status: "draft" as "draft" | "sent" });
@@ -1478,20 +1535,212 @@ function InvoicesPanel() {
 
   return (
     <div className="space-y-5">
+      {/* Panel header with top-level tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-extrabold text-[#1C2333]" style={{ fontFamily: "Inter, sans-serif" }}>Invoices</h2>
-          <p className="text-sm text-gray-600">{invoiceList?.length || 0} total invoices</p>
+          <p className="text-sm text-gray-600">
+            {invTab === "invoices" ? `${invoiceList?.length || 0} total invoices` : `${schedules?.length || 0} schedules · ${formatCurrency(estMonthlyRevenue)}/mo est.`}
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" className="gap-1.5 text-gray-600 border-gray-200" onClick={exportInvoicesCSV} title="Export all invoices as CSV">
-            <Download className="w-3.5 h-3.5" />Export CSV
-          </Button>
-          <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
-            <Plus className="w-3.5 h-3.5" />New Invoice
-          </Button>
+          {invTab === "invoices" ? (
+            <>
+              <Button size="sm" variant="outline" className="gap-1.5 text-gray-600 border-gray-200" onClick={exportInvoicesCSV} title="Export all invoices as CSV">
+                <Download className="w-3.5 h-3.5" />Export CSV
+              </Button>
+              <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
+                <Plus className="w-3.5 h-3.5" />New Invoice
+              </Button>
+            </>
+          ) : (
+            <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowRecurringForm(v => !v)}>
+              <Plus className="w-3.5 h-3.5" />{showRecurringForm ? "Cancel" : "New Schedule"}
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Top-level tab switcher */}
+      <div className="flex gap-1 p-1 bg-gray-100 rounded-xl overflow-x-auto">
+        <button
+          onClick={() => setInvTab("invoices")}
+          className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            invTab === "invoices" ? "bg-white text-[#1C2333] shadow-sm" : "text-gray-600 hover:text-gray-700"
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5" />Invoices
+        </button>
+        <button
+          onClick={() => setInvTab("recurring")}
+          className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            invTab === "recurring" ? "bg-white text-[#1C2333] shadow-sm" : "text-gray-600 hover:text-gray-700"
+          }`}
+        >
+          <RefreshCw className="w-3.5 h-3.5" />Recurring
+          {activeScheduleCount > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-green-100 text-green-700 rounded-full">{activeScheduleCount}</span>
+          )}
+        </button>
+      </div>
+
+      {/* ── Recurring tab content ── */}
+      {invTab === "recurring" && (
+        <div className="space-y-5">
+          {/* Summary stats */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <p className="text-2xl font-bold text-[#1C2333]">{activeScheduleCount}</p>
+              <p className="text-xs text-gray-500 mt-0.5">Active Schedules</p>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <p className="text-2xl font-bold text-[#1C2333]">{formatCurrency(estMonthlyRevenue)}</p>
+              <p className="text-xs text-gray-500 mt-0.5">Est. Monthly Revenue</p>
+            </div>
+          </div>
+
+          {/* Create form */}
+          {showRecurringForm && (
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+              <h3 className="font-bold text-sm text-[#1C2333] mb-4">New Recurring Schedule</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client</label>
+                  <select
+                    value={recurringForm.clientId}
+                    onChange={e => {
+                      const c = clientList?.find((c: any) => String(c.id) === e.target.value);
+                      setRecurringForm(p => ({ ...p, clientId: e.target.value, clientName: c?.name || p.clientName, clientEmail: (c as any)?.email || p.clientEmail }));
+                    }}
+                    className="form-input-light"
+                  >
+                    <option value="">Select client or type below</option>
+                    {clientList?.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <Field label="Client Name" required value={recurringForm.clientName} onChange={v => setRecurringForm(p => ({ ...p, clientName: v }))} placeholder="Client or company name" autoComplete="organization" enterKeyHint="next" />
+                <Field label="Client Email" value={recurringForm.clientEmail} onChange={v => setRecurringForm(p => ({ ...p, clientEmail: v }))} placeholder="client@example.com" type="email" autoComplete="email" enterKeyHint="next" />
+                <Field label="Amount ($)" required value={recurringForm.amount} onChange={v => setRecurringForm(p => ({ ...p, amount: v }))} placeholder="e.g. 500" type="number" enterKeyHint="next" />
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Frequency *</label>
+                  <select value={recurringForm.frequency} onChange={e => setRecurringForm(p => ({ ...p, frequency: e.target.value as any }))} className="form-input-light">
+                    {Object.entries(FREQUENCY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">First Due Date *</label>
+                  <input type="date" value={recurringForm.nextDueAt} onChange={e => setRecurringForm(p => ({ ...p, nextDueAt: e.target.value }))} className="form-input-light" />
+                </div>
+                <div className="sm:col-span-2">
+                  <Field label="Description" value={recurringForm.description} onChange={v => setRecurringForm(p => ({ ...p, description: v }))} placeholder="e.g. Monthly retainer — web maintenance" enterKeyHint="done" />
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <Button
+                  onClick={() => {
+                    if (!recurringForm.clientName.trim()) { toast.error("Client name is required"); return; }
+                    if (!recurringForm.amount || parseFloat(recurringForm.amount) <= 0) { toast.error("Amount must be greater than 0"); return; }
+                    if (!recurringForm.nextDueAt) { toast.error("Next due date is required"); return; }
+                    const client = clientList?.find((c: any) => String(c.id) === recurringForm.clientId);
+                    createSchedule.mutate({
+                      clientId: client?.id,
+                      clientName: recurringForm.clientName.trim(),
+                      clientEmail: recurringForm.clientEmail.trim() || undefined,
+                      description: recurringForm.description.trim() || undefined,
+                      amount: recurringForm.amount,
+                      currency: recurringForm.currency,
+                      frequency: recurringForm.frequency,
+                      nextDueAt: new Date(recurringForm.nextDueAt + "T12:00:00").toISOString(),
+                    });
+                  }}
+                  disabled={createSchedule.isPending}
+                  className="gradient-amber text-white border-0 hover:opacity-90 gap-2"
+                >
+                  {createSchedule.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  Create Schedule
+                </Button>
+                <Button variant="outline" onClick={() => setShowRecurringForm(false)}>Cancel</Button>
+              </div>
+            </div>
+          )}
+
+          {/* Schedules list */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="font-bold text-sm text-[#1C2333]">All Schedules</h3>
+            </div>
+            {schedulesLoading ? (
+              <div className="p-8 text-center"><Loader2 className="w-6 h-6 text-[#D4922A] animate-spin mx-auto" /></div>
+            ) : !schedules || schedules.length === 0 ? (
+              <div className="p-10 text-center">
+                <RefreshCw className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+                <p className="text-sm font-semibold text-gray-500">No recurring schedules yet</p>
+                <p className="text-xs text-gray-400 mt-1">Click "New Schedule" to set up automatic billing</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {schedules.map((s: any) => {
+                  const color = FREQUENCY_COLORS[s.frequency] || "#6366F1";
+                  return (
+                    <div key={s.id} className={`flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors ${!s.active ? "opacity-50" : ""}`}>
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + "15" }}>
+                        <RefreshCw className="w-4 h-4" style={{ color }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-semibold text-[#1C2333] truncate">{s.clientName}</p>
+                          <span className="px-2 py-0.5 text-xs rounded-full font-semibold" style={{ background: color + "15", color }}>
+                            {FREQUENCY_LABELS[s.frequency]}
+                          </span>
+                          {!s.active && <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-500 font-semibold">Paused</span>}
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {s.description || "No description"} · Next: {new Date(s.nextDueAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-sm font-bold text-[#1C2333]">{formatCurrency(s.amount)}</p>
+                        <p className="text-xs text-gray-400">{s.currency}</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => toggleSchedule.mutate({ id: s.id, active: !s.active })}
+                          disabled={toggleSchedule.isPending}
+                          className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                          title={s.active ? "Pause schedule" : "Resume schedule"}
+                        >
+                          {s.active ? <ToggleRight className="w-5 h-5 text-green-500" /> : <ToggleLeft className="w-5 h-5" />}
+                        </button>
+                        <button
+                          onClick={() => deleteScheduleM.mutate({ id: s.id })}
+                          disabled={deleteScheduleM.isPending}
+                          className="p-2 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400 transition-colors"
+                          aria-label="Delete schedule"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Info box */}
+          <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex gap-3">
+            <Calendar className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-amber-800">Automatic Invoice Generation</p>
+              <p className="text-xs text-amber-700 mt-0.5">Invoices are generated automatically at midnight on each due date. You’ll receive a notification when a new invoice is created. Clients with email addresses on file will be notified automatically.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Invoices tab content ── */}
+      {invTab === "invoices" && (
+      <>
       {/* Filter tabs */}
       <div className="flex gap-1 p-1 bg-gray-100 rounded-xl overflow-x-auto">
         {(["all", "unpaid", "paid", "overdue"] as const).map(f => (
@@ -1926,6 +2175,9 @@ function InvoicesPanel() {
           </div>
         )}
       </Modal>
+      </>
+      )} {/* end invTab === "invoices" */}
+
       <ConfirmDialog
         open={invConfirm.open}
         onOpenChange={(open) => !open && setInvConfirm(defaultConfirm)}
@@ -4020,7 +4272,6 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
     {
       label: "Finance",
       items: [
-        { icon: RefreshCw,     label: "Recurring",     panel: "recurring"  as ActivePanel },
         { icon: Clock,         label: "Time Tracking", panel: "time"       as ActivePanel },
         { icon: FileSignature, label: "Contracts",     panel: "contracts"  as ActivePanel },
       ],
@@ -4200,7 +4451,7 @@ export default function Dashboard() {
   const [active, setActive] = useState<ActivePanel>(() => {
     if (typeof window !== "undefined") {
       const param = new URLSearchParams(window.location.search).get("panel");
-      const valid: ActivePanel[] = ["overview","clients","scheduling","invoices","followups","analytics","settings","ai","pulse","contracts","time","recurring","inbox","testimonials"];
+      const valid: ActivePanel[] = ["overview","clients","scheduling","invoices","followups","analytics","settings","ai","pulse","contracts","time","inbox","testimonials"];
       if (param && valid.includes(param as ActivePanel)) return param as ActivePanel;
     }
     return "overview";
@@ -4257,7 +4508,7 @@ export default function Dashboard() {
       pulse: "Client Pulse — TrueAxis HQ",
       contracts: "Contracts — TrueAxis HQ",
       time: "Time Tracker — TrueAxis HQ",
-      recurring: "Recurring Revenue — TrueAxis HQ",
+
       inbox: "Inbox — TrueAxis HQ",
       testimonials: "Testimonials — TrueAxis HQ",
     };
@@ -4311,7 +4562,7 @@ export default function Dashboard() {
     overview: "Dashboard", clients: "Clients", scheduling: "Scheduling",
     invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics",
     settings: "Settings", ai: "AI Assistant", pulse: "Client Pulse",
-    contracts: "Contracts & Proposals", time: "Time Tracking", recurring: "Recurring Invoices",
+    contracts: "Contracts & Proposals", time: "Time Tracking",
     inbox: "Smart Inbox", testimonials: "Testimonials",
   };
 
@@ -4351,7 +4602,7 @@ export default function Dashboard() {
       case "pulse": return <PanelErrorBoundary panelName="Client Pulse"><ClientPulsePanel /></PanelErrorBoundary>;
       case "contracts": return <PanelErrorBoundary panelName="Contracts"><ContractsPanel /></PanelErrorBoundary>;
       case "time": return <PanelErrorBoundary panelName="Time Tracking"><TimeTrackingPanel /></PanelErrorBoundary>;
-      case "recurring": return <PanelErrorBoundary panelName="Recurring Invoices"><RecurringInvoicesPanel /></PanelErrorBoundary>;
+
       case "inbox": return <PanelErrorBoundary panelName="Smart Inbox"><SmartInboxPanel setActivePanel={setActiveWithScroll} /></PanelErrorBoundary>;
       case "testimonials": return <PanelErrorBoundary panelName="Testimonials"><TestimonialsPanel /></PanelErrorBoundary>;
       default: return null;
