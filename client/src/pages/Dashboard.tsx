@@ -1268,6 +1268,12 @@ function SchedulingPanel() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", date: "", time: "", duration: 60, notes: "" });
   const setSchedFormField = useFormFields(setForm);
+  const setSchedClientName  = setSchedFormField("clientName");
+  const setSchedClientEmail = setSchedFormField("clientEmail");
+  const setSchedService     = setSchedFormField("service");
+  const setSchedDate        = setSchedFormField("date");
+  const setSchedTime        = setSchedFormField("time");
+  const setSchedNotes       = setSchedFormField("notes");
   const [schedConfirm, setSchedConfirm] = useState<ConfirmState>(defaultConfirm);
   const [smartSuggestions, setSmartSuggestions] = useState<{ date: string; time: string; reason: string }[]>([]);
 
@@ -1381,12 +1387,12 @@ function SchedulingPanel() {
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <Field label="Client Name" value={form.clientName} onChange={setSchedFormField("clientName")} placeholder="Jane Smith" required autoComplete="name" enterKeyHint="next" />
-          <Field label="Client Email" value={form.clientEmail} onChange={setSchedFormField("clientEmail")} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
-          <Field label="Service" value={form.service} onChange={setSchedFormField("service")} placeholder="Strategy Session, Coaching Call..." autoComplete="off" enterKeyHint="next" />
+          <Field label="Client Name" value={form.clientName} onChange={setSchedClientName} placeholder="Jane Smith" required autoComplete="name" enterKeyHint="next" />
+          <Field label="Client Email" value={form.clientEmail} onChange={setSchedClientEmail} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
+          <Field label="Service" value={form.service} onChange={setSchedService} placeholder="Strategy Session, Coaching Call..." autoComplete="off" enterKeyHint="next" />
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Date *" value={form.date} onChange={setSchedFormField("date")} placeholder="2026-03-20" type="date" required />
-            <Field label="Time *" value={form.time} onChange={setSchedFormField("time")} placeholder="14:00" type="time" required />
+            <Field label="Date *" value={form.date} onChange={setSchedDate} placeholder="2026-03-20" type="date" required />
+            <Field label="Time *" value={form.time} onChange={setSchedTime} placeholder="14:00" type="time" required />
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Duration (minutes)</label>
@@ -1394,7 +1400,7 @@ function SchedulingPanel() {
               {[15, 30, 45, 60, 90, 120].map(d => <option key={d} value={d}>{d} minutes</option>)}
             </select>
           </div>
-          <Field label="Notes" value={form.notes} onChange={setSchedFormField("notes")} placeholder="Session goals, preparation notes..." textarea />
+          <Field label="Notes" value={form.notes} onChange={setSchedNotes} placeholder="Session goals, preparation notes..." textarea />
 
           {/* AI Smart Schedule */}
           <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
@@ -1476,6 +1482,12 @@ function InvoicesPanel() {
   };
   const [recurringForm, setRecurringForm] = useState(defaultRecurringForm);
   const setRecurringFormField = useFormFields(setRecurringForm);
+  const setRecurClientName  = setRecurringFormField("clientName");
+  const setRecurClientEmail = setRecurringFormField("clientEmail");
+  const setRecurAmount      = setRecurringFormField("amount");
+  const setRecurFrequency   = setRecurringFormField("frequency");
+  const setRecurNextDueAt   = setRecurringFormField("nextDueAt");
+  const setRecurDescription = setRecurringFormField("description");
   const { data: schedules, isLoading: schedulesLoading } = trpc.recurring.list.useQuery(undefined, { retry: 1 });
   const createSchedule = trpc.recurring.create.useMutation({
     onSuccess: () => {
@@ -1746,21 +1758,21 @@ function InvoicesPanel() {
                     {clientList?.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
-                <Field label="Client Name" required value={recurringForm.clientName} onChange={setRecurringFormField("clientName")} placeholder="Client or company name" autoComplete="organization" enterKeyHint="next" />
-                <Field label="Client Email" value={recurringForm.clientEmail} onChange={setRecurringFormField("clientEmail")} placeholder="client@example.com" type="email" autoComplete="email" enterKeyHint="next" />
-                <Field label="Amount ($)" required value={recurringForm.amount} onChange={setRecurringFormField("amount")} placeholder="e.g. 500" type="number" enterKeyHint="next" />
+                <Field label="Client Name" required value={recurringForm.clientName} onChange={setRecurClientName} placeholder="Client or company name" autoComplete="organization" enterKeyHint="next" />
+                <Field label="Client Email" value={recurringForm.clientEmail} onChange={setRecurClientEmail} placeholder="client@example.com" type="email" autoComplete="email" enterKeyHint="next" />
+                <Field label="Amount ($)" required value={recurringForm.amount} onChange={setRecurAmount} placeholder="e.g. 500" type="number" enterKeyHint="next" />
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5">Frequency *</label>
-                  <select value={recurringForm.frequency} onChange={e => setRecurringFormField("frequency")(e.target.value)} className="form-input-light">
+                  <select value={recurringForm.frequency} onChange={e => setRecurFrequency(e.target.value)} className="form-input-light">
                     {Object.entries(FREQUENCY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5">First Due Date *</label>
-                  <input type="date" value={recurringForm.nextDueAt} onChange={e => setRecurringFormField("nextDueAt")(e.target.value)} className="form-input-light" />
+                  <input type="date" value={recurringForm.nextDueAt} onChange={e => setRecurNextDueAt(e.target.value)} className="form-input-light" />
                 </div>
                 <div className="sm:col-span-2">
-                  <Field label="Description" value={recurringForm.description} onChange={setRecurringFormField("description")} placeholder="e.g. Monthly retainer — web maintenance" enterKeyHint="done" />
+                  <Field label="Description" value={recurringForm.description} onChange={setRecurDescription} placeholder="e.g. Monthly retainer — web maintenance" enterKeyHint="done" />
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
@@ -2309,11 +2321,16 @@ function FollowUpsPanel() {
   const [previewFollowUp, setPreviewFollowUp] = useState<any>(null);
   const [form, setForm] = useState({ clientName: "", clientEmail: "", service: "", context: "", tone: "professional" as "professional" | "friendly" | "motivational" });
   const setFollowFormField = useFormFields(setForm);
+  const setFollowClientName  = setFollowFormField("clientName");
+  const setFollowClientEmail = setFollowFormField("clientEmail");
+  const setFollowService     = setFollowFormField("service");
+  const setFollowContext     = setFollowFormField("context");
   const [fuConfirm, setFuConfirm] = useState<ConfirmState>(defaultConfirm);
   // Sequences
   const [showAddRule, setShowAddRule] = useState(false);
   const [ruleForm, setRuleForm] = useState({ triggerDays: 30, tone: "friendly" as "professional" | "friendly" | "motivational", context: "" });
   const setRuleFormField = useFormFields(setRuleForm);
+  const setRuleContext = setRuleFormField("context");
   const { data: rules = [], isLoading: rulesLoading } = trpc.followUpRules.list.useQuery(undefined, { retry: 1 });
   const addRule = trpc.followUpRules.create.useMutation({ onSuccess: () => { utils.followUpRules.list.invalidate(); setShowAddRule(false); toast.success("Sequence rule created!"); } });
   const deleteRule = trpc.followUpRules.delete.useMutation({ onSuccess: () => { utils.followUpRules.list.invalidate(); toast.success("Rule deleted."); } });
@@ -2421,7 +2438,7 @@ function FollowUpsPanel() {
           {/* Add Rule Modal */}
           <Modal open={showAddRule} onClose={() => setShowAddRule(false)} title="New Automation Rule">
             <div className="space-y-4">
-              <Field label="Rule Name *" value={ruleForm.context} onChange={setRuleFormField("context")} placeholder="e.g. 30-Day Re-engagement" required />
+              <Field label="Rule Name *" value={ruleForm.context} onChange={setRuleContext} placeholder="e.g. 30-Day Re-engagement" required />
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">Trigger: No booking in</label>
                 <div className="flex items-center gap-2">
@@ -2521,10 +2538,10 @@ function FollowUpsPanel() {
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <Field label="Client Name *" value={form.clientName} onChange={setFollowFormField("clientName")} placeholder="Jane Smith" required autoComplete="name" enterKeyHint="next" />
-          <Field label="Client Email" value={form.clientEmail} onChange={setFollowFormField("clientEmail")} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
-          <Field label="Service / Context" value={form.service} onChange={setFollowFormField("service")} placeholder="Business coaching, web design..." autoComplete="off" enterKeyHint="next" />
-          <Field label="Additional Context (optional)" value={form.context} onChange={setFollowFormField("context")} placeholder="Last session was about goal-setting, they struggled with time management..." textarea enterKeyHint="done" />
+          <Field label="Client Name *" value={form.clientName} onChange={setFollowClientName} placeholder="Jane Smith" required autoComplete="name" enterKeyHint="next" />
+          <Field label="Client Email" value={form.clientEmail} onChange={setFollowClientEmail} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
+          <Field label="Service / Context" value={form.service} onChange={setFollowService} placeholder="Business coaching, web design..." autoComplete="off" enterKeyHint="next" />
+          <Field label="Additional Context (optional)" value={form.context} onChange={setFollowContext} placeholder="Last session was about goal-setting, they struggled with time management..." textarea enterKeyHint="done" />
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Email Tone</label>
             <div className="grid grid-cols-3 gap-2">
@@ -3211,10 +3228,19 @@ function SettingsPanel() {
   const { data: settings, isLoading } = trpc.settings.get.useQuery(undefined, { retry: 1 });
   const [profile, setProfile] = useState({ name: "", bio: "", phone: "" });
   const setProfileField = useFormFields(setProfile);
+  const setProfileName  = setProfileField("name");
+  const setProfileBio   = setProfileField("bio");
+  const setProfilePhone = setProfileField("phone");
   const [business, setBusiness] = useState({ businessName: "", businessPhone: "", businessAddress: "", businessWebsite: "" });
   const setBusinessField = useFormFields(setBusiness);
+  const setBusinessName    = setBusinessField("businessName");
+  const setBusinessPhone   = setBusinessField("businessPhone");
+  const setBusinessAddress = setBusinessField("businessAddress");
+  const setBusinessWebsite = setBusinessField("businessWebsite");
   const [bookingPage, setBookingPage] = useState({ bookingUsername: "", bookingBio: "", bookingServices: ["Coaching Session", "Strategy Call", "Consultation"] });
   const setBookingPageField = useFormFields(setBookingPage);
+  const setBookingUsername = setBookingPageField("bookingUsername");
+  const setBookingBio      = setBookingPageField("bookingBio");
   const [notifications, setNotifications] = useState({ notifyNewBooking: true, notifyInvoicePaid: true, notifyNewLead: true });
   const [newService, setNewService] = useState("");
   const [showPresetServices, setShowPresetServices] = useState(false);
@@ -3373,9 +3399,9 @@ function SettingsPanel() {
           />
         </div>
 
-        <Field label="Your Name" value={profile.name} onChange={setProfileField("name")} placeholder="Alex Smith" autoComplete="name" enterKeyHint="next" />
-        <Field label="Phone Number" value={profile.phone} onChange={setProfileField("phone")} placeholder="+1 (555) 000-0000" type="tel" autoComplete="tel" enterKeyHint="next" />
-        <Field label="Bio (shown on booking page)" value={profile.bio} onChange={setProfileField("bio")} placeholder="I help entrepreneurs build scalable businesses..." textarea rows={3} enterKeyHint="done" />
+        <Field label="Your Name" value={profile.name} onChange={setProfileName} placeholder="Alex Smith" autoComplete="name" enterKeyHint="next" />
+        <Field label="Phone Number" value={profile.phone} onChange={setProfilePhone} placeholder="+1 (555) 000-0000" type="tel" autoComplete="tel" enterKeyHint="next" />
+        <Field label="Bio (shown on booking page)" value={profile.bio} onChange={setProfileBio} placeholder="I help entrepreneurs build scalable businesses..." textarea rows={3} enterKeyHint="done" />
         <Button className="gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => updateProfile.mutate(profile)} disabled={updateProfile.isPending}>
           {updateProfile.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Profile</>}
         </Button>
@@ -3384,10 +3410,10 @@ function SettingsPanel() {
       {/* Business */}
       <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
         <h3 className="font-bold text-sm text-[#1C2333] flex items-center gap-2"><Building className="w-4 h-4 text-[#D4922A]" />Business Info</h3>
-        <Field label="Business Name" value={business.businessName} onChange={setBusinessField("businessName")} placeholder="My Coaching Studio" autoComplete="organization" enterKeyHint="next" />
-        <Field label="Business Phone" value={business.businessPhone} onChange={setBusinessField("businessPhone")} placeholder="+1 (555) 000-0000" type="tel" autoComplete="tel" enterKeyHint="next" />
-        <Field label="Business Address" value={business.businessAddress} onChange={setBusinessField("businessAddress")} placeholder="123 Main St, New York, NY 10001" autoComplete="street-address" enterKeyHint="next" />
-        <Field label="Website" value={business.businessWebsite} onChange={setBusinessField("businessWebsite")} placeholder="https://yourwebsite.com" type="url" autoComplete="url" enterKeyHint="done" />
+        <Field label="Business Name" value={business.businessName} onChange={setBusinessName} placeholder="My Coaching Studio" autoComplete="organization" enterKeyHint="next" />
+        <Field label="Business Phone" value={business.businessPhone} onChange={setBusinessPhone} placeholder="+1 (555) 000-0000" type="tel" autoComplete="tel" enterKeyHint="next" />
+        <Field label="Business Address" value={business.businessAddress} onChange={setBusinessAddress} placeholder="123 Main St, New York, NY 10001" autoComplete="street-address" enterKeyHint="next" />
+        <Field label="Website" value={business.businessWebsite} onChange={setBusinessWebsite} placeholder="https://yourwebsite.com" type="url" autoComplete="url" enterKeyHint="done" />
         <Button className="gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => updateBusiness.mutate(business)} disabled={updateBusiness.isPending}>
           {updateBusiness.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Business Info</>}
         </Button>
@@ -3422,7 +3448,7 @@ function SettingsPanel() {
             </div>
           )}
         </div>
-        <Field label="Booking Page Bio" value={bookingPage.bookingBio} onChange={setBookingPageField("bookingBio")} placeholder="Book a session with me..." textarea rows={2} enterKeyHint="done" />
+        <Field label="Booking Page Bio" value={bookingPage.bookingBio} onChange={setBookingBio} placeholder="Book a session with me..." textarea rows={2} enterKeyHint="done" />
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-2">Services Offered</label>
           <div className="space-y-2 mb-3">
@@ -3825,8 +3851,11 @@ This agreement is governed by the laws of [State/Country].`,
     },
   ];
   const [form, setForm] = useState(emptyForm);
-  const setContractFormField = useFormFields(setForm);
-
+    const setContractFormField = useFormFields(setForm);
+  const setContractTitle         = setContractFormField("title");
+  const setContractClientEmail   = setContractFormField("clientEmail");
+  const setContractProposalAmount = setContractFormField("proposalAmount");
+  const setContractExpiresAt     = setContractFormField("expiresAt");
   const { data: list = [], isLoading } = trpc.contracts.list.useQuery({ type: filterType }, { retry: 1 });
   const { data: selected } = trpc.contracts.get.useQuery({ id: selectedId! }, { enabled: !!selectedId });
   const { data: clientList = [] } = trpc.clients.list.useQuery(undefined, { retry: 1 });
@@ -3949,10 +3978,10 @@ This agreement is governed by the laws of [State/Country].`,
               <datalist id="contract-clients">{clientList.map(c => <option key={c.id} value={c.name} />)}</datalist>
             </div>
           </div>
-          <Field label="Title *" value={form.title} onChange={setContractFormField("title")} placeholder="e.g. Freelance Web Design Contract" />
-          <Field label="Client Email" value={form.clientEmail} onChange={setContractFormField("clientEmail")} type="email" placeholder="client@example.com" />
-          {form.type === "proposal" && <Field label="Proposal Amount ($)" value={form.proposalAmount} onChange={setContractFormField("proposalAmount")} type="number" placeholder="1500" />}
-          <Field label="Expiry Date" value={form.expiresAt} onChange={setContractFormField("expiresAt")} type="date" />
+          <Field label="Title *" value={form.title} onChange={setContractTitle} placeholder="e.g. Freelance Web Design Contract" />
+          <Field label="Client Email" value={form.clientEmail} onChange={setContractClientEmail} type="email" placeholder="client@example.com" />
+          {form.type === "proposal" && <Field label="Proposal Amount ($)" value={form.proposalAmount} onChange={setContractProposalAmount} type="number" placeholder="1500" />}
+          <Field label="Expiry Date" value={form.expiresAt} onChange={setContractExpiresAt} type="date" />
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-semibold text-gray-600">Body / Terms *</label>
@@ -4197,6 +4226,9 @@ function TestimonialsPanel() {
   const [tab, setTab] = useState<"pending" | "approved" | "rejected" | "request">("pending");
   const [form, setForm] = useState({ clientName: "", clientEmail: "", serviceName: "" });
   const setTestiFormField = useFormFields(setForm);
+  const setTestiClientName  = setTestiFormField("clientName");
+  const setTestiClientEmail = setTestiFormField("clientEmail");
+  const setTestiServiceName = setTestiFormField("serviceName");
   const [sending, setSending] = useState(false);
 
   const { data: list = [], isLoading } = trpc.testimonials.list.useQuery(undefined, { retry: 1 });
@@ -4251,17 +4283,17 @@ function TestimonialsPanel() {
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client Name *</label>
-              <input value={form.clientName} onChange={e => setForm(p => ({ ...p, clientName: e.target.value }))}
+              <input value={form.clientName} onChange={e => setTestiClientName(e.target.value)}
                 placeholder="Jane Smith" className="form-input-light" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client Email *</label>
-              <input type="email" value={form.clientEmail} onChange={e => setForm(p => ({ ...p, clientEmail: e.target.value }))}
+              <input type="email" value={form.clientEmail} onChange={e => setTestiClientEmail(e.target.value)}
                 placeholder="jane@example.com" className="form-input-light" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">Service Name</label>
-              <input value={form.serviceName} onChange={e => setForm(p => ({ ...p, serviceName: e.target.value }))}
+              <input value={form.serviceName} onChange={e => setTestiServiceName(e.target.value)}
                 placeholder="Brand Strategy Session" className="form-input-light" />
             </div>
           </div>
