@@ -1063,3 +1063,21 @@
 - [x] Error handling: running timer, non-billable entry, missing rate all show clear error messages
 - [x] onInvoiceGenerated callback wired in Dashboard.tsx to switch to Invoices panel
 - [x] 0 TypeScript errors, 29/29 tests passing
+
+## Typing Smoothness — Mobile & Desktop (May 26 2026)
+- [ ] Global CSS: add touch-action: manipulation to all inputs/textareas/selects (eliminates 300ms tap delay on mobile)
+- [ ] Global CSS: add -webkit-overflow-scrolling: touch and overscroll-behavior: contain to scroll containers
+- [ ] Field component: fix textarea auto-resize — use useLayoutEffect + ref instead of inline scrollHeight read/write (eliminates layout reflow on every keystroke)
+- [ ] Field component: add autocorrect="off" autocapitalize="sentences" spellCheck={false} to all non-prose inputs
+- [ ] Dashboard: extract ClientsPanel form into isolated FormState component (stops full panel re-render on every keystroke)
+- [ ] Dashboard: extract SchedulingPanel form into isolated FormState component
+- [ ] Dashboard: extract InvoicesPanel form into isolated FormState component
+- [ ] Dashboard: extract FollowUpsPanel form into isolated FormState component
+- [ ] Dashboard: extract ContractsPanel form into isolated FormState component
+- [ ] Dashboard: extract SettingsPanel form into isolated FormState component
+- [ ] Dashboard: add -webkit-overflow-scrolling: touch to main panel scroll container
+- [ ] Dashboard: add overscroll-behavior: contain to main panel scroll container
+- [ ] All pages: add inputMode, autocorrect, autocapitalize, spellCheck to all inputs
+- [ ] TimeTracking: fix form inputs for mobile keyboard
+- [ ] Admin: fix form inputs for mobile keyboard
+- [ ] BookingPage: fix form inputs for mobile keyboard
