@@ -1222,3 +1222,35 @@
 - [x] Invoice Direct Pay Link (standalone Stripe checkout per invoice, no portal login)
 - [x] Daily Digest Email (8 AM scheduled job via Heartbeat)
 - [x] AI Proposal Writer (LLM generates full proposal from 2-sentence brief)
+
+## Integration & Consolidation Sprint (Jul 2026)
+
+### Intake Forms → Outreach Panel
+- [x] Build IntakeFormsPanel component (form builder, responses view, public link copy)
+- [x] Add "Intake Forms" tab to OutreachPanel (alongside Follow-Ups, Inbox, Automations)
+- [x] Add public intake form submission page (/intake/:slug)
+- [x] Wire "Convert to Client" button on intake responses
+
+### Revenue Forecasting → Insights Panel
+- [x] Build RevenueForecastPanel component (monthly bar chart, goal vs actual, annual goal setter)
+- [x] Add "Forecast" tab to InsightsPanel (alongside Analytics, Client Pulse, Expenses)
+- [x] Wire forecast data from goals.forecast procedure
+
+### Contract Templates → Deals Panel
+- [x] Build ContractTemplatesPanel component (template library, preview, apply-to-contract flow)
+- [x] Add "Templates" tab to DealsPanel (alongside Contracts, Proposals)
+- [x] Wire "Use Template" button to pre-fill new contract body
+- [x] Seed 10 built-in templates on first load
+
+### CSV Import → Clients Panel
+- [x] Build CsvImportModal component (paste/upload CSV, column mapping, preview, import)
+- [x] Add "Import CSV" button to ClientsPanel header
+- [x] Add "Export CSV" button to ClientsPanel header
+- [x] Show import result summary (imported/skipped/errors)
+
+### Cross-Panel Data Flows
+- [x] Wire "Create Proposal" from Lead Pipeline → opens Deals panel pre-filled with client
+- [x] Wire "Convert Intake Response to Client" → adds to Clients panel
+- [x] Wire "Apply Contract Template" → pre-fills contract body in Deals/Contracts tab
+- [x] Wire Invoice Direct Pay Link button on invoice rows in Billing panel
+- [x] Wire Lead Pipeline Kanban into Clients panel (new "Pipeline" tab)

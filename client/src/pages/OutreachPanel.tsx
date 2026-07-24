@@ -1,13 +1,14 @@
 /**
  * OutreachPanel — Unified Client Communication hub
- * Tabs: Follow-Ups · Smart Inbox · Automations
+ * Tabs: Follow-Ups · Smart Inbox · Automations · Intake Forms
  *
- * Consolidates: FollowUpsPanel, SmartInboxPanel, Automations
+ * Consolidates: FollowUpsPanel, SmartInboxPanel, Automations, IntakeFormsPanel
  * into one place so all outbound/inbound communication is managed together.
  */
 import { PanelTabs } from "@/components/PanelTabs";
-import { Mail, Inbox, Zap } from "lucide-react";
+import { Mail, Inbox, Zap, ClipboardList } from "lucide-react";
 import Automations from "./Automations";
+import IntakeFormsPanel from "./IntakeFormsPanel";
 
 // FollowUpsPanel and SmartInboxPanel live inside Dashboard.tsx — passed as props
 interface OutreachPanelProps {
@@ -36,8 +37,14 @@ export default function OutreachPanel({ followUpsPanel, inboxPanel }: OutreachPa
           id: "automations",
           label: "Automations",
           icon: Zap,
-          badge: "New",
           content: <Automations />,
+        },
+        {
+          id: "intake",
+          label: "Intake Forms",
+          icon: ClipboardList,
+          badge: "New",
+          content: <IntakeFormsPanel />,
         },
       ]}
     />

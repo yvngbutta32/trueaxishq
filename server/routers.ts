@@ -10,7 +10,7 @@ import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -4186,6 +4186,442 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
   }),
 
+
+
+  // ── Intake / Questionnaire Forms ──────────────────────────────────────────
+  intake: router({
+    listForms: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(intakeForms).where(eq(intakeForms.userId, ctx.user.id)).orderBy(desc(intakeForms.createdAt));
+    }),
+
+    createForm: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(255),
+        description: z.string().optional(),
+        fields: z.array(z.object({
+          id: z.string(),
+          type: z.enum(["text", "textarea", "email", "phone", "select", "checkbox", "date", "number"]),
+          label: z.string(),
+          placeholder: z.string().optional(),
+          required: z.boolean().default(false),
+          options: z.array(z.string()).optional(),
+        })).default([]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const slug = `form-${ctx.user.id}-${Date.now()}`;
+        const [result] = await db.insert(intakeForms).values({
+          userId: ctx.user.id,
+          name: input.name,
+          description: input.description ?? null,
+          fields: JSON.stringify(input.fields),
+          publicSlug: slug,
+          active: true,
+        });
+        return { id: (result as any).insertId, slug };
+      }),
+
+    updateForm: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        name: z.string().min(1).max(255).optional(),
+        description: z.string().optional(),
+        fields: z.array(z.any()).optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const { id, ...rest } = input;
+        await db.update(intakeForms).set({
+          ...(rest.name !== undefined && { name: rest.name }),
+          ...(rest.description !== undefined && { description: rest.description }),
+          ...(rest.fields !== undefined && { fields: JSON.stringify(rest.fields) }),
+          ...(rest.active !== undefined && { active: rest.active }),
+        }).where(and(eq(intakeForms.id, id), eq(intakeForms.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    deleteForm: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(intakeForms).where(and(eq(intakeForms.id, input.id), eq(intakeForms.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    getResponses: protectedProcedure
+      .input(z.object({ formId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        // Verify ownership
+        const [form] = await db.select().from(intakeForms).where(and(eq(intakeForms.id, input.formId), eq(intakeForms.userId, ctx.user.id))).limit(1);
+        if (!form) throw new TRPCError({ code: "NOT_FOUND", message: "Form not found" });
+        return db.select().from(intakeResponses).where(eq(intakeResponses.formId, input.formId)).orderBy(desc(intakeResponses.createdAt));
+      }),
+
+    getPublicForm: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [form] = await db.select({
+          id: intakeForms.id,
+          name: intakeForms.name,
+          description: intakeForms.description,
+          fields: intakeForms.fields,
+          active: intakeForms.active,
+        }).from(intakeForms).where(eq(intakeForms.publicSlug, input.slug)).limit(1);
+        if (!form || !form.active) throw new TRPCError({ code: "NOT_FOUND", message: "Form not found or inactive" });
+        return form;
+      }),
+
+    submitResponse: publicProcedure
+      .input(z.object({
+        slug: z.string(),
+        respondentName: z.string().optional(),
+        respondentEmail: z.string().email().optional(),
+        answers: z.record(z.string(), z.any()),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [form] = await db.select().from(intakeForms).where(eq(intakeForms.publicSlug, input.slug)).limit(1);
+        if (!form || !form.active) throw new TRPCError({ code: "NOT_FOUND", message: "Form not found or inactive" });
+        await db.insert(intakeResponses).values({
+          formId: form.id,
+          userId: form.userId,
+          respondentName: input.respondentName ?? null,
+          respondentEmail: input.respondentEmail ?? null,
+          answers: JSON.stringify(input.answers),
+        });
+        return { success: true };
+      }),
+  }),
+
+  // ── Revenue Goals & Forecasting ──────────────────────────────────────────────
+  goals: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(revenueGoals).where(eq(revenueGoals.userId, ctx.user.id)).orderBy(desc(revenueGoals.year), desc(revenueGoals.month));
+    }),
+
+    upsert: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive().optional(),
+        year: z.number().int().min(2020).max(2100),
+        month: z.number().int().min(1).max(12).nullable().optional(),
+        targetAmount: z.number().min(0),
+        currency: z.string().default("USD"),
+        label: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        if (input.id) {
+          await db.update(revenueGoals).set({
+            year: input.year,
+            month: input.month ?? null,
+            targetAmount: String(input.targetAmount),
+            currency: input.currency,
+            label: input.label ?? null,
+          }).where(and(eq(revenueGoals.id, input.id), eq(revenueGoals.userId, ctx.user.id)));
+          return { id: input.id };
+        } else {
+          const [result] = await db.insert(revenueGoals).values({
+            userId: ctx.user.id,
+            year: input.year,
+            month: input.month ?? null,
+            targetAmount: String(input.targetAmount),
+            currency: input.currency,
+            label: input.label ?? null,
+          });
+          return { id: (result as any).insertId };
+        }
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(revenueGoals).where(and(eq(revenueGoals.id, input.id), eq(revenueGoals.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    forecast: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+
+      // Get paid invoices for current year
+      const yearInvoices = await db.select({
+        amount: invoices.amount,
+        paidAt: invoices.paidAt,
+      }).from(invoices).where(
+        and(
+          eq(invoices.userId, ctx.user.id),
+          eq(invoices.status, "paid"),
+          sql`YEAR(${invoices.paidAt}) = ${currentYear}`
+        )
+      );
+
+      // Aggregate by month
+      const monthlyRevenue: Record<number, number> = {};
+      for (const inv of yearInvoices) {
+        if (!inv.paidAt) continue;
+        const m = new Date(inv.paidAt).getMonth() + 1;
+        monthlyRevenue[m] = (monthlyRevenue[m] ?? 0) + parseFloat(String(inv.amount));
+      }
+
+      // Get goals for current year
+      const goals = await db.select().from(revenueGoals).where(
+        and(eq(revenueGoals.userId, ctx.user.id), eq(revenueGoals.year, currentYear))
+      );
+
+      // Build monthly forecast data
+      const months = Array.from({ length: 12 }, (_, i) => i + 1);
+      const avgRevenue = Object.values(monthlyRevenue).length > 0
+        ? Object.values(monthlyRevenue).reduce((a, b) => a + b, 0) / Math.max(currentMonth - 1, 1)
+        : 0;
+
+      const forecast = months.map(m => {
+        const actual = monthlyRevenue[m] ?? null;
+        const goal = goals.find(g => g.month === m);
+        const projected = m <= currentMonth ? actual : avgRevenue;
+        return {
+          month: m,
+          actual,
+          projected,
+          goal: goal ? parseFloat(String(goal.targetAmount)) : null,
+          goalId: goal?.id ?? null,
+        };
+      });
+
+      const annualGoal = goals.find(g => g.month === null);
+      const ytdRevenue = Object.values(monthlyRevenue).reduce((a, b) => a + b, 0);
+      const projectedAnnual = avgRevenue * 12;
+
+      return {
+        year: currentYear,
+        currentMonth,
+        forecast,
+        ytdRevenue,
+        projectedAnnual,
+        annualGoal: annualGoal ? parseFloat(String(annualGoal.targetAmount)) : null,
+        annualGoalId: annualGoal?.id ?? null,
+        avgMonthlyRevenue: avgRevenue,
+      };
+    }),
+  }),
+
+  // ── Contract Templates ────────────────────────────────────────────────────────
+  contractTemplates: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [custom, builtin] = await Promise.all([
+        db.select().from(contractTemplates).where(and(eq(contractTemplates.userId, ctx.user.id), eq(contractTemplates.isBuiltIn, false))).orderBy(desc(contractTemplates.createdAt)),
+        db.select().from(contractTemplates).where(and(eq(contractTemplates.userId, ctx.user.id), eq(contractTemplates.isBuiltIn, true))).orderBy(contractTemplates.name),
+      ]);
+      return [...builtin, ...custom];
+    }),
+
+    seedBuiltIn: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await requireDb();
+      // Check if already seeded
+      const existing = await db.select({ id: contractTemplates.id }).from(contractTemplates).where(and(eq(contractTemplates.userId, ctx.user.id), eq(contractTemplates.isBuiltIn, true))).limit(1);
+      if (existing.length > 0) return { seeded: 0, message: "Templates already loaded" };
+
+      const BUILT_IN_TEMPLATES = [
+        {
+          name: "Freelance Web Development Agreement",
+          category: "Web Development",
+          body: `FREELANCE WEB DEVELOPMENT AGREEMENT\n\nThis Agreement is entered into as of [DATE] between [CLIENT NAME] ("Client") and [YOUR NAME] ("Developer").\n\n1. SCOPE OF WORK\nDeveloper agrees to provide the following services: [DESCRIBE PROJECT]\n\n2. TIMELINE\nProject start: [START DATE]\nEstimated completion: [END DATE]\n\n3. PAYMENT\nTotal project fee: $[AMOUNT]\nPayment schedule: 50% upfront, 50% on delivery\n\n4. REVISIONS\nThis agreement includes [NUMBER] rounds of revisions. Additional revisions billed at $[RATE]/hour.\n\n5. INTELLECTUAL PROPERTY\nUpon full payment, Client receives full ownership of all deliverables.\n\n6. CONFIDENTIALITY\nBoth parties agree to keep project details confidential.\n\n7. TERMINATION\nEither party may terminate with 14 days written notice. Client pays for work completed.\n\nSigned: ___________________ Date: ___________\nClient: [CLIENT NAME]\n\nSigned: ___________________ Date: ___________\nDeveloper: [YOUR NAME]`,
+        },
+        {
+          name: "Graphic Design Services Contract",
+          category: "Design",
+          body: `GRAPHIC DESIGN SERVICES CONTRACT\n\nDate: [DATE]\nClient: [CLIENT NAME]\nDesigner: [YOUR NAME]\n\n1. SERVICES\nDesigner will create: [LIST DELIVERABLES]\n\n2. FEES\nProject fee: $[AMOUNT]\nRush fee (under 48 hours): 50% surcharge\n\n3. USAGE RIGHTS\nClient receives unlimited commercial use rights upon payment.\n\n4. REVISIONS\n[NUMBER] revisions included. Additional at $[RATE]/revision.\n\n5. FILE DELIVERY\nFinal files delivered in: [FORMATS] within [DAYS] of approval.\n\n6. CREDIT\nDesigner may display work in portfolio unless Client requests otherwise.\n\nSignatures:\nClient: ___________________ Date: ___________\nDesigner: ___________________ Date: ___________`,
+        },
+        {
+          name: "Social Media Management Agreement",
+          category: "Marketing",
+          body: `SOCIAL MEDIA MANAGEMENT AGREEMENT\n\nThis agreement is between [CLIENT BUSINESS NAME] ("Client") and [YOUR NAME] ("Manager").\n\n1. SERVICES\nManager will manage the following platforms: [LIST PLATFORMS]\nPosting frequency: [X] posts per week\nServices include: content creation, scheduling, community management, monthly reporting\n\n2. TERM\nStart date: [DATE]\nInitial term: [X] months, auto-renewing monthly\n\n3. FEES\nMonthly retainer: $[AMOUNT]\nDue on the 1st of each month\n\n4. CONTENT APPROVAL\nClient approves content [X] days before posting.\n\n5. ACCOUNT ACCESS\nClient provides login credentials. Manager will not change passwords without consent.\n\n6. TERMINATION\n30 days written notice required from either party.\n\nSignatures:\nClient: ___________________ Date: ___________\nManager: ___________________ Date: ___________`,
+        },
+        {
+          name: "Photography Services Contract",
+          category: "Photography",
+          body: `PHOTOGRAPHY SERVICES CONTRACT\n\nPhotographer: [YOUR NAME]\nClient: [CLIENT NAME]\nEvent/Session: [DESCRIPTION]\nDate: [EVENT DATE]\nLocation: [LOCATION]\n\n1. SERVICES\nPhotographer will provide [X] hours of coverage.\nDelivery: [NUMBER] edited digital images within [DAYS] days.\n\n2. PAYMENT\nTotal fee: $[AMOUNT]\nDeposit (non-refundable): $[AMOUNT] due at booking\nBalance due: [DATE]\n\n3. CANCELLATION\nCancellations within 48 hours forfeit full deposit.\n\n4. COPYRIGHT\nPhotographer retains copyright. Client receives personal use license.\nCommercial use requires separate licensing agreement.\n\n5. BACKUP\nPhotographer maintains backup copies for 30 days post-delivery.\n\nSignatures:\nClient: ___________________ Date: ___________\nPhotographer: ___________________ Date: ___________`,
+        },
+        {
+          name: "Consulting Services Agreement",
+          category: "Consulting",
+          body: `CONSULTING SERVICES AGREEMENT\n\nThis Agreement is between [CLIENT NAME] ("Client") and [YOUR NAME] ("Consultant").\n\n1. SERVICES\nConsultant will provide: [DESCRIBE CONSULTING SERVICES]\nEngagement type: [Project-based / Retainer / Hourly]\n\n2. COMPENSATION\nRate: $[AMOUNT] per [hour/day/project]\nInvoicing: [Weekly/Monthly/Milestone-based]\nPayment terms: Net [15/30] days\n\n3. INDEPENDENT CONTRACTOR\nConsultant is an independent contractor, not an employee.\n\n4. CONFIDENTIALITY\nConsultant agrees to keep all Client information confidential for 2 years post-engagement.\n\n5. NON-SOLICITATION\nConsultant will not solicit Client employees for 12 months post-engagement.\n\n6. DELIVERABLES\nAll work product created under this agreement belongs to Client upon full payment.\n\n7. LIMITATION OF LIABILITY\nConsultant's liability is limited to fees paid in the prior 30 days.\n\nSignatures:\nClient: ___________________ Date: ___________\nConsultant: ___________________ Date: ___________`,
+        },
+        {
+          name: "Video Production Agreement",
+          category: "Video",
+          body: `VIDEO PRODUCTION AGREEMENT\n\nProducer: [YOUR NAME]\nClient: [CLIENT NAME]\nProject: [PROJECT TITLE]\n\n1. SCOPE\nProducer will create: [DESCRIBE VIDEO PROJECT]\nDuration: [LENGTH]\nDelivery format: [MP4/MOV/etc.]\n\n2. TIMELINE\nPre-production: [DATE RANGE]\nProduction: [DATE RANGE]\nPost-production: [DATE RANGE]\nFinal delivery: [DATE]\n\n3. PAYMENT\nTotal: $[AMOUNT]\n33% at signing, 33% at production start, 34% at delivery\n\n4. REVISIONS\n[NUMBER] rounds of revisions included in post-production.\n\n5. MUSIC & LICENSING\nClient is responsible for music licensing unless otherwise agreed.\n\n6. RAW FOOTAGE\nRaw footage is property of Producer unless purchased separately.\n\nSignatures:\nClient: ___________________ Date: ___________\nProducer: ___________________ Date: ___________`,
+        },
+        {
+          name: "Copywriting Services Agreement",
+          category: "Writing",
+          body: `COPYWRITING SERVICES AGREEMENT\n\nWriter: [YOUR NAME]\nClient: [CLIENT NAME]\nDate: [DATE]\n\n1. PROJECT SCOPE\n[DESCRIBE COPYWRITING PROJECT - e.g., website copy, email sequence, ad copy]\nWord count estimate: [NUMBER] words\n\n2. FEES\nProject fee: $[AMOUNT]\nRush projects (under 72 hours): 25% surcharge\n\n3. REVISIONS\n[NUMBER] rounds of revisions included.\nAdditional revisions: $[RATE] per round.\n\n4. RIGHTS\nUpon full payment, Client receives exclusive rights to all copy.\nWriter may use excerpts in portfolio (non-identifying).\n\n5. ACCURACY\nClient is responsible for fact-checking all claims and legal compliance.\n\n6. TIMELINE\nFirst draft delivered within [DAYS] business days of project start.\n\nSignatures:\nClient: ___________________ Date: ___________\nWriter: ___________________ Date: ___________`,
+        },
+        {
+          name: "SEO Services Retainer Agreement",
+          category: "Marketing",
+          body: `SEO SERVICES RETAINER AGREEMENT\n\nProvider: [YOUR NAME]\nClient: [CLIENT NAME]\nWebsite: [URL]\n\n1. SERVICES (Monthly)\n• Keyword research and strategy\n• On-page optimization ([X] pages/month)\n• Technical SEO audit and fixes\n• [X] blog posts/articles\n• Monthly performance report\n\n2. RETAINER FEE\n$[AMOUNT]/month, billed on the 1st\nMinimum commitment: [X] months\n\n3. REPORTING\nMonthly report delivered by the 5th of each month.\nMetrics tracked: organic traffic, keyword rankings, conversions.\n\n4. EXPECTATIONS\nSEO results typically visible in 3-6 months. No ranking guarantees.\n\n5. CANCELLATION\n30 days written notice. No refunds for partial months.\n\nSignatures:\nClient: ___________________ Date: ___________\nProvider: ___________________ Date: ___________`,
+        },
+        {
+          name: "Brand Identity Design Contract",
+          category: "Design",
+          body: `BRAND IDENTITY DESIGN CONTRACT\n\nDesigner: [YOUR NAME]\nClient: [CLIENT NAME / BUSINESS]\nDate: [DATE]\n\n1. DELIVERABLES\n• Primary logo (3 concepts, 1 final)\n• Color palette with hex codes\n• Typography system\n• Brand guidelines document\n• File formats: AI, EPS, PNG, SVG, PDF\n\n2. PROCESS\nWeek 1-2: Discovery & concepts\nWeek 3: Revisions\nWeek 4: Final files\n\n3. INVESTMENT\nTotal: $[AMOUNT]\n50% deposit to begin, 50% before final file delivery\n\n4. REVISIONS\n[NUMBER] rounds included. Additional at $[RATE]/round.\n\n5. OWNERSHIP\nFull ownership transfers to Client upon final payment.\nDesigner retains right to display in portfolio.\n\nSignatures:\nClient: ___________________ Date: ___________\nDesigner: ___________________ Date: ___________`,
+        },
+        {
+          name: "Virtual Assistant Services Agreement",
+          category: "Admin",
+          body: `VIRTUAL ASSISTANT SERVICES AGREEMENT\n\nVA: [YOUR NAME]\nClient: [CLIENT NAME]\nDate: [DATE]\n\n1. SERVICES\nVA will provide: [LIST SERVICES - e.g., email management, scheduling, data entry, research]\nHours per week: [NUMBER]\nAvailability: [DAYS/HOURS]\n\n2. COMPENSATION\nHourly rate: $[AMOUNT]\nMonthly retainer: $[AMOUNT] for [X] hours\nOvertime (above retainer hours): $[RATE]/hour\n\n3. COMMUNICATION\nPrimary channel: [Email/Slack/etc.]\nResponse time: Within [X] business hours\n\n4. CONFIDENTIALITY\nVA will not disclose any Client information to third parties.\n\n5. TOOLS & ACCESS\nClient provides necessary tool access. VA will not share credentials.\n\n6. TERMINATION\n14 days written notice from either party.\n\nSignatures:\nClient: ___________________ Date: ___________\nVA: ___________________ Date: ___________`,
+        },
+      ];
+
+      await db.insert(contractTemplates).values(
+        BUILT_IN_TEMPLATES.map(t => ({
+          userId: ctx.user.id,
+          name: t.name,
+          category: t.category,
+          body: t.body,
+          isBuiltIn: true,
+        }))
+      );
+
+      return { seeded: BUILT_IN_TEMPLATES.length, message: `Loaded ${BUILT_IN_TEMPLATES.length} contract templates` };
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(255),
+        category: z.string().optional(),
+        body: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [result] = await db.insert(contractTemplates).values({
+          userId: ctx.user.id,
+          name: input.name,
+          category: input.category ?? null,
+          body: input.body,
+          isBuiltIn: false,
+        });
+        return { id: (result as any).insertId };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        name: z.string().min(1).max(255).optional(),
+        category: z.string().optional(),
+        body: z.string().min(1).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const { id, ...rest } = input;
+        await db.update(contractTemplates).set({
+          ...(rest.name !== undefined && { name: rest.name }),
+          ...(rest.category !== undefined && { category: rest.category }),
+          ...(rest.body !== undefined && { body: rest.body }),
+        }).where(and(eq(contractTemplates.id, id), eq(contractTemplates.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(contractTemplates).where(and(eq(contractTemplates.id, input.id), eq(contractTemplates.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    applyToContract: protectedProcedure
+      .input(z.object({
+        templateId: z.number().int().positive(),
+        clientName: z.string().optional(),
+        yourName: z.string().optional(),
+        date: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [template] = await db.select().from(contractTemplates).where(and(eq(contractTemplates.id, input.templateId), eq(contractTemplates.userId, ctx.user.id))).limit(1);
+        if (!template) throw new TRPCError({ code: "NOT_FOUND", message: "Template not found" });
+        let body = template.body;
+        if (input.clientName) body = body.replace(/\[CLIENT NAME\]/g, input.clientName);
+        if (input.yourName) body = body.replace(/\[YOUR NAME\]/g, input.yourName);
+        if (input.date) body = body.replace(/\[DATE\]/g, input.date);
+        return { body, name: template.name, category: template.category };
+      }),
+  }),
+
+  // ── Bulk CSV Client Import ────────────────────────────────────────────────────
+  csvImport: router({
+    importClients: protectedProcedure
+      .input(z.object({
+        rows: z.array(z.object({
+          name: z.string().min(1),
+          email: z.string().email().optional(),
+          phone: z.string().optional(),
+          company: z.string().optional(),
+          notes: z.string().optional(),
+          defaultRate: z.number().optional(),
+          pipelineStage: z.enum(["inquiry", "proposal_sent", "active", "completed", "lost"]).optional(),
+        })).min(1).max(500),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        let imported = 0;
+        let skipped = 0;
+        const errors: string[] = [];
+
+        for (const row of input.rows) {
+          try {
+            // Check for duplicate email
+            if (row.email) {
+              const existing = await db.select({ id: clients.id }).from(clients).where(and(eq(clients.userId, ctx.user.id), eq(clients.email, row.email))).limit(1);
+              if (existing.length > 0) { skipped++; continue; }
+            }
+            await db.insert(clients).values({
+              userId: ctx.user.id,
+              name: row.name,
+              email: row.email ?? null,
+              phone: row.phone ?? null,
+              service: row.company ?? null, // map company → service field
+              notes: row.notes ?? null,
+              defaultRate: row.defaultRate ? String(row.defaultRate) : null,
+              pipelineStage: row.pipelineStage ?? "inquiry",
+              status: "active",
+            });
+            imported++;
+          } catch (e) {
+            errors.push(`Row "${row.name}": ${e instanceof Error ? e.message : "Unknown error"}`);
+          }
+        }
+
+        return { imported, skipped, errors, total: input.rows.length };
+      }),
+
+    exportClients: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const allClients = await db.select().from(clients).where(eq(clients.userId, ctx.user.id)).orderBy(clients.name);
+        const rows = allClients.map(c => ({
+        name: c.name,
+        email: c.email ?? "",
+        phone: c.phone ?? "",
+        company: c.service ?? "",
+        status: c.status,
+        pipelineStage: c.pipelineStage ?? "",
+        defaultRate: c.defaultRate ?? "",
+        notes: c.notes ?? "",
+        createdAt: c.createdAt ? new Date(c.createdAt).toISOString().split("T")[0] : "",
+      }));
+      return { rows, count: rows.length };
+    }),
+  }),
 
 });
 export type AppRouter = typeof appRouter;

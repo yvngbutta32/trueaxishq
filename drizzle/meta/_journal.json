@@ -148,6 +148,13 @@
       "when": 1784894160499,
       "tag": "0020_early_rictor",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1784895223707,
+      "tag": "0021_abnormal_misty_knight",
+      "breakpoints": true
     }
   ]
 }

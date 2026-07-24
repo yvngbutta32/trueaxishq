@@ -1,14 +1,15 @@
 /**
  * InsightsPanel — Unified Business Intelligence hub
- * Tabs: Analytics · Client Pulse · Expenses & P&L
+ * Tabs: Analytics · Client Pulse · Expenses & P&L · Forecast
  *
- * Consolidates: AnalyticsPanel, ClientPulse, Expenses
+ * Consolidates: AnalyticsPanel, ClientPulse, Expenses, RevenueForecastPanel
  * into one place so all performance data is viewed together.
  */
 import { PanelTabs } from "@/components/PanelTabs";
-import { BarChart3, HeartPulse, Receipt } from "lucide-react";
+import { BarChart3, HeartPulse, Receipt, TrendingUp } from "lucide-react";
 import ClientPulse from "./ClientPulse";
 import Expenses from "./Expenses";
+import RevenueForecastPanel from "./RevenueForecastPanel";
 
 // AnalyticsPanel lives inside Dashboard.tsx — passed as a prop
 interface InsightsPanelProps {
@@ -37,8 +38,14 @@ export default function InsightsPanel({ analyticsPanel }: InsightsPanelProps) {
           id: "expenses",
           label: "Expenses & P&L",
           icon: Receipt,
-          badge: "New",
           content: <Expenses />,
+        },
+        {
+          id: "forecast",
+          label: "Forecast",
+          icon: TrendingUp,
+          badge: "New",
+          content: <RevenueForecastPanel />,
         },
       ]}
     />

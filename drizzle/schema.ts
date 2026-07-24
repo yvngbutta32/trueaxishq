@@ -651,3 +651,60 @@ export const automationLogs = mysqlTable("automationLogs", {
 });
 export type AutomationLog = typeof automationLogs.$inferSelect;
 export type InsertAutomationLog = typeof automationLogs.$inferInsert;
+
+// ── Intake / Questionnaire Forms ─────────────────────────────────────────────
+export const intakeForms = mysqlTable("intakeForms", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  fields: text("fields").notNull(), // JSON array of field definitions
+  active: boolean("active").default(true).notNull(),
+  publicSlug: varchar("publicSlug", { length: 100 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type IntakeForm = typeof intakeForms.$inferSelect;
+export type InsertIntakeForm = typeof intakeForms.$inferInsert;
+
+export const intakeResponses = mysqlTable("intakeResponses", {
+  id: int("id").autoincrement().primaryKey(),
+  formId: int("formId").notNull(),
+  userId: int("userId").notNull(),
+  respondentName: varchar("respondentName", { length: 255 }),
+  respondentEmail: varchar("respondentEmail", { length: 255 }),
+  answers: text("answers").notNull(), // JSON object field_id → answer
+  linkedClientId: int("linkedClientId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type IntakeResponse = typeof intakeResponses.$inferSelect;
+export type InsertIntakeResponse = typeof intakeResponses.$inferInsert;
+
+// ── Revenue Goals & Forecasting ───────────────────────────────────────────────
+export const revenueGoals = mysqlTable("revenueGoals", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  year: int("year").notNull(),
+  month: int("month"), // null = annual goal
+  targetAmount: decimal("targetAmount", { precision: 12, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 10 }).default("USD").notNull(),
+  label: varchar("label", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type RevenueGoal = typeof revenueGoals.$inferSelect;
+export type InsertRevenueGoal = typeof revenueGoals.$inferInsert;
+
+// ── Contract Templates ────────────────────────────────────────────────────────
+export const contractTemplates = mysqlTable("contractTemplates", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }),
+  body: text("body").notNull(),
+  isBuiltIn: boolean("isBuiltIn").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type ContractTemplate = typeof contractTemplates.$inferSelect;
+export type InsertContractTemplate = typeof contractTemplates.$inferInsert;

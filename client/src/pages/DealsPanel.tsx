@@ -1,13 +1,14 @@
 /**
  * DealsPanel — Unified Deals hub
- * Tabs: Contracts · Proposals
+ * Tabs: Contracts · Proposals · Templates
  *
- * Consolidates: ContractsPanel, Proposals
+ * Consolidates: ContractsPanel, Proposals, ContractTemplatesPanel
  * into one place so the entire deal lifecycle (proposal → contract → signed) is managed together.
  */
 import { PanelTabs } from "@/components/PanelTabs";
-import { FileSignature, FileText } from "lucide-react";
+import { FileSignature, FileText, BookOpen } from "lucide-react";
 import Proposals from "./Proposals";
+import ContractTemplatesPanel from "./ContractTemplatesPanel";
 
 // ContractsPanel lives inside Dashboard.tsx — passed as a prop
 interface DealsPanelProps {
@@ -29,8 +30,14 @@ export default function DealsPanel({ contractsPanel }: DealsPanelProps) {
           id: "proposals",
           label: "Proposals",
           icon: FileText,
-          badge: "New",
           content: <Proposals />,
+        },
+        {
+          id: "templates",
+          label: "Templates",
+          icon: BookOpen,
+          badge: "New",
+          content: <ContractTemplatesPanel />,
         },
       ]}
     />
