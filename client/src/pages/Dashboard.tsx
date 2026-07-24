@@ -73,13 +73,22 @@ function Modal({ open, onClose, title, children, wide }: {
   open: boolean; onClose: () => void; title: string; children: React.ReactNode; wide?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  // Keep a ref so the keydown handler always calls the latest onClose without
+  // being listed as a dependency — this prevents the effect from re-running
+  // (and stealing focus from inputs) every time the parent re-renders and
+  // passes a new inline arrow function as onClose.
+  const onCloseRef = useRef(onClose);
+  useLayoutEffect(() => { onCloseRef.current = onClose; });
   useEffect(() => {
     if (!open) return;
-    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onCloseRef.current(); };
     document.addEventListener("keydown", handleKey);
-    ref.current?.focus();
-    return () => document.removeEventListener("keydown", handleKey);
-  }, [open, onClose]);
+    // Focus the modal backdrop only on initial open, not on every re-render.
+    // requestAnimationFrame defers until after paint so the modal is visible.
+    const raf = requestAnimationFrame(() => { ref.current?.focus(); });
+    return () => { document.removeEventListener("keydown", handleKey); cancelAnimationFrame(raf); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>

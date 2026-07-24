@@ -4,7 +4,7 @@
  * All functions intact: email capture, onboarding modal, smooth scroll, animated counters
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -55,10 +55,12 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
     if (open) setTimeout(() => firstInputRef.current?.focus(), 50);
   }, [open, step]);
 
+  const onCloseRef = useRef(onClose);
+  useLayoutEffect(() => { onCloseRef.current = onClose; });
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseRef.current();
       if (e.key === "Tab" && modalRef.current) {
         const focusable = modalRef.current.querySelectorAll<HTMLElement>(
           'button, input, select, [tabindex]:not([tabindex="-1"])'
@@ -71,7 +73,8 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [open, onClose]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   if (!open) return null;
 
