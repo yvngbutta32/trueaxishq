@@ -82,6 +82,7 @@ export const clients = mysqlTable("clients", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastContactedAt: timestamp("lastContactedAt"),
+  defaultRate: decimal("defaultRate", { precision: 10, scale: 2 }),
 });
 
 export type Client = typeof clients.$inferSelect;

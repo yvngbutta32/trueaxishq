@@ -1,0 +1,1 @@
+ALTER TABLE `clients` ADD `defaultRate` decimal(10,2);

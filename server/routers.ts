@@ -463,6 +463,7 @@ export const appRouter = router({
         service: safeOptionalString(255),
         status: z.enum(["active", "inactive", "prospect"]).default("active"),
         notes: safeOptionalString(2000),
+        defaultRate: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
@@ -476,6 +477,7 @@ export const appRouter = router({
           status: input.status,
           notes: input.notes || null,
           avatarInitials: initials,
+          defaultRate: input.defaultRate || null,
         });
         return { id: Number((result as any).insertId), success: true };
       }),
@@ -489,6 +491,7 @@ export const appRouter = router({
         service: safeOptionalString(255),
         status: z.enum(["active", "inactive", "prospect"]).optional(),
         notes: safeOptionalString(2000),
+        defaultRate: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
