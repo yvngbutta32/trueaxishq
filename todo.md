@@ -1355,3 +1355,19 @@
 - [x] Fix server/routers.ts — remove PII (email) from console.log statements
 - [x] Fix server/backgroundJobs.ts — remove PII (email) from console.log statements
 - [x] 0 TypeScript errors, 29/29 tests passing
+
+## Second Deep Audit — Client-Side Fixes (Pass 2)
+- [x] DashboardLayout: localStorage.getItem/setItem wrapped in try-catch (private browsing safety)
+- [x] DashboardLayout: parseInt NaN guard + bounds check (180-480px) on sidebar width
+- [x] ChangelogModal: localStorage wrapped in try-catch
+- [x] OnboardingChecklist: localStorage getItem/setItem wrapped in try-catch
+- [x] PWAInstallBanner: localStorage wrapped in try-catch + parseInt NaN guard on dismissed date
+- [x] Services: parseInt NaN + range guard (5-480 min) on durationMinutes
+- [x] Dashboard: parseInt NaN guards on all 4 client select dropdowns
+- [x] Dashboard: keyboard shortcut parseInt radix + NaN guard
+- [x] Dashboard: duration select parseInt radix + fallback
+- [x] GlobalSearch: isError added to useQuery + flat results guarded on error
+- [x] BookingPage: parseInt radix=10 in both parseTime12 functions
+- [x] HealthMonitor: fetch network error handling (catch + null check before processing)
+- [x] ComponentShowcase: parseInt radix + console.log removed
+- [x] Admin: parseInt radix for freeTrialDays

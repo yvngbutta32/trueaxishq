@@ -194,7 +194,6 @@ export default function ComponentsShowcase() {
   const [isChatLoading, setIsChatLoading] = useState(false);
 
   const handleDialogSubmit = () => {
-    console.log("Dialog submitted with value:", dialogInput);
     sonnerToast.success("Submitted successfully", {
       description: `Input: ${dialogInput}`,
     });
@@ -514,8 +513,8 @@ export default function ComponentsShowcase() {
                                 const newDate = datePickerDate
                                   ? new Date(datePickerDate)
                                   : new Date();
-                                newDate.setHours(parseInt(hours));
-                                newDate.setMinutes(parseInt(minutes));
+                                newDate.setHours(parseInt(hours, 10));
+                                newDate.setMinutes(parseInt(minutes, 10));
                                 setDatePickerDate(newDate);
                               }}
                             />

@@ -277,17 +277,17 @@ async function runFollowUpRules() {
                 .replace(/\{name\}/g, client.name)
                 .replace(/\{senderName\}/g, senderName);
 
-              // Save as a sent follow-up record
-              await db.insert(followUps).values({
+              // Save as draft first — only mark sent after email succeeds
+              const [fuResult] = await db.insert(followUps).values({
                 userId: rule.userId,
                 clientId: client.id,
                 clientName: client.name,
                 clientEmail: client.email,
                 subject: rule.emailSubject,
                 body: personalizedBody,
-                status: "sent",
-                sentAt: new Date(),
+                status: "draft",
               });
+              const fuId = (fuResult as any).insertId;
 
               // Send the actual email
               await sendEmail({
@@ -299,6 +299,12 @@ async function runFollowUpRules() {
                   body: personalizedBody,
                 }),
               });
+
+              // Mark sent only after email delivery succeeded
+              if (fuId) {
+                await db.update(followUps).set({ status: "sent", sentAt: new Date() })
+                  .where(eq(followUps.id, fuId));
+              }
 
               console.log(`[Jobs] Auto follow-up rule "${rule.name}" sent (user ${rule.userId})`);
             } catch (err) {
@@ -329,11 +335,22 @@ async function runFollowUpRules() {
   }
 }
 
+// ─── Monthly report sent-once guard ──────────────────────────────────────────
+let lastMonthlyReportSent = ""; // "YYYY-MM" format — reset on server restart
+
 // ─── Job: Monthly business report email (runs on 1st of month) ───────────────
 async function runMonthlyReport() {
   const now = new Date();
   // Only run on the 1st of the month (check within the hourly window)
   if (now.getDate() !== 1) return;
+
+  // Prevent sending more than once per month (across multiple hourly runs on the 1st)
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  if (lastMonthlyReportSent === monthKey) {
+    console.log(`[Jobs] Monthly report already sent for ${monthKey} — skipping`);
+    return;
+  }
+  lastMonthlyReportSent = monthKey;
 
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {

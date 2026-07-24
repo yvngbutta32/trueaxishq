@@ -22,7 +22,8 @@ export function HealthMonitor() {
 
   const checkHealth = useCallback(async () => {
     try {
-      const res = await fetch("/api/health", { signal: AbortSignal.timeout(5000) });
+      const res = await fetch("/api/health", { signal: AbortSignal.timeout(5000) }).catch(() => null);
+      if (!res) { setStatus("degraded"); return; }
       const json: HealthData = await res.json();
       setData(json);
       setStatus(json.status === "healthy" ? "healthy" : "degraded");

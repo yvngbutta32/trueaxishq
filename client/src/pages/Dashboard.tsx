@@ -1565,7 +1565,7 @@ function SchedulingPanel() {
             <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Select Existing Client</label>
             <select
               onChange={e => {
-                const c = clientList?.find(c => c.id === parseInt(e.target.value));
+                const parsed = parseInt(e.target.value, 10); const c = !isNaN(parsed) ? clientList?.find(c => c.id === parsed) : undefined;
                 if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "", service: c.service || "" }));
               }}
               className="form-input-light"
@@ -1583,7 +1583,7 @@ function SchedulingPanel() {
           </div>
           <div>
             <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Duration (minutes)</label>
-            <select value={form.duration} onChange={e => setForm(p => ({ ...p, duration: parseInt(e.target.value) }))} className="form-input-light">
+            <select value={form.duration} onChange={e => setForm(p => ({ ...p, duration: parseInt(e.target.value, 10) || 60 }))} className="form-input-light">
               {[15, 30, 45, 60, 90, 120].map(d => <option key={d} value={d}>{d} minutes</option>)}
             </select>
           </div>
@@ -2253,7 +2253,7 @@ function InvoicesPanel() {
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Select Client</label>
-            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "" })); }} className="form-input-light">
+            <select onChange={e => { const pid = parseInt(e.target.value, 10); const c = !isNaN(pid) ? clientList?.find(c => c.id === pid) : undefined; if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "" })); }} className="form-input-light">
               <option value="">— Or enter manually below —</option>
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -2334,7 +2334,7 @@ function InvoicesPanel() {
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Select Client</label>
-            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setEditForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "" })); }} className="form-input-light">
+            <select onChange={e => { const pid = parseInt(e.target.value, 10); const c = !isNaN(pid) ? clientList?.find(c => c.id === pid) : undefined; if (c) setEditForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "" })); }} className="form-input-light">
               <option value="">— Or enter manually below —</option>
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -2740,7 +2740,7 @@ function FollowUpsPanel() {
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Select Client</label>
-            <select onChange={e => { const c = clientList?.find(c => c.id === parseInt(e.target.value)); if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "", service: c.service || "" })); }} className="form-input-light">
+            <select onChange={e => { const pid = parseInt(e.target.value, 10); const c = !isNaN(pid) ? clientList?.find(c => c.id === pid) : undefined; if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "", service: c.service || "" })); }} className="form-input-light">
               <option value="">— Or enter manually below —</option>
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -4906,7 +4906,8 @@ export default function Dashboard() {
       }
       // Alt+1..9 — panel navigation
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
-        const idx = parseInt(e.key) - 1;
+        const idx = parseInt(e.key, 10) - 1;
+        if (isNaN(idx) || idx < 0) return;
         if (idx >= 0 && idx < panels.length) {
           e.preventDefault();
           setActiveWithScroll(panels[idx]);

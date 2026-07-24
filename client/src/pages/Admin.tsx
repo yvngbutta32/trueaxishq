@@ -675,7 +675,7 @@ export default function Admin() {
                     </div>
                     <div>
                       <label className="form-label">Free Trial Days</label>
-                      <input type="number" value={settingsForm.freeTrialDays ?? 14} onChange={e => updateField("freeTrialDays", parseInt(e.target.value) || 0)} className="form-input-light" min={0} max={365} />
+                      <input type="number" value={settingsForm.freeTrialDays ?? 14} onChange={e => updateField("freeTrialDays", parseInt(e.target.value, 10) || 0)} className="form-input-light" min={0} max={365} />
                     </div>
                     <div className="sm:col-span-2">
                       <label className="form-label">Site Tagline</label>

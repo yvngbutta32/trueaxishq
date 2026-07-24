@@ -92,6 +92,13 @@ async function processEvent(eventType: string, data: Stripe.Event["data"]["objec
       if (invoiceIdMeta && !subscriptionId) {
         const invIdNum = parseInt(invoiceIdMeta, 10);
         if (!isNaN(invIdNum)) {
+          // Verify invoice exists and is not already paid before marking paid
+          const [existingInv] = await db.select({ id: invoices.id, status: invoices.status })
+            .from(invoices).where(eq(invoices.id, invIdNum)).limit(1);
+          if (!existingInv || existingInv.status === "paid") {
+            console.log(`[Webhook] Invoice ${invIdNum} already paid or not found — skipping`);
+            break;
+          }
           await db.update(invoices).set({
             status: "paid",
             paidAt: new Date(),
@@ -243,10 +250,12 @@ export async function handleStripeWebhook(req: Request, res: Response) {
   // Process asynchronously with retry fallback
   try {
     await processEvent(event.type, event.data.object);
+    // Mark processed only after success to allow retries on failure
     markProcessed(event.id);
     console.log(`[Webhook] ✅ Processed ${event.type} (${event.id})`);
   } catch (err) {
     console.error(`[Webhook] ❌ Failed to process ${event.type} (${event.id}):`, err);
+    // Don't mark as processed — allow retry queue to reprocess
     retryQueue.push({
       eventId: event.id,
       eventType: event.type,

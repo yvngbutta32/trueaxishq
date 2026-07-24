@@ -58,9 +58,10 @@ export default function Services() {
 
   function handleSubmit() {
     const price = parseFloat(form.price);
-    const dur = parseInt(form.durationMinutes);
+    const dur = parseInt(form.durationMinutes, 10);
     if (!form.name.trim()) return toast.error("Service name is required");
     if (isNaN(price) || price < 0) return toast.error("Enter a valid price");
+    if (isNaN(dur) || dur < 5 || dur > 480) return toast.error("Duration must be between 5 and 480 minutes");
     if (editing !== null) {
       updateMut.mutate({ id: editing, name: form.name, description: form.description || undefined, price, durationMinutes: dur, category: form.category });
     } else {

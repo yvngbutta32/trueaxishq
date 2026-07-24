@@ -51,16 +51,20 @@ export function ChangelogModal() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const seen = localStorage.getItem(STORAGE_KEY);
-    if (!seen) {
-      // Small delay so the dashboard loads first
-      const timer = setTimeout(() => setOpen(true), 1200);
-      return () => clearTimeout(timer);
+    try {
+      const seen = localStorage.getItem(STORAGE_KEY);
+      if (!seen) {
+        // Small delay so the dashboard loads first
+        const timer = setTimeout(() => setOpen(true), 1200);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      // localStorage unavailable (private browsing) — skip changelog
     }
   }, []);
 
   const dismiss = () => {
-    localStorage.setItem(STORAGE_KEY, "1");
+    try { localStorage.setItem(STORAGE_KEY, "1"); } catch { /* ignore */ }
     setOpen(false);
   };
 

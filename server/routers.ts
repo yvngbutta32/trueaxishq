@@ -94,6 +94,14 @@ export const appRouter = router({
             throw new TRPCError({ code: "BAD_REQUEST", message: "This invite code has expired." });
           }
 
+          // Check email availability BEFORE consuming the invite code
+          // to prevent invite codes being burned on duplicate email attempts
+          const emailCheck = await db.select({ id: users.id })
+            .from(users).where(eq(users.email, input.email.trim().toLowerCase())).limit(1);
+          if (emailCheck.length > 0) {
+            throw new TRPCError({ code: "CONFLICT", message: "An account with this email already exists." });
+          }
+
           const user = await registerUser({
             name: input.name,
             email: input.email,
@@ -195,6 +203,7 @@ export const appRouter = router({
               await db.update(users).set({ role: "admin" }).where(eq(users.id, user.id));
               isOwner = true;
               console.log(`[AdminLogin] Bootstrap: promoted user ${user.id} to admin (first admin account)`);
+              logSecurityEvent({ eventType: "admin_bootstrap", severity: "high", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"], details: "First admin account created via bootstrap login" });
             }
           }
 
@@ -776,12 +785,13 @@ export const appRouter = router({
         .filter(i => i.status === "sent" && i.dueDate && i.dueDate < today)
         .map(i => i.id);
       if (overdueIds.length > 0) {
-        requireDb().then(db => {
-          overdueIds.forEach(id => {
-            db.update(invoices).set({ status: "overdue", updatedAt: new Date() })
-              .where(eq(invoices.id, id)).catch(() => {});
-          });
-        }).catch(() => {});
+        // Batch update all overdue invoices in a single query
+        requireDb().then(db =>
+          db.update(invoices)
+            .set({ status: "overdue", updatedAt: new Date() })
+            .where(inArray(invoices.id, overdueIds))
+            .catch(() => {})
+        ).catch(() => {});
       }
       const totalRevenue = all.filter(i => i.status === "paid").reduce((s, i) => s + parseFloat(String(i.amount)), 0);
       const outstanding = all.filter(i => i.status === "sent" || i.status === "overdue").reduce((s, i) => s + parseFloat(String(i.amount)), 0);
@@ -895,7 +905,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const [inv] = await db.select().from(invoices)
-          .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id)));
+          .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id))).limit(1);
         if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
         // Generate a secure token for the pay link
         const crypto = await import("crypto");
@@ -907,7 +917,7 @@ export const appRouter = router({
         return { token, payUrl, invoiceId: input.id };
       }),
     payByToken: publicProcedure
-      .input(z.object({ token: z.string() }))
+      .input(z.object({ token: z.string().min(1).max(128) }))
       .query(async ({ input }) => {
         const db = await requireDb();
         const [inv] = await db.select().from(invoices).where(eq(invoices.payLinkToken, input.token));
@@ -916,12 +926,14 @@ export const appRouter = router({
         return { invoice: inv, alreadyPaid: false };
       }),
     createStripePaymentForToken: publicProcedure
-      .input(z.object({ token: z.string(), origin: z.string() }))
+      .input(z.object({ token: z.string().min(1).max(128), origin: z.string().url() }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
         const [inv] = await db.select().from(invoices).where(eq(invoices.payLinkToken, input.token));
         if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
         if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice already paid" });
+        const amountCents = Math.round(parseFloat(String(inv.amount)) * 100);
+        if (amountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
         const stripe = getStripe();
         const session = await stripe.checkout.sessions.create({
           payment_method_types: ["card"],
@@ -1994,7 +2006,7 @@ Only include actions when you have actually generated a complete draft. For gene
 
         const bookingResult = await db.insert(bookings).values({
           userId: hostId,
-          clientId: clientId || null,
+          clientId: clientId !== null && clientId > 0 ? clientId : null,
           clientName: input.clientName,
           clientEmail: input.clientEmail,
           service: input.service,
@@ -2029,7 +2041,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const hostDetails = await db.select({ name: users.name, businessName: users.businessName })
           .from(users).where(eq(users.id, host[0].id)).limit(1);
         const freelancerName = hostDetails[0]?.businessName || hostDetails[0]?.name || "Your service provider";
-        const siteOrigin = process.env.VITE_FRONTEND_FORGE_API_URL?.replace("/api", "") || "https://trueaxishq.com";
+        const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.manus.space";
         const cancelUrl = newBookingId ? `${siteOrigin}/booking/cancel/${cancelToken}` : undefined;
         sendEmail({
           to: input.clientEmail,
@@ -2405,6 +2417,9 @@ Only include actions when you have actually generated a complete draft. For gene
         const [portalRecord] = await db.select().from(clientPortalTokens)
           .where(eq(clientPortalTokens.token, input.token)).limit(1);
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found." });
+        if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Portal link has expired. Please request a new one." });
+        }
 
         const [inv] = await db.select().from(invoices)
           .where(and(
@@ -2476,6 +2491,12 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        // Verify clientId belongs to this user if provided
+        if (input.clientId) {
+          const [clientCheck] = await db.select({ id: clients.id })
+            .from(clients).where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
+          if (!clientCheck) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid client." });
+        }
         const [result] = await db.insert(contracts).values({
           userId: ctx.user.id,
           clientId: input.clientId ?? null,
@@ -3935,7 +3956,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const [row] = await db.select().from(proposals)
           .where(and(eq(proposals.id, input.id), eq(proposals.userId, ctx.user.id))).limit(1);
         if (!row) throw new TRPCError({ code: "NOT_FOUND" });
-        const origin = input.origin || "https://trueaxishq.manus.space";
+        const origin = input.origin || ctx.req.headers.origin || "https://trueaxishq.manus.space";
         const link = `${origin}/proposal/${row.token}`;
         if (row.clientEmail) {
           await sendEmail({
@@ -3989,7 +4010,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const invoiceNumber = generateInvoiceNumber();
         const [inv] = await db.insert(invoices).values({
           userId: ctx.user.id,
-          clientId: row.clientId ?? undefined,
+          clientId: row.clientId ?? null,
           invoiceNumber,
           clientName: row.clientName,
           clientEmail: row.clientEmail,

@@ -53,7 +53,10 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
       const token = String(req.query.token);
       const [portalRecord] = await db.select().from(clientPortalTokens)
         .where(and(eq(clientPortalTokens.token, token), eq(clientPortalTokens.userId, userId))).limit(1);
-      if (portalRecord) authorized = true;
+      // Verify token exists and is not expired
+      if (portalRecord && (!portalRecord.expiresAt || new Date() <= portalRecord.expiresAt)) {
+        authorized = true;
+      }
     }
 
     if (!authorized) {
@@ -99,9 +102,9 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
 
       const summary = [b.service, b.clientName].filter(Boolean).join(" — ") || "Appointment";
       const description = [
-        b.clientName ? `Client: ${b.clientName}` : "",
-        b.clientEmail ? `Email: ${b.clientEmail}` : "",
-        b.notes ? `Notes: ${b.notes}` : "",
+        b.clientName ? `Client: ${escapeIcal(b.clientName)}` : "",
+        b.clientEmail ? `Email: ${escapeIcal(b.clientEmail)}` : "",
+        b.notes ? `Notes: ${escapeIcal(b.notes)}` : "",
       ].filter(Boolean).join("\\n");
 
       lines.push("BEGIN:VEVENT");

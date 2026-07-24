@@ -37,12 +37,14 @@ interface Props {
 
 export function OnboardingChecklist({ onNavigate }: Props) {
   const [collapsed, setCollapsed] = useState(false);
-  const [dismissed, setDismissed] = useState(() => !!localStorage.getItem(DISMISS_KEY));
+  const [dismissed, setDismissed] = useState(() => {
+    try { return !!localStorage.getItem(DISMISS_KEY); } catch { return false; }
+  });
 
   const { data: status, isLoading } = useOnboardingStatus();
 
   const dismiss = () => {
-    localStorage.setItem(DISMISS_KEY, "1");
+    try { localStorage.setItem(DISMISS_KEY, "1"); } catch { /* ignore */ }
     setDismissed(true);
   };
 

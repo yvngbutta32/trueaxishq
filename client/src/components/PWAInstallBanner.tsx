@@ -28,11 +28,15 @@ export default function PWAInstallBanner() {
     if (isStandalone) return;
 
     // Check if user dismissed recently (within 30 days)
-    const dismissed = localStorage.getItem("pwa-install-dismissed");
-    if (dismissed) {
-      const dismissedDate = parseInt(dismissed, 10);
-      const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-      if (Date.now() - dismissedDate < thirtyDays) return;
+    try {
+      const dismissed = localStorage.getItem("pwa-install-dismissed");
+      if (dismissed) {
+        const dismissedDate = parseInt(dismissed, 10);
+        const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+        if (!isNaN(dismissedDate) && Date.now() - dismissedDate < thirtyDays) return;
+      }
+    } catch {
+      // localStorage unavailable — show banner anyway
     }
 
     // Detect iOS
@@ -73,7 +77,7 @@ export default function PWAInstallBanner() {
   const handleDismiss = () => {
     setShowBanner(false);
     setShowIOSInstructions(false);
-    localStorage.setItem("pwa-install-dismissed", Date.now().toString());
+    try { localStorage.setItem("pwa-install-dismissed", Date.now().toString()); } catch { /* ignore */ }
   };
 
   if (!showBanner) return null;

@@ -39,7 +39,7 @@ function generateICS({
   const parseTime12 = (t: string): string => {
     const m = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
     if (!m) return "09:00";
-    let h = parseInt(m[1]);
+    let h = parseInt(m[1], 10);
     const min = m[2];
     const ampm = m[3].toUpperCase();
     if (ampm === "PM" && h !== 12) h += 12;
@@ -110,7 +110,7 @@ function buildGoogleCalendarUrl({
   const parseTime12 = (t: string): string => {
     const m = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
     if (!m) return "09:00";
-    let h = parseInt(m[1]); const min = m[2]; const ampm = m[3].toUpperCase();
+    let h = parseInt(m[1], 10); const min = m[2]; const ampm = m[3].toUpperCase();
     if (ampm === "PM" && h !== 12) h += 12;
     if (ampm === "AM" && h === 12) h = 0;
     return `${String(h).padStart(2, "0")}:${min}`;

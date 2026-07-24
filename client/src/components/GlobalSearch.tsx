@@ -79,14 +79,14 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
     }
   }, [open]);
 
-  const { data, isFetching } = trpc.search.global.useQuery(
+  const { data, isFetching, isError } = trpc.search.global.useQuery(
     { query: debouncedQuery },
-    { enabled: debouncedQuery.length >= 1 }
+    { enabled: debouncedQuery.length >= 1, retry: 1 }
   );
 
   // Flatten results for keyboard navigation
   const flat: FlatResult[] = [];
-  if (data) {
+  if (data && !isError) {
     [...data.clients, ...data.invoices, ...data.bookings, ...data.contracts].forEach((r, i) => {
       flat.push({ ...r, _idx: i } as FlatResult);
     });
