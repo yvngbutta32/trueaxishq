@@ -9,6 +9,10 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import ClientPulsePanel from "./ClientPulse";
 import TimeTrackingPanel from "./TimeTracking";
+import Services from "./Services";
+import Expenses from "./Expenses";
+import Proposals from "./Proposals";
+import Automations from "./Automations";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +33,8 @@ import {
   ExternalLink, Bell, Search, ChevronDown, Loader2,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
   Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload,
-  Home, Crown, ArrowRight, Shield, Inbox, MessageSquare, Tag, ThumbsUp, CalendarX, Link2, Wifi, WifiOff
+  Home, Crown, ArrowRight, Shield, Inbox, MessageSquare, Tag, ThumbsUp, CalendarX, Link2, Wifi, WifiOff,
+  Package, Receipt
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -37,7 +42,7 @@ import {
   PieChart, Pie, Cell
 } from "recharts";
 
-type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials";
+type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations";
 
 interface ConfirmState {
   open: boolean;
@@ -243,7 +248,11 @@ const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; ba
   { icon: Mail, label: "Follow-Ups", panel: "followups" },
   { icon: HeartPulse, label: "Client Pulse", panel: "pulse", badge: "AI" },
   { icon: FileSignature, label: "Contracts", panel: "contracts" },
+  { icon: FileText, label: "Proposals", panel: "proposals", badge: "New" },
   { icon: Clock, label: "Time Tracking", panel: "time" },
+  { icon: Package, label: "Services", panel: "services", badge: "New" },
+  { icon: Receipt, label: "Expenses & P&L", panel: "expenses", badge: "New" },
+  { icon: Zap, label: "Automations", panel: "automations", badge: "New" },
   { icon: BarChart3, label: "Analytics", panel: "analytics" },
   { icon: Settings, label: "Settings", panel: "settings" },
   { icon: Bot, label: "AI Assistant", panel: "ai" },
@@ -4754,7 +4763,7 @@ export default function Dashboard() {
   // Update document title based on active panel
   useEffect(() => {
     const PANEL_TITLES: Record<ActivePanel, string> = {
-      overview: "Dashboard — TrueAxis HQ",
+            overview: "Dashboard — TrueAxis HQ",
       clients: "Clients — TrueAxis HQ",
       scheduling: "Scheduling — TrueAxis HQ",
       invoices: "Invoices — TrueAxis HQ",
@@ -4765,9 +4774,12 @@ export default function Dashboard() {
       pulse: "Client Pulse — TrueAxis HQ",
       contracts: "Contracts — TrueAxis HQ",
       time: "Time Tracker — TrueAxis HQ",
-
       inbox: "Inbox — TrueAxis HQ",
       testimonials: "Testimonials — TrueAxis HQ",
+      services: "Services — TrueAxis HQ",
+      expenses: "Expenses & P&L — TrueAxis HQ",
+      proposals: "Proposals — TrueAxis HQ",
+      automations: "Automations — TrueAxis HQ",
     };
     document.title = PANEL_TITLES[active] ?? "Dashboard — TrueAxis HQ";
   }, [active]);
@@ -4836,8 +4848,9 @@ export default function Dashboard() {
     overview: "Dashboard", clients: "Clients", scheduling: "Scheduling",
     invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics",
     settings: "Settings", ai: "AI Assistant", pulse: "Client Pulse",
-    contracts: "Contracts & Proposals", time: "Time Tracking",
+    contracts: "Contracts", time: "Time Tracking",
     inbox: "Smart Inbox", testimonials: "Testimonials",
+    services: "Services", expenses: "Expenses & P&L", proposals: "Proposals", automations: "Automations",
   };
   const panelSubtitles: Record<ActivePanel, string> = {
     overview: "Your business at a glance",
@@ -4853,6 +4866,10 @@ export default function Dashboard() {
     time: "Billable hours & invoice generation",
     inbox: "Unified client communications",
     testimonials: "Reviews & social proof",
+    services: "Your packages & pricing catalog",
+    expenses: "Track costs & view profit/loss",
+    proposals: "Send scoped proposals to clients",
+    automations: "Trigger actions automatically",
   };
 
   // useMemo ensures the panel JSX element is only recreated when `active` changes.
@@ -4898,6 +4915,10 @@ export default function Dashboard() {
 
       case "inbox": return <PanelErrorBoundary panelName="Smart Inbox"><SmartInboxPanel setActivePanel={setActiveWithScroll} /></PanelErrorBoundary>;
       case "testimonials": return <PanelErrorBoundary panelName="Testimonials"><TestimonialsPanel /></PanelErrorBoundary>;
+      case "services": return <PanelErrorBoundary panelName="Services"><Services /></PanelErrorBoundary>;
+      case "expenses": return <PanelErrorBoundary panelName="Expenses & P&L"><Expenses /></PanelErrorBoundary>;
+      case "proposals": return <PanelErrorBoundary panelName="Proposals"><Proposals /></PanelErrorBoundary>;
+      case "automations": return <PanelErrorBoundary panelName="Automations"><Automations /></PanelErrorBoundary>;
       default: return null;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -549,3 +549,102 @@ export const googleCalendarTokens = mysqlTable("googleCalendarTokens", {
 });
 export type GoogleCalendarToken = typeof googleCalendarTokens.$inferSelect;
 export type InsertGoogleCalendarToken = typeof googleCalendarTokens.$inferInsert;
+
+// ─── Service / Package Catalog ────────────────────────────────────────────────
+export const services = mysqlTable("services", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  durationMinutes: int("durationMinutes").default(60),
+  category: varchar("category", { length: 64 }).default("service"),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Service = typeof services.$inferSelect;
+export type InsertService = typeof services.$inferInsert;
+
+// ─── Expenses ─────────────────────────────────────────────────────────────────
+export const expenses = mysqlTable("expenses", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  category: varchar("category", { length: 64 }).notNull().default("other"),
+  description: varchar("description", { length: 512 }).notNull(),
+  vendor: varchar("vendor", { length: 255 }),
+  date: varchar("date", { length: 32 }).notNull(),
+  receiptUrl: text("receiptUrl"),
+  taxDeductible: boolean("taxDeductible").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Expense = typeof expenses.$inferSelect;
+export type InsertExpense = typeof expenses.$inferInsert;
+
+// ─── Proposals ────────────────────────────────────────────────────────────────
+export const proposals = mysqlTable("proposals", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  clientId: int("clientId"),
+  clientName: varchar("clientName", { length: 255 }).notNull(),
+  clientEmail: varchar("clientEmail", { length: 320 }),
+  title: varchar("title", { length: 512 }).notNull(),
+  scope: text("scope"),
+  lineItems: text("lineItems").notNull(), // JSON: [{id,name,description,qty,unitPrice,total}]
+  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).default("0").notNull(),
+  taxRate: decimal("taxRate", { precision: 5, scale: 2 }).default("0"),
+  total: decimal("total", { precision: 10, scale: 2 }).default("0").notNull(),
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  validUntil: varchar("validUntil", { length: 32 }),
+  status: mysqlEnum("status", ["draft", "sent", "viewed", "signed", "declined"]).default("draft").notNull(),
+  token: varchar("token", { length: 128 }).unique(), // public signing link token
+  signedAt: timestamp("signedAt"),
+  signatureName: varchar("signatureName", { length: 255 }),
+  viewedAt: timestamp("viewedAt"),
+  sentAt: timestamp("sentAt"),
+  linkedInvoiceId: int("linkedInvoiceId"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Proposal = typeof proposals.$inferSelect;
+export type InsertProposal = typeof proposals.$inferInsert;
+
+// ─── Workflow Automations ─────────────────────────────────────────────────────
+export const automations = mysqlTable("automations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  trigger: varchar("trigger", { length: 64 }).notNull(), // 'booking_confirmed' | 'invoice_sent' | 'invoice_overdue' | 'client_added' | 'proposal_signed'
+  triggerDelayHours: int("triggerDelayHours").default(0), // delay after trigger
+  conditions: text("conditions"), // JSON: [{field, operator, value}]
+  actions: text("actions").notNull(), // JSON: [{type, config}]
+  active: boolean("active").default(true).notNull(),
+  runCount: int("runCount").default(0).notNull(),
+  lastRunAt: timestamp("lastRunAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Automation = typeof automations.$inferSelect;
+export type InsertAutomation = typeof automations.$inferInsert;
+
+// ─── Automation Logs ──────────────────────────────────────────────────────────
+export const automationLogs = mysqlTable("automationLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  automationId: int("automationId").notNull(),
+  userId: int("userId").notNull(),
+  trigger: varchar("trigger", { length: 64 }).notNull(),
+  entityType: varchar("entityType", { length: 64 }),
+  entityId: int("entityId"),
+  status: mysqlEnum("status", ["success", "failed", "skipped"]).default("success").notNull(),
+  actionsExecuted: int("actionsExecuted").default(0).notNull(),
+  errorMessage: text("errorMessage"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AutomationLog = typeof automationLogs.$inferSelect;
+export type InsertAutomationLog = typeof automationLogs.$inferInsert;
