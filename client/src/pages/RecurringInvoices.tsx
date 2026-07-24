@@ -1,11 +1,12 @@
 /* TrueAxis HQ — Recurring Invoices Panel
  * Set up automatic invoice schedules — weekly, bi-weekly, monthly, quarterly, yearly
+ * Dark-themed to match the dashboard design system.
  */
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { RefreshCw, Plus, Trash2, Loader2, ToggleLeft, ToggleRight, Calendar } from "lucide-react";
+import { RefreshCw, Plus, Trash2, Loader2, ToggleLeft, ToggleRight, Calendar, DollarSign, Info } from "lucide-react";
 
 const FREQUENCY_LABELS: Record<string, string> = {
   weekly: "Weekly",
@@ -95,45 +96,51 @@ export default function RecurringInvoicesPanel() {
         : s.frequency === "biweekly" ? 2.17
         : s.frequency === "monthly" ? 1
         : s.frequency === "quarterly" ? 0.33
-        : 0.083; // yearly
+        : 0.083;
       return sum + amt * multiplier;
     }, 0) ?? 0;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-[#0D1117]">Recurring Invoices</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Automate your regular billing — invoices are generated automatically</p>
+          <h2 className="text-xl font-extrabold text-[#F5EFE3]">Recurring Invoices</h2>
+          <p className="text-sm text-[rgba(245,239,227,0.55)] mt-0.5">Automate your billing — invoices are generated automatically on each due date</p>
         </div>
         <Button
           onClick={() => setShowForm(!showForm)}
-          className="gradient-amber text-white border-0 hover:opacity-90 gap-2"
+          className="gradient-amber text-white border-0 hover:opacity-90 gap-2 flex-shrink-0"
         >
           <Plus className="w-4 h-4" />New Schedule
         </Button>
       </div>
 
-      {/* Summary */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <p className="text-2xl font-bold text-[#0D1117]">{activeCount}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Active Schedules</p>
+        <div className="bg-[#161B22] rounded-xl p-4 border border-white/8 card-lift">
+          <div className="w-9 h-9 rounded-xl bg-[#D4922A]/15 flex items-center justify-center mb-3">
+            <RefreshCw className="w-4 h-4 text-[#D4922A]" />
+          </div>
+          <p className="text-2xl font-extrabold text-[#F5EFE3]">{activeCount}</p>
+          <p className="text-xs text-[rgba(245,239,227,0.55)] mt-0.5">Active Schedules</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <p className="text-2xl font-bold text-[#0D1117]">{formatCurrency(monthlyRevenue)}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Est. Monthly Revenue</p>
+        <div className="bg-[#161B22] rounded-xl p-4 border border-white/8 card-lift">
+          <div className="w-9 h-9 rounded-xl bg-[#10B981]/15 flex items-center justify-center mb-3">
+            <DollarSign className="w-4 h-4 text-[#10B981]" />
+          </div>
+          <p className="text-2xl font-extrabold text-[#F5EFE3]">{formatCurrency(monthlyRevenue)}</p>
+          <p className="text-xs text-[rgba(245,239,227,0.55)] mt-0.5">Est. Monthly Revenue</p>
         </div>
       </div>
 
       {/* Create Form */}
       {showForm && (
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <h3 className="font-bold text-sm text-[#0D1117] mb-4">New Recurring Schedule</h3>
+        <div className="bg-[#161B22] rounded-xl p-5 border border-white/8">
+          <h3 className="font-bold text-sm text-[#F5EFE3] mb-4">New Recurring Schedule</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client *</label>
+              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5 uppercase tracking-wide">Client</label>
               <select
                 value={form.clientId}
                 onChange={e => {
@@ -152,7 +159,7 @@ export default function RecurringInvoicesPanel() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client Name *</label>
+              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5 uppercase tracking-wide">Client Name *</label>
               <input
                 value={form.clientName}
                 onChange={e => setForm(p => ({ ...p, clientName: e.target.value }))}
@@ -163,7 +170,7 @@ export default function RecurringInvoicesPanel() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client Email</label>
+              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5 uppercase tracking-wide">Client Email</label>
               <input
                 type="email"
                 inputMode="email"
@@ -176,7 +183,7 @@ export default function RecurringInvoicesPanel() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Amount ($) *</label>
+              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5 uppercase tracking-wide">Amount ($) *</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -189,7 +196,7 @@ export default function RecurringInvoicesPanel() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Frequency *</label>
+              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5 uppercase tracking-wide">Frequency *</label>
               <select
                 value={form.frequency}
                 onChange={e => setForm(p => ({ ...p, frequency: e.target.value as any }))}
@@ -201,7 +208,7 @@ export default function RecurringInvoicesPanel() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">First Due Date *</label>
+              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5 uppercase tracking-wide">First Due Date *</label>
               <input
                 type="date"
                 value={form.nextDueAt}
@@ -210,7 +217,7 @@ export default function RecurringInvoicesPanel() {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Description</label>
+              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5 uppercase tracking-wide">Description</label>
               <input
                 value={form.description}
                 onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
@@ -221,7 +228,7 @@ export default function RecurringInvoicesPanel() {
               />
             </div>
           </div>
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mt-5">
             <Button
               onClick={handleSubmit}
               disabled={create.isPending}
@@ -230,58 +237,68 @@ export default function RecurringInvoicesPanel() {
               {create.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
               Create Schedule
             </Button>
-            <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowForm(false)} className="border-white/15 text-[rgba(245,239,227,0.65)] hover:text-[#F5EFE3]">Cancel</Button>
           </div>
         </div>
       )}
 
       {/* Schedules List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="font-bold text-sm text-[#0D1117]">Active Schedules</h3>
+      <div className="bg-[#161B22] rounded-xl border border-white/8 overflow-hidden">
+        <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+          <h3 className="font-bold text-sm text-[#F5EFE3]">All Schedules</h3>
+          <span className="text-xs text-[rgba(245,239,227,0.45)]">{schedules?.length ?? 0} total</span>
         </div>
         {isLoading ? (
           <div className="p-8 text-center">
             <Loader2 className="w-6 h-6 text-[#D4922A] animate-spin mx-auto" />
           </div>
         ) : !schedules || schedules.length === 0 ? (
-          <div className="p-10 text-center">
-            <RefreshCw className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-gray-500">No recurring schedules yet</p>
-            <p className="text-xs text-gray-400 mt-1">Create a schedule and invoices will be generated automatically</p>
+          <div className="p-12 text-center">
+            <div className="w-12 h-12 rounded-xl bg-[#D4922A]/10 flex items-center justify-center mx-auto mb-3">
+              <RefreshCw className="w-5 h-5 text-[#D4922A] opacity-50" />
+            </div>
+            <p className="text-sm font-semibold text-[rgba(245,239,227,0.65)]">No recurring schedules yet</p>
+            <p className="text-xs text-[rgba(245,239,227,0.40)] mt-1">Create a schedule and invoices will be generated automatically</p>
+            <Button
+              onClick={() => setShowForm(true)}
+              size="sm"
+              className="mt-4 gradient-amber text-white border-0 hover:opacity-90 gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />Create First Schedule
+            </Button>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-white/5">
             {schedules.map((s: any) => {
               const color = FREQUENCY_COLORS[s.frequency] || "#6366F1";
               return (
-                <div key={s.id} className={`flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors ${!s.active ? "opacity-50" : ""}`}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + "15" }}>
+                <div key={s.id} className={`flex items-center gap-4 px-5 py-4 hover:bg-[#1C2333] transition-colors ${!s.active ? "opacity-50" : ""}`}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + "18" }}>
                     <RefreshCw className="w-4 h-4" style={{ color }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold text-[#0D1117] truncate">{s.clientName}</p>
-                      <span className="px-2 py-0.5 text-xs rounded-full font-semibold" style={{ background: color + "15", color }}>
+                      <p className="text-sm font-semibold text-[#F5EFE3] truncate">{s.clientName}</p>
+                      <span className="px-2 py-0.5 text-xs rounded-full font-semibold" style={{ background: color + "18", color }}>
                         {FREQUENCY_LABELS[s.frequency]}
                       </span>
                       {!s.active && (
-                        <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-500 font-semibold">Paused</span>
+                        <span className="px-2 py-0.5 text-xs rounded-full bg-white/8 text-[rgba(245,239,227,0.45)] font-semibold">Paused</span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-[rgba(245,239,227,0.45)] mt-0.5">
                       {s.description || "No description"} · Next: {new Date(s.nextDueAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-bold text-[#0D1117]">{formatCurrency(s.amount)}</p>
-                    <p className="text-xs text-gray-400">{s.currency}</p>
+                    <p className="text-sm font-bold text-[#F5EFE3]">{formatCurrency(s.amount)}</p>
+                    <p className="text-xs text-[rgba(245,239,227,0.40)]">{s.currency}</p>
                   </div>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => toggle.mutate({ id: s.id, active: !s.active })}
                       disabled={toggle.isPending}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-white/8 text-[rgba(245,239,227,0.40)] hover:text-[#F5EFE3] transition-colors"
                       title={s.active ? "Pause schedule" : "Resume schedule"}
                     >
                       {s.active
@@ -292,7 +309,7 @@ export default function RecurringInvoicesPanel() {
                     <button
                       onClick={() => remove.mutate({ id: s.id })}
                       disabled={remove.isPending}
-                      className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400 transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-red-500/10 text-[rgba(245,239,227,0.30)] hover:text-red-400 transition-colors"
                       aria-label="Delete schedule"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -306,11 +323,11 @@ export default function RecurringInvoicesPanel() {
       </div>
 
       {/* Info box */}
-      <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex gap-3">
-        <Calendar className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+      <div className="bg-[#D4922A]/8 border border-[#D4922A]/20 rounded-xl p-4 flex gap-3">
+        <Info className="w-4 h-4 text-[#D4922A] flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-semibold text-amber-800">Automatic Invoice Generation</p>
-          <p className="text-xs text-amber-700 mt-0.5">
+          <p className="text-sm font-semibold text-[#F5EFE3]">Automatic Invoice Generation</p>
+          <p className="text-xs text-[rgba(245,239,227,0.60)] mt-0.5">
             Invoices are generated automatically at midnight on each due date. You'll receive a notification when a new invoice is created. Clients with email addresses on file will be notified automatically.
           </p>
         </div>

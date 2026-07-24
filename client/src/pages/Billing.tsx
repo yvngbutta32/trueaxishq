@@ -62,10 +62,10 @@ export default function Billing() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#0D1117]">
         <div className="text-center max-w-sm">
-          <Shield className="w-12 h-12 text-gray-600 mx-auto mb-4" aria-hidden="true" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Sign in to manage billing</h1>
+          <Shield className="w-12 h-12 text-[rgba(245,239,227,0.40)] mx-auto mb-4" aria-hidden="true" />
+          <h1 className="text-xl font-bold text-[#F5EFE3] mb-2">Sign in to manage billing</h1>
           <Button className="gradient-amber text-white border-0 mt-4" onClick={() => window.location.href = "/login"}>
             Sign In
           </Button>
@@ -102,7 +102,7 @@ export default function Billing() {
           <h1 className="text-2xl font-extrabold text-white mb-1">
             Billing & Subscription
           </h1>
-          <p className="text-gray-600 text-sm">Manage your plan, upgrade, or access your billing history.</p>
+          <p className="text-[rgba(245,239,227,0.55)] text-sm">Manage your plan, upgrade, or access your billing history.</p>
         </div>
 
         {/* Current Plan Card */}
@@ -128,7 +128,7 @@ export default function Billing() {
                     currentStatus === "active" ? "bg-green-100 text-green-800" :
                     currentStatus === "past_due" ? "bg-yellow-100 text-yellow-800" :
                     currentStatus === "cancelled" ? "bg-red-100 text-red-800" :
-                    "bg-gray-100 text-gray-600"
+                    "bg-white/10 text-[rgba(245,239,227,0.65)]"
                   }`} role="status">
                     {currentStatus === "active" && <CheckCircle className="w-3 h-3" aria-hidden="true" />}
                     {currentStatus === "active" ? "Active" :
@@ -171,12 +171,12 @@ export default function Billing() {
                 className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all min-h-[40px] ${
                   interval === opt
                     ? "gradient-amber text-white shadow-sm"
-                    : "text-gray-600 hover:text-gray-200"
+                    : "text-[rgba(245,239,227,0.50)] hover:text-[#F5EFE3]"
                 }`}
               >
                 {opt === "monthly" ? "Monthly" : "Annual"}
                 {opt === "annual" && (
-                  <span className="ml-2 text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold">
+                  <span className="ml-2 text-xs bg-green-500/15 text-green-400 px-1.5 py-0.5 rounded-full font-bold">
                     Save 20%
                   </span>
                 )}
@@ -231,11 +231,11 @@ export default function Billing() {
                     <h3 className="text-lg font-extrabold text-white mb-1">
                       {plan.name}
                     </h3>
-                    <p className="text-xs text-gray-600 mb-4">{plan.description}</p>
+                    <p className="text-xs text-[rgba(245,239,227,0.55)] mb-4">{plan.description}</p>
 
                     <div className="mb-5">
                       <span className="text-3xl font-extrabold text-white">${price}</span>
-                      <span className="text-sm text-gray-600">/mo</span>
+                      <span className="text-sm text-[rgba(245,239,227,0.55)]">/mo</span>
                       {interval === "annual" && (
                         <p className="text-xs text-green-600 font-semibold mt-0.5">Billed annually</p>
                       )}
@@ -243,7 +243,7 @@ export default function Billing() {
 
                     <ul className="space-y-2 mb-6 flex-1" aria-label={`${plan.name} features`}>
                       {plan.features.map((feature: string) => (
-                        <li key={feature} className="flex items-start gap-2 text-sm text-gray-300">
+                        <li key={feature} className="flex items-start gap-2 text-sm text-[rgba(245,239,227,0.75)]">
                           <CheckCircle className="w-4 h-4 text-[#D4922A] flex-shrink-0 mt-0.5" aria-hidden="true" />
                           {feature}
                         </li>

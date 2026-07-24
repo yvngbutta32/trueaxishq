@@ -329,7 +329,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             <div className="space-y-1">
               {[
                 { keys: ["⌘", "K"], label: "Search" },
-                { keys: ["/"],       label: "Search" },
+                { keys: ["/"],       label: "Quick Search" },
                 { keys: ["N"],       label: "Invoices" },
                 { keys: ["C"],       label: "Clients" },
                 { keys: ["B"],       label: "Bookings" },
@@ -2749,7 +2749,7 @@ function AnalyticsPanel() {
   const stats = [
     { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), icon: DollarSign, color: "#D4922A" },
     { label: "Active Clients", value: String(analytics?.activeClients || 0), icon: Users, color: "#6366F1" },
-    { label: "Sessions Booked", value: String((analytics?.completedSessions || 0) + (analytics?.completedSessions || 0)), icon: Calendar, color: "#F59E0B" },
+    { label: "Sessions Booked", value: String(analytics?.completedSessions || 0), icon: Calendar, color: "#F59E0B" },
     { label: "Conversion Rate", value: analytics?.totalClients ? `${Math.round((analytics.activeClients / analytics.totalClients) * 100)}%` : "0%", icon: TrendingUp, color: "#FF6B6B" },
   ];
 
@@ -4946,7 +4946,7 @@ export default function Dashboard() {
             </div>
             <div className="hidden md:block">
               <h1 className="text-base font-bold text-[#F5EFE3] leading-tight">{panelTitles[active]}</h1>
-              <p className="text-xs text-[rgba(245,239,227,0.40)] leading-tight">{panelSubtitles[active]}</p>
+              <p className="text-xs text-[rgba(245,239,227,0.55)] leading-tight">{panelSubtitles[active]}</p>
             </div>
           </div>
 

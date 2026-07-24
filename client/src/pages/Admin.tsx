@@ -34,9 +34,9 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
 // ─── Plan Badge ───────────────────────────────────────────────────────────────
 function PlanBadge({ plan }: { plan: string }) {
   const colors: Record<string, string> = {
-    agency: "bg-purple-100 text-purple-800",
+    agency: "bg-purple-500/15 text-purple-400",
     pro: "bg-amber-900/30 text-amber-400",
-    starter: "bg-blue-100 text-blue-800",
+    starter: "bg-blue-500/15 text-blue-400",
     free: "bg-[#243040] text-[rgba(245,239,227,0.60)]",
   };
   return (
@@ -70,7 +70,7 @@ function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: bool
       aria-checked={value}
       aria-label={label}
       onClick={() => onChange(!value)}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] ${value ? "bg-[#D4922A]" : "bg-gray-200"}`}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] ${value ? "bg-[#D4922A]" : "bg-white/15"}`}
     >
       <span className={`inline-block h-4 w-4 transform rounded-full bg-[#161B22] shadow transition-transform ${value ? "translate-x-6" : "translate-x-1"}`} />
     </button>
@@ -282,11 +282,11 @@ export default function Admin() {
           <div className="hidden sm:block w-px h-6 bg-[#161B22]/10" />
           <div className="hidden sm:flex items-center gap-1.5">
             <Crown className="w-3.5 h-3.5 text-[#D4922A]" />
-            <span className="text-sm font-semibold text-gray-300">Admin Panel</span>
+            <span className="text-sm font-semibold text-[rgba(245,239,227,0.70)]">Admin Panel</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-[#161B22]/10 text-xs sm:text-sm" onClick={() => navigate("/dashboard")}>
+          <Button variant="ghost" size="sm" className="text-[rgba(245,239,227,0.65)] hover:text-white hover:bg-white/8 text-xs sm:text-sm" onClick={() => navigate("/dashboard")}>
             <span className="hidden sm:inline">← Dashboard</span>
             <span className="sm:hidden">← Back</span>
           </Button>
@@ -422,7 +422,7 @@ export default function Admin() {
                       </tr>
                     ) : (
                       usersQuery.data?.users.map(u => (
-                        <tr key={u.id} className="border-b border-gray-50 hover:bg-[#1C2333] transition-colors">
+                        <tr key={u.id} className="border-b border-white/5 hover:bg-[#1C2333] transition-colors">
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-[#D4922A]/15 flex items-center justify-center text-[#007A65] text-xs font-bold flex-shrink-0">
@@ -584,7 +584,7 @@ export default function Admin() {
                   <p className="text-xs mt-1">Email sign-ups from the landing page will appear here.</p>
                 </div>
               ) : leadsQuery.data.leads.map((lead, i) => (
-                <div key={lead.id} className={`grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 px-6 py-4 ${i > 0 ? "border-t border-gray-50" : ""} hover:bg-[#1C2333]`}>
+                <div key={lead.id} className={`grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 px-6 py-4 ${i > 0 ? "border-t border-white/5" : ""} hover:bg-[#1C2333]`}>
                   <p className="text-sm font-medium text-[#F5EFE3]">{lead.name || <span className="text-[rgba(245,239,227,0.60)] italic">No name</span>}</p>
                   <p className="text-sm text-[rgba(245,239,227,0.60)] truncate">{lead.email}</p>
                   <span className="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-xs font-medium bg-[#D4922A]/10 text-[#007A65]">{lead.source ?? "landing_page"}</span>
@@ -716,9 +716,9 @@ export default function Admin() {
                   {settingsForm.announcementEnabled && settingsForm.announcementText && (
                     <div className={`mt-4 px-4 py-2.5 rounded-xl text-sm font-medium text-center ${
                       settingsForm.announcementColor === "coral" ? "bg-[#FF6B6B]/15 text-[#CC3333]" :
-                      settingsForm.announcementColor === "purple" ? "bg-purple-100 text-purple-800" :
-                      settingsForm.announcementColor === "yellow" ? "bg-yellow-100 text-yellow-800" :
-                      settingsForm.announcementColor === "blue" ? "bg-blue-100 text-blue-800" :
+                      settingsForm.announcementColor === "purple" ? "bg-purple-500/15 text-purple-400" :
+                      settingsForm.announcementColor === "yellow" ? "bg-yellow-500/15 text-yellow-400" :
+                      settingsForm.announcementColor === "blue" ? "bg-blue-500/15 text-blue-400" :
                       "bg-[#D4922A]/15 text-[#007A65]"
                     }`}>
                       Preview: {settingsForm.announcementText}
@@ -766,7 +766,7 @@ export default function Admin() {
                       { key: "featureAnalytics", label: "Analytics Dashboard", desc: "Revenue charts, booking stats, and growth metrics" },
                       { key: "featureAIAssistant", label: "AI Business Assistant", desc: "In-dashboard AI chat assistant" },
                     ].map(({ key, label, desc }) => (
-                      <div key={key} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                      <div key={key} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
                         <div>
                           <p className="text-sm font-semibold text-[#F5EFE3]">{label}</p>
                           <p className="text-xs text-[rgba(245,239,227,0.60)] mt-0.5">{desc}</p>
@@ -787,7 +787,7 @@ export default function Admin() {
                     <h3 className="text-base font-bold text-[#F5EFE3] flex items-center gap-2">
                       <Lock className="w-4 h-4 text-red-500" />
                       Maintenance Mode
-                      {settingsForm.maintenanceMode && <span className="text-xs font-semibold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">ACTIVE</span>}
+                      {settingsForm.maintenanceMode && <span className="text-xs font-semibold text-red-400 bg-red-500/15 px-2 py-0.5 rounded-full">ACTIVE</span>}
                     </h3>
                     <Toggle
                       value={settingsForm.maintenanceMode ?? false}
@@ -919,7 +919,7 @@ export default function Admin() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="bg-[#161B22] rounded-xl p-5 border border-white/8 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${health.dbStatus === "healthy" ? "bg-emerald-100" : "bg-red-100"}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${health.dbStatus === "healthy" ? "bg-emerald-500/15" : "bg-red-500/15"}`}>
                         <Database className={`w-5 h-5 ${health.dbStatus === "healthy" ? "text-emerald-600" : "text-red-600"}`} />
                       </div>
                       <div>
@@ -935,7 +935,7 @@ export default function Admin() {
                   </div>
                   <div className="bg-[#161B22] rounded-xl p-5 border border-white/8 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center">
                         <Server className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
@@ -950,7 +950,7 @@ export default function Admin() {
                   </div>
                   <div className="bg-[#161B22] rounded-xl p-5 border border-white/8 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center">
                         <Activity className="w-5 h-5 text-purple-600" />
                       </div>
                       <div>
@@ -1042,9 +1042,9 @@ export default function Admin() {
                 <div className="space-y-3">
                   {watchdogQuery.data.issues.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-sm font-semibold text-red-700">Issues requiring attention:</p>
+                      <p className="text-sm font-semibold text-red-400">Issues requiring attention:</p>
                       {watchdogQuery.data.issues.map((issue, i) => (
-                        <div key={i} className="flex items-start gap-2 text-sm text-red-700 bg-red-100 rounded-lg px-3 py-2">
+                        <div key={i} className="flex items-start gap-2 text-sm text-red-400 bg-red-500/10 rounded-lg px-3 py-2">
                           <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                           {issue}
                         </div>
@@ -1053,9 +1053,9 @@ export default function Admin() {
                   )}
                   {watchdogQuery.data.fixes.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-sm font-semibold text-green-700">Auto-fixes applied:</p>
+                      <p className="text-sm font-semibold text-green-400">Auto-fixes applied:</p>
                       {watchdogQuery.data.fixes.map((fix, i) => (
-                        <div key={i} className="flex items-start gap-2 text-sm text-green-700 bg-green-100 rounded-lg px-3 py-2">
+                        <div key={i} className="flex items-start gap-2 text-sm text-green-400 bg-green-500/10 rounded-lg px-3 py-2">
                           <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                           {fix}
                         </div>
@@ -1063,7 +1063,7 @@ export default function Admin() {
                     </div>
                   )}
                   {watchdogQuery.data.issues.length === 0 && watchdogQuery.data.fixes.length === 0 && (
-                    <p className="text-sm text-green-700 font-medium">All systems healthy. No issues detected.</p>
+                    <p className="text-sm text-green-400 font-medium">All systems healthy. No issues detected.</p>
                   )}
                 </div>
               ) : (
@@ -1179,8 +1179,8 @@ export default function Admin() {
                     <p className="text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-2">Currently Locked:</p>
                     <div className="space-y-1 max-h-40 overflow-y-auto">
                       {securityStatsQuery.data.lockedAccounts.map((acct) => (
-                        <div key={acct.email} className="flex items-center justify-between bg-amber-50 rounded-lg px-3 py-1.5">
-                          <span className="text-xs text-amber-700">{acct.email}</span>
+                        <div key={acct.email} className="flex items-center justify-between bg-amber-500/8 rounded-lg px-3 py-1.5">
+                          <span className="text-xs text-[rgba(245,239,227,0.55)]">{acct.email}</span>
                           <button
                             onClick={() => unlockAccountMutation.mutate({ email: acct.email })}
                             className="text-xs text-amber-600 hover:text-amber-800 transition-colors"
@@ -1361,7 +1361,7 @@ export default function Admin() {
                     </thead>
                     <tbody>
                       {invitesQuery.data.map((inv: any) => (
-                        <tr key={inv.id} className="border-b border-gray-50 hover:bg-[#1C2333]">
+                        <tr key={inv.id} className="border-b border-white/5 hover:bg-[#1C2333]">
                           <td className="py-2 px-3">
                             <div className="flex items-center gap-2">
                               <span className="font-mono font-bold text-[#0D1117]">{inv.code}</span>
