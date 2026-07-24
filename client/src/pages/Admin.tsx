@@ -1228,6 +1228,31 @@ export default function Admin() {
                   >
                     Resolve All
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const events = securityEventsQuery.data ?? [];
+                      if (events.length === 0) { toast.error("No events to export."); return; }
+                      const headers = "Date,Event,Severity,Status,IP,User Agent";
+                      const rows = events.map((e: any) =>
+                        `"${new Date(e.createdAt).toLocaleString()}","${e.event ?? ""}","${e.severity ?? ""}","${e.resolved ? "Resolved" : "Open"}","${e.ipAddress ?? ""}","${(e.userAgent ?? "").replace(/"/g, "'")}"`
+                      );
+                      const csv = [headers, ...rows].join("\n");
+                      const blob = new Blob([csv], { type: "text/csv" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `trueaxishq-security-log-${new Date().toISOString().split("T")[0]}.csv`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      toast.success(`Exported ${events.length} security events`);
+                    }}
+                    className="gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Export CSV
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => securityEventsQuery.refetch()}>
                     <RefreshCw className="w-4 h-4" />
                   </Button>

@@ -1,27 +1,34 @@
 /* TrueAxis HQ — Onboarding Checklist
- * Shown in the Overview panel until all steps are completed
- * Progress is tracked in localStorage
+ * Progress is driven by real DB data via trpc.onboarding.status
+ * Dismiss state is kept in localStorage (intentional — it's a UI preference, not business data)
  */
-import { useState, useEffect } from "react";
-import { CheckCircle, Circle, ChevronDown, ChevronUp, X } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle, Circle, ChevronDown, ChevronUp, X, Loader2 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
-const STORAGE_KEY = "trueaxis_onboarding_v1";
-const DISMISS_KEY = "trueaxis_onboarding_dismissed";
+const DISMISS_KEY = "trueaxis_onboarding_dismissed_v2";
 
 interface Step {
-  id: string;
+  id: keyof ReturnType<typeof useOnboardingStatus>["data"] extends undefined ? never : keyof NonNullable<ReturnType<typeof useOnboardingStatus>["data"]>;
   label: string;
   desc: string;
   panel?: string;
 }
 
-const STEPS: Step[] = [
-  { id: "profile", label: "Complete your profile", desc: "Add your name, business name, and contact info in Settings", panel: "settings" },
-  { id: "client", label: "Add your first client", desc: "Go to Clients and add a client to get started", panel: "clients" },
-  { id: "invoice", label: "Send your first invoice", desc: "Create and send an invoice to a client", panel: "invoices" },
-  { id: "booking", label: "Set up your booking page", desc: "Configure your booking link in Settings so clients can schedule time with you", panel: "settings" },
-  { id: "followup", label: "Create a follow-up sequence", desc: "Set up automated follow-up messages for your clients", panel: "followups" },
-  { id: "recurring", label: "Set up a recurring invoice", desc: "Automate your regular billing with a recurring schedule", panel: "recurring" },
+function useOnboardingStatus() {
+  return trpc.onboarding.status.useQuery(undefined, {
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+  });
+}
+
+const STEPS: { id: string; label: string; desc: string; panel?: string }[] = [
+  { id: "profile",   label: "Complete your profile",        desc: "Add your business name in Settings",                                    panel: "settings"  },
+  { id: "client",    label: "Add your first client",         desc: "Go to Clients and add a client to get started",                         panel: "clients"   },
+  { id: "invoice",   label: "Send your first invoice",       desc: "Create and send an invoice to a client",                                panel: "invoices"  },
+  { id: "booking",   label: "Set up your booking page",      desc: "Set a booking username in Settings so clients can schedule with you",   panel: "settings"  },
+  { id: "followup",  label: "Create a follow-up sequence",   desc: "Set up automated follow-up messages for your clients",                  panel: "followups" },
+  { id: "recurring", label: "Set up a recurring invoice",    desc: "Automate your regular billing with a recurring schedule",               panel: "recurring" },
 ];
 
 interface Props {
@@ -29,25 +36,10 @@ interface Props {
 }
 
 export function OnboardingChecklist({ onNavigate }: Props) {
-  const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [collapsed, setCollapsed] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(() => !!localStorage.getItem(DISMISS_KEY));
 
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) setCompleted(new Set(JSON.parse(saved)));
-    const dis = localStorage.getItem(DISMISS_KEY);
-    if (dis) setDismissed(true);
-  }, []);
-
-  const toggle = (id: string) => {
-    setCompleted(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(next)));
-      return next;
-    });
-  };
+  const { data: status, isLoading } = useOnboardingStatus();
 
   const dismiss = () => {
     localStorage.setItem(DISMISS_KEY, "1");
@@ -55,6 +47,12 @@ export function OnboardingChecklist({ onNavigate }: Props) {
   };
 
   if (dismissed) return null;
+
+  const completed = new Set(
+    status
+      ? STEPS.filter(s => (status as Record<string, boolean>)[s.id]).map(s => s.id)
+      : []
+  );
 
   const doneCount = completed.size;
   const total = STEPS.length;
@@ -70,25 +68,35 @@ export function OnboardingChecklist({ onNavigate }: Props) {
       >
         <div className="flex items-center gap-3">
           <div className="relative w-9 h-9">
-            <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3.2" />
-              <circle
-                cx="18" cy="18" r="15.9" fill="none"
-                stroke={allDone ? "#10B981" : "#D4922A"} strokeWidth="3.2"
-                strokeDasharray={`${pct} ${100 - pct}`}
-                strokeLinecap="round"
-              />
-            </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#F5EFE3]">
-              {doneCount}/{total}
-            </span>
+            {isLoading ? (
+              <Loader2 className="w-9 h-9 text-[#D4922A] animate-spin" />
+            ) : (
+              <>
+                <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3.2" />
+                  <circle
+                    cx="18" cy="18" r="15.9" fill="none"
+                    stroke={allDone ? "#10B981" : "#D4922A"} strokeWidth="3.2"
+                    strokeDasharray={`${pct} ${100 - pct}`}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#F5EFE3]">
+                  {doneCount}/{total}
+                </span>
+              </>
+            )}
           </div>
           <div>
             <p className="text-sm font-bold text-[#F5EFE3]">
               {allDone ? "Setup complete! 🎉" : "Getting started"}
             </p>
             <p className="text-xs text-[rgba(245,239,227,0.40)]">
-              {allDone ? "You're all set — explore all features" : `${total - doneCount} steps remaining`}
+              {isLoading
+                ? "Checking your progress…"
+                : allDone
+                  ? "You're all set — explore all features"
+                  : `${total - doneCount} step${total - doneCount === 1 ? "" : "s"} remaining`}
             </p>
           </div>
         </div>
@@ -126,16 +134,12 @@ export function OnboardingChecklist({ onNavigate }: Props) {
             const done = completed.has(step.id);
             return (
               <div key={step.id} className="flex items-start gap-3">
-                <button
-                  onClick={() => toggle(step.id)}
-                  className="mt-0.5 flex-shrink-0 transition-transform hover:scale-110"
-                  aria-label={done ? `Mark ${step.label} incomplete` : `Mark ${step.label} complete`}
-                >
+                <div className="mt-0.5 flex-shrink-0">
                   {done
                     ? <CheckCircle className="w-5 h-5 text-green-400" />
                     : <Circle className="w-5 h-5 text-[rgba(245,239,227,0.25)]" />
                   }
-                </button>
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm font-semibold ${done ? "line-through text-[rgba(245,239,227,0.30)]" : "text-[#F5EFE3]"}`}>
                     {step.label}

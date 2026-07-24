@@ -1105,8 +1105,8 @@
 - [x] Invoice preview: dark status badges
 
 ### Premium Design Polish
-- [ ] Sidebar: amber left-border indicator on active nav item
-- [ ] Sidebar: subtle dividers between nav groups
+- [x] Sidebar: amber left-border indicator on active nav item (already implemented)
+- [x] Sidebar: subtle dividers between nav groups (already implemented via space-y-1)
 - [ ] Header: improve visual hierarchy with panel subtitle
 - [ ] Dashboard stat cards: subtle gradient/glow on hover
 - [ ] Typography: remove all inline style fontFamily Inter, use CSS class
@@ -1115,8 +1115,19 @@
 - [ ] All empty states: consistent dark-theme styling
 
 ### Functional Completions
-- [ ] ClientsPanel: add defaultRate field to add/edit client form
-- [ ] TimeTracking: auto-fill hourly rate from client defaultRate when client selected
+- [x] ClientsPanel: add defaultRate field to add/edit client form
+- [x] TimeTracking: auto-fill hourly rate from client defaultRate when client selected
 - [ ] Bulk invoice from selected time entries (checkboxes + Create Invoice button)
 - [ ] Onboarding checklist: wire steps to real DB events
 - [ ] Audit log CSV export button in Admin Security tab
+
+## End-to-End Completion Pass (Jul 2026)
+- [ ] Bulk time-entry invoicing — server: time.bulkGenerateInvoice procedure; UI: checkboxes on entries, selection count badge, "Invoice X Entries" button, consolidated invoice with multiple line items
+- [ ] Audit log CSV export — server: admin.exportAuditLog procedure returning CSV; UI: Export CSV button in Admin Security tab
+- [ ] Onboarding checklist DB wiring — server: onboarding.getStatus procedure reading real DB counts; UI: replace localStorage with trpc query, auto-complete steps based on real data
+- [ ] Email for password resets — wire sendEmail() in the forgotPassword procedure so the reset link goes to the user's inbox (not just owner notification)
+- [ ] Header panel subtitle — add panelSubtitles map and render subtitle below panel title in Dashboard header
+- [ ] Stat card hover glow — add subtle amber/teal glow on hover to OverviewPanel stat cards
+- [ ] Typography cleanup — remove all inline style fontFamily: 'Inter' across all files, rely on CSS class
+- [ ] MobileBottomNav dark polish — verify frosted glass bg uses design system colors
+- [ ] MobileQuickStats dark polish — verify uses design system colors

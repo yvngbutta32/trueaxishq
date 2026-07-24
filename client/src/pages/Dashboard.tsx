@@ -434,7 +434,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map(s => (
-          <div key={s.label} className="bg-[#161B22] rounded-xl p-4 sm:p-5 border border-white/8 card-lift">
+          <div key={s.label} className="bg-[#161B22] rounded-xl p-4 sm:p-5 border border-white/8 card-lift group transition-all duration-200 hover:border-white/15" style={{ '--card-glow': s.color } as React.CSSProperties}>
             <div className="flex items-start justify-between mb-2 sm:mb-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: s.color }}>
                 <s.icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
@@ -4727,6 +4727,21 @@ export default function Dashboard() {
     contracts: "Contracts & Proposals", time: "Time Tracking",
     inbox: "Smart Inbox", testimonials: "Testimonials",
   };
+  const panelSubtitles: Record<ActivePanel, string> = {
+    overview: "Your business at a glance",
+    clients: "Manage relationships & contacts",
+    scheduling: "Appointments & availability",
+    invoices: "Billing, payments & recurring",
+    followups: "Automated client outreach",
+    analytics: "Revenue & performance insights",
+    settings: "Profile, branding & integrations",
+    ai: "Your AI-powered business assistant",
+    pulse: "Client health & engagement scores",
+    contracts: "Proposals, contracts & e-sign",
+    time: "Billable hours & invoice generation",
+    inbox: "Unified client communications",
+    testimonials: "Reviews & social proof",
+  };
 
   // useMemo ensures the panel JSX element is only recreated when `active` changes.
   // Without this, every Dashboard re-render (notification poll, search state, etc.)
@@ -4817,9 +4832,10 @@ export default function Dashboard() {
                 {panelTitles[active]}
               </span>
             </div>
-            <h1 className="hidden md:block text-base font-bold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>
-              {panelTitles[active]}
-            </h1>
+            <div className="hidden md:block">
+              <h1 className="text-base font-bold text-[#F5EFE3] leading-tight">{panelTitles[active]}</h1>
+              <p className="text-xs text-[rgba(245,239,227,0.40)] leading-tight">{panelSubtitles[active]}</p>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">

@@ -2694,6 +2694,80 @@ Only include actions when you have actually generated a complete draft. For gene
 
         return { invoiceId, invoiceNumber, amount };
       }),
+
+    // Bulk-generate a single consolidated invoice from multiple time entries
+    bulkGenerateInvoice: protectedProcedure
+      .input(z.object({
+        ids: z.array(z.number()).min(1).max(50),
+        dueDate: z.string().optional(),
+        notes: z.string().max(1000).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        // 1. Fetch all entries and validate ownership
+        const entries = await db.select().from(timeEntries)
+          .where(and(
+            inArray(timeEntries.id, input.ids),
+            eq(timeEntries.userId, ctx.user.id)
+          ));
+        if (entries.length !== input.ids.length)
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'One or more time entries not found.' });
+        for (const e of entries) {
+          if (!e.endedAt) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot invoice a running timer — stop it first.' });
+          if (e.invoiced) throw new TRPCError({ code: 'BAD_REQUEST', message: `Entry "${e.description ?? e.projectName}" has already been invoiced.` });
+          if (!e.billable) throw new TRPCError({ code: 'BAD_REQUEST', message: `Entry "${e.description ?? e.projectName}" is marked non-billable.` });
+        }
+        // 2. Build line items and total
+        let totalAmount = 0;
+        const lineItemsArr: { description: string; qty: number; unitPrice: number }[] = [];
+        for (const entry of entries) {
+          const hours = (entry.durationMinutes ?? 0) / 60;
+          const rate = entry.hourlyRate ? parseFloat(String(entry.hourlyRate)) : 0;
+          if (rate <= 0) throw new TRPCError({ code: 'BAD_REQUEST', message: `No hourly rate on entry "${entry.description ?? entry.projectName}". Edit it to add a rate first.` });
+          const amount = parseFloat((hours * rate).toFixed(2));
+          totalAmount += amount;
+          lineItemsArr.push({
+            description: entry.description
+              ? `${entry.description} (${hours.toFixed(2)}h @ $${rate}/hr)`
+              : `${entry.projectName ?? 'Time tracked'}: ${hours.toFixed(2)}h @ $${rate}/hr`,
+            qty: 1,
+            unitPrice: amount,
+          });
+        }
+        totalAmount = parseFloat(totalAmount.toFixed(2));
+        // 3. Generate invoice number
+        const existingInvs = await db.select({ invoiceNumber: invoices.invoiceNumber })
+          .from(invoices).where(eq(invoices.userId, ctx.user.id));
+        const maxNum = existingInvs.reduce((max, r) => {
+          const n = parseInt(r.invoiceNumber.replace(/\D/g, ''), 10);
+          return isNaN(n) ? max : Math.max(max, n);
+        }, 0);
+        const invoiceNumber = `INV-${String(maxNum + 1).padStart(4, '0')}`;
+        const firstEntry = entries[0];
+        const dueDateStr = input.dueDate ?? (() => {
+          const d = new Date(); d.setDate(d.getDate() + 30);
+          return d.toISOString().split('T')[0];
+        })();
+        // 4. Create invoice
+        const [result] = await db.insert(invoices).values({
+          userId: ctx.user.id,
+          clientId: firstEntry.clientId ?? undefined,
+          invoiceNumber,
+          clientName: firstEntry.clientName ?? 'Unknown Client',
+          service: `Time Tracking — ${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}`,
+          amount: String(totalAmount),
+          status: 'draft',
+          dueDate: dueDateStr,
+          notes: input.notes ?? `Consolidated invoice for ${entries.length} time entr${entries.length === 1 ? 'y' : 'ies'}.`,
+          lineItems: JSON.stringify(lineItemsArr),
+        });
+        const invoiceId = (result as any).insertId;
+        // 5. Mark all entries as invoiced
+        await db.update(timeEntries)
+          .set({ invoiced: true })
+          .where(inArray(timeEntries.id, input.ids));
+        return { invoiceId, invoiceNumber, amount: totalAmount, entryCount: entries.length };
+      }),
   }),
 
   // ── Client Documents ───────────────────────────────────────────────────────
@@ -3324,7 +3398,7 @@ Only include actions when you have actually generated a complete draft. For gene
       return { ok: true };
     }),
 
-    // Toggle sync
+      // Toggle sync
     toggleSync: protectedProcedure
       .input(z.object({ enabled: z.boolean() }))
       .mutation(async ({ ctx, input }) => {
@@ -3335,5 +3409,52 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
   }),
 
+  // ── Onboarding Status ─────────────────────────────────────────────────────
+  onboarding: router({
+    /** Returns which onboarding steps are complete based on real DB data */
+    status: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const uid = ctx.user.id;
+
+      // Check profile completeness
+      const [user] = await db.select({
+        businessName: users.businessName,
+        bookingUsername: users.bookingUsername,
+        phone: users.phone,
+      }).from(users).where(eq(users.id, uid)).limit(1);
+
+      const profileComplete = !!(user?.businessName && user?.businessName.trim().length > 0);
+      const bookingSetup = !!(user?.bookingUsername && user?.bookingUsername.trim().length > 0);
+
+      // Check first client
+      const [clientRow] = await db.select({ id: clients.id })
+        .from(clients).where(eq(clients.userId, uid)).limit(1);
+      const hasClient = !!clientRow;
+
+      // Check first invoice
+      const [invoiceRow] = await db.select({ id: invoices.id })
+        .from(invoices).where(eq(invoices.userId, uid)).limit(1);
+      const hasInvoice = !!invoiceRow;
+
+      // Check first follow-up
+      const [followUpRow] = await db.select({ id: followUps.id })
+        .from(followUps).where(eq(followUps.userId, uid)).limit(1);
+      const hasFollowUp = !!followUpRow;
+
+      // Check first recurring invoice
+      const [recurringRow] = await db.select({ id: recurringInvoices.id })
+        .from(recurringInvoices).where(eq(recurringInvoices.userId, uid)).limit(1);
+      const hasRecurring = !!recurringRow;
+
+      return {
+        profile: profileComplete,
+        client: hasClient,
+        invoice: hasInvoice,
+        booking: bookingSetup,
+        followup: hasFollowUp,
+        recurring: hasRecurring,
+      };
+    }),
+  }),
 });
 export type AppRouter = typeof appRouter;

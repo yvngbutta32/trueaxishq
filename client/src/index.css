@@ -484,11 +484,16 @@
 
   /* card-lift — subtle hover effect for interactive cards */
   .card-lift {
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    transition: box-shadow 0.20s ease, border-color 0.20s ease, transform 0.15s ease;
   }
   .card-lift:hover {
-    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-    border-color: rgba(212,146,42,0.20) !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18), 0 0 0 1px rgba(212,146,42,0.18);
+    border-color: rgba(212,146,42,0.25) !important;
+    transform: translateY(-1px);
+  }
+  /* Stat cards use --card-glow to tint the hover shadow with the card's accent color */
+  .card-lift[style*='--card-glow']:hover {
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18), 0 0 16px color-mix(in srgb, var(--card-glow) 18%, transparent);
   }
 
   .retro-card-navy {
