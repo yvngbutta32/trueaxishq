@@ -48,7 +48,7 @@ export default function Login() {
       {/* Left panel — branding & features */}
       <div
         className="hidden lg:flex flex-col justify-between w-[45%] p-12 relative overflow-hidden"
-        style={{ background: "#1C2333", borderRight: "1px solid rgba(232,160,32,0.12)" }}
+        style={{ background: "#EEECEA", borderRight: "1px solid rgba(232,160,32,0.12)" }}
       >
         {/* Subtle background grid */}
         <div className="absolute inset-0 retro-grid opacity-30 pointer-events-none" />
@@ -68,12 +68,12 @@ export default function Login() {
           <div>
             <h2
               className="text-4xl font-extrabold leading-tight mb-4"
-              style={{ color: "#F5F0E8" }}
+              style={{ color: "#1A1A1A" }}
             >
               Your business,<br />
               <span style={{ color: "#D4922A" }}>running itself.</span>
             </h2>
-            <p className="text-base leading-relaxed" style={{ color: "rgba(245,240,232,0.80)" }}>
+            <p className="text-base leading-relaxed" style={{ color: "rgba(26,26,26,0.75)" }}>
               Join 4,200+ freelancers who automated their client work with TrueAxis HQ.
             </p>
           </div>
@@ -87,7 +87,7 @@ export default function Login() {
                 >
                   <Icon className="w-4 h-4" style={{ color: "#D4922A" }} />
                 </div>
-                <span className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.88)" }}>
+                <span className="text-sm leading-relaxed" style={{ color: "rgba(26,26,26,0.80)" }}>
                   {text}
                 </span>
               </li>
@@ -110,15 +110,15 @@ export default function Login() {
                 S
               </div>
               <div>
-                <p className="text-xs font-semibold" style={{ color: "#F5F0E8" }}>Sarah Chen</p>
-                <p className="text-xs" style={{ color: "rgba(245,240,232,0.75)" }}>Sarah Chen · +$2,400/mo</p>
+                <p className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>Sarah Chen</p>
+                <p className="text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>Sarah Chen · +$2,400/mo</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer note */}
-          <p className="relative z-10 text-xs" style={{ color: "rgba(245,240,232,0.50)" }}>
+          <p className="relative z-10 text-xs" style={{ color: "rgba(26,26,26,0.50)" }}>
           © 2026 TrueAxis HQ. All rights reserved.
         </p>
       </div>
@@ -139,11 +139,11 @@ export default function Login() {
           <div className="mb-8">
             <h1
               className="mb-2"
-              style={{ fontWeight: 700, fontSize: "1.75rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.75rem", color: "#1A1A1A" }}
             >
               Welcome back
             </h1>
-            <p style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.75)" }}>
+            <p style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.65)" }}>
               Sign in to access your dashboard
             </p>
           </div>
@@ -154,7 +154,7 @@ export default function Login() {
               <label
                 htmlFor="email"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(245,240,232,0.90)" }}
+                style={{ color: "rgba(26,26,26,0.85)" }}
               >
                 Email address
               </label>
@@ -177,7 +177,7 @@ export default function Login() {
                 <label
                   htmlFor="password"
                   className="text-sm font-semibold"
-                  style={{ color: "rgba(245,240,232,0.90)" }}
+                  style={{ color: "rgba(26,26,26,0.85)" }}
                 >
                   Password
                 </label>
@@ -233,7 +233,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="mt-6 text-sm" style={{ color: "rgba(245,240,232,0.88)" }}>
+          <p className="mt-6 text-sm" style={{ color: "rgba(26,26,26,0.80)" }}>
             Don't have an account?{" "}
             <button
               onClick={() => navigate("/register")}
@@ -244,11 +244,11 @@ export default function Login() {
             </button>
           </p>
 
-          <div className="mt-8 pt-6" style={{ borderTop: "1px solid rgba(245,240,232,0.10)" }}>
+          <div className="mt-8 pt-6" style={{ borderTop: "1px solid rgba(26,26,26,0.08)" }}>
             <button
               onClick={() => navigate("/")}
               className="text-sm font-medium transition-all hover:opacity-90 flex items-center gap-1.5 px-3 py-2 rounded-lg"
-              style={{ color: "rgba(245,240,232,0.85)", background: "rgba(245,240,232,0.06)", border: "1px solid rgba(245,240,232,0.15)", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+              style={{ color: "rgba(245,240,232,0.85)", background: "rgba(26,26,26,0.05)", border: "1px solid rgba(26,26,26,0.12)", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
             >
               ← Back to homepage
             </button>

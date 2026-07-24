@@ -78,7 +78,7 @@ export default function Register() {
       {/* Left panel — branding & perks */}
       <div
         className="hidden lg:flex flex-col justify-between w-[45%] p-12 relative overflow-hidden"
-        style={{ background: "#1C2333", borderRight: "1px solid rgba(232,160,32,0.12)" }}
+        style={{ background: "#EEECEA", borderRight: "1px solid rgba(232,160,32,0.12)" }}
       >
         {/* Subtle background grid */}
         <div className="absolute inset-0 retro-grid opacity-30 pointer-events-none" />
@@ -98,12 +98,12 @@ export default function Register() {
           <div>
             <h2
               className="text-4xl font-extrabold leading-tight mb-4"
-              style={{ color: "#F5F0E8" }}
+              style={{ color: "#1A1A1A" }}
             >
               Start your free<br />
               <span style={{ color: "#D4922A" }}>14-day trial.</span>
             </h2>
-            <p className="text-base leading-relaxed" style={{ color: "rgba(245,240,232,0.80)" }}>
+            <p className="text-base leading-relaxed" style={{ color: "rgba(26,26,26,0.75)" }}>
               Everything you need to run your freelance business — in one place.
             </p>
           </div>
@@ -117,7 +117,7 @@ export default function Register() {
                 >
                   <Icon className="w-4 h-4" style={{ color: "#D4922A" }} />
                 </div>
-                <span className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.88)" }}>
+                <span className="text-sm leading-relaxed" style={{ color: "rgba(26,26,26,0.80)" }}>
                   {text}
                 </span>
               </li>
@@ -146,7 +146,7 @@ export default function Register() {
         </div>
 
         {/* Footer note */}
-        <p className="relative z-10 text-xs" style={{ color: "rgba(245,240,232,0.50)" }}>
+        <p className="relative z-10 text-xs" style={{ color: "rgba(26,26,26,0.50)" }}>
           © 2026 TrueAxis HQ. All rights reserved.
         </p>
       </div>
@@ -167,11 +167,11 @@ export default function Register() {
           <div className="mb-8">
             <h1
               className="mb-2"
-              style={{ fontWeight: 700, fontSize: "1.75rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.75rem", color: "#1A1A1A" }}
             >
               Create your account
             </h1>
-            <p style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.75)" }}>
+            <p style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.65)" }}>
               An invite code is required to get started
             </p>
           </div>
@@ -182,7 +182,7 @@ export default function Register() {
               <label
                 htmlFor="inviteCode"
                 className="flex items-center gap-1.5 text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(245,240,232,0.90)" }}
+                style={{ color: "rgba(26,26,26,0.85)" }}
               >
                 <KeyRound size={13} style={{ color: "#D4922A" }} />
                 Invite Code
@@ -206,7 +206,7 @@ export default function Register() {
               <label
                 htmlFor="name"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(245,240,232,0.90)" }}
+                style={{ color: "rgba(26,26,26,0.85)" }}
               >
                 Full Name
               </label>
@@ -227,7 +227,7 @@ export default function Register() {
               <label
                 htmlFor="email"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(245,240,232,0.90)" }}
+                style={{ color: "rgba(26,26,26,0.85)" }}
               >
                 Email address
               </label>
@@ -248,7 +248,7 @@ export default function Register() {
               <label
                 htmlFor="password"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(245,240,232,0.90)" }}
+                style={{ color: "rgba(26,26,26,0.85)" }}
               >
                 Password
               </label>
@@ -280,7 +280,7 @@ export default function Register() {
               <label
                 htmlFor="confirmPassword"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(245,240,232,0.90)" }}
+                style={{ color: "rgba(26,26,26,0.85)" }}
               >
                 Confirm Password
               </label>
@@ -320,7 +320,7 @@ export default function Register() {
             </button>
           </form>
 
-          <p className="mt-6 text-sm" style={{ color: "rgba(245,240,232,0.88)" }}>
+          <p className="mt-6 text-sm" style={{ color: "rgba(26,26,26,0.80)" }}>
             Already have an account?{" "}
             <button
               onClick={() => navigate("/login")}
@@ -335,7 +335,7 @@ export default function Register() {
             <button
               onClick={() => navigate("/")}
               className="text-sm font-medium transition-all hover:opacity-90 flex items-center gap-1.5 px-3 py-2 rounded-lg"
-              style={{ color: "rgba(245,240,232,0.85)", background: "rgba(245,240,232,0.06)", border: "1px solid rgba(245,240,232,0.15)", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+              style={{ color: "rgba(245,240,232,0.85)", background: "rgba(26,26,26,0.05)", border: "1px solid rgba(26,26,26,0.12)", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
             >
               ← Back to homepage
             </button>

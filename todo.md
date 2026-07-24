@@ -1320,3 +1320,16 @@
 - [x] Fix Login/Register page background from #161B22 to #F2F0EC
 - [x] Fix BookingPage progress step text color
 - [x] 0 TypeScript errors, 29/29 tests passing
+
+## Navy & Gold Executive Theme (Jul 2026) — COMPLETE
+- [x] Rewrite index.css — Navy & Gold design system (navy #1B2D4F sidebar, white #FFFFFF panels, gold #D4922A accent, charcoal #1A1A1A text)
+- [x] Retheme Dashboard.tsx — navy sidebar, white panel backgrounds, gold action buttons, charcoal text
+- [x] Retheme all panel files (BillingPanel, OutreachPanel, DealsPanel, InsightsPanel, IntakeFormsPanel, RevenueForecastPanel, ContractTemplatesPanel)
+- [x] Retheme all components (AIAssistant, GlobalSearch, OnboardingChecklist, HealthMonitor, PanelTabs)
+- [x] Retheme all public pages (Home, Pricing, About, Contact, Help, Login, Register, BookingPage, ClientPortal, ProposalSign, etc.)
+- [x] Fix Home.tsx nav scrolled state to use navy (#1B2D4F) instead of dark gray
+- [x] Fix Home.tsx mobile menu text from cream to charcoal
+- [x] Fix Login.tsx and Register.tsx cream text on light backgrounds
+- [x] Fix BookingPage.tsx white/gray-300/gray-400 text on light panels
+- [x] Fix Pricing.tsx cream text on light backgrounds
+- [x] 0 TypeScript errors, 29/29 tests passing

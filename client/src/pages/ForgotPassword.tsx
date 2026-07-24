@@ -28,7 +28,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ background: "#0D1117" }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ background: "#F2F0EC" }}>
       {/* Logo */}
       <button
         onClick={() => navigate("/")}
@@ -42,7 +42,7 @@ export default function ForgotPassword() {
       {/* Card */}
       <div
         className="w-full max-w-md rounded-xl p-8 sm:p-10"
-        style={{ background: "#0D1117", border: "1px solid rgba(232,160,32,0.15)" }}
+        style={{ background: "#F2F0EC", border: "1px solid rgba(232,160,32,0.15)" }}
       >
         {sent ? (
           /* Success state */
@@ -55,7 +55,7 @@ export default function ForgotPassword() {
             </div>
             <h1
               className="mb-3"
-              style={{ fontWeight: 700, fontSize: "1.5rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.5rem", color: "#1A1A1A" }}
             >
               Reset link sent
             </h1>
@@ -89,11 +89,11 @@ export default function ForgotPassword() {
             </div>
             <h1
               className="text-center mb-2"
-              style={{ fontWeight: 700, fontSize: "1.625rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.625rem", color: "#1A1A1A" }}
             >
               Reset your password
             </h1>
-            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.80)" }}>
+            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.75)" }}>
               Enter your email and we'll send you a reset link
             </p>
 

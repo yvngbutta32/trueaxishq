@@ -58,7 +58,7 @@ export default function ResetPassword() {
   const passwordMismatch = confirmPassword.length > 0 && confirmPassword !== newPassword;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ background: "#0D1117" }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ background: "#F2F0EC" }}>
       {/* Logo */}
       <button
         onClick={() => navigate("/")}
@@ -72,7 +72,7 @@ export default function ResetPassword() {
       {/* Card */}
       <div
         className="w-full max-w-md rounded-xl p-8 sm:p-10"
-        style={{ background: "#0D1117", border: "1px solid rgba(232,160,32,0.15)" }}
+        style={{ background: "#F2F0EC", border: "1px solid rgba(232,160,32,0.15)" }}
       >
         {/* No token */}
         {!token ? (
@@ -85,11 +85,11 @@ export default function ResetPassword() {
             </div>
             <h1
               className="mb-3"
-              style={{ fontWeight: 700, fontSize: "1.5rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.5rem", color: "#1A1A1A" }}
             >
               Invalid reset link
             </h1>
-            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.50)" }}>
+            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.50)" }}>
               This link is missing a reset token. Please request a new password reset.
             </p>
             <button
@@ -117,7 +117,7 @@ export default function ResetPassword() {
             </div>
             <h1
               className="mb-3"
-              style={{ fontWeight: 700, fontSize: "1.5rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.5rem", color: "#1A1A1A" }}
             >
               Password updated!
             </h1>
@@ -149,11 +149,11 @@ export default function ResetPassword() {
             </div>
             <h1
               className="text-center mb-2"
-              style={{ fontWeight: 700, fontSize: "1.625rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.625rem", color: "#1A1A1A" }}
             >
               Set new password
             </h1>
-            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.80)" }}>
+            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.75)" }}>
               Choose a strong password for your account
             </p>
 
@@ -183,7 +183,7 @@ export default function ResetPassword() {
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:opacity-80"
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(245,240,232,0.65)", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(26,26,26,0.65)", padding: 0, minHeight: "auto", minWidth: "auto" }}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -249,7 +249,7 @@ export default function ResetPassword() {
       <button
         onClick={() => navigate("/login")}
         className="mt-6 flex items-center gap-1.5 text-sm transition-colors hover:opacity-70"
-        style={{ color: "rgba(245,240,232,0.65)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+        style={{ color: "rgba(26,26,26,0.65)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
       >
         <ArrowLeft size={14} />
         Back to Sign In

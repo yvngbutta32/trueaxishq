@@ -186,10 +186,10 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
             <CheckCircle className="w-8 h-8" style={{ color: "#D4922A" }} />
           </div>
           <div>
-            <p className="font-bold text-lg" style={{ color: "#F5F0E8" }}>
+            <p className="font-bold text-lg" style={{ color: "#1A1A1A" }}>
               Welcome{form.name ? `, ${form.name.split(" ")[0]}` : ""}!
             </p>
-            <p className="text-sm mt-1" style={{ color: "rgba(245,240,232,0.80)" }}>
+            <p className="text-sm mt-1" style={{ color: "rgba(26,26,26,0.75)" }}>
               14-day free trial · No credit card required
             </p>
           </div>
@@ -226,7 +226,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="ob-title">
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.80)", backdropFilter: "blur(8px)" }} onClick={onClose} aria-hidden="true" />
-      <div ref={modalRef} className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl" style={{ background: "#161B22", border: "1px solid rgba(232,160,32,0.20)", boxShadow: "0 32px 80px rgba(0,0,0,0.60)" }}>
+      <div ref={modalRef} className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl" style={{ background: "#F7F6F3", border: "1px solid rgba(232,160,32,0.20)", boxShadow: "0 32px 80px rgba(0,0,0,0.60)" }}>
         {/* Top accent line */}
         <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #D4922A, transparent)" }} />
 
@@ -234,12 +234,12 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
         <div className="flex items-start justify-between p-6 pb-0">
           <div>
             <div className="section-label mb-2">Step {step + 1} of {steps.length}</div>
-            <h2 id="ob-title" style={{ color: "#F5F0E8", fontSize: "1.25rem", fontWeight: 700 }}>
+            <h2 id="ob-title" style={{ color: "#1A1A1A", fontSize: "1.25rem", fontWeight: 700 }}>
               {current.title}
             </h2>
-            <p className="text-sm mt-1" style={{ color: "rgba(245,240,232,0.80)" }}>{current.subtitle}</p>
+            <p className="text-sm mt-1" style={{ color: "rgba(26,26,26,0.75)" }}>{current.subtitle}</p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded" style={{ color: "rgba(245,240,232,0.35)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }} aria-label="Close">
+          <button onClick={onClose} className="p-1.5 rounded" style={{ color: "rgba(26,26,26,0.35)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }} aria-label="Close">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -303,7 +303,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
     <nav
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
       style={{
-        background: scrolled ? "rgba(13,17,23,0.92)" : "transparent",
+        background: scrolled ? "rgba(27,45,79,0.96)" : "transparent",
         backdropFilter: scrolled ? "saturate(180%) blur(20px)" : "none",
         WebkitBackdropFilter: scrolled ? "saturate(180%) blur(20px)" : "none",
         borderBottom: scrolled ? "1px solid rgba(212,146,42,0.14)" : "1px solid transparent",
@@ -334,7 +334,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
                 key={l.label}
                 onClick={() => handleLink(l.href)}
                 className="animated-underline text-sm font-medium"
-                style={{ color: "rgba(245,240,232,0.65)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
+                style={{ color: scrolled ? "rgba(255,255,255,0.80)" : "rgba(26,26,26,0.65)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
               >
                 {l.label}
               </button>
@@ -346,7 +346,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
             <button
               onClick={() => navigate("/login")}
               className="text-sm font-medium"
-              style={{ color: "rgba(245,240,232,0.50)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
+              style={{ color: "rgba(26,26,26,0.50)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
             >
               Sign In
             </button>
@@ -361,7 +361,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
             onClick={() => setMobileOpen(o => !o)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
-            style={{ color: "#F5F0E8", background: "none", border: "none" }}
+            style={{ color: "#1A1A1A", background: "none", border: "none" }}
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -371,7 +371,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
       {/* Mobile menu — animated slide-down */}
       <div
         style={{
-          background: "rgba(10,10,10,0.98)",
+          background: "rgba(247,246,243,0.98)",
           borderTop: mobileOpen ? "1px solid rgba(232,160,32,0.12)" : "none",
           maxHeight: mobileOpen ? "400px" : "0",
           overflow: "hidden",
@@ -385,7 +385,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
               key={l.label}
               onClick={() => handleLink(l.href)}
               className="text-left py-3 px-2 text-sm font-medium rounded"
-              style={{ color: "rgba(245,240,232,0.75)", background: "none", border: "none", minHeight: "auto" }}
+              style={{ color: "rgba(26,26,26,0.70)", background: "none", border: "none", minHeight: "auto" }}
             >
               {l.label}
             </button>
@@ -413,7 +413,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
       {/* Radial amber glow */}
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 60% at 65% 40%, rgba(232,160,32,0.09) 0%, transparent 70%)" }} />
       {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent, #161B22)" }} />
+      <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent, #F7F6F3)" }} />
 
       <div className="container relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center py-20">
@@ -432,7 +432,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                 fontSize: "clamp(2.4rem, 5vw, 3.75rem)",
                 lineHeight: 1.05,
                 letterSpacing: "-0.03em",
-                color: "#F5F0E8",
+                color: "#1A1A1A",
               }}
             >
               Your Business,{" "}
@@ -441,7 +441,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
 
             <p className="mb-8 max-w-lg" style={{ fontSize: "1.125rem", color: "rgba(245,240,232,0.55)", lineHeight: 1.7 }}>
               TrueAxis HQ handles your client intake, scheduling, invoicing, and follow-ups — so you can focus on the work you love and scale to{" "}
-              <strong style={{ color: "#F5F0E8" }}>$100K/year</strong>.
+              <strong style={{ color: "#1A1A1A" }}>$100K/year</strong>.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-10">
@@ -465,7 +465,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                 ))}
               </div>
               <div>
-                <p className="text-xs font-bold" style={{ color: "#F5F0E8" }}>Trusted by 4,200+ freelancers</p>
+                <p className="text-xs font-bold" style={{ color: "#1A1A1A" }}>Trusted by 4,200+ freelancers</p>
                 <p className="text-[10px]" style={{ color: "rgba(245,240,232,0.75)" }}>Coaches · Designers · Consultants · Developers</p>
               </div>
             </div>
@@ -483,9 +483,9 @@ function Hero({ onCTA }: { onCTA: () => void }) {
           {/* Right — dashboard preview */}
           <div className="relative hidden lg:block">
             <div className="absolute inset-0 rounded-xl glow-amber opacity-30 blur-xl" />
-            <div className="relative rounded-xl overflow-hidden" style={{ background: "#161B22", border: "1px solid rgba(212,146,42,0.20)", boxShadow: "0 24px 60px rgba(0,0,0,0.55)" }}>
+            <div className="relative rounded-xl overflow-hidden" style={{ background: "#F7F6F3", border: "1px solid rgba(212,146,42,0.20)", boxShadow: "0 24px 60px rgba(0,0,0,0.55)" }}>
               {/* Window bar */}
-              <div className="flex items-center gap-2 px-4 py-3" style={{ background: "#1C2333", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
+              <div className="flex items-center gap-2 px-4 py-3" style={{ background: "#EEECEA", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C85A3A" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#D4922A" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#7A9A8A" }} />
@@ -494,11 +494,11 @@ function Hero({ onCTA }: { onCTA: () => void }) {
 
               <div className="p-4 space-y-3">
                 {/* Revenue sparkline + stats row */}
-                <div className="rounded-lg p-3" style={{ background: "#1C2333", border: "1px solid rgba(212,146,42,0.10)" }}>
+                <div className="rounded-lg p-3" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.10)" }}>
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <div className="text-xs" style={{ color: "rgba(245,239,227,0.55)" }}>Monthly Revenue</div>
-                      <div className="font-bold text-base" style={{ color: "#F5EFE3", letterSpacing: "-0.02em" }}>$8,240</div>
+                      <div className="font-bold text-base" style={{ color: "#1A1A1A", letterSpacing: "-0.02em" }}>$8,240</div>
                     </div>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#4ADE80" }}>↑ 12%</span>
                   </div>
@@ -522,33 +522,33 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                     { label: "Invoiced", value: "$12.4k", change: "this mo" },
                     { label: "Pulse", value: "87", change: "Healthy" },
                   ].map(s => (
-                    <div key={s.label} className="rounded-lg p-2.5" style={{ background: "#1C2333", border: "1px solid rgba(212,146,42,0.08)" }}>
+                    <div key={s.label} className="rounded-lg p-2.5" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.08)" }}>
                       <div className="text-[10px] mb-0.5" style={{ color: "rgba(245,239,227,0.55)" }}>{s.label}</div>
-                      <div className="font-bold text-sm" style={{ color: "#F5EFE3" }}>{s.value}</div>
+                      <div className="font-bold text-sm" style={{ color: "#1A1A1A" }}>{s.value}</div>
                       <div className="text-[10px] mt-0.5" style={{ color: "#D4922A" }}>{s.change}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* Upcoming booking */}
-                <div className="rounded-lg p-3 flex items-center gap-3" style={{ background: "#1C2333", border: "1px solid rgba(212,146,42,0.10)" }}>
+                <div className="rounded-lg p-3 flex items-center gap-3" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.10)" }}>
                   <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0" style={{ background: "rgba(27,45,79,0.60)", border: "1px solid rgba(212,146,42,0.18)" }}>
                     <Calendar className="w-4 h-4" style={{ color: "#D4922A" }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold" style={{ color: "#F5EFE3" }}>Strategy Session — Sarah Chen</div>
+                    <div className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>Strategy Session — Sarah Chen</div>
                     <div className="text-[10px] mt-0.5" style={{ color: "rgba(245,239,227,0.50)" }}>Today · 2:00 PM · 60 min</div>
                   </div>
                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#4ADE80" }}>Confirmed</span>
                 </div>
 
                 {/* Recent invoice */}
-                <div className="rounded-lg p-3 flex items-center gap-3" style={{ background: "#1C2333", border: "1px solid rgba(212,146,42,0.10)" }}>
+                <div className="rounded-lg p-3 flex items-center gap-3" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.10)" }}>
                   <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0" style={{ background: "rgba(27,45,79,0.60)", border: "1px solid rgba(212,146,42,0.18)" }}>
                     <FileText className="w-4 h-4" style={{ color: "#D4922A" }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold" style={{ color: "#F5EFE3" }}>INV-0042 · Marcus Thompson</div>
+                    <div className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>INV-0042 · Marcus Thompson</div>
                     <div className="text-[10px] mt-0.5" style={{ color: "rgba(245,239,227,0.50)" }}>$1,800 · Due in 3 days</div>
                   </div>
                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(212,146,42,0.12)", color: "#D4922A" }}>Pending</span>
@@ -608,15 +608,15 @@ function StatsBar() {
   ];
 
   return (
-    <section className="py-12" style={{ background: "#0D1117" }}>
+    <section className="py-12" style={{ background: "#F2F0EC" }}>
       <div className="container">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl overflow-hidden" style={{ background: "rgba(232,160,32,0.08)" }}>
           {stats.map((s, i) => (
-            <div key={i} className="flex flex-col items-center justify-center py-10 px-6 text-center" style={{ background: "#161B22" }}>
+            <div key={i} className="flex flex-col items-center justify-center py-10 px-6 text-center" style={{ background: "#F7F6F3" }}>
               <div className="stat-number text-4xl md:text-5xl mb-2">
                 <AnimatedCounter end={s.value} suffix={s.suffix} />
               </div>
-              <div className="text-xs uppercase tracking-widest font-semibold" style={{ color: "rgba(245,240,232,0.65)" }}>
+              <div className="text-xs uppercase tracking-widest font-semibold" style={{ color: "rgba(26,26,26,0.65)" }}>
                 {s.label}
               </div>
             </div>
@@ -639,14 +639,14 @@ function FeaturesSection() {
   ];
 
   return (
-    <section id="features" className="py-16" style={{ background: "#161B22" }}>
+    <section id="features" className="py-16" style={{ background: "#F7F6F3" }}>
       <div className="container">
         <div className="text-center mb-10">
           <div className="section-label mb-3">Platform Features</div>
-          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
             Stop juggling five different tools.
           </h2>
-          <p className="mt-4 max-w-xl mx-auto" style={{ color: "rgba(245,240,232,0.80)", fontSize: "1.0625rem" }}>
+          <p className="mt-4 max-w-xl mx-auto" style={{ color: "rgba(26,26,26,0.75)", fontSize: "1.0625rem" }}>
             TrueAxis HQ replaces your scheduling app, invoicing software, CRM, and email tool — in one platform.
           </p>
         </div>
@@ -669,16 +669,16 @@ function FeaturesSection() {
                       ? { background: "rgba(232,160,32,0.12)", color: "#D4922A", border: "1px solid rgba(232,160,32,0.25)" }
                       : f.tag === "AI"
                       ? { background: "rgba(90,122,106,0.12)", color: "#7A9A8A", border: "1px solid rgba(90,122,106,0.25)" }
-                      : { background: "rgba(245,240,232,0.05)", color: "rgba(245,240,232,0.65)", border: "1px solid rgba(245,240,232,0.15)" }
+                      : { background: "rgba(245,240,232,0.05)", color: "rgba(26,26,26,0.65)", border: "1px solid rgba(245,240,232,0.15)" }
                   }
                 >
                   {f.tag}
                 </span>
               </div>
-              <h3 className="font-bold mb-2" style={{ color: "#F5F0E8", fontSize: "1.0625rem" }}>
+              <h3 className="font-bold mb-2" style={{ color: "#1A1A1A", fontSize: "1.0625rem" }}>
                 {f.title}
               </h3>
-              <p className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.80)" }}>
+              <p className="text-sm leading-relaxed" style={{ color: "rgba(26,26,26,0.75)" }}>
                 {f.description}
               </p>
             </div>
@@ -719,7 +719,7 @@ function HowItWorksSection() {
       body: "Share your booking link. Clients pick a service, choose a time, and confirm — no back-and-forth emails, no scheduling tools to manage.",
       panel: (
         <div className="space-y-3">
-          <div className="rounded-lg p-3" style={{ background: "#1C2333", border: "1px solid rgba(212,146,42,0.12)" }}>
+          <div className="rounded-lg p-3" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.12)" }}>
             <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "rgba(245,239,227,0.45)" }}>This Week</div>
             {[
               { day: "Mon", time: "10:00 AM", client: "Sarah Chen", service: "Strategy Session", status: "Confirmed", statusColor: "#4ADE80" },
@@ -733,7 +733,7 @@ function HowItWorksSection() {
                   <div className="text-[9px]" style={{ color: "rgba(245,239,227,0.40)" }}>{b.time.split(" ")[1]}</div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold" style={{ color: "#F5EFE3" }}>{b.client}</div>
+                  <div className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>{b.client}</div>
                   <div className="text-[10px]" style={{ color: "rgba(245,239,227,0.50)" }}>{b.service}</div>
                 </div>
                 <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: `${b.statusColor}18`, color: b.statusColor }}>{b.status}</span>
@@ -755,7 +755,7 @@ function HowItWorksSection() {
       panel: (
         <div className="space-y-3">
           <div className="rounded-lg overflow-hidden" style={{ border: "1px solid rgba(212,146,42,0.12)" }}>
-            <div className="px-3 py-2 flex items-center justify-between" style={{ background: "#1C2333", borderBottom: "1px solid rgba(212,146,42,0.08)" }}>
+            <div className="px-3 py-2 flex items-center justify-between" style={{ background: "#EEECEA", borderBottom: "1px solid rgba(212,146,42,0.08)" }}>
               <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(245,239,227,0.45)" }}>Recent Invoices</span>
               <span className="text-[10px] font-bold" style={{ color: "#4ADE80" }}>$12,400 this month</span>
             </div>
@@ -767,9 +767,9 @@ function HowItWorksSection() {
             ].map((inv, i) => (
               <div key={i} className="px-3 py-2.5 flex items-center gap-3" style={{ borderBottom: i < 3 ? "1px solid rgba(212,146,42,0.06)" : "none" }}>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold" style={{ color: "#F5EFE3" }}>{inv.id} · {inv.client}</div>
+                  <div className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>{inv.id} · {inv.client}</div>
                 </div>
-                <span className="text-xs font-bold" style={{ color: "#F5EFE3" }}>{inv.amount}</span>
+                <span className="text-xs font-bold" style={{ color: "#1A1A1A" }}>{inv.amount}</span>
                 <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: `${inv.color}18`, color: inv.color }}>{inv.status}</span>
               </div>
             ))}
@@ -788,7 +788,7 @@ function HowItWorksSection() {
       body: "AI drafts personalized follow-up emails for every client based on their history, tone, and relationship stage. Review and send in one click.",
       panel: (
         <div className="space-y-3">
-          <div className="rounded-lg p-3" style={{ background: "#1C2333", border: "1px solid rgba(212,146,42,0.12)" }}>
+          <div className="rounded-lg p-3" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.12)" }}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(245,239,227,0.45)" }}>AI Draft — Marcus Lee</span>
               <span className="tag" style={{ background: "rgba(212,146,42,0.12)", color: "#D4922A", border: "1px solid rgba(212,146,42,0.25)", fontSize: "0.6rem" }}>Ready to Send</span>
@@ -808,7 +808,7 @@ function HowItWorksSection() {
               { label: "Sent This Mo", value: "18", color: "#4ADE80" },
               { label: "Response Rate", value: "74%", color: "#7A9A8A" },
             ].map(s => (
-              <div key={s.label} className="rounded-lg p-2.5 text-center" style={{ background: "#1C2333", border: "1px solid rgba(212,146,42,0.08)" }}>
+              <div key={s.label} className="rounded-lg p-2.5 text-center" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.08)" }}>
                 <div className="font-bold text-sm" style={{ color: s.color }}>{s.value}</div>
                 <div className="text-[9px] mt-0.5" style={{ color: "rgba(245,239,227,0.45)" }}>{s.label}</div>
               </div>
@@ -824,7 +824,7 @@ function HowItWorksSection() {
       body: "Track MRR, client acquisition, booking trends, and revenue forecasts in real time. Know exactly where your business is heading.",
       panel: (
         <div className="space-y-3">
-          <div className="rounded-lg p-3" style={{ background: "#1C2333", border: "1px solid rgba(212,146,42,0.12)" }}>
+          <div className="rounded-lg p-3" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.12)" }}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(245,239,227,0.45)" }}>Revenue — Last 6 Months</span>
             </div>
@@ -850,9 +850,9 @@ function HowItWorksSection() {
               { label: "Churn Rate", value: "2.1%", change: "-0.4%", up: false },
               { label: "LTV", value: "$4,800", change: "+19%", up: true },
             ].map(s => (
-              <div key={s.label} className="rounded-lg p-2.5" style={{ background: "#1C2333", border: "1px solid rgba(212,146,42,0.08)" }}>
+              <div key={s.label} className="rounded-lg p-2.5" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.08)" }}>
                 <div className="text-[9px]" style={{ color: "rgba(245,239,227,0.45)" }}>{s.label}</div>
-                <div className="font-bold text-sm" style={{ color: "#F5EFE3" }}>{s.value}</div>
+                <div className="font-bold text-sm" style={{ color: "#1A1A1A" }}>{s.value}</div>
                 <div className="text-[9px]" style={{ color: s.up ? "#4ADE80" : "#C85A3A" }}>{s.change}</div>
               </div>
             ))}
@@ -865,11 +865,11 @@ function HowItWorksSection() {
   const active = tabs[activeTab];
 
   return (
-    <section id="how-it-works" className="py-20" style={{ background: "#0D1117" }}>
+    <section id="how-it-works" className="py-20" style={{ background: "#F2F0EC" }}>
       <div className="container">
         <div className="text-center mb-12">
           <div className="section-label mb-3">Product Demo</div>
-          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5EFE3", letterSpacing: "-0.025em" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
             Everything your freelance business needs
           </h2>
           <p className="mt-3 mx-auto" style={{ color: "rgba(245,239,227,0.60)", fontSize: "1.0625rem", maxWidth: 480 }}>
@@ -937,10 +937,10 @@ function HowItWorksSection() {
           {/* Right — animated UI panel */}
           <div
             className="rounded-xl overflow-hidden"
-            style={{ background: "#161B22", border: "1px solid rgba(212,146,42,0.18)", boxShadow: "0 20px 50px rgba(0,0,0,0.45)" }}
+            style={{ background: "#F7F6F3", border: "1px solid rgba(212,146,42,0.18)", boxShadow: "0 20px 50px rgba(0,0,0,0.45)" }}
           >
             {/* Window chrome */}
-            <div className="flex items-center gap-2 px-4 py-3" style={{ background: "#1C2333", borderBottom: "1px solid rgba(212,146,42,0.10)" }}>
+            <div className="flex items-center gap-2 px-4 py-3" style={{ background: "#EEECEA", borderBottom: "1px solid rgba(212,146,42,0.10)" }}>
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C85A3A" }} />
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#D4922A" }} />
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#7A9A8A" }} />
@@ -969,7 +969,7 @@ function ClientPulseShowcase() {
   ];
 
   return (
-    <section className="py-16" style={{ background: "#0D1117" }}>
+    <section className="py-16" style={{ background: "#F2F0EC" }}>
       <div className="container">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left — copy */}
@@ -978,12 +978,12 @@ function ClientPulseShowcase() {
               <Sparkles className="w-3 h-3" />
               Exclusive to TrueAxis HQ
             </div>
-            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em", lineHeight: 1.1 }}>
+            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em", lineHeight: 1.1 }}>
               Client Pulse AI™
               <br />
               <span style={{ color: "#D4922A" }}>Know before they leave.</span>
             </h2>
-            <p className="mt-4 mb-8" style={{ color: "rgba(245,240,232,0.80)", fontSize: "1.0625rem", lineHeight: 1.7 }}>
+            <p className="mt-4 mb-8" style={{ color: "rgba(26,26,26,0.75)", fontSize: "1.0625rem", lineHeight: 1.7 }}>
               Our proprietary AI engine scores every client relationship 0–100 in real time. It detects churn risk, identifies upsell opportunities, and drafts personalized re-engagement messages — automatically.
             </p>
             <div className="space-y-3">
@@ -1004,16 +1004,16 @@ function ClientPulseShowcase() {
 
           {/* Right — live UI preview */}
           <div className="retro-card overflow-hidden" style={{ border: "1px solid rgba(232,160,32,0.18)" }}>
-            <div className="px-5 py-3 flex items-center justify-between" style={{ background: "#1C2333", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
+            <div className="px-5 py-3 flex items-center justify-between" style={{ background: "#EEECEA", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4" style={{ color: "#D4922A" }} />
-                <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "#F5F0E8" }}>Client Pulse</span>
+                <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "#1A1A1A" }}>Client Pulse</span>
               </div>
               <span className="tag tag-amber">Live</span>
             </div>
             <div className="p-4 space-y-2">
               {clients.map((c, i) => (
-                <div key={i} className="rounded-lg p-3 flex items-center gap-3" style={{ background: "#161B22", border: "1px solid rgba(245,240,232,0.04)" }}>
+                <div key={i} className="rounded-lg p-3 flex items-center gap-3" style={{ background: "#F7F6F3", border: "1px solid rgba(245,240,232,0.04)" }}>
                   {/* Score ring */}
                   <div className="relative w-10 h-10 flex-shrink-0">
                     <svg viewBox="0 0 36 36" className="w-10 h-10 -rotate-90">
@@ -1026,7 +1026,7 @@ function ClientPulseShowcase() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-sm" style={{ color: "#F5F0E8" }}>{c.name}</span>
+                      <span className="font-semibold text-sm" style={{ color: "#1A1A1A" }}>{c.name}</span>
                       <span className="tag" style={{ background: `${c.color}18`, color: c.color, border: `1px solid ${c.color}28`, fontSize: "0.58rem" }}>{c.status}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-1">
@@ -1043,7 +1043,7 @@ function ClientPulseShowcase() {
             <div className="px-5 py-3" style={{ background: "rgba(232,160,32,0.03)", borderTop: "1px solid rgba(232,160,32,0.08)" }}>
               <div className="flex items-start gap-2">
                 <Brain className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "#D4922A" }} />
-                <p className="text-xs" style={{ color: "rgba(245,240,232,0.80)" }}>
+                <p className="text-xs" style={{ color: "rgba(26,26,26,0.75)" }}>
                   <strong style={{ color: "#D4922A" }}>AI:</strong> Priya hasn't booked in 47 days. Her revenue is down 40%. Re-engagement email drafted and ready to send.
                 </p>
               </div>
@@ -1085,11 +1085,11 @@ function TestimonialsSection() {
   ];
 
   return (
-    <section className="py-16" style={{ background: "#161B22" }}>
+    <section className="py-16" style={{ background: "#F7F6F3" }}>
       <div className="container">
         <div className="text-center mb-8">
           <div className="section-label mb-3">What Freelancers Say</div>
-          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
             Join thousands who scaled with TrueAxis HQ.
           </h2>
         </div>
@@ -1109,7 +1109,7 @@ function TestimonialsSection() {
                 <div className="flex items-center gap-3">
                   <img src={t.avatar} alt={t.name} className="w-9 h-9 rounded-full object-cover" style={{ border: "1px solid rgba(232,160,32,0.18)" }} />
                   <div>
-                    <div className="text-sm font-semibold" style={{ color: "#F5F0E8" }}>{t.name}</div>
+                    <div className="text-sm font-semibold" style={{ color: "#1A1A1A" }}>{t.name}</div>
                     <div className="text-xs" style={{ color: "rgba(245,240,232,0.70)" }}>{t.role}</div>
                   </div>
                 </div>
@@ -1145,17 +1145,17 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
     <section className="py-16" style={{ background: "#1B2D4F" }}>
       <div className="container text-center max-w-2xl mx-auto">
         <div className="section-label mb-4">Start Today</div>
-          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
           Your business command center is waiting.
         </h2>
-        <p className="mt-4 mb-10" style={{ color: "rgba(245,240,232,0.80)", fontSize: "1.0625rem" }}>
+        <p className="mt-4 mb-10" style={{ color: "rgba(26,26,26,0.75)", fontSize: "1.0625rem" }}>
           Join 4,200+ freelancers who automated their business with TrueAxis HQ. 14-day free trial. No credit card required.
         </p>
 
         {submitted ? (
           <div className="inline-flex items-center gap-3 px-6 py-4 rounded-lg" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.22)" }}>
             <CheckCircle className="w-5 h-5" style={{ color: "#D4922A" }} />
-            <span style={{ color: "#F5F0E8", fontWeight: 600 }}>You're on the list — check your inbox!</span>
+            <span style={{ color: "#1A1A1A", fontWeight: 600 }}>You're on the list — check your inbox!</span>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
@@ -1195,11 +1195,11 @@ const HOME_FAQS = [
 function FAQSection() {
   const [open, setOpen] = useState<number | null>(null);
   return (
-    <section className="py-20 px-6" style={{ background: "#0D1117" }}>
+    <section className="py-20 px-6" style={{ background: "#F2F0EC" }}>
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
           <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ background: "rgba(232,160,32,0.12)", color: "#D4922A" }}>FAQ</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-3" style={{ color: "#F5EFE3", letterSpacing: "-0.02em" }}>Frequently Asked Questions</h2>
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-3" style={{ color: "#1A1A1A", letterSpacing: "-0.02em" }}>Frequently Asked Questions</h2>
           <p className="text-[#3D3D3D] text-base">Everything you need to know before getting started.</p>
         </div>
         <div className="space-y-3">
@@ -1264,7 +1264,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
     },
   ];
   return (
-    <footer style={{ background: "#0D1117", borderTop: "1px solid rgba(212,146,42,0.12)" }}>
+    <footer style={{ background: "#F2F0EC", borderTop: "1px solid rgba(212,146,42,0.12)" }}>
       <div className="container pt-16 pb-10 page-bottom">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-12">
           {/* Brand */}
@@ -1312,7 +1312,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
                     <button
                       onClick={l.action}
                       className="text-sm animated-underline"
-                      style={{ color: "rgba(245,240,232,0.80)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
+                      style={{ color: "rgba(26,26,26,0.75)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
                     >
                       {l.label}
                     </button>
@@ -1354,7 +1354,7 @@ export default function Home() {
   // While checking auth, show a minimal dark loader so there's no flash of the landing page
   if (meQuery.isLoading) {
     return (
-          <div style={{ background: "#0D1117", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}
+          <div style={{ background: "#F2F0EC", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}
         role="status"
         aria-label="Loading"
       >
@@ -1374,7 +1374,7 @@ export default function Home() {
   if (meQuery.data) return null;
 
   return (
-    <div style={{ background: "#0D1117", minHeight: "100vh", overflowX: "hidden" }}>
+    <div style={{ background: "#F2F0EC", minHeight: "100vh", overflowX: "hidden" }}>
       <Nav onCTA={() => setModalOpen(true)} />
       <Hero onCTA={() => setModalOpen(true)} />
       <TickerBar />

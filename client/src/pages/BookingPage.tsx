@@ -260,11 +260,11 @@ export default function BookingPage() {
                 <CheckCircle className="w-10 h-10 text-[#D4922A]" />
               </div>
             </div>
-            <h1 className="text-3xl font-extrabold text-white mb-2">
+            <h1 className="text-3xl font-extrabold text-[#1A1A1A] mb-2">
               You're Booked!
             </h1>
-            <p className="text-gray-300 text-sm max-w-sm mx-auto">
-              Your request has been sent to <strong className="text-white">{host.name}</strong>. They'll confirm your appointment shortly.
+            <p className="text-[#3D3D3D] text-sm max-w-sm mx-auto">
+              Your request has been sent to <strong className="text-[#1A1A1A]">{host.name}</strong>. They'll confirm your appointment shortly.
             </p>
           </div>
 
@@ -276,23 +276,23 @@ export default function BookingPage() {
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300 flex items-center gap-2"><Briefcase className="w-3.5 h-3.5" />Service</span>
-                <span className="text-sm font-semibold text-white">{form.service}</span>
+                <span className="text-sm text-[#3D3D3D] flex items-center gap-2"><Briefcase className="w-3.5 h-3.5" />Service</span>
+                <span className="text-sm font-semibold text-[#1A1A1A]">{form.service}</span>
               </div>
-              <div className="h-px bg-white/5" />
+              <div className="h-px bg-[#F7F6F3]" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300 flex items-center gap-2"><Calendar className="w-3.5 h-3.5" />Date</span>
-                <span className="text-sm font-semibold text-white">{form.preferredDate}</span>
+                <span className="text-sm text-[#3D3D3D] flex items-center gap-2"><Calendar className="w-3.5 h-3.5" />Date</span>
+                <span className="text-sm font-semibold text-[#1A1A1A]">{form.preferredDate}</span>
               </div>
-              <div className="h-px bg-white/5" />
+              <div className="h-px bg-[#F7F6F3]" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300 flex items-center gap-2"><Clock className="w-3.5 h-3.5" />Time</span>
-                <span className="text-sm font-semibold text-white">{form.preferredTime}</span>
+                <span className="text-sm text-[#3D3D3D] flex items-center gap-2"><Clock className="w-3.5 h-3.5" />Time</span>
+                <span className="text-sm font-semibold text-[#1A1A1A]">{form.preferredTime}</span>
               </div>
-              <div className="h-px bg-white/5" />
+              <div className="h-px bg-[#F7F6F3]" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300 flex items-center gap-2"><User className="w-3.5 h-3.5" />With</span>
-                <span className="text-sm font-semibold text-white">{host.name}</span>
+                <span className="text-sm text-[#3D3D3D] flex items-center gap-2"><User className="w-3.5 h-3.5" />With</span>
+                <span className="text-sm font-semibold text-[#1A1A1A]">{host.name}</span>
               </div>
             </div>
           </div>
@@ -303,7 +303,7 @@ export default function BookingPage() {
               <Sparkles className="w-4 h-4 text-[#D4922A]" />
               <span className="text-xs font-bold text-[#D4922A] uppercase tracking-wider">Add to Your Calendar</span>
             </div>
-            <p className="text-xs text-gray-300 mb-4">Save this appointment so you never miss it. Includes a 1-hour reminder.</p>
+            <p className="text-xs text-[#3D3D3D] mb-4">Save this appointment so you never miss it. Includes a 1-hour reminder.</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               {/* Download .ics */}
               <button
@@ -311,7 +311,7 @@ export default function BookingPage() {
                   downloadICS(icsContent, `booking-${form.preferredDate}.ics`);
                   toast.success("Calendar file downloaded!");
                 }}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#C8C5BF] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#C8C5BF] bg-[#F7F6F3] hover:bg-[#EEECEA] transition-colors text-sm font-semibold text-[#1A1A1A]"
               >
                 <Download className="w-4 h-4 text-[#D4922A]" />
                 Download .ics
@@ -322,7 +322,7 @@ export default function BookingPage() {
                 href={googleUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#C8C5BF] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#C8C5BF] bg-[#F7F6F3] hover:bg-[#EEECEA] transition-colors text-sm font-semibold text-[#1A1A1A]"
               >
                 <ExternalLink className="w-4 h-4 text-[#4285F4]" />
                 Google Calendar
@@ -334,7 +334,7 @@ export default function BookingPage() {
                   downloadICS(icsContent, `booking-${form.preferredDate}.ics`);
                   toast.success("Calendar file downloaded — open it to add to Apple Calendar!");
                 }}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#C8C5BF] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#C8C5BF] bg-[#F7F6F3] hover:bg-[#EEECEA] transition-colors text-sm font-semibold text-[#1A1A1A]"
               >
                 <CalendarDays className="w-4 h-4 text-[#A2AAAD]" />
                 Apple Calendar
@@ -345,8 +345,8 @@ export default function BookingPage() {
           {/* Email note */}
           <div className="flex items-start gap-3 bg-[#D4922A]/8 border border-[#D4922A]/20 rounded-xl p-4 mb-6">
             <Mail className="w-4 h-4 text-[#D4922A] flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-gray-300">
-              A confirmation has been sent to <strong className="text-white">{form.clientEmail}</strong>. Check your spam folder if you don't see it within a few minutes.
+            <p className="text-xs text-[#3D3D3D]">
+              A confirmation has been sent to <strong className="text-[#1A1A1A]">{form.clientEmail}</strong>. Check your spam folder if you don't see it within a few minutes.
             </p>
           </div>
 
@@ -357,7 +357,7 @@ export default function BookingPage() {
                 setStep("details");
                 setForm({ clientName: "", clientEmail: "", service: "", message: "", preferredDate: "", preferredTime: "" });
               }}
-              className="text-sm text-gray-300 hover:text-[#1A1A1A] underline underline-offset-2 transition-colors"
+              className="text-sm text-[#3D3D3D] hover:text-[#1A1A1A] underline underline-offset-2 transition-colors"
             >
               Book another appointment
             </button>
@@ -381,8 +381,8 @@ export default function BookingPage() {
           />
           <div className="w-px h-5 bg-white/15 flex-shrink-0" aria-hidden="true" />
           <div>
-            <p className="text-xs text-gray-400">Booking with</p>
-            <h1 className="text-sm font-bold text-white">
+            <p className="text-xs text-[#6B6B6B]">Booking with</p>
+            <h1 className="text-sm font-bold text-[#1A1A1A]">
               {host.name}
             </h1>
           </div>
@@ -413,21 +413,21 @@ export default function BookingPage() {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                        isDone ? "bg-[#D4922A] text-white" :
+                        isDone ? "bg-[#D4922A] text-[#1A1A1A]" :
                         isCurrent ? "bg-[#D4922A]/20 text-[#D4922A] border-2 border-[#D4922A]" :
-                        "bg-white/10 text-gray-600"
+                        "bg-[#EEECEA] text-gray-600"
                       }`}
                       aria-current={isCurrent ? "step" : undefined}
                     >
                       {isDone ? <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" /> : i + 1}
                     </div>
                     <span className={`text-xs font-medium hidden sm:block ${
-                      isCurrent ? "text-[#D4922A]" : isDone ? "text-gray-400" : "text-gray-500"
+                      isCurrent ? "text-[#D4922A]" : isDone ? "text-[#6B6B6B]" : "text-gray-500"
                     }`}>
                       {s.label}
                     </span>
                   </div>
-                  {i < 2 && <div className="flex-1 h-px bg-white/10 mx-1" aria-hidden="true" />}
+                  {i < 2 && <div className="flex-1 h-px bg-[#EEECEA] mx-1" aria-hidden="true" />}
                 </div>
               );
             })}
@@ -441,10 +441,10 @@ export default function BookingPage() {
         {/* Step 1: Details */}
         {step === "details" && (
           <section aria-label="Your contact details">
-            <h2 className="text-xl font-bold text-white mb-1">
+            <h2 className="text-xl font-bold text-[#1A1A1A] mb-1">
               Tell us about yourself
             </h2>
-            <p className="text-sm text-gray-400 mb-6">We'll share this with {host.name} to prepare for your session.</p>
+            <p className="text-sm text-[#6B6B6B] mb-6">We'll share this with {host.name} to prepare for your session.</p>
 
             <div className="space-y-4">
               <div>
@@ -452,7 +452,7 @@ export default function BookingPage() {
                   Full Name <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" aria-hidden="true" />
                   <input
                     id="client-name"
                     type="text"
@@ -472,7 +472,7 @@ export default function BookingPage() {
                   Email Address <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" aria-hidden="true" />
                   <input
                     id="client-email"
                     type="email"
@@ -492,7 +492,7 @@ export default function BookingPage() {
                   Service Needed <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
+                  <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" aria-hidden="true" />
                   <select
                     id="service-select"
                     value={form.service}
@@ -512,10 +512,10 @@ export default function BookingPage() {
 
               <div>
                 <label htmlFor="client-message" className="form-label">
-                  Message <span className="text-gray-400 font-normal">(optional)</span>
+                  Message <span className="text-[#6B6B6B] font-normal">(optional)</span>
                 </label>
                 <div className="relative">
-                  <MessageSquare className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" aria-hidden="true" />
+                  <MessageSquare className="absolute left-3.5 top-3 w-4 h-4 text-[#6B6B6B]" aria-hidden="true" />
                   <textarea
                     id="client-message"
                     value={form.message}
@@ -531,7 +531,7 @@ export default function BookingPage() {
             </div>
 
             <Button
-              className="w-full gradient-amber text-white border-0 mt-6 h-12 text-base"
+              className="w-full gradient-amber text-[#1A1A1A] border-0 mt-6 h-12 text-base"
               onClick={() => {
                 if (!form.clientName.trim()) { toast.error("Please enter your name"); return; }
                 if (!form.clientEmail.includes("@")) { toast.error("Please enter a valid email"); return; }
@@ -550,13 +550,13 @@ export default function BookingPage() {
           <section aria-label="Select date and time">
             <button
               onClick={() => setStep("details")}
-              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
+              className="flex items-center gap-1.5 text-sm text-[#6B6B6B] hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
               aria-label="Back to your details"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
             </button>
 
-            <h2 className="text-xl font-bold text-white mb-1">
+            <h2 className="text-xl font-bold text-[#1A1A1A] mb-1">
               Choose a date & time
             </h2>
             <p className="text-sm text-gray-600 mb-6">All times are shown in your local timezone.</p>
@@ -579,10 +579,10 @@ export default function BookingPage() {
                       className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 ${
                         isSelected
                           ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]"
-                          : "border-[#C8C5BF] bg-white/5 hover:border-white/25 text-gray-300"
+                          : "border-[#C8C5BF] bg-[#F7F6F3] hover:border-white/25 text-[#3D3D3D]"
                       }`}
                     >
-                      <p className="text-xs text-gray-400">{dayName}</p>
+                      <p className="text-xs text-[#6B6B6B]">{dayName}</p>
                       <p className="text-lg font-bold">{dayNum}</p>
                     </button>
                   );
@@ -606,7 +606,7 @@ export default function BookingPage() {
                         className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 ${
                           isSelected
                             ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]"
-                            : "border-[#C8C5BF] bg-white/5 hover:border-white/25 text-gray-300"
+                            : "border-[#C8C5BF] bg-[#F7F6F3] hover:border-white/25 text-[#3D3D3D]"
                         }`}
                       >
                         {time}
@@ -618,7 +618,7 @@ export default function BookingPage() {
             )}
 
             <Button
-              className="w-full gradient-amber text-white border-0 h-12 text-base"
+              className="w-full gradient-amber text-[#1A1A1A] border-0 h-12 text-base"
               onClick={() => {
                 if (!form.preferredDate) { toast.error("Please select a date"); return; }
                 if (!form.preferredTime) { toast.error("Please select a time"); return; }
@@ -637,25 +637,25 @@ export default function BookingPage() {
           <section aria-label="Confirm your booking">
             <button
               onClick={() => setStep("datetime")}
-              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
+              className="flex items-center gap-1.5 text-sm text-[#6B6B6B] hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
               aria-label="Back to date and time selection"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
             </button>
 
-            <h2 className="text-xl font-bold text-white mb-1">
+            <h2 className="text-xl font-bold text-[#1A1A1A] mb-1">
               Confirm your booking
             </h2>
-            <p className="text-sm text-gray-400 mb-6">Please review the details below before submitting.</p>
+            <p className="text-sm text-[#6B6B6B] mb-6">Please review the details below before submitting.</p>
 
-            <div className="bg-white/5 rounded-xl border border-[#DDDBD7] p-5 space-y-4 mb-6">
+            <div className="bg-[#F7F6F3] rounded-xl border border-[#DDDBD7] p-5 space-y-4 mb-6">
               <div className="flex items-center gap-3 pb-4 border-b border-[#DDDBD7]">
                 <div className="w-10 h-10 rounded-xl bg-[#D4922A]/15 border border-[#D4922A]/25 flex items-center justify-center flex-shrink-0" aria-hidden="true">
                   <User className="w-5 h-5 text-[#D4922A]" />
                 </div>
                 <div>
-                  <p className="font-bold text-white">{host.name}</p>
-                  <p className="text-xs text-gray-400">Your service provider</p>
+                  <p className="font-bold text-[#1A1A1A]">{host.name}</p>
+                  <p className="text-xs text-[#6B6B6B]">Your service provider</p>
                 </div>
               </div>
 
@@ -668,11 +668,11 @@ export default function BookingPage() {
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white/8 border border-[#DDDBD7] flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                    <Icon className="w-4 h-4 text-gray-400" />
+                    <Icon className="w-4 h-4 text-[#6B6B6B]" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">{label}</p>
-                    <p className="text-sm font-semibold text-white">{value}</p>
+                    <p className="text-xs text-[#6B6B6B]">{label}</p>
+                    <p className="text-sm font-semibold text-[#1A1A1A]">{value}</p>
                   </div>
                 </div>
               ))}
@@ -680,18 +680,18 @@ export default function BookingPage() {
               {form.message && (
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white/8 border border-[#DDDBD7] flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
-                    <MessageSquare className="w-4 h-4 text-gray-400" />
+                    <MessageSquare className="w-4 h-4 text-[#6B6B6B]" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Message</p>
-                    <p className="text-sm text-gray-300">{form.message}</p>
+                    <p className="text-xs text-[#6B6B6B]">Message</p>
+                    <p className="text-sm text-[#3D3D3D]">{form.message}</p>
                   </div>
                 </div>
               )}
             </div>
 
             <Button
-              className="w-full gradient-amber text-white border-0 h-12 text-base gap-2"
+              className="w-full gradient-amber text-[#1A1A1A] border-0 h-12 text-base gap-2"
               onClick={handleSubmit}
               disabled={submitMutation.isPending}
               aria-label="Submit booking request"

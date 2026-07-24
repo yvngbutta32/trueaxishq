@@ -266,11 +266,11 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-full bg-white border-r border-[#DDDBD7] flex flex-col transition-all duration-300 z-40 shadow-sm ${collapsed ? "w-16" : "w-60"}`}
+      className={`fixed left-0 top-0 h-full bg-[#1B2D4F] border-r border-[#243A5E] flex flex-col transition-all duration-300 z-40 shadow-lg ${collapsed ? "w-16" : "w-60"}`}
       aria-label="Main navigation"
     >
       {/* Logo — click navigates to dashboard */}
-      <div className="flex items-center justify-center px-3 py-4 border-b border-[#EEECEA]">
+      <div className="flex items-center justify-center px-3 py-4 border-b border-[#243A5E]">
         <button
           onClick={() => navigate("/dashboard")}
           className="flex items-center justify-center"
@@ -306,14 +306,14 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             aria-label={item.label}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative ${
               active === item.panel
-                ? "bg-[#D4922A]/10 text-[#B07820] border-l-2 border-[#D4922A] pl-[10px] font-semibold"
-                : "text-[#3D3D3D] hover:bg-[#F0EEE9] hover:text-[#1A1A1A] border-l-2 border-transparent pl-[10px]"
+                ? "bg-[#D4922A]/20 text-white border-l-2 border-[#D4922A] pl-[10px] font-semibold"
+                : "text-white/65 hover:bg-white/10 hover:text-white border-l-2 border-transparent pl-[10px]"
             }`}
           >
             <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
             {!collapsed && <span>{item.label}</span>}
             {!collapsed && item.badge && active !== item.panel && (
-              <span className="ml-auto text-[9px] font-bold bg-[#D4922A]/15 text-[#B07820] px-1.5 py-0.5 rounded-full">{item.badge}</span>
+              <span className="ml-auto text-[9px] font-bold bg-[#D4922A]/25 text-[#E8A020] px-1.5 py-0.5 rounded-full">{item.badge}</span>
             )}
             {!collapsed && active === item.panel && <ChevronRight className="w-3 h-3 ml-auto" aria-hidden="true" />}
           </button>
@@ -321,18 +321,18 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
       </nav>
 
       {/* Footer */}
-      <div className="p-3 border-t border-[#EEECEA] space-y-1">
+      <div className="p-3 border-t border-[#243A5E] space-y-1">
 
         {(user as any)?.isOwner && (
-          <button onClick={() => navigate("/admin")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#3D3D3D] hover:bg-[#F0EEE9] hover:text-[#1A1A1A] transition-all" aria-label="Admin panel">
+          <button onClick={() => navigate("/admin")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/65 hover:bg-white/10 hover:text-white transition-all" aria-label="Admin panel">
             <Star className="w-4 h-4 flex-shrink-0" />
             {!collapsed && <span>Admin Panel</span>}
           </button>
         )}
         {/* Keyboard shortcuts hint */}
         {!collapsed && (
-          <div className="px-3 py-2 rounded-xl bg-[#F7F6F3] border border-[#EEECEA]">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#8A8680] mb-1.5">Shortcuts</p>
+          <div className="px-3 py-2 rounded-xl bg-white/5 border border-white/10">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-white/40 mb-1.5">Shortcuts</p>
             <div className="space-y-1">
               {[
                 { keys: ["⌘", "K"], label: "Search" },
@@ -344,10 +344,10 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
                 { keys: ["I"],       label: "Insights" },
               ].map(({ keys, label }) => (
                 <div key={label + keys.join()} className="flex items-center justify-between">
-                  <span className="text-[10px] text-[#3D3D3D]">{label}</span>
+                  <span className="text-[10px] text-white/60">{label}</span>
                   <div className="flex items-center gap-0.5">
                     {keys.map(k => (
-                      <kbd key={k} className="px-1 py-0.5 rounded border border-[#DDDBD7] bg-white text-[9px] text-[#3D3D3D] font-mono leading-none">{k}</kbd>
+                      <kbd key={k} className="px-1 py-0.5 rounded border border-white/20 bg-white/10 text-[9px] text-white/70 font-mono leading-none">{k}</kbd>
                     ))}
                   </div>
                 </div>
@@ -358,7 +358,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
         {/* Collapse / Expand toggle */}
         <button
           onClick={() => setCollapsed(v => !v)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#6B6B6B] hover:bg-[#F0EEE9] hover:text-[#1A1A1A] transition-all"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/50 hover:bg-white/10 hover:text-white transition-all"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand" : "Collapse"}
         >
@@ -4674,7 +4674,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
 
       {/* Full-feature sheet — absolutely positioned above the nav bar, no transforms */}
       <div
-        className={`absolute left-0 right-0 z-50 bg-[#F7F6F3] rounded-t-3xl shadow-2xl overflow-y-auto ${
+        className={`absolute left-0 right-0 z-50 bg-[#1B2D4F] rounded-t-3xl shadow-2xl overflow-y-auto ${
           showSheet ? "block" : "hidden"
         }`}
         style={{ bottom: "100%", maxHeight: "70vh" }}
@@ -4684,11 +4684,11 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-2">
-          <div className="w-10 h-1 rounded-full bg-white/10" />
+          <div className="w-10 h-1 rounded-full bg-white/30" />
         </div>
 
         <div className="px-4 pb-6 pt-1 space-y-5">
-          <p className="text-xs font-bold text-white/70 uppercase tracking-widest px-1">All Features</p>
+          <p className="text-xs font-bold text-white/80 uppercase tracking-widest px-1">All Features</p>
 
           {sheetSections.map((section) => (
             <div key={section.label}>
@@ -4702,7 +4702,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
                     className={`relative flex flex-col items-center justify-center py-3.5 px-1 rounded-xl gap-1.5 transition-all active:scale-95 ${
                       active === item.panel
                         ? "bg-[#D4922A]/20 text-[#D4922A]"
-                        : "bg-white/5 text-[#6B6B6B] hover:bg-white/10 hover:text-[#1A1A1A]"
+                        : "bg-white/8 text-white/65 hover:bg-white/15 hover:text-white"
                     }`}
                   >
                     {item.badge && (
@@ -4719,10 +4719,10 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
           ))}
 
           {/* Quick links row */}
-          <div className="border-t border-[#DDDBD7] pt-4 flex gap-2">
+          <div className="border-t border-white/10 pt-4 flex gap-2">
             <button
               onClick={() => { setActive("settings"); setShowSheet(false); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-[#6B6B6B] hover:bg-white/10 hover:text-[#1A1A1A] transition-all text-xs font-medium"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/8 text-white/65 hover:bg-white/15 hover:text-white transition-all text-xs font-medium"
             >
               <CreditCard className="w-4 h-4" />
               Billing
@@ -4730,7 +4730,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
             {(user as any)?.isOwner && (
               <button
                 onClick={() => { navigate("/admin"); setShowSheet(false); }}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-[#6B6B6B] hover:bg-white/10 hover:text-[#1A1A1A] transition-all text-xs font-medium"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/8 text-white/65 hover:bg-white/15 hover:text-white transition-all text-xs font-medium"
               >
                 <Star className="w-4 h-4" />
                 Admin
@@ -4738,7 +4738,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
             )}
             <button
               onClick={() => { navigate("/"); setShowSheet(false); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-[#6B6B6B] hover:bg-white/10 hover:text-[#1A1A1A] transition-all text-xs font-medium"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/8 text-white/65 hover:bg-white/15 hover:text-white transition-all text-xs font-medium"
             >
               <Home className="w-4 h-4" />
               Home
@@ -4752,11 +4752,11 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
         className="w-full"
         aria-label="Mobile navigation"
         style={{
-          background: "rgba(22,27,34,0.98)",
+          background: "rgba(27,45,79,0.98)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
-          borderTop: "1px solid rgba(255,255,255,0.07)",
-          boxShadow: "0 -2px 16px rgba(0,0,0,0.30)",
+          borderTop: "1px solid rgba(255,255,255,0.10)",
+          boxShadow: "0 -2px 16px rgba(0,0,0,0.25)",
           paddingBottom: "max(env(safe-area-inset-bottom, 0px), 10px)",
           paddingLeft:  "max(env(safe-area-inset-left,   0px), 0px)",
           paddingRight: "max(env(safe-area-inset-right,  0px), 0px)",
