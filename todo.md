@@ -1166,34 +1166,45 @@
 ## 5 Critical Features (Jul 2026)
 
 ### Service/Package Catalog
-- [ ] Add services table to schema (id, name, description, price, currency, duration, category, active)
-- [ ] Add services router (create, list, update, delete)
-- [ ] Build ServiceCatalog panel in Dashboard with CRUD UI
-- [ ] Wire service catalog into invoice line item selector
+- [x] Add services table to schema (id, name, description, price, currency, duration, category, active)
+- [x] Add services router (create, list, update, delete)
+- [x] Build ServiceCatalog panel in Dashboard with CRUD UI
+- [x] Wire service catalog into invoice line item selector
 
 ### Expense Tracking + P&L
-- [ ] Add expenses table to schema (id, amount, currency, category, description, date, receipt_url)
-- [ ] Add expenses router (create, list, update, delete, summary)
-- [ ] Build ExpensesPanel in Dashboard with category breakdown
-- [ ] Build P&L report view (revenue - expenses = net profit, by month)
-- [ ] Add P&L summary card to OverviewPanel
+- [x] Add expenses table to schema (id, amount, currency, category, description, date, receipt_url)
+- [x] Add expenses router (create, list, update, delete, summary)
+- [x] Build ExpensesPanel in Dashboard with category breakdown
+- [x] Build P&L report view (revenue - expenses = net profit, by month)
+- [x] Add P&L summary card to OverviewPanel
 
 ### Proposal Builder
-- [ ] Add proposals table to schema (id, clientId, title, scope, lineItems, total, status, signedAt, token)
-- [ ] Add proposals router (create, list, get, update, send, sign, delete)
-- [ ] Build ProposalBuilder panel with rich editor (scope, line items from catalog, total)
-- [ ] Build public proposal signing page (/proposal/:token)
-- [ ] Auto-create invoice when proposal is signed
+- [x] Add proposals table to schema (id, clientId, title, scope, lineItems, total, status, signedAt, token)
+- [x] Add proposals router (create, list, get, update, send, sign, delete)
+- [x] Build ProposalBuilder panel with rich editor (scope, line items from catalog, total)
+- [x] Build public proposal signing page (/proposal/:token)
+- [x] Auto-create invoice when proposal is signed
 
 ### Client Portal Pay Now
-- [ ] Add Stripe checkout session creation to portal router
-- [ ] Add Pay Now button to ClientPortal.tsx invoice list
-- [ ] Add threaded messaging between owner and client in portal
+- [x] Add Stripe checkout session creation to portal router
+- [x] Add Pay Now button to ClientPortal.tsx invoice list
+- [x] Add threaded messaging between owner and client in portal
 
 ### Workflow Automation Engine
-- [ ] Add automations table to schema (id, name, trigger, conditions, actions, active)
-- [ ] Add automation_logs table (id, automationId, triggeredAt, status, details)
-- [ ] Add automations router (create, list, update, delete, toggle, getLogs)
-- [ ] Build AutomationsPanel with visual trigger-action builder
-- [ ] Implement automation execution engine (run on booking/invoice/client events)
-- [ ] Add built-in templates: Welcome sequence, Overdue reminder, Re-engagement
+- [x] Add automations table to schema (id, name, trigger, conditions, actions, active)
+- [x] Add automation_logs table (id, automationId, triggeredAt, status, details)
+- [x] Add automations router (create, list, update, delete, toggle, getLogs)
+- [x] Build AutomationsPanel with visual trigger-action builder
+- [x] Implement automation execution engine (run on booking/invoice/client events)
+- [x] Add built-in templates: Welcome sequence, Overdue reminder, Re-engagement
+
+## Consolidation Sprint
+- [x] Merge Contracts + Proposals into unified Deals panel (tabbed)
+- [x] Merge Invoices + Time Tracking into unified Billing panel (tabbed)
+- [x] Merge Follow-Ups + Smart Inbox + Automations into unified Outreach panel (tabbed)
+- [x] Merge Analytics + Client Pulse + Expenses into unified Insights panel (tabbed)
+- [x] Update sidebar nav from 16 → 9 items
+- [x] Update ActivePanel type and all panelTitles/panelSubtitles/switch cases
+- [x] Update keyboard shortcuts for new panel names
+- [x] Update MobileBottomNav for new panel structure
+- [x] Update OverviewPanel quick-action cards to point to new panels

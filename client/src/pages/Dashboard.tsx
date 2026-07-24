@@ -23,6 +23,10 @@ import AIAssistant from "@/components/AIAssistant";
 import { HealthMonitor } from "@/components/HealthMonitor";
 import { PanelErrorBoundary } from "@/components/PanelErrorBoundary";
 import GlobalSearch from "@/components/GlobalSearch";
+import BillingPanel from "./BillingPanel";
+import OutreachPanel from "./OutreachPanel";
+import DealsPanel from "./DealsPanel";
+import InsightsPanel from "./InsightsPanel";
 import {
   LayoutDashboard, Users, Calendar, FileText, Mail,
   BarChart3, Settings, Zap, Plus, TrendingUp,
@@ -42,7 +46,7 @@ import {
   PieChart, Pie, Cell
 } from "recharts";
 
-type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations";
+type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations" | "billing" | "outreach" | "deals" | "insights";
 
 interface ConfirmState {
   open: boolean;
@@ -240,22 +244,15 @@ const LineItemRow = memo(function LineItemRow({
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; badge?: string }[] = [
-  { icon: LayoutDashboard, label: "Dashboard", panel: "overview" },
-  { icon: Inbox, label: "Smart Inbox", panel: "inbox" },
-  { icon: Users, label: "Clients", panel: "clients" },
-  { icon: Calendar, label: "Scheduling", panel: "scheduling" },
-  { icon: FileText, label: "Invoices", panel: "invoices" },
-  { icon: Mail, label: "Follow-Ups", panel: "followups" },
-  { icon: HeartPulse, label: "Client Pulse", panel: "pulse", badge: "AI" },
-  { icon: FileSignature, label: "Contracts", panel: "contracts" },
-  { icon: FileText, label: "Proposals", panel: "proposals", badge: "New" },
-  { icon: Clock, label: "Time Tracking", panel: "time" },
-  { icon: Package, label: "Services", panel: "services", badge: "New" },
-  { icon: Receipt, label: "Expenses & P&L", panel: "expenses", badge: "New" },
-  { icon: Zap, label: "Automations", panel: "automations", badge: "New" },
-  { icon: BarChart3, label: "Analytics", panel: "analytics" },
-  { icon: Settings, label: "Settings", panel: "settings" },
-  { icon: Bot, label: "AI Assistant", panel: "ai" },
+  { icon: LayoutDashboard, label: "Dashboard",  panel: "overview"   },
+  { icon: Users,           label: "Clients",    panel: "clients"    },
+  { icon: Calendar,        label: "Scheduling", panel: "scheduling" },
+  { icon: FileText,        label: "Billing",    panel: "billing"    },
+  { icon: Mail,            label: "Outreach",   panel: "outreach"   },
+  { icon: FileSignature,   label: "Deals",      panel: "deals"      },
+  { icon: BarChart3,       label: "Insights",   panel: "insights",  badge: "AI" },
+  { icon: Settings,        label: "Settings",   panel: "settings"   },
+  { icon: Bot,             label: "AI Assistant", panel: "ai"       },
 ];
 
 function Sidebar({ active, setActive, collapsed, setCollapsed }: {
@@ -338,10 +335,12 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             <div className="space-y-1">
               {[
                 { keys: ["⌘", "K"], label: "Search" },
-                { keys: ["/"],       label: "Quick Search" },
-                { keys: ["N"],       label: "Invoices" },
+                { keys: ["N"],       label: "Billing" },
                 { keys: ["C"],       label: "Clients" },
-                { keys: ["B"],       label: "Bookings" },
+                { keys: ["B"],       label: "Schedule" },
+                { keys: ["O"],       label: "Outreach" },
+                { keys: ["D"],       label: "Deals" },
+                { keys: ["I"],       label: "Insights" },
               ].map(({ keys, label }) => (
                 <div key={label + keys.join()} className="flex items-center justify-between">
                   <span className="text-[10px] text-[rgba(245,239,227,0.40)]">{label}</span>
@@ -530,8 +529,8 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
         {([
           { icon: Plus, label: "Add Client", color: "#6366F1", panel: "clients", shortcut: "C" },
           { icon: Calendar, label: "New Booking", color: "#F59E0B", panel: "scheduling", shortcut: "B" },
-          { icon: FileText, label: "New Invoice", color: "#D4922A", panel: "invoices", shortcut: "N" },
-          { icon: Mail, label: "AI Follow-Up", color: "#5A9A7A", panel: "followups", shortcut: null },
+          { icon: FileText, label: "New Invoice", color: "#D4922A", panel: "billing", shortcut: "N" },
+          { icon: Mail, label: "Outreach", color: "#5A9A7A", panel: "outreach", shortcut: "O" },
         ] as { icon: React.ElementType; label: string; color: string; panel: ActivePanel; shortcut: string | null }[]).map(({ icon: Icon, label, color, panel, shortcut }) => (
           <button
             key={label}
@@ -4512,38 +4511,29 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
   const [, navigate] = useLocation();
   const { user } = useAuth();
 
-  // Primary 4 tabs — the highest-frequency daily actions
+    // Primary 4 tabs — the highest-frequency daily actions
   const primaryTabs = [
-    { icon: LayoutDashboard, label: "Overview",  panel: "overview"   as ActivePanel },
-    { icon: Users,           label: "Clients",   panel: "clients"    as ActivePanel },
-    { icon: Calendar,        label: "Schedule",  panel: "scheduling" as ActivePanel },
-    { icon: FileText,        label: "Invoices",  panel: "invoices"   as ActivePanel },
+    { icon: LayoutDashboard, label: "Dashboard",  panel: "overview"   as ActivePanel },
+    { icon: Users,           label: "Clients",    panel: "clients"    as ActivePanel },
+    { icon: Calendar,        label: "Schedule",   panel: "scheduling" as ActivePanel },
+    { icon: FileText,        label: "Billing",    panel: "billing"    as ActivePanel },
   ];
-
   // All panels available in the full-feature sheet, grouped by category
   const sheetSections = [
     {
-      label: "Business",
+      label: "Work",
       items: [
-        { icon: Inbox,         label: "Smart Inbox",   panel: "inbox"      as ActivePanel },
-        { icon: Mail,          label: "Follow-Ups",    panel: "followups"  as ActivePanel },
-        { icon: HeartPulse,    label: "Client Pulse",  panel: "pulse"      as ActivePanel, badge: "AI" },
-        { icon: BarChart3,     label: "Analytics",     panel: "analytics"  as ActivePanel },
-        { icon: Bot,           label: "AI Assistant",  panel: "ai"         as ActivePanel, badge: "AI" },
-        { icon: ThumbsUp,      label: "Testimonials",  panel: "testimonials" as ActivePanel },
-      ],
-    },
-    {
-      label: "Finance",
-      items: [
-        { icon: Clock,         label: "Time Tracking", panel: "time"       as ActivePanel },
-        { icon: FileSignature, label: "Contracts",     panel: "contracts"  as ActivePanel },
+        { icon: Mail,          label: "Outreach",     panel: "outreach"   as ActivePanel },
+        { icon: FileSignature, label: "Deals",        panel: "deals"      as ActivePanel },
+        { icon: BarChart3,     label: "Insights",     panel: "insights"   as ActivePanel, badge: "AI" },
+        { icon: Bot,           label: "AI Assistant", panel: "ai"         as ActivePanel, badge: "AI" },
+        { icon: ThumbsUp,      label: "Testimonials", panel: "testimonials" as ActivePanel },
       ],
     },
     {
       label: "Account",
       items: [
-        { icon: Settings,      label: "Settings",      panel: "settings"   as ActivePanel },
+        { icon: Settings,      label: "Settings",     panel: "settings"   as ActivePanel },
       ],
     },
   ];
@@ -4780,13 +4770,17 @@ export default function Dashboard() {
       expenses: "Expenses & P&L — TrueAxis HQ",
       proposals: "Proposals — TrueAxis HQ",
       automations: "Automations — TrueAxis HQ",
+      billing: "Billing — TrueAxis HQ",
+      outreach: "Outreach — TrueAxis HQ",
+      deals: "Deals — TrueAxis HQ",
+      insights: "Insights — TrueAxis HQ",
     };
     document.title = PANEL_TITLES[active] ?? "Dashboard — TrueAxis HQ";
   }, [active]);
 
   // Global keyboard shortcuts: Cmd+K / Ctrl+K = search; Alt+1..9 = panel navigation
   useEffect(() => {
-    const panels: ActivePanel[] = ["overview", "clients", "scheduling", "invoices", "followups", "analytics", "ai", "pulse", "settings"];
+    const panels: ActivePanel[] = ["overview", "clients", "scheduling", "billing", "outreach", "deals", "insights", "settings", "ai"];
     const handleKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       const inInput = tag === "input" || tag === "textarea" || (e.target as HTMLElement)?.isContentEditable;
@@ -4808,9 +4802,12 @@ export default function Dashboard() {
       // Single-key shortcuts when NOT in an input field
       if (!inInput && !e.metaKey && !e.ctrlKey && !e.altKey) {
         if (e.key === "/") { e.preventDefault(); setGlobalSearchOpen(true); return; }
-        if (e.key === "n" || e.key === "N") { e.preventDefault(); setActiveWithScroll("invoices"); toast.info("Navigated to Invoices — press + to create", { duration: 2000 }); return; }
+        if (e.key === "n" || e.key === "N") { e.preventDefault(); setActiveWithScroll("billing"); toast.info("Billing — Invoices, Time & Services", { duration: 2000 }); return; }
         if (e.key === "c" || e.key === "C") { e.preventDefault(); setActiveWithScroll("clients"); toast.info("Navigated to Clients — press + to add", { duration: 2000 }); return; }
         if (e.key === "b" || e.key === "B") { e.preventDefault(); setActiveWithScroll("scheduling"); toast.info("Navigated to Scheduling — press + to book", { duration: 2000 }); return; }
+        if (e.key === "o" || e.key === "O") { e.preventDefault(); setActiveWithScroll("outreach"); toast.info("Outreach — Follow-Ups, Inbox & Automations", { duration: 2000 }); return; }
+        if (e.key === "d" || e.key === "D") { e.preventDefault(); setActiveWithScroll("deals"); toast.info("Deals — Contracts & Proposals", { duration: 2000 }); return; }
+        if (e.key === "i" || e.key === "I") { e.preventDefault(); setActiveWithScroll("insights"); toast.info("Insights — Analytics, Pulse & Expenses", { duration: 2000 }); return; }
       }
     };
     document.addEventListener("keydown", handleKey);
@@ -4851,6 +4848,7 @@ export default function Dashboard() {
     contracts: "Contracts", time: "Time Tracking",
     inbox: "Smart Inbox", testimonials: "Testimonials",
     services: "Services", expenses: "Expenses & P&L", proposals: "Proposals", automations: "Automations",
+    billing: "Billing", outreach: "Outreach", deals: "Deals", insights: "Insights",
   };
   const panelSubtitles: Record<ActivePanel, string> = {
     overview: "Your business at a glance",
@@ -4870,6 +4868,10 @@ export default function Dashboard() {
     expenses: "Track costs & view profit/loss",
     proposals: "Send scoped proposals to clients",
     automations: "Trigger actions automatically",
+    billing: "Invoices, time tracking, recurring & service catalog",
+    outreach: "Follow-ups, inbox & automation workflows",
+    deals: "Contracts & proposals in one place",
+    insights: "Analytics, client pulse & expenses",
   };
 
   // useMemo ensures the panel JSX element is only recreated when `active` changes.
@@ -4919,6 +4921,33 @@ export default function Dashboard() {
       case "expenses": return <PanelErrorBoundary panelName="Expenses & P&L"><Expenses /></PanelErrorBoundary>;
       case "proposals": return <PanelErrorBoundary panelName="Proposals"><Proposals /></PanelErrorBoundary>;
       case "automations": return <PanelErrorBoundary panelName="Automations"><Automations /></PanelErrorBoundary>;
+      // ─── Consolidated panels ───────────────────────────────────────────────
+      case "billing": return (
+        <PanelErrorBoundary panelName="Billing">
+          <BillingPanel
+            invoicesPanel={<InvoicesPanel />}
+            onInvoiceGenerated={() => setActiveWithScroll("billing")}
+          />
+        </PanelErrorBoundary>
+      );
+      case "outreach": return (
+        <PanelErrorBoundary panelName="Outreach">
+          <OutreachPanel
+            followUpsPanel={<FollowUpsPanel />}
+            inboxPanel={<SmartInboxPanel setActivePanel={setActiveWithScroll} />}
+          />
+        </PanelErrorBoundary>
+      );
+      case "deals": return (
+        <PanelErrorBoundary panelName="Deals">
+          <DealsPanel contractsPanel={<ContractsPanel />} />
+        </PanelErrorBoundary>
+      );
+      case "insights": return (
+        <PanelErrorBoundary panelName="Insights">
+          <InsightsPanel analyticsPanel={<AnalyticsPanel />} />
+        </PanelErrorBoundary>
+      );
       default: return null;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
