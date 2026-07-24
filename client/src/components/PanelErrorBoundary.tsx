@@ -46,7 +46,7 @@ export class PanelErrorBoundary extends React.Component<Props, State> {
           <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
             <AlertTriangle className="w-7 h-7 text-red-400" />
           </div>
-          <h3 className="text-base font-bold text-[#0D1117] mb-1" style={{  }}>
+          <h3 className="text-base font-bold text-[#0D1117] mb-1">
             {this.props.panelName ? `${this.props.panelName} ran into a problem` : "Something went wrong"}
           </h3>
           <p className="text-sm text-gray-500 max-w-xs mb-5">

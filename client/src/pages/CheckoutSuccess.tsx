@@ -53,7 +53,6 @@ export default function CheckoutSuccess() {
         <h1
           id="success-heading"
           className="text-2xl font-extrabold text-gray-900 mb-2"
-          style={{  }}
         >
           You're all set! 🎉
         </h1>

@@ -77,7 +77,7 @@ export function ChangelogModal() {
               <Sparkles className="w-5 h-5 text-[#D4922A]" />
               <span className="text-xs font-bold text-[#D4922A] uppercase tracking-wider">What's New</span>
             </div>
-            <h2 className="text-xl font-bold text-[#0D1117]" style={{  }}>
+            <h2 className="text-xl font-bold text-[#0D1117]">
               TrueAxis HQ v{CURRENT_VERSION}
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">Major update — 6 new features</p>

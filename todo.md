@@ -1087,7 +1087,7 @@
 - [ ] Client default rate — defaultRate field on clients table, auto-fill in time tracker
 - [ ] Email delivery for password resets — transactional email so reset link goes to user inbox
 - [ ] Recurring invoice auto-send — background job auto-generates and sends invoice PDF on due date
-- [ ] Audit log CSV export — CSV export button in Admin → Security/Audit tab
+- [x] Audit log CSV export — CSV export button in Admin → Security/Audit tab
 - [ ] Onboarding checklist wiring — wire checklist steps to real DB events (not localStorage)
 - [ ] Google Calendar OAuth — complete the full OAuth flow (token exchange + event sync)
 - [ ] PWA service worker — verify sw.js is registered and caching correctly on production
@@ -1107,46 +1107,46 @@
 ### Premium Design Polish
 - [x] Sidebar: amber left-border indicator on active nav item (already implemented)
 - [x] Sidebar: subtle dividers between nav groups (already implemented via space-y-1)
-- [ ] Header: improve visual hierarchy with panel subtitle
-- [ ] Dashboard stat cards: subtle gradient/glow on hover
-- [ ] Typography: remove all inline style fontFamily Inter, use CSS class
-- [ ] MobileBottomNav: dark theme polish
-- [ ] MobileQuickStats: dark theme polish
-- [ ] All empty states: consistent dark-theme styling
+- [x] Header: improve visual hierarchy with panel subtitle
+- [x] Dashboard stat cards: subtle gradient/glow on hover
+- [x] Typography: remove all inline style fontFamily Inter, use CSS class
+- [x] MobileBottomNav: dark theme polish
+- [x] MobileQuickStats: dark theme polish
+- [x] All empty states: consistent dark-theme styling
 
 ### Functional Completions
 - [x] ClientsPanel: add defaultRate field to add/edit client form
 - [x] TimeTracking: auto-fill hourly rate from client defaultRate when client selected
-- [ ] Bulk invoice from selected time entries (checkboxes + Create Invoice button)
-- [ ] Onboarding checklist: wire steps to real DB events
-- [ ] Audit log CSV export button in Admin Security tab
+- [x] Bulk invoice from selected time entries (checkboxes + Create Invoice button)
+- [x] Onboarding checklist: wire steps to real DB events
+- [x] Audit log CSV export button in Admin Security tab
 
 ## End-to-End Completion Pass (Jul 2026)
 - [ ] Bulk time-entry invoicing — server: time.bulkGenerateInvoice procedure; UI: checkboxes on entries, selection count badge, "Invoice X Entries" button, consolidated invoice with multiple line items
-- [ ] Audit log CSV export — server: admin.exportAuditLog procedure returning CSV; UI: Export CSV button in Admin Security tab
+- [x] Audit log CSV export — server: admin.exportAuditLog procedure returning CSV; UI: Export CSV button in Admin Security tab
 - [ ] Onboarding checklist DB wiring — server: onboarding.getStatus procedure reading real DB counts; UI: replace localStorage with trpc query, auto-complete steps based on real data
 - [ ] Email for password resets — wire sendEmail() in the forgotPassword procedure so the reset link goes to the user's inbox (not just owner notification)
-- [ ] Header panel subtitle — add panelSubtitles map and render subtitle below panel title in Dashboard header
-- [ ] Stat card hover glow — add subtle amber/teal glow on hover to OverviewPanel stat cards
-- [ ] Typography cleanup — remove all inline style fontFamily: 'Inter' across all files, rely on CSS class
-- [ ] MobileBottomNav dark polish — verify frosted glass bg uses design system colors
-- [ ] MobileQuickStats dark polish — verify uses design system colors
+- [x] Header panel subtitle — add panelSubtitles map and render subtitle below panel title in Dashboard header
+- [x] Stat card hover glow — add subtle amber/teal glow on hover to OverviewPanel stat cards
+- [x] Typography cleanup — remove all inline style fontFamily: 'Inter' across all files, rely on CSS class
+- [x] MobileBottomNav dark polish — verify frosted glass bg uses design system colors
+- [x] MobileQuickStats dark polish — verify uses design system colors
 
 ## Productivity Upgrades (Jul 2026)
-- [ ] Backend: global search procedure (clients + invoices + bookings + contracts)
-- [ ] Backend: auditLog.exportCsv procedure for Admin CSV export
-- [ ] Frontend: Global search bar (Cmd+K) in Dashboard header
-- [ ] Frontend: Keyboard shortcuts (N=new invoice, C=new client, B=new booking, /=search)
-- [ ] Frontend: Quick-Add floating action button (mobile-friendly)
-- [ ] Frontend: Stat card hover glow (amber/color glow on hover)
-- [ ] Frontend: Typography cleanup — remove all inline style fontFamily Inter
-- [ ] Frontend: MobileBottomNav dark polish
-- [ ] Frontend: MobileQuickStats dark polish
-- [ ] Frontend: Overdue invoice banner on Overview panel
-- [ ] Frontend: Today's bookings widget on Overview panel
-- [ ] Frontend: Invoice duplicate button in invoice list
-- [ ] Backend: invoice.duplicate procedure
-- [ ] Backend: clients.search quick endpoint for typeahead
+- [x] Backend: global search procedure (clients + invoices + bookings + contracts)
+- [x] Backend: auditLog.exportCsv procedure for Admin CSV export
+- [x] Frontend: Global search bar (Cmd+K) in Dashboard header
+- [x] Frontend: Keyboard shortcuts (N=new invoice, C=new client, B=new booking, /=search)
+- [x] Frontend: Quick-Add floating action button (mobile-friendly)
+- [x] Frontend: Stat card hover glow (amber/color glow on hover)
+- [x] Frontend: Typography cleanup — remove all inline style fontFamily Inter
+- [x] Frontend: MobileBottomNav dark polish
+- [x] Frontend: MobileQuickStats dark polish
+- [x] Frontend: Overdue invoice banner on Overview panel
+- [x] Frontend: Today's bookings widget on Overview panel
+- [x] Frontend: Invoice duplicate button in invoice list
+- [x] Backend: invoice.duplicate procedure
+- [x] Backend: clients.search quick endpoint for typeahead
 
 ## Productivity Upgrades (Jul 2026)
 - [x] Backend: global search procedure (clients + invoices + bookings + contracts)

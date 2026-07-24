@@ -98,7 +98,7 @@ export default function Contact() {
               <Mail className="w-3 h-3" />
               Get in Touch
             </div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight" style={{  }}>
+            <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">
               We'd love to<br /><span className="text-[#D4922A]">hear from you.</span>
             </h1>
             <p className="text-gray-300 leading-relaxed mb-10">
@@ -132,7 +132,7 @@ export default function Contact() {
                 <div className="w-16 h-16 rounded-full bg-[#D4922A]/15 flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-8 h-8 text-[#D4922A]" />
                 </div>
-                <h2 className="text-xl font-bold mb-2" style={{  }}>Message Received!</h2>
+                <h2 className="text-xl font-bold mb-2">Message Received!</h2>
                 <p className="text-gray-300 text-sm mb-6">Thank you for reaching out. We'll get back to you at <strong className="text-white">{form.email}</strong> within 4 business hours.</p>
                 <Button onClick={() => navigate("/")} className="bg-[#D4922A] hover:bg-[#D4911A] text-white border-0 px-6 py-2.5 rounded-xl text-sm">
                   Back to Home
@@ -140,7 +140,7 @@ export default function Contact() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-                <h2 className="text-lg font-bold mb-1" style={{  }}>Send us a message</h2>
+                <h2 className="text-lg font-bold mb-1">Send us a message</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {field("name", "Full Name")}
                   {field("email", "Email Address", "email")}

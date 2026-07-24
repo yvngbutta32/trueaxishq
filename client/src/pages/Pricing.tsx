@@ -138,7 +138,7 @@ export default function Pricing() {
             <Sparkles className="w-3 h-3" />
             Simple, Transparent Pricing
           </div>
-          <h1 style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: "clamp(2rem, 4.5vw, 3.25rem)", letterSpacing: "-0.03em", color: "#F5F0E8", lineHeight: 1.1 }}>
+          <h1 style={{ fontWeight: 800, fontSize: "clamp(2rem, 4.5vw, 3.25rem)", letterSpacing: "-0.03em", color: "#F5F0E8", lineHeight: 1.1 }}>
             Invest in your business.
             <br />
             <span style={{ color: "#D4922A" }}>Get 10× back.</span>
@@ -204,13 +204,13 @@ export default function Pricing() {
                   <div className="w-10 h-10 rounded flex items-center justify-center mb-3" style={{ background: `${plan.accentColor}18`, border: `1px solid ${plan.accentColor}30` }}>
                     {plan.name === "Pro" ? <Brain className="w-5 h-5" style={{ color: plan.accentColor }} /> : <Zap className="w-5 h-5" style={{ color: plan.accentColor }} />}
                   </div>
-                  <h3 style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: "1.25rem", color: "#F5F0E8" }}>{plan.name}</h3>
+                  <h3 style={{ fontWeight: 700, fontSize: "1.25rem", color: "#F5F0E8" }}>{plan.name}</h3>
                   <p className="text-sm mt-1" style={{ color: "rgba(245,240,232,0.75)" }}>{plan.description}</p>
                 </div>
 
                 <div className="mb-6">
                   <div className="flex items-end gap-1">
-                    <span style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: "2.5rem", color: "#F5F0E8", lineHeight: 1 }}>
+                    <span style={{ fontWeight: 800, fontSize: "2.5rem", color: "#F5F0E8", lineHeight: 1 }}>
                       ${annual ? plan.price.annual : plan.price.monthly}
                     </span>
                     <span className="mb-1 text-sm" style={{ color: "rgba(245,240,232,0.65)" }}>/mo</span>
@@ -263,7 +263,7 @@ export default function Pricing() {
         <div className="container max-w-4xl mx-auto px-4">
           <div className="text-center mb-12">
             <div className="section-label mb-3">Full Comparison</div>
-            <h2 style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
               What's included in each plan
             </h2>
           </div>
@@ -327,7 +327,7 @@ export default function Pricing() {
               <Shield className="w-8 h-8" style={{ color: "#D4922A" }} />
             </div>
             <div className="text-center sm:text-left">
-              <h3 style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: "1.125rem", color: "#F5F0E8" }}>30-Day Money-Back Guarantee</h3>
+              <h3 style={{ fontWeight: 700, fontSize: "1.125rem", color: "#F5F0E8" }}>30-Day Money-Back Guarantee</h3>
               <p className="mt-1 text-sm" style={{ color: "rgba(245,240,232,0.80)" }}>Try TrueAxis HQ risk-free for 30 days. If you’re not completely satisfied, we’ll refund every cent — no questions asked, no hoops to jump through.</p>
             </div>
           </div>
@@ -339,7 +339,7 @@ export default function Pricing() {
         <div className="container max-w-2xl mx-auto">
           <div className="text-center mb-12">
             <div className="section-label mb-3">FAQ</div>
-            <h2 style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
               Common questions
             </h2>
           </div>
@@ -370,7 +370,7 @@ export default function Pricing() {
         <div className="absolute inset-0 retro-grid opacity-25 pointer-events-none" />
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 70% at 50% 50%, rgba(232,160,32,0.06) 0%, transparent 70%)" }} />
         <div className="container relative z-10">
-          <h2 style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
             Start your free trial today.
           </h2>
           <p className="mt-3 mb-8" style={{ color: "rgba(245,240,232,0.80)" }}>14 days free. No credit card. Cancel anytime.</p>

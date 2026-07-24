@@ -98,7 +98,7 @@ export default function Register() {
           <div>
             <h2
               className="text-4xl font-extrabold leading-tight mb-4"
-              style={{ fontFamily: "Inter, sans-serif", color: "#F5F0E8" }}
+              style={{ color: "#F5F0E8" }}
             >
               Start your free<br />
               <span style={{ color: "#D4922A" }}>14-day trial.</span>
@@ -136,7 +136,7 @@ export default function Register() {
                 className="rounded-xl p-4 text-center"
                 style={{ background: "rgba(232,160,32,0.06)", border: "1px solid rgba(232,160,32,0.12)" }}
               >
-                <p className="text-lg font-extrabold mb-0.5" style={{ color: "#D4922A", fontFamily: "Inter, sans-serif" }}>
+                <p className="text-lg font-extrabold mb-0.5" style={{ color: "#D4922A" }}>
                   {value}
                 </p>
                 <p className="text-xs" style={{ color: "rgba(245,240,232,0.70)" }}>{label}</p>
@@ -167,7 +167,7 @@ export default function Register() {
           <div className="mb-8">
             <h1
               className="mb-2"
-              style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: "1.75rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.75rem", color: "#F5F0E8" }}
             >
               Create your account
             </h1>
@@ -307,9 +307,7 @@ export default function Register() {
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-2"
               style={{
                 background: "linear-gradient(135deg, #D4922A, #F5C842)",
-                color: "#161B22",
-                fontFamily: "Inter, sans-serif",
-                fontSize: "0.9375rem",
+                color: "#161B22", fontSize: "0.9375rem",
                 border: "none",
                 cursor: isSubmitDisabled ? "not-allowed" : "pointer",
               }}

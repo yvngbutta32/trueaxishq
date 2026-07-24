@@ -68,7 +68,7 @@ export default function Login() {
           <div>
             <h2
               className="text-4xl font-extrabold leading-tight mb-4"
-              style={{ fontFamily: "Inter, sans-serif", color: "#F5F0E8" }}
+              style={{ color: "#F5F0E8" }}
             >
               Your business,<br />
               <span style={{ color: "#D4922A" }}>running itself.</span>
@@ -139,7 +139,7 @@ export default function Login() {
           <div className="mb-8">
             <h1
               className="mb-2"
-              style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: "1.75rem", color: "#F5F0E8" }}
+              style={{ fontWeight: 700, fontSize: "1.75rem", color: "#F5F0E8" }}
             >
               Welcome back
             </h1>
@@ -220,9 +220,7 @@ export default function Login() {
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               style={{
                 background: "linear-gradient(135deg, #D4922A, #F5C842)",
-                color: "#161B22",
-                fontFamily: "Inter, sans-serif",
-                fontSize: "0.9375rem",
+                color: "#161B22", fontSize: "0.9375rem",
                 border: "none",
                 cursor: loginMutation.isPending ? "not-allowed" : "pointer",
               }}

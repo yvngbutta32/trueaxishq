@@ -24,7 +24,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
           <Icon className="w-5 h-5 text-white" />
         </div>
       </div>
-      <p className="text-3xl font-extrabold text-[#F5EFE3]" style={{  }}>{value}</p>
+      <p className="text-3xl font-extrabold text-[#F5EFE3]">{value}</p>
       <p className="text-sm font-semibold text-[rgba(245,239,227,0.70)] mt-1">{label}</p>
       {sub && <p className="text-xs text-[rgba(245,239,227,0.60)] mt-0.5">{sub}</p>}
     </article>
@@ -282,7 +282,7 @@ export default function Admin() {
           <div className="hidden sm:block w-px h-6 bg-[#161B22]/10" />
           <div className="hidden sm:flex items-center gap-1.5">
             <Crown className="w-3.5 h-3.5 text-[#D4922A]" />
-            <span className="text-sm font-semibold text-gray-300" style={{  }}>Admin Panel</span>
+            <span className="text-sm font-semibold text-gray-300">Admin Panel</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -324,7 +324,7 @@ export default function Admin() {
         {activeTab === "overview" && (
           <section aria-label="Revenue overview">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-[#F5EFE3]" style={{  }}>Revenue Overview</h2>
+              <h2 className="text-xl font-bold text-[#F5EFE3]">Revenue Overview</h2>
               <Button variant="outline" size="sm" onClick={() => statsQuery.refetch()} disabled={statsQuery.isFetching}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${statsQuery.isFetching ? "animate-spin" : ""}`} />
                 Refresh
@@ -376,7 +376,7 @@ export default function Admin() {
         {activeTab === "users" && (
           <section aria-label="User management">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-[#F5EFE3]" style={{  }}>User Management</h2>
+              <h2 className="text-xl font-bold text-[#F5EFE3]">User Management</h2>
               <p className="text-sm text-[rgba(245,239,227,0.60)]">{usersQuery.data?.total ?? 0} total users</p>
             </div>
 
@@ -548,7 +548,7 @@ export default function Admin() {
           <section aria-label="Leads management">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-[#F5EFE3]" style={{  }}>Email Leads</h2>
+                <h2 className="text-xl font-bold text-[#F5EFE3]">Email Leads</h2>
                 <p className="text-sm text-[rgba(245,239,227,0.60)] mt-0.5">{leadsQuery.data?.total ?? 0} leads captured from the landing page</p>
               </div>
               <Button
@@ -605,7 +605,7 @@ export default function Admin() {
         {/* ── Broadcast Tab ─────────────────────────────────────────────── */}
         {activeTab === "broadcast" && (
           <section aria-label="Broadcast notification">
-            <h2 className="text-xl font-bold text-[#F5EFE3] mb-2" style={{  }}>Send Broadcast</h2>
+            <h2 className="text-xl font-bold text-[#F5EFE3] mb-2">Send Broadcast</h2>
             <p className="text-sm text-[rgba(245,239,227,0.60)] mb-6">Send an owner notification — useful for tracking important events or reminders.</p>
             <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm max-w-xl">
               <form onSubmit={e => { e.preventDefault(); if (!broadcastTitle.trim() || !broadcastContent.trim()) { toast.error("Please fill in both fields"); return; } broadcastMutation.mutate({ title: broadcastTitle, content: broadcastContent }); }} noValidate>
@@ -635,7 +635,7 @@ export default function Admin() {
           <section aria-label="Site settings">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-[#F5EFE3]" style={{  }}>Site Settings</h2>
+                <h2 className="text-xl font-bold text-[#F5EFE3]">Site Settings</h2>
                 <p className="text-sm text-[rgba(245,239,227,0.60)] mt-0.5">Control every aspect of the platform from here</p>
               </div>
               {settingsDirty && (
@@ -902,7 +902,7 @@ export default function Admin() {
           <section aria-label="System health">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-[#F5EFE3]" style={{  }}>System Health</h2>
+                <h2 className="text-xl font-bold text-[#F5EFE3]">System Health</h2>
                 <p className="text-sm text-[rgba(245,239,227,0.60)] mt-0.5">Live platform diagnostics — auto-refreshes every 30 seconds</p>
               </div>
               <Button variant="outline" size="sm" onClick={() => healthQuery.refetch()} disabled={healthQuery.isFetching}>
@@ -974,7 +974,7 @@ export default function Admin() {
                       { label: "Checked At", value: new Date(health.checkedAt).toLocaleTimeString(), sub: "Last check" },
                     ].map(({ label, value, sub }) => (
                       <div key={label} className="text-center p-4 bg-[#1C2333] rounded-xl">
-                        <p className="text-2xl font-extrabold text-[#F5EFE3]" style={{  }}>{value}</p>
+                        <p className="text-2xl font-extrabold text-[#F5EFE3]">{value}</p>
                         <p className="text-xs font-semibold text-[rgba(245,239,227,0.70)] mt-1">{label}</p>
                         <p className="text-xs text-[rgba(245,239,227,0.60)] mt-0.5">{sub}</p>
                       </div>

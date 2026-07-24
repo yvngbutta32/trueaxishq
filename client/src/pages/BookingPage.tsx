@@ -260,7 +260,7 @@ export default function BookingPage() {
                 <CheckCircle className="w-10 h-10 text-[#D4922A]" />
               </div>
             </div>
-            <h1 className="text-3xl font-extrabold text-white mb-2" style={{ fontFamily: "Inter, sans-serif" }}>
+            <h1 className="text-3xl font-extrabold text-white mb-2">
               You're Booked!
             </h1>
             <p className="text-gray-300 text-sm max-w-sm mx-auto">
@@ -382,7 +382,7 @@ export default function BookingPage() {
           <div className="w-px h-5 bg-white/15 flex-shrink-0" aria-hidden="true" />
           <div>
             <p className="text-xs text-gray-400">Booking with</p>
-            <h1 className="text-sm font-bold text-white" style={{ fontFamily: "Inter, sans-serif" }}>
+            <h1 className="text-sm font-bold text-white">
               {host.name}
             </h1>
           </div>
@@ -441,7 +441,7 @@ export default function BookingPage() {
         {/* Step 1: Details */}
         {step === "details" && (
           <section aria-label="Your contact details">
-            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Inter, sans-serif" }}>
+            <h2 className="text-xl font-bold text-white mb-1">
               Tell us about yourself
             </h2>
             <p className="text-sm text-gray-400 mb-6">We'll share this with {host.name} to prepare for your session.</p>
@@ -556,7 +556,7 @@ export default function BookingPage() {
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
             </button>
 
-            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Inter, sans-serif" }}>
+            <h2 className="text-xl font-bold text-white mb-1">
               Choose a date & time
             </h2>
             <p className="text-sm text-gray-600 mb-6">All times are shown in your local timezone.</p>
@@ -643,7 +643,7 @@ export default function BookingPage() {
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
             </button>
 
-            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "Inter, sans-serif" }}>
+            <h2 className="text-xl font-bold text-white mb-1">
               Confirm your booking
             </h2>
             <p className="text-sm text-gray-400 mb-6">Please review the details below before submitting.</p>

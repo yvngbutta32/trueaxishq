@@ -134,7 +134,7 @@ export default function Privacy() {
           </div>
           <span className="text-xs font-semibold text-[#D4922A] uppercase tracking-wider">Legal</span>
         </div>
-        <h1 className="text-4xl sm:text-5xl font-extrabold mb-3" style={{  }}>Privacy Policy</h1>
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-3">Privacy Policy</h1>
         <p className="text-sm text-gray-400 mb-12">Last updated: {LAST_UPDATED}</p>
 
         <p className="text-gray-300 leading-relaxed mb-10 text-base">
@@ -144,7 +144,7 @@ export default function Privacy() {
         <div className="space-y-10">
           {sections.map(({ title, content }) => (
             <section key={title}>
-              <h2 className="text-xl font-bold mb-4 text-white" style={{  }}>{title}</h2>
+              <h2 className="text-xl font-bold mb-4 text-white">{title}</h2>
               <div className="text-gray-300 text-sm leading-relaxed space-y-3">
                 {content.split("\n\n").map((para, i) => (
                   <p key={i} dangerouslySetInnerHTML={{

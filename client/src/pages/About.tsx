@@ -44,7 +44,7 @@ export default function About() {
             <Heart className="w-3 h-3" />
             Built for Freelancers, by People Who Get It
           </div>
-          <h1 style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", letterSpacing: "-0.03em", color: "#F5F0E8", lineHeight: 1.1 }}>
+          <h1 style={{ fontWeight: 800, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", letterSpacing: "-0.03em", color: "#F5F0E8", lineHeight: 1.1 }}>
             We built the platform<br />
             <span style={{ color: "#D4922A" }}>we always needed.</span>
           </h1>
@@ -66,7 +66,7 @@ export default function About() {
               <div className="w-10 h-10 rounded flex items-center justify-center mb-4" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.18)" }}>
                 <Icon className="w-5 h-5" style={{ color: "#D4922A" }} />
               </div>
-              <h2 style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: "1.0625rem", color: "#F5F0E8", marginBottom: "0.5rem" }}>{title}</h2>
+              <h2 style={{ fontWeight: 700, fontSize: "1.0625rem", color: "#F5F0E8", marginBottom: "0.5rem" }}>{title}</h2>
               <p className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.80)" }}>{body}</p>
             </div>
           ))}
@@ -77,7 +77,7 @@ export default function About() {
       <section className="py-14 px-4" style={{ background: "#161B22" }}>
         <div className="container max-w-3xl mx-auto">
           <div className="section-label mb-3 text-center">The Story</div>
-          <h2 style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em", textAlign: "center", marginBottom: "2rem" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em", textAlign: "center", marginBottom: "2rem" }}>
             Why TrueAxis HQ exists
           </h2>
           <div className="space-y-5 text-base leading-relaxed" style={{ color: "rgba(245,240,232,0.85)" }}>
@@ -111,7 +111,7 @@ export default function About() {
       <section className="py-14 px-4" style={{ background: "#161B22" }}>
         <div className="container max-w-3xl mx-auto">
           <div className="section-label mb-3 text-center">Our Principles</div>
-          <h2 style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em", textAlign: "center", marginBottom: "2rem" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em", textAlign: "center", marginBottom: "2rem" }}>
             What we believe
           </h2>
           <ul className="space-y-3">
@@ -135,7 +135,7 @@ export default function About() {
       <section className="py-14 px-4 text-center relative overflow-hidden" style={{ background: "#0D1117" }}>
         <div className="absolute inset-0 retro-grid opacity-25 pointer-events-none" />
         <div className="container relative z-10 max-w-xl mx-auto">
-          <h2 style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#F5F0E8", letterSpacing: "-0.025em" }}>
             Ready to join us?
           </h2>
           <p className="mt-3 mb-8" style={{ color: "rgba(245,240,232,0.80)" }}>Start your free 14-day trial. No credit card required.</p>

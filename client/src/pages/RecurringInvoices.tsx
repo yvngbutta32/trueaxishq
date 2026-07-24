@@ -104,7 +104,7 @@ export default function RecurringInvoicesPanel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-[#0D1117]" style={{  }}>Recurring Invoices</h2>
+          <h2 className="text-xl font-bold text-[#0D1117]">Recurring Invoices</h2>
           <p className="text-sm text-gray-500 mt-0.5">Automate your regular billing — invoices are generated automatically</p>
         </div>
         <Button

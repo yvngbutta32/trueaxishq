@@ -8,7 +8,7 @@ export default function NotFound() {
   useEffect(() => { document.title = "Page Not Found — TrueAxis HQ"; }, []);
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#F8F7F4]" style={{  }}>
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#F8F7F4]">
       <div className="text-center px-6 max-w-md">
         {/* Big 404 */}
         <div className="text-[120px] font-extrabold leading-none text-[#0D1117] opacity-10 select-none mb-2">404</div>

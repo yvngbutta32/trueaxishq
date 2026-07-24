@@ -159,7 +159,7 @@ export default function Help() {
 
       {/* Hero */}
       <section className="py-10 sm:py-14 px-4 text-center bg-gradient-to-b from-[#1A2E2A] to-[#0D1117]">
-        <h1 className="text-4xl sm:text-5xl font-extrabold mb-4" style={{  }}>Help Center</h1>
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-4">Help Center</h1>
         <p className="text-gray-300 mb-8 max-w-lg mx-auto">Find answers to common questions, or contact our support team.</p>
         <div className="relative max-w-lg mx-auto">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -204,7 +204,7 @@ export default function Help() {
                 <div className="w-9 h-9 rounded-xl bg-[#D4922A]/15 flex items-center justify-center">
                   <cat.icon className="w-4 h-4 text-[#D4922A]" />
                 </div>
-                <h2 className="text-lg font-bold" style={{  }}>{cat.title}</h2>
+                <h2 className="text-lg font-bold">{cat.title}</h2>
               </div>
               <div className="space-y-2">
                 {cat.articles.map(a => <ArticleAccordion key={a.q} {...a} />)}
@@ -220,7 +220,7 @@ export default function Help() {
 
         {/* Contact support */}
         <section className="bg-white/5 border border-white/10 rounded-xl p-8 text-center">
-          <h2 className="text-xl font-bold mb-2" style={{  }}>Still need help?</h2>
+          <h2 className="text-xl font-bold mb-2">Still need help?</h2>
           <p className="text-gray-400 text-sm mb-6">Our support team typically responds within 4 business hours.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a

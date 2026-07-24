@@ -100,7 +100,7 @@ function Modal({ open, onClose, title, children, wide }: {
         className={`relative bg-[#161B22] rounded-xl shadow-2xl w-full ${wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto outline-none`}
       >
         <div className="flex items-center justify-between p-5 border-b border-white/8">
-          <h2 className="font-bold text-[#F5EFE3] text-base" style={{ fontFamily: "Inter, sans-serif" }}>{title}</h2>
+          <h2 className="font-bold text-[#F5EFE3] text-base">{title}</h2>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-[#243040] transition-colors" aria-label="Close dialog">
             <X className="w-4 h-4 text-[rgba(245,239,227,0.55)]" />
           </button>
@@ -375,7 +375,7 @@ function ChangelogModal() {
       <div className="relative bg-[#161B22] rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b border-white/8">
           <div>
-            <h2 className="font-extrabold text-[#F5EFE3] text-base" style={{ fontFamily: "Inter, sans-serif" }}>What's New in v{CHANGELOG_VERSION} 🎉</h2>
+            <h2 className="font-extrabold text-[#F5EFE3] text-base">What's New in v{CHANGELOG_VERSION} 🎉</h2>
             <p className="text-xs text-[rgba(245,239,227,0.55)] mt-0.5">TrueAxis HQ — Latest Updates</p>
           </div>
           <button onClick={dismiss} className="p-2 rounded-lg hover:bg-[#243040] transition-colors" aria-label="Close">
@@ -452,7 +452,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
     <div className="space-y-6">
       <ChangelogModal />
       <div>
-        <h1 className="text-2xl font-extrabold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>
+        <h1 className="text-2xl font-extrabold text-[#F5EFE3]">
           {getGreeting()}, {userName || "there"} 👋
         </h1>
         <p className="text-sm text-[rgba(245,239,227,0.55)] mt-1">Here's what's happening with your business today.</p>
@@ -509,7 +509,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               </div>
               <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[rgba(245,239,227,0.45)]" aria-hidden="true" />
             </div>
-            <p className="text-xl sm:text-2xl font-extrabold text-[#F5EFE3] leading-tight" style={{ fontFamily: "Inter, sans-serif" }}>{s.value}</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-[#F5EFE3] leading-tight">{s.value}</p>
             <p className="text-[11px] sm:text-xs text-[rgba(245,239,227,0.55)] mt-0.5 leading-snug">{s.label}</p>
             <p className="text-[11px] sm:text-xs font-medium mt-1" style={{ color: s.color }}>{s.change}</p>
           </div>
@@ -544,7 +544,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       {/* Charts */}
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-[#161B22] rounded-xl p-5 border border-white/8">
-          <h3 className="font-bold text-[#F5EFE3] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Revenue (Last 6 Months)</h3>
+          <h3 className="font-bold text-[#F5EFE3] text-sm mb-4">Revenue (Last 6 Months)</h3>
           {monthlyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={monthlyData}>
@@ -570,7 +570,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
         </div>
 
         <div className="bg-[#161B22] rounded-xl p-5 border border-white/8">
-          <h3 className="font-bold text-[#F5EFE3] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Client Growth</h3>
+          <h3 className="font-bold text-[#F5EFE3] text-sm mb-4">Client Growth</h3>
           {clientGrowthData.some(d => d.count > 0) ? (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={clientGrowthData}>
@@ -605,7 +605,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <HeartPulse className="w-4 h-4 text-[#D4922A]" />
-                <h3 className="font-bold text-sm text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>Client Pulse</h3>
+                <h3 className="font-bold text-sm text-[#F5EFE3]">Client Pulse</h3>
                 <span className="text-xs bg-[#D4922A]/10 text-[#D4922A] font-semibold px-2 py-0.5 rounded-full">AI</span>
               </div>
               <button onClick={() => setActivePanel("pulse")} className="text-xs text-[#D4922A] hover:underline font-medium flex items-center gap-1">
@@ -614,19 +614,19 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="text-center p-3 bg-[#1C2333] rounded-xl">
-                <p className="text-2xl font-extrabold" style={{ fontFamily: "Inter, sans-serif", color: avgScore !== null ? (avgScore >= 70 ? "#D4922A" : avgScore >= 40 ? "#F59E0B" : "#FF6B6B") : "#9CA3AF" }}>{avgScore ?? "—"}</p>
+                <p className="text-2xl font-extrabold" style={{ color: avgScore !== null ? (avgScore >= 70 ? "#D4922A" : avgScore >= 40 ? "#F59E0B" : "#FF6B6B") : "#9CA3AF" }}>{avgScore ?? "—"}</p>
                 <p className="text-xs text-[rgba(245,239,227,0.55)] mt-0.5">Avg Health</p>
               </div>
               <div className="text-center p-3 bg-red-500/10 rounded-xl">
-                <p className="text-2xl font-extrabold text-[#FF6B6B]" style={{ fontFamily: "Inter, sans-serif" }}>{churnRisk}</p>
+                <p className="text-2xl font-extrabold text-[#FF6B6B]">{churnRisk}</p>
                 <p className="text-xs text-[rgba(245,239,227,0.55)] mt-0.5">Churn Risk</p>
               </div>
               <div className="text-center p-3 bg-yellow-50 rounded-xl">
-                <p className="text-2xl font-extrabold text-yellow-600" style={{ fontFamily: "Inter, sans-serif" }}>{goingSilent}</p>
+                <p className="text-2xl font-extrabold text-yellow-600">{goingSilent}</p>
                 <p className="text-xs text-[rgba(245,239,227,0.55)] mt-0.5">Going Silent</p>
               </div>
               <div className="text-center p-3 bg-[#D4922A]/10 rounded-xl">
-                <p className="text-2xl font-extrabold text-[#D4922A]" style={{ fontFamily: "Inter, sans-serif" }}>{upsellReady}</p>
+                <p className="text-2xl font-extrabold text-[#D4922A]">{upsellReady}</p>
                 <p className="text-xs text-[rgba(245,239,227,0.55)] mt-0.5">Upsell Ready</p>
               </div>
             </div>
@@ -646,7 +646,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-[#161B22] rounded-xl border border-white/8 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
-            <h3 className="font-bold text-sm text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>Recent Clients</h3>
+            <h3 className="font-bold text-sm text-[#F5EFE3]">Recent Clients</h3>
             <span className="text-xs text-[#D4922A] font-medium">{recentClients?.length || 0} total</span>
           </div>
           {!recentClients || recentClients.length === 0 ? (
@@ -672,7 +672,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
 
         <div className="bg-[#161B22] rounded-xl border border-white/8 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
-            <h3 className="font-bold text-sm text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>Upcoming Sessions</h3>
+            <h3 className="font-bold text-sm text-[#F5EFE3]">Upcoming Sessions</h3>
             <span className="text-xs text-[#D4922A] font-medium">{recentBookings?.length || 0} scheduled</span>
           </div>
           {!recentBookings || recentBookings.length === 0 ? (
@@ -942,7 +942,7 @@ function ClientsPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>Clients</h2>
+          <h2 className="text-xl font-extrabold text-[#F5EFE3]">Clients</h2>
           <p className="text-sm text-[rgba(245,239,227,0.55)]">{clientList?.length || 0} clients in your roster</p>
         </div>
         <div className="flex gap-2">
@@ -1398,7 +1398,7 @@ function SchedulingPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>Scheduling</h2>
+          <h2 className="text-xl font-extrabold text-[#F5EFE3]">Scheduling</h2>
           <p className="text-sm text-[rgba(245,239,227,0.55)]">{bookingList?.filter(b => b.status === "scheduled").length || 0} upcoming sessions</p>
         </div>
         <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
@@ -1763,7 +1763,7 @@ function InvoicesPanel() {
       {/* Panel header with top-level tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>Invoices</h2>
+          <h2 className="text-xl font-extrabold text-[#F5EFE3]">Invoices</h2>
           <p className="text-sm text-[rgba(245,239,227,0.55)]">
             {invTab === "invoices" ? `${invoiceList?.length || 0} total invoices` : `${schedules?.length || 0} schedules · ${formatCurrency(estMonthlyRevenue)}/mo est.`}
           </p>
@@ -1985,7 +1985,7 @@ function InvoicesPanel() {
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-xl p-3 sm:p-4`}>
             <p className="text-[11px] sm:text-xs font-semibold mb-1" style={{ color: s.color }}>{s.label}</p>
-            <p className="text-lg sm:text-xl font-extrabold text-[#F5EFE3] leading-tight" style={{ fontFamily: "Inter, sans-serif" }}>{s.value}</p>
+            <p className="text-lg sm:text-xl font-extrabold text-[#F5EFE3] leading-tight">{s.value}</p>
           </div>
         ))}
       </div>
@@ -2291,7 +2291,7 @@ function InvoicesPanel() {
             <div className="flex items-start justify-between mb-5">
               <div>
                 <p className="text-[11px] font-bold tracking-widest text-[rgba(245,239,227,0.40)] uppercase mb-1">Invoice</p>
-                <p className="text-3xl font-extrabold text-[#D4922A] tracking-tight" style={{ fontFamily: "Inter, sans-serif" }}>
+                <p className="text-3xl font-extrabold text-[#D4922A] tracking-tight">
                   {previewInvoice.invoiceNumber || `#${previewInvoice.id}`}
                 </p>
               </div>
@@ -2349,7 +2349,7 @@ function InvoicesPanel() {
                   )}
                   <div className="grid grid-cols-[1fr_auto] bg-amber-500/10 border-t border-white/10">
                     <div className="px-4 py-3 text-xs font-bold text-[rgba(245,239,227,0.45)] uppercase tracking-wide">Total Due</div>
-                    <div className="px-4 py-3 text-xl font-extrabold text-[#D4922A] text-right" style={{ fontFamily: "Inter, sans-serif" }}>{formatCurrency(previewInvoice.amount)}</div>
+                    <div className="px-4 py-3 text-xl font-extrabold text-[#D4922A] text-right">{formatCurrency(previewInvoice.amount)}</div>
                   </div>
                 </div>
                 </div>
@@ -2455,7 +2455,7 @@ function FollowUpsPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>AI Follow-Ups</h2>
+          <h2 className="text-xl font-extrabold text-[#F5EFE3]">AI Follow-Ups</h2>
           <p className="text-sm text-[rgba(245,239,227,0.55)]">Let AI write personalized follow-up emails for your clients</p>
         </div>
         {fuTab === "emails" ? (
@@ -2764,7 +2764,7 @@ function AnalyticsPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-extrabold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>Analytics</h2>
+        <h2 className="text-xl font-extrabold text-[#F5EFE3]">Analytics</h2>
         <p className="text-sm text-[rgba(245,239,227,0.55)]">Your business performance at a glance</p>
       </div>
 
@@ -2774,7 +2774,7 @@ function AnalyticsPanel() {
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white mb-3" style={{ backgroundColor: s.color }}>
               <s.icon className="w-4 h-4" />
             </div>
-            <p className="text-xl font-extrabold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>{s.value}</p>
+            <p className="text-xl font-extrabold text-[#F5EFE3]">{s.value}</p>
             <p className="text-xs text-[rgba(245,239,227,0.55)] mt-0.5">{s.label}</p>
           </div>
         ))}
@@ -2782,7 +2782,7 @@ function AnalyticsPanel() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-[#161B22] rounded-xl p-5 border border-white/8">
-          <h3 className="font-bold text-[#F5EFE3] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Revenue Trend</h3>
+          <h3 className="font-bold text-[#F5EFE3] text-sm mb-4">Revenue Trend</h3>
           {analytics?.monthlyRevenue?.some(d => d.revenue > 0) ? (
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={analytics.monthlyRevenue}>
@@ -2808,7 +2808,7 @@ function AnalyticsPanel() {
         </div>
 
         <div className="bg-[#161B22] rounded-xl p-5 border border-white/8">
-          <h3 className="font-bold text-[#F5EFE3] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Client Breakdown</h3>
+          <h3 className="font-bold text-[#F5EFE3] text-sm mb-4">Client Breakdown</h3>
           {pieData.length > 0 ? (
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <div className="w-36 h-36 flex-shrink-0 mx-auto sm:mx-0">
@@ -2840,7 +2840,7 @@ function AnalyticsPanel() {
 
         {topServices.length > 0 && (
           <div className="bg-[#161B22] rounded-xl p-5 border border-white/8 lg:col-span-2">
-            <h3 className="font-bold text-[#F5EFE3] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Top Services by Revenue</h3>
+            <h3 className="font-bold text-[#F5EFE3] text-sm mb-4">Top Services by Revenue</h3>
             <div className="space-y-3">
               {topServices.slice(0, 5).map((s: any, i: number) => (
                 <div key={i} className="flex items-center gap-3">
@@ -2864,7 +2864,7 @@ function AnalyticsPanel() {
         {analytics?.forecast && analytics.forecast.some(d => d.revenue > 0) && (
           <div className="bg-[#161B22] rounded-xl p-5 border border-white/8 lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-[#F5EFE3] text-sm" style={{ fontFamily: "Inter, sans-serif" }}>Revenue Forecast (90-Day)</h3>
+              <h3 className="font-bold text-[#F5EFE3] text-sm">Revenue Forecast (90-Day)</h3>
               <div className="flex items-center gap-4 text-xs text-[rgba(245,239,227,0.55)]">
                 <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-[#D4922A] inline-block" />Actual</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-[#D4922A] opacity-40 inline-block border-dashed border-t border-[#D4922A]" />Projected</span>
@@ -2891,7 +2891,7 @@ function AnalyticsPanel() {
         {/* Client LTV */}
         {analytics?.clientLTV && analytics.clientLTV.length > 0 && (
           <div className="bg-[#161B22] rounded-xl p-5 border border-white/8">
-            <h3 className="font-bold text-[#F5EFE3] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Top Clients by LTV</h3>
+            <h3 className="font-bold text-[#F5EFE3] text-sm mb-4">Top Clients by LTV</h3>
             <div className="space-y-3">
               {analytics.clientLTV.slice(0, 6).map((c: any, i: number) => (
                 <div key={c.clientId} className="flex items-center gap-3">
@@ -2915,7 +2915,7 @@ function AnalyticsPanel() {
         {/* Referral Sources */}
         {analytics?.referralSources && analytics.referralSources.length > 0 && (
           <div className="bg-[#161B22] rounded-xl p-5 border border-white/8">
-            <h3 className="font-bold text-[#F5EFE3] text-sm mb-4" style={{ fontFamily: "Inter, sans-serif" }}>Lead Sources</h3>
+            <h3 className="font-bold text-[#F5EFE3] text-sm mb-4">Lead Sources</h3>
             <div className="space-y-3">
               {analytics.referralSources.slice(0, 6).map((s: any, i: number) => {
                 const total = analytics.referralSources.reduce((sum: number, r: any) => sum + r.count, 0);
@@ -3056,7 +3056,7 @@ function BillingSection() {
                 <div className={`w-8 h-8 rounded-lg ${color} flex items-center justify-center mb-3`}>
                   <Icon className="w-4 h-4 text-white" />
                 </div>
-                <p className="text-sm font-extrabold text-[#F5EFE3] mb-0.5" style={{ fontFamily: "Inter, sans-serif" }}>{plan.name}</p>
+                <p className="text-sm font-extrabold text-[#F5EFE3] mb-0.5">{plan.name}</p>
                 <p className="text-[11px] text-[rgba(245,239,227,0.45)] mb-3 leading-snug">{plan.description}</p>
                 <div className="mb-3">
                   <span className="text-xl font-extrabold text-[#F5EFE3]">${price}</span>
@@ -3420,7 +3420,7 @@ function SettingsPanel() {
   return (
     <div className="space-y-6 max-w-2xl w-full">
       <div>
-        <h2 className="text-xl font-extrabold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>Settings</h2>
+        <h2 className="text-xl font-extrabold text-[#F5EFE3]">Settings</h2>
         <p className="text-sm text-[rgba(245,239,227,0.55)]">Manage your profile, business info, and preferences</p>
       </div>
 
@@ -3979,7 +3979,7 @@ This agreement is governed by the laws of [State/Country].`,
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>Contracts & Proposals</h2>
+          <h2 className="text-xl font-bold text-[#F5EFE3]">Contracts & Proposals</h2>
           <p className="text-sm text-[rgba(245,239,227,0.55)] mt-0.5">Create, send, and track contracts and proposals</p>
         </div>
         <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); }} className="bg-[#D4922A] hover:bg-[#D4911A] text-white gap-2">
@@ -4119,12 +4119,12 @@ This agreement is governed by the laws of [State/Country].`,
                   previewContract.status === "declined" ? "bg-red-500/15 text-red-400" :
                   "bg-[#243040] text-[rgba(245,239,227,0.55)]"
                 }`}>{previewContract.status}</span>
-                <h2 className="text-xl font-extrabold text-[#F5EFE3] mt-2 tracking-tight" style={{ fontFamily: "Inter, sans-serif" }}>{previewContract.title}</h2>
+                <h2 className="text-xl font-extrabold text-[#F5EFE3] mt-2 tracking-tight">{previewContract.title}</h2>
               </div>
               {previewContract.proposalAmount && (
                 <div className="text-right">
                   <p className="text-[10px] text-[rgba(245,239,227,0.40)] uppercase tracking-wide">Value</p>
-                  <p className="text-xl font-extrabold text-[#D4922A]" style={{ fontFamily: "Inter, sans-serif" }}>{formatCurrency(previewContract.proposalAmount)}</p>
+                  <p className="text-xl font-extrabold text-[#D4922A]">{formatCurrency(previewContract.proposalAmount)}</p>
                 </div>
               )}
             </div>
@@ -4238,7 +4238,7 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>Smart Inbox</h2>
+          <h2 className="text-xl font-bold text-[#F5EFE3]">Smart Inbox</h2>
           <p className="text-sm text-[rgba(245,239,227,0.45)] mt-0.5">
             {unreadCount > 0 ? `${unreadCount} unread item${unreadCount !== 1 ? "s" : ""}` : "All caught up"}
           </p>
@@ -4340,7 +4340,7 @@ function TestimonialsPanel() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>Testimonials</h2>
+          <h2 className="text-xl font-bold text-[#F5EFE3]">Testimonials</h2>
           <p className="text-sm text-[rgba(245,239,227,0.45)] mt-0.5">Request, review, and publish client testimonials</p>
         </div>
       </div>
@@ -4640,10 +4640,11 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
         className="w-full"
         aria-label="Mobile navigation"
         style={{
-          background: "rgba(28, 28, 30, 0.97)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderTop: "1px solid rgba(255,255,255,0.08)",
+          background: "rgba(22,27,34,0.98)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          borderTop: "1px solid rgba(255,255,255,0.07)",
+          boxShadow: "0 -2px 16px rgba(0,0,0,0.30)",
           paddingBottom: "max(env(safe-area-inset-bottom, 0px), 10px)",
           paddingLeft:  "max(env(safe-area-inset-left,   0px), 0px)",
           paddingRight: "max(env(safe-area-inset-right,  0px), 0px)",
@@ -4873,7 +4874,7 @@ export default function Dashboard() {
           <div className="w-16 h-16 rounded-full gradient-amber flex items-center justify-center shadow-lg">
             <span className="text-3xl">✨</span>
           </div>
-          <h2 className="text-xl font-bold text-[#F5EFE3]" style={{ fontFamily: 'Inter, sans-serif' }}>AI Assistant</h2>
+          <h2 className="text-xl font-bold text-[#F5EFE3]">AI Assistant</h2>
           <p className="text-[rgba(245,239,227,0.55)] text-sm max-w-xs">
             Your AI assistant is floating on screen — drag it anywhere and chat while you work.
           </p>
@@ -4939,7 +4940,7 @@ export default function Dashboard() {
                   className="h-7 w-auto object-contain"
                 />
               </button>
-              <span className="text-sm font-bold text-[#F5EFE3]" style={{ fontFamily: "Inter, sans-serif" }}>
+              <span className="text-sm font-bold text-[#F5EFE3]">
                 {panelTitles[active]}
               </span>
             </div>

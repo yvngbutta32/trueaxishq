@@ -99,7 +99,7 @@ export default function Billing() {
       <main id="main-content" className="max-w-4xl mx-auto px-4 pt-10 pb-12 page-bottom">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-extrabold text-white mb-1" style={{  }}>
+          <h1 className="text-2xl font-extrabold text-white mb-1">
             Billing & Subscription
           </h1>
           <p className="text-gray-600 text-sm">Manage your plan, upgrade, or access your billing history.</p>
@@ -120,7 +120,7 @@ export default function Billing() {
                 );
               })()}
               <div>
-                <p className="text-lg font-extrabold text-white capitalize" style={{  }}>
+                <p className="text-lg font-extrabold text-white capitalize">
                   {currentPlan === "free" ? "Free Plan" : `${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan`}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -228,7 +228,7 @@ export default function Billing() {
                       <Icon className="w-5 h-5 text-white" />
                     </div>
 
-                    <h3 className="text-lg font-extrabold text-white mb-1" style={{  }}>
+                    <h3 className="text-lg font-extrabold text-white mb-1">
                       {plan.name}
                     </h3>
                     <p className="text-xs text-gray-600 mb-4">{plan.description}</p>
