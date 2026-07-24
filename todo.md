@@ -1210,9 +1210,9 @@
 - [x] Update OverviewPanel quick-action cards to point to new panels
 
 ## Final Hardening & Remaining Features
-- [ ] Add 3 built-in automation templates (Welcome, Overdue reminder, Re-engagement)
+- [x] Add 3 built-in automation templates (Welcome, Overdue reminder, Re-engagement)
 - [x] Add P&L summary card to OverviewPanel
 - [x] Build public proposal signing page (/proposal/:token)
-- [ ] Harden all panels with null safety, loading skeletons, and error boundaries
-- [ ] Add retry logic to all tRPC mutations
-- [ ] Verify all routes are registered in App.tsx
+- [x] Harden all panels with null safety, loading skeletons, and error boundaries
+- [x] Add retry logic to all tRPC mutations
+- [x] Verify all routes are registered in App.tsx
