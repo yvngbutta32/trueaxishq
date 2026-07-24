@@ -1303,12 +1303,12 @@
 - [x] PanelTabs inactive tab opacity upgraded for better readability
 - [x] 0 TypeScript errors, 29/29 tests passing
 
-## Neutral Theme Redesign (Jul 2026)
-- [ ] Rewrite index.css — neutral design tokens (warm gray bg, charcoal text, amber gold accent, teal secondary)
-- [ ] Retheme Dashboard.tsx — sidebar, header, all panel backgrounds, cards, text
-- [ ] Retheme all panel files (Billing, Outreach, Deals, Insights, Clients, RevenueForecast, ContractTemplates, IntakeForms)
-- [ ] Retheme public pages (Home, Pricing, About, Contact, Help, Login, Register, BookingPage, Admin)
-- [ ] Retheme all components (AIAssistant, GlobalSearch, OnboardingChecklist, PanelTabs, HealthMonitor)
+## Neutral Theme Redesign (Jul 2026) — superseded by Navy & Gold theme
+- [x] Rewrite index.css — neutral design tokens (warm gray bg, charcoal text, amber gold accent, teal secondary)
+- [x] Retheme Dashboard.tsx — sidebar, header, all panel backgrounds, cards, text
+- [x] Retheme all panel files (Billing, Outreach, Deals, Insights, Clients, RevenueForecast, ContractTemplates, IntakeForms)
+- [x] Retheme public pages (Home, Pricing, About, Contact, Help, Login, Register, BookingPage, Admin)
+- [x] Retheme all components (AIAssistant, GlobalSearch, OnboardingChecklist, PanelTabs, HealthMonitor)
 
 ## Neutral Theme Redesign — COMPLETE (Jul 2026)
 - [x] Rewrite index.css with neutral light theme design tokens (warm gray backgrounds, charcoal text, amber gold accent, teal secondary)

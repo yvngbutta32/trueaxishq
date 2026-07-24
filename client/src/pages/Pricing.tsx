@@ -106,13 +106,13 @@ export default function Pricing() {
       {/* Nav */}
       <nav
         className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
-        style={{ background: "rgba(10,10,10,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(232,160,32,0.10)" }}
+        style={{ background: "rgba(247,246,243,0.97)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(221,219,215,0.80)" }}
         aria-label="Pricing navigation"
       >
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-sm font-medium animated-underline"
-          style={{ color: "rgba(26,26,26,0.85)", background: "rgba(26,26,26,0.05)", border: "1px solid rgba(245,240,232,0.18)", borderRadius: "0.5rem", padding: "0.35rem 0.75rem", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+          style={{ color: "rgba(26,26,26,0.85)", background: "rgba(26,26,26,0.05)", border: "1px solid rgba(26,26,26,0.12)", borderRadius: "0.5rem", padding: "0.35rem 0.75rem", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
@@ -149,17 +149,17 @@ export default function Pricing() {
 
           {/* Billing toggle */}
           <div className="flex items-center justify-center gap-4" role="group" aria-label="Billing period">
-            <span className="text-sm font-medium" style={{ color: !annual ? "#F5F0E8" : "rgba(245,240,232,0.60)" }}>Monthly</span>
+            <span className="text-sm font-medium" style={{ color: !annual ? "#1A1A1A" : "rgba(26,26,26,0.45)" }}>Monthly</span>
             <button
               onClick={() => setAnnual(!annual)}
               role="switch"
               aria-checked={annual}
               className="relative w-12 h-6 rounded-full transition-colors focus:outline-none"
-              style={{ background: annual ? "#D4922A" : "rgba(245,240,232,0.12)", border: "1px solid rgba(26,26,26,0.08)" }}
+              style={{ background: annual ? "#D4922A" : "rgba(26,26,26,0.12)", border: "1px solid rgba(26,26,26,0.12)" }}
             >
-              <div className="absolute top-0.5 w-5 h-5 rounded-full shadow transition-transform" style={{ background: "#F5F0E8", transform: annual ? "translateX(1.5rem)" : "translateX(0.125rem)" }} />
+              <div className="absolute top-0.5 w-5 h-5 rounded-full shadow transition-transform" style={{ background: "#FFFFFF", transform: annual ? "translateX(1.5rem)" : "translateX(0.125rem)" }} />
             </button>
-            <span className="text-sm font-medium flex items-center gap-2" style={{ color: annual ? "#F5F0E8" : "rgba(245,240,232,0.60)" }}>
+            <span className="text-sm font-medium flex items-center gap-2" style={{ color: annual ? "#1A1A1A" : "rgba(26,26,26,0.45)" }}>
               Annual
               <span className="tag tag-amber" style={{ fontSize: "0.65rem" }}>Save 20%</span>
             </span>
@@ -185,8 +185,8 @@ export default function Pricing() {
                 key={plan.name}
                 className="relative rounded-xl p-6 flex flex-col"
                 style={{
-                  background: plan.popular ? "rgba(232,160,32,0.04)" : "#161B22",
-                  border: plan.popular ? "1px solid rgba(232,160,32,0.30)" : "1px solid rgba(245,240,232,0.07)",
+                  background: plan.popular ? "rgba(232,160,32,0.04)" : "#FFFFFF",
+                  border: plan.popular ? "1px solid rgba(232,160,32,0.30)" : "1px solid rgba(221,219,215,0.90)",
                   boxShadow: plan.popular ? "0 0 40px rgba(232,160,32,0.08)" : "none",
                   transform: plan.popular ? "scale(1.02)" : "scale(1)",
                 }}
@@ -272,10 +272,10 @@ export default function Pricing() {
             <div className="overflow-x-auto">
             {/* Header */}
             <div className="grid grid-cols-4 min-w-[480px] px-5 py-3" style={{ background: "#EEECEA", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
-              <div className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(245,240,232,0.60)" }}>Feature</div>
+              <div className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(26,26,26,0.55)" }}>Feature</div>
               {["Starter", "Pro", "Agency"].map((p, i) => (
                 <div key={p} className="text-center">
-                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: i === 1 ? "#D4922A" : "rgba(245,240,232,0.80)" }}>{p}</span>
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: i === 1 ? "#D4922A" : "rgba(26,26,26,0.70)" }}>{p}</span>
                 </div>
               ))}
             </div>
@@ -285,11 +285,11 @@ export default function Pricing() {
               <div
                 key={i}
                 className="grid grid-cols-4 min-w-[480px] px-5 py-3"
-                style={{ background: i % 2 === 0 ? "#161B22" : "#161B22", borderBottom: i < comparisonRows.length - 1 ? "1px solid rgba(245,240,232,0.04)" : "none" }}
+                style={{ background: i % 2 === 0 ? "#FFFFFF" : "#F7F6F3", borderBottom: i < comparisonRows.length - 1 ? "1px solid rgba(221,219,215,0.60)" : "none" }}
               >
-                <div className="text-sm" style={{ color: "rgba(245,240,232,0.85)" }}>{row.feature}</div>
+                <div className="text-sm" style={{ color: "rgba(26,26,26,0.85)" }}>{row.feature}</div>
                 {[row.starter, row.pro, row.agency].map((val, j) => (
-                  <div key={j} className="text-center text-sm" style={{ color: val === "—" ? "rgba(245,240,232,0.50)" : j === 1 ? "#D4922A" : "rgba(245,240,232,0.85)" }}>
+                  <div key={j} className="text-center text-sm" style={{ color: val === "—" ? "rgba(26,26,26,0.35)" : j === 1 ? "#D4922A" : "rgba(26,26,26,0.80)" }}>
                     {val === "✓" ? <CheckCircle className="w-4 h-4 mx-auto" style={{ color: j === 1 ? "#D4922A" : "#7A9A8A" }} /> : val}
                   </div>
                 ))}
@@ -345,17 +345,17 @@ export default function Pricing() {
           </div>
           <div className="space-y-2">
             {faqs.map((faq, i) => (
-              <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(245,240,232,0.07)" }}>
+              <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(221,219,215,0.80)" }}>
                 <button
                   className="w-full text-left px-5 py-4 flex items-center justify-between text-sm font-semibold"
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  style={{ background: openFaq === i ? "rgba(232,160,32,0.04)" : "#161B22", color: "#1A1A1A", border: "none", minHeight: "auto" }}
+                  style={{ background: openFaq === i ? "rgba(232,160,32,0.04)" : "#FFFFFF", color: "#1A1A1A", border: "none", minHeight: "auto" }}
                 >
                   {faq.q}
                   <span className="text-lg transition-transform" style={{ color: "#D4922A", transform: openFaq === i ? "rotate(45deg)" : "none", display: "inline-block" }}>+</span>
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-4 text-sm leading-relaxed" style={{ background: "rgba(232,160,32,0.02)", borderTop: "1px solid rgba(232,160,32,0.08)", color: "rgba(245,240,232,0.85)" }}>
+                  <div className="px-5 pb-4 text-sm leading-relaxed" style={{ background: "rgba(232,160,32,0.02)", borderTop: "1px solid rgba(232,160,32,0.08)", color: "rgba(26,26,26,0.80)" }}>
                     {faq.a}
                   </div>
                 )}

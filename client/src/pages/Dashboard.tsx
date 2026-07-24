@@ -4946,15 +4946,7 @@ export default function Dashboard() {
     }
   }, []);
 
-  if (loading) return (
-    <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center">
-      <div className="text-center">
-        <Loader2 className="w-8 h-8 text-[#D4922A] animate-spin mx-auto mb-3" />
-        <p className="text-sm text-[#6B6B6B]">Loading your dashboard...</p>
-      </div>
-    </div>
-  );
-
+  // Panel metadata — defined before any early returns to satisfy Rules of Hooks
   const panelTitles: Record<ActivePanel, string> = {
     overview: "Dashboard", clients: "Clients", scheduling: "Scheduling",
     invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics",
@@ -5066,6 +5058,16 @@ export default function Dashboard() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, user?.name]);
+
+  // Loading state — placed AFTER all hooks to satisfy Rules of Hooks
+  if (loading) return (
+    <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="w-8 h-8 text-[#D4922A] animate-spin mx-auto mb-3" />
+        <p className="text-sm text-[#6B6B6B]">Loading your dashboard...</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="bg-[#F7F6F3] flex flex-col md:flex-row overflow-x-hidden w-full" style={{ height: '100dvh' }}>

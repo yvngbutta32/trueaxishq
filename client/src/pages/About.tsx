@@ -18,7 +18,7 @@ export default function About() {
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-sm font-medium animated-underline"
-          style={{ color: "rgba(245,240,232,0.55)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
+          style={{ color: "rgba(26,26,26,0.55)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
@@ -80,7 +80,7 @@ export default function About() {
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#1A1A1A", letterSpacing: "-0.025em", textAlign: "center", marginBottom: "2rem" }}>
             Why TrueAxis HQ exists
           </h2>
-          <div className="space-y-5 text-base leading-relaxed" style={{ color: "rgba(245,240,232,0.85)" }}>
+          <div className="space-y-5 text-base leading-relaxed" style={{ color: "rgba(26,26,26,0.85)" }}>
             <p>In 2024, the average freelancer in the United States was juggling five or more separate tools just to run their business: a scheduling app, an invoicing tool, a CRM, an email client, and a spreadsheet for everything else. They were paying $200–$400 per month for tools that didn't talk to each other — and spending 15–20 hours per week on admin work instead of billable work.</p>
             <p>TrueAxis HQ was built to collapse all of that into one intelligent platform. We combined AI-powered automation with the core workflows every service provider needs: client management, scheduling, invoicing, follow-ups, and analytics. The result is a platform that doesn't just organize your business — it actively runs it.</p>
             <p>Today, TrueAxis HQ serves thousands of freelancers across coaching, consulting, design, development, fitness, legal, and more. Our users report saving an average of 12 hours per week and increasing their revenue by 34% within their first six months.</p>
@@ -124,7 +124,7 @@ export default function About() {
             ].map(belief => (
               <li key={belief} className="retro-card flex items-start gap-3 p-4">
                 <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#D4922A" }} />
-                <span className="text-sm leading-relaxed" style={{ color: "rgba(245,240,232,0.60)" }}>{belief}</span>
+                <span className="text-sm leading-relaxed" style={{ color: "rgba(26,26,26,0.60)" }}>{belief}</span>
               </li>
             ))}
           </ul>
@@ -151,7 +151,7 @@ export default function About() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-4 text-center text-xs" style={{ borderTop: "1px solid rgba(232,160,32,0.08)", color: "rgba(245,240,232,0.20)" }}>
+      <footer className="py-8 px-4 text-center text-xs" style={{ borderTop: "1px solid rgba(232,160,32,0.08)", color: "rgba(26,26,26,0.20)" }}>
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

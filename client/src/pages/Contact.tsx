@@ -45,14 +45,14 @@ export default function Contact() {
 
   const field = (id: keyof typeof form, label: string, type = "text", multiline = false) => (
     <div>
-      <label htmlFor={id} className="block text-xs font-semibold text-gray-300 mb-1.5">{label} *</label>
+      <label htmlFor={id} className="block text-xs font-semibold text-[#3D3D3D] mb-1.5">{label} *</label>
       {multiline ? (
         <textarea
           id={id}
           value={form[id]}
           onChange={e => { setForm(p => ({ ...p, [id]: e.target.value })); setErrors(p => ({ ...p, [id]: "" })); }}
           rows={5}
-          className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4922A] transition-colors resize-none ${errors[id] ? "border-red-400" : "border-white/20"}`}
+          className={`w-full px-4 py-3 bg-white border border-[#DDDBD7] rounded-xl text-[#1A1A1A] placeholder-[#9B9B9B] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4922A] transition-colors resize-none ${errors[id] ? "border-red-400" : "border-[#DDDBD7]"}`}
           placeholder={`Your ${label.toLowerCase()}...`}
           aria-invalid={!!errors[id]}
           aria-describedby={errors[id] ? `${id}-error` : undefined}
@@ -63,7 +63,7 @@ export default function Contact() {
           type={type}
           value={form[id]}
           onChange={e => { setForm(p => ({ ...p, [id]: e.target.value })); setErrors(p => ({ ...p, [id]: "" })); }}
-          className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4922A] transition-colors ${errors[id] ? "border-red-400" : "border-white/20"}`}
+          className={`w-full px-4 py-3 bg-white border border-[#DDDBD7] rounded-xl text-[#1A1A1A] placeholder-[#9B9B9B] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4922A] transition-colors ${errors[id] ? "border-red-400" : "border-[#DDDBD7]"}`}
           placeholder={`Your ${label.toLowerCase()}`}
           autoComplete={id === "email" ? "email" : id === "name" ? "name" : undefined}
           aria-invalid={!!errors[id]}
@@ -75,7 +75,7 @@ export default function Contact() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F2F0EC] text-white">
+    <div className="min-h-screen bg-[#F2F0EC] text-[#1A1A1A]">
       <nav className="border-b border-[#DDDBD7] px-4 sm:px-6 py-4 flex items-center justify-between">
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
@@ -101,7 +101,7 @@ export default function Contact() {
             <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">
               We'd love to<br /><span className="text-[#D4922A]">hear from you.</span>
             </h1>
-            <p className="text-gray-300 leading-relaxed mb-10">
+            <p className="text-[#3D3D3D] leading-relaxed mb-10">
               Whether you have a question about features, pricing, need a demo, or just want to say hello — our team is here for you.
             </p>
 
@@ -116,9 +116,9 @@ export default function Contact() {
                     <Icon className="w-4 h-4 text-[#D4922A]" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-gray-300 mb-0.5">{title}</p>
-                    <p className="text-sm font-medium text-white">{value}</p>
-                    <p className="text-xs text-gray-400">{sub}</p>
+                    <p className="text-xs font-semibold text-[#3D3D3D] mb-0.5">{title}</p>
+                    <p className="text-sm font-medium text-[#1A1A1A]">{value}</p>
+                    <p className="text-xs text-[#6B6B6B]">{sub}</p>
                   </div>
                 </div>
               ))}
@@ -133,7 +133,7 @@ export default function Contact() {
                   <CheckCircle className="w-8 h-8 text-[#D4922A]" />
                 </div>
                 <h2 className="text-xl font-bold mb-2">Message Received!</h2>
-                <p className="text-gray-300 text-sm mb-6">Thank you for reaching out. We'll get back to you at <strong className="text-white">{form.email}</strong> within 4 business hours.</p>
+                <p className="text-[#3D3D3D] text-sm mb-6">Thank you for reaching out. We'll get back to you at <strong className="text-[#1A1A1A]">{form.email}</strong> within 4 business hours.</p>
                 <Button onClick={() => navigate("/")} className="bg-[#D4922A] hover:bg-[#D4911A] text-white border-0 px-6 py-2.5 rounded-xl text-sm">
                   Back to Home
                 </Button>
@@ -153,7 +153,7 @@ export default function Contact() {
                   className="w-full bg-[#D4922A] hover:bg-[#D4911A] text-white border-0 py-3 rounded-xl text-sm font-semibold min-h-[48px] flex items-center justify-center gap-2"
                 >
                   {submitContact.isPending ? (
-                    <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Sending...</span>
+                    <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-[#D4922A]/30 border-t-[#D4922A] rounded-full animate-spin" />Sending...</span>
                   ) : (
                     <span className="flex items-center gap-2"><Send className="w-4 h-4" />Send Message</span>
                   )}

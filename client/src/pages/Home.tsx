@@ -246,7 +246,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
 
         {/* Progress */}
         <div className="px-6 pt-4">
-          <div className="h-1 rounded-full" style={{ background: "rgba(245,240,232,0.06)" }}>
+          <div className="h-1 rounded-full" style={{ background: "rgba(26,26,26,0.06)" }}>
             <div className="h-1 rounded-full transition-all duration-500" style={{ width: `${((step + 1) / steps.length) * 100}%`, background: "linear-gradient(90deg, #D4922A, #F5C842)" }} />
           </div>
         </div>
@@ -439,7 +439,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
               <span style={{ color: "#D4922A" }}>Running Itself</span>
             </h1>
 
-            <p className="mb-8 max-w-lg" style={{ fontSize: "1.125rem", color: "rgba(245,240,232,0.55)", lineHeight: 1.7 }}>
+            <p className="mb-8 max-w-lg" style={{ fontSize: "1.125rem", color: "rgba(26,26,26,0.55)", lineHeight: 1.7 }}>
               TrueAxis HQ handles your client intake, scheduling, invoicing, and follow-ups — so you can focus on the work you love and scale to{" "}
               <strong style={{ color: "#1A1A1A" }}>$100K/year</strong>.
             </p>
@@ -466,11 +466,11 @@ function Hero({ onCTA }: { onCTA: () => void }) {
               </div>
               <div>
                 <p className="text-xs font-bold" style={{ color: "#1A1A1A" }}>Trusted by 4,200+ freelancers</p>
-                <p className="text-[10px]" style={{ color: "rgba(245,240,232,0.75)" }}>Coaches · Designers · Consultants · Developers</p>
+                <p className="text-[10px]" style={{ color: "rgba(26,26,26,0.65)" }}>Coaches · Designers · Consultants · Developers</p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(245,240,232,0.75)" }}>
+            <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>
               {["No credit card required", "Cancel anytime", "30-day money-back guarantee"].map(t => (
                 <span key={t} className="flex items-center gap-1.5">
                   <CheckCircle className="w-3.5 h-3.5" style={{ color: "#D4922A" }} />
@@ -489,7 +489,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C85A3A" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#D4922A" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#7A9A8A" }} />
-                <span className="ml-3 text-xs font-mono" style={{ color: "rgba(245,240,232,0.55)" }}>TrueAxis HQ — Dashboard</span>
+                <span className="ml-3 text-xs font-mono" style={{ color: "rgba(26,26,26,0.55)" }}>TrueAxis HQ — Dashboard</span>
               </div>
 
               <div className="p-4 space-y-3">
@@ -497,7 +497,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                 <div className="rounded-lg p-3" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.10)" }}>
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <div className="text-xs" style={{ color: "rgba(245,239,227,0.55)" }}>Monthly Revenue</div>
+                      <div className="text-xs" style={{ color: "rgba(26,26,26,0.55)" }}>Monthly Revenue</div>
                       <div className="font-bold text-base" style={{ color: "#1A1A1A", letterSpacing: "-0.02em" }}>$8,240</div>
                     </div>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#4ADE80" }}>↑ 12%</span>
@@ -523,7 +523,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                     { label: "Pulse", value: "87", change: "Healthy" },
                   ].map(s => (
                     <div key={s.label} className="rounded-lg p-2.5" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.08)" }}>
-                      <div className="text-[10px] mb-0.5" style={{ color: "rgba(245,239,227,0.55)" }}>{s.label}</div>
+                      <div className="text-[10px] mb-0.5" style={{ color: "rgba(26,26,26,0.55)" }}>{s.label}</div>
                       <div className="font-bold text-sm" style={{ color: "#1A1A1A" }}>{s.value}</div>
                       <div className="text-[10px] mt-0.5" style={{ color: "#D4922A" }}>{s.change}</div>
                     </div>
@@ -537,7 +537,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>Strategy Session — Sarah Chen</div>
-                    <div className="text-[10px] mt-0.5" style={{ color: "rgba(245,239,227,0.50)" }}>Today · 2:00 PM · 60 min</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: "rgba(26,26,26,0.50)" }}>Today · 2:00 PM · 60 min</div>
                   </div>
                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#4ADE80" }}>Confirmed</span>
                 </div>
@@ -549,7 +549,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>INV-0042 · Marcus Thompson</div>
-                    <div className="text-[10px] mt-0.5" style={{ color: "rgba(245,239,227,0.50)" }}>$1,800 · Due in 3 days</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: "rgba(26,26,26,0.50)" }}>$1,800 · Due in 3 days</div>
                   </div>
                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(212,146,42,0.12)", color: "#D4922A" }}>Pending</span>
                 </div>
@@ -559,7 +559,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                   <Brain className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "#D4922A" }} />
                   <div>
                     <div className="text-[10px] font-bold mb-0.5" style={{ color: "#D4922A" }}>AI Suggestion</div>
-                    <div className="text-[10px]" style={{ color: "rgba(245,239,227,0.50)" }}>Priya hasn't booked in 47 days. Draft a re-engagement email?</div>
+                    <div className="text-[10px]" style={{ color: "rgba(26,26,26,0.50)" }}>Priya hasn't booked in 47 days. Draft a re-engagement email?</div>
                   </div>
                 </div>
               </div>
@@ -659,8 +659,8 @@ function FeaturesSection() {
               style={f.highlight ? { borderColor: "rgba(232,160,32,0.28)", background: "rgba(232,160,32,0.03)" } : {}}
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: f.highlight ? "rgba(232,160,32,0.12)" : "rgba(245,240,232,0.05)", border: `1px solid ${f.highlight ? "rgba(232,160,32,0.22)" : "rgba(245,240,232,0.07)"}` }}>
-                  <f.icon className="w-5 h-5" style={{ color: f.highlight ? "#D4922A" : "rgba(245,240,232,0.55)" }} />
+                <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: f.highlight ? "rgba(232,160,32,0.12)" : "rgba(26,26,26,0.05)", border: `1px solid ${f.highlight ? "rgba(232,160,32,0.22)" : "rgba(26,26,26,0.08)"}` }}>
+                  <f.icon className="w-5 h-5" style={{ color: f.highlight ? "#D4922A" : "rgba(26,26,26,0.55)" }} />
                 </div>
                 <span
                   className="tag"
@@ -669,7 +669,7 @@ function FeaturesSection() {
                       ? { background: "rgba(232,160,32,0.12)", color: "#D4922A", border: "1px solid rgba(232,160,32,0.25)" }
                       : f.tag === "AI"
                       ? { background: "rgba(90,122,106,0.12)", color: "#7A9A8A", border: "1px solid rgba(90,122,106,0.25)" }
-                      : { background: "rgba(245,240,232,0.05)", color: "rgba(26,26,26,0.65)", border: "1px solid rgba(245,240,232,0.15)" }
+                      : { background: "rgba(26,26,26,0.05)", color: "rgba(26,26,26,0.65)", border: "1px solid rgba(26,26,26,0.10)" }
                   }
                 >
                   {f.tag}
@@ -720,7 +720,7 @@ function HowItWorksSection() {
       panel: (
         <div className="space-y-3">
           <div className="rounded-lg p-3" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.12)" }}>
-            <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "rgba(245,239,227,0.45)" }}>This Week</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "rgba(26,26,26,0.45)" }}>This Week</div>
             {[
               { day: "Mon", time: "10:00 AM", client: "Sarah Chen", service: "Strategy Session", status: "Confirmed", statusColor: "#4ADE80" },
               { day: "Wed", time: "2:00 PM", client: "Marcus Lee", service: "Consulting Call", status: "Pending", statusColor: "#D4922A" },
@@ -728,13 +728,13 @@ function HowItWorksSection() {
             ].map((b, i) => (
               <div key={i} className="flex items-center gap-3 py-2" style={{ borderBottom: i < 2 ? "1px solid rgba(212,146,42,0.06)" : "none" }}>
                 <div className="w-10 text-center">
-                  <div className="text-[10px]" style={{ color: "rgba(245,239,227,0.40)" }}>{b.day}</div>
+                  <div className="text-[10px]" style={{ color: "rgba(26,26,26,0.40)" }}>{b.day}</div>
                   <div className="text-xs font-bold" style={{ color: "#D4922A" }}>{b.time.split(" ")[0]}</div>
-                  <div className="text-[9px]" style={{ color: "rgba(245,239,227,0.40)" }}>{b.time.split(" ")[1]}</div>
+                  <div className="text-[9px]" style={{ color: "rgba(26,26,26,0.40)" }}>{b.time.split(" ")[1]}</div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>{b.client}</div>
-                  <div className="text-[10px]" style={{ color: "rgba(245,239,227,0.50)" }}>{b.service}</div>
+                  <div className="text-[10px]" style={{ color: "rgba(26,26,26,0.50)" }}>{b.service}</div>
                 </div>
                 <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: `${b.statusColor}18`, color: b.statusColor }}>{b.status}</span>
               </div>
@@ -742,7 +742,7 @@ function HowItWorksSection() {
           </div>
           <div className="rounded-lg p-3 flex items-center gap-3" style={{ background: "rgba(212,146,42,0.05)", border: "1px solid rgba(212,146,42,0.14)" }}>
             <Zap className="w-4 h-4 flex-shrink-0" style={{ color: "#D4922A" }} />
-            <span className="text-xs" style={{ color: "rgba(245,239,227,0.70)" }}>Auto-confirmation emails sent to all 3 clients</span>
+            <span className="text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>Auto-confirmation emails sent to all 3 clients</span>
           </div>
         </div>
       ),
@@ -756,7 +756,7 @@ function HowItWorksSection() {
         <div className="space-y-3">
           <div className="rounded-lg overflow-hidden" style={{ border: "1px solid rgba(212,146,42,0.12)" }}>
             <div className="px-3 py-2 flex items-center justify-between" style={{ background: "#EEECEA", borderBottom: "1px solid rgba(212,146,42,0.08)" }}>
-              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(245,239,227,0.45)" }}>Recent Invoices</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(26,26,26,0.45)" }}>Recent Invoices</span>
               <span className="text-[10px] font-bold" style={{ color: "#4ADE80" }}>$12,400 this month</span>
             </div>
             {[
@@ -776,7 +776,7 @@ function HowItWorksSection() {
           </div>
           <div className="rounded-lg p-3 flex items-center gap-3" style={{ background: "rgba(212,146,42,0.05)", border: "1px solid rgba(212,146,42,0.14)" }}>
             <Brain className="w-4 h-4 flex-shrink-0" style={{ color: "#D4922A" }} />
-            <span className="text-xs" style={{ color: "rgba(245,239,227,0.70)" }}>AI drafted a payment reminder for Marcus Lee</span>
+            <span className="text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>AI drafted a payment reminder for Marcus Lee</span>
           </div>
         </div>
       ),
@@ -790,16 +790,16 @@ function HowItWorksSection() {
         <div className="space-y-3">
           <div className="rounded-lg p-3" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.12)" }}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(245,239,227,0.45)" }}>AI Draft — Marcus Lee</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(26,26,26,0.45)" }}>AI Draft — Marcus Lee</span>
               <span className="tag" style={{ background: "rgba(212,146,42,0.12)", color: "#D4922A", border: "1px solid rgba(212,146,42,0.25)", fontSize: "0.6rem" }}>Ready to Send</span>
             </div>
-            <div className="text-xs mb-1 font-semibold" style={{ color: "rgba(245,239,227,0.70)" }}>Subject: Checking in — your Q2 strategy</div>
-            <div className="text-[11px] leading-relaxed" style={{ color: "rgba(245,239,227,0.55)" }}>
+            <div className="text-xs mb-1 font-semibold" style={{ color: "rgba(26,26,26,0.65)" }}>Subject: Checking in — your Q2 strategy</div>
+            <div className="text-[11px] leading-relaxed" style={{ color: "rgba(26,26,26,0.55)" }}>
               Hi Marcus, I wanted to check in after our last session. Given the goals we discussed around Q2 growth, I think now would be a great time to schedule a follow-up...
             </div>
             <div className="flex gap-2 mt-3">
               <button className="btn-amber text-[10px]" style={{ padding: "0.3rem 0.75rem" }}>Send Now</button>
-              <button className="text-[10px] px-3 py-1 rounded" style={{ background: "rgba(245,239,227,0.06)", color: "rgba(245,239,227,0.60)", border: "1px solid rgba(245,239,227,0.10)" }}>Edit</button>
+              <button className="text-[10px] px-3 py-1 rounded" style={{ background: "rgba(26,26,26,0.06)", color: "rgba(26,26,26,0.60)", border: "1px solid rgba(26,26,26,0.10)" }}>Edit</button>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-2">
@@ -810,7 +810,7 @@ function HowItWorksSection() {
             ].map(s => (
               <div key={s.label} className="rounded-lg p-2.5 text-center" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.08)" }}>
                 <div className="font-bold text-sm" style={{ color: s.color }}>{s.value}</div>
-                <div className="text-[9px] mt-0.5" style={{ color: "rgba(245,239,227,0.45)" }}>{s.label}</div>
+                <div className="text-[9px] mt-0.5" style={{ color: "rgba(26,26,26,0.45)" }}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -826,7 +826,7 @@ function HowItWorksSection() {
         <div className="space-y-3">
           <div className="rounded-lg p-3" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.12)" }}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(245,239,227,0.45)" }}>Revenue — Last 6 Months</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(26,26,26,0.45)" }}>Revenue — Last 6 Months</span>
             </div>
             <svg viewBox="0 0 240 60" className="w-full" style={{ height: 60 }} aria-hidden="true">
               <defs>
@@ -839,7 +839,7 @@ function HowItWorksSection() {
                 <rect key={i} x={i * 40 + 4} y={60 - h} width="28" height={h} rx="3" fill="url(#bar-fill)" />
               ))}
               {["Jan","Feb","Mar","Apr","May","Jun"].map((m, i) => (
-                <text key={i} x={i * 40 + 18} y={60} textAnchor="middle" style={{ fontSize: 7, fill: "rgba(245,239,227,0.35)" }}>{m}</text>
+                <text key={i} x={i * 40 + 18} y={60} textAnchor="middle" style={{ fontSize: 7, fill: "rgba(26,26,26,0.35)" }}>{m}</text>
               ))}
             </svg>
           </div>
@@ -851,7 +851,7 @@ function HowItWorksSection() {
               { label: "LTV", value: "$4,800", change: "+19%", up: true },
             ].map(s => (
               <div key={s.label} className="rounded-lg p-2.5" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.08)" }}>
-                <div className="text-[9px]" style={{ color: "rgba(245,239,227,0.45)" }}>{s.label}</div>
+                <div className="text-[9px]" style={{ color: "rgba(26,26,26,0.45)" }}>{s.label}</div>
                 <div className="font-bold text-sm" style={{ color: "#1A1A1A" }}>{s.value}</div>
                 <div className="text-[9px]" style={{ color: s.up ? "#4ADE80" : "#C85A3A" }}>{s.change}</div>
               </div>
@@ -872,7 +872,7 @@ function HowItWorksSection() {
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
             Everything your freelance business needs
           </h2>
-          <p className="mt-3 mx-auto" style={{ color: "rgba(245,239,227,0.60)", fontSize: "1.0625rem", maxWidth: 480 }}>
+          <p className="mt-3 mx-auto" style={{ color: "rgba(26,26,26,0.60)", fontSize: "1.0625rem", maxWidth: 480 }}>
             One platform. Four core systems. Zero overhead.
           </p>
         </div>
@@ -897,18 +897,18 @@ function HowItWorksSection() {
                     <div
                       className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                       style={{
-                        background: activeTab === i ? "rgba(212,146,42,0.15)" : "rgba(245,239,227,0.04)",
-                        border: activeTab === i ? "1px solid rgba(212,146,42,0.30)" : "1px solid rgba(245,239,227,0.08)",
+                        background: activeTab === i ? "rgba(212,146,42,0.10)" : "rgba(26,26,26,0.04)",
+                        border: activeTab === i ? "1px solid rgba(212,146,42,0.30)" : "1px solid rgba(26,26,26,0.10)",
                       }}
                     >
-                      <tab.icon className="w-4 h-4" style={{ color: activeTab === i ? "#D4922A" : "rgba(245,239,227,0.45)" }} />
+                      <tab.icon className="w-4 h-4" style={{ color: activeTab === i ? "#D4922A" : "rgba(26,26,26,0.45)" }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm" style={{ color: activeTab === i ? "#F5EFE3" : "rgba(245,239,227,0.55)" }}>
+                      <div className="font-semibold text-sm" style={{ color: activeTab === i ? "#F5EFE3" : "rgba(26,26,26,0.55)" }}>
                         {tab.label}
                       </div>
                       {activeTab === i && (
-                        <div className="text-xs mt-0.5" style={{ color: "rgba(245,239,227,0.55)" }}>
+                        <div className="text-xs mt-0.5" style={{ color: "rgba(26,26,26,0.55)" }}>
                           {tab.body}
                         </div>
                       )}
@@ -927,9 +927,9 @@ function HowItWorksSection() {
             </div>
 
             {/* Step numbers */}
-            <div className="hidden lg:flex items-center gap-4 pt-2" style={{ borderTop: "1px solid rgba(245,239,227,0.06)" }}>
+            <div className="hidden lg:flex items-center gap-4 pt-2" style={{ borderTop: "1px solid rgba(26,26,26,0.06)" }}>
               {["01 Set up in minutes", "02 Clients self-book", "03 AI automates", "04 Revenue grows"].map((s, i) => (
-                <div key={i} className="text-[10px] font-semibold" style={{ color: "rgba(245,239,227,0.30)" }}>{s}</div>
+                <div key={i} className="text-[10px] font-semibold" style={{ color: "rgba(26,26,26,0.30)" }}>{s}</div>
               ))}
             </div>
           </div>
@@ -946,7 +946,7 @@ function HowItWorksSection() {
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#7A9A8A" }} />
               <div className="flex items-center gap-1.5 ml-3">
                 <active.icon className="w-3 h-3" style={{ color: "#D4922A" }} />
-                <span className="text-xs font-mono" style={{ color: "rgba(245,239,227,0.55)" }}>TrueAxis HQ — {active.label}</span>
+                <span className="text-xs font-mono" style={{ color: "rgba(26,26,26,0.55)" }}>TrueAxis HQ — {active.label}</span>
               </div>
             </div>
             <div className="p-4">
@@ -996,7 +996,7 @@ function ClientPulseShowcase() {
                   <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.18)" }}>
                     <item.icon className="w-4 h-4" style={{ color: "#D4922A" }} />
                   </div>
-                  <p className="text-sm" style={{ color: "rgba(245,240,232,0.85)", lineHeight: 1.65 }}>{item.text}</p>
+                  <p className="text-sm" style={{ color: "rgba(26,26,26,0.80)", lineHeight: 1.65 }}>{item.text}</p>
                 </div>
               ))}
             </div>
@@ -1013,11 +1013,11 @@ function ClientPulseShowcase() {
             </div>
             <div className="p-4 space-y-2">
               {clients.map((c, i) => (
-                <div key={i} className="rounded-lg p-3 flex items-center gap-3" style={{ background: "#F7F6F3", border: "1px solid rgba(245,240,232,0.04)" }}>
+                <div key={i} className="rounded-lg p-3 flex items-center gap-3" style={{ background: "#F7F6F3", border: "1px solid rgba(26,26,26,0.04)" }}>
                   {/* Score ring */}
                   <div className="relative w-10 h-10 flex-shrink-0">
                     <svg viewBox="0 0 36 36" className="w-10 h-10 -rotate-90">
-                      <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(245,240,232,0.05)" strokeWidth="3" />
+                      <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(26,26,26,0.05)" strokeWidth="3" />
                       <circle cx="18" cy="18" r="15" fill="none" stroke={c.color} strokeWidth="3" strokeDasharray={`${(c.score / 100) * 94.25} 94.25`} strokeLinecap="round" />
                     </svg>
                     <span className="absolute inset-0 flex items-center justify-center text-xs font-bold" style={{ color: c.color }}>
@@ -1030,10 +1030,10 @@ function ClientPulseShowcase() {
                       <span className="tag" style={{ background: `${c.color}18`, color: c.color, border: `1px solid ${c.color}28`, fontSize: "0.58rem" }}>{c.status}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="text-xs" style={{ color: "rgba(245,240,232,0.60)" }}>{c.role}</span>
-                      <span className="text-xs" style={{ color: "rgba(245,240,232,0.55)" }}>·</span>
-                      <span className="text-xs" style={{ color: "rgba(245,240,232,0.60)" }}>{c.days}d ago</span>
-                      <span className="text-xs" style={{ color: "rgba(245,240,232,0.55)" }}>·</span>
+                      <span className="text-xs" style={{ color: "rgba(26,26,26,0.60)" }}>{c.role}</span>
+                      <span className="text-xs" style={{ color: "rgba(26,26,26,0.55)" }}>·</span>
+                      <span className="text-xs" style={{ color: "rgba(26,26,26,0.60)" }}>{c.days}d ago</span>
+                      <span className="text-xs" style={{ color: "rgba(26,26,26,0.55)" }}>·</span>
                       <span className="text-xs font-semibold" style={{ color: "#D4922A" }}>{c.revenue}</span>
                     </div>
                   </div>
@@ -1102,7 +1102,7 @@ function TestimonialsSection() {
                   <Star key={j} className="w-4 h-4 fill-current" style={{ color: "#D4922A" }} />
                 ))}
               </div>
-              <blockquote className="text-sm leading-relaxed mb-5" style={{ color: "rgba(245,240,232,0.85)" }}>
+              <blockquote className="text-sm leading-relaxed mb-5" style={{ color: "rgba(26,26,26,0.80)" }}>
                 "{t.quote}"
               </blockquote>
               <div className="flex items-center justify-between">
@@ -1110,7 +1110,7 @@ function TestimonialsSection() {
                   <img src={t.avatar} alt={t.name} className="w-9 h-9 rounded-full object-cover" style={{ border: "1px solid rgba(232,160,32,0.18)" }} />
                   <div>
                     <div className="text-sm font-semibold" style={{ color: "#1A1A1A" }}>{t.name}</div>
-                    <div className="text-xs" style={{ color: "rgba(245,240,232,0.70)" }}>{t.role}</div>
+                    <div className="text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>{t.role}</div>
                   </div>
                 </div>
                 <span className="tag tag-amber">{t.revenue}</span>
@@ -1174,7 +1174,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
           </form>
         )}
 
-        <p className="mt-4 text-xs" style={{ color: "rgba(245,240,232,0.55)" }}>
+        <p className="mt-4 text-xs" style={{ color: "rgba(26,26,26,0.55)" }}>
           No spam. Unsubscribe anytime. We respect your privacy.
         </p>
       </div>
@@ -1204,15 +1204,15 @@ function FAQSection() {
         </div>
         <div className="space-y-3">
           {HOME_FAQS.map((faq, i) => (
-            <div key={i} className="rounded-xl border overflow-hidden" style={{ borderColor: open === i ? "rgba(232,160,32,0.4)" : "rgba(255,255,255,0.08)", background: open === i ? "rgba(232,160,32,0.04)" : "rgba(255,255,255,0.03)" }}>
+            <div key={i} className="rounded-xl border overflow-hidden" style={{ borderColor: open === i ? "rgba(232,160,32,0.4)" : "rgba(221,219,215,0.80)", background: open === i ? "rgba(232,160,32,0.04)" : "#FFFFFF" }}>
               <button
                 className="w-full flex items-center justify-between px-5 py-4 text-left"
                 onClick={() => setOpen(open === i ? null : i)}
                 aria-expanded={open === i}
               >
-                <span className="text-sm font-semibold text-white pr-4">{faq.q}</span>
-                <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: open === i ? "#D4922A" : "rgba(255,255,255,0.1)" }}>
-                  <span className="text-xs font-bold" style={{ color: open === i ? "#161B22" : "#fff" }}>{open === i ? "−" : "+"}</span>
+                <span className="text-sm font-semibold text-[#1A1A1A] pr-4">{faq.q}</span>
+                <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: open === i ? "#D4922A" : "rgba(26,26,26,0.10)" }}>
+                  <span className="text-xs font-bold" style={{ color: open === i ? "#FFFFFF" : "#1A1A1A" }}>{open === i ? "−" : "+"}</span>
                 </span>
               </button>
               {open === i && (
@@ -1276,7 +1276,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
                 className="h-9 w-auto object-contain"
               />
             </div>
-            <p className="text-sm mb-4" style={{ color: "rgba(245,240,232,0.75)", lineHeight: 1.7 }}>
+            <p className="text-sm mb-4" style={{ color: "rgba(26,26,26,0.65)", lineHeight: 1.7 }}>
               The AI-powered business OS for freelancers and solo service professionals.
             </p>
             <div className="flex gap-2">
@@ -1292,7 +1292,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
                   rel="noopener noreferrer"
                   aria-label={`TrueAxis HQ on ${s.label}`}
                   className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold"
-                  style={{ background: "rgba(245,240,232,0.08)", color: "rgba(245,240,232,0.70)", border: "1px solid rgba(245,240,232,0.15)", textDecoration: "none" }}
+                  style={{ background: "rgba(26,26,26,0.08)", color: "rgba(26,26,26,0.65)", border: "1px solid rgba(26,26,26,0.10)", textDecoration: "none" }}
                 >
                   {s.label}
                 </a>
@@ -1303,7 +1303,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
           {/* Link columns */}
           {sections.map(sec => (
             <div key={sec.title}>
-              <h4 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "rgba(245,240,232,0.55)" }}>
+              <h4 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "rgba(26,26,26,0.55)" }}>
                 {sec.title}
               </h4>
               <ul className="space-y-2.5">
@@ -1324,7 +1324,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
         </div>
 
         <div className="amber-line mb-6" />
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style={{ color: "rgba(245,240,232,0.55)" }}>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style={{ color: "rgba(26,26,26,0.55)" }}>
           <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
           <p>Built for the independent professional.</p>
         </div>
@@ -1364,7 +1364,7 @@ export default function Home() {
               <circle cx="12" cy="12" r="10" stroke="#D4922A" strokeWidth="2" strokeDasharray="31.4" strokeDashoffset="10" strokeLinecap="round" />
             </svg>
           </div>
-          <p style={{ color: "rgba(245,239,227,0.70)", fontSize: 13 }}>Loading…</p>
+          <p style={{ color: "rgba(26,26,26,0.65)", fontSize: 13 }}>Loading…</p>
         </div>
       </div>
     );
