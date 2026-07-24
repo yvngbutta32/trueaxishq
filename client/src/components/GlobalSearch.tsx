@@ -136,14 +136,14 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
 
       {/* Modal */}
       <div
-        className="relative w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl border border-white/10 search-modal-enter"
-        style={{ background: "#161B22" }}
+        className="relative w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl border border-[#DDDBD7] search-modal-enter"
+        style={{ background: "#FFFFFF" }}
       >
         {/* Search input row */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/8">
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#DDDBD7]">
           {isFetching
             ? <Loader2 className="w-4 h-4 text-[#D4922A] animate-spin flex-shrink-0" />
-            : <Search className="w-4 h-4 text-[rgba(245,239,227,0.70)] flex-shrink-0" />
+            : <Search className="w-4 h-4 text-[rgba(26,26,26,0.70)] flex-shrink-0" />
           }
           <input
             ref={inputRef}
@@ -152,16 +152,16 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
             onChange={e => { setQuery(e.target.value); setCursor(0); }}
             onKeyDown={handleKeyDown}
             placeholder="Search clients, invoices, bookings, contracts…"
-            className="flex-1 bg-transparent text-[#F5EFE3] placeholder-[rgba(245,239,227,0.60)] text-sm outline-none"
+            className="flex-1 bg-transparent text-[#1A1A1A] placeholder-[rgba(26,26,26,0.60)] text-sm outline-none"
             autoComplete="off"
             spellCheck={false}
           />
           {query && (
             <button onClick={() => { setQuery(""); setDebouncedQuery(""); inputRef.current?.focus(); }} className="p-1 rounded hover:bg-white/10 transition-colors" aria-label="Clear search">
-              <X className="w-3.5 h-3.5 text-[rgba(245,239,227,0.70)]" />
+              <X className="w-3.5 h-3.5 text-[rgba(26,26,26,0.70)]" />
             </button>
           )}
-          <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-white/15 text-[10px] text-[rgba(245,239,227,0.60)] font-mono">
+          <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-[#C8C5BF] text-[10px] text-[rgba(26,26,26,0.60)] font-mono">
             Esc
           </kbd>
         </div>
@@ -173,15 +173,15 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
               <div className="w-10 h-10 rounded-xl bg-[#D4922A]/10 flex items-center justify-center mx-auto mb-3">
                 <Command className="w-5 h-5 text-[#D4922A]" />
               </div>
-              <p className="text-sm font-medium text-[rgba(245,239,227,0.55)]">Search everything</p>
-              <p className="text-xs text-[rgba(245,239,227,0.60)] mt-1">Clients · Invoices · Bookings · Contracts</p>
+              <p className="text-sm font-medium text-[rgba(26,26,26,0.55)]">Search everything</p>
+              <p className="text-xs text-[rgba(26,26,26,0.60)] mt-1">Clients · Invoices · Bookings · Contracts</p>
             </div>
           )}
 
           {showEmpty && (
             <div className="py-10 text-center">
-              <Search className="w-8 h-8 text-[rgba(245,239,227,0.20)] mx-auto mb-2" />
-              <p className="text-sm text-[rgba(245,239,227,0.70)]">No results for "<span className="text-[#F5EFE3]">{debouncedQuery}</span>"</p>
+              <Search className="w-8 h-8 text-[rgba(26,26,26,0.20)] mx-auto mb-2" />
+              <p className="text-sm text-[rgba(26,26,26,0.70)]">No results for "<span className="text-[#1A1A1A]">{debouncedQuery}</span>"</p>
             </div>
           )}
 
@@ -217,9 +217,9 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
                             <meta.icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-[#F5EFE3] truncate">{label}</p>
+                            <p className="text-sm font-medium text-[#1A1A1A] truncate">{label}</p>
                             {sub && (
-                              <p className="text-xs text-[rgba(245,239,227,0.70)] truncate flex items-center gap-1.5">
+                              <p className="text-xs text-[rgba(26,26,26,0.70)] truncate flex items-center gap-1.5">
                                 {statusVal && (
                                   <span className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: STATUS_COLOR[statusVal] || "#9CA3AF" }} />
                                 )}
@@ -241,15 +241,15 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
         {/* Footer hints */}
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/6">
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 text-[10px] text-[rgba(245,239,227,0.60)]">
-              <kbd className="px-1 py-0.5 rounded border border-white/15 font-mono text-[9px]">↑↓</kbd> navigate
+            <span className="flex items-center gap-1 text-[10px] text-[rgba(26,26,26,0.60)]">
+              <kbd className="px-1 py-0.5 rounded border border-[#C8C5BF] font-mono text-[9px]">↑↓</kbd> navigate
             </span>
-            <span className="flex items-center gap-1 text-[10px] text-[rgba(245,239,227,0.60)]">
-              <kbd className="px-1 py-0.5 rounded border border-white/15 font-mono text-[9px]">↵</kbd> open panel
+            <span className="flex items-center gap-1 text-[10px] text-[rgba(26,26,26,0.60)]">
+              <kbd className="px-1 py-0.5 rounded border border-[#C8C5BF] font-mono text-[9px]">↵</kbd> open panel
             </span>
           </div>
           {data && data.total > 0 && (
-            <span className="text-[10px] text-[rgba(245,239,227,0.60)]">{data.total} result{data.total !== 1 ? "s" : ""}</span>
+            <span className="text-[10px] text-[rgba(26,26,26,0.60)]">{data.total} result{data.total !== 1 ? "s" : ""}</span>
           )}
         </div>
       </div>

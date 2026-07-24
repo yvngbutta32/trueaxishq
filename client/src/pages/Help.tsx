@@ -110,7 +110,7 @@ const categories = [
 function ArticleAccordion({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border border-white/10 rounded-xl overflow-hidden">
+    <div className="border border-[#DDDBD7] rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#D4922A] focus:ring-inset"
@@ -120,7 +120,7 @@ function ArticleAccordion({ q, a }: { q: string; a: string }) {
         <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="px-5 pb-5 text-sm text-gray-300 leading-relaxed border-t border-white/10 pt-4">
+        <div className="px-5 pb-5 text-sm text-gray-300 leading-relaxed border-t border-[#DDDBD7] pt-4">
           {a}
         </div>
       )}
@@ -142,8 +142,8 @@ export default function Help() {
   })).filter(cat => cat.articles.length > 0);
 
   return (
-    <div className="min-h-screen bg-[#0D1117] text-white">
-      <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#F2F0EC] text-white">
+      <nav className="border-b border-[#DDDBD7] px-4 sm:px-6 py-4 flex items-center justify-between">
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Home</span>
@@ -175,7 +175,7 @@ export default function Help() {
 
       {/* Category pills */}
       {!search && (
-        <div className="px-4 py-4 flex flex-wrap gap-2 justify-center border-b border-white/10">
+        <div className="px-4 py-4 flex flex-wrap gap-2 justify-center border-b border-[#DDDBD7]">
           <button
             onClick={() => setActiveCategory(null)}
             className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#D4922A] ${!activeCategory ? "bg-[#D4922A] text-white" : "bg-white/10 text-gray-400 hover:bg-white/15"}`}
@@ -219,7 +219,7 @@ export default function Help() {
         )}
 
         {/* Contact support */}
-        <section className="bg-white/5 border border-white/10 rounded-xl p-8 text-center">
+        <section className="bg-white/5 border border-[#DDDBD7] rounded-xl p-8 text-center">
           <h2 className="text-xl font-bold mb-2">Still need help?</h2>
           <p className="text-gray-400 text-sm mb-6">Our support team typically responds within 4 business hours.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -242,7 +242,7 @@ export default function Help() {
         </section>
       </div>
 
-      <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-400">
+      <footer className="border-t border-[#DDDBD7] py-8 px-4 text-center text-xs text-gray-400">
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

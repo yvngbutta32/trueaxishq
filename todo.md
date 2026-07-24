@@ -1269,24 +1269,24 @@
 - [x] No 4xx/5xx errors in network request logs
 
 ## Layout Restructure — Desktop & Mobile Optimal (Jul 2026)
-- [ ] Create AIPanelFull component — full-screen AI chat wired to ai.chat procedure
-- [ ] Sidebar: remove Testimonials entry, keep 9 items (Dashboard, Clients, Scheduling, Billing, Outreach, Deals, Insights, Settings, AI Assistant)
-- [ ] ClientsPanel: add Testimonials tab (alongside List/Pipeline toggle)
-- [ ] Panel switch: redirect orphaned panels to parent panels
-- [ ] AI panel case: replace placeholder with AIPanelFull component
-- [ ] Quick Actions: expand from 4 to 8 (Add Client, New Booking, New Invoice, Outreach, New Proposal, New Contract, Log Expense, Start Timer)
-- [ ] Mobile bottom nav: remove Testimonials from Work group
-- [ ] Update valid panel list for URL persistence
-- [ ] Update all cross-panel navigation references
-- [ ] Update panelSubtitles for AI and clients panels
+- [x] Create AIPanelFull component — full-screen AI chat wired to ai.chat procedure
+- [x] Sidebar: remove Testimonials entry, keep 9 items (Dashboard, Clients, Scheduling, Billing, Outreach, Deals, Insights, Settings, AI Assistant)
+- [x] ClientsPanel: add Testimonials tab (alongside List/Pipeline toggle)
+- [x] Panel switch: redirect orphaned panels to parent panels
+- [x] AI panel case: replace placeholder with AIPanelFull component
+- [x] Quick Actions: expand from 4 to 8 (Add Client, New Booking, New Invoice, Outreach, New Proposal, New Contract, Log Expense, Start Timer)
+- [x] Mobile bottom nav: remove Testimonials from Work group
+- [x] Update valid panel list for URL persistence
+- [x] Update all cross-panel navigation references
+- [x] Update panelSubtitles for AI and clients panels
 
 ## Readability & Contrast Pass (Jul 2026)
-- [ ] Upgrade body text opacity 0.40/0.45 → 0.65 across Dashboard.tsx
-- [ ] Upgrade label text opacity 0.35 → 0.55 across Dashboard.tsx
-- [ ] Upgrade text-[10px] labels to text-xs where they're primary content
-- [ ] Upgrade text-[9px] to text-[10px] for sidebar shortcut hints
-- [ ] PanelTabs: inactive tab color opacity 0.45 → 0.65
-- [ ] MobileQuickStats: label opacity 0.40 → 0.55, text-[9px] → text-[10px]
+- [x] Upgrade body text opacity 0.40/0.45 → 0.65 across Dashboard.tsx
+- [x] Upgrade label text opacity 0.35 → 0.55 across Dashboard.tsx
+- [x] Upgrade text-[10px] labels to text-xs where they're primary content
+- [x] Upgrade text-[9px] to text-[10px] for sidebar shortcut hints
+- [x] PanelTabs: inactive tab color opacity 0.45 → 0.65
+- [x] MobileQuickStats: label opacity 0.40 → 0.55, text-[9px] → text-[10px]
 
 ## Layout Restructure & Readability — COMPLETED (Jul 2026)
 - [x] Sidebar: Testimonials removed from nav, now lives inside Clients panel as a tab
@@ -1301,4 +1301,22 @@
 - [x] Readability pass: all rgba(245,239,227,0.25-0.45) upgraded to 0.55-0.70 across Dashboard.tsx and all panel files
 - [x] text-gray-400 upgraded to text-gray-300 in all dark-background panel files
 - [x] PanelTabs inactive tab opacity upgraded for better readability
+- [x] 0 TypeScript errors, 29/29 tests passing
+
+## Neutral Theme Redesign (Jul 2026)
+- [ ] Rewrite index.css — neutral design tokens (warm gray bg, charcoal text, amber gold accent, teal secondary)
+- [ ] Retheme Dashboard.tsx — sidebar, header, all panel backgrounds, cards, text
+- [ ] Retheme all panel files (Billing, Outreach, Deals, Insights, Clients, RevenueForecast, ContractTemplates, IntakeForms)
+- [ ] Retheme public pages (Home, Pricing, About, Contact, Help, Login, Register, BookingPage, Admin)
+- [ ] Retheme all components (AIAssistant, GlobalSearch, OnboardingChecklist, PanelTabs, HealthMonitor)
+
+## Neutral Theme Redesign — COMPLETE (Jul 2026)
+- [x] Rewrite index.css with neutral light theme design tokens (warm gray backgrounds, charcoal text, amber gold accent, teal secondary)
+- [x] Retheme Dashboard.tsx — sidebar, header, all cards, panels, modals, notifications
+- [x] Retheme all panel files (BillingPanel, OutreachPanel, DealsPanel, InsightsPanel, IntakeFormsPanel, RevenueForecastPanel, ContractTemplatesPanel)
+- [x] Retheme all component files (AIAssistant, GlobalSearch, OnboardingChecklist, HealthMonitor, PanelTabs)
+- [x] Retheme all public pages (Home, Login, Register, Pricing, About, Contact, Help, BookingPage, ClientPortal, ProposalSign, IntakeFormPage, CheckoutSuccess, NotFound, Privacy, Terms, ForgotPassword, ResetPassword, TestimonialSubmit)
+- [x] Fix AIAssistant dismiss button to use navy instead of gray-700
+- [x] Fix Login/Register page background from #161B22 to #F2F0EC
+- [x] Fix BookingPage progress step text color
 - [x] 0 TypeScript errors, 29/29 tests passing

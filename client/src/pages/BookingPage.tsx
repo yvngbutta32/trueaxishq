@@ -189,7 +189,7 @@ export default function BookingPage() {
   // Loading state
   if (pageQuery.isLoading) {
     return (
-      <div className="min-h-screen bg-[#161B22] flex items-center justify-center" role="status" aria-label="Loading booking page">
+      <div className="min-h-screen bg-white flex items-center justify-center" role="status" aria-label="Loading booking page">
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-[#D4922A] animate-spin mx-auto mb-3" aria-hidden="true" />
           <p className="text-gray-600 text-sm">Loading booking page…</p>
@@ -201,7 +201,7 @@ export default function BookingPage() {
   // Not found
   if (!pageQuery.data) {
     return (
-      <div className="min-h-screen bg-[#161B22] flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center max-w-sm">
           <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
             <User className="w-8 h-8 text-gray-600" />
@@ -239,9 +239,9 @@ export default function BookingPage() {
     });
 
     return (
-      <div className="min-h-screen bg-[#161B22]">
+      <div className="min-h-screen bg-white">
         {/* Header */}
-        <header className="bg-[#1C2333] border-b border-white/10 px-4 py-3.5">
+        <header className="bg-[#F7F6F3] border-b border-[#DDDBD7] px-4 py-3.5">
           <div className="max-w-xl mx-auto flex items-center gap-3">
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
@@ -269,7 +269,7 @@ export default function BookingPage() {
           </div>
 
           {/* Booking summary card */}
-          <div className="bg-[#1C2333] border border-white/10 rounded-xl p-5 mb-5">
+          <div className="bg-[#F7F6F3] border border-[#DDDBD7] rounded-xl p-5 mb-5">
             <div className="flex items-center gap-2 mb-4">
               <CalendarDays className="w-4 h-4 text-[#D4922A]" />
               <span className="text-xs font-bold text-[#D4922A] uppercase tracking-wider">Booking Summary</span>
@@ -298,7 +298,7 @@ export default function BookingPage() {
           </div>
 
           {/* Calendar add section */}
-          <div className="bg-[#1C2333] border border-white/10 rounded-xl p-5 mb-5">
+          <div className="bg-[#F7F6F3] border border-[#DDDBD7] rounded-xl p-5 mb-5">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-[#D4922A]" />
               <span className="text-xs font-bold text-[#D4922A] uppercase tracking-wider">Add to Your Calendar</span>
@@ -311,7 +311,7 @@ export default function BookingPage() {
                   downloadICS(icsContent, `booking-${form.preferredDate}.ics`);
                   toast.success("Calendar file downloaded!");
                 }}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#C8C5BF] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
               >
                 <Download className="w-4 h-4 text-[#D4922A]" />
                 Download .ics
@@ -322,7 +322,7 @@ export default function BookingPage() {
                 href={googleUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#C8C5BF] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
               >
                 <ExternalLink className="w-4 h-4 text-[#4285F4]" />
                 Google Calendar
@@ -334,7 +334,7 @@ export default function BookingPage() {
                   downloadICS(icsContent, `booking-${form.preferredDate}.ics`);
                   toast.success("Calendar file downloaded — open it to add to Apple Calendar!");
                 }}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#C8C5BF] bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-white"
               >
                 <CalendarDays className="w-4 h-4 text-[#A2AAAD]" />
                 Apple Calendar
@@ -357,7 +357,7 @@ export default function BookingPage() {
                 setStep("details");
                 setForm({ clientName: "", clientEmail: "", service: "", message: "", preferredDate: "", preferredTime: "" });
               }}
-              className="text-sm text-gray-300 hover:text-white underline underline-offset-2 transition-colors"
+              className="text-sm text-gray-300 hover:text-[#1A1A1A] underline underline-offset-2 transition-colors"
             >
               Book another appointment
             </button>
@@ -368,11 +368,11 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#161B22]">
+    <div className="min-h-screen bg-white">
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* Header */}
-      <header className="bg-[#1C2333] border-b border-white/10 px-4 py-3.5" role="banner">
+      <header className="bg-[#F7F6F3] border-b border-[#DDDBD7] px-4 py-3.5" role="banner">
         <div className="max-w-xl mx-auto flex items-center gap-3">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
@@ -395,7 +395,7 @@ export default function BookingPage() {
       </header>
 
       {/* Progress */}
-      <div className="bg-[#1C2333] border-b border-white/10" role="navigation" aria-label="Booking progress">
+      <div className="bg-[#F7F6F3] border-b border-[#DDDBD7]" role="navigation" aria-label="Booking progress">
         <div className="max-w-xl mx-auto px-4 py-3">
           <div className="flex items-center gap-2" role="list">
             {[
@@ -413,7 +413,7 @@ export default function BookingPage() {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                        isDone ? "bg-[#D4922A] text-[#1C2333]" :
+                        isDone ? "bg-[#D4922A] text-white" :
                         isCurrent ? "bg-[#D4922A]/20 text-[#D4922A] border-2 border-[#D4922A]" :
                         "bg-white/10 text-gray-600"
                       }`}
@@ -579,7 +579,7 @@ export default function BookingPage() {
                       className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 ${
                         isSelected
                           ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]"
-                          : "border-white/15 bg-white/5 hover:border-white/25 text-gray-300"
+                          : "border-[#C8C5BF] bg-white/5 hover:border-white/25 text-gray-300"
                       }`}
                     >
                       <p className="text-xs text-gray-400">{dayName}</p>
@@ -606,7 +606,7 @@ export default function BookingPage() {
                         className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 ${
                           isSelected
                             ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]"
-                            : "border-white/15 bg-white/5 hover:border-white/25 text-gray-300"
+                            : "border-[#C8C5BF] bg-white/5 hover:border-white/25 text-gray-300"
                         }`}
                       >
                         {time}
@@ -648,8 +648,8 @@ export default function BookingPage() {
             </h2>
             <p className="text-sm text-gray-400 mb-6">Please review the details below before submitting.</p>
 
-            <div className="bg-white/5 rounded-xl border border-white/10 p-5 space-y-4 mb-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+            <div className="bg-white/5 rounded-xl border border-[#DDDBD7] p-5 space-y-4 mb-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-[#DDDBD7]">
                 <div className="w-10 h-10 rounded-xl bg-[#D4922A]/15 border border-[#D4922A]/25 flex items-center justify-center flex-shrink-0" aria-hidden="true">
                   <User className="w-5 h-5 text-[#D4922A]" />
                 </div>
@@ -667,7 +667,7 @@ export default function BookingPage() {
                 { icon: Clock, label: "Time", value: form.preferredTime },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/8 border border-white/10 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                  <div className="w-8 h-8 rounded-lg bg-white/8 border border-[#DDDBD7] flex items-center justify-center flex-shrink-0" aria-hidden="true">
                     <Icon className="w-4 h-4 text-gray-400" />
                   </div>
                   <div>
@@ -679,7 +679,7 @@ export default function BookingPage() {
 
               {form.message && (
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/8 border border-white/10 flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
+                  <div className="w-8 h-8 rounded-lg bg-white/8 border border-[#DDDBD7] flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
                     <MessageSquare className="w-4 h-4 text-gray-400" />
                   </div>
                   <div>

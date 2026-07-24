@@ -75,8 +75,8 @@ export default function Contact() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0D1117] text-white">
-      <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#F2F0EC] text-white">
+      <nav className="border-b border-[#DDDBD7] px-4 sm:px-6 py-4 flex items-center justify-between">
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Home</span>
@@ -111,7 +111,7 @@ export default function Contact() {
                 { icon: Mail, title: "Billing", value: "billing@trueaxishq.com", sub: "For payment and subscription questions" },
                 { icon: Clock, title: "Response Time", value: "Within 4 business hours", sub: "Monday – Friday, 9am – 6pm CT" },
               ].map(({ icon: Icon, title, value, sub }) => (
-                <div key={title} className="flex items-start gap-4 bg-white/5 border border-white/10 rounded-xl p-4">
+                <div key={title} className="flex items-start gap-4 bg-white/5 border border-[#DDDBD7] rounded-xl p-4">
                   <div className="w-9 h-9 rounded-xl bg-[#D4922A]/15 flex items-center justify-center flex-shrink-0">
                     <Icon className="w-4 h-4 text-[#D4922A]" />
                   </div>
@@ -126,7 +126,7 @@ export default function Contact() {
           </div>
 
           {/* Right — Form */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-6 sm:p-8">
+          <div className="bg-white/5 border border-[#DDDBD7] rounded-xl p-6 sm:p-8">
             {submitted ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 rounded-full bg-[#D4922A]/15 flex items-center justify-center mx-auto mb-4">
@@ -164,7 +164,7 @@ export default function Contact() {
         </div>
       </div>
 
-      <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-600">
+      <footer className="border-t border-[#DDDBD7] py-8 px-4 text-center text-xs text-gray-600">
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

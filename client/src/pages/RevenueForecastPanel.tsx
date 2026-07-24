@@ -104,8 +104,8 @@ export default function RevenueForecastPanel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-extrabold text-[#F5EFE3]">Revenue Forecast</h2>
-          <p className="text-sm text-[rgba(245,239,227,0.55)]">{year} — actual vs projected vs goals</p>
+          <h2 className="text-xl font-extrabold text-[#1A1A1A]">Revenue Forecast</h2>
+          <p className="text-sm text-[rgba(26,26,26,0.55)]">{year} — actual vs projected vs goals</p>
         </div>
         <Button
           size="sm"
@@ -120,11 +120,11 @@ export default function RevenueForecastPanel() {
 
       {/* Annual goal edit inline */}
       {editingGoal?.type === "annual" && (
-        <div className="bg-[#161B22] border border-[#D4922A]/30 rounded-xl p-4 flex items-center gap-3">
+        <div className="bg-white border border-[#D4922A]/30 rounded-xl p-4 flex items-center gap-3">
           <Target className="w-4 h-4 text-[#D4922A] flex-shrink-0" />
-          <span className="text-sm text-[rgba(245,239,227,0.7)] flex-shrink-0">Annual Revenue Goal ({year}):</span>
+          <span className="text-sm text-[rgba(26,26,26,0.7)] flex-shrink-0">Annual Revenue Goal ({year}):</span>
           <div className="flex items-center gap-2 flex-1">
-            <span className="text-[rgba(245,239,227,0.5)]">$</span>
+            <span className="text-[rgba(26,26,26,0.5)]">$</span>
             <input
               value={goalInput}
               onChange={e => setGoalInput(e.target.value)}
@@ -145,7 +145,7 @@ export default function RevenueForecastPanel() {
           <button onClick={saveGoal} disabled={upsertGoal.isPending} className="text-emerald-400 hover:text-emerald-300 p-1">
             <Check className="w-4 h-4" />
           </button>
-          <button onClick={() => setEditingGoal(null)} className="text-[rgba(245,239,227,0.4)] hover:text-white p-1">
+          <button onClick={() => setEditingGoal(null)} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] p-1">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -186,9 +186,9 @@ export default function RevenueForecastPanel() {
 
       {/* Annual goal progress bar */}
       {annualGoal != null && annualGoal > 0 && (
-        <div className="bg-[#161B22] rounded-xl border border-white/8 p-4">
+        <div className="bg-white rounded-xl border border-[#DDDBD7] p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-[rgba(245,239,227,0.6)]">Annual Progress</span>
+            <span className="text-xs font-semibold text-[rgba(26,26,26,0.6)]">Annual Progress</span>
             <span className="text-xs font-bold text-[#D4922A]">{ytdPct ?? 0}%</span>
           </div>
           <div className="h-2.5 bg-white/8 rounded-full overflow-hidden">
@@ -200,7 +200,7 @@ export default function RevenueForecastPanel() {
               }}
             />
           </div>
-          <div className="flex justify-between mt-1.5 text-[10px] text-[rgba(245,239,227,0.60)]">
+          <div className="flex justify-between mt-1.5 text-[10px] text-[rgba(26,26,26,0.60)]">
             <span>{fmt(ytdRevenue)} earned</span>
             <span>{fmt(annualGoal)} goal</span>
           </div>
@@ -208,19 +208,19 @@ export default function RevenueForecastPanel() {
       )}
 
       {/* Monthly bar chart */}
-      <div className="bg-[#161B22] rounded-xl border border-white/8 p-4">
-        <h3 className="text-sm font-bold text-[rgba(245,239,227,0.7)] mb-4">Monthly Breakdown</h3>
+      <div className="bg-white rounded-xl border border-[#DDDBD7] p-4">
+        <h3 className="text-sm font-bold text-[rgba(26,26,26,0.7)] mb-4">Monthly Breakdown</h3>
         <ResponsiveContainer width="100%" height={240}>
           <BarChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-            <XAxis dataKey="name" tick={{ fill: "rgba(245,239,227,0.4)", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tickFormatter={v => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} tick={{ fill: "rgba(245,239,227,0.4)", fontSize: 10 }} axisLine={false} tickLine={false} width={45} />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" />
+            <XAxis dataKey="name" tick={{ fill: "rgba(26,26,26,0.4)", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tickFormatter={v => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} tick={{ fill: "rgba(26,26,26,0.4)", fontSize: 10 }} axisLine={false} tickLine={false} width={45} />
             <Tooltip
-              contentStyle={{ background: "#1C2333", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }}
-              labelStyle={{ color: "#F5EFE3", fontWeight: 600 }}
+              contentStyle={{ background: "#FFFFFF", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }}
+              labelStyle={{ color: "#1A1A1A", fontWeight: 600 }}
               formatter={(value: number, name: string) => [`$${value.toLocaleString()}`, name]}
             />
-            <Legend wrapperStyle={{ fontSize: 11, color: "rgba(245,239,227,0.5)" }} />
+            <Legend wrapperStyle={{ fontSize: 11, color: "rgba(26,26,26,0.5)" }} />
             <Bar dataKey="Actual" fill="#D4922A" radius={[4, 4, 0, 0]} maxBarSize={32} />
             <Bar dataKey="Projected" fill="#6366F1" radius={[4, 4, 0, 0]} maxBarSize={32} opacity={0.7} />
             <Bar dataKey="Goal" fill="rgba(16,185,129,0.3)" radius={[4, 4, 0, 0]} maxBarSize={32} stroke="#10B981" strokeWidth={1} />
@@ -229,9 +229,9 @@ export default function RevenueForecastPanel() {
       </div>
 
       {/* Monthly goals table */}
-      <div className="bg-[#161B22] rounded-xl border border-white/8 overflow-hidden">
-        <div className="px-4 py-3 border-b border-white/8">
-          <h3 className="text-sm font-bold text-[rgba(245,239,227,0.7)]">Monthly Goals</h3>
+      <div className="bg-white rounded-xl border border-[#DDDBD7] overflow-hidden">
+        <div className="px-4 py-3 border-b border-[#DDDBD7]">
+          <h3 className="text-sm font-bold text-[rgba(26,26,26,0.7)]">Monthly Goals</h3>
         </div>
         <div className="divide-y divide-white/5">
           {forecast.forecast.map(m => {
@@ -240,15 +240,15 @@ export default function RevenueForecastPanel() {
             const isCurrent = m.month === currentMonth;
             return (
               <div key={m.month} className={`flex items-center gap-3 px-4 py-2.5 ${isCurrent ? "bg-[#D4922A]/5" : ""}`}>
-                <span className={`text-xs font-semibold w-8 flex-shrink-0 ${isCurrent ? "text-[#D4922A]" : "text-[rgba(245,239,227,0.5)]"}`}>
+                <span className={`text-xs font-semibold w-8 flex-shrink-0 ${isCurrent ? "text-[#D4922A]" : "text-[rgba(26,26,26,0.5)]"}`}>
                   {MONTH_LABELS[m.month - 1]}
                   {isCurrent && <span className="ml-1 text-[9px] text-[#D4922A]">NOW</span>}
                 </span>
                 <div className="flex-1 grid grid-cols-3 gap-2 text-xs">
-                  <span className={isPast || isCurrent ? "text-[#F5EFE3] font-semibold" : "text-[rgba(245,239,227,0.3)]"}>
+                  <span className={isPast || isCurrent ? "text-[#1A1A1A] font-semibold" : "text-[rgba(26,26,26,0.3)]"}>
                     {m.actual != null ? fmt(m.actual) : isPast ? "$0" : "—"}
                   </span>
-                  <span className="text-[rgba(245,239,227,0.70)]">
+                  <span className="text-[rgba(26,26,26,0.70)]">
                     {m.projected != null && m.actual == null ? fmt(m.projected) : "—"}
                   </span>
                   {isEditing ? (
@@ -263,16 +263,16 @@ export default function RevenueForecastPanel() {
                         onKeyDown={e => { if (e.key === "Enter") saveGoal(); if (e.key === "Escape") setEditingGoal(null); }}
                       />
                       <button onClick={saveGoal} className="text-emerald-400 hover:text-emerald-300"><Check className="w-3 h-3" /></button>
-                      <button onClick={() => setEditingGoal(null)} className="text-[rgba(245,239,227,0.4)] hover:text-white"><X className="w-3 h-3" /></button>
+                      <button onClick={() => setEditingGoal(null)} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A]"><X className="w-3 h-3" /></button>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1">
-                      <span className={m.goal != null ? "text-emerald-400 font-semibold" : "text-[rgba(245,239,227,0.55)]"}>
+                      <span className={m.goal != null ? "text-emerald-400 font-semibold" : "text-[rgba(26,26,26,0.55)]"}>
                         {m.goal != null ? fmt(m.goal) : "—"}
                       </span>
                       <button
                         onClick={() => startEditGoal("monthly", m.month, m.goal)}
-                        className="text-[rgba(245,239,227,0.2)] hover:text-[#D4922A] transition-colors ml-1"
+                        className="text-[rgba(26,26,26,0.2)] hover:text-[#D4922A] transition-colors ml-1"
                         title="Set monthly goal"
                       >
                         {m.goal != null ? <Edit2 className="w-2.5 h-2.5" /> : <Plus className="w-2.5 h-2.5" />}
@@ -297,7 +297,7 @@ export default function RevenueForecastPanel() {
             );
           })}
         </div>
-        <div className="px-4 py-2 border-t border-white/8 grid grid-cols-3 gap-2 text-[10px] text-[rgba(245,239,227,0.60)] ml-11">
+        <div className="px-4 py-2 border-t border-[#DDDBD7] grid grid-cols-3 gap-2 text-[10px] text-[rgba(26,26,26,0.60)] ml-11">
           <span>Actual</span><span>Projected</span><span>Goal</span>
         </div>
       </div>
@@ -316,15 +316,15 @@ function SummaryCard({
   action?: { label: string; onClick: () => void };
 }) {
   return (
-    <div className="bg-[#161B22] rounded-xl border border-white/8 p-3.5">
+    <div className="bg-white rounded-xl border border-[#DDDBD7] p-3.5">
       <div className="flex items-center gap-2 mb-2">
         <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${color}18` }}>
           <Icon className="w-3.5 h-3.5" style={{ color }} />
         </div>
-        <span className="text-[10px] font-semibold text-[rgba(245,239,227,0.70)] uppercase tracking-wide">{label}</span>
+        <span className="text-[10px] font-semibold text-[rgba(26,26,26,0.70)] uppercase tracking-wide">{label}</span>
       </div>
-      <div className="text-lg font-extrabold text-[#F5EFE3]">{value}</div>
-      <div className="text-[10px] text-[rgba(245,239,227,0.4)] mt-0.5">{sub}</div>
+      <div className="text-lg font-extrabold text-[#1A1A1A]">{value}</div>
+      <div className="text-[10px] text-[rgba(26,26,26,0.4)] mt-0.5">{sub}</div>
       {action && (
         <button onClick={action.onClick} className="mt-2 text-[10px] font-semibold text-[#D4922A] hover:underline">
           {action.label} →

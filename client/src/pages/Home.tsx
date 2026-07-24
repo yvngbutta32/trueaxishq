@@ -461,7 +461,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
             <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ background: "rgba(232,160,32,0.06)", border: "1px solid rgba(232,160,32,0.14)" }}>
               <div className="flex -space-x-2">
                 {["#6366F1", "#D4922A", "#5A9A7A", "#FF6B6B"].map((c, i) => (
-                  <div key={i} className="w-7 h-7 rounded-full border-2 border-[#161B22] flex items-center justify-center text-white text-[9px] font-bold" style={{ background: c }}>U{i + 1}</div>
+                  <div key={i} className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-white text-[9px] font-bold" style={{ background: c }}>U{i + 1}</div>
                 ))}
               </div>
               <div>
@@ -1200,7 +1200,7 @@ function FAQSection() {
         <div className="text-center mb-12">
           <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ background: "rgba(232,160,32,0.12)", color: "#D4922A" }}>FAQ</span>
           <h2 className="text-3xl md:text-4xl font-extrabold mb-3" style={{ color: "#F5EFE3", letterSpacing: "-0.02em" }}>Frequently Asked Questions</h2>
-          <p className="text-gray-300 text-base">Everything you need to know before getting started.</p>
+          <p className="text-[#3D3D3D] text-base">Everything you need to know before getting started.</p>
         </div>
         <div className="space-y-3">
           {HOME_FAQS.map((faq, i) => (
@@ -1217,13 +1217,13 @@ function FAQSection() {
               </button>
               {open === i && (
                 <div className="px-5 pb-4">
-                  <p className="text-sm text-gray-300 leading-relaxed">{faq.a}</p>
+                  <p className="text-sm text-[#3D3D3D] leading-relaxed">{faq.a}</p>
                 </div>
               )}
             </div>
           ))}
         </div>
-        <p className="text-center text-sm text-gray-400 mt-10">
+        <p className="text-center text-sm text-[#6B6B6B] mt-10">
           Still have questions? <a href="/contact" className="text-[#D4922A] hover:underline font-medium">Contact our team →</a>
         </p>
       </div>
@@ -1390,14 +1390,14 @@ export default function Home() {
       {changelogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Changelog">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setChangelogOpen(false)} aria-hidden="true" />
-          <div className="relative bg-[#161B22] rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" style={{ border: "1px solid rgba(232,160,32,0.20)" }}>
-            <div className="flex items-center justify-between p-5 border-b border-white/5">
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" style={{ border: "1px solid rgba(232,160,32,0.20)" }}>
+            <div className="flex items-center justify-between p-5 border-b border-[#EEECEA]">
               <div>
-                <h2 className="font-bold text-[#F5F0E8] text-base">What's New</h2>
-                <p className="text-xs text-gray-400 mt-0.5">TrueAxis HQ — Latest Updates</p>
+                <h2 className="font-bold text-[#1A1A1A] text-base">What's New</h2>
+                <p className="text-xs text-[#6B6B6B] mt-0.5">TrueAxis HQ — Latest Updates</p>
               </div>
-              <button onClick={() => setChangelogOpen(false)} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors" aria-label="Close">
-                <X className="w-4 h-4 text-gray-400" />
+              <button onClick={() => setChangelogOpen(false)} className="p-1.5 rounded-lg hover:bg-[#F0EEE9] transition-colors" aria-label="Close">
+                <X className="w-4 h-4 text-[#6B6B6B]" />
               </button>
             </div>
             <div className="p-5 space-y-4">
@@ -1414,8 +1414,8 @@ export default function Home() {
                 <div key={item.title} className="flex items-start gap-3">
                   <span className="text-xl flex-shrink-0">{item.emoji}</span>
                   <div>
-                    <p className="text-sm font-bold text-[#F5F0E8]">{item.title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
+                    <p className="text-sm font-bold text-[#1A1A1A]">{item.title}</p>
+                    <p className="text-xs text-[#6B6B6B] mt-0.5">{item.desc}</p>
                   </div>
                 </div>
               ))}

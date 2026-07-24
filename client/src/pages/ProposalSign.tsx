@@ -70,7 +70,7 @@ export default function ProposalSign() {
   // ── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0D1117] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center">
         <div className="text-center space-y-3">
           <Loader2 className="w-10 h-10 text-[#D4922A] animate-spin mx-auto" />
           <p className="text-[rgba(245,239,227,0.55)] text-sm">Loading proposal…</p>
@@ -82,12 +82,12 @@ export default function ProposalSign() {
   // ── Error ──────────────────────────────────────────────────────────────────
   if (error || !proposal) {
     return (
-      <div className="min-h-screen bg-[#0D1117] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center space-y-4">
           <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
             <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
-          <h1 className="text-xl font-bold text-[#F5EFE3]">Proposal Not Found</h1>
+          <h1 className="text-xl font-bold text-[#1A1A1A]">Proposal Not Found</h1>
           <p className="text-[rgba(245,239,227,0.55)] text-sm">
             This proposal link is invalid or has expired. Please contact the sender for a new link.
           </p>
@@ -99,13 +99,13 @@ export default function ProposalSign() {
   // ── Already Signed ─────────────────────────────────────────────────────────
   if (signed || proposal.status === "signed") {
     return (
-      <div className="min-h-screen bg-[#0D1117] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center space-y-5">
           <div className="w-20 h-20 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto">
             <ThumbsUp className="w-10 h-10 text-green-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#F5EFE3] mb-2">Proposal Signed!</h1>
+            <h1 className="text-2xl font-bold text-[#1A1A1A] mb-2">Proposal Signed!</h1>
             <p className="text-[rgba(245,239,227,0.55)] text-sm">
               {proposal.status === "signed" && proposal.signatureName
                 ? `Signed by ${proposal.signatureName}`
@@ -117,9 +117,9 @@ export default function ProposalSign() {
               </p>
             )}
           </div>
-          <div className="p-4 rounded-xl bg-white/4 border border-white/8 text-left space-y-2">
+          <div className="p-4 rounded-xl bg-white/4 border border-[#DDDBD7] text-left space-y-2">
             <p className="text-xs text-[rgba(245,239,227,0.40)] font-semibold uppercase tracking-wider">Proposal Summary</p>
-            <p className="text-[#F5EFE3] font-semibold">{proposal.title}</p>
+            <p className="text-[#1A1A1A] font-semibold">{proposal.title}</p>
             <p className="text-[#D4922A] font-bold text-lg">
               {proposal.currency} {parseFloat(String(proposal.total)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </p>
@@ -135,12 +135,12 @@ export default function ProposalSign() {
   // ── Declined ───────────────────────────────────────────────────────────────
   if (proposal.status === "declined") {
     return (
-      <div className="min-h-screen bg-[#0D1117] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center space-y-4">
           <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
             <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
-          <h1 className="text-xl font-bold text-[#F5EFE3]">Proposal Declined</h1>
+          <h1 className="text-xl font-bold text-[#1A1A1A]">Proposal Declined</h1>
           <p className="text-[rgba(245,239,227,0.55)] text-sm">
             This proposal has been declined. Please contact the sender if you believe this is an error.
           </p>
@@ -160,9 +160,9 @@ export default function ProposalSign() {
 
   // ── Main view ──────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#0D1117] text-[#F5EFE3]">
+    <div className="min-h-screen bg-[#F2F0EC] text-[#1A1A1A]">
       {/* Header */}
-      <div className="border-b border-white/8 bg-[#161B22]/80 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b border-[#DDDBD7] bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#D4922A]/20 border border-[#D4922A]/30 flex items-center justify-center">
@@ -170,7 +170,7 @@ export default function ProposalSign() {
             </div>
             <div>
               <p className="text-xs text-[rgba(245,239,227,0.40)] font-medium">Proposal from TrueAxis HQ</p>
-              <p className="text-sm font-semibold text-[#F5EFE3] truncate max-w-[200px] sm:max-w-none">{proposal.title}</p>
+              <p className="text-sm font-semibold text-[#1A1A1A] truncate max-w-[200px] sm:max-w-none">{proposal.title}</p>
             </div>
           </div>
           <StatusBadge status={proposal.status} />
@@ -180,13 +180,13 @@ export default function ProposalSign() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
         {/* Client greeting */}
-        <div className="p-5 rounded-2xl bg-[#161B22] border border-white/8">
+        <div className="p-5 rounded-2xl bg-white border border-[#DDDBD7]">
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-full bg-[#D4922A]/15 border border-[#D4922A]/25 flex items-center justify-center shrink-0">
               <User className="w-5 h-5 text-[#D4922A]" />
             </div>
             <div>
-              <p className="text-[#F5EFE3] font-semibold text-lg">Hi {proposal.clientName},</p>
+              <p className="text-[#1A1A1A] font-semibold text-lg">Hi {proposal.clientName},</p>
               <p className="text-[rgba(245,239,227,0.55)] text-sm mt-1">
                 Please review the proposal below. Once you're ready, sign at the bottom to get started.
               </p>
@@ -201,20 +201,20 @@ export default function ProposalSign() {
             { icon: Calendar, label: "Valid Until", value: proposal.validUntil ? new Date(proposal.validUntil + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "Open", color: "#60a5fa" },
             { icon: Clock, label: "Status", value: proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1), color: "#22c55e" },
           ].map(({ icon: Icon, label, value, color }) => (
-            <div key={label} className="p-3 rounded-xl bg-[#161B22] border border-white/8">
+            <div key={label} className="p-3 rounded-xl bg-white border border-[#DDDBD7]">
               <div className="flex items-center gap-2 mb-1">
                 <Icon className="w-3.5 h-3.5" style={{ color }} />
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-[rgba(245,239,227,0.35)]">{label}</span>
               </div>
-              <p className="text-sm font-bold text-[#F5EFE3]">{value}</p>
+              <p className="text-sm font-bold text-[#1A1A1A]">{value}</p>
             </div>
           ))}
         </div>
 
         {/* Scope of Work */}
         {proposal.scope && (
-          <div className="p-5 rounded-2xl bg-[#161B22] border border-white/8 space-y-3">
-            <h2 className="text-sm font-bold text-[#F5EFE3] uppercase tracking-wider">Scope of Work</h2>
+          <div className="p-5 rounded-2xl bg-white border border-[#DDDBD7] space-y-3">
+            <h2 className="text-sm font-bold text-[#1A1A1A] uppercase tracking-wider">Scope of Work</h2>
             <div className="prose prose-sm prose-invert max-w-none">
               <p className="text-[rgba(245,239,227,0.70)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.scope}</p>
             </div>
@@ -223,26 +223,26 @@ export default function ProposalSign() {
 
         {/* Line Items */}
         {lineItems.length > 0 && (
-          <div className="rounded-2xl bg-[#161B22] border border-white/8 overflow-hidden">
-            <div className="px-5 py-3 border-b border-white/8">
-              <h2 className="text-sm font-bold text-[#F5EFE3] uppercase tracking-wider">Deliverables & Pricing</h2>
+          <div className="rounded-2xl bg-white border border-[#DDDBD7] overflow-hidden">
+            <div className="px-5 py-3 border-b border-[#DDDBD7]">
+              <h2 className="text-sm font-bold text-[#1A1A1A] uppercase tracking-wider">Deliverables & Pricing</h2>
             </div>
             <div className="divide-y divide-white/5">
               {lineItems.map((li) => (
                 <div key={li.id} className="px-5 py-3 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#F5EFE3]">{li.name}</p>
+                    <p className="text-sm font-semibold text-[#1A1A1A]">{li.name}</p>
                     {li.description && <p className="text-xs text-[rgba(245,239,227,0.45)] mt-0.5">{li.description}</p>}
                     <p className="text-xs text-[rgba(245,239,227,0.35)] mt-0.5">{li.qty} × {proposal.currency} {li.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                   </div>
-                  <p className="text-sm font-bold text-[#F5EFE3] shrink-0">
+                  <p className="text-sm font-bold text-[#1A1A1A] shrink-0">
                     {proposal.currency} {li.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               ))}
             </div>
             {/* Totals */}
-            <div className="px-5 py-4 border-t border-white/8 space-y-2 bg-white/2">
+            <div className="px-5 py-4 border-t border-[#DDDBD7] space-y-2 bg-white/2">
               <div className="flex justify-between text-sm text-[rgba(245,239,227,0.55)]">
                 <span>Subtotal</span>
                 <span>{proposal.currency} {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
@@ -253,7 +253,7 @@ export default function ProposalSign() {
                   <span>{proposal.currency} {taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
               )}
-              <div className="flex justify-between text-base font-bold text-[#F5EFE3] pt-2 border-t border-white/8">
+              <div className="flex justify-between text-base font-bold text-[#1A1A1A] pt-2 border-t border-[#DDDBD7]">
                 <span>Total</span>
                 <span className="text-[#D4922A]">{proposal.currency} {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
@@ -263,20 +263,20 @@ export default function ProposalSign() {
 
         {/* Notes */}
         {proposal.notes && (
-          <div className="p-5 rounded-2xl bg-[#161B22] border border-white/8 space-y-2">
-            <h2 className="text-sm font-bold text-[#F5EFE3] uppercase tracking-wider">Additional Notes</h2>
+          <div className="p-5 rounded-2xl bg-white border border-[#DDDBD7] space-y-2">
+            <h2 className="text-sm font-bold text-[#1A1A1A] uppercase tracking-wider">Additional Notes</h2>
             <p className="text-[rgba(245,239,227,0.60)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.notes}</p>
           </div>
         )}
 
         {/* Signature Section */}
-        <div className="p-5 rounded-2xl bg-[#161B22] border border-[#D4922A]/25 space-y-4">
+        <div className="p-5 rounded-2xl bg-white border border-[#D4922A]/25 space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#D4922A]/15 border border-[#D4922A]/25 flex items-center justify-center">
               <PenLine className="w-4 h-4 text-[#D4922A]" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-[#F5EFE3]">Electronic Signature</h2>
+              <h2 className="text-sm font-bold text-[#1A1A1A]">Electronic Signature</h2>
               <p className="text-xs text-[rgba(245,239,227,0.45)]">Type your full legal name to sign this proposal</p>
             </div>
           </div>
@@ -288,7 +288,7 @@ export default function ProposalSign() {
               value={signatureName}
               onChange={e => setSignatureName(e.target.value)}
               placeholder="e.g. Jane Smith"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/12 text-[#F5EFE3] placeholder-[rgba(245,239,227,0.25)] text-sm focus:outline-none focus:border-[#D4922A]/60 focus:ring-1 focus:ring-[#D4922A]/30 transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/12 text-[#1A1A1A] placeholder-[rgba(245,239,227,0.25)] text-sm focus:outline-none focus:border-[#D4922A]/60 focus:ring-1 focus:ring-[#D4922A]/30 transition-all"
               onKeyDown={e => { if (e.key === "Enter") handleSign(); }}
             />
             {signatureName.trim() && (

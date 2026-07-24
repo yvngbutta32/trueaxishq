@@ -112,8 +112,8 @@ export default function Privacy() {
   const [, navigate] = useLocation();
   useEffect(() => { document.title = "Privacy Policy — TrueAxis HQ"; }, []);
   return (
-    <div className="min-h-screen bg-[#0D1117] text-white">
-      <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#F2F0EC] text-white">
+      <nav className="border-b border-[#DDDBD7] px-4 sm:px-6 py-4 flex items-center justify-between">
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Home</span>
@@ -159,7 +159,7 @@ export default function Privacy() {
         </div>
       </div>
 
-      <footer className="border-t border-white/10 py-8 px-4 text-center text-xs text-gray-400">
+      <footer className="border-t border-[#DDDBD7] py-8 px-4 text-center text-xs text-gray-400">
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

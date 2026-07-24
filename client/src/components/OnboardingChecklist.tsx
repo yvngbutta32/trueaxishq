@@ -60,7 +60,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
   const allDone = doneCount === total;
 
   return (
-    <div className="bg-[#161B22] rounded-xl border border-white/8 overflow-hidden">
+    <div className="bg-white rounded-xl border border-[#DDDBD7] overflow-hidden">
       {/* Header */}
       <div
         className="flex items-center justify-between px-5 py-4 cursor-pointer select-none hover:bg-white/3 transition-colors"
@@ -73,7 +73,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
             ) : (
               <>
                 <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3.2" />
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth="3.2" />
                   <circle
                     cx="18" cy="18" r="15.9" fill="none"
                     stroke={allDone ? "#10B981" : "#D4922A"} strokeWidth="3.2"
@@ -81,17 +81,17 @@ export function OnboardingChecklist({ onNavigate }: Props) {
                     strokeLinecap="round"
                   />
                 </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#F5EFE3]">
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#1A1A1A]">
                   {doneCount}/{total}
                 </span>
               </>
             )}
           </div>
           <div>
-            <p className="text-sm font-bold text-[#F5EFE3]">
+            <p className="text-sm font-bold text-[#1A1A1A]">
               {allDone ? "Setup complete! 🎉" : "Getting started"}
             </p>
-            <p className="text-xs text-[rgba(245,239,227,0.65)]">
+            <p className="text-xs text-[rgba(26,26,26,0.65)]">
               {isLoading
                 ? "Checking your progress…"
                 : allDone
@@ -102,15 +102,15 @@ export function OnboardingChecklist({ onNavigate }: Props) {
         </div>
         <div className="flex items-center gap-2">
           {collapsed
-            ? <ChevronDown className="w-4 h-4 text-[rgba(245,239,227,0.65)]" />
-            : <ChevronUp className="w-4 h-4 text-[rgba(245,239,227,0.65)]" />
+            ? <ChevronDown className="w-4 h-4 text-[rgba(26,26,26,0.65)]" />
+            : <ChevronUp className="w-4 h-4 text-[rgba(26,26,26,0.65)]" />
           }
           <button
             onClick={e => { e.stopPropagation(); dismiss(); }}
             className="p-1 rounded-lg hover:bg-white/8 transition-colors"
             aria-label="Dismiss checklist"
           >
-            <X className="w-3.5 h-3.5 text-[rgba(245,239,227,0.65)]" />
+            <X className="w-3.5 h-3.5 text-[rgba(26,26,26,0.65)]" />
           </button>
         </div>
       </div>
@@ -137,14 +137,14 @@ export function OnboardingChecklist({ onNavigate }: Props) {
                 <div className="mt-0.5 flex-shrink-0">
                   {done
                     ? <CheckCircle className="w-5 h-5 text-green-400" />
-                    : <Circle className="w-5 h-5 text-[rgba(245,239,227,0.55)]" />
+                    : <Circle className="w-5 h-5 text-[rgba(26,26,26,0.55)]" />
                   }
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold ${done ? "line-through text-[rgba(245,239,227,0.60)]" : "text-[#F5EFE3]"}`}>
+                  <p className={`text-sm font-semibold ${done ? "line-through text-[rgba(26,26,26,0.60)]" : "text-[#1A1A1A]"}`}>
                     {step.label}
                   </p>
-                  <p className="text-xs text-[rgba(245,239,227,0.65)] mt-0.5">{step.desc}</p>
+                  <p className="text-xs text-[rgba(26,26,26,0.65)] mt-0.5">{step.desc}</p>
                 </div>
                 {step.panel && !done && (
                   <button

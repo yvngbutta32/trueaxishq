@@ -34,7 +34,7 @@ export function PanelTabs({ tabs, defaultTab, onTabChange }: PanelTabsProps) {
     <div className="flex flex-col h-full min-h-0">
       {/* Tab bar */}
       <div
-        className="flex items-center gap-0.5 px-3 pt-3 pb-0 border-b border-[rgba(245,239,227,0.10)] overflow-x-auto scrollbar-none flex-shrink-0"
+        className="flex items-center gap-0.5 px-3 pt-3 pb-0 border-b border-[rgba(26,26,26,0.10)] overflow-x-auto scrollbar-none flex-shrink-0"
         role="tablist"
         aria-label="Panel sections"
       >
@@ -51,14 +51,14 @@ export function PanelTabs({ tabs, defaultTab, onTabChange }: PanelTabsProps) {
               className={`flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition-all duration-150 whitespace-nowrap relative -mb-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] focus-visible:ring-offset-1 ${
                 isActive
                   ? "border-[#D4922A] text-[#D4922A] bg-[rgba(212,146,42,0.08)]"
-                  : "border-transparent text-[rgba(245,239,227,0.70)] hover:text-[rgba(245,239,227,0.92)] hover:bg-[rgba(255,255,255,0.05)]"
+                  : "border-transparent text-[rgba(26,26,26,0.70)] hover:text-[rgba(26,26,26,0.92)] hover:bg-[rgba(0,0,0,0.04)]"
               }`}
             >
               {Icon && <Icon className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />}
               <span>{tab.label}</span>
               {tab.badge && (
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  isActive ? "bg-[#D4922A]/20 text-[#D4922A]" : "bg-[rgba(255,255,255,0.10)] text-[rgba(245,239,227,0.70)]"
+                  isActive ? "bg-[#D4922A]/20 text-[#D4922A]" : "bg-[rgba(0,0,0,0.10)] text-[rgba(26,26,26,0.70)]"
                 }`}>
                   {tab.badge}
                 </span>

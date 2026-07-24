@@ -65,7 +65,7 @@ export function HealthMonitor() {
       <button
         onClick={() => setShowTooltip(!showTooltip)}
         onBlur={() => setTimeout(() => setShowTooltip(false), 200)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-white/10 transition-colors text-xs text-gray-400 hover:text-white"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-white/10 transition-colors text-xs text-gray-400 hover:text-[#1A1A1A]"
         aria-label={label}
         aria-expanded={showTooltip}
       >
@@ -76,7 +76,7 @@ export function HealthMonitor() {
 
       {showTooltip && (
         <div
-          className="absolute right-0 top-full mt-2 w-72 bg-[#0D1117] border border-white/10 rounded-2xl shadow-2xl z-50 p-4"
+          className="absolute right-0 top-full mt-2 w-72 bg-[#F7F6F3] border border-[#DDDBD7] rounded-2xl shadow-2xl z-50 p-4"
           role="tooltip"
         >
           <div className="flex items-center justify-between mb-3">
@@ -106,7 +106,7 @@ export function HealthMonitor() {
                   label="AI Engine"
                   status={data.checks.llm?.status === "configured" ? "ok" : "not_configured"}
                 />
-                <div className="pt-2 border-t border-white/10 mt-2">
+                <div className="pt-2 border-t border-[#DDDBD7] mt-2">
                   <p className="text-xs text-gray-500">
                     Uptime: {Math.floor(data.uptime / 3600)}h {Math.floor((data.uptime % 3600) / 60)}m
                     {" · "}Response: {data.totalLatencyMs}ms

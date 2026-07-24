@@ -44,7 +44,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#161B22" }}>
+    <div className="min-h-screen flex" style={{ background: "#F2F0EC" }}>
       {/* Left panel — branding & features */}
       <div
         className="hidden lg:flex flex-col justify-between w-[45%] p-12 relative overflow-hidden"

@@ -72,12 +72,12 @@ export default function IntakeFormPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-[#0D1117] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
           <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-emerald-400" />
           </div>
-          <h1 className="text-2xl font-bold text-[#F5EFE3] mb-2">Thank you!</h1>
+          <h1 className="text-2xl font-bold text-[#1A1A1A] mb-2">Thank you!</h1>
           <p className="text-sm text-[rgba(245,239,227,0.55)]">Your response has been submitted. We'll be in touch soon.</p>
         </div>
       </div>
@@ -86,7 +86,7 @@ export default function IntakeFormPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0D1117] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
         <div className="max-w-lg w-full space-y-4">
           <Skeleton className="h-8 w-48 mx-auto" />
           <Skeleton className="h-4 w-64 mx-auto" />
@@ -98,10 +98,10 @@ export default function IntakeFormPage() {
 
   if (isError || !formData) {
     return (
-      <div className="min-h-screen bg-[#0D1117] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
           <ClipboardList className="w-12 h-12 text-[rgba(245,239,227,0.2)] mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-[#F5EFE3] mb-2">Form Not Available</h1>
+          <h1 className="text-xl font-bold text-[#1A1A1A] mb-2">Form Not Available</h1>
           <p className="text-sm text-[rgba(245,239,227,0.5)]">This form is no longer active or does not exist.</p>
         </div>
       </div>
@@ -109,20 +109,20 @@ export default function IntakeFormPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D1117] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
       <div className="max-w-lg w-full">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-2xl bg-[#D4922A]/15 flex items-center justify-center mx-auto mb-4">
             <ClipboardList className="w-6 h-6 text-[#D4922A]" />
           </div>
-          <h1 className="text-2xl font-bold text-[#F5EFE3]">{formData.name}</h1>
+          <h1 className="text-2xl font-bold text-[#1A1A1A]">{formData.name}</h1>
           {formData.description && (
             <p className="text-sm text-[rgba(245,239,227,0.55)] mt-2">{formData.description}</p>
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-[#161B22] rounded-2xl border border-white/10 p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[#DDDBD7] p-6 space-y-5">
           {fieldErrors._form && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-sm text-red-400">{fieldErrors._form}</div>
           )}

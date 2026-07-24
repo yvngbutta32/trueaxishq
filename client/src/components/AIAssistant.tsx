@@ -458,7 +458,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, panel
   // ── PANEL MODE: embedded in dashboard panel (no fixed positioning, no drag) ────
   if (panelMode) {
     return (
-      <div className="flex flex-col h-full min-h-0 bg-[#161B22] rounded-xl overflow-hidden">
+      <div className="flex flex-col h-full min-h-0 bg-white rounded-xl overflow-hidden">
         {/* Panel header */}
         <div className="gradient-amber px-4 py-3 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2.5">
@@ -500,7 +500,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, panel
           <button
             onClick={onClose}
             aria-label="Dismiss AI Assistant"
-            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gray-700 text-white flex items-center justify-center hover:bg-gray-900 transition-colors shadow"
+            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#1B2D4F] text-white flex items-center justify-center hover:bg-[#111E33] transition-colors shadow"
           >
             <X className="w-3 h-3" />
           </button>
@@ -559,7 +559,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, panel
         <button
           onClick={onClose}
           aria-label="Dismiss AI Assistant"
-          className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gray-700 text-white flex items-center justify-center hover:bg-gray-900 transition-colors shadow"
+          className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#1B2D4F] text-white flex items-center justify-center hover:bg-[#111E33] transition-colors shadow"
           style={{ pointerEvents: "auto" }}
         >
           <X className="w-3 h-3" />
