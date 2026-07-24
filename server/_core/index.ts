@@ -209,6 +209,10 @@ async function startServer() {
     })
   );
 
+  // ── Scheduled / Heartbeat handlers ─────────────────────────────────────────
+  const { dailyDigestHandler } = await import("../digestHandler");
+  app.post("/api/scheduled/dailyDigest", dailyDigestHandler);
+
   // ── Static / Vite ─────────────────────────────────────────────────────────
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);

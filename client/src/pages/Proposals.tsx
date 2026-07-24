@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   FileText, Plus, Send, Trash2, Eye, CheckCircle, Clock, XCircle,
-  DollarSign, Pencil, ArrowRight, Copy, ExternalLink,
+  DollarSign, Pencil, ArrowRight, Copy, ExternalLink, Sparkles, Loader2,
 } from "lucide-react";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -59,11 +59,53 @@ export default function Proposals() {
     onSuccess: (data) => { utils.proposals.list.invalidate(); toast.success(`Invoice ${data.invoiceNumber} created`); },
     onError: e => toast.error(e.message),
   });
+  const aiGenerateMut = trpc.ai.generateProposal.useMutation({
+    onSuccess: (data) => {
+      const d = data.draft;
+      const scopeParts: string[] = [];
+      if (d.executiveSummary) scopeParts.push(d.executiveSummary);
+      if (d.scopeOfWork?.length) scopeParts.push("\n\nScope of Work:\n" + d.scopeOfWork.map((s: string) => `• ${s}`).join("\n"));
+      if (d.timeline) scopeParts.push(`\n\nTimeline: ${d.timeline}`);
+      if (d.deliverables?.length) scopeParts.push("\n\nDeliverables:\n" + d.deliverables.map((s: string) => `• ${s}`).join("\n"));
+
+      const lineItems: LineItem[] = (d.lineItems ?? []).map((li: any) => ({
+        id: crypto.randomUUID(),
+        name: li.name ?? "",
+        description: li.description ?? "",
+        qty: li.qty ?? 1,
+        unitPrice: li.unitPrice ?? 0,
+        total: (li.qty ?? 1) * (li.unitPrice ?? 0),
+      }));
+
+      const validUntilDate = new Date();
+      validUntilDate.setDate(validUntilDate.getDate() + (d.validDays ?? 30));
+      const validUntil = validUntilDate.toISOString().split("T")[0];
+
+      setForm(prev => ({
+        ...prev,
+        title: d.title ?? prev.title,
+        scope: scopeParts.join(""),
+        lineItems: lineItems.length > 0 ? lineItems : prev.lineItems,
+        taxRate: String(d.taxRate ?? prev.taxRate),
+        notes: d.terms ?? prev.notes,
+        validUntil,
+      }));
+
+      setAiOpen(false);
+      setAiBrief("");
+      toast.success("Proposal draft generated — review and adjust before sending");
+    },
+    onError: e => toast.error(`AI generation failed: ${e.message}`),
+  });
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<ProposalForm>(EMPTY_FORM);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [previewId, setPreviewId] = useState<number | null>(null);
+
+  // AI Writer state
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiBrief, setAiBrief] = useState("");
 
   const { data: previewProposal } = trpc.proposals.get.useQuery({ id: previewId! }, { enabled: previewId !== null });
 
@@ -95,6 +137,20 @@ export default function Proposals() {
     });
   }
 
+  function handleAiGenerate() {
+    if (aiBrief.trim().length < 10) return toast.error("Please describe the project in at least 10 characters");
+    aiGenerateMut.mutate({
+      brief: aiBrief.trim(),
+      clientName: form.clientName || undefined,
+      currency: form.currency,
+    });
+  }
+
+  function openNewProposal() {
+    setForm(EMPTY_FORM);
+    setOpen(true);
+  }
+
   const stats = {
     total: proposalList.length,
     draft: proposalList.filter(p => p.status === "draft").length,
@@ -110,9 +166,18 @@ export default function Proposals() {
           <h1 className="text-2xl font-bold text-[rgba(245,239,227,0.95)]">Proposals</h1>
           <p className="text-sm text-[rgba(245,239,227,0.55)] mt-0.5">Send professional proposals — clients sign online and you convert to invoice in one click</p>
         </div>
-        <Button onClick={() => { setForm(EMPTY_FORM); setOpen(true); }} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold gap-2">
-          <Plus className="w-4 h-4" /> New Proposal
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => { setForm(EMPTY_FORM); setAiOpen(true); setOpen(true); }}
+            variant="outline"
+            className="border-[rgba(212,146,42,0.4)] text-[#D4922A] hover:bg-[rgba(212,146,42,0.1)] hover:border-[#D4922A] font-semibold gap-2"
+          >
+            <Sparkles className="w-4 h-4" /> Generate with AI
+          </Button>
+          <Button onClick={openNewProposal} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold gap-2">
+            <Plus className="w-4 h-4" /> New Proposal
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -140,9 +205,18 @@ export default function Proposals() {
           </div>
           <h3 className="text-lg font-semibold text-[rgba(245,239,227,0.85)] mb-2">No proposals yet</h3>
           <p className="text-sm text-[rgba(245,239,227,0.45)] mb-6 max-w-sm">Create a proposal with your scope, line items, and pricing. Send it to clients for electronic signature.</p>
-          <Button onClick={() => { setForm(EMPTY_FORM); setOpen(true); }} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold gap-2">
-            <Plus className="w-4 h-4" /> Create First Proposal
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => { setForm(EMPTY_FORM); setAiOpen(true); setOpen(true); }}
+              variant="outline"
+              className="border-[rgba(212,146,42,0.4)] text-[#D4922A] hover:bg-[rgba(212,146,42,0.1)] font-semibold gap-2"
+            >
+              <Sparkles className="w-4 h-4" /> Generate with AI
+            </Button>
+            <Button onClick={openNewProposal} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold gap-2">
+              <Plus className="w-4 h-4" /> Create First Proposal
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="space-y-3">
@@ -186,10 +260,69 @@ export default function Proposals() {
         </div>
       )}
 
+      {/* AI Writer Modal (shown before Create Dialog) */}
+      <Dialog open={aiOpen} onOpenChange={v => { setAiOpen(v); if (!v && !open) setAiBrief(""); }}>
+        <DialogContent className="bg-[#1C1C1E] border-[rgba(212,146,42,0.25)] text-[rgba(245,239,227,0.95)] max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[#D4922A]" />
+              <span>AI Proposal Writer</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="bg-[rgba(212,146,42,0.08)] border border-[rgba(212,146,42,0.2)] rounded-xl p-4">
+              <p className="text-xs text-[rgba(245,239,227,0.6)] leading-relaxed">
+                Describe the project and the AI will generate a complete proposal — title, scope of work, timeline, deliverables, line items, and payment terms. You can review and adjust everything before sending.
+              </p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-[rgba(245,239,227,0.6)] mb-1.5 block">Project Brief *</label>
+              <Textarea
+                value={aiBrief}
+                onChange={e => setAiBrief(e.target.value)}
+                placeholder="e.g. Build a 5-page website for a local bakery. Includes homepage, about, menu, gallery, and contact form. Need responsive design, SEO optimization, and a CMS so they can update content themselves. Budget around $3,500."
+                rows={6}
+                className="bg-[rgba(255,255,255,0.05)] border-[rgba(245,239,227,0.12)] text-[rgba(245,239,227,0.9)] resize-none focus:border-[rgba(212,146,42,0.5)]"
+              />
+              <p className="text-xs text-[rgba(245,239,227,0.35)] mt-1">{aiBrief.length} / 2000 characters</p>
+            </div>
+            {form.clientName && (
+              <p className="text-xs text-[rgba(245,239,227,0.5)]">
+                Generating for client: <span className="text-[rgba(245,239,227,0.8)] font-medium">{form.clientName}</span>
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setAiOpen(false); setOpen(false); }} className="text-[rgba(245,239,227,0.6)]">Cancel</Button>
+            <Button
+              onClick={handleAiGenerate}
+              disabled={aiGenerateMut.isPending || aiBrief.trim().length < 10}
+              className="bg-[#D4922A] hover:bg-[#B8791F] text-white font-semibold gap-2 min-w-[140px]"
+            >
+              {aiGenerateMut.isPending ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
+              ) : (
+                <><Sparkles className="w-4 h-4" /> Generate Draft</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Create Dialog */}
-      <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) setForm(EMPTY_FORM); }}>
+      <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) { setForm(EMPTY_FORM); setAiOpen(false); setAiBrief(""); } }}>
         <DialogContent className="bg-[#1C1C1E] border-[rgba(245,239,227,0.1)] text-[rgba(245,239,227,0.95)] max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>New Proposal</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle>New Proposal</DialogTitle>
+              <button
+                onClick={() => setAiOpen(true)}
+                className="flex items-center gap-1.5 text-xs font-semibold text-[#D4922A] hover:text-[#F0A830] bg-[rgba(212,146,42,0.1)] hover:bg-[rgba(212,146,42,0.18)] border border-[rgba(212,146,42,0.25)] rounded-lg px-3 py-1.5 transition-all"
+              >
+                <Sparkles className="w-3.5 h-3.5" /> Generate with AI
+              </button>
+            </div>
+          </DialogHeader>
           <div className="space-y-5 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -219,7 +352,7 @@ export default function Proposals() {
                 </button>
               </div>
               <div className="space-y-2">
-                {form.lineItems.map((li, idx) => (
+                {form.lineItems.map((li) => (
                   <div key={li.id} className="grid grid-cols-12 gap-2 items-center">
                     <div className="col-span-5">
                       <Input value={li.name} onChange={e => updateLineItem(li.id, "name", e.target.value)} placeholder="Item name" className="bg-[rgba(255,255,255,0.05)] border-[rgba(245,239,227,0.12)] text-[rgba(245,239,227,0.9)] text-sm" />
@@ -276,14 +409,14 @@ export default function Proposals() {
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-[rgba(245,239,227,0.6)] mb-1.5 block">Notes</label>
+              <label className="text-xs font-semibold text-[rgba(245,239,227,0.6)] mb-1.5 block">Notes / Payment Terms</label>
               <Textarea value={form.notes} onChange={e => setForm(p => ({...p, notes: e.target.value}))} placeholder="Payment terms, additional notes..." rows={2} className="bg-[rgba(255,255,255,0.05)] border-[rgba(245,239,227,0.12)] text-[rgba(245,239,227,0.9)] resize-none" />
             </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)} className="text-[rgba(245,239,227,0.6)]">Cancel</Button>
             <Button onClick={handleSubmit} disabled={createMut.isPending} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold">
-              Create Proposal
+              {createMut.isPending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Creating…</> : "Create Proposal"}
             </Button>
           </DialogFooter>
         </DialogContent>

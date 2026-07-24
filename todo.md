@@ -1216,3 +1216,9 @@
 - [x] Harden all panels with null safety, loading skeletons, and error boundaries
 - [x] Add retry logic to all tRPC mutations
 - [x] Verify all routes are registered in App.tsx
+
+## 4 High-Impact Features (Jul 2026 - Batch 2)
+- [x] Lead Pipeline CRM Kanban (stages: Inquiry, Proposal Sent, Active, Completed, Lost)
+- [x] Invoice Direct Pay Link (standalone Stripe checkout per invoice, no portal login)
+- [x] Daily Digest Email (8 AM scheduled job via Heartbeat)
+- [x] AI Proposal Writer (LLM generates full proposal from 2-sentence brief)

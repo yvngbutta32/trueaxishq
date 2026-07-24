@@ -34,7 +34,7 @@ import {
   ChevronRight, LogOut, X, Edit2, Trash2, Send,
   Download, Phone, AlertCircle, RefreshCw, User,
   Building, Save, Bot, CreditCard,
-  ExternalLink, Bell, Search, ChevronDown, Loader2,
+  ExternalLink, Bell, Search, ChevronDown, Loader2, Link,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
   Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload,
   Home, Crown, ArrowRight, Shield, Inbox, MessageSquare, Tag, ThumbsUp, CalendarX, Link2, Wifi, WifiOff,
@@ -738,11 +738,21 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
 }
 
 // ─── Clients Panel ────────────────────────────────────────────────────────────
+const PIPELINE_STAGES = [
+  { id: "inquiry" as const, label: "Inquiry", color: "#6B7280", bg: "rgba(107,114,128,0.15)", desc: "New leads" },
+  { id: "proposal_sent" as const, label: "Proposal Sent", color: "#D4922A", bg: "rgba(212,146,42,0.15)", desc: "Awaiting decision" },
+  { id: "active" as const, label: "Active", color: "#00C9A7", bg: "rgba(0,201,167,0.15)", desc: "Current clients" },
+  { id: "completed" as const, label: "Completed", color: "#3B82F6", bg: "rgba(59,130,246,0.15)", desc: "Finished projects" },
+  { id: "lost" as const, label: "Lost", color: "#EF4444", bg: "rgba(239,68,68,0.15)", desc: "Didn't convert" },
+];
+type PipelineStageId = "inquiry" | "proposal_sent" | "active" | "completed" | "lost";
+
 function ClientsPanel() {
   const utils = trpc.useUtils();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "prospect">("all");
+  const [viewMode, setViewMode] = useState<"list" | "pipeline">("list");
   const [showAdd, setShowAdd] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "", service: "", status: "active" as "active" | "inactive" | "prospect", notes: "", defaultRate: "" });
@@ -771,6 +781,11 @@ function ClientsPanel() {
   const { data: clientList, isLoading } = trpc.clients.list.useQuery({ search: debouncedSearch, status: statusFilter });
   const { data: selectedClient } = trpc.clients.get.useQuery({ id: selectedId! }, { enabled: !!selectedId });
   const { data: pulseData } = trpc.pulse.getAll.useQuery(undefined, { retry: 1 });
+  const { data: pipelineData, isLoading: pipelineLoading } = trpc.clients.listByStage.useQuery(undefined, { enabled: viewMode === "pipeline" });
+  const updateStage = trpc.clients.updateStage.useMutation({
+    onSuccess: () => { utils.clients.listByStage.invalidate(); toast.success("Stage updated!"); },
+    onError: (e) => toast.error(e.message),
+  });
   const pulseMap = new Map((pulseData ?? []).map(d => [d.client.id, d.pulse]));
 
   const createClient = trpc.clients.create.useMutation({
@@ -984,7 +999,11 @@ function ClientsPanel() {
           <h2 className="text-xl font-extrabold text-[#F5EFE3]">Clients</h2>
           <p className="text-sm text-[rgba(245,239,227,0.55)]">{clientList?.length || 0} clients in your roster</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <div className="flex rounded-lg border border-white/10 overflow-hidden">
+            <button onClick={() => setViewMode("list")} className={`px-3 py-1.5 text-xs font-medium transition-colors ${viewMode === "list" ? "bg-[#D4922A] text-white" : "bg-transparent text-[rgba(245,239,227,0.55)] hover:bg-white/5"}`}>List</button>
+            <button onClick={() => setViewMode("pipeline")} className={`px-3 py-1.5 text-xs font-medium transition-colors ${viewMode === "pipeline" ? "bg-[#D4922A] text-white" : "bg-transparent text-[rgba(245,239,227,0.55)] hover:bg-white/5"}`}>Pipeline</button>
+          </div>
           <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={exportClientsCSV} title="Export clients as CSV">
             <Download className="w-3.5 h-3.5" />Export CSV
           </Button>
@@ -997,8 +1016,49 @@ function ClientsPanel() {
         </div>
       </div>
 
+      {/* Pipeline Kanban View */}
+      {viewMode === "pipeline" && (
+        <div className="space-y-3">
+          {pipelineLoading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              {PIPELINE_STAGES.map(s => <div key={s.id} className="bg-[#161B22] rounded-xl border border-white/8 p-3 min-h-[200px]"><Skeleton className="h-6 w-24 mb-3" />{[0,1].map(i => <Skeleton key={i} className="h-16 mb-2" />)}</div>)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              {PIPELINE_STAGES.map(stage => {
+                const stageClients = (pipelineData as Record<string, Array<{id:number;name:string;email:string|null;service:string|null;status:string}>>)?.[stage.id] ?? [];
+                return (
+                  <div key={stage.id} className="bg-[#161B22] rounded-xl border border-white/8 p-3 min-h-[200px] flex flex-col gap-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <div>
+                        <div className="text-xs font-bold" style={{ color: stage.color }}>{stage.label}</div>
+                        <div className="text-[10px] text-[rgba(245,239,227,0.40)]">{stage.desc}</div>
+                      </div>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: stage.bg, color: stage.color }}>{stageClients.length}</span>
+                    </div>
+                    {stageClients.length === 0 ? (
+                      <div className="flex-1 flex items-center justify-center text-[10px] text-[rgba(245,239,227,0.25)] text-center">No clients</div>
+                    ) : stageClients.map(c => (
+                      <div key={c.id} className="bg-[#1C2333] rounded-lg p-2.5 border border-white/5 hover:border-white/15 transition-all cursor-pointer group" onClick={() => setSelectedId(c.id)}>
+                        <div className="text-xs font-semibold text-[#F5EFE3] truncate">{c.name}</div>
+                        {c.service && <div className="text-[10px] text-[rgba(245,239,227,0.45)] truncate mt-0.5">{c.service}</div>}
+                        <div className="flex gap-1 mt-2 flex-wrap">
+                          {PIPELINE_STAGES.filter(s => s.id !== stage.id).map(s => (
+                            <button key={s.id} onClick={e => { e.stopPropagation(); updateStage.mutate({ id: c.id, pipelineStage: s.id as PipelineStageId }); }} className="text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: s.bg, color: s.color }} title={`Move to ${s.label}`}>→ {s.label}</button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <p className="text-xs text-[rgba(245,239,227,0.35)] text-center">Hover a client card to see stage move buttons</p>
+        </div>
+      )}
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      {viewMode === "list" && <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(245,239,227,0.55)]" aria-hidden="true" />
           <input
@@ -1021,12 +1081,11 @@ function ClientsPanel() {
           <option value="all">All Statuses</option>
           <option value="active">Active</option>
           <option value="prospect">Prospect</option>
-          <option value="inactive">Inactive</option>
+                    <option value="inactive">Inactive</option>
         </select>
-      </div>
-
+      </div>}
       {/* Table */}
-      <div className="bg-[#161B22] rounded-xl border border-white/8 overflow-hidden">
+      {viewMode === "list" && <div className="bg-[#161B22] rounded-xl border border-white/8 overflow-hidden">
         <div className="hidden sm:grid grid-cols-4 gap-4 px-5 py-3 bg-[#1C2333] text-xs font-semibold text-[rgba(245,239,227,0.55)] uppercase tracking-wide">
           <span className="col-span-2">Client</span>
           <span>Service</span>
@@ -1100,9 +1159,8 @@ function ClientsPanel() {
               </button>
             </div>
           </div>
-        ))}
-      </div>
-
+                ))}
+      </div>}
       {/* Add Client Modal */}
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add New Client">
         <div className="space-y-4">
@@ -1781,6 +1839,15 @@ function InvoicesPanel() {
     onSuccess: (data) => toast.success(data.emailSent ? "Receipt sent to client!" : "Receipt prepared (email not configured)."),
     onError: (e) => toast.error(e.message),
   });
+  const generatePayLink = trpc.invoices.generatePayLink.useMutation({
+    onSuccess: (data) => {
+      const payUrl = `${window.location.origin}/pay/${data.token}`;
+      navigator.clipboard.writeText(payUrl)
+        .then(() => toast.success("Direct pay link copied! Client can pay without logging in."))
+        .catch(() => toast.info(`Pay link: ${payUrl}`));
+    },
+    onError: (e) => toast.error(e.message),
+  });
   const categorizeInvoice = trpc.ai.categorizeInvoice.useMutation({
     onSuccess: (data) => {
       const tagStr = data.tags.length > 0 ? ` [${data.tags.join(", ")}]` : "";
@@ -2154,6 +2221,17 @@ function InvoicesPanel() {
               <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-2 rounded hover:bg-blue-50 text-[rgba(245,239,227,0.45)] hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
+              {(inv.status === "sent" || inv.status === "overdue" || inv.status === "draft") && (
+                <button
+                  onClick={() => generatePayLink.mutate({ id: inv.id })}
+                  className="p-2 rounded hover:bg-green-500/10 text-[rgba(245,239,227,0.45)] hover:text-green-500 transition-colors"
+                  aria-label="Generate direct pay link"
+                  title="Generate a direct pay link — client pays without logging in"
+                  disabled={generatePayLink.isPending}
+                >
+                  <Link className="w-3.5 h-3.5" />
+                </button>
+              )}
               <button onClick={() => duplicateInvoice.mutate({ id: inv.id })} className="p-2 rounded hover:bg-[#D4922A]/10 text-[rgba(245,239,227,0.45)] hover:text-[#D4922A] transition-colors" aria-label="Duplicate invoice" title="Duplicate invoice" disabled={duplicateInvoice.isPending}>
                 <Copy className="w-3.5 h-3.5" />
               </button>

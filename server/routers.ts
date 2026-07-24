@@ -539,6 +539,30 @@ export const appRouter = router({
         }
         return { imported, skipped };
       }),
+    updateStage: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        pipelineStage: z.enum(["inquiry", "proposal_sent", "active", "completed", "lost"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.update(clients).set({ pipelineStage: input.pipelineStage, updatedAt: new Date() })
+          .where(and(eq(clients.id, input.id), eq(clients.userId, ctx.user.id)));
+        return { success: true };
+      }),
+    listByStage: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const all = await db.select().from(clients).where(eq(clients.userId, ctx.user.id)).orderBy(desc(clients.createdAt));
+      const stages = ["inquiry", "proposal_sent", "active", "completed", "lost"];
+      const grouped: Record<string, typeof all> = {};
+      for (const s of stages) grouped[s] = [];
+      for (const c of all) {
+        const stage = c.pipelineStage ?? "inquiry";
+        if (grouped[stage]) grouped[stage].push(c);
+        else grouped["inquiry"].push(c);
+      }
+      return grouped;
+    }),
   }),
 
   // ── Invoices ──────────────────────────────────────────────────────────────
@@ -865,6 +889,56 @@ export const appRouter = router({
           </div>`,
         });
         return { success: true, emailSent };
+      }),
+    generatePayLink: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [inv] = await db.select().from(invoices)
+          .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id)));
+        if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
+        // Generate a secure token for the pay link
+        const crypto = await import("crypto");
+        const token = crypto.randomBytes(32).toString("hex");
+        // Build the pay URL (uses the existing portal payment flow)
+        const payUrl = `/pay/${token}`;
+        await db.update(invoices).set({ payLinkToken: token, updatedAt: new Date() })
+          .where(eq(invoices.id, input.id));
+        return { token, payUrl, invoiceId: input.id };
+      }),
+    payByToken: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [inv] = await db.select().from(invoices).where(eq(invoices.payLinkToken, input.token));
+        if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Payment link not found or expired" });
+        if (inv.status === "paid") return { invoice: inv, alreadyPaid: true };
+        return { invoice: inv, alreadyPaid: false };
+      }),
+    createStripePaymentForToken: publicProcedure
+      .input(z.object({ token: z.string(), origin: z.string() }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [inv] = await db.select().from(invoices).where(eq(invoices.payLinkToken, input.token));
+        if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
+        if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice already paid" });
+        const stripe = getStripe();
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ["card"],
+          line_items: [{
+            price_data: {
+              currency: (inv as any).currency?.toLowerCase() ?? "usd",
+              product_data: { name: `Invoice ${inv.invoiceNumber} — ${inv.clientName}` },
+              unit_amount: Math.round(parseFloat(String(inv.amount)) * 100),
+            },
+            quantity: 1,
+          }],
+          mode: "payment",
+          success_url: `${input.origin}/pay/${input.token}?paid=1`,
+          cancel_url: `${input.origin}/pay/${input.token}`,
+          metadata: { invoiceId: String(inv.id), payLinkToken: input.token },
+        });
+        return { checkoutUrl: session.url };
       }),
   }),
   // ── Bookings ──────────────────────────────────────────────────────────────
@@ -1480,6 +1554,30 @@ Only include actions when you have actually generated a complete draft. For gene
         } catch {
           return { category: "Other", confidence: 0, tags: [] };
         }
+      }),
+    generateProposal: protectedProcedure
+      .input(z.object({
+        brief: z.string().min(10).max(2000),
+        clientName: z.string().optional(),
+        currency: z.string().default("USD"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [user] = await db.select().from(users).where(eq(users.id, ctx.user.id));
+        const businessName = user?.businessName ?? user?.name ?? "My Business";
+        const systemPrompt = `You are an expert freelance proposal writer for ${businessName}. Generate a professional, detailed proposal in JSON format.`;
+        const userPrompt = `Create a complete freelance proposal for this project:\n\n"${input.brief}"\n\nClient: ${input.clientName ?? "the client"}\nCurrency: ${input.currency}\n\nReturn ONLY valid JSON matching this exact schema (no markdown, no explanation):\n{\n  "title": "string",\n  "executiveSummary": "string",\n  "scopeOfWork": ["string"],\n  "timeline": "string",\n  "deliverables": ["string"],\n  "lineItems": [{ "name": "string", "description": "string", "qty": 1, "unitPrice": 0 }],\n  "taxRate": 0,\n  "terms": "string",\n  "validDays": 30\n}`;
+        const response = await withTimeout(invokeLLM({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        }), 30000);
+        const raw = response.choices[0]?.message?.content ?? "{}";
+        let draft;
+        try { draft = JSON.parse(typeof raw === "string" ? raw : JSON.stringify(raw)); }
+        catch { draft = { title: "Proposal", executiveSummary: raw, scopeOfWork: [], timeline: "TBD", deliverables: [], lineItems: [], taxRate: 0, terms: "Net 30", validDays: 30 }; }
+        return { draft };
       }),
   }),
 

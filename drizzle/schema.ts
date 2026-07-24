@@ -75,6 +75,7 @@ export const clients = mysqlTable("clients", {
   phone: varchar("phone", { length: 32 }),
   service: varchar("service", { length: 255 }),
   status: mysqlEnum("status", ["active", "inactive", "prospect"]).default("active").notNull(),
+  pipelineStage: mysqlEnum("pipelineStage", ["inquiry", "proposal_sent", "active", "completed", "lost"]).default("inquiry"),
   notes: text("notes"),
   avatarInitials: varchar("avatarInitials", { length: 4 }),
   totalRevenue: decimal("totalRevenue", { precision: 10, scale: 2 }).default("0"),
@@ -104,6 +105,8 @@ export const invoices = mysqlTable("invoices", {
   notes: text("notes"),
   lineItems: text("lineItems"), // JSON: [{description, qty, unitPrice}]
   paidAt: timestamp("paidAt"),
+  payLinkToken: varchar("payLinkToken", { length: 64 }),
+  stripePaymentLinkUrl: text("stripePaymentLinkUrl"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
