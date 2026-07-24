@@ -482,18 +482,23 @@
     border-color: var(--surface-border-strong);
   }
 
-  /* card-lift — subtle hover effect for interactive cards */
+  /* card-lift — premium hover effect for interactive cards */
   .card-lift {
-    transition: box-shadow 0.20s ease, border-color 0.20s ease, transform 0.15s ease;
+    transition: box-shadow 0.22s cubic-bezier(0.4,0,0.2,1), border-color 0.22s ease, transform 0.18s cubic-bezier(0.4,0,0.2,1);
   }
   .card-lift:hover {
-    box-shadow: 0 4px 24px rgba(0,0,0,0.18), 0 0 0 1px rgba(212,146,42,0.18);
-    border-color: rgba(212,146,42,0.25) !important;
-    transform: translateY(-1px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.28), 0 0 0 1px rgba(212,146,42,0.22);
+    border-color: rgba(212,146,42,0.30) !important;
+    transform: translateY(-2px);
+  }
+  .card-lift:active {
+    transform: translateY(0px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
   }
   /* Stat cards use --card-glow to tint the hover shadow with the card's accent color */
   .card-lift[style*='--card-glow']:hover {
-    box-shadow: 0 4px 24px rgba(0,0,0,0.18), 0 0 16px color-mix(in srgb, var(--card-glow) 18%, transparent);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.28), 0 0 28px color-mix(in srgb, var(--card-glow) 28%, transparent), 0 0 0 1px color-mix(in srgb, var(--card-glow) 22%, transparent);
+    border-color: color-mix(in srgb, var(--card-glow) 35%, transparent) !important;
   }
 
   .retro-card-navy {
@@ -936,4 +941,30 @@
     background-size: 32px 32px;
     pointer-events: none;
   }
+}
+
+/* ── Global Search Modal entrance animation ─────────────────────────────── */
+@keyframes search-modal-in {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+.search-modal-enter {
+  animation: search-modal-in 0.18s cubic-bezier(0.4,0,0.2,1) both;
+}
+
+/* ── Alert banner pulse ──────────────────────────────────────────────────── */
+@keyframes alert-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.18); }
+  50%       { box-shadow: 0 0 0 4px rgba(239,68,68,0.06); }
+}
+.alert-pulse {
+  animation: alert-pulse 3s ease-in-out infinite;
+}
+
+/* ── Stat card icon pop on hover ─────────────────────────────────────────── */
+.stat-icon-pop {
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+}
+.card-lift:hover .stat-icon-pop {
+  transform: scale(1.12) rotate(-3deg);
 }

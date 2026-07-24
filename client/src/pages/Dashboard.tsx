@@ -18,6 +18,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import AIAssistant from "@/components/AIAssistant";
 import { HealthMonitor } from "@/components/HealthMonitor";
 import { PanelErrorBoundary } from "@/components/PanelErrorBoundary";
+import GlobalSearch from "@/components/GlobalSearch";
 import {
   LayoutDashboard, Users, Calendar, FileText, Mail,
   BarChart3, Settings, Zap, Plus, TrendingUp,
@@ -321,6 +322,30 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             {!collapsed && <span>Admin Panel</span>}
           </button>
         )}
+        {/* Keyboard shortcuts hint */}
+        {!collapsed && (
+          <div className="px-3 py-2 rounded-xl bg-white/4 border border-white/6">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-[rgba(245,239,227,0.30)] mb-1.5">Shortcuts</p>
+            <div className="space-y-1">
+              {[
+                { keys: ["⌘", "K"], label: "Search" },
+                { keys: ["/"],       label: "Search" },
+                { keys: ["N"],       label: "Invoices" },
+                { keys: ["C"],       label: "Clients" },
+                { keys: ["B"],       label: "Bookings" },
+              ].map(({ keys, label }) => (
+                <div key={label + keys.join()} className="flex items-center justify-between">
+                  <span className="text-[10px] text-[rgba(245,239,227,0.40)]">{label}</span>
+                  <div className="flex items-center gap-0.5">
+                    {keys.map(k => (
+                      <kbd key={k} className="px-1 py-0.5 rounded border border-white/15 text-[9px] text-[rgba(245,239,227,0.40)] font-mono leading-none">{k}</kbd>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {/* Collapse / Expand toggle */}
         <button
           onClick={() => setCollapsed(v => !v)}
@@ -395,7 +420,10 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
   const { data: analytics, isLoading } = trpc.analytics.overview.useQuery(undefined, { retry: 2 });
   const { data: recentClients } = trpc.clients.list.useQuery({ search: "", status: "all" });
   const { data: recentBookings } = trpc.bookings.list.useQuery({ status: "scheduled" });
+  const { data: overdueInvoices } = trpc.invoices.list.useQuery({ status: "overdue" }, { retry: 1 });
   const { data: pulseData } = trpc.pulse.getAll.useQuery(undefined, { retry: 1 });
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todayBookings = (recentBookings || []).filter(b => b.date === todayStr);
 
   if (isLoading) return (
     <div className="space-y-5">
@@ -431,12 +459,52 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       </div>
       <OnboardingChecklist onNavigate={(panel) => setActivePanel(panel as ActivePanel)} />
 
+      {/* ⚠️ Overdue Invoice Alert Banner */}
+      {overdueInvoices && overdueInvoices.length > 0 && (
+        <button
+          onClick={() => setActivePanel("invoices")}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-red-500/30 bg-red-500/8 hover:bg-red-500/12 transition-all text-left group alert-pulse"
+          aria-label={`${overdueInvoices.length} overdue invoice${overdueInvoices.length > 1 ? 's' : ''} — click to view`}
+        >
+          <div className="w-8 h-8 rounded-lg bg-red-500/15 flex items-center justify-center flex-shrink-0">
+            <AlertCircle className="w-4 h-4 text-red-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-red-400">
+              {overdueInvoices.length} overdue invoice{overdueInvoices.length > 1 ? 's' : ''} — {formatCurrency(overdueInvoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0))} outstanding
+            </p>
+            <p className="text-xs text-[rgba(245,239,227,0.45)] mt-0.5">
+              {overdueInvoices.slice(0, 2).map(i => i.clientName).join(", ")}{overdueInvoices.length > 2 ? ` +${overdueInvoices.length - 2} more` : ""}
+            </p>
+          </div>
+          <ArrowRight className="w-4 h-4 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+        </button>
+      )}
+
+      {/* 📅 Today's Sessions Banner */}
+      {todayBookings.length > 0 && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#D4922A]/25 bg-[#D4922A]/6">
+          <div className="w-8 h-8 rounded-lg bg-[#D4922A]/15 flex items-center justify-center flex-shrink-0">
+            <Calendar className="w-4 h-4 text-[#D4922A]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-[#D4922A]">
+              {todayBookings.length} session{todayBookings.length > 1 ? 's' : ''} today
+            </p>
+            <p className="text-xs text-[rgba(245,239,227,0.45)] mt-0.5 truncate">
+              {todayBookings.map(b => `${b.clientName} at ${b.time}`).join(" · ")}
+            </p>
+          </div>
+          <button onClick={() => setActivePanel("scheduling")} className="text-xs text-[#D4922A] font-semibold hover:underline flex-shrink-0">View</button>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map(s => (
           <div key={s.label} className="bg-[#161B22] rounded-xl p-4 sm:p-5 border border-white/8 card-lift group transition-all duration-200 hover:border-white/15" style={{ '--card-glow': s.color } as React.CSSProperties}>
             <div className="flex items-start justify-between mb-2 sm:mb-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: s.color }}>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white stat-icon-pop" style={{ backgroundColor: s.color }}>
                 <s.icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
               </div>
               <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[rgba(245,239,227,0.45)]" aria-hidden="true" />
@@ -451,17 +519,21 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {([
-          { icon: Plus, label: "Add Client", color: "#6366F1", panel: "clients" },
-          { icon: Calendar, label: "New Booking", color: "#F59E0B", panel: "scheduling" },
-          { icon: FileText, label: "New Invoice", color: "#D4922A", panel: "invoices" },
-          { icon: Mail, label: "AI Follow-Up", color: "#5A9A7A", panel: "followups" },
-        ] as { icon: React.ElementType; label: string; color: string; panel: ActivePanel }[]).map(({ icon: Icon, label, color, panel }) => (
+          { icon: Plus, label: "Add Client", color: "#6366F1", panel: "clients", shortcut: "C" },
+          { icon: Calendar, label: "New Booking", color: "#F59E0B", panel: "scheduling", shortcut: "B" },
+          { icon: FileText, label: "New Invoice", color: "#D4922A", panel: "invoices", shortcut: "N" },
+          { icon: Mail, label: "AI Follow-Up", color: "#5A9A7A", panel: "followups", shortcut: null },
+        ] as { icon: React.ElementType; label: string; color: string; panel: ActivePanel; shortcut: string | null }[]).map(({ icon: Icon, label, color, panel, shortcut }) => (
           <button
             key={label}
             onClick={() => setActivePanel(panel)}
-            className="bg-[#161B22] rounded-xl p-3 sm:p-4 border border-white/8 card-lift flex flex-col items-center gap-1.5 sm:gap-2 text-center hover:border-[#D4922A]/30 transition-all group"
+            className="bg-[#161B22] rounded-xl p-3 sm:p-4 border border-white/8 card-lift flex flex-col items-center gap-1.5 sm:gap-2 text-center transition-all group relative"
+            style={{ '--card-glow': color } as React.CSSProperties}
           >
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white transition-transform group-hover:scale-110" style={{ backgroundColor: color }}>
+            {shortcut && (
+              <kbd className="absolute top-2 right-2 px-1 py-0.5 rounded border border-white/12 text-[8px] text-[rgba(245,239,227,0.30)] font-mono leading-none hidden sm:block">{shortcut}</kbd>
+            )}
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white stat-icon-pop" style={{ backgroundColor: color }}>
               <Icon className="w-4 h-4" aria-hidden="true" />
             </div>
             <span className="text-[11px] sm:text-xs font-semibold text-[#F5EFE3] leading-tight">{label}</span>
@@ -4364,39 +4436,60 @@ function TestimonialsPanel() {
 // ─── Mobile Quick-Stats Strip ─────────────────────────────────────────────────
 function MobileQuickStats() {
   const { data: stats } = trpc.analytics.overview.useQuery(undefined, { retry: 1 });
-  const { data: invoiceList = [] } = trpc.invoices.list.useQuery({ status: "sent" }, { retry: 1 });
-  const { data: clientList = [] } = trpc.clients.list.useQuery(undefined, { retry: 1 });
+  const { data: overdueList = [] } = trpc.invoices.list.useQuery({ status: "overdue" }, { retry: 1 });
+  const { data: scheduledBookings = [] } = trpc.bookings.list.useQuery({ status: "scheduled" }, { retry: 1 });
 
-  const mrr = (stats as any)?.mrr ?? 0;
-  const activeClients = clientList.length;
-  const pendingInvoices = invoiceList.length;
+  const totalRevenue = stats?.totalRevenue ?? 0;
+  const activeClients = stats?.activeClients ?? 0;
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todaySessions = (scheduledBookings as any[]).filter(b => b.date === todayStr).length;
+  const overdueCount = overdueList.length;
 
   return (
     <div
-      className="md:hidden shrink-0 px-3 py-2 flex items-center gap-2"
+      className="md:hidden shrink-0 flex items-center"
       style={{
-        background: "rgba(28,28,30,0.97)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        background: "rgba(22,27,34,0.98)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        borderTop: "1px solid rgba(255,255,255,0.07)",
+        boxShadow: "0 -4px 20px rgba(0,0,0,0.25)",
       }}
     >
-      <div className="flex-1 flex items-center justify-center gap-1">
-        <DollarSign className="w-3.5 h-3.5 text-[#D4922A]" />
-        <span className="text-xs font-bold text-white">${mrr >= 1000 ? (mrr/1000).toFixed(1)+"k" : mrr.toFixed(0)}</span>
-        <span className="text-[10px] text-[rgba(245,239,227,0.45)]">MRR</span>
+      {/* Revenue */}
+      <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
+        <div className="flex items-center gap-1">
+          <DollarSign className="w-3 h-3 text-[#D4922A]" />
+          <span className="text-xs font-extrabold text-[#F5EFE3]">{totalRevenue >= 1000 ? `$${(totalRevenue/1000).toFixed(1)}k` : `$${Math.round(totalRevenue)}`}</span>
+        </div>
+        <span className="text-[9px] text-[rgba(245,239,227,0.40)] font-medium uppercase tracking-wide">Revenue</span>
       </div>
-      <div className="w-px h-6 bg-white/10" />
-      <div className="flex-1 flex items-center justify-center gap-1">
-        <Users className="w-3.5 h-3.5 text-blue-400" />
-        <span className="text-xs font-bold text-white">{activeClients}</span>
-        <span className="text-[10px] text-[rgba(245,239,227,0.45)]">Clients</span>
+      <div className="w-px h-7 bg-white/8" />
+      {/* Active Clients */}
+      <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
+        <div className="flex items-center gap-1">
+          <Users className="w-3 h-3 text-[#6366F1]" />
+          <span className="text-xs font-extrabold text-[#F5EFE3]">{activeClients}</span>
+        </div>
+        <span className="text-[9px] text-[rgba(245,239,227,0.40)] font-medium uppercase tracking-wide">Clients</span>
       </div>
-      <div className="w-px h-6 bg-white/10" />
-      <div className="flex-1 flex items-center justify-center gap-1">
-        <FileText className="w-3.5 h-3.5 text-amber-400" />
-        <span className="text-xs font-bold text-white">{pendingInvoices}</span>
-        <span className="text-[10px] text-[rgba(245,239,227,0.45)]">Pending</span>
+      <div className="w-px h-7 bg-white/8" />
+      {/* Today's Sessions */}
+      <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
+        <div className="flex items-center gap-1">
+          <Calendar className="w-3 h-3 text-[#F59E0B]" />
+          <span className="text-xs font-extrabold text-[#F5EFE3]">{todaySessions}</span>
+        </div>
+        <span className="text-[9px] text-[rgba(245,239,227,0.40)] font-medium uppercase tracking-wide">Today</span>
+      </div>
+      <div className="w-px h-7 bg-white/8" />
+      {/* Overdue */}
+      <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
+        <div className="flex items-center gap-1">
+          <AlertCircle className={`w-3 h-3 ${overdueCount > 0 ? "text-red-400" : "text-[rgba(245,239,227,0.35)]"}`} />
+          <span className={`text-xs font-extrabold ${overdueCount > 0 ? "text-red-400" : "text-[#F5EFE3]"}`}>{overdueCount}</span>
+        </div>
+        <span className="text-[9px] text-[rgba(245,239,227,0.40)] font-medium uppercase tracking-wide">Overdue</span>
       </div>
     </div>
   );
@@ -4632,6 +4725,7 @@ export default function Dashboard() {
   // Floating AI assistant — visible when user opens the AI panel or clicks the bubble
   const [aiVisible, setAiVisible] = useState(false);
   const [search, setSearch] = useState("");
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [confirm, setConfirm] = useState<ConfirmState>(defaultConfirm);
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
@@ -4677,16 +4771,33 @@ export default function Dashboard() {
     document.title = PANEL_TITLES[active] ?? "Dashboard — TrueAxis HQ";
   }, [active]);
 
-  // Global keyboard shortcuts: Alt+1..9 for panel navigation
+  // Global keyboard shortcuts: Cmd+K / Ctrl+K = search; Alt+1..9 = panel navigation
   useEffect(() => {
     const panels: ActivePanel[] = ["overview", "clients", "scheduling", "invoices", "followups", "analytics", "ai", "pulse", "settings"];
     const handleKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      const inInput = tag === "input" || tag === "textarea" || (e.target as HTMLElement)?.isContentEditable;
+      // Cmd+K / Ctrl+K — open global search
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setGlobalSearchOpen(v => !v);
+        return;
+      }
+      // Alt+1..9 — panel navigation
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
         const idx = parseInt(e.key) - 1;
         if (idx >= 0 && idx < panels.length) {
           e.preventDefault();
           setActiveWithScroll(panels[idx]);
         }
+        return;
+      }
+      // Single-key shortcuts when NOT in an input field
+      if (!inInput && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        if (e.key === "/") { e.preventDefault(); setGlobalSearchOpen(true); return; }
+        if (e.key === "n" || e.key === "N") { e.preventDefault(); setActiveWithScroll("invoices"); toast.info("Navigated to Invoices — press + to create", { duration: 2000 }); return; }
+        if (e.key === "c" || e.key === "C") { e.preventDefault(); setActiveWithScroll("clients"); toast.info("Navigated to Clients — press + to add", { duration: 2000 }); return; }
+        if (e.key === "b" || e.key === "B") { e.preventDefault(); setActiveWithScroll("scheduling"); toast.info("Navigated to Scheduling — press + to book", { duration: 2000 }); return; }
       }
     };
     document.addEventListener("keydown", handleKey);
@@ -4849,27 +4960,27 @@ export default function Dashboard() {
               <Home className="w-4 h-4" aria-hidden="true" />
               <span>Home</span>
             </button>
-            {/* Search */}
-            <div className="relative hidden lg:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[rgba(245,239,227,0.55)]" aria-hidden="true" />
-              <input
-                type="search"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === "Enter" && search.trim()) {
-                    sessionStorage.setItem("dashboardSearch", search.trim());
-                    setActiveWithScroll("clients");
-                    setSearch("");
-                  }
-                }}
-                placeholder="Search clients... (Enter)"
-                className="form-input-light pl-8 pr-4 w-52"
-                aria-label="Quick search — press Enter to search clients"
-                autoComplete="off"
-                enterKeyHint="search"
-              />
-            </div>
+            {/* Global Search Trigger — Cmd+K */}
+            <button
+              onClick={() => setGlobalSearchOpen(true)}
+              className="hidden md:flex items-center gap-2.5 px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all group"
+              aria-label="Search everything (Cmd+K)"
+              title="Search (Cmd+K)"
+            >
+              <Search className="w-3.5 h-3.5 text-[rgba(245,239,227,0.45)] group-hover:text-[rgba(245,239,227,0.7)] transition-colors" aria-hidden="true" />
+              <span className="text-sm text-[rgba(245,239,227,0.40)] group-hover:text-[rgba(245,239,227,0.65)] transition-colors w-32 text-left">Search everything…</span>
+              <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-white/15 text-[10px] text-[rgba(245,239,227,0.30)] font-mono">
+                <span className="text-[11px]">&#8984;</span>K
+              </kbd>
+            </button>
+            {/* Mobile search icon */}
+            <button
+              onClick={() => setGlobalSearchOpen(true)}
+              className="md:hidden p-2 rounded-xl hover:bg-[#243040] transition-colors"
+              aria-label="Search (Cmd+K)"
+            >
+              <Search className="w-4 h-4 text-[rgba(245,239,227,0.55)]" />
+            </button>
 
             {/* Health Monitor */}
             <HealthMonitor />
@@ -4970,6 +5081,13 @@ export default function Dashboard() {
         onConfirm={() => { confirm.onConfirm(); setConfirm(defaultConfirm); }}
         confirmLabel="Delete"
         variant="destructive"
+      />
+
+      {/* Global Search Modal — Cmd+K */}
+      <GlobalSearch
+        open={globalSearchOpen}
+        onClose={() => setGlobalSearchOpen(false)}
+        onNavigate={(panel) => setActiveWithScroll(panel as ActivePanel)}
       />
     </div>
   );

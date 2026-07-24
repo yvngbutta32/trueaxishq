@@ -1131,3 +1131,34 @@
 - [ ] Typography cleanup — remove all inline style fontFamily: 'Inter' across all files, rely on CSS class
 - [ ] MobileBottomNav dark polish — verify frosted glass bg uses design system colors
 - [ ] MobileQuickStats dark polish — verify uses design system colors
+
+## Productivity Upgrades (Jul 2026)
+- [ ] Backend: global search procedure (clients + invoices + bookings + contracts)
+- [ ] Backend: auditLog.exportCsv procedure for Admin CSV export
+- [ ] Frontend: Global search bar (Cmd+K) in Dashboard header
+- [ ] Frontend: Keyboard shortcuts (N=new invoice, C=new client, B=new booking, /=search)
+- [ ] Frontend: Quick-Add floating action button (mobile-friendly)
+- [ ] Frontend: Stat card hover glow (amber/color glow on hover)
+- [ ] Frontend: Typography cleanup — remove all inline style fontFamily Inter
+- [ ] Frontend: MobileBottomNav dark polish
+- [ ] Frontend: MobileQuickStats dark polish
+- [ ] Frontend: Overdue invoice banner on Overview panel
+- [ ] Frontend: Today's bookings widget on Overview panel
+- [ ] Frontend: Invoice duplicate button in invoice list
+- [ ] Backend: invoice.duplicate procedure
+- [ ] Backend: clients.search quick endpoint for typeahead
+
+## Productivity Upgrades (Jul 2026)
+- [x] Backend: global search procedure (clients + invoices + bookings + contracts)
+- [x] Frontend: Cmd+K / Ctrl+K global search modal with keyboard navigation
+- [x] Frontend: "/" shortcut to open search
+- [x] Frontend: N/C/B single-key shortcuts for Invoices/Clients/Bookings
+- [x] Frontend: Overdue invoice alert banner on Overview panel (with pulse animation)
+- [x] Frontend: Today's sessions banner on Overview panel
+- [x] Frontend: Enhanced stat card hover glow (color-matched, stronger)
+- [x] Frontend: Stat card icon pop animation on hover
+- [x] Frontend: MobileQuickStats upgraded (Revenue, Clients, Today, Overdue)
+- [x] Frontend: Keyboard shortcuts reference panel in sidebar footer
+- [x] Frontend: Premium search trigger button in header (Cmd+K style)
+- [x] Frontend: Mobile search icon in header
+- [x] CSS: search-modal-enter animation, alert-pulse, stat-icon-pop classes

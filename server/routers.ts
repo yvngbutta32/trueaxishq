@@ -1,5 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { eq, desc, and, sql, inArray } from "drizzle-orm";
+import { eq, desc, and, sql, inArray, or, like } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
 import { TRPCError } from "@trpc/server";
@@ -3455,6 +3455,47 @@ Only include actions when you have actually generated a complete draft. For gene
         recurring: hasRecurring,
       };
     }),
+  }),
+
+  // ── Global Search ─────────────────────────────────────────────────────────
+  search: router({
+    global: protectedProcedure
+      .input(z.object({ query: z.string().trim().min(1).max(200) }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const uid = ctx.user.id;
+        const q = `%${input.query}%`;
+
+        const [matchedClients, matchedInvoices, matchedBookings, matchedContracts] = await Promise.all([
+          db.select({ id: clients.id, name: clients.name, email: clients.email, service: clients.service, status: clients.status })
+            .from(clients)
+            .where(and(eq(clients.userId, uid), or(like(clients.name, q), like(clients.email, q), like(clients.service, q))))
+            .limit(5),
+
+          db.select({ id: invoices.id, invoiceNumber: invoices.invoiceNumber, clientName: invoices.clientName, amount: invoices.amount, status: invoices.status, service: invoices.service })
+            .from(invoices)
+            .where(and(eq(invoices.userId, uid), or(like(invoices.clientName, q), like(invoices.invoiceNumber, q), like(invoices.service, q))))
+            .limit(5),
+
+          db.select({ id: bookings.id, clientName: bookings.clientName, service: bookings.service, date: bookings.date, time: bookings.time, status: bookings.status })
+            .from(bookings)
+            .where(and(eq(bookings.userId, uid), or(like(bookings.clientName, q), like(bookings.service, q))))
+            .limit(5),
+
+          db.select({ id: contracts.id, title: contracts.title, clientName: contracts.clientName, type: contracts.type, status: contracts.status })
+            .from(contracts)
+            .where(and(eq(contracts.userId, uid), or(like(contracts.title, q), like(contracts.clientName, q))))
+            .limit(5),
+        ]);
+
+        return {
+          clients: matchedClients.map(c => ({ ...c, _type: "client" as const })),
+          invoices: matchedInvoices.map(i => ({ ...i, _type: "invoice" as const })),
+          bookings: matchedBookings.map(b => ({ ...b, _type: "booking" as const })),
+          contracts: matchedContracts.map(c => ({ ...c, _type: "contract" as const })),
+          total: matchedClients.length + matchedInvoices.length + matchedBookings.length + matchedContracts.length,
+        };
+      }),
   }),
 });
 export type AppRouter = typeof appRouter;
