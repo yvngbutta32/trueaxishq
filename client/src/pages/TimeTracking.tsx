@@ -186,7 +186,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-[#0D1117]">Time Tracking</h2>
+          <h2 className="text-xl font-bold text-[#F5EFE3]">Time Tracking</h2>
           <p className="text-sm text-[rgba(245,239,227,0.50)] mt-0.5">Track billable hours and generate invoices instantly</p>
         </div>
         <Button
@@ -211,7 +211,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
                 <c.icon className="w-4 h-4" style={{ color: c.color }} />
               </div>
             </div>
-            <p className="text-xl font-bold text-[#0D1117]">{c.value}</p>
+            <p className="text-xl font-bold text-[#F5EFE3]">{c.value}</p>
             <p className="text-xs text-[rgba(245,239,227,0.50)] mt-0.5">{c.label}</p>
           </div>
         ))}
@@ -219,17 +219,17 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
 
       {/* Live Timer */}
       <div className="bg-[#161B22] rounded-xl p-5 shadow-sm border border-white/8">
-        <h3 className="font-bold text-sm text-[#0D1117] mb-4 flex items-center gap-2">
+          <h3 className="font-bold text-sm text-[#F5EFE3] mb-4 flex items-center gap-2">
           <Timer className="w-4 h-4 text-[#D4922A]" />
           Live Timer
           {runningEntry && (
-            <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-semibold animate-pulse">
+              <span className="ml-2 px-2 py-0.5 bg-green-500/15 text-green-400 text-xs rounded-full font-semibold animate-pulse">
               Running
             </span>
           )}
         </h3>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="text-4xl font-mono font-bold text-[#0D1117] tabular-nums min-w-[148px]">
+          <div className="text-4xl font-mono font-bold text-[#F5EFE3] tabular-nums min-w-[148px]">
             {formatDuration(elapsed)}
           </div>
           <div className="flex-1 space-y-2 w-full">
@@ -247,14 +247,16 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
                   <select
                     value={timerClientId}
                     onChange={e => {
-                      setTimerClientId(e.target.value);
-                      const c = clients?.find(c => String(c.id) === e.target.value);
+                      const cid = e.target.value;
+                      const c = clients?.find(cl => String(cl.id) === cid);
+                      setTimerClientId(cid);
                       setTimerClientName(c?.name || "");
+                      if (!timerRate && c?.defaultRate) setTimerRate(String(parseFloat(c.defaultRate)));
                     }}
                     className="form-input-light flex-1"
                   >
                     <option value="">No client</option>
-                    {clients?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {clients?.map(c => <option key={c.id} value={c.id}>{c.name}{c.defaultRate ? ` — $${parseFloat(c.defaultRate).toFixed(0)}/hr` : ""}</option>)}
                   </select>
                   <input
                     value={timerRate}
@@ -270,7 +272,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
               </>
             ) : (
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-[#0D1117]">{runningEntry.description || "Timer running…"}</p>
+                <p className="text-sm font-semibold text-[#F5EFE3]">{runningEntry.description || "Timer running…"}</p>
                 {runningEntry.clientName && <p className="text-xs text-[rgba(245,239,227,0.40)]">{runningEntry.clientName}</p>}
               </div>
             )}
@@ -302,17 +304,25 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
       {/* Manual Entry Form */}
       {showForm && (
         <div className="bg-[#161B22] rounded-xl p-5 shadow-sm border border-white/8">
-          <h3 className="font-bold text-sm text-[#0D1117] mb-4">Add Manual Entry</h3>
+          <h3 className="font-bold text-sm text-[#F5EFE3] mb-4">Add Manual Entry</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5">Client</label>
               <select
                 value={form.clientId}
-                onChange={e => setForm(p => ({ ...p, clientId: e.target.value }))}
+                onChange={e => {
+                  const cid = e.target.value;
+                  const c = clients?.find(cl => String(cl.id) === cid);
+                  setForm(p => ({
+                    ...p,
+                    clientId: cid,
+                    hourlyRate: p.hourlyRate || (c?.defaultRate ? String(parseFloat(c.defaultRate)) : ""),
+                  }));
+                }}
                 className="form-input-light"
               >
                 <option value="">No client</option>
-                {clients?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {clients?.map(c => <option key={c.id} value={c.id}>{c.name}{c.defaultRate ? ` — $${parseFloat(c.defaultRate).toFixed(0)}/hr` : ""}</option>)}
               </select>
             </div>
             <div>

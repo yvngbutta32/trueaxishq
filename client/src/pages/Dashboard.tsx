@@ -634,7 +634,7 @@ function ClientsPanel() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "prospect">("all");
   const [showAdd, setShowAdd] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", service: "", status: "active" as "active" | "inactive" | "prospect", notes: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", service: "", status: "active" as "active" | "inactive" | "prospect", notes: "", defaultRate: "" });
   const setClientFormField = useFormFields(setForm);
   const [clientConfirm, setClientConfirm] = useState<ConfirmState>(defaultConfirm);
   const [showCsvImport, setShowCsvImport] = useState(false);
@@ -663,7 +663,7 @@ function ClientsPanel() {
   const pulseMap = new Map((pulseData ?? []).map(d => [d.client.id, d.pulse]));
 
   const createClient = trpc.clients.create.useMutation({
-    onSuccess: () => { utils.clients.list.invalidate(); toast.success("Client added successfully!"); setShowAdd(false); setForm({ name: "", email: "", phone: "", service: "", status: "active", notes: "" }); },
+    onSuccess: () => { utils.clients.list.invalidate(); toast.success("Client added successfully!"); setShowAdd(false); setForm({ name: "", email: "", phone: "", service: "", status: "active", notes: "", defaultRate: "" }); },
     onError: (e) => toast.error(e.message),
   });
   const deleteClient = trpc.clients.delete.useMutation({
@@ -854,11 +854,12 @@ function ClientsPanel() {
   });
 
   // Stable field setters — prevents Field memo from being bypassed on every render
-  const setFormName    = useFormField(setForm, "name");
-  const setFormEmail   = useFormField(setForm, "email");
-  const setFormPhone   = useFormField(setForm, "phone");
-  const setFormService = useFormField(setForm, "service");
-  const setFormNotes   = useFormField(setForm, "notes");
+  const setFormName        = useFormField(setForm, "name");
+  const setFormEmail       = useFormField(setForm, "email");
+  const setFormPhone       = useFormField(setForm, "phone");
+  const setFormService     = useFormField(setForm, "service");
+  const setFormNotes       = useFormField(setForm, "notes");
+  const setFormDefaultRate = useFormField(setForm, "defaultRate");
 
   const handleCreate = () => {
     if (!form.name.trim()) { toast.error("Client name is required."); return; }
@@ -998,6 +999,7 @@ function ClientsPanel() {
           <Field label="Email Address" value={form.email} onChange={setFormEmail} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
           <Field label="Phone Number" value={form.phone} onChange={setFormPhone} placeholder="+1 (555) 000-0000" type="tel" autoComplete="tel" enterKeyHint="next" />
           <Field label="Service / Niche" value={form.service} onChange={setFormService} placeholder="Business Coaching, Web Design..." autoComplete="off" enterKeyHint="next" />
+          <Field label="Default Hourly Rate ($)" value={form.defaultRate} onChange={setFormDefaultRate} placeholder="0.00" type="number" autoComplete="off" enterKeyHint="next" />
           <div>
             <label className="block text-xs font-semibold text-[rgba(245,239,227,0.55)] mb-1.5">Status</label>
             <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as typeof form.status }))} className="form-input-light">
@@ -1047,8 +1049,8 @@ function ClientsPanel() {
               {[
                 { icon: Mail, label: "Email", value: selectedClient.email || "Not provided" },
                 { icon: Phone, label: "Phone", value: selectedClient.phone || "Not provided" },
+                { icon: DollarSign, label: "Default Rate", value: selectedClient.defaultRate ? `$${parseFloat(selectedClient.defaultRate).toFixed(2)}/hr` : "Not set" },
                 { icon: Calendar, label: "Added", value: formatDate(selectedClient.createdAt) },
-                { icon: Clock, label: "Last Updated", value: formatDate(selectedClient.updatedAt) },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="bg-[#1C2333] rounded-xl p-3">
                   <div className="flex items-center gap-2 mb-1">
