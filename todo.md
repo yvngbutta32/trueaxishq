@@ -1208,3 +1208,11 @@
 - [x] Update keyboard shortcuts for new panel names
 - [x] Update MobileBottomNav for new panel structure
 - [x] Update OverviewPanel quick-action cards to point to new panels
+
+## Final Hardening & Remaining Features
+- [ ] Add 3 built-in automation templates (Welcome, Overdue reminder, Re-engagement)
+- [x] Add P&L summary card to OverviewPanel
+- [x] Build public proposal signing page (/proposal/:token)
+- [ ] Harden all panels with null safety, loading skeletons, and error boundaries
+- [ ] Add retry logic to all tRPC mutations
+- [ ] Verify all routes are registered in App.tsx

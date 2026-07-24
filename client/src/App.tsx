@@ -31,6 +31,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const ClientPortal = lazy(() => import("./pages/ClientPortal"));
 const TestimonialSubmit = lazy(() => import("./pages/TestimonialSubmit"));
 const BookingCancel = lazy(() => import("./pages/BookingCancel"));
+const ProposalSign = lazy(() => import("./pages/ProposalSign"));
 
 // ─── Full-screen page loader ──────────────────────────────────────────────────
 function PageLoader() {
@@ -98,6 +99,9 @@ function Router() {
 
         {/* Booking cancel/reschedule — public, token-gated */}
         <Route path="/booking/manage/:token" component={BookingCancel} />
+
+        {/* Proposal signing — public, token-gated */}
+        <Route path="/proposal/:token" component={ProposalSign} />
 
         {/* Auth routes */}
         <Route path="/login" component={Login} />

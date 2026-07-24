@@ -55,6 +55,10 @@ export default function Automations() {
     onSuccess: () => { utils.automations.list.invalidate(); toast.success("Automation deleted"); },
     onError: e => toast.error(e.message),
   });
+  const seedMut = trpc.automations.seedTemplates.useMutation({
+    onSuccess: (d: { seeded: number; message: string }) => { utils.automations.list.invalidate(); toast.success(`${d.message} — ready to activate!`); },
+    onError: (e: any) => toast.error(e.message),
+  });
   const testMut = trpc.automations.run.useMutation({
     onSuccess: (d: { actionsExecuted: number }) => toast.success(`Test ran: ${d.actionsExecuted} action(s) executed`),
     onError: (e: any) => toast.error(e.message),
@@ -95,9 +99,14 @@ export default function Automations() {
           <h1 className="text-2xl font-bold text-[rgba(245,239,227,0.95)]">Workflow Automation</h1>
           <p className="text-sm text-[rgba(245,239,227,0.55)] mt-0.5">Set triggers and actions that run automatically — so you never miss a follow-up or invoice</p>
         </div>
-        <Button onClick={() => { setForm(EMPTY_FORM); setOpen(true); }} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold gap-2">
-          <Plus className="w-4 h-4" /> New Automation
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => seedMut.mutate()} disabled={seedMut.isPending} variant="outline" className="border-[rgba(139,92,246,0.3)] text-[#A78BFA] hover:bg-[rgba(139,92,246,0.1)] gap-2 hidden sm:flex">
+            {seedMut.isPending ? <span className="w-4 h-4 border-2 border-[#A78BFA]/40 border-t-[#A78BFA] rounded-full animate-spin" /> : <Zap className="w-4 h-4" />} Load Templates
+          </Button>
+          <Button onClick={() => { setForm(EMPTY_FORM); setOpen(true); }} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold gap-2">
+            <Plus className="w-4 h-4" /> New Automation
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -143,10 +152,15 @@ export default function Automations() {
             <Zap className="w-8 h-8 text-[#8B5CF6]" />
           </div>
           <h3 className="text-lg font-semibold text-[rgba(245,239,227,0.85)] mb-2">No automations yet</h3>
-          <p className="text-sm text-[rgba(245,239,227,0.45)] mb-6 max-w-sm">Create your first automation to save hours every week on repetitive tasks.</p>
-          <Button onClick={() => { setForm(EMPTY_FORM); setOpen(true); }} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold gap-2">
-            <Plus className="w-4 h-4" /> Create First Automation
-          </Button>
+          <p className="text-sm text-[rgba(245,239,227,0.45)] mb-6 max-w-sm">Load 3 ready-made templates or build your own from scratch.</p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button onClick={() => seedMut.mutate()} disabled={seedMut.isPending} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold gap-2">
+              {seedMut.isPending ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Zap className="w-4 h-4" />} Load Starter Templates
+            </Button>
+            <Button onClick={() => { setForm(EMPTY_FORM); setOpen(true); }} variant="outline" className="border-[rgba(139,92,246,0.3)] text-[#A78BFA] hover:bg-[rgba(139,92,246,0.1)] gap-2">
+              <Plus className="w-4 h-4" /> Build from Scratch
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="space-y-3">

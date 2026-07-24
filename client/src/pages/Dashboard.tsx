@@ -430,6 +430,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
   const { data: recentBookings } = trpc.bookings.list.useQuery({ status: "scheduled" });
   const { data: overdueInvoices } = trpc.invoices.list.useQuery({ status: "overdue" }, { retry: 1 });
   const { data: pulseData } = trpc.pulse.getAll.useQuery(undefined, { retry: 1 });
+  const { data: pnlData } = trpc.expenses.pnl.useQuery({}, { retry: 1 });
   const todayStr = new Date().toISOString().split("T")[0];
   const todayBookings = (recentBookings || []).filter(b => b.date === todayStr);
 
@@ -523,6 +524,36 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
           </div>
         ))}
       </div>
+
+      {/* P&L Summary Card */}
+      {pnlData && (
+        <button
+          onClick={() => setActivePanel("insights")}
+          className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border border-white/8 bg-[#161B22] hover:border-[#D4922A]/40 hover:bg-[#D4922A]/5 transition-all text-left group card-lift"
+          style={{ '--card-glow': pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' } as React.CSSProperties}
+          aria-label="View P&L breakdown in Insights"
+        >
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: pnlData.netProfit >= 0 ? 'rgba(34,197,94,0.15)' : 'rgba(255,107,107,0.15)' }}>
+            <TrendingUp className="w-4 h-4" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-base font-extrabold" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }}>
+                {pnlData.netProfit >= 0 ? '+' : ''}{formatCurrency(pnlData.netProfit)} net profit
+              </span>
+              <span className="text-xs text-[rgba(245,239,227,0.45)]">this period</span>
+            </div>
+            <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+              <span className="text-xs text-[rgba(245,239,227,0.55)]">Revenue: <span className="text-[#D4922A] font-semibold">{formatCurrency(pnlData.totalRevenue)}</span></span>
+              <span className="text-xs text-[rgba(245,239,227,0.30)]">·</span>
+              <span className="text-xs text-[rgba(245,239,227,0.55)]">Expenses: <span className="text-red-400 font-semibold">{formatCurrency(pnlData.totalExpenses)}</span></span>
+              <span className="text-xs text-[rgba(245,239,227,0.30)]">·</span>
+              <span className="text-xs text-[rgba(245,239,227,0.55)]">Margin: <span className="font-semibold" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }}>{pnlData.profitMargin}%</span></span>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-[rgba(245,239,227,0.30)] group-hover:text-[#D4922A] transition-colors flex-shrink-0" />
+        </button>
+      )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">

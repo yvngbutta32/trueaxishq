@@ -4000,6 +4000,60 @@ Only include actions when you have actually generated a complete draft. For gene
         return { success: true };
       }),
 
+    seedTemplates: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const db = await requireDb();
+        // Only seed if user has no automations yet
+        const existing = await db.select({ id: automations.id }).from(automations).where(eq(automations.userId, ctx.user.id)).limit(1);
+        if (existing.length > 0) return { seeded: 0, message: "Templates already exist" };
+        const templates = [
+          {
+            name: "Welcome New Client",
+            description: "Automatically notify you when a new client is added so you can send a personalised welcome.",
+            trigger: "client_added" as const,
+            triggerDelayHours: 0,
+            conditions: [],
+            actions: JSON.stringify([{ type: "notify_owner", config: { title: "New client added", message: "A new client has been added. Send them a welcome message!" } }]),
+            active: true,
+            runCount: 0,
+          },
+          {
+            name: "Overdue Invoice Reminder",
+            description: "Notifies you 7 days after an invoice goes overdue so you can follow up promptly.",
+            trigger: "invoice_overdue" as const,
+            triggerDelayHours: 168,
+            conditions: [],
+            actions: JSON.stringify([{ type: "notify_owner", config: { title: "Invoice overdue", message: "An invoice is 7+ days overdue. Time to follow up with your client." } }, { type: "create_followup", config: { subject: "Following up on your invoice", body: "Hi, just following up on the outstanding invoice. Please let me know if you have any questions." } }]),
+            active: true,
+            runCount: 0,
+          },
+          {
+            name: "Re-engagement Sequence",
+            description: "Alerts you when a client hasn't booked in 45 days so you can reach out before they go cold.",
+            trigger: "booking_confirmed" as const,
+            triggerDelayHours: 0,
+            conditions: [{ field: "days_since_last_booking", operator: "gte", value: "45" }],
+            actions: JSON.stringify([{ type: "notify_owner", config: { title: "Client going cold", message: "A client hasn't booked in 45+ days. Consider sending a re-engagement offer." } }]),
+            active: true,
+            runCount: 0,
+          },
+        ];
+        for (const t of templates) {
+          await db.insert(automations).values({
+            userId: ctx.user.id,
+            name: t.name,
+            description: t.description,
+            trigger: t.trigger,
+            triggerDelayHours: t.triggerDelayHours,
+            conditions: JSON.stringify(t.conditions),
+            actions: t.actions,
+            active: t.active,
+            runCount: t.runCount,
+          });
+        }
+        return { seeded: templates.length, message: `${templates.length} templates added` };
+      }),
+
     run: protectedProcedure
       .input(z.object({ id: z.number().int() }))
       .mutation(async ({ input, ctx }) => {
