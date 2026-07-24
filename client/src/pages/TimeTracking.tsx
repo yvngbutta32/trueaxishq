@@ -236,8 +236,8 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-[#F5EFE3]">Time Tracking</h2>
-          <p className="text-sm text-[rgba(245,239,227,0.50)] mt-0.5">Track billable hours and generate invoices instantly</p>
+          <h2 className="text-xl font-bold text-[#1A1A1A]">Time Tracking</h2>
+          <p className="text-sm text-[rgba(26,26,26,0.50)] mt-0.5">Track billable hours and generate invoices instantly</p>
         </div>
         <Button
           onClick={() => setShowForm(!showForm)}
@@ -255,21 +255,21 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
           { label: "Sessions Today", value: String(todayCount), icon: Timer, color: "#10B981" },
           { label: "Avg Rate/hr", value: avgRate !== null ? formatCurrency(avgRate) : "—", icon: TrendingUp, color: "#FF6B6B" },
         ].map(c => (
-          <div key={c.label} className="bg-[#161B22] rounded-xl p-4 shadow-sm border border-white/8">
+          <div key={c.label} className="bg-white rounded-xl p-4 shadow-sm border border-[#DDDBD7]">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: c.color + "15" }}>
                 <c.icon className="w-4 h-4" style={{ color: c.color }} />
               </div>
             </div>
-            <p className="text-xl font-bold text-[#F5EFE3]">{c.value}</p>
-            <p className="text-xs text-[rgba(245,239,227,0.50)] mt-0.5">{c.label}</p>
+            <p className="text-xl font-bold text-[#1A1A1A]">{c.value}</p>
+            <p className="text-xs text-[rgba(26,26,26,0.50)] mt-0.5">{c.label}</p>
           </div>
         ))}
       </div>
 
       {/* Live Timer */}
-      <div className="bg-[#161B22] rounded-xl p-5 shadow-sm border border-white/8">
-        <h3 className="font-bold text-sm text-[#F5EFE3] mb-4 flex items-center gap-2">
+      <div className="bg-white rounded-xl p-5 shadow-sm border border-[#DDDBD7]">
+        <h3 className="font-bold text-sm text-[#1A1A1A] mb-4 flex items-center gap-2">
           <Timer className="w-4 h-4 text-[#D4922A]" />
           Live Timer
           {runningEntry && (
@@ -279,7 +279,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
           )}
         </h3>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="text-4xl font-mono font-bold text-[#F5EFE3] tabular-nums min-w-[148px]">
+          <div className="text-4xl font-mono font-bold text-[#1A1A1A] tabular-nums min-w-[148px]">
             {formatDuration(elapsed)}
           </div>
           <div className="flex-1 space-y-2 w-full">
@@ -322,8 +322,8 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
               </>
             ) : (
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-[#F5EFE3]">{runningEntry.description || "Timer running…"}</p>
-                {runningEntry.clientName && <p className="text-xs text-[rgba(245,239,227,0.40)]">{runningEntry.clientName}</p>}
+                <p className="text-sm font-semibold text-[#1A1A1A]">{runningEntry.description || "Timer running…"}</p>
+                {runningEntry.clientName && <p className="text-xs text-[rgba(26,26,26,0.40)]">{runningEntry.clientName}</p>}
               </div>
             )}
           </div>
@@ -353,11 +353,11 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
 
       {/* Manual Entry Form */}
       {showForm && (
-        <div className="bg-[#161B22] rounded-xl p-5 shadow-sm border border-white/8">
-          <h3 className="font-bold text-sm text-[#F5EFE3] mb-4">Add Manual Entry</h3>
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-[#DDDBD7]">
+          <h3 className="font-bold text-sm text-[#1A1A1A] mb-4">Add Manual Entry</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5">Client</label>
+              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.60)] mb-1.5">Client</label>
               <select
                 value={form.clientId}
                 onChange={e => {
@@ -376,7 +376,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5">Date *</label>
+              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.60)] mb-1.5">Date *</label>
               <input
                 type="date"
                 value={form.date}
@@ -385,7 +385,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5">Duration (hours) *</label>
+              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.60)] mb-1.5">Duration (hours) *</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -397,7 +397,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5">Hourly Rate ($)</label>
+              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.60)] mb-1.5">Hourly Rate ($)</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -409,7 +409,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5">Description</label>
+              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.60)] mb-1.5">Description</label>
               <input
                 value={form.description}
                 onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
@@ -427,7 +427,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
                 onChange={e => setForm(p => ({ ...p, billable: e.target.checked }))}
                 className="w-4 h-4 accent-[#D4922A]"
               />
-              <label htmlFor="billable" className="text-sm text-[rgba(245,239,227,0.70)] cursor-pointer">Billable</label>
+              <label htmlFor="billable" className="text-sm text-[rgba(26,26,26,0.70)] cursor-pointer">Billable</label>
             </div>
           </div>
           <div className="flex gap-2 mt-4">
@@ -445,12 +445,12 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
       )}
 
       {/* Entries List */}
-      <div className="bg-[#161B22] rounded-xl shadow-sm border border-white/8 overflow-hidden">
-        <div className="px-5 py-4 border-b border-white/8 flex items-center justify-between gap-3 flex-wrap">
+      <div className="bg-white rounded-xl shadow-sm border border-[#DDDBD7] overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#DDDBD7] flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
-            <h3 className="font-bold text-sm text-[#F5EFE3]">Recent Entries</h3>
+            <h3 className="font-bold text-sm text-[#1A1A1A]">Recent Entries</h3>
             {(entries?.length ?? 0) > 0 && (
-              <span className="text-xs text-[rgba(245,239,227,0.40)]">{entries!.length} entries</span>
+              <span className="text-xs text-[rgba(26,26,26,0.40)]">{entries!.length} entries</span>
             )}
           </div>
           {/* Bulk action bar */}
@@ -458,7 +458,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
             <div className="flex items-center gap-2 flex-wrap">
               {selectedIds.size > 0 ? (
                 <>
-                  <span className="text-xs text-[rgba(245,239,227,0.60)]">
+                  <span className="text-xs text-[rgba(26,26,26,0.60)]">
                     {selectedIds.size} selected · {formatCurrency(selectedTotal)}
                   </span>
                   <Button
@@ -472,7 +472,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
                   </Button>
                   <button
                     onClick={clearSelection}
-                    className="text-xs text-[rgba(245,239,227,0.40)] hover:text-[rgba(245,239,227,0.70)] transition-colors"
+                    className="text-xs text-[rgba(26,26,26,0.40)] hover:text-[rgba(26,26,26,0.70)] transition-colors"
                   >
                     Clear
                   </button>
@@ -496,8 +496,8 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
         ) : !entries || entries.length === 0 ? (
           <div className="p-10 text-center">
             <Clock className="w-10 h-10 text-white/10 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-[rgba(245,239,227,0.50)]">No time entries yet</p>
-            <p className="text-xs text-[rgba(245,239,227,0.40)] mt-1">Start the timer or add a manual entry above</p>
+            <p className="text-sm font-semibold text-[rgba(26,26,26,0.50)]">No time entries yet</p>
+            <p className="text-xs text-[rgba(26,26,26,0.40)] mt-1">Start the timer or add a manual entry above</p>
           </div>
         ) : (
           <div className="divide-y divide-white/5">
@@ -547,7 +547,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
                   {/* Description + client */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold text-[#F5EFE3] truncate">
+                      <p className="text-sm font-semibold text-[#1A1A1A] truncate">
                         {entry.description || "Untitled session"}
                         {isRunning && <span className="ml-2 text-xs text-green-400 font-medium">● Running</span>}
                       </p>
@@ -557,15 +557,15 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[rgba(245,239,227,0.40)] mt-0.5">
+                    <p className="text-xs text-[rgba(26,26,26,0.40)] mt-0.5">
                       {entry.clientName || "No client"} · {new Date(entry.startedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                      {rate > 0 && !isRunning && <span className="ml-1 text-[rgba(245,239,227,0.30)]">· ${rate}/hr</span>}
+                      {rate > 0 && !isRunning && <span className="ml-1 text-[rgba(26,26,26,0.30)]">· ${rate}/hr</span>}
                     </p>
                   </div>
 
                   {/* Duration + billable amount */}
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-bold text-[#F5EFE3]">{isRunning ? "Running" : hours + "h"}</p>
+                    <p className="text-sm font-bold text-[#1A1A1A]">{isRunning ? "Running" : hours + "h"}</p>
                     {billableAmount !== null && !isRunning && (
                       <p className="text-xs text-green-400 font-medium">{formatCurrency(billableAmount)}</p>
                     )}
@@ -607,7 +607,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
 
       {/* Invoice generation hint */}
       {bulkEligible.length > 0 && selectedIds.size === 0 && (
-        <p className="text-xs text-[rgba(245,239,227,0.40)] text-center pb-2">
+        <p className="text-xs text-[rgba(26,26,26,0.40)] text-center pb-2">
           Click <span className="font-semibold text-[#D4922A]">Invoice</span> on a single entry, or select multiple entries to create a consolidated invoice.
         </p>
       )}

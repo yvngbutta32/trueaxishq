@@ -904,7 +904,7 @@ function HowItWorksSection() {
                       <tab.icon className="w-4 h-4" style={{ color: activeTab === i ? "#D4922A" : "rgba(26,26,26,0.45)" }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm" style={{ color: activeTab === i ? "#F5EFE3" : "rgba(26,26,26,0.55)" }}>
+                      <div className="font-semibold text-sm" style={{ color: activeTab === i ? "#1A1A1A" : "rgba(26,26,26,0.55)" }}>
                         {tab.label}
                       </div>
                       {activeTab === i && (

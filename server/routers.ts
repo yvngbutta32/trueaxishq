@@ -194,7 +194,7 @@ export const appRouter = router({
               // No admin exists yet — promote this user and allow access
               await db.update(users).set({ role: "admin" }).where(eq(users.id, user.id));
               isOwner = true;
-              console.log(`[AdminLogin] Bootstrap: promoted user ${user.email} to admin (first admin account)`);
+              console.log(`[AdminLogin] Bootstrap: promoted user ${user.id} to admin (first admin account)`);
             }
           }
 
@@ -271,7 +271,7 @@ export const appRouter = router({
             content: `A password reset was requested for ${user.email}. Reset link sent to user.`,
           }).catch(() => {});
 
-          console.log(`[Auth] Password reset email sent to user ${user.id}`);
+          // Password reset email sent
         } catch (err) {
           console.error("[Auth] forgotPassword error:", err);
           // Still return success to prevent enumeration
@@ -305,7 +305,7 @@ export const appRouter = router({
         await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, resetRecord.userId));
         await db.update(passwordResetTokens).set({ used: true }).where(eq(passwordResetTokens.id, resetRecord.id));
 
-        console.log(`[Auth] Password reset completed for user ${resetRecord.userId}`);
+        // Password reset completed
         return { success: true };
       }),
 
@@ -335,7 +335,7 @@ export const appRouter = router({
           .set({ isActive: false, invalidatedAt: new Date(), invalidationReason: "password_changed" })
           .where(and(eq(userSessions.userId, ctx.user.id), eq(userSessions.isActive, true)));
         logSecurityEvent({ eventType: "password_changed", severity: "medium", userId: ctx.user.id, email: ctx.user.email ?? undefined, ip: getClientIp(ctx.req), details: "Password changed by user", userAgent: ctx.req.headers["user-agent"] });
-        console.log(`[Auth] Password changed for user ${ctx.user.id}`);
+        // Password changed
         return { success: true };
       }),
   }),

@@ -62,10 +62,10 @@ export default function Billing() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0D1117]">
+      <div className="min-h-screen flex items-center justify-center bg-[#F2F0EC]">
         <div className="text-center max-w-sm">
-          <Shield className="w-12 h-12 text-[rgba(245,239,227,0.40)] mx-auto mb-4" aria-hidden="true" />
-          <h1 className="text-xl font-bold text-[#F5EFE3] mb-2">Sign in to manage billing</h1>
+          <Shield className="w-12 h-12 text-[rgba(26,26,26,0.40)] mx-auto mb-4" aria-hidden="true" />
+          <h1 className="text-xl font-bold text-[#1A1A1A] mb-2">Sign in to manage billing</h1>
           <Button className="gradient-amber text-white border-0 mt-4" onClick={() => window.location.href = "/login"}>
             Sign In
           </Button>
@@ -80,7 +80,7 @@ export default function Billing() {
   const plans = plansQuery.data ?? [];
 
   return (
-    <div className="min-h-screen bg-[#0D1117] text-white">
+    <div className="min-h-screen bg-[#F2F0EC] text-white">
       <a href="#main-content" className="skip-link">Skip to main content</a>
       <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
         <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
@@ -102,11 +102,11 @@ export default function Billing() {
           <h1 className="text-2xl font-extrabold text-white mb-1">
             Billing & Subscription
           </h1>
-          <p className="text-[rgba(245,239,227,0.55)] text-sm">Manage your plan, upgrade, or access your billing history.</p>
+          <p className="text-[rgba(26,26,26,0.55)] text-sm">Manage your plan, upgrade, or access your billing history.</p>
         </div>
 
         {/* Current Plan Card */}
-        <section aria-label="Current subscription" className="bg-[#0D1117] rounded-xl border border-white/10 shadow-sm p-6 mb-8">
+        <section aria-label="Current subscription" className="bg-[#F2F0EC] rounded-xl border border-white/10 shadow-sm p-6 mb-8">
           <h2 className="text-base font-bold text-white mb-4">Current Plan</h2>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
@@ -128,7 +128,7 @@ export default function Billing() {
                     currentStatus === "active" ? "bg-green-100 text-green-800" :
                     currentStatus === "past_due" ? "bg-yellow-100 text-yellow-800" :
                     currentStatus === "cancelled" ? "bg-red-100 text-red-800" :
-                    "bg-white/10 text-[rgba(245,239,227,0.65)]"
+                    "bg-white/10 text-[rgba(26,26,26,0.65)]"
                   }`} role="status">
                     {currentStatus === "active" && <CheckCircle className="w-3 h-3" aria-hidden="true" />}
                     {currentStatus === "active" ? "Active" :
@@ -162,7 +162,7 @@ export default function Billing() {
 
         {/* Interval Toggle */}
         <div className="flex items-center justify-center mb-6">
-          <div className="bg-[#0D1117] border border-white/10 rounded-xl p-1 flex" role="group" aria-label="Billing interval">
+          <div className="bg-[#F2F0EC] border border-white/10 rounded-xl p-1 flex" role="group" aria-label="Billing interval">
             {(["monthly", "annual"] as const).map(opt => (
               <button
                 key={opt}
@@ -171,7 +171,7 @@ export default function Billing() {
                 className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all min-h-[40px] ${
                   interval === opt
                     ? "gradient-amber text-white shadow-sm"
-                    : "text-[rgba(245,239,227,0.50)] hover:text-[#F5EFE3]"
+                    : "text-[rgba(26,26,26,0.50)] hover:text-[#1A1A1A]"
                 }`}
               >
                 {opt === "monthly" ? "Monthly" : "Annual"}
@@ -204,7 +204,7 @@ export default function Billing() {
                 return (
                   <article
                     key={plan.id}
-                    className={`bg-[#0D1117] rounded-xl border-2 p-6 flex flex-col transition-all ${
+                    className={`bg-[#F2F0EC] rounded-xl border-2 p-6 flex flex-col transition-all ${
                       plan.highlighted
                         ? "border-[#D4922A] shadow-lg shadow-[#D4922A]/10"
                         : isCurrent
@@ -231,11 +231,11 @@ export default function Billing() {
                     <h3 className="text-lg font-extrabold text-white mb-1">
                       {plan.name}
                     </h3>
-                    <p className="text-xs text-[rgba(245,239,227,0.55)] mb-4">{plan.description}</p>
+                    <p className="text-xs text-[rgba(26,26,26,0.55)] mb-4">{plan.description}</p>
 
                     <div className="mb-5">
                       <span className="text-3xl font-extrabold text-white">${price}</span>
-                      <span className="text-sm text-[rgba(245,239,227,0.55)]">/mo</span>
+                      <span className="text-sm text-[rgba(26,26,26,0.55)]">/mo</span>
                       {interval === "annual" && (
                         <p className="text-xs text-green-600 font-semibold mt-0.5">Billed annually</p>
                       )}
@@ -243,7 +243,7 @@ export default function Billing() {
 
                     <ul className="space-y-2 mb-6 flex-1" aria-label={`${plan.name} features`}>
                       {plan.features.map((feature: string) => (
-                        <li key={feature} className="flex items-start gap-2 text-sm text-[rgba(245,239,227,0.75)]">
+                        <li key={feature} className="flex items-start gap-2 text-sm text-[rgba(26,26,26,0.75)]">
                           <CheckCircle className="w-4 h-4 text-[#D4922A] flex-shrink-0 mt-0.5" aria-hidden="true" />
                           {feature}
                         </li>

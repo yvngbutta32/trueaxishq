@@ -78,7 +78,7 @@ export default function IntakeFormPage() {
             <CheckCircle className="w-8 h-8 text-emerald-400" />
           </div>
           <h1 className="text-2xl font-bold text-[#1A1A1A] mb-2">Thank you!</h1>
-          <p className="text-sm text-[rgba(245,239,227,0.55)]">Your response has been submitted. We'll be in touch soon.</p>
+          <p className="text-sm text-[rgba(26,26,26,0.55)]">Your response has been submitted. We'll be in touch soon.</p>
         </div>
       </div>
     );
@@ -100,9 +100,9 @@ export default function IntakeFormPage() {
     return (
       <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
-          <ClipboardList className="w-12 h-12 text-[rgba(245,239,227,0.2)] mx-auto mb-4" />
+          <ClipboardList className="w-12 h-12 text-[rgba(26,26,26,0.2)] mx-auto mb-4" />
           <h1 className="text-xl font-bold text-[#1A1A1A] mb-2">Form Not Available</h1>
-          <p className="text-sm text-[rgba(245,239,227,0.5)]">This form is no longer active or does not exist.</p>
+          <p className="text-sm text-[rgba(26,26,26,0.5)]">This form is no longer active or does not exist.</p>
         </div>
       </div>
     );
@@ -118,7 +118,7 @@ export default function IntakeFormPage() {
           </div>
           <h1 className="text-2xl font-bold text-[#1A1A1A]">{formData.name}</h1>
           {formData.description && (
-            <p className="text-sm text-[rgba(245,239,227,0.55)] mt-2">{formData.description}</p>
+            <p className="text-sm text-[rgba(26,26,26,0.55)] mt-2">{formData.description}</p>
           )}
         </div>
 
@@ -130,7 +130,7 @@ export default function IntakeFormPage() {
           {/* Respondent info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.6)] mb-1.5">Your Name *</label>
+              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">Your Name *</label>
               <input
                 value={respondentName}
                 onChange={e => setRespondentName(e.target.value)}
@@ -140,7 +140,7 @@ export default function IntakeFormPage() {
               {fieldErrors._name && <p className="text-[10px] text-red-400 mt-1">{fieldErrors._name}</p>}
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.6)] mb-1.5">Email (optional)</label>
+              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">Email (optional)</label>
               <input
                 type="email"
                 value={respondentEmail}
@@ -154,7 +154,7 @@ export default function IntakeFormPage() {
           {/* Dynamic fields */}
           {parsedFields.map(field => (
             <div key={field.id}>
-              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.6)] mb-1.5">
+              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">
                 {field.label}{field.required && <span className="text-red-400 ml-0.5">*</span>}
               </label>
               {field.type === "textarea" ? (
@@ -182,7 +182,7 @@ export default function IntakeFormPage() {
                     onChange={e => setAnswers(prev => ({ ...prev, [field.id]: e.target.checked ? "true" : "false" }))}
                     className="w-4 h-4 rounded"
                   />
-                  <span className="text-sm text-[rgba(245,239,227,0.7)]">{field.placeholder || field.label}</span>
+                  <span className="text-sm text-[rgba(26,26,26,0.7)]">{field.placeholder || field.label}</span>
                 </label>
               ) : (
                 <input
@@ -206,7 +206,7 @@ export default function IntakeFormPage() {
           </Button>
         </form>
 
-        <p className="text-center text-xs text-[rgba(245,239,227,0.25)] mt-4">
+        <p className="text-center text-xs text-[rgba(26,26,26,0.25)] mt-4">
           Powered by TrueAxis HQ
         </p>
       </div>

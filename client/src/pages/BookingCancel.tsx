@@ -24,7 +24,7 @@ export default function BookingCancel() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#D4922A] animate-spin" />
       </div>
     );
@@ -32,7 +32,7 @@ export default function BookingCancel() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
           <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">Link Not Found</h1>
@@ -47,7 +47,7 @@ export default function BookingCancel() {
       ? `${window.location.origin}/book/${data.bookingUsername}`
       : undefined;
     return (
-      <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
           <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Booking Cancelled</h1>
@@ -70,7 +70,7 @@ export default function BookingCancel() {
   const { booking, action, freelancerName, bookingUsername } = data;
 
   return (
-    <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden max-w-md w-full">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#1C2333] to-[#2A2A2C] p-6 text-white">

@@ -59,7 +59,7 @@ export default function ForgotPassword() {
             >
               Reset link sent
             </h1>
-            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.55)" }}>
+            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.55)" }}>
               If an account exists for{" "}
               <strong style={{ color: "#D4922A" }}>{email}</strong>, a password reset link has been
               delivered to the account owner's notification inbox. The link expires in 1 hour.
@@ -102,7 +102,7 @@ export default function ForgotPassword() {
                 <label
                   htmlFor="email"
                   className="block text-sm font-semibold mb-1.5"
-                  style={{ color: "rgba(245,240,232,0.70)" }}
+                  style={{ color: "rgba(26,26,26,0.70)" }}
                 >
                   Email address
                 </label>
@@ -139,7 +139,7 @@ export default function ForgotPassword() {
               </button>
             </form>
 
-            <p className="text-center mt-6 text-sm" style={{ color: "rgba(245,240,232,0.75)" }}>
+            <p className="text-center mt-6 text-sm" style={{ color: "rgba(26,26,26,0.75)" }}>
               Remember your password?{" "}
               <button
                 onClick={() => navigate("/login")}
@@ -157,7 +157,7 @@ export default function ForgotPassword() {
       <button
         onClick={() => navigate("/")}
         className="mt-6 flex items-center gap-1.5 text-sm transition-colors hover:opacity-70"
-        style={{ color: "rgba(245,240,232,0.30)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+        style={{ color: "rgba(26,26,26,0.30)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
       >
         <ArrowLeft size={14} />
         Back to homepage

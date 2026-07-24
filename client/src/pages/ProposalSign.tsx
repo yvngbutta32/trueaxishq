@@ -73,7 +73,7 @@ export default function ProposalSign() {
       <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center">
         <div className="text-center space-y-3">
           <Loader2 className="w-10 h-10 text-[#D4922A] animate-spin mx-auto" />
-          <p className="text-[rgba(245,239,227,0.55)] text-sm">Loading proposal…</p>
+          <p className="text-[rgba(26,26,26,0.55)] text-sm">Loading proposal…</p>
         </div>
       </div>
     );
@@ -88,7 +88,7 @@ export default function ProposalSign() {
             <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
           <h1 className="text-xl font-bold text-[#1A1A1A]">Proposal Not Found</h1>
-          <p className="text-[rgba(245,239,227,0.55)] text-sm">
+          <p className="text-[rgba(26,26,26,0.55)] text-sm">
             This proposal link is invalid or has expired. Please contact the sender for a new link.
           </p>
         </div>
@@ -106,25 +106,25 @@ export default function ProposalSign() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-[#1A1A1A] mb-2">Proposal Signed!</h1>
-            <p className="text-[rgba(245,239,227,0.55)] text-sm">
+            <p className="text-[rgba(26,26,26,0.55)] text-sm">
               {proposal.status === "signed" && proposal.signatureName
                 ? `Signed by ${proposal.signatureName}`
                 : "You have successfully signed this proposal."}
             </p>
             {proposal.signedAt && (
-              <p className="text-[rgba(245,239,227,0.35)] text-xs mt-1">
+              <p className="text-[rgba(26,26,26,0.35)] text-xs mt-1">
                 {new Date(proposal.signedAt).toLocaleString()}
               </p>
             )}
           </div>
           <div className="p-4 rounded-xl bg-white/4 border border-[#DDDBD7] text-left space-y-2">
-            <p className="text-xs text-[rgba(245,239,227,0.40)] font-semibold uppercase tracking-wider">Proposal Summary</p>
+            <p className="text-xs text-[rgba(26,26,26,0.40)] font-semibold uppercase tracking-wider">Proposal Summary</p>
             <p className="text-[#1A1A1A] font-semibold">{proposal.title}</p>
             <p className="text-[#D4922A] font-bold text-lg">
               {proposal.currency} {parseFloat(String(proposal.total)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </p>
           </div>
-          <p className="text-[rgba(245,239,227,0.35)] text-xs">
+          <p className="text-[rgba(26,26,26,0.35)] text-xs">
             The sender has been notified. They will be in touch shortly.
           </p>
         </div>
@@ -141,7 +141,7 @@ export default function ProposalSign() {
             <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
           <h1 className="text-xl font-bold text-[#1A1A1A]">Proposal Declined</h1>
-          <p className="text-[rgba(245,239,227,0.55)] text-sm">
+          <p className="text-[rgba(26,26,26,0.55)] text-sm">
             This proposal has been declined. Please contact the sender if you believe this is an error.
           </p>
         </div>
@@ -169,7 +169,7 @@ export default function ProposalSign() {
               <FileText className="w-4 h-4 text-[#D4922A]" />
             </div>
             <div>
-              <p className="text-xs text-[rgba(245,239,227,0.40)] font-medium">Proposal from TrueAxis HQ</p>
+              <p className="text-xs text-[rgba(26,26,26,0.40)] font-medium">Proposal from TrueAxis HQ</p>
               <p className="text-sm font-semibold text-[#1A1A1A] truncate max-w-[200px] sm:max-w-none">{proposal.title}</p>
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function ProposalSign() {
             </div>
             <div>
               <p className="text-[#1A1A1A] font-semibold text-lg">Hi {proposal.clientName},</p>
-              <p className="text-[rgba(245,239,227,0.55)] text-sm mt-1">
+              <p className="text-[rgba(26,26,26,0.55)] text-sm mt-1">
                 Please review the proposal below. Once you're ready, sign at the bottom to get started.
               </p>
             </div>
@@ -204,7 +204,7 @@ export default function ProposalSign() {
             <div key={label} className="p-3 rounded-xl bg-white border border-[#DDDBD7]">
               <div className="flex items-center gap-2 mb-1">
                 <Icon className="w-3.5 h-3.5" style={{ color }} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[rgba(245,239,227,0.35)]">{label}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[rgba(26,26,26,0.35)]">{label}</span>
               </div>
               <p className="text-sm font-bold text-[#1A1A1A]">{value}</p>
             </div>
@@ -216,7 +216,7 @@ export default function ProposalSign() {
           <div className="p-5 rounded-2xl bg-white border border-[#DDDBD7] space-y-3">
             <h2 className="text-sm font-bold text-[#1A1A1A] uppercase tracking-wider">Scope of Work</h2>
             <div className="prose prose-sm prose-invert max-w-none">
-              <p className="text-[rgba(245,239,227,0.70)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.scope}</p>
+              <p className="text-[rgba(26,26,26,0.70)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.scope}</p>
             </div>
           </div>
         )}
@@ -232,8 +232,8 @@ export default function ProposalSign() {
                 <div key={li.id} className="px-5 py-3 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-[#1A1A1A]">{li.name}</p>
-                    {li.description && <p className="text-xs text-[rgba(245,239,227,0.45)] mt-0.5">{li.description}</p>}
-                    <p className="text-xs text-[rgba(245,239,227,0.35)] mt-0.5">{li.qty} × {proposal.currency} {li.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    {li.description && <p className="text-xs text-[rgba(26,26,26,0.45)] mt-0.5">{li.description}</p>}
+                    <p className="text-xs text-[rgba(26,26,26,0.35)] mt-0.5">{li.qty} × {proposal.currency} {li.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                   </div>
                   <p className="text-sm font-bold text-[#1A1A1A] shrink-0">
                     {proposal.currency} {li.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -243,12 +243,12 @@ export default function ProposalSign() {
             </div>
             {/* Totals */}
             <div className="px-5 py-4 border-t border-[#DDDBD7] space-y-2 bg-white/2">
-              <div className="flex justify-between text-sm text-[rgba(245,239,227,0.55)]">
+              <div className="flex justify-between text-sm text-[rgba(26,26,26,0.55)]">
                 <span>Subtotal</span>
                 <span>{proposal.currency} {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
               {taxRate > 0 && (
-                <div className="flex justify-between text-sm text-[rgba(245,239,227,0.55)]">
+                <div className="flex justify-between text-sm text-[rgba(26,26,26,0.55)]">
                   <span>Tax ({taxRate}%)</span>
                   <span>{proposal.currency} {taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
@@ -265,7 +265,7 @@ export default function ProposalSign() {
         {proposal.notes && (
           <div className="p-5 rounded-2xl bg-white border border-[#DDDBD7] space-y-2">
             <h2 className="text-sm font-bold text-[#1A1A1A] uppercase tracking-wider">Additional Notes</h2>
-            <p className="text-[rgba(245,239,227,0.60)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.notes}</p>
+            <p className="text-[rgba(26,26,26,0.60)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.notes}</p>
           </div>
         )}
 
@@ -277,18 +277,18 @@ export default function ProposalSign() {
             </div>
             <div>
               <h2 className="text-sm font-bold text-[#1A1A1A]">Electronic Signature</h2>
-              <p className="text-xs text-[rgba(245,239,227,0.45)]">Type your full legal name to sign this proposal</p>
+              <p className="text-xs text-[rgba(26,26,26,0.45)]">Type your full legal name to sign this proposal</p>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[rgba(245,239,227,0.55)] mb-2">Full Name *</label>
+            <label className="block text-xs font-semibold text-[rgba(26,26,26,0.55)] mb-2">Full Name *</label>
             <input
               type="text"
               value={signatureName}
               onChange={e => setSignatureName(e.target.value)}
               placeholder="e.g. Jane Smith"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/12 text-[#1A1A1A] placeholder-[rgba(245,239,227,0.25)] text-sm focus:outline-none focus:border-[#D4922A]/60 focus:ring-1 focus:ring-[#D4922A]/30 transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-[#DDDBD7] text-[#1A1A1A] placeholder-[rgba(26,26,26,0.25)] text-sm focus:outline-none focus:border-[#D4922A]/60 focus:ring-1 focus:ring-[#D4922A]/30 transition-all"
               onKeyDown={e => { if (e.key === "Enter") handleSign(); }}
             />
             {signatureName.trim() && (
@@ -307,7 +307,7 @@ export default function ProposalSign() {
             >
               {agreementChecked && <CheckCircle className="w-3 h-3 text-white" />}
             </div>
-            <span className="text-xs text-[rgba(245,239,227,0.55)] leading-relaxed">
+            <span className="text-xs text-[rgba(26,26,26,0.55)] leading-relaxed">
               I have read and agree to the scope of work and pricing outlined in this proposal. I understand that signing constitutes a legally binding agreement.
             </span>
           </label>
@@ -330,7 +330,7 @@ export default function ProposalSign() {
         </div>
 
         {/* Trust footer */}
-        <div className="flex items-center justify-center gap-2 text-[rgba(245,239,227,0.30)] text-xs pb-8">
+        <div className="flex items-center justify-center gap-2 text-[rgba(26,26,26,0.30)] text-xs pb-8">
           <Shield className="w-3.5 h-3.5" />
           <span>Secured by TrueAxis HQ · Electronic signatures are legally binding</span>
         </div>

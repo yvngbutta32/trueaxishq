@@ -1333,3 +1333,25 @@
 - [x] Fix BookingPage.tsx white/gray-300/gray-400 text on light panels
 - [x] Fix Pricing.tsx cream text on light backgrounds
 - [x] 0 TypeScript errors, 29/29 tests passing
+
+## Deep Codebase Audit & Bug Fix (Jul 2026) — COMPLETE
+- [x] Fix App.tsx defaultTheme from "dark" to "light" (CSS variables are light-only)
+- [x] Fix Automations.tsx — all cream/dark remnants replaced with charcoal/light
+- [x] Fix Services.tsx — all cream/dark remnants replaced with charcoal/light
+- [x] Fix Expenses.tsx — dark select/toggle backgrounds replaced with white/light
+- [x] Fix Proposals.tsx — all cream/dark remnants replaced with charcoal/light
+- [x] Fix TimeTracking.tsx — dark card backgrounds replaced with white
+- [x] Fix RecurringInvoices.tsx — dark card backgrounds replaced with white
+- [x] Fix ProposalSign.tsx — cream text on light bg replaced with charcoal
+- [x] Fix IntakeFormPage.tsx — cream text on light bg replaced with charcoal
+- [x] Fix ForgotPassword.tsx — cream text remnants removed
+- [x] Fix ResetPassword.tsx — cream text remnants removed
+- [x] Fix TestimonialSubmit.tsx — #F5F0E8 bg replaced with #F2F0EC
+- [x] Fix BookingCancel.tsx — #F5F0E8 bg replaced with #F2F0EC
+- [x] Fix Billing.tsx — dark bg/cream text in auth guard replaced with light theme
+- [x] Fix Home.tsx — active tab label cream color replaced with #1A1A1A
+- [x] Fix Dashboard.tsx — white/0.07 border colors replaced with #DDDBD7
+- [x] Remove Dashboard.tsx.bak stale backup file
+- [x] Fix server/routers.ts — remove PII (email) from console.log statements
+- [x] Fix server/backgroundJobs.ts — remove PII (email) from console.log statements
+- [x] 0 TypeScript errors, 29/29 tests passing

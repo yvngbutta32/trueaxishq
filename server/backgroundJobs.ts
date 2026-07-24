@@ -300,7 +300,7 @@ async function runFollowUpRules() {
                 }),
               });
 
-              console.log(`[Jobs] Auto follow-up rule "${rule.name}" sent to ${client.email} (user ${rule.userId})`);
+              console.log(`[Jobs] Auto follow-up rule "${rule.name}" sent (user ${rule.userId})`);
             } catch (err) {
               console.error(`[Jobs] Failed to send follow-up rule to client ${client.id}:`, err);
             }
@@ -408,7 +408,7 @@ async function runMonthlyReport() {
             }),
           });
 
-          console.log(`[Jobs] Monthly report sent to user ${user.id} (${user.email}) for ${monthLabel}`);
+          console.log(`[Jobs] Monthly report sent to user ${user.id} for ${monthLabel}`);
         } catch (err) {
           console.error(`[Jobs] Failed to send monthly report to user ${user.id}:`, err);
         }

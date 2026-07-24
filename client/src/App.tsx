@@ -125,7 +125,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark" switchable={false}>
+      <ThemeProvider defaultTheme="light" switchable={false}>
         <AppProvider>
           <TooltipProvider>
             {/* Accessibility: skip link */}

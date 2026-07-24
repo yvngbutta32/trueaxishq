@@ -121,7 +121,7 @@ export default function ResetPassword() {
             >
               Password updated!
             </h1>
-            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "rgba(245,240,232,0.55)" }}>
+            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.55)" }}>
               Your password has been changed successfully. You can now sign in with your new password.
             </p>
             <button
@@ -163,7 +163,7 @@ export default function ResetPassword() {
                 <label
                   htmlFor="newPassword"
                   className="block text-sm font-semibold mb-1.5"
-                  style={{ color: "rgba(245,240,232,0.70)" }}
+                  style={{ color: "rgba(26,26,26,0.70)" }}
                 >
                   New Password
                 </label>
@@ -201,7 +201,7 @@ export default function ResetPassword() {
                 <label
                   htmlFor="confirmPassword"
                   className="block text-sm font-semibold mb-1.5"
-                  style={{ color: "rgba(245,240,232,0.70)" }}
+                  style={{ color: "rgba(26,26,26,0.70)" }}
                 >
                   Confirm New Password
                 </label>
