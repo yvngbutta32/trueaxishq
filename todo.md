@@ -1254,3 +1254,16 @@
 - [x] Wire "Apply Contract Template" → pre-fills contract body in Deals/Contracts tab
 - [x] Wire Invoice Direct Pay Link button on invoice rows in Billing panel
 - [x] Wire Lead Pipeline Kanban into Clients panel (new "Pipeline" tab)
+
+## System Audit & Database Fixes (Jul 2026)
+
+- [x] Verified all 44 tRPC routers — all procedures exist and match frontend calls
+- [x] Fixed proposals table schema mismatch (added clientName, clientEmail, lineItems, subtotal, taxRate, total, currency, token, signatureName, viewedAt, sentAt, linkedInvoiceId, notes; fixed status enum)
+- [x] Fixed services table schema mismatch (added currency, durationMinutes columns)
+- [x] Fixed expenses table schema mismatch (added currency, vendor, receiptUrl, taxDeductible; fixed date/description/amount/category types)
+- [x] Fixed automations table schema mismatch (added description, triggerDelayHours columns)
+- [x] Created missing tables: services, expenses, proposals, automations (were missing from live DB)
+- [x] Verified 0 TypeScript errors across all files
+- [x] Verified 29/29 tests passing
+- [x] No console errors in browser or server logs
+- [x] No 4xx/5xx errors in network request logs
