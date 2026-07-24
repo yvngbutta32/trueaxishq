@@ -23,12 +23,12 @@ function useOnboardingStatus() {
 }
 
 const STEPS: { id: string; label: string; desc: string; panel?: string }[] = [
-  { id: "profile",   label: "Complete your profile",        desc: "Add your business name in Settings",                                    panel: "settings"  },
-  { id: "client",    label: "Add your first client",         desc: "Go to Clients and add a client to get started",                         panel: "clients"   },
-  { id: "invoice",   label: "Send your first invoice",       desc: "Create and send an invoice to a client",                                panel: "invoices"  },
-  { id: "booking",   label: "Set up your booking page",      desc: "Set a booking username in Settings so clients can schedule with you",   panel: "settings"  },
-  { id: "followup",  label: "Create a follow-up sequence",   desc: "Set up automated follow-up messages for your clients",                  panel: "followups" },
-  { id: "recurring", label: "Set up a recurring invoice",    desc: "Automate your regular billing with a recurring schedule",               panel: "recurring" },
+  { id: "profile",   label: "Complete your profile",        desc: "Add your business name in Settings",                                    panel: "settings"   },
+  { id: "client",    label: "Add your first client",         desc: "Go to Clients and add a client to get started",                         panel: "clients"    },
+  { id: "invoice",   label: "Send your first invoice",       desc: "Create and send an invoice from the Billing panel",                     panel: "billing"    },
+  { id: "booking",   label: "Set up your booking page",      desc: "Set a booking username in Settings so clients can schedule with you",   panel: "settings"   },
+  { id: "followup",  label: "Create a follow-up sequence",   desc: "Set up automated follow-up messages in Outreach",                       panel: "outreach"   },
+  { id: "recurring", label: "Set up a recurring invoice",    desc: "Automate your regular billing in the Billing panel",                    panel: "billing"    },
 ];
 
 interface Props {
@@ -91,7 +91,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
             <p className="text-sm font-bold text-[#F5EFE3]">
               {allDone ? "Setup complete! 🎉" : "Getting started"}
             </p>
-            <p className="text-xs text-[rgba(245,239,227,0.40)]">
+            <p className="text-xs text-[rgba(245,239,227,0.65)]">
               {isLoading
                 ? "Checking your progress…"
                 : allDone
@@ -102,15 +102,15 @@ export function OnboardingChecklist({ onNavigate }: Props) {
         </div>
         <div className="flex items-center gap-2">
           {collapsed
-            ? <ChevronDown className="w-4 h-4 text-[rgba(245,239,227,0.40)]" />
-            : <ChevronUp className="w-4 h-4 text-[rgba(245,239,227,0.40)]" />
+            ? <ChevronDown className="w-4 h-4 text-[rgba(245,239,227,0.65)]" />
+            : <ChevronUp className="w-4 h-4 text-[rgba(245,239,227,0.65)]" />
           }
           <button
             onClick={e => { e.stopPropagation(); dismiss(); }}
             className="p-1 rounded-lg hover:bg-white/8 transition-colors"
             aria-label="Dismiss checklist"
           >
-            <X className="w-3.5 h-3.5 text-[rgba(245,239,227,0.40)]" />
+            <X className="w-3.5 h-3.5 text-[rgba(245,239,227,0.65)]" />
           </button>
         </div>
       </div>
@@ -137,14 +137,14 @@ export function OnboardingChecklist({ onNavigate }: Props) {
                 <div className="mt-0.5 flex-shrink-0">
                   {done
                     ? <CheckCircle className="w-5 h-5 text-green-400" />
-                    : <Circle className="w-5 h-5 text-[rgba(245,239,227,0.25)]" />
+                    : <Circle className="w-5 h-5 text-[rgba(245,239,227,0.55)]" />
                   }
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold ${done ? "line-through text-[rgba(245,239,227,0.30)]" : "text-[#F5EFE3]"}`}>
+                  <p className={`text-sm font-semibold ${done ? "line-through text-[rgba(245,239,227,0.60)]" : "text-[#F5EFE3]"}`}>
                     {step.label}
                   </p>
-                  <p className="text-xs text-[rgba(245,239,227,0.40)] mt-0.5">{step.desc}</p>
+                  <p className="text-xs text-[rgba(245,239,227,0.65)] mt-0.5">{step.desc}</p>
                 </div>
                 {step.panel && !done && (
                   <button

@@ -23,6 +23,8 @@ interface AIAssistantProps {
   visible: boolean;
   onClose: () => void;
   onNavigateToPanel?: (panel: string) => void;
+  /** When true, renders as an embedded full-panel (no fixed positioning, no drag) */
+  panelMode?: boolean;
   context?: {
     clientCount?: number;
     revenue?: number;
@@ -99,7 +101,7 @@ function ActionIcon({ type }: { type: SaveAction["type"] }) {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default function AIAssistant({ visible, onClose, onNavigateToPanel, context }: AIAssistantProps) {
+export default function AIAssistant({ visible, onClose, onNavigateToPanel, panelMode, context }: AIAssistantProps) {
   const [expanded, setExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState("");
@@ -243,16 +245,22 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, conte
 
   const saveActionMutation = trpc.ai.saveAction.useMutation({
     onSuccess: (data) => {
-      const panelLabels: Record<string, string> = { invoices: "Invoices", contracts: "Contracts", followups: "Follow-ups" };
-      const panelName = panelLabels[data.panel] ?? data.panel;
+      // Normalize legacy sub-panel ids to their consolidated parent panel
+      const panelMap: Record<string, string> = {
+        invoices: "billing", contracts: "deals", followups: "outreach",
+        billing: "billing", deals: "deals", outreach: "outreach",
+      };
+      const resolvedPanel = panelMap[data.panel] ?? data.panel;
+      const panelLabels: Record<string, string> = { billing: "Billing", deals: "Deals", outreach: "Outreach", insights: "Insights" };
+      const panelName = panelLabels[resolvedPanel] ?? resolvedPanel;
       toast.success(`${data.label} saved!`, {
         description: `Saved to ${panelName}`,
-        action: { label: `View in ${panelName}`, onClick: () => onNavigateToPanel?.(data.panel) },
+        action: { label: `View in ${panelName}`, onClick: () => onNavigateToPanel?.(resolvedPanel) },
         duration: 6000,
       });
-      if (data.panel === "invoices")  utils.invoices.list.invalidate();
-      if (data.panel === "contracts") utils.contracts?.list?.invalidate?.();
-      if (data.panel === "followups") utils.followUps.list.invalidate();
+      if (data.panel === "invoices" || resolvedPanel === "billing")  utils.invoices.list.invalidate();
+      if (data.panel === "contracts" || resolvedPanel === "deals")   utils.contracts?.list?.invalidate?.();
+      if (data.panel === "followups" || resolvedPanel === "outreach") utils.followUps.list.invalidate();
     },
     onError: (e) => toast.error("Save failed: " + e.message),
   });
@@ -446,6 +454,31 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, conte
       </div>
     </div>
   );
+
+  // ── PANEL MODE: embedded in dashboard panel (no fixed positioning, no drag) ────
+  if (panelMode) {
+    return (
+      <div className="flex flex-col h-full min-h-0 bg-[#161B22] rounded-xl overflow-hidden">
+        {/* Panel header */}
+        <div className="gradient-amber px-4 py-3 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+              <Bot className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white">AI Business Assistant</p>
+              <p className="text-xs text-white/80">
+                {chatMutation.isPending ? "Thinking…" : "Ask anything · drafts save directly to your panels"}
+              </p>
+            </div>
+          </div>
+        </div>
+        <MessageList />
+        <SuggestedPrompts />
+        <InputBar />
+      </div>
+    );
+  }
 
   // ── MOBILE: full-screen bottom sheet ──────────────────────────────────────
   if (isMobile) {

@@ -27,6 +27,7 @@ import BillingPanel from "./BillingPanel";
 import OutreachPanel from "./OutreachPanel";
 import DealsPanel from "./DealsPanel";
 import InsightsPanel from "./InsightsPanel";
+import { PanelTabs } from "@/components/PanelTabs";
 import {
   LayoutDashboard, Users, Calendar, FileText, Mail,
   BarChart3, Settings, Zap, Plus, TrendingUp,
@@ -250,7 +251,7 @@ const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; ba
   { icon: FileText,        label: "Billing",    panel: "billing"    },
   { icon: Mail,            label: "Outreach",   panel: "outreach"   },
   { icon: FileSignature,   label: "Deals",      panel: "deals"      },
-  { icon: BarChart3,       label: "Insights",   panel: "insights",  badge: "AI" },
+  { icon: BarChart3,       label: "Insights",   panel: "insights"   },
   { icon: Settings,        label: "Settings",   panel: "settings"   },
   { icon: Bot,             label: "AI Assistant", panel: "ai"       },
 ];
@@ -323,7 +324,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
       <div className="p-3 border-t border-white/10 space-y-1">
 
         {(user as any)?.isOwner && (
-          <button onClick={() => navigate("/admin")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[rgba(245,239,227,0.40)] hover:bg-white/8 hover:text-white transition-all" aria-label="Admin panel">
+          <button onClick={() => navigate("/admin")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[rgba(245,239,227,0.65)] hover:bg-white/8 hover:text-white transition-all" aria-label="Admin panel">
             <Star className="w-4 h-4 flex-shrink-0" />
             {!collapsed && <span>Admin Panel</span>}
           </button>
@@ -331,7 +332,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
         {/* Keyboard shortcuts hint */}
         {!collapsed && (
           <div className="px-3 py-2 rounded-xl bg-white/4 border border-white/6">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[rgba(245,239,227,0.30)] mb-1.5">Shortcuts</p>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-[rgba(245,239,227,0.60)] mb-1.5">Shortcuts</p>
             <div className="space-y-1">
               {[
                 { keys: ["⌘", "K"], label: "Search" },
@@ -343,10 +344,10 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
                 { keys: ["I"],       label: "Insights" },
               ].map(({ keys, label }) => (
                 <div key={label + keys.join()} className="flex items-center justify-between">
-                  <span className="text-[10px] text-[rgba(245,239,227,0.40)]">{label}</span>
+                  <span className="text-[10px] text-[rgba(245,239,227,0.65)]">{label}</span>
                   <div className="flex items-center gap-0.5">
                     {keys.map(k => (
-                      <kbd key={k} className="px-1 py-0.5 rounded border border-white/15 text-[9px] text-[rgba(245,239,227,0.40)] font-mono leading-none">{k}</kbd>
+                      <kbd key={k} className="px-1 py-0.5 rounded border border-white/15 text-[9px] text-[rgba(245,239,227,0.65)] font-mono leading-none">{k}</kbd>
                     ))}
                   </div>
                 </div>
@@ -357,7 +358,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
         {/* Collapse / Expand toggle */}
         <button
           onClick={() => setCollapsed(v => !v)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[rgba(245,239,227,0.40)] hover:bg-white/8 hover:text-white transition-all"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[rgba(245,239,227,0.65)] hover:bg-white/8 hover:text-white transition-all"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand" : "Collapse"}
         >
@@ -471,7 +472,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       {/* ⚠️ Overdue Invoice Alert Banner */}
       {overdueInvoices && overdueInvoices.length > 0 && (
         <button
-          onClick={() => setActivePanel("invoices")}
+          onClick={() => setActivePanel("billing")}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-red-500/30 bg-red-500/8 hover:bg-red-500/12 transition-all text-left group alert-pulse"
           aria-label={`${overdueInvoices.length} overdue invoice${overdueInvoices.length > 1 ? 's' : ''} — click to view`}
         >
@@ -482,7 +483,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             <p className="text-sm font-semibold text-red-400">
               {overdueInvoices.length} overdue invoice{overdueInvoices.length > 1 ? 's' : ''} — {formatCurrency(overdueInvoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0))} outstanding
             </p>
-            <p className="text-xs text-[rgba(245,239,227,0.45)] mt-0.5">
+            <p className="text-xs text-[rgba(245,239,227,0.70)] mt-0.5">
               {overdueInvoices.slice(0, 2).map(i => i.clientName).join(", ")}{overdueInvoices.length > 2 ? ` +${overdueInvoices.length - 2} more` : ""}
             </p>
           </div>
@@ -500,7 +501,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             <p className="text-sm font-semibold text-[#D4922A]">
               {todayBookings.length} session{todayBookings.length > 1 ? 's' : ''} today
             </p>
-            <p className="text-xs text-[rgba(245,239,227,0.45)] mt-0.5 truncate">
+            <p className="text-xs text-[rgba(245,239,227,0.70)] mt-0.5 truncate">
               {todayBookings.map(b => `${b.clientName} at ${b.time}`).join(" · ")}
             </p>
           </div>
@@ -516,7 +517,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white stat-icon-pop" style={{ backgroundColor: s.color }}>
                 <s.icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
               </div>
-              <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[rgba(245,239,227,0.45)]" aria-hidden="true" />
+              <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[rgba(245,239,227,0.70)]" aria-hidden="true" />
             </div>
             <p className="text-xl sm:text-2xl font-extrabold text-[#F5EFE3] leading-tight">{s.value}</p>
             <p className="text-[11px] sm:text-xs text-[rgba(245,239,227,0.55)] mt-0.5 leading-snug">{s.label}</p>
@@ -541,41 +542,45 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               <span className="text-base font-extrabold" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }}>
                 {pnlData.netProfit >= 0 ? '+' : ''}{formatCurrency(pnlData.netProfit)} net profit
               </span>
-              <span className="text-xs text-[rgba(245,239,227,0.45)]">this period</span>
+              <span className="text-xs text-[rgba(245,239,227,0.70)]">this period</span>
             </div>
             <div className="flex items-center gap-3 mt-0.5 flex-wrap">
               <span className="text-xs text-[rgba(245,239,227,0.55)]">Revenue: <span className="text-[#D4922A] font-semibold">{formatCurrency(pnlData.totalRevenue)}</span></span>
-              <span className="text-xs text-[rgba(245,239,227,0.30)]">·</span>
+              <span className="text-xs text-[rgba(245,239,227,0.60)]">·</span>
               <span className="text-xs text-[rgba(245,239,227,0.55)]">Expenses: <span className="text-red-400 font-semibold">{formatCurrency(pnlData.totalExpenses)}</span></span>
-              <span className="text-xs text-[rgba(245,239,227,0.30)]">·</span>
+              <span className="text-xs text-[rgba(245,239,227,0.60)]">·</span>
               <span className="text-xs text-[rgba(245,239,227,0.55)]">Margin: <span className="font-semibold" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }}>{pnlData.profitMargin}%</span></span>
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-[rgba(245,239,227,0.30)] group-hover:text-[#D4922A] transition-colors flex-shrink-0" />
+          <ArrowRight className="w-4 h-4 text-[rgba(245,239,227,0.60)] group-hover:text-[#D4922A] transition-colors flex-shrink-0" />
         </button>
       )}
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+      <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2">
         {([
-          { icon: Plus, label: "Add Client", color: "#6366F1", panel: "clients", shortcut: "C" },
-          { icon: Calendar, label: "New Booking", color: "#F59E0B", panel: "scheduling", shortcut: "B" },
-          { icon: FileText, label: "New Invoice", color: "#D4922A", panel: "billing", shortcut: "N" },
-          { icon: Mail, label: "Outreach", color: "#5A9A7A", panel: "outreach", shortcut: "O" },
+          { icon: Plus,         label: "Add Client",     color: "#6366F1", panel: "clients",    shortcut: "C" },
+          { icon: Calendar,     label: "New Booking",    color: "#F59E0B", panel: "scheduling", shortcut: "B" },
+          { icon: FileText,     label: "New Invoice",    color: "#D4922A", panel: "billing",    shortcut: "N" },
+          { icon: Mail,         label: "Outreach",       color: "#5A9A7A", panel: "outreach",   shortcut: "O" },
+          { icon: FileSignature,label: "New Proposal",   color: "#8B5CF6", panel: "deals",      shortcut: "D" },
+          { icon: Shield,       label: "New Contract",   color: "#EC4899", panel: "deals",      shortcut: null },
+          { icon: Receipt,      label: "Log Expense",    color: "#EF4444", panel: "insights",   shortcut: null },
+          { icon: Clock,        label: "Start Timer",    color: "#14B8A6", panel: "billing",    shortcut: null },
         ] as { icon: React.ElementType; label: string; color: string; panel: ActivePanel; shortcut: string | null }[]).map(({ icon: Icon, label, color, panel, shortcut }) => (
           <button
             key={label}
             onClick={() => setActivePanel(panel)}
-            className="bg-[#161B22] rounded-xl p-3 sm:p-4 border border-white/8 card-lift flex flex-col items-center gap-1.5 sm:gap-2 text-center transition-all group relative"
+            className="bg-[#161B22] rounded-xl p-2.5 sm:p-3 border border-white/8 card-lift flex flex-col items-center gap-1.5 text-center transition-all group relative"
             style={{ '--card-glow': color } as React.CSSProperties}
           >
             {shortcut && (
-              <kbd className="absolute top-2 right-2 px-1 py-0.5 rounded border border-white/12 text-[8px] text-[rgba(245,239,227,0.30)] font-mono leading-none hidden sm:block">{shortcut}</kbd>
+              <kbd className="absolute top-1.5 right-1.5 px-1 py-0.5 rounded border border-white/12 text-[8px] text-[rgba(245,239,227,0.70)] font-mono leading-none hidden sm:block">{shortcut}</kbd>
             )}
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white stat-icon-pop" style={{ backgroundColor: color }}>
-              <Icon className="w-4 h-4" aria-hidden="true" />
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white stat-icon-pop" style={{ backgroundColor: color }}>
+              <Icon className="w-3.5 h-3.5" aria-hidden="true" />
             </div>
-            <span className="text-[11px] sm:text-xs font-semibold text-[#F5EFE3] leading-tight">{label}</span>
+            <span className="text-[10px] sm:text-[11px] font-semibold text-[#F5EFE3] leading-tight">{label}</span>
           </button>
         ))}
       </div>
@@ -1032,16 +1037,16 @@ function ClientsPanel() {
                     <div className="flex items-center justify-between mb-1">
                       <div>
                         <div className="text-xs font-bold" style={{ color: stage.color }}>{stage.label}</div>
-                        <div className="text-[10px] text-[rgba(245,239,227,0.40)]">{stage.desc}</div>
+                        <div className="text-[10px] text-[rgba(245,239,227,0.65)]">{stage.desc}</div>
                       </div>
                       <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: stage.bg, color: stage.color }}>{stageClients.length}</span>
                     </div>
                     {stageClients.length === 0 ? (
-                      <div className="flex-1 flex items-center justify-center text-[10px] text-[rgba(245,239,227,0.25)] text-center">No clients</div>
+                      <div className="flex-1 flex items-center justify-center text-[10px] text-[rgba(245,239,227,0.55)] text-center">No clients</div>
                     ) : stageClients.map(c => (
                       <div key={c.id} className="bg-[#1C2333] rounded-lg p-2.5 border border-white/5 hover:border-white/15 transition-all cursor-pointer group" onClick={() => setSelectedId(c.id)}>
                         <div className="text-xs font-semibold text-[#F5EFE3] truncate">{c.name}</div>
-                        {c.service && <div className="text-[10px] text-[rgba(245,239,227,0.45)] truncate mt-0.5">{c.service}</div>}
+                        {c.service && <div className="text-[10px] text-[rgba(245,239,227,0.70)] truncate mt-0.5">{c.service}</div>}
                         <div className="flex gap-1 mt-2 flex-wrap">
                           {PIPELINE_STAGES.filter(s => s.id !== stage.id).map(s => (
                             <button key={s.id} onClick={e => { e.stopPropagation(); updateStage.mutate({ id: c.id, pipelineStage: s.id as PipelineStageId }); }} className="text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: s.bg, color: s.color }} title={`Move to ${s.label}`}>→ {s.label}</button>
@@ -1054,7 +1059,7 @@ function ClientsPanel() {
               })}
             </div>
           )}
-          <p className="text-xs text-[rgba(245,239,227,0.35)] text-center">Hover a client card to see stage move buttons</p>
+          <p className="text-xs text-[rgba(245,239,227,0.60)] text-center">Hover a client card to see stage move buttons</p>
         </div>
       )}
       {/* Filters */}
@@ -1140,7 +1145,7 @@ function ClientsPanel() {
                 <p className="text-xs text-[rgba(245,239,227,0.55)] truncate">
                   {c.email || "No email"}
                   {(c as any).lastActivity && (
-                    <span className="ml-2 text-[rgba(245,239,227,0.45)]">· last seen {new Date((c as any).lastActivity).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                    <span className="ml-2 text-[rgba(245,239,227,0.70)]">· last seen {new Date((c as any).lastActivity).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
                   )}
                 </p>
               </div>
@@ -1152,7 +1157,7 @@ function ClientsPanel() {
               </Badge>
               <button
                 onClick={e => { e.stopPropagation(); setClientConfirm({ open: true, title: "Remove Client?", description: `Remove ${c.name} from your clients? This cannot be undone.`, onConfirm: () => deleteClient.mutate({ id: c.id }) }); }}
-                className="p-2 rounded-lg hover:bg-red-500/100/10 text-[rgba(245,239,227,0.45)] hover:text-red-500 transition-colors"
+                className="p-2 rounded-lg hover:bg-red-500/100/10 text-[rgba(245,239,227,0.70)] hover:text-red-500 transition-colors"
                 aria-label={`Delete ${c.name}`}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -1196,7 +1201,7 @@ function ClientsPanel() {
               {(["info", "tags", "messages"] as const).map(t => (
                 <button key={t} onClick={() => setProfileTab(t)}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-                    profileTab === t ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[rgba(245,239,227,0.45)] hover:text-[rgba(245,239,227,0.75)]"
+                    profileTab === t ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[rgba(245,239,227,0.70)] hover:text-[rgba(245,239,227,0.75)]"
                   }`}>
                   {t === "messages" ? "Messages" : t === "tags" ? "Tags" : "Info"}
                 </button>
@@ -1242,7 +1247,7 @@ function ClientsPanel() {
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {clientTagsData.length === 0 && <p className="text-xs text-[rgba(245,239,227,0.40)]">No tags yet. Add your first tag above.</p>}
+                  {clientTagsData.length === 0 && <p className="text-xs text-[rgba(245,239,227,0.65)]">No tags yet. Add your first tag above.</p>}
                   {clientTagsData.map(t => (
                     <span key={t.id} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4922A]/10 text-[#D4922A] text-xs font-semibold">
                       {t.tag}
@@ -1257,14 +1262,14 @@ function ClientsPanel() {
             {profileTab === "messages" && (
               <div className="space-y-3">
                 <div className="max-h-64 overflow-y-auto space-y-2 bg-[#1C2333] rounded-xl p-3">
-                  {messages.length === 0 && <p className="text-xs text-[rgba(245,239,227,0.40)] text-center py-4">No messages yet. Clients can message you from their portal.</p>}
+                  {messages.length === 0 && <p className="text-xs text-[rgba(245,239,227,0.65)] text-center py-4">No messages yet. Clients can message you from their portal.</p>}
                   {(messages as Array<{ id: number; senderRole: string; body: string; createdAt: Date }>).map(m => (
                     <div key={m.id} className={`flex ${ m.senderRole === "owner" ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${
                         m.senderRole === "owner" ? "bg-[#D4922A] text-white" : "bg-[#161B22] border border-white/10 text-[#F5EFE3]"
                       }`}>
                         <p>{m.body}</p>
-                        <p className={`text-[10px] mt-1 ${ m.senderRole === "owner" ? "text-white/70" : "text-[rgba(245,239,227,0.40)]"}`}>{new Date(m.createdAt).toLocaleString()}</p>
+                        <p className={`text-[10px] mt-1 ${ m.senderRole === "owner" ? "text-white/70" : "text-[rgba(245,239,227,0.65)]"}`}>{new Date(m.createdAt).toLocaleString()}</p>
                       </div>
                     </div>
                   ))}
@@ -1306,7 +1311,7 @@ function ClientsPanel() {
                           <FileText className="w-3.5 h-3.5 text-[#D4922A] flex-shrink-0" />
                           <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs font-medium text-[#F5EFE3] truncate hover:underline">{doc.fileName}</a>
                           {doc.sizeBytes && <span className="text-[10px] text-[rgba(245,239,227,0.55)] flex-shrink-0">{(doc.sizeBytes / 1024).toFixed(0)} KB</span>}
-                          <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-2 rounded hover:bg-red-500/100/10 text-[rgba(245,239,227,0.45)] hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
+                          <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-2 rounded hover:bg-red-500/100/10 text-[rgba(245,239,227,0.70)] hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
                             <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
@@ -1375,7 +1380,7 @@ function ClientsPanel() {
           <div>
             <label className="block text-xs font-semibold text-[rgba(245,239,227,0.55)] mb-1.5">Upload a CSV file</label>
             <label className="flex items-center justify-center gap-2 border-2 border-dashed border-white/10 rounded-xl p-4 cursor-pointer hover:border-[#D4922A]/60 hover:bg-amber-500/5 transition-colors">
-              <Upload className="w-4 h-4 text-[rgba(245,239,227,0.45)]" />
+              <Upload className="w-4 h-4 text-[rgba(245,239,227,0.70)]" />
               <span className="text-xs text-[rgba(245,239,227,0.55)]">Click to choose a .csv file, or drag and drop</span>
               <input
                 type="file"
@@ -1546,7 +1551,7 @@ function SchedulingPanel() {
                 <option value="cancelled">Cancelled</option>
                 <option value="no_show">No Show</option>
               </select>
-              <button onClick={() => setSchedConfirm({ open: true, title: "Remove Booking?", description: "Remove this booking? This cannot be undone.", onConfirm: () => deleteBooking.mutate({ id: b.id }) })} className="p-2 rounded-lg hover:bg-red-500/100/10 text-[rgba(245,239,227,0.45)] hover:text-red-500 transition-colors ml-2" aria-label="Delete booking">
+              <button onClick={() => setSchedConfirm({ open: true, title: "Remove Booking?", description: "Remove this booking? This cannot be undone.", onConfirm: () => deleteBooking.mutate({ id: b.id }) })} className="p-2 rounded-lg hover:bg-red-500/100/10 text-[rgba(245,239,227,0.70)] hover:text-red-500 transition-colors ml-2" aria-label="Delete booking">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -1922,11 +1927,11 @@ function InvoicesPanel() {
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-[#161B22] rounded-xl p-4 shadow-sm border border-white/8">
               <p className="text-2xl font-bold text-[#F5EFE3]">{activeScheduleCount}</p>
-              <p className="text-xs text-[rgba(245,239,227,0.45)] mt-0.5">Active Schedules</p>
+              <p className="text-xs text-[rgba(245,239,227,0.70)] mt-0.5">Active Schedules</p>
             </div>
             <div className="bg-[#161B22] rounded-xl p-4 shadow-sm border border-white/8">
               <p className="text-2xl font-bold text-[#F5EFE3]">{formatCurrency(estMonthlyRevenue)}</p>
-              <p className="text-xs text-[rgba(245,239,227,0.45)] mt-0.5">Est. Monthly Revenue</p>
+              <p className="text-xs text-[rgba(245,239,227,0.70)] mt-0.5">Est. Monthly Revenue</p>
             </div>
           </div>
 
@@ -2004,9 +2009,9 @@ function InvoicesPanel() {
               <div className="p-8 text-center"><Loader2 className="w-6 h-6 text-[#D4922A] animate-spin mx-auto" /></div>
             ) : !schedules || schedules.length === 0 ? (
               <div className="p-10 text-center">
-                <RefreshCw className="w-10 h-10 text-[rgba(245,239,227,0.25)] mx-auto mb-3" />
-                <p className="text-sm font-semibold text-[rgba(245,239,227,0.45)]">No recurring schedules yet</p>
-                <p className="text-xs text-[rgba(245,239,227,0.40)] mt-1">Click "New Schedule" to set up automatic billing</p>
+                <RefreshCw className="w-10 h-10 text-[rgba(245,239,227,0.55)] mx-auto mb-3" />
+                <p className="text-sm font-semibold text-[rgba(245,239,227,0.70)]">No recurring schedules yet</p>
+                <p className="text-xs text-[rgba(245,239,227,0.65)] mt-1">Click "New Schedule" to set up automatic billing</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-50">
@@ -2023,21 +2028,21 @@ function InvoicesPanel() {
                           <span className="px-2 py-0.5 text-xs rounded-full font-semibold" style={{ background: color + "15", color }}>
                             {FREQUENCY_LABELS[s.frequency]}
                           </span>
-                          {!s.active && <span className="px-2 py-0.5 text-xs rounded-full bg-[#243040] text-[rgba(245,239,227,0.45)] font-semibold">Paused</span>}
+                          {!s.active && <span className="px-2 py-0.5 text-xs rounded-full bg-[#243040] text-[rgba(245,239,227,0.70)] font-semibold">Paused</span>}
                         </div>
-                        <p className="text-xs text-[rgba(245,239,227,0.40)] mt-0.5">
+                        <p className="text-xs text-[rgba(245,239,227,0.65)] mt-0.5">
                           {s.description || "No description"} · Next: {new Date(s.nextDueAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         </p>
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="text-sm font-bold text-[#F5EFE3]">{formatCurrency(s.amount)}</p>
-                        <p className="text-xs text-[rgba(245,239,227,0.40)]">{s.currency}</p>
+                        <p className="text-xs text-[rgba(245,239,227,0.65)]">{s.currency}</p>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => toggleSchedule.mutate({ id: s.id, active: !s.active })}
                           disabled={toggleSchedule.isPending}
-                          className="p-2 rounded-lg hover:bg-[#243040] text-[rgba(245,239,227,0.40)] hover:text-[rgba(245,239,227,0.55)] transition-colors"
+                          className="p-2 rounded-lg hover:bg-[#243040] text-[rgba(245,239,227,0.65)] hover:text-[rgba(245,239,227,0.55)] transition-colors"
                           title={s.active ? "Pause schedule" : "Resume schedule"}
                         >
                           {s.active ? <ToggleRight className="w-5 h-5 text-green-500" /> : <ToggleLeft className="w-5 h-5" />}
@@ -2045,7 +2050,7 @@ function InvoicesPanel() {
                         <button
                           onClick={() => deleteScheduleM.mutate({ id: s.id })}
                           disabled={deleteScheduleM.isPending}
-                          className="p-2 rounded-lg hover:bg-red-500/100/10 text-[rgba(245,239,227,0.35)] hover:text-red-400 transition-colors"
+                          className="p-2 rounded-lg hover:bg-red-500/100/10 text-[rgba(245,239,227,0.60)] hover:text-red-400 transition-colors"
                           aria-label="Delete schedule"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -2131,7 +2136,7 @@ function InvoicesPanel() {
             className="text-xs bg-red-500/100 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
             disabled={bulkPending}
           >Delete</button>
-          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-[rgba(245,239,227,0.45)] hover:text-white px-2 py-1.5 transition-colors">✕ Clear</button>
+          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-[rgba(245,239,227,0.70)] hover:text-white px-2 py-1.5 transition-colors">✕ Clear</button>
         </div>
       )}
 
@@ -2215,16 +2220,16 @@ function InvoicesPanel() {
               <button onClick={() => setPreviewInvoice(inv)} className="p-2 rounded hover:bg-[#243040] text-[rgba(245,239,227,0.55)] hover:text-[rgba(245,239,227,0.55)] transition-colors" aria-label="Preview invoice" title="Preview invoice">
                 <Eye className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => openEditInvoice(inv)} className="p-2 rounded hover:bg-indigo-50 text-[rgba(245,239,227,0.45)] hover:text-indigo-600 transition-colors" aria-label="Edit invoice" title="Edit invoice">
+              <button onClick={() => openEditInvoice(inv)} className="p-2 rounded hover:bg-indigo-50 text-[rgba(245,239,227,0.70)] hover:text-indigo-600 transition-colors" aria-label="Edit invoice" title="Edit invoice">
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-2 rounded hover:bg-blue-50 text-[rgba(245,239,227,0.45)] hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
+              <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-2 rounded hover:bg-blue-50 text-[rgba(245,239,227,0.70)] hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
               {(inv.status === "sent" || inv.status === "overdue" || inv.status === "draft") && (
                 <button
                   onClick={() => generatePayLink.mutate({ id: inv.id })}
-                  className="p-2 rounded hover:bg-green-500/10 text-[rgba(245,239,227,0.45)] hover:text-green-500 transition-colors"
+                  className="p-2 rounded hover:bg-green-500/10 text-[rgba(245,239,227,0.70)] hover:text-green-500 transition-colors"
                   aria-label="Generate direct pay link"
                   title="Generate a direct pay link — client pays without logging in"
                   disabled={generatePayLink.isPending}
@@ -2232,10 +2237,10 @@ function InvoicesPanel() {
                   <Link className="w-3.5 h-3.5" />
                 </button>
               )}
-              <button onClick={() => duplicateInvoice.mutate({ id: inv.id })} className="p-2 rounded hover:bg-[#D4922A]/10 text-[rgba(245,239,227,0.45)] hover:text-[#D4922A] transition-colors" aria-label="Duplicate invoice" title="Duplicate invoice" disabled={duplicateInvoice.isPending}>
+              <button onClick={() => duplicateInvoice.mutate({ id: inv.id })} className="p-2 rounded hover:bg-[#D4922A]/10 text-[rgba(245,239,227,0.70)] hover:text-[#D4922A] transition-colors" aria-label="Duplicate invoice" title="Duplicate invoice" disabled={duplicateInvoice.isPending}>
                 <Copy className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => setInvConfirm({ open: true, title: "Delete Invoice?", description: "Delete this invoice? This cannot be undone.", onConfirm: () => deleteInvoice.mutate({ id: inv.id }) })} className="p-2 rounded hover:bg-red-500/100/10 text-[rgba(245,239,227,0.45)] hover:text-red-500 transition-colors" aria-label="Delete invoice">
+              <button onClick={() => setInvConfirm({ open: true, title: "Delete Invoice?", description: "Delete this invoice? This cannot be undone.", onConfirm: () => deleteInvoice.mutate({ id: inv.id }) })} className="p-2 rounded hover:bg-red-500/100/10 text-[rgba(245,239,227,0.70)] hover:text-red-500 transition-colors" aria-label="Delete invoice">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -2407,32 +2412,32 @@ function InvoicesPanel() {
             {/* Header: INVOICE label + meta */}
             <div className="flex items-start justify-between mb-5">
               <div>
-                <p className="text-[11px] font-bold tracking-widest text-[rgba(245,239,227,0.40)] uppercase mb-1">Invoice</p>
+                <p className="text-[11px] font-bold tracking-widest text-[rgba(245,239,227,0.65)] uppercase mb-1">Invoice</p>
                 <p className="text-3xl font-extrabold text-[#D4922A] tracking-tight">
                   {previewInvoice.invoiceNumber || `#${previewInvoice.id}`}
                 </p>
               </div>
               <div className="text-right space-y-1">
                 <div className="flex items-center justify-end gap-2">
-                  <span className="text-[11px] text-[rgba(245,239,227,0.40)] uppercase tracking-wide">Status</span>
+                  <span className="text-[11px] text-[rgba(245,239,227,0.65)] uppercase tracking-wide">Status</span>
                   <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${
                     previewInvoice.status === "paid" ? "bg-green-500/15 text-green-400" :
                     previewInvoice.status === "overdue" ? "bg-red-500/15 text-red-400" :
                     "bg-amber-500/15 text-amber-400"
                   }`}>{previewInvoice.status}</span>
                 </div>
-                <p className="text-xs text-[rgba(245,239,227,0.45)]">Issued {formatDate(previewInvoice.createdAt)}</p>
+                <p className="text-xs text-[rgba(245,239,227,0.70)]">Issued {formatDate(previewInvoice.createdAt)}</p>
                 {previewInvoice.dueDate && (
-                  <p className="text-xs text-[rgba(245,239,227,0.45)]">Due {formatDate(previewInvoice.dueDate)}</p>
+                  <p className="text-xs text-[rgba(245,239,227,0.70)]">Due {formatDate(previewInvoice.dueDate)}</p>
                 )}
               </div>
             </div>
 
             {/* Bill To */}
             <div className="mb-4">
-              <p className="text-[10px] font-bold tracking-widest text-[rgba(245,239,227,0.40)] uppercase mb-1">Bill To</p>
+              <p className="text-[10px] font-bold tracking-widest text-[rgba(245,239,227,0.65)] uppercase mb-1">Bill To</p>
               <p className="text-sm font-semibold text-[#F5EFE3]">{previewInvoice.clientName}</p>
-              {previewInvoice.clientEmail && <p className="text-xs text-[rgba(245,239,227,0.45)]">{previewInvoice.clientEmail}</p>}
+              {previewInvoice.clientEmail && <p className="text-xs text-[rgba(245,239,227,0.70)]">{previewInvoice.clientEmail}</p>}
             </div>
 
             {/* Line items table */}
@@ -2444,9 +2449,9 @@ function InvoicesPanel() {
                 <div className="overflow-x-auto mb-4">
                 <div className="border border-white/10 rounded-lg overflow-hidden min-w-[280px]">
                   <div className="grid grid-cols-[1fr_60px_90px] bg-[#1C2333] border-b border-white/10">
-                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-[rgba(245,239,227,0.40)] uppercase">Description</div>
-                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-[rgba(245,239,227,0.40)] uppercase text-center">Qty</div>
-                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-[rgba(245,239,227,0.40)] uppercase text-right">Amount</div>
+                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-[rgba(245,239,227,0.65)] uppercase">Description</div>
+                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-[rgba(245,239,227,0.65)] uppercase text-center">Qty</div>
+                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-[rgba(245,239,227,0.65)] uppercase text-right">Amount</div>
                   </div>
                   {hasItems ? parsedItems.map((item, idx) => (
                     <div key={idx} className="grid grid-cols-[1fr_60px_90px] bg-[#161B22] border-b border-white/8 last:border-0">
@@ -2458,14 +2463,14 @@ function InvoicesPanel() {
                     <div className="grid grid-cols-[1fr_60px_90px] bg-[#1C2333]">
                       <div className="px-4 py-3">
                         <p className="text-sm font-medium text-[#F5EFE3]">{previewInvoice.service || "Professional Services"}</p>
-                        <p className="text-xs text-[rgba(245,239,227,0.40)] mt-0.5">{previewInvoice.clientName}</p>
+                        <p className="text-xs text-[rgba(245,239,227,0.65)] mt-0.5">{previewInvoice.clientName}</p>
                       </div>
                       <div className="px-4 py-3 text-sm text-[rgba(245,239,227,0.55)] text-center">1</div>
                       <div className="px-4 py-3 text-sm font-bold text-[#F5EFE3] text-right">{formatCurrency(previewInvoice.amount)}</div>
                     </div>
                   )}
                   <div className="grid grid-cols-[1fr_auto] bg-amber-500/10 border-t border-white/10">
-                    <div className="px-4 py-3 text-xs font-bold text-[rgba(245,239,227,0.45)] uppercase tracking-wide">Total Due</div>
+                    <div className="px-4 py-3 text-xs font-bold text-[rgba(245,239,227,0.70)] uppercase tracking-wide">Total Due</div>
                     <div className="px-4 py-3 text-xl font-extrabold text-[#D4922A] text-right">{formatCurrency(previewInvoice.amount)}</div>
                   </div>
                 </div>
@@ -2476,7 +2481,7 @@ function InvoicesPanel() {
             {/* Notes */}
             {previewInvoice.notes && (
               <div className="bg-[#1C2333] border border-white/10 rounded-lg p-3 mb-4">
-                <p className="text-[10px] font-bold tracking-widest text-[rgba(245,239,227,0.40)] uppercase mb-1">Notes</p>
+                <p className="text-[10px] font-bold tracking-widest text-[rgba(245,239,227,0.65)] uppercase mb-1">Notes</p>
                 <p className="text-sm text-[rgba(245,239,227,0.55)] leading-relaxed">{previewInvoice.notes}</p>
               </div>
             )}
@@ -2590,7 +2595,7 @@ function FollowUpsPanel() {
         {(["emails", "sequences"] as const).map(t => (
           <button key={t} onClick={() => setFuTab(t)}
             className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-              fuTab === t ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[rgba(245,239,227,0.45)] hover:text-[rgba(245,239,227,0.75)]"
+              fuTab === t ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[rgba(245,239,227,0.70)] hover:text-[rgba(245,239,227,0.75)]"
             }`}>
             {t === "sequences" ? "Auto-Sequences" : "AI Emails"}
           </button>
@@ -2628,10 +2633,10 @@ function FollowUpsPanel() {
                 <p className="text-xs text-[rgba(245,239,227,0.55)] mt-0.5">Triggers after <span className="font-semibold text-[#D4922A]">{r.triggerDays} days</span> of no booking · {r.emailSubject}</p>
               </div>
               <div className="flex gap-1.5 flex-shrink-0">
-                <button onClick={() => toggleRule.mutate({ id: r.id, active: !r.active })} className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${r.active ? "bg-green-500/15 text-green-400 hover:bg-green-500/25" : "bg-[#243040] text-[rgba(245,239,227,0.45)] hover:bg-white/12"}`}>
+                <button onClick={() => toggleRule.mutate({ id: r.id, active: !r.active })} className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${r.active ? "bg-green-500/15 text-green-400 hover:bg-green-500/25" : "bg-[#243040] text-[rgba(245,239,227,0.70)] hover:bg-white/12"}`}>
                   {r.active ? "Active" : "Paused"}
                 </button>
-                <button onClick={() => deleteRule.mutate({ id: r.id })} className="p-2 rounded-lg hover:bg-red-500/100/10 text-[rgba(245,239,227,0.45)] hover:text-red-500 transition-colors" aria-label="Delete rule">
+                <button onClick={() => deleteRule.mutate({ id: r.id })} className="p-2 rounded-lg hover:bg-red-500/100/10 text-[rgba(245,239,227,0.70)] hover:text-red-500 transition-colors" aria-label="Delete rule">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -2721,7 +2726,7 @@ function FollowUpsPanel() {
                     <Send className="w-4 h-4" />
                   </button>
                 )}
-                <button onClick={() => setFuConfirm({ open: true, title: "Delete Follow-Up?", description: "Delete this follow-up email? This cannot be undone.", onConfirm: () => deleteFollowUp.mutate({ id: f.id }) })} className="p-2 rounded-lg hover:bg-red-500/100/10 text-[rgba(245,239,227,0.45)] hover:text-red-500 transition-colors" aria-label="Delete follow-up">
+                <button onClick={() => setFuConfirm({ open: true, title: "Delete Follow-Up?", description: "Delete this follow-up email? This cannot be undone.", onConfirm: () => deleteFollowUp.mutate({ id: f.id }) })} className="p-2 rounded-lg hover:bg-red-500/100/10 text-[rgba(245,239,227,0.70)] hover:text-red-500 transition-colors" aria-label="Delete follow-up">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -2774,15 +2779,15 @@ function FollowUpsPanel() {
             {/* Email client header */}
             <div className="bg-[#1C2333] border border-white/10 rounded-xl mb-4 overflow-hidden">
               <div className="px-4 py-2 border-b border-white/10 flex items-center gap-2">
-                <span className="text-[11px] font-bold text-[rgba(245,239,227,0.40)] uppercase tracking-wide w-14">From</span>
+                <span className="text-[11px] font-bold text-[rgba(245,239,227,0.65)] uppercase tracking-wide w-14">From</span>
                 <span className="text-sm text-[rgba(245,239,227,0.75)]">TrueAxis HQ &lt;noreply@trueaxishq.com&gt;</span>
               </div>
               <div className="px-4 py-2 border-b border-white/10 flex items-center gap-2">
-                <span className="text-[11px] font-bold text-[rgba(245,239,227,0.40)] uppercase tracking-wide w-14">To</span>
+                <span className="text-[11px] font-bold text-[rgba(245,239,227,0.65)] uppercase tracking-wide w-14">To</span>
                 <span className="text-sm text-[rgba(245,239,227,0.75)]">{previewFollowUp.clientEmail || previewFollowUp.clientName}</span>
               </div>
               <div className="px-4 py-2 flex items-center gap-2">
-                <span className="text-[11px] font-bold text-[rgba(245,239,227,0.40)] uppercase tracking-wide w-14">Subject</span>
+                <span className="text-[11px] font-bold text-[rgba(245,239,227,0.65)] uppercase tracking-wide w-14">Subject</span>
                 <span className="text-sm font-semibold text-[#F5EFE3]">{previewFollowUp.subject}</span>
               </div>
             </div>
@@ -2799,20 +2804,20 @@ function FollowUpsPanel() {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-[#F5EFE3] leading-none">TrueAxis HQ</p>
-                    <p className="text-[10px] text-[rgba(245,239,227,0.40)] mt-0.5">AI-Powered Business OS for Freelancers</p>
+                    <p className="text-[10px] text-[rgba(245,239,227,0.65)] mt-0.5">AI-Powered Business OS for Freelancers</p>
                   </div>
                 </div>
                 {/* Body */}
                 <div className="px-5 py-5">
                   <h2 className="text-base font-bold text-[#F5EFE3] mb-2">{previewFollowUp.subject}</h2>
-                  <p className="text-sm text-[rgba(245,239,227,0.45)] mb-3">Hi {previewFollowUp.clientName},</p>
+                  <p className="text-sm text-[rgba(245,239,227,0.70)] mb-3">Hi {previewFollowUp.clientName},</p>
                   {previewFollowUp.body.split("\n").filter((l: string) => l.trim()).map((line: string, i: number) => (
                     <p key={i} className="text-sm text-[rgba(245,239,227,0.55)] leading-relaxed mb-2">{line}</p>
                   ))}
                 </div>
                 {/* Footer */}
                 <div className="px-5 py-3 bg-[#1C2333] border-t border-white/8">
-                  <p className="text-[10px] text-[rgba(245,239,227,0.40)] text-center">&copy; {new Date().getFullYear()} TrueAxis HQ &mdash; <span className="text-[#D4922A]">Unsubscribe</span></p>
+                  <p className="text-[10px] text-[rgba(245,239,227,0.65)] text-center">&copy; {new Date().getFullYear()} TrueAxis HQ &mdash; <span className="text-[#D4922A]">Unsubscribe</span></p>
                 </div>
               </div>
             </div>
@@ -3174,10 +3179,10 @@ function BillingSection() {
                   <Icon className="w-4 h-4 text-white" />
                 </div>
                 <p className="text-sm font-extrabold text-[#F5EFE3] mb-0.5">{plan.name}</p>
-                <p className="text-[11px] text-[rgba(245,239,227,0.45)] mb-3 leading-snug">{plan.description}</p>
+                <p className="text-[11px] text-[rgba(245,239,227,0.70)] mb-3 leading-snug">{plan.description}</p>
                 <div className="mb-3">
                   <span className="text-xl font-extrabold text-[#F5EFE3]">${price}</span>
-                  <span className="text-xs text-[rgba(245,239,227,0.45)]">/mo</span>
+                  <span className="text-xs text-[rgba(245,239,227,0.70)]">/mo</span>
                   {billingInterval === "annual" && <p className="text-[10px] text-green-600 font-semibold">Billed annually</p>}
                 </div>
                 <ul className="space-y-1.5 mb-4 flex-1">
@@ -3578,7 +3583,7 @@ function SettingsPanel() {
               </button>
               {avatarUrl && (
                 <>
-                  <span className="text-[rgba(245,239,227,0.25)]">·</span>
+                  <span className="text-[rgba(245,239,227,0.55)]">·</span>
                   <button
                     onClick={handleAvatarRemove}
                     disabled={avatarUploading}
@@ -4116,7 +4121,7 @@ This agreement is governed by the laws of [State/Country].`,
         <div className="space-y-3">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20" />)}</div>
       ) : list.length === 0 ? (
         <div className="bg-[#161B22] rounded-xl border border-white/8 p-12 text-center">
-          <FileSignature className="w-10 h-10 text-[rgba(245,239,227,0.45)] mx-auto mb-3" />
+          <FileSignature className="w-10 h-10 text-[rgba(245,239,227,0.70)] mx-auto mb-3" />
           <p className="font-semibold text-[rgba(245,239,227,0.75)] mb-1">No {filterType === "all" ? "contracts or proposals" : filterType + "s"} yet</p>
           <p className="text-sm text-[rgba(245,239,227,0.55)] mb-4">Create your first one to get started</p>
           <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); }} size="sm" className="bg-[#D4922A] hover:bg-[#D4911A] text-white">Create {filterType === "proposal" ? "Proposal" : "Contract"}</Button>
@@ -4188,7 +4193,7 @@ This agreement is governed by the laws of [State/Country].`,
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-semibold text-[rgba(245,239,227,0.55)]">Body / Terms *</label>
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] text-[rgba(245,239,227,0.40)]">Start from template:</span>
+                <span className="text-[10px] text-[rgba(245,239,227,0.65)]">Start from template:</span>
                 <select
                   className="text-xs border border-white/10 rounded-lg px-2 py-1 bg-[#1C2333] text-[rgba(245,239,227,0.75)] hover:border-[#D4922A] focus:outline-none focus:ring-1 focus:ring-[#D4922A]"
                   defaultValue=""
@@ -4240,7 +4245,7 @@ This agreement is governed by the laws of [State/Country].`,
               </div>
               {previewContract.proposalAmount && (
                 <div className="text-right">
-                  <p className="text-[10px] text-[rgba(245,239,227,0.40)] uppercase tracking-wide">Value</p>
+                  <p className="text-[10px] text-[rgba(245,239,227,0.65)] uppercase tracking-wide">Value</p>
                   <p className="text-xl font-extrabold text-[#D4922A]">{formatCurrency(previewContract.proposalAmount)}</p>
                 </div>
               )}
@@ -4249,14 +4254,14 @@ This agreement is governed by the laws of [State/Country].`,
             {/* Parties */}
             <div className="grid grid-cols-2 gap-3 mb-5">
               <div className="bg-[#1C2333] border border-white/10 rounded-lg p-3">
-                <p className="text-[10px] font-bold text-[rgba(245,239,227,0.40)] uppercase tracking-wide mb-1">Client</p>
+                <p className="text-[10px] font-bold text-[rgba(245,239,227,0.65)] uppercase tracking-wide mb-1">Client</p>
                 <p className="text-sm font-semibold text-[#F5EFE3]">{previewContract.clientName}</p>
-                {previewContract.clientEmail && <p className="text-xs text-[rgba(245,239,227,0.45)]">{previewContract.clientEmail}</p>}
+                {previewContract.clientEmail && <p className="text-xs text-[rgba(245,239,227,0.70)]">{previewContract.clientEmail}</p>}
               </div>
               <div className="bg-[#1C2333] border border-white/10 rounded-lg p-3">
-                <p className="text-[10px] font-bold text-[rgba(245,239,227,0.40)] uppercase tracking-wide mb-1">Dates</p>
+                <p className="text-[10px] font-bold text-[rgba(245,239,227,0.65)] uppercase tracking-wide mb-1">Dates</p>
                 <p className="text-xs text-[rgba(245,239,227,0.55)]">Created {formatDate(previewContract.createdAt)}</p>
-                {previewContract.expiresAt && <p className="text-xs text-[rgba(245,239,227,0.45)]">Expires {formatDate(previewContract.expiresAt)}</p>}
+                {previewContract.expiresAt && <p className="text-xs text-[rgba(245,239,227,0.70)]">Expires {formatDate(previewContract.expiresAt)}</p>}
                 {previewContract.signedAt && <p className="text-xs text-green-600 font-medium">Signed {formatDate(previewContract.signedAt)}</p>}
               </div>
             </div>
@@ -4264,7 +4269,7 @@ This agreement is governed by the laws of [State/Country].`,
             {/* Body — rendered as document */}
             <div className="border border-white/10 rounded-lg overflow-hidden mb-5">
               <div className="bg-[#1C2333] border-b border-white/10 px-4 py-2">
-                <p className="text-[10px] font-bold text-[rgba(245,239,227,0.40)] uppercase tracking-wide">Document Body</p>
+                <p className="text-[10px] font-bold text-[rgba(245,239,227,0.65)] uppercase tracking-wide">Document Body</p>
               </div>
               <div className="bg-[#161B22] px-5 py-5 max-h-72 overflow-y-auto">
                 {previewContract.body.split("\n").map((line: string, i: number) => {
@@ -4282,15 +4287,15 @@ This agreement is governed by the laws of [State/Country].`,
             {/* Signature block */}
             <div className="grid grid-cols-2 gap-3 mb-5">
               <div className="border border-dashed border-white/15 rounded-lg p-4 text-center">
-                <p className="text-[10px] text-[rgba(245,239,227,0.40)] uppercase tracking-wide mb-3">Client Signature</p>
+                <p className="text-[10px] text-[rgba(245,239,227,0.65)] uppercase tracking-wide mb-3">Client Signature</p>
                 <div className="h-8 border-b border-white/15 mb-2" />
-                <p className="text-xs text-[rgba(245,239,227,0.45)]">{previewContract.clientName}</p>
+                <p className="text-xs text-[rgba(245,239,227,0.70)]">{previewContract.clientName}</p>
                 {previewContract.signedAt && <p className="text-[10px] text-green-600 font-medium mt-1">Signed {formatDate(previewContract.signedAt)}</p>}
               </div>
               <div className="border border-dashed border-white/15 rounded-lg p-4 text-center">
-                <p className="text-[10px] text-[rgba(245,239,227,0.40)] uppercase tracking-wide mb-3">Service Provider</p>
+                <p className="text-[10px] text-[rgba(245,239,227,0.65)] uppercase tracking-wide mb-3">Service Provider</p>
                 <div className="h-8 border-b border-white/15 mb-2" />
-                <p className="text-xs text-[rgba(245,239,227,0.45)]">TrueAxis HQ</p>
+                <p className="text-xs text-[rgba(245,239,227,0.70)]">TrueAxis HQ</p>
               </div>
             </div>
 
@@ -4334,10 +4339,10 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
     if (type === "booking") return <Calendar className="w-4 h-4 text-[#D4922A]" />;
     if (type === "invoice_paid") return <CheckCircle className="w-4 h-4 text-green-500" />;
     if (type === "invoice_overdue") return <AlertCircle className="w-4 h-4 text-red-500" />;
-    if (type === "invoice") return <FileText className="w-4 h-4 text-[rgba(245,239,227,0.45)]" />;
+    if (type === "invoice") return <FileText className="w-4 h-4 text-[rgba(245,239,227,0.70)]" />;
     if (type === "success") return <CheckCircle className="w-4 h-4 text-green-500" />;
     if (type === "warning") return <AlertCircle className="w-4 h-4 text-orange-500" />;
-    return <Bell className="w-4 h-4 text-[rgba(245,239,227,0.40)]" />;
+    return <Bell className="w-4 h-4 text-[rgba(245,239,227,0.65)]" />;
   };
 
   const typeColor = (type: string) => {
@@ -4356,7 +4361,7 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-[#F5EFE3]">Smart Inbox</h2>
-          <p className="text-sm text-[rgba(245,239,227,0.45)] mt-0.5">
+          <p className="text-sm text-[rgba(245,239,227,0.70)] mt-0.5">
             {unreadCount > 0 ? `${unreadCount} unread item${unreadCount !== 1 ? "s" : ""}` : "All caught up"}
           </p>
         </div>
@@ -4386,10 +4391,10 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
           <div className="w-16 h-16 rounded-xl bg-[#243040] flex items-center justify-center mx-auto mb-4">
-            <Inbox className="w-8 h-8 text-[rgba(245,239,227,0.35)]" />
+            <Inbox className="w-8 h-8 text-[rgba(245,239,227,0.60)]" />
           </div>
           <p className="font-semibold text-[rgba(245,239,227,0.75)]">Nothing here</p>
-          <p className="text-sm text-[rgba(245,239,227,0.40)] mt-1">Your activity feed will appear here</p>
+          <p className="text-sm text-[rgba(245,239,227,0.65)] mt-1">Your activity feed will appear here</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -4411,8 +4416,8 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
                   <p className={`text-sm font-semibold truncate ${item.read ? "text-[rgba(245,239,227,0.75)]" : "text-[#F5EFE3]"}` }>{item.title}</p>
                   {!item.read && <span className="w-2 h-2 rounded-full bg-[#D4922A] flex-shrink-0 mt-1" />}
                 </div>
-                <p className="text-xs text-[rgba(245,239,227,0.45)] mt-0.5 line-clamp-2">{item.body}</p>
-                <p className="text-[10px] text-[rgba(245,239,227,0.40)] mt-1">{new Date(item.createdAt).toLocaleString()}</p>
+                <p className="text-xs text-[rgba(245,239,227,0.70)] mt-0.5 line-clamp-2">{item.body}</p>
+                <p className="text-[10px] text-[rgba(245,239,227,0.65)] mt-1">{new Date(item.createdAt).toLocaleString()}</p>
               </div>
             </div>
           ))}
@@ -4449,7 +4454,7 @@ function TestimonialsPanel() {
     requested: "bg-blue-500/15 text-blue-400",
     submitted: "bg-amber-500/15 text-amber-400",
     approved: "bg-green-500/15 text-green-400",
-    rejected: "bg-[#243040] text-[rgba(245,239,227,0.45)]",
+    rejected: "bg-[#243040] text-[rgba(245,239,227,0.70)]",
   };
 
   return (
@@ -4458,7 +4463,7 @@ function TestimonialsPanel() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-[#F5EFE3]">Testimonials</h2>
-          <p className="text-sm text-[rgba(245,239,227,0.45)] mt-0.5">Request, review, and publish client testimonials</p>
+          <p className="text-sm text-[rgba(245,239,227,0.70)] mt-0.5">Request, review, and publish client testimonials</p>
         </div>
       </div>
 
@@ -4510,9 +4515,9 @@ function TestimonialsPanel() {
         <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-24 bg-[#161B22] rounded-xl animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
-          <ThumbsUp className="w-12 h-12 text-[rgba(245,239,227,0.25)] mx-auto mb-3" />
-          <p className="text-[rgba(245,239,227,0.45)] font-medium">No {tab} testimonials yet</p>
-          <p className="text-sm text-[rgba(245,239,227,0.40)] mt-1">Use the "+ New Request" tab to ask clients for reviews</p>
+          <ThumbsUp className="w-12 h-12 text-[rgba(245,239,227,0.55)] mx-auto mb-3" />
+          <p className="text-[rgba(245,239,227,0.70)] font-medium">No {tab} testimonials yet</p>
+          <p className="text-sm text-[rgba(245,239,227,0.65)] mt-1">Use the "+ New Request" tab to ask clients for reviews</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -4522,16 +4527,16 @@ function TestimonialsPanel() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-semibold text-[#F5EFE3] text-sm">{t.clientName}</p>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${statusColors[t.status] ?? "bg-[#243040] text-[rgba(245,239,227,0.45)]"}`}>{t.status}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${statusColors[t.status] ?? "bg-[#243040] text-[rgba(245,239,227,0.70)]"}`}>{t.status}</span>
                   </div>
                   {t.rating && (
                     <div className="flex gap-0.5 mb-1.5">
-                      {[1,2,3,4,5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= t.rating! ? "fill-[#D4922A] text-[#D4922A]" : "text-[rgba(245,239,227,0.25)]"}`} />)}
+                      {[1,2,3,4,5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= t.rating! ? "fill-[#D4922A] text-[#D4922A]" : "text-[rgba(245,239,227,0.55)]"}`} />)}
                     </div>
                   )}
                   {t.body && <p className="text-sm text-[rgba(245,239,227,0.55)] line-clamp-3">"{t.body}"</p>}
-                  {!t.body && <p className="text-xs text-[rgba(245,239,227,0.40)] italic">Awaiting response…</p>}
-                  <p className="text-[10px] text-[rgba(245,239,227,0.40)] mt-1.5">{new Date(t.createdAt).toLocaleDateString()}</p>
+                  {!t.body && <p className="text-xs text-[rgba(245,239,227,0.65)] italic">Awaiting response…</p>}
+                  <p className="text-[10px] text-[rgba(245,239,227,0.65)] mt-1.5">{new Date(t.createdAt).toLocaleDateString()}</p>
                 </div>
                 {t.status === "submitted" && (
                   <div className="flex gap-2 flex-shrink-0">
@@ -4579,7 +4584,7 @@ function MobileQuickStats() {
           <DollarSign className="w-3 h-3 text-[#D4922A]" />
           <span className="text-xs font-extrabold text-[#F5EFE3]">{totalRevenue >= 1000 ? `$${(totalRevenue/1000).toFixed(1)}k` : `$${Math.round(totalRevenue)}`}</span>
         </div>
-        <span className="text-[9px] text-[rgba(245,239,227,0.40)] font-medium uppercase tracking-wide">Revenue</span>
+        <span className="text-[9px] text-[rgba(245,239,227,0.65)] font-medium uppercase tracking-wide">Revenue</span>
       </div>
       <div className="w-px h-7 bg-white/8" />
       {/* Active Clients */}
@@ -4588,7 +4593,7 @@ function MobileQuickStats() {
           <Users className="w-3 h-3 text-[#6366F1]" />
           <span className="text-xs font-extrabold text-[#F5EFE3]">{activeClients}</span>
         </div>
-        <span className="text-[9px] text-[rgba(245,239,227,0.40)] font-medium uppercase tracking-wide">Clients</span>
+        <span className="text-[9px] text-[rgba(245,239,227,0.65)] font-medium uppercase tracking-wide">Clients</span>
       </div>
       <div className="w-px h-7 bg-white/8" />
       {/* Today's Sessions */}
@@ -4597,16 +4602,16 @@ function MobileQuickStats() {
           <Calendar className="w-3 h-3 text-[#F59E0B]" />
           <span className="text-xs font-extrabold text-[#F5EFE3]">{todaySessions}</span>
         </div>
-        <span className="text-[9px] text-[rgba(245,239,227,0.40)] font-medium uppercase tracking-wide">Today</span>
+        <span className="text-[9px] text-[rgba(245,239,227,0.65)] font-medium uppercase tracking-wide">Today</span>
       </div>
       <div className="w-px h-7 bg-white/8" />
       {/* Overdue */}
       <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
         <div className="flex items-center gap-1">
-          <AlertCircle className={`w-3 h-3 ${overdueCount > 0 ? "text-red-400" : "text-[rgba(245,239,227,0.35)]"}`} />
+          <AlertCircle className={`w-3 h-3 ${overdueCount > 0 ? "text-red-400" : "text-[rgba(245,239,227,0.60)]"}`} />
           <span className={`text-xs font-extrabold ${overdueCount > 0 ? "text-red-400" : "text-[#F5EFE3]"}`}>{overdueCount}</span>
         </div>
-        <span className="text-[9px] text-[rgba(245,239,227,0.40)] font-medium uppercase tracking-wide">Overdue</span>
+        <span className="text-[9px] text-[rgba(245,239,227,0.65)] font-medium uppercase tracking-wide">Overdue</span>
       </div>
     </div>
   );
@@ -4634,9 +4639,8 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
       items: [
         { icon: Mail,          label: "Outreach",     panel: "outreach"   as ActivePanel },
         { icon: FileSignature, label: "Deals",        panel: "deals"      as ActivePanel },
-        { icon: BarChart3,     label: "Insights",     panel: "insights"   as ActivePanel, badge: "AI" },
+        { icon: BarChart3,     label: "Insights",     panel: "insights"   as ActivePanel },
         { icon: Bot,           label: "AI Assistant", panel: "ai"         as ActivePanel, badge: "AI" },
-        { icon: ThumbsUp,      label: "Testimonials", panel: "testimonials" as ActivePanel },
       ],
     },
     {
@@ -4684,11 +4688,11 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
         </div>
 
         <div className="px-4 pb-6 pt-1 space-y-5">
-          <p className="text-xs font-bold text-white/40 uppercase tracking-widest px-1">All Features</p>
+          <p className="text-xs font-bold text-white/70 uppercase tracking-widest px-1">All Features</p>
 
           {sheetSections.map((section) => (
             <div key={section.label}>
-              <p className="text-[10px] font-semibold text-[#D4922A]/70 uppercase tracking-wider mb-2 px-1">{section.label}</p>
+              <p className="text-[10px] font-semibold text-[#D4922A] uppercase tracking-wider mb-2 px-1">{section.label}</p>
               <div className="grid grid-cols-4 gap-1.5">
                 {section.items.map((item) => (
                   <button
@@ -4698,7 +4702,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
                     className={`relative flex flex-col items-center justify-center py-3.5 px-1 rounded-xl gap-1.5 transition-all active:scale-95 ${
                       active === item.panel
                         ? "bg-[#D4922A]/20 text-[#D4922A]"
-                        : "bg-white/5 text-[rgba(245,239,227,0.35)] hover:bg-white/10 hover:text-white"
+                        : "bg-white/5 text-[rgba(245,239,227,0.60)] hover:bg-white/10 hover:text-white"
                     }`}
                   >
                     {item.badge && (
@@ -4718,7 +4722,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
           <div className="border-t border-white/10 pt-4 flex gap-2">
             <button
               onClick={() => { setActive("settings"); setShowSheet(false); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-[rgba(245,239,227,0.35)] hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-[rgba(245,239,227,0.60)] hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
             >
               <CreditCard className="w-4 h-4" />
               Billing
@@ -4726,7 +4730,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
             {(user as any)?.isOwner && (
               <button
                 onClick={() => { navigate("/admin"); setShowSheet(false); }}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-[rgba(245,239,227,0.35)] hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-[rgba(245,239,227,0.60)] hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
               >
                 <Star className="w-4 h-4" />
                 Admin
@@ -4734,7 +4738,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
             )}
             <button
               onClick={() => { navigate("/"); setShowSheet(false); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-[rgba(245,239,227,0.35)] hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-[rgba(245,239,227,0.60)] hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
             >
               <Home className="w-4 h-4" />
               Home
@@ -4815,7 +4819,9 @@ export default function Dashboard() {
   const [active, setActive] = useState<ActivePanel>(() => {
     if (typeof window !== "undefined") {
       const param = new URLSearchParams(window.location.search).get("panel");
-      const valid: ActivePanel[] = ["overview","clients","scheduling","invoices","followups","analytics","settings","ai","pulse","contracts","time","inbox","testimonials"];
+      const valid: ActivePanel[] = ["overview","clients","scheduling","billing","outreach","deals","insights","settings","ai",
+        // Legacy sub-panel deep links — will auto-redirect to parent
+        "invoices","followups","analytics","pulse","contracts","time","inbox","testimonials","services","expenses","proposals","automations"];
       if (param && valid.includes(param as ActivePanel)) return param as ActivePanel;
     }
     return "overview";
@@ -4852,8 +4858,7 @@ export default function Dashboard() {
   // Scroll to top of main content when switching panels
   const setActiveWithScroll = (panel: ActivePanel) => {
     setActive(panel);
-    // Automatically show the floating AI widget when navigating to the AI panel
-    if (panel === "ai") setAiVisible(true);
+    // AI panel is now embedded — no need to show floating widget when navigating there
     requestAnimationFrame(() => {
       mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -4990,46 +4995,46 @@ export default function Dashboard() {
   const activePanel = useMemo(() => {
     switch (active) {
       case "overview": return <PanelErrorBoundary panelName="Overview"><OverviewPanel userName={user?.name || ""} setActivePanel={setActive} /></PanelErrorBoundary>;
-      case "clients": return <PanelErrorBoundary panelName="Clients"><ClientsPanel /></PanelErrorBoundary>;
-      case "scheduling": return <PanelErrorBoundary panelName="Scheduling"><SchedulingPanel /></PanelErrorBoundary>;
-      case "invoices": return <PanelErrorBoundary panelName="Invoices"><InvoicesPanel /></PanelErrorBoundary>;
-      case "followups": return <PanelErrorBoundary panelName="Follow-Ups"><FollowUpsPanel /></PanelErrorBoundary>;
-      case "analytics": return <PanelErrorBoundary panelName="Analytics"><AnalyticsPanel /></PanelErrorBoundary>;
-      case "settings": return <PanelErrorBoundary panelName="Settings"><SettingsPanel /></PanelErrorBoundary>;
-      case "ai": return (
-        <PanelErrorBoundary panelName="AI Assistant">
-        <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
-          <div className="w-16 h-16 rounded-full gradient-amber flex items-center justify-center shadow-lg">
-            <span className="text-3xl">✨</span>
-          </div>
-          <h2 className="text-xl font-bold text-[#F5EFE3]">AI Assistant</h2>
-          <p className="text-[rgba(245,239,227,0.55)] text-sm max-w-xs">
-            Your AI assistant is floating on screen — drag it anywhere and chat while you work.
-          </p>
-          {!aiVisible && (
-            <button
-              onClick={() => setAiVisible(true)}
-              className="mt-2 px-5 py-2.5 rounded-xl gradient-amber text-white text-sm font-semibold shadow hover:opacity-90 transition-all"
-            >
-              Open AI Assistant
-            </button>
-          )}
-          {aiVisible && (
-            <p className="text-xs text-[#D4922A] font-medium">AI Assistant is open — look for the floating bubble ✨</p>
-          )}
-        </div>
+      case "clients": return (
+        <PanelErrorBoundary panelName="Clients">
+          <PanelTabs
+            defaultTab="clients"
+            tabs={[
+              { id: "clients",      label: "Clients",      icon: Users,    content: <ClientsPanel /> },
+              { id: "testimonials", label: "Testimonials", icon: ThumbsUp, content: <TestimonialsPanel /> },
+            ]}
+          />
         </PanelErrorBoundary>
       );
-      case "pulse": return <PanelErrorBoundary panelName="Client Pulse"><ClientPulsePanel /></PanelErrorBoundary>;
-      case "contracts": return <PanelErrorBoundary panelName="Contracts"><ContractsPanel /></PanelErrorBoundary>;
-      case "time": return <PanelErrorBoundary panelName="Time Tracking"><TimeTrackingPanel onInvoiceGenerated={() => setActiveWithScroll("invoices")} /></PanelErrorBoundary>;
-
-      case "inbox": return <PanelErrorBoundary panelName="Smart Inbox"><SmartInboxPanel setActivePanel={setActiveWithScroll} /></PanelErrorBoundary>;
-      case "testimonials": return <PanelErrorBoundary panelName="Testimonials"><TestimonialsPanel /></PanelErrorBoundary>;
-      case "services": return <PanelErrorBoundary panelName="Services"><Services /></PanelErrorBoundary>;
-      case "expenses": return <PanelErrorBoundary panelName="Expenses & P&L"><Expenses /></PanelErrorBoundary>;
-      case "proposals": return <PanelErrorBoundary panelName="Proposals"><Proposals /></PanelErrorBoundary>;
-      case "automations": return <PanelErrorBoundary panelName="Automations"><Automations /></PanelErrorBoundary>;
+      case "scheduling": return <PanelErrorBoundary panelName="Scheduling"><SchedulingPanel /></PanelErrorBoundary>;
+      // Orphaned sub-panels: redirect to their parent consolidated panel
+      case "invoices":    { setTimeout(() => setActive("billing"),   0); return null; }
+      case "followups":   { setTimeout(() => setActive("outreach"),  0); return null; }
+      case "analytics":   { setTimeout(() => setActive("insights"),  0); return null; }
+      case "pulse":       { setTimeout(() => setActive("insights"),  0); return null; }
+      case "contracts":   { setTimeout(() => setActive("deals"),     0); return null; }
+      case "time":        { setTimeout(() => setActive("billing"),   0); return null; }
+      case "inbox":       { setTimeout(() => setActive("outreach"),  0); return null; }
+      case "testimonials":{ setTimeout(() => setActive("clients"),   0); return null; }
+      case "services":    { setTimeout(() => setActive("billing"),   0); return null; }
+      case "expenses":    { setTimeout(() => setActive("insights"),  0); return null; }
+      case "proposals":   { setTimeout(() => setActive("deals"),     0); return null; }
+      case "automations": { setTimeout(() => setActive("outreach"),  0); return null; }
+      case "settings": return <PanelErrorBoundary panelName="Settings"><SettingsPanel /></PanelErrorBoundary>;
+      // ─── AI Assistant — full embedded chat panel ───────────────────────────
+      case "ai": return (
+        <PanelErrorBoundary panelName="AI Assistant">
+          <div className="h-[calc(100vh-12rem)] min-h-[500px]">
+            <AIAssistant
+              visible={true}
+              panelMode={true}
+              onClose={() => {}}
+              onNavigateToPanel={(panel) => setActiveWithScroll(panel as ActivePanel)}
+              context={{ activePanel: "ai" }}
+            />
+          </div>
+        </PanelErrorBoundary>
+      );
       // ─── Consolidated panels ───────────────────────────────────────────────
       case "billing": return (
         <PanelErrorBoundary panelName="Billing">
@@ -5105,7 +5110,7 @@ export default function Dashboard() {
             </div>
             <div className="hidden md:block">
               <h1 className="text-base font-bold text-[#F5EFE3] leading-tight">{panelTitles[active]}</h1>
-              <p className="text-xs text-[rgba(245,239,227,0.55)] leading-tight">{panelSubtitles[active]}</p>
+              <p className="text-xs text-[rgba(245,239,227,0.70)] leading-tight">{panelSubtitles[active]}</p>
             </div>
           </div>
 
@@ -5127,9 +5132,9 @@ export default function Dashboard() {
               aria-label="Search everything (Cmd+K)"
               title="Search (Cmd+K)"
             >
-              <Search className="w-3.5 h-3.5 text-[rgba(245,239,227,0.45)] group-hover:text-[rgba(245,239,227,0.7)] transition-colors" aria-hidden="true" />
-              <span className="text-sm text-[rgba(245,239,227,0.40)] group-hover:text-[rgba(245,239,227,0.65)] transition-colors w-32 text-left">Search everything…</span>
-              <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-white/15 text-[10px] text-[rgba(245,239,227,0.30)] font-mono">
+              <Search className="w-3.5 h-3.5 text-[rgba(245,239,227,0.60)] group-hover:text-[rgba(245,239,227,0.85)] transition-colors" aria-hidden="true" />
+              <span className="text-sm text-[rgba(245,239,227,0.60)] group-hover:text-[rgba(245,239,227,0.85)] transition-colors w-32 text-left">Search everything…</span>
+              <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-white/15 text-[10px] text-[rgba(245,239,227,0.50)] font-mono">
                 <span className="text-[11px]">&#8984;</span>K
               </kbd>
             </button>
@@ -5168,7 +5173,7 @@ export default function Dashboard() {
                   <div className="max-h-80 overflow-y-auto">
                     {!notifList || notifList.length === 0 ? (
                       <div className="py-8 text-center">
-                        <Bell className="w-8 h-8 text-[rgba(245,239,227,0.25)] mx-auto mb-2" />
+                        <Bell className="w-8 h-8 text-[rgba(245,239,227,0.55)] mx-auto mb-2" />
                         <p className="text-xs text-[rgba(245,239,227,0.55)]">No notifications yet</p>
                       </div>
                     ) : (

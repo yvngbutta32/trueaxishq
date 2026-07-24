@@ -48,7 +48,7 @@
       "name": "New Invoice",
       "short_name": "Invoice",
       "description": "Create a new invoice",
-      "url": "/dashboard?panel=invoices",
+      "url": "/dashboard?panel=billing",
       "icons": [
         {
           "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/trueaxis-icon-v2-KSPphQkmvQMqyBqHAVSPQB.webp",

@@ -206,7 +206,7 @@ export default function IntakeFormsPanel() {
             </div>
 
             {fields.length === 0 && (
-              <div className="text-center py-6 text-sm text-[rgba(245,239,227,0.35)] border border-dashed border-white/10 rounded-xl">
+              <div className="text-center py-6 text-sm text-[rgba(245,239,227,0.60)] border border-dashed border-white/10 rounded-xl">
                 Add fields below to build your form
               </div>
             )}
@@ -214,7 +214,7 @@ export default function IntakeFormsPanel() {
             {fields.map((field, idx) => (
               <div key={field.id} className="bg-[#1C2333] rounded-xl p-3 border border-white/8 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-[rgba(245,239,227,0.35)] w-5 text-center">{idx + 1}</span>
+                  <span className="text-[10px] font-bold text-[rgba(245,239,227,0.60)] w-5 text-center">{idx + 1}</span>
                   <select
                     value={field.type}
                     onChange={e => updateField(field.id, { type: e.target.value as FieldType })}
@@ -243,7 +243,7 @@ export default function IntakeFormsPanel() {
                 </div>
                 {field.type === "select" && (
                   <div className="ml-7">
-                    <label className="block text-[10px] text-[rgba(245,239,227,0.45)] mb-1">Options (one per line)</label>
+                    <label className="block text-[10px] text-[rgba(245,239,227,0.70)] mb-1">Options (one per line)</label>
                     <textarea
                       value={(field.options ?? []).join("\n")}
                       onChange={e => updateField(field.id, { options: e.target.value.split("\n").filter(Boolean) })}
@@ -321,7 +321,7 @@ export default function IntakeFormsPanel() {
                         {form.active ? "Active" : "Inactive"}
                       </Badge>
                     </div>
-                    <div className="text-xs text-[rgba(245,239,227,0.45)] mt-0.5">
+                    <div className="text-xs text-[rgba(245,239,227,0.70)] mt-0.5">
                       {fieldCount} field{fieldCount !== 1 ? "s" : ""}
                       {form.description && ` · ${form.description}`}
                     </div>
@@ -441,10 +441,10 @@ function ResponsesView({ formId, formFields }: { formId: number; formFields: str
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <span className="text-xs font-semibold text-[#F5EFE3]">{r.respondentName || "Anonymous"}</span>
-                    {r.respondentEmail && <span className="text-[10px] text-[rgba(245,239,227,0.45)] ml-2">{r.respondentEmail}</span>}
+                    {r.respondentEmail && <span className="text-[10px] text-[rgba(245,239,227,0.70)] ml-2">{r.respondentEmail}</span>}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-[rgba(245,239,227,0.35)]">{new Date(r.createdAt).toLocaleDateString()}</span>
+                    <span className="text-[10px] text-[rgba(245,239,227,0.60)]">{new Date(r.createdAt).toLocaleDateString()}</span>
                     <Button
                       size="sm"
                       variant="outline"

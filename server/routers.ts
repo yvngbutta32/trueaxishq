@@ -833,8 +833,8 @@ export const appRouter = router({
             client_name: inv.clientName,
           },
           client_reference_id: String(inv.id),
-          success_url: `${origin}/dashboard?panel=invoices&paid=${inv.id}`,
-          cancel_url: `${origin}/dashboard?panel=invoices`,
+          success_url: `${origin}/dashboard?panel=billing&paid=${inv.id}`,
+          cancel_url: `${origin}/dashboard?panel=billing`,
           allow_promotion_codes: true,
         });
 
@@ -3072,7 +3072,7 @@ Only include actions when you have actually generated a complete draft. For gene
             id: `invoice-${inv.id}`, type: isPaid ? "invoice_paid" : isOverdue ? "invoice_overdue" : "invoice",
             title: isPaid ? `Invoice Paid — ${inv.clientName}` : isOverdue ? `Invoice Overdue — ${inv.clientName}` : `Invoice Created — ${inv.clientName}`,
             body: `${inv.invoiceNumber} · $${parseFloat(String(inv.amount)).toFixed(2)}`,
-            link: "/dashboard?panel=invoices", createdAt: isPaid && inv.paidAt ? inv.paidAt : inv.createdAt, read: isPaid || false,
+            link: "/dashboard?panel=billing", createdAt: isPaid && inv.paidAt ? inv.paidAt : inv.createdAt, read: isPaid || false,
             meta: { invoiceId: inv.id, status: inv.status },
           });
         }

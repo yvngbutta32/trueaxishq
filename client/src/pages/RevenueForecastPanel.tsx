@@ -200,7 +200,7 @@ export default function RevenueForecastPanel() {
               }}
             />
           </div>
-          <div className="flex justify-between mt-1.5 text-[10px] text-[rgba(245,239,227,0.35)]">
+          <div className="flex justify-between mt-1.5 text-[10px] text-[rgba(245,239,227,0.60)]">
             <span>{fmt(ytdRevenue)} earned</span>
             <span>{fmt(annualGoal)} goal</span>
           </div>
@@ -248,7 +248,7 @@ export default function RevenueForecastPanel() {
                   <span className={isPast || isCurrent ? "text-[#F5EFE3] font-semibold" : "text-[rgba(245,239,227,0.3)]"}>
                     {m.actual != null ? fmt(m.actual) : isPast ? "$0" : "—"}
                   </span>
-                  <span className="text-[rgba(245,239,227,0.45)]">
+                  <span className="text-[rgba(245,239,227,0.70)]">
                     {m.projected != null && m.actual == null ? fmt(m.projected) : "—"}
                   </span>
                   {isEditing ? (
@@ -267,7 +267,7 @@ export default function RevenueForecastPanel() {
                     </div>
                   ) : (
                     <div className="flex items-center gap-1">
-                      <span className={m.goal != null ? "text-emerald-400 font-semibold" : "text-[rgba(245,239,227,0.25)]"}>
+                      <span className={m.goal != null ? "text-emerald-400 font-semibold" : "text-[rgba(245,239,227,0.55)]"}>
                         {m.goal != null ? fmt(m.goal) : "—"}
                       </span>
                       <button
@@ -297,7 +297,7 @@ export default function RevenueForecastPanel() {
             );
           })}
         </div>
-        <div className="px-4 py-2 border-t border-white/8 grid grid-cols-3 gap-2 text-[10px] text-[rgba(245,239,227,0.35)] ml-11">
+        <div className="px-4 py-2 border-t border-white/8 grid grid-cols-3 gap-2 text-[10px] text-[rgba(245,239,227,0.60)] ml-11">
           <span>Actual</span><span>Projected</span><span>Goal</span>
         </div>
       </div>
@@ -321,7 +321,7 @@ function SummaryCard({
         <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${color}18` }}>
           <Icon className="w-3.5 h-3.5" style={{ color }} />
         </div>
-        <span className="text-[10px] font-semibold text-[rgba(245,239,227,0.45)] uppercase tracking-wide">{label}</span>
+        <span className="text-[10px] font-semibold text-[rgba(245,239,227,0.70)] uppercase tracking-wide">{label}</span>
       </div>
       <div className="text-lg font-extrabold text-[#F5EFE3]">{value}</div>
       <div className="text-[10px] text-[rgba(245,239,227,0.4)] mt-0.5">{sub}</div>

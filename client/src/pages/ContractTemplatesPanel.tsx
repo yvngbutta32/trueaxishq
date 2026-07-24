@@ -187,7 +187,7 @@ export default function ContractTemplatesPanel() {
           <div>
             <label className="block text-xs font-semibold text-[rgba(245,239,227,0.6)] mb-1.5">
               Contract Body *
-              <span className="ml-2 text-[rgba(245,239,227,0.35)] font-normal">Use [CLIENT NAME], [YOUR NAME], [DATE] as placeholders</span>
+              <span className="ml-2 text-[rgba(245,239,227,0.60)] font-normal">Use [CLIENT NAME], [YOUR NAME], [DATE] as placeholders</span>
             </label>
             <textarea
               value={tplBody}
@@ -292,7 +292,7 @@ export default function ContractTemplatesPanel() {
                     </Badge>
                   )}
                 </div>
-                <p className="text-[10px] text-[rgba(245,239,227,0.35)] mt-0.5 truncate">
+                <p className="text-[10px] text-[rgba(245,239,227,0.60)] mt-0.5 truncate">
                   {t.body.slice(0, 80)}…
                 </p>
               </div>

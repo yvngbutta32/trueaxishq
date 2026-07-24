@@ -1267,3 +1267,38 @@
 - [x] Verified 29/29 tests passing
 - [x] No console errors in browser or server logs
 - [x] No 4xx/5xx errors in network request logs
+
+## Layout Restructure — Desktop & Mobile Optimal (Jul 2026)
+- [ ] Create AIPanelFull component — full-screen AI chat wired to ai.chat procedure
+- [ ] Sidebar: remove Testimonials entry, keep 9 items (Dashboard, Clients, Scheduling, Billing, Outreach, Deals, Insights, Settings, AI Assistant)
+- [ ] ClientsPanel: add Testimonials tab (alongside List/Pipeline toggle)
+- [ ] Panel switch: redirect orphaned panels to parent panels
+- [ ] AI panel case: replace placeholder with AIPanelFull component
+- [ ] Quick Actions: expand from 4 to 8 (Add Client, New Booking, New Invoice, Outreach, New Proposal, New Contract, Log Expense, Start Timer)
+- [ ] Mobile bottom nav: remove Testimonials from Work group
+- [ ] Update valid panel list for URL persistence
+- [ ] Update all cross-panel navigation references
+- [ ] Update panelSubtitles for AI and clients panels
+
+## Readability & Contrast Pass (Jul 2026)
+- [ ] Upgrade body text opacity 0.40/0.45 → 0.65 across Dashboard.tsx
+- [ ] Upgrade label text opacity 0.35 → 0.55 across Dashboard.tsx
+- [ ] Upgrade text-[10px] labels to text-xs where they're primary content
+- [ ] Upgrade text-[9px] to text-[10px] for sidebar shortcut hints
+- [ ] PanelTabs: inactive tab color opacity 0.45 → 0.65
+- [ ] MobileQuickStats: label opacity 0.40 → 0.55, text-[9px] → text-[10px]
+
+## Layout Restructure & Readability — COMPLETED (Jul 2026)
+- [x] Sidebar: Testimonials removed from nav, now lives inside Clients panel as a tab
+- [x] ClientsPanel: Testimonials tab added (alongside Clients list/pipeline toggle)
+- [x] Panel switch: all orphaned panels (invoices, followups, analytics, pulse, contracts, time, inbox, testimonials, services, expenses, proposals, automations) redirect to parent panels
+- [x] AI panel case: replaced placeholder with embedded AIAssistant (panelMode)
+- [x] Quick Actions: expanded from 4 to 8 (Add Client, New Booking, New Invoice, Outreach, New Proposal, New Contract, Log Expense, Start Timer)
+- [x] Mobile bottom nav: Testimonials removed from Work group, AI Assistant badge cleaned up
+- [x] Mobile sheet section labels upgraded from 0.70 opacity to full [#D4922A] gold
+- [x] Valid panel list updated for URL persistence (includes legacy redirects)
+- [x] All cross-panel navigation updated: GlobalSearch, OnboardingChecklist, AIAssistant, Stripe URLs, notification links, PWA manifest shortcuts
+- [x] Readability pass: all rgba(245,239,227,0.25-0.45) upgraded to 0.55-0.70 across Dashboard.tsx and all panel files
+- [x] text-gray-400 upgraded to text-gray-300 in all dark-background panel files
+- [x] PanelTabs inactive tab opacity upgraded for better readability
+- [x] 0 TypeScript errors, 29/29 tests passing
