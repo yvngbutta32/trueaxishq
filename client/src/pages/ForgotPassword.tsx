@@ -109,6 +109,7 @@ export default function ForgotPassword() {
                 <input
                   id="email"
                   type="email"
+                  maxLength={320}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"

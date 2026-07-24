@@ -647,7 +647,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const { id, amount, lineItems, ...rest } = input;
-        const updateData: any = { ...rest, updatedAt: new Date() };
+        const updateData: Record<string, unknown> = { ...rest, updatedAt: new Date() };
         if (lineItems !== undefined) {
           updateData.lineItems = JSON.stringify(lineItems);
           updateData.amount = String(lineItems.reduce((sum, item) => sum + item.qty * item.unitPrice, 0));
@@ -1240,7 +1240,7 @@ export const appRouter = router({
             throw new TRPCError({ code: "CONFLICT", message: "That username is already taken. Please choose another." });
           }
         }
-        const updateData: any = { updatedAt: new Date() };
+        const updateData: Record<string, unknown> = { updatedAt: new Date() };
         if (input.bookingUsername !== undefined) updateData.bookingUsername = input.bookingUsername;
         if (input.bookingBio !== undefined) updateData.bookingBio = input.bookingBio;
         if (input.bookingServices !== undefined) updateData.bookingServices = JSON.stringify(input.bookingServices);
@@ -1425,7 +1425,7 @@ Only include actions when you have actually generated a complete draft. For gene
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "AI service temporarily unavailable. Please try again in a moment." });
         }
         const rawContent = result.choices[0]?.message?.content;
-        const rawStr = typeof rawContent === "string" ? rawContent : Array.isArray(rawContent) ? rawContent.map((c: any) => c.text ?? "").join("") : null;
+        const rawStr = typeof rawContent === "string" ? rawContent : Array.isArray(rawContent) ? rawContent.map((c: unknown) => (c as {text?: string}).text ?? "").join("") : null;
         if (!rawStr) return { reply: "I'm here to help! What would you like to know?", actions: [] };
         // Try to parse as JSON envelope with actions
         try {

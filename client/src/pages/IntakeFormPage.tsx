@@ -159,6 +159,7 @@ export default function IntakeFormPage() {
               </label>
               {field.type === "textarea" ? (
                 <textarea
+              maxLength={5000}
                   value={answers[field.id] ?? ""}
                   onChange={e => setAnswers(prev => ({ ...prev, [field.id]: e.target.value }))}
                   placeholder={field.placeholder}

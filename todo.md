@@ -1371,3 +1371,28 @@
 - [x] HealthMonitor: fetch network error handling (catch + null check before processing)
 - [x] ComponentShowcase: parseInt radix + console.log removed
 - [x] Admin: parseInt radix for freeTrialDays
+
+## Pass 3 Deep Audit — Jul 2026
+- [x] Add composite index to clientPortalTokens (userId, clientId) — applied via SQL
+- [x] Fix broken backtick syntax in backgroundJobs.ts auto follow-up log (line 309)
+- [x] Remove PII from backgroundJobs.ts logs (clientName, userId in follow-up logs)
+- [x] Remove PII from backgroundJobs.ts monthly report log
+- [x] Fix updateData: any -> Record<string, unknown> in routers.ts (2 instances)
+- [x] Fix rawContent map cast from (c: any) to (c: unknown) with type assertion
+- [x] Fix Admin.tsx CSV export: e.event -> e.eventType, e.ipAddress -> e.ip (bug: wrong field names)
+- [x] Fix Admin.tsx settingsQuery: remove deprecated onSuccess callback, replace with useEffect
+- [x] Fix Admin.tsx updateField: value: any -> value: unknown
+- [x] Fix Admin.tsx: events.map((e: any)) -> events.map((e))
+- [x] Fix Admin.tsx: invitesQuery.data.map((inv: any)) -> invitesQuery.data.map((inv))
+- [x] Fix Dashboard.tsx: 11 any type casts removed from filter/map/reduce lambdas
+- [x] Fix Dashboard.tsx: openEditInvoice(inv: any) -> explicit typed parameter
+- [x] Fix Dashboard.tsx: s.name ?? s.service -> s.name (s.service doesn't exist on topServices)
+- [x] Fix Dashboard.tsx: status cast to enum type in openEditInvoice
+- [x] Fix Automations.tsx: onError: (e: any) -> (e: { message: string })
+- [x] Fix Proposals.tsx: li type annotation to include name field
+- [x] Fix Proposals.tsx: lineItems.map((li: any)) -> explicit typed parameter
+- [x] Fix RecurringInvoices.tsx: schedules.map((s: any)) -> schedules.map((s))
+- [x] Fix TimeTracking.tsx: 4 any casts removed from filter/find/map lambdas
+- [x] Fix BookingPage.tsx: duplicate maxLength attribute removed from textarea
+- [x] Fix Field component in Dashboard.tsx: add maxLen prop to signature
+- [x] Add index and uniqueIndex imports to schema.ts

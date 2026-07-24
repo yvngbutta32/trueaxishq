@@ -190,6 +190,7 @@ export default function ContractTemplatesPanel() {
               <span className="ml-2 text-[rgba(26,26,26,0.60)] font-normal">Use [CLIENT NAME], [YOUR NAME], [DATE] as placeholders</span>
             </label>
             <textarea
+              maxLength={50000}
               value={tplBody}
               onChange={e => setTplBody(e.target.value)}
               rows={14}

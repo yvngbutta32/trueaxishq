@@ -68,7 +68,7 @@ export default function Proposals() {
       if (d.timeline) scopeParts.push(`\n\nTimeline: ${d.timeline}`);
       if (d.deliverables?.length) scopeParts.push("\n\nDeliverables:\n" + d.deliverables.map((s: string) => `• ${s}`).join("\n"));
 
-      const lineItems: LineItem[] = (d.lineItems ?? []).map((li: any) => ({
+      const lineItems: LineItem[] = (d.lineItems ?? []).map((li: { name?: string; description?: string; qty?: number; unitPrice?: number }) => ({
         id: crypto.randomUUID(),
         name: li.name ?? "",
         description: li.description ?? "",

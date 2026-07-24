@@ -120,7 +120,7 @@ async function runRecurringInvoices() {
             });
           }
 
-          console.log(`[Jobs] Generated recurring invoice ${invoiceNumber} for user ${rec.userId}`);
+          // Recurring invoice generated successfully
         } catch (err) {
           console.error(`[Jobs] Failed to generate recurring invoice ${rec.id}:`, err);
         }
@@ -201,7 +201,7 @@ async function runFollowUpReminders() {
             link: "/dashboard",
           });
 
-          console.log(`[Jobs] Reminded user ${fu.userId} about stale follow-up for ${fu.clientName}`);
+          console.log('[Jobs] Reminded user about stale follow-up');
         } catch (err) {
           console.error(`[Jobs] Failed to notify stale follow-up ${fu.id}:`, err);
         }
@@ -306,7 +306,7 @@ async function runFollowUpRules() {
                   .where(eq(followUps.id, fuId));
               }
 
-              console.log(`[Jobs] Auto follow-up rule "${rule.name}" sent (user ${rule.userId})`);
+              console.log('[Jobs] Auto follow-up rule sent for user ' + rule.userId);
             } catch (err) {
               console.error(`[Jobs] Failed to send follow-up rule to client ${client.id}:`, err);
             }
@@ -425,7 +425,7 @@ async function runMonthlyReport() {
             }),
           });
 
-          console.log(`[Jobs] Monthly report sent to user ${user.id} for ${monthLabel}`);
+          console.log('[Jobs] Monthly report sent for ' + monthLabel);
         } catch (err) {
           console.error(`[Jobs] Failed to send monthly report to user ${user.id}:`, err);
         }

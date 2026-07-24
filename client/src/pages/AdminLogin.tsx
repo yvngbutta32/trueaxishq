@@ -88,6 +88,7 @@ export default function AdminLogin() {
             </label>
             <input
               type="email"
+              maxLength={320}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="owner@example.com"

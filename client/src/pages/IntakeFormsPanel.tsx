@@ -245,6 +245,7 @@ export default function IntakeFormsPanel() {
                   <div className="ml-7">
                     <label className="block text-[10px] text-[rgba(26,26,26,0.70)] mb-1">Options (one per line)</label>
                     <textarea
+              maxLength={5000}
                       value={(field.options ?? []).join("\n")}
                       onChange={e => updateField(field.id, { options: e.target.value.split("\n").filter(Boolean) })}
                       rows={3}

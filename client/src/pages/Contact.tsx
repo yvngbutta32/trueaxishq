@@ -48,6 +48,7 @@ export default function Contact() {
       <label htmlFor={id} className="block text-xs font-semibold text-[#3D3D3D] mb-1.5">{label} *</label>
       {multiline ? (
         <textarea
+              maxLength={5000}
           id={id}
           value={form[id]}
           onChange={e => { setForm(p => ({ ...p, [id]: e.target.value })); setErrors(p => ({ ...p, [id]: "" })); }}

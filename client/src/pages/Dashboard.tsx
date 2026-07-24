@@ -122,10 +122,11 @@ function Modal({ open, onClose, title, children, wide }: {
 }
 // ─── Input Field ─────────────────────────────────────────────────────────────────────────────────
 // Memoized to prevent re-renders when parent state changes unrelated to this field
-const Field = memo(function Field({ label, value, onChange, placeholder, type = "text", required, textarea, rows = 3, autoComplete, enterKeyHint }: {
+const Field = memo(function Field({ label, value, onChange, placeholder, type = "text", required, textarea, rows = 3, autoComplete, enterKeyHint, maxLen }: {
   label: string; value: string; onChange: (v: string) => void;
   placeholder?: string; type?: string; required?: boolean; textarea?: boolean; rows?: number;
   autoComplete?: string; enterKeyHint?: "enter" | "done" | "go" | "next" | "previous" | "search" | "send";
+  maxLen?: number;
 }) {
   const cls = "form-input-light";
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -152,6 +153,7 @@ const Field = memo(function Field({ label, value, onChange, placeholder, type = 
             onChange={handleChange}
             placeholder={placeholder}
             rows={rows}
+            maxLength={maxLen}
             className={`${cls} resize-none overflow-hidden`}
             style={{ minHeight: `${(rows ?? 3) * 1.6}rem` }}
             enterKeyHint={enterKeyHint}
@@ -1410,6 +1412,7 @@ function ClientsPanel() {
               onChange={e => { setCsvText(e.target.value); parseCsv(e.target.value); }}
               placeholder={`name,email,phone,service\nJane Smith,jane@example.com,+1555000,Coaching\nJohn Doe,john@example.com,,Web Design`}
               rows={5}
+              maxLength={50000}
               className="form-input-light resize-none font-mono text-xs"
             />
           </div>
@@ -1693,8 +1696,8 @@ function InvoicesPanel() {
     onSuccess: () => { utils.recurring.list.invalidate(); toast.success("Schedule deleted"); },
     onError: (e) => toast.error(e.message),
   });
-  const activeScheduleCount = schedules?.filter((s: any) => s.active).length ?? 0;
-  const estMonthlyRevenue = schedules?.filter((s: any) => s.active).reduce((sum: number, s: any) => {
+  const activeScheduleCount = schedules?.filter((s) => s.active).length ?? 0;
+  const estMonthlyRevenue = schedules?.filter((s) => s.active).reduce((sum: number, s: any) => {
     const amt = parseFloat(String(s.amount));
     const mult = s.frequency === "weekly" ? 4.33 : s.frequency === "biweekly" ? 2.17 : s.frequency === "monthly" ? 1 : s.frequency === "quarterly" ? 0.33 : 0.083;
     return sum + amt * mult;
@@ -1742,10 +1745,10 @@ function InvoicesPanel() {
   const handleEditLineQty   = useCallback((idx: number, v: string) => setEditLineItems(p => p.map((it, i) => i === idx ? { ...it, qty: parseFloat(v) || 1 } : it)), []);
   const handleEditLinePrice = useCallback((idx: number, v: string) => setEditLineItems(p => p.map((it, i) => i === idx ? { ...it, unitPrice: parseFloat(v) || 0 } : it)), []);
   const handleEditLineRemove = useCallback((idx: number) => setEditLineItems(p => p.filter((_, i) => i !== idx)), []);
-  function openEditInvoice(inv: any) {
+  function openEditInvoice(inv: { id: number; invoiceNumber: string; clientName: string; clientEmail?: string | null; service?: string | null; amount: string; status: string; dueDate?: string | null; notes?: string | null; lineItems?: string | null; [key: string]: unknown }) {
     const items = inv.lineItems ? (typeof inv.lineItems === "string" ? JSON.parse(inv.lineItems) : inv.lineItems) : [];
     const hasItems = Array.isArray(items) && items.length > 0;
-    setEditForm({ clientName: inv.clientName || "", clientEmail: inv.clientEmail || "", service: inv.service || "", amount: String(inv.amount || ""), dueDate: inv.dueDate ? inv.dueDate.slice(0, 10) : "", notes: inv.notes || "", status: inv.status || "draft" });
+    setEditForm({ clientName: inv.clientName || "", clientEmail: inv.clientEmail || "", service: inv.service || "", amount: String(inv.amount || ""), dueDate: inv.dueDate ? inv.dueDate.slice(0, 10) : "", notes: inv.notes || "", status: (inv.status as "draft" | "sent" | "paid" | "overdue") || "draft" });
     setEditLineItems(hasItems ? items : []);
     setEditUseLineItems(hasItems);
     setEditInvoice(inv);
@@ -1945,13 +1948,13 @@ function InvoicesPanel() {
                   <select
                     value={recurringForm.clientId}
                     onChange={e => {
-                      const c = clientList?.find((c: any) => String(c.id) === e.target.value);
+                      const c = clientList?.find((c) => String(c.id) === e.target.value);
                       setRecurringForm(p => ({ ...p, clientId: e.target.value, clientName: c?.name || p.clientName, clientEmail: (c as any)?.email || p.clientEmail }));
                     }}
                     className="form-input-light"
                   >
                     <option value="">Select client or type below</option>
-                    {clientList?.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {clientList?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <Field label="Client Name" required value={recurringForm.clientName} onChange={setRecurClientName} placeholder="Client or company name" autoComplete="organization" enterKeyHint="next" />
@@ -1977,7 +1980,7 @@ function InvoicesPanel() {
                     if (!recurringForm.clientName.trim()) { toast.error("Client name is required"); return; }
                     if (!recurringForm.amount || parseFloat(recurringForm.amount) <= 0) { toast.error("Amount must be greater than 0"); return; }
                     if (!recurringForm.nextDueAt) { toast.error("Next due date is required"); return; }
-                    const client = clientList?.find((c: any) => String(c.id) === recurringForm.clientId);
+                    const client = clientList?.find((c) => String(c.id) === recurringForm.clientId);
                     createSchedule.mutate({
                       clientId: client?.id,
                       clientName: recurringForm.clientName.trim(),
@@ -2015,7 +2018,7 @@ function InvoicesPanel() {
               </div>
             ) : (
               <div className="divide-y divide-gray-50">
-                {schedules.map((s: any) => {
+                {schedules.map((s) => {
                   const color = FREQUENCY_COLORS[s.frequency] || "#6366F1";
                   return (
                     <div key={s.id} className={`flex items-center gap-4 px-5 py-4 hover:bg-[#F7F6F3] transition-colors ${!s.active ? "opacity-50" : ""}`}>
@@ -2964,12 +2967,12 @@ function AnalyticsPanel() {
           <div className="bg-white rounded-xl p-5 border border-[#DDDBD7] lg:col-span-2">
             <h3 className="font-bold text-[#1A1A1A] text-sm mb-4">Top Services by Revenue</h3>
             <div className="space-y-3">
-              {topServices.slice(0, 5).map((s: any, i: number) => (
+              {topServices.slice(0, 5).map((s, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <span className="text-xs text-[#6B6B6B] w-4">{i + 1}</span>
                   <div className="flex-1">
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium text-[#1A1A1A]">{s.name ?? s.service}</span>
+                      <span className="text-sm font-medium text-[#1A1A1A]">{s.name}</span>
                       <span className="text-sm font-bold text-[#D4922A]">{formatCurrency(s.revenue)}</span>
                     </div>
                     <div className="h-1.5 bg-[#EEECEA] rounded-full overflow-hidden">
@@ -3015,7 +3018,7 @@ function AnalyticsPanel() {
           <div className="bg-white rounded-xl p-5 border border-[#DDDBD7]">
             <h3 className="font-bold text-[#1A1A1A] text-sm mb-4">Top Clients by LTV</h3>
             <div className="space-y-3">
-              {analytics.clientLTV.slice(0, 6).map((c: any, i: number) => (
+              {analytics.clientLTV.slice(0, 6).map((c, i) => (
                 <div key={c.clientId} className="flex items-center gap-3">
                   <span className="text-xs text-[#6B6B6B] w-4">{i + 1}</span>
                   <div className="flex-1 min-w-0">
@@ -3039,8 +3042,8 @@ function AnalyticsPanel() {
           <div className="bg-white rounded-xl p-5 border border-[#DDDBD7]">
             <h3 className="font-bold text-[#1A1A1A] text-sm mb-4">Lead Sources</h3>
             <div className="space-y-3">
-              {analytics.referralSources.slice(0, 6).map((s: any, i: number) => {
-                const total = analytics.referralSources.reduce((sum: number, r: any) => sum + r.count, 0);
+              {analytics.referralSources.slice(0, 6).map((s, i) => {
+                const total = analytics.referralSources.reduce((sum: number, r) => sum + r.count, 0);
                 const pct = total > 0 ? Math.round((s.count / total) * 100) : 0;
                 const colors = ["#D4922A", "#6366F1", "#5A9A7A", "#FF6B6B", "#F59E0B", "#8B5CF6"];
                 return (
@@ -4210,7 +4213,7 @@ This agreement is governed by the laws of [State/Country].`,
                 </select>
               </div>
             </div>
-            <textarea value={form.body} onChange={e => setForm(p => ({ ...p, body: e.target.value }))} rows={10} placeholder="Enter the contract terms, scope of work, deliverables, payment terms..." className="form-input-light resize-y" />
+            <textarea value={form.body} onChange={e => setForm(p => ({ ...p, body: e.target.value }))} rows={10} maxLength={50000} placeholder="Enter the contract terms, scope of work, deliverables, payment terms..." className="form-input-light resize-y" />
             <p className="text-xs text-[#6B6B6B] mt-1">Markdown supported. Use **bold**, # headings, - bullet lists.</p>
           </div>
           <div className="flex gap-3 pt-2">
@@ -4495,7 +4498,7 @@ function TestimonialsPanel() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Client Email *</label>
-              <input type="email" value={form.clientEmail} onChange={e => setTestiClientEmail(e.target.value)}
+              <input type="email" maxLength={320} value={form.clientEmail} onChange={e => setTestiClientEmail(e.target.value)}
                 placeholder="jane@example.com" className="form-input-light" />
             </div>
             <div>

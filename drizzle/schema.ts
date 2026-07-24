@@ -7,6 +7,8 @@ import {
   varchar,
   decimal,
   boolean,
+  index,
+  uniqueIndex,
 } from "drizzle-orm/mysql-core";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
@@ -47,7 +49,9 @@ export const users = mysqlTable("users", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
-});
+},
+(t) => [uniqueIndex("users_email_idx").on(t.email)]
+);
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
@@ -84,7 +88,9 @@ export const clients = mysqlTable("clients", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastContactedAt: timestamp("lastContactedAt"),
   defaultRate: decimal("defaultRate", { precision: 10, scale: 2 }),
-});
+},
+(t) => [index("clients_userId_idx").on(t.userId)]
+);
 
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = typeof clients.$inferInsert;
@@ -109,7 +115,9 @@ export const invoices = mysqlTable("invoices", {
   stripePaymentLinkUrl: text("stripePaymentLinkUrl"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [index("invoices_userId_idx").on(t.userId), index("invoices_status_idx").on(t.status)]
+);
 
 export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = typeof invoices.$inferInsert;
@@ -131,7 +139,9 @@ export const bookings = mysqlTable("bookings", {
   isPublicBooking: boolean("isPublicBooking").default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [index("bookings_userId_idx").on(t.userId), index("bookings_date_idx").on(t.date)]
+);
 
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = typeof bookings.$inferInsert;
@@ -149,7 +159,9 @@ export const followUps = mysqlTable("followUps", {
   status: mysqlEnum("status", ["draft", "sent"]).default("draft").notNull(),
   sentAt: timestamp("sentAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("followUps_userId_idx").on(t.userId)]
+);
 
 export type FollowUp = typeof followUps.$inferSelect;
 export type InsertFollowUp = typeof followUps.$inferInsert;
@@ -249,7 +261,9 @@ export const passwordResetTokens = mysqlTable("passwordResetTokens", {
   expiresAt: timestamp("expiresAt").notNull(),
   used: boolean("used").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [uniqueIndex("prt_token_idx").on(t.token), index("prt_userId_idx").on(t.userId)]
+);
 
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
@@ -317,7 +331,9 @@ export const clientPortalTokens = mysqlTable("clientPortalTokens", {
   expiresAt: timestamp("expiresAt"),     // null = never expires
   lastViewedAt: timestamp("lastViewedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("portal_userId_clientId_idx").on(t.userId, t.clientId)]
+);
 
 export type ClientPortalToken = typeof clientPortalTokens.$inferSelect;
 export type InsertClientPortalToken = typeof clientPortalTokens.$inferInsert;
@@ -613,7 +629,9 @@ export const proposals = mysqlTable("proposals", {
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [uniqueIndex("proposals_token_idx").on(t.token), index("proposals_userId_idx").on(t.userId)]
+);
 export type Proposal = typeof proposals.$inferSelect;
 export type InsertProposal = typeof proposals.$inferInsert;
 
@@ -663,7 +681,9 @@ export const intakeForms = mysqlTable("intakeForms", {
   publicSlug: varchar("publicSlug", { length: 100 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [index("intakeForms_userId_idx").on(t.userId)]
+);
 export type IntakeForm = typeof intakeForms.$inferSelect;
 export type InsertIntakeForm = typeof intakeForms.$inferInsert;
 

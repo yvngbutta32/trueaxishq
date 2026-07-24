@@ -218,13 +218,13 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
   const todayCount = summary?.todayCount ?? 0;
 
   // Entries eligible for bulk invoicing
-  const bulkEligible = (entries ?? []).filter((e: any) =>
+  const bulkEligible = (entries ?? []).filter((e) =>
     e.endedAt && e.billable && parseFloat(String(e.hourlyRate ?? "0")) > 0 && !e.invoiced
   );
 
   // Compute total for selected entries
   const selectedTotal = Array.from(selectedIds).reduce((sum, id) => {
-    const e = (entries ?? []).find((x: any) => x.id === id);
+    const e = (entries ?? []).find((x) => x.id === id);
     if (!e) return sum;
     const hours = (e.durationMinutes ?? 0) / 60;
     const rate = e.hourlyRate ? parseFloat(String(e.hourlyRate)) : 0;
@@ -479,7 +479,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
                 </>
               ) : (
                 <button
-                  onClick={() => setSelectedIds(new Set(bulkEligible.map((e: any) => e.id)))}
+                  onClick={() => setSelectedIds(new Set(bulkEligible.map((e) => e.id)))}
                   className="text-xs text-[#D4922A] hover:text-[#D4922A]/80 transition-colors flex items-center gap-1"
                 >
                   <ListChecks className="w-3.5 h-3.5" />
@@ -501,7 +501,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
           </div>
         ) : (
           <div className="divide-y divide-white/5">
-            {entries.map((entry: any) => {
+            {entries.map((entry) => {
               const mins = entry.durationMinutes ?? 0;
               const hours = (mins / 60).toFixed(2);
               const rate = entry.hourlyRate ? parseFloat(String(entry.hourlyRate)) : 0;

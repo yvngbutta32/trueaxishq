@@ -49,7 +49,7 @@ export default function Automations() {
   });
   const toggleMut = trpc.automations.update.useMutation({
     onSuccess: () => utils.automations.list.invalidate(),
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: { message: string }) => toast.error(e.message),
   });
   const deleteMut = trpc.automations.delete.useMutation({
     onSuccess: () => { utils.automations.list.invalidate(); toast.success("Automation deleted"); },
@@ -57,11 +57,11 @@ export default function Automations() {
   });
   const seedMut = trpc.automations.seedTemplates.useMutation({
     onSuccess: (d: { seeded: number; message: string }) => { utils.automations.list.invalidate(); toast.success(`${d.message} — ready to activate!`); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: { message: string }) => toast.error(e.message),
   });
   const testMut = trpc.automations.run.useMutation({
     onSuccess: (d: { actionsExecuted: number }) => toast.success(`Test ran: ${d.actionsExecuted} action(s) executed`),
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: { message: string }) => toast.error(e.message),
   });
 
   const [open, setOpen] = useState(false);

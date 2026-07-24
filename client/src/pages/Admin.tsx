@@ -173,10 +173,11 @@ export default function Admin() {
   });
   const settingsQuery = trpc.admin.getSettings.useQuery(undefined, {
     enabled: isAuthenticated && isOwner && activeTab === "settings",
-    onSuccess: (data: any) => {
-      if (!settingsDirty) setSettingsForm(data);
-    },
-  } as any);
+  });
+  useEffect(() => {
+    if (settingsQuery.data && !settingsDirty) setSettingsForm(settingsQuery.data);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settingsQuery.data]);
   const healthQuery = trpc.admin.getSystemHealth.useQuery(undefined, {
     enabled: isAuthenticated && isOwner && activeTab === "health",
     refetchInterval: 30_000,
@@ -231,8 +232,8 @@ export default function Admin() {
     changePasswordMutation.mutate({ currentPassword: cpCurrent, newPassword: cpNew });
   };
 
-  const updateField = (key: string, value: any) => {
-    setSettingsForm((prev: any) => ({ ...prev, [key]: value }));
+  const updateField = (key: string, value: unknown) => {
+    setSettingsForm((prev) => ({ ...prev, [key]: value }));
     setSettingsDirty(true);
   };
 
@@ -1235,8 +1236,8 @@ export default function Admin() {
                       const events = securityEventsQuery.data ?? [];
                       if (events.length === 0) { toast.error("No events to export."); return; }
                       const headers = "Date,Event,Severity,Status,IP,User Agent";
-                      const rows = events.map((e: any) =>
-                        `"${new Date(e.createdAt).toLocaleString()}","${e.event ?? ""}","${e.severity ?? ""}","${e.resolved ? "Resolved" : "Open"}","${e.ipAddress ?? ""}","${(e.userAgent ?? "").replace(/"/g, "'")}"`
+                      const rows = events.map((e) =>
+                        `"${new Date(e.createdAt).toLocaleString()}","${e.eventType ?? ""}","${e.severity ?? ""}","${e.resolved ? "Resolved" : "Open"}","${e.ip ?? ""}","${(e.userAgent ?? "").replace(/"/g, "'")}"`
                       );
                       const csv = [headers, ...rows].join("\n");
                       const blob = new Blob([csv], { type: "text/csv" });
@@ -1360,7 +1361,7 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {invitesQuery.data.map((inv: any) => (
+                      {invitesQuery.data.map((inv) => (
                         <tr key={inv.id} className="border-b border-white/5 hover:bg-[#1C2333]">
                           <td className="py-2 px-3">
                             <div className="flex items-center gap-2">

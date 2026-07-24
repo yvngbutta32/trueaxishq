@@ -269,7 +269,7 @@ export default function RecurringInvoicesPanel() {
           </div>
         ) : (
           <div className="divide-y divide-white/5">
-            {schedules.map((s: any) => {
+            {schedules.map((s) => {
               const color = FREQUENCY_COLORS[s.frequency] || "#6366F1";
               return (
                 <div key={s.id} className={`flex items-center gap-4 px-5 py-4 hover:bg-[#F7F6F3] transition-colors ${!s.active ? "opacity-50" : ""}`}>
