@@ -1083,14 +1083,14 @@
 - [x] BookingPage: fix form inputs for mobile keyboard
 
 ## Remaining Features — Next Session
-- [ ] Bulk time-entry invoicing — checkboxes on entries, consolidated invoice from multiple entries
-- [ ] Client default rate — defaultRate field on clients table, auto-fill in time tracker
-- [ ] Email delivery for password resets — transactional email so reset link goes to user inbox
-- [ ] Recurring invoice auto-send — background job auto-generates and sends invoice PDF on due date
+- [x] Bulk time-entry invoicing — checkboxes on entries, consolidated invoice from multiple entries
+- [x] Client default rate — defaultRate field on clients table, auto-fill in time tracker
+- [x] Email delivery for password resets — transactional email so reset link goes to user inbox
+- [x] Recurring invoice auto-send — background job auto-generates and sends invoice PDF on due date
 - [x] Audit log CSV export — CSV export button in Admin → Security/Audit tab
-- [ ] Onboarding checklist wiring — wire checklist steps to real DB events (not localStorage)
-- [ ] Google Calendar OAuth — complete the full OAuth flow (token exchange + event sync)
-- [ ] PWA service worker — verify sw.js is registered and caching correctly on production
+- [x] Onboarding checklist wiring — wire checklist steps to real DB events (not localStorage)
+- [x] Google Calendar OAuth — complete the full OAuth flow (token exchange + event sync)
+- [x] PWA service worker — verify sw.js is registered and caching correctly on production
 
 ## Premium Polish & Feature Completion (Jul 2026)
 
@@ -1122,10 +1122,10 @@
 - [x] Audit log CSV export button in Admin Security tab
 
 ## End-to-End Completion Pass (Jul 2026)
-- [ ] Bulk time-entry invoicing — server: time.bulkGenerateInvoice procedure; UI: checkboxes on entries, selection count badge, "Invoice X Entries" button, consolidated invoice with multiple line items
+- [x] Bulk time-entry invoicing — server: time.bulkGenerateInvoice procedure; UI: checkboxes on entries, selection count badge, "Invoice X Entries" button, consolidated invoice with multiple line items
 - [x] Audit log CSV export — server: admin.exportAuditLog procedure returning CSV; UI: Export CSV button in Admin Security tab
-- [ ] Onboarding checklist DB wiring — server: onboarding.getStatus procedure reading real DB counts; UI: replace localStorage with trpc query, auto-complete steps based on real data
-- [ ] Email for password resets — wire sendEmail() in the forgotPassword procedure so the reset link goes to the user's inbox (not just owner notification)
+- [x] Onboarding checklist DB wiring — server: onboarding.getStatus procedure reading real DB counts; UI: replace localStorage with trpc query, auto-complete steps based on real data
+- [x] Email for password resets — wire sendEmail() in the forgotPassword procedure so the reset link goes to the user's inbox (not just owner notification)
 - [x] Header panel subtitle — add panelSubtitles map and render subtitle below panel title in Dashboard header
 - [x] Stat card hover glow — add subtle amber/teal glow on hover to OverviewPanel stat cards
 - [x] Typography cleanup — remove all inline style fontFamily: 'Inter' across all files, rely on CSS class
