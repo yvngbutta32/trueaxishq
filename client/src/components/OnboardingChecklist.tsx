@@ -62,16 +62,16 @@ export function OnboardingChecklist({ onNavigate }: Props) {
   const allDone = doneCount === total;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-[#161B22] rounded-xl border border-white/8 overflow-hidden">
       {/* Header */}
       <div
-        className="flex items-center justify-between px-5 py-4 cursor-pointer select-none"
+        className="flex items-center justify-between px-5 py-4 cursor-pointer select-none hover:bg-white/3 transition-colors"
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex items-center gap-3">
           <div className="relative w-9 h-9">
             <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#F3F4F6" strokeWidth="3.2" />
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3.2" />
               <circle
                 cx="18" cy="18" r="15.9" fill="none"
                 stroke={allDone ? "#10B981" : "#D4922A"} strokeWidth="3.2"
@@ -79,27 +79,30 @@ export function OnboardingChecklist({ onNavigate }: Props) {
                 strokeLinecap="round"
               />
             </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#0D1117]">
+            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#F5EFE3]">
               {doneCount}/{total}
             </span>
           </div>
           <div>
-            <p className="text-sm font-bold text-[#0D1117]">
+            <p className="text-sm font-bold text-[#F5EFE3]">
               {allDone ? "Setup complete! 🎉" : "Getting started"}
             </p>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-[rgba(245,239,227,0.40)]">
               {allDone ? "You're all set — explore all features" : `${total - doneCount} steps remaining`}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {collapsed ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronUp className="w-4 h-4 text-gray-400" />}
+          {collapsed
+            ? <ChevronDown className="w-4 h-4 text-[rgba(245,239,227,0.40)]" />
+            : <ChevronUp className="w-4 h-4 text-[rgba(245,239,227,0.40)]" />
+          }
           <button
             onClick={e => { e.stopPropagation(); dismiss(); }}
-            className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-1 rounded-lg hover:bg-white/8 transition-colors"
             aria-label="Dismiss checklist"
           >
-            <X className="w-3.5 h-3.5 text-gray-400" />
+            <X className="w-3.5 h-3.5 text-[rgba(245,239,227,0.40)]" />
           </button>
         </div>
       </div>
@@ -107,7 +110,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
       {/* Progress bar */}
       {!collapsed && (
         <div className="px-5 pb-1">
-          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{ width: `${pct}%`, background: allDone ? "#10B981" : "#D4922A" }}
@@ -129,15 +132,15 @@ export function OnboardingChecklist({ onNavigate }: Props) {
                   aria-label={done ? `Mark ${step.label} incomplete` : `Mark ${step.label} complete`}
                 >
                   {done
-                    ? <CheckCircle className="w-5 h-5 text-green-500" />
-                    : <Circle className="w-5 h-5 text-gray-300" />
+                    ? <CheckCircle className="w-5 h-5 text-green-400" />
+                    : <Circle className="w-5 h-5 text-[rgba(245,239,227,0.25)]" />
                   }
                 </button>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold ${done ? "line-through text-gray-400" : "text-[#0D1117]"}`}>
+                  <p className={`text-sm font-semibold ${done ? "line-through text-[rgba(245,239,227,0.30)]" : "text-[#F5EFE3]"}`}>
                     {step.label}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">{step.desc}</p>
+                  <p className="text-xs text-[rgba(245,239,227,0.40)] mt-0.5">{step.desc}</p>
                 </div>
                 {step.panel && !done && (
                   <button

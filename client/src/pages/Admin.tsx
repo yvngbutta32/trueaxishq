@@ -18,15 +18,15 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
   icon: React.ElementType; label: string; value: string | number; sub?: string; color: string;
 }) {
   return (
-    <article className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+    <article className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${color}`}>
           <Icon className="w-5 h-5 text-white" />
         </div>
       </div>
-      <p className="text-3xl font-extrabold text-gray-900" style={{  }}>{value}</p>
-      <p className="text-sm font-semibold text-gray-700 mt-1">{label}</p>
-      {sub && <p className="text-xs text-gray-600 mt-0.5">{sub}</p>}
+      <p className="text-3xl font-extrabold text-[#F5EFE3]" style={{  }}>{value}</p>
+      <p className="text-sm font-semibold text-[rgba(245,239,227,0.70)] mt-1">{label}</p>
+      {sub && <p className="text-xs text-[rgba(245,239,227,0.60)] mt-0.5">{sub}</p>}
     </article>
   );
 }
@@ -37,7 +37,7 @@ function PlanBadge({ plan }: { plan: string }) {
     agency: "bg-purple-100 text-purple-800",
     pro: "bg-amber-900/30 text-amber-400",
     starter: "bg-blue-100 text-blue-800",
-    free: "bg-gray-100 text-gray-600",
+    free: "bg-[#243040] text-[rgba(245,239,227,0.60)]",
   };
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${colors[plan] ?? colors.free}`}>
@@ -72,7 +72,7 @@ function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: bool
       onClick={() => onChange(!value)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] ${value ? "bg-[#D4922A]" : "bg-gray-200"}`}
     >
-      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${value ? "translate-x-6" : "translate-x-1"}`} />
+      <span className={`inline-block h-4 w-4 transform rounded-full bg-[#161B22] shadow transition-transform ${value ? "translate-x-6" : "translate-x-1"}`} />
     </button>
   );
 }
@@ -238,10 +238,10 @@ export default function Admin() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#1C2333]">
         <div className="text-center">
           <div className="w-12 h-12 rounded-full border-4 border-[#D4922A] border-t-transparent animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-sm">Loading admin panel…</p>
+          <p className="text-[rgba(245,239,227,0.60)] text-sm">Loading admin panel…</p>
         </div>
       </div>
     );
@@ -268,7 +268,7 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen bg-[#1C2333] overflow-x-hidden">
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* Header */}
@@ -279,14 +279,14 @@ export default function Admin() {
             alt="TrueAxis HQ"
             className="h-8 w-auto object-contain"
           />
-          <div className="hidden sm:block w-px h-6 bg-white/10" />
+          <div className="hidden sm:block w-px h-6 bg-[#161B22]/10" />
           <div className="hidden sm:flex items-center gap-1.5">
             <Crown className="w-3.5 h-3.5 text-[#D4922A]" />
             <span className="text-sm font-semibold text-gray-300" style={{  }}>Admin Panel</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-white/10 text-xs sm:text-sm" onClick={() => navigate("/dashboard")}>
+          <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-[#161B22]/10 text-xs sm:text-sm" onClick={() => navigate("/dashboard")}>
             <span className="hidden sm:inline">← Dashboard</span>
             <span className="sm:hidden">← Back</span>
           </Button>
@@ -297,7 +297,7 @@ export default function Admin() {
       </header>
 
       {/* Tab Nav */}
-      <nav aria-label="Admin sections" className="bg-white border-b border-gray-100 overflow-x-auto">
+      <nav aria-label="Admin sections" className="bg-[#161B22] border-b border-white/8 overflow-x-auto">
         <div className="flex max-w-7xl mx-auto px-2 sm:px-6">
           {tabs.map(tab => (
             <button
@@ -307,7 +307,7 @@ export default function Admin() {
               className={`flex items-center gap-2 px-3 sm:px-4 py-3.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap min-h-[48px] ${
                 activeTab === tab.id
                   ? "border-[#D4922A] text-[#D4922A]"
-                  : "border-transparent text-gray-600 hover:text-gray-700 hover:border-gray-200"
+                  : "border-transparent text-[rgba(245,239,227,0.60)] hover:text-[rgba(245,239,227,0.70)] hover:border-white/10"
               }`}
             >
               <tab.icon className="w-4 h-4 flex-shrink-0" />
@@ -324,7 +324,7 @@ export default function Admin() {
         {activeTab === "overview" && (
           <section aria-label="Revenue overview">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900" style={{  }}>Revenue Overview</h2>
+              <h2 className="text-xl font-bold text-[#F5EFE3]" style={{  }}>Revenue Overview</h2>
               <Button variant="outline" size="sm" onClick={() => statsQuery.refetch()} disabled={statsQuery.isFetching}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${statsQuery.isFetching ? "animate-spin" : ""}`} />
                 Refresh
@@ -345,8 +345,8 @@ export default function Admin() {
               </div>
             )}
 
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-              <h3 className="text-base font-bold text-gray-900 mb-5">Plan Distribution</h3>
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+              <h3 className="text-base font-bold text-[#F5EFE3] mb-5">Plan Distribution</h3>
               <div className="space-y-4">
                 {[
                   { id: "agency", label: "Agency ($199/mo)", color: "bg-purple-500" },
@@ -359,11 +359,11 @@ export default function Admin() {
                   const pct = Math.round((count / total) * 100);
                   return (
                     <div key={plan.id} className="flex items-center gap-3">
-                      <span className="text-sm text-gray-600 w-36 flex-shrink-0">{plan.label}</span>
-                      <div className="flex-1 bg-gray-100 rounded-full h-2.5">
+                      <span className="text-sm text-[rgba(245,239,227,0.60)] w-36 flex-shrink-0">{plan.label}</span>
+                      <div className="flex-1 bg-[#243040] rounded-full h-2.5">
                         <div className={`h-2.5 rounded-full ${plan.color} transition-all duration-700`} style={{ width: `${pct}%` }} />
                       </div>
-                      <span className="text-sm font-semibold text-gray-700 w-16 text-right">{count} ({pct}%)</span>
+                      <span className="text-sm font-semibold text-[rgba(245,239,227,0.70)] w-16 text-right">{count} ({pct}%)</span>
                     </div>
                   );
                 })}
@@ -376,12 +376,12 @@ export default function Admin() {
         {activeTab === "users" && (
           <section aria-label="User management">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900" style={{  }}>User Management</h2>
-              <p className="text-sm text-gray-600">{usersQuery.data?.total ?? 0} total users</p>
+              <h2 className="text-xl font-bold text-[#F5EFE3]" style={{  }}>User Management</h2>
+              <p className="text-sm text-[rgba(245,239,227,0.60)]">{usersQuery.data?.total ?? 0} total users</p>
             </div>
 
             <div className="relative mb-5">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(245,239,227,0.60)]" />
               <input
                 type="search"
                 value={search}
@@ -391,17 +391,17 @@ export default function Admin() {
               />
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-[#161B22] rounded-xl border border-white/8 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100 bg-gray-50">
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">User</th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Plan</th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Joined</th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
-                      <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                    <tr className="border-b border-white/8 bg-[#1C2333]">
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-[rgba(245,239,227,0.60)] uppercase tracking-wider">User</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-[rgba(245,239,227,0.60)] uppercase tracking-wider">Plan</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-[rgba(245,239,227,0.60)] uppercase tracking-wider">Status</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-[rgba(245,239,227,0.60)] uppercase tracking-wider">Joined</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-[rgba(245,239,227,0.60)] uppercase tracking-wider">Role</th>
+                      <th className="text-right px-5 py-3.5 text-xs font-semibold text-[rgba(245,239,227,0.60)] uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -415,22 +415,22 @@ export default function Admin() {
                       ))
                     ) : usersQuery.data?.users.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-5 py-12 text-center text-gray-600">
+                        <td colSpan={6} className="px-5 py-12 text-center text-[rgba(245,239,227,0.60)]">
                           <Users className="w-8 h-8 mx-auto mb-2 opacity-40" />
                           <p>No users found</p>
                         </td>
                       </tr>
                     ) : (
                       usersQuery.data?.users.map(u => (
-                        <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                        <tr key={u.id} className="border-b border-gray-50 hover:bg-[#1C2333] transition-colors">
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-[#D4922A]/15 flex items-center justify-center text-[#007A65] text-xs font-bold flex-shrink-0">
                                 {u.name?.[0]?.toUpperCase() ?? "?"}
                               </div>
                               <div>
-                                <p className="font-semibold text-gray-900">{u.name ?? "Unknown"}</p>
-                                <p className="text-xs text-gray-600">{u.email ?? "No email"}</p>
+                                <p className="font-semibold text-[#F5EFE3]">{u.name ?? "Unknown"}</p>
+                                <p className="text-xs text-[rgba(245,239,227,0.60)]">{u.email ?? "No email"}</p>
                               </div>
                             </div>
                           </td>
@@ -440,7 +440,7 @@ export default function Admin() {
                                 <select
                                   value={editPlanId}
                                   onChange={e => setEditPlanId(e.target.value)}
-                                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#D4922A]"
+                                  className="text-xs border border-white/10 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#D4922A]"
                                 >
                                   <option value="free">Free</option>
                                   <option value="starter">Starter</option>
@@ -450,7 +450,7 @@ export default function Admin() {
                                 <select
                                   value={editSubStatus}
                                   onChange={e => setEditSubStatus(e.target.value)}
-                                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#D4922A]"
+                                  className="text-xs border border-white/10 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#D4922A]"
                                 >
                                   <option value="free">Free</option>
                                   <option value="active">Active</option>
@@ -465,7 +465,7 @@ export default function Admin() {
                                 >
                                   <Save className="w-3.5 h-3.5" />
                                 </button>
-                                <button onClick={() => setEditingPlanUserId(null)} className="p-1 text-gray-600 hover:text-gray-600" title="Cancel">
+                                <button onClick={() => setEditingPlanUserId(null)} className="p-1 text-[rgba(245,239,227,0.60)] hover:text-[rgba(245,239,227,0.60)]" title="Cancel">
                                   <X className="w-3.5 h-3.5" />
                                 </button>
                               </div>
@@ -478,7 +478,7 @@ export default function Admin() {
                                     setEditPlanId(u.planId ?? "free");
                                     setEditSubStatus(u.subscriptionStatus ?? "free");
                                   }}
-                                  className="p-0.5 text-gray-500 hover:text-gray-600"
+                                  className="p-0.5 text-[rgba(245,239,227,0.50)] hover:text-[rgba(245,239,227,0.60)]"
                                   title="Override plan"
                                 >
                                   <Edit2 className="w-3 h-3" />
@@ -487,9 +487,9 @@ export default function Admin() {
                             )}
                           </td>
                           <td className="px-5 py-4"><StatusBadge status={u.subscriptionStatus ?? "free"} /></td>
-                          <td className="px-5 py-4 text-gray-600 text-xs">{new Date(u.createdAt).toLocaleDateString()}</td>
+                          <td className="px-5 py-4 text-[rgba(245,239,227,0.60)] text-xs">{new Date(u.createdAt).toLocaleDateString()}</td>
                           <td className="px-5 py-4">
-                            <span className={`inline-flex items-center gap-1 text-xs font-semibold ${u.role === "admin" ? "text-purple-700" : "text-gray-600"}`}>
+                            <span className={`inline-flex items-center gap-1 text-xs font-semibold ${u.role === "admin" ? "text-purple-700" : "text-[rgba(245,239,227,0.60)]"}`}>
                               {u.role === "admin" ? <Shield className="w-3 h-3" /> : null}
                               {u.role}
                             </span>
@@ -529,8 +529,8 @@ export default function Admin() {
               </div>
 
               {(usersQuery.data?.total ?? 0) > 20 && (
-                <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100">
-                  <p className="text-sm text-gray-600">
+                <div className="flex items-center justify-between px-5 py-4 border-t border-white/8">
+                  <p className="text-sm text-[rgba(245,239,227,0.60)]">
                     Showing {((page - 1) * 20) + 1}–{Math.min(page * 20, usersQuery.data?.total ?? 0)} of {usersQuery.data?.total} users
                   </p>
                   <div className="flex gap-2">
@@ -548,8 +548,8 @@ export default function Admin() {
           <section aria-label="Leads management">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900" style={{  }}>Email Leads</h2>
-                <p className="text-sm text-gray-600 mt-0.5">{leadsQuery.data?.total ?? 0} leads captured from the landing page</p>
+                <h2 className="text-xl font-bold text-[#F5EFE3]" style={{  }}>Email Leads</h2>
+                <p className="text-sm text-[rgba(245,239,227,0.60)] mt-0.5">{leadsQuery.data?.total ?? 0} leads captured from the landing page</p>
               </div>
               <Button
                 variant="outline" size="sm"
@@ -568,34 +568,34 @@ export default function Admin() {
                 Export CSV
               </Button>
             </div>
-            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
-              <div className="hidden sm:grid grid-cols-4 gap-4 px-6 py-3 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+            <div className="bg-[#161B22] rounded-xl border border-white/8 overflow-hidden shadow-sm">
+              <div className="hidden sm:grid grid-cols-4 gap-4 px-6 py-3 bg-[#1C2333] text-xs font-semibold text-[rgba(245,239,227,0.60)] uppercase tracking-wide">
                 <span>Name</span><span>Email</span><span>Source</span><span>Date</span>
               </div>
               {leadsQuery.isLoading ? (
-                <div className="p-6 text-center text-gray-600">
+                <div className="p-6 text-center text-[rgba(245,239,227,0.60)]">
                   <div className="w-8 h-8 border-2 border-[#D4922A] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                   <p className="text-sm">Loading leads…</p>
                 </div>
               ) : !leadsQuery.data?.leads || leadsQuery.data.leads.length === 0 ? (
-                <div className="py-16 text-center text-gray-600">
+                <div className="py-16 text-center text-[rgba(245,239,227,0.60)]">
                   <Mail className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                  <p className="text-sm font-medium text-gray-600">No leads captured yet</p>
+                  <p className="text-sm font-medium text-[rgba(245,239,227,0.60)]">No leads captured yet</p>
                   <p className="text-xs mt-1">Email sign-ups from the landing page will appear here.</p>
                 </div>
               ) : leadsQuery.data.leads.map((lead, i) => (
-                <div key={lead.id} className={`grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 px-6 py-4 ${i > 0 ? "border-t border-gray-50" : ""} hover:bg-gray-50`}>
-                  <p className="text-sm font-medium text-gray-900">{lead.name || <span className="text-gray-600 italic">No name</span>}</p>
-                  <p className="text-sm text-gray-600 truncate">{lead.email}</p>
+                <div key={lead.id} className={`grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 px-6 py-4 ${i > 0 ? "border-t border-gray-50" : ""} hover:bg-[#1C2333]`}>
+                  <p className="text-sm font-medium text-[#F5EFE3]">{lead.name || <span className="text-[rgba(245,239,227,0.60)] italic">No name</span>}</p>
+                  <p className="text-sm text-[rgba(245,239,227,0.60)] truncate">{lead.email}</p>
                   <span className="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-xs font-medium bg-[#D4922A]/10 text-[#007A65]">{lead.source ?? "landing_page"}</span>
-                  <p className="text-sm text-gray-600">{new Date(lead.createdAt).toLocaleDateString()}</p>
+                  <p className="text-sm text-[rgba(245,239,227,0.60)]">{new Date(lead.createdAt).toLocaleDateString()}</p>
                 </div>
               ))}
             </div>
             {(leadsQuery.data?.total ?? 0) > 50 && (
               <div className="flex items-center justify-between mt-4">
                 <Button variant="outline" size="sm" onClick={() => setLeadsPage(p => Math.max(1, p - 1))} disabled={leadsPage === 1}>Previous</Button>
-                <span className="text-sm text-gray-600">Page {leadsPage} of {Math.ceil((leadsQuery.data?.total ?? 0) / 50)}</span>
+                <span className="text-sm text-[rgba(245,239,227,0.60)]">Page {leadsPage} of {Math.ceil((leadsQuery.data?.total ?? 0) / 50)}</span>
                 <Button variant="outline" size="sm" onClick={() => setLeadsPage(p => p + 1)} disabled={leadsPage >= Math.ceil((leadsQuery.data?.total ?? 0) / 50)}>Next</Button>
               </div>
             )}
@@ -605,9 +605,9 @@ export default function Admin() {
         {/* ── Broadcast Tab ─────────────────────────────────────────────── */}
         {activeTab === "broadcast" && (
           <section aria-label="Broadcast notification">
-            <h2 className="text-xl font-bold text-gray-900 mb-2" style={{  }}>Send Broadcast</h2>
-            <p className="text-sm text-gray-600 mb-6">Send an owner notification — useful for tracking important events or reminders.</p>
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm max-w-xl">
+            <h2 className="text-xl font-bold text-[#F5EFE3] mb-2" style={{  }}>Send Broadcast</h2>
+            <p className="text-sm text-[rgba(245,239,227,0.60)] mb-6">Send an owner notification — useful for tracking important events or reminders.</p>
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm max-w-xl">
               <form onSubmit={e => { e.preventDefault(); if (!broadcastTitle.trim() || !broadcastContent.trim()) { toast.error("Please fill in both fields"); return; } broadcastMutation.mutate({ title: broadcastTitle, content: broadcastContent }); }} noValidate>
                 <div className="mb-4">
                   <label htmlFor="broadcast-title" className="form-label">Title *</label>
@@ -635,8 +635,8 @@ export default function Admin() {
           <section aria-label="Site settings">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900" style={{  }}>Site Settings</h2>
-                <p className="text-sm text-gray-600 mt-0.5">Control every aspect of the platform from here</p>
+                <h2 className="text-xl font-bold text-[#F5EFE3]" style={{  }}>Site Settings</h2>
+                <p className="text-sm text-[rgba(245,239,227,0.60)] mt-0.5">Control every aspect of the platform from here</p>
               </div>
               {settingsDirty && (
                 <Button
@@ -655,8 +655,8 @@ export default function Admin() {
               <div className="space-y-6">
 
                 {/* Site Identity */}
-                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                  <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                  <h3 className="text-base font-bold text-[#F5EFE3] mb-5 flex items-center gap-2">
                     <Globe className="w-4 h-4 text-[#D4922A]" />
                     Site Identity
                   </h3>
@@ -685,9 +685,9 @@ export default function Admin() {
                 </div>
 
                 {/* Announcement Banner */}
-                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
                   <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <h3 className="text-base font-bold text-[#F5EFE3] flex items-center gap-2">
                       <Megaphone className="w-4 h-4 text-[#D4922A]" />
                       Announcement Banner
                     </h3>
@@ -727,8 +727,8 @@ export default function Admin() {
                 </div>
 
                 {/* Social Links */}
-                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                  <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                  <h3 className="text-base font-bold text-[#F5EFE3] mb-5 flex items-center gap-2">
                     <Globe className="w-4 h-4 text-[#D4922A]" />
                     Social Media Links
                   </h3>
@@ -751,11 +751,11 @@ export default function Admin() {
                 </div>
 
                 {/* Feature Flags */}
-                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                  <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                  <h3 className="text-base font-bold text-[#F5EFE3] mb-5 flex items-center gap-2">
                     <Zap className="w-4 h-4 text-[#D4922A]" />
                     Feature Flags
-                    <span className="text-xs font-normal text-gray-600 ml-1">— enable or disable platform features globally</span>
+                    <span className="text-xs font-normal text-[rgba(245,239,227,0.60)] ml-1">— enable or disable platform features globally</span>
                   </h3>
                   <div className="space-y-4">
                     {[
@@ -768,8 +768,8 @@ export default function Admin() {
                     ].map(({ key, label, desc }) => (
                       <div key={key} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{label}</p>
-                          <p className="text-xs text-gray-600 mt-0.5">{desc}</p>
+                          <p className="text-sm font-semibold text-[#F5EFE3]">{label}</p>
+                          <p className="text-xs text-[rgba(245,239,227,0.60)] mt-0.5">{desc}</p>
                         </div>
                         <Toggle
                           value={(settingsForm as any)[key] ?? true}
@@ -782,9 +782,9 @@ export default function Admin() {
                 </div>
 
                 {/* Maintenance Mode */}
-                <div className={`bg-white rounded-xl p-6 border shadow-sm ${settingsForm.maintenanceMode ? "border-red-200 bg-red-50/30" : "border-gray-100"}`}>
+                <div className={`bg-[#161B22] rounded-xl p-6 border shadow-sm ${settingsForm.maintenanceMode ? "border-red-200 bg-red-50/30" : "border-white/8"}`}>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <h3 className="text-base font-bold text-[#F5EFE3] flex items-center gap-2">
                       <Lock className="w-4 h-4 text-red-500" />
                       Maintenance Mode
                       {settingsForm.maintenanceMode && <span className="text-xs font-semibold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">ACTIVE</span>}
@@ -795,7 +795,7 @@ export default function Admin() {
                       label="Toggle maintenance mode"
                     />
                   </div>
-                  <p className="text-xs text-gray-600 mb-4">When enabled, all non-admin users will see a maintenance page instead of the app.</p>
+                  <p className="text-xs text-[rgba(245,239,227,0.60)] mb-4">When enabled, all non-admin users will see a maintenance page instead of the app.</p>
                   <div>
                     <label className="form-label">Maintenance Message</label>
                     <input type="text" value={settingsForm.maintenanceMessage ?? ""} onChange={e => updateField("maintenanceMessage", e.target.value)} className="form-input-light" placeholder="We're performing scheduled maintenance. Back in 30 minutes!" maxLength={512} />
@@ -803,8 +803,8 @@ export default function Admin() {
                 </div>
 
                 {/* Change Admin Password */}
-                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                  <h3 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                  <h3 className="text-base font-bold text-[#F5EFE3] mb-5 flex items-center gap-2">
                     <KeyRound className="w-4 h-4 text-[#D4922A]" />
                     Change Admin Password
                   </h3>
@@ -823,7 +823,7 @@ export default function Admin() {
                         <button
                           type="button"
                           onClick={() => setCpShowCurrent(v => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgba(245,239,227,0.40)] hover:text-[rgba(245,239,227,0.60)]"
                           aria-label={cpShowCurrent ? "Hide password" : "Show password"}
                         >
                           {cpShowCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -844,7 +844,7 @@ export default function Admin() {
                         <button
                           type="button"
                           onClick={() => setCpShowNew(v => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgba(245,239,227,0.40)] hover:text-[rgba(245,239,227,0.60)]"
                           aria-label={cpShowNew ? "Hide password" : "Show password"}
                         >
                           {cpShowNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -876,7 +876,7 @@ export default function Admin() {
                         ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Updating…</>
                         : <><KeyRound className="w-4 h-4" />Update Password</>}
                     </Button>
-                    <p className="text-xs text-gray-500">You will be redirected to log in again after changing your password.</p>
+                    <p className="text-xs text-[rgba(245,239,227,0.50)]">You will be redirected to log in again after changing your password.</p>
                   </div>
                 </div>
 
@@ -902,8 +902,8 @@ export default function Admin() {
           <section aria-label="System health">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900" style={{  }}>System Health</h2>
-                <p className="text-sm text-gray-600 mt-0.5">Live platform diagnostics — auto-refreshes every 30 seconds</p>
+                <h2 className="text-xl font-bold text-[#F5EFE3]" style={{  }}>System Health</h2>
+                <p className="text-sm text-[rgba(245,239,227,0.60)] mt-0.5">Live platform diagnostics — auto-refreshes every 30 seconds</p>
               </div>
               <Button variant="outline" size="sm" onClick={() => healthQuery.refetch()} disabled={healthQuery.isFetching}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${healthQuery.isFetching ? "animate-spin" : ""}`} />
@@ -917,13 +917,13 @@ export default function Admin() {
               <div className="space-y-6">
                 {/* Status indicators */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+                  <div className="bg-[#161B22] rounded-xl p-5 border border-white/8 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${health.dbStatus === "healthy" ? "bg-emerald-100" : "bg-red-100"}`}>
                         <Database className={`w-5 h-5 ${health.dbStatus === "healthy" ? "text-emerald-600" : "text-red-600"}`} />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-gray-900">Database</p>
+                        <p className="text-sm font-bold text-[#F5EFE3]">Database</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <HealthDot ok={health.dbStatus === "healthy"} />
                           <span className={`text-xs font-semibold ${health.dbStatus === "healthy" ? "text-emerald-600" : "text-red-600"}`}>
@@ -933,14 +933,14 @@ export default function Admin() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+                  <div className="bg-[#161B22] rounded-xl p-5 border border-white/8 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
                         <Server className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-gray-900">Server Uptime</p>
-                        <p className="text-xs text-gray-600 mt-0.5">
+                        <p className="text-sm font-bold text-[#F5EFE3]">Server Uptime</p>
+                        <p className="text-xs text-[rgba(245,239,227,0.60)] mt-0.5">
                           {health.uptimeSeconds < 3600
                             ? `${Math.floor(health.uptimeSeconds / 60)}m ${health.uptimeSeconds % 60}s`
                             : `${Math.floor(health.uptimeSeconds / 3600)}h ${Math.floor((health.uptimeSeconds % 3600) / 60)}m`}
@@ -948,22 +948,22 @@ export default function Admin() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+                  <div className="bg-[#161B22] rounded-xl p-5 border border-white/8 shadow-sm">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
                         <Activity className="w-5 h-5 text-purple-600" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-gray-900">New Signups (7d)</p>
-                        <p className="text-xs text-gray-600 mt-0.5">{health.recentSignups} new users this week</p>
+                        <p className="text-sm font-bold text-[#F5EFE3]">New Signups (7d)</p>
+                        <p className="text-xs text-[rgba(245,239,227,0.60)] mt-0.5">{health.recentSignups} new users this week</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Data counts */}
-                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                  <h3 className="text-base font-bold text-gray-900 mb-5">Platform Data</h3>
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                  <h3 className="text-base font-bold text-[#F5EFE3] mb-5">Platform Data</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                     {[
                       { label: "Total Users", value: health.totalUsers, sub: `${health.paidUsers} paid` },
@@ -973,18 +973,18 @@ export default function Admin() {
                       { label: "Total Bookings", value: health.totalBookings, sub: `${health.completedBookings} completed` },
                       { label: "Checked At", value: new Date(health.checkedAt).toLocaleTimeString(), sub: "Last check" },
                     ].map(({ label, value, sub }) => (
-                      <div key={label} className="text-center p-4 bg-gray-50 rounded-xl">
-                        <p className="text-2xl font-extrabold text-gray-900" style={{  }}>{value}</p>
-                        <p className="text-xs font-semibold text-gray-700 mt-1">{label}</p>
-                        <p className="text-xs text-gray-600 mt-0.5">{sub}</p>
+                      <div key={label} className="text-center p-4 bg-[#1C2333] rounded-xl">
+                        <p className="text-2xl font-extrabold text-[#F5EFE3]" style={{  }}>{value}</p>
+                        <p className="text-xs font-semibold text-[rgba(245,239,227,0.70)] mt-1">{label}</p>
+                        <p className="text-xs text-[rgba(245,239,227,0.60)] mt-0.5">{sub}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Quick actions */}
-                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                  <h3 className="text-base font-bold text-gray-900 mb-4">Quick Actions</h3>
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                  <h3 className="text-base font-bold text-[#F5EFE3] mb-4">Quick Actions</h3>
                   <div className="flex flex-wrap gap-3">
                     <Button variant="outline" size="sm" className="gap-2" onClick={() => { healthQuery.refetch(); statsQuery.refetch(); toast.success("All data refreshed"); }}>
                       <RefreshCw className="w-4 h-4" />
@@ -1002,7 +1002,7 @@ export default function Admin() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-16 text-gray-600">
+              <div className="text-center py-16 text-[rgba(245,239,227,0.60)]">
                 <Activity className="w-10 h-10 mx-auto mb-3 opacity-30" />
                 <p className="text-sm">Could not load health data. Try refreshing.</p>
               </div>
@@ -1020,7 +1020,7 @@ export default function Admin() {
                 ? "bg-red-50 border-red-200"
                 : watchdogQuery.data?.healthy === true
                 ? "bg-green-50 border-green-200"
-                : "bg-white border-gray-100"
+                : "bg-[#161B22] border-white/8"
             }`}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -1028,9 +1028,9 @@ export default function Admin() {
                     watchdogQuery.data?.healthy === false ? "bg-red-500 animate-pulse" :
                     watchdogQuery.data?.healthy === true ? "bg-green-500" : "bg-gray-300"
                   }`} />
-                  <h2 className="text-lg font-bold text-gray-900">Watchdog Status</h2>
+                  <h2 className="text-lg font-bold text-[#F5EFE3]">Watchdog Status</h2>
                   {watchdogQuery.data?.checkedAt && (
-                    <span className="text-xs text-gray-600">Last checked: {new Date(watchdogQuery.data.checkedAt).toLocaleTimeString()}</span>
+                    <span className="text-xs text-[rgba(245,239,227,0.60)]">Last checked: {new Date(watchdogQuery.data.checkedAt).toLocaleTimeString()}</span>
                   )}
                 </div>
                 <Button size="sm" variant="outline" onClick={() => watchdogQuery.refetch()} disabled={watchdogQuery.isFetching}>
@@ -1067,7 +1067,7 @@ export default function Admin() {
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-gray-600">Running watchdog check...</p>
+                <p className="text-sm text-[rgba(245,239,227,0.60)]">Running watchdog check...</p>
               )}
             </div>
 
@@ -1082,19 +1082,19 @@ export default function Admin() {
                 ].map(stat => (
                   <div key={stat.label} className={`${stat.bg} rounded-xl p-5 border border-white shadow-sm`}>
                     <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                    <p className="text-xs text-gray-600 mt-1">{stat.label}</p>
+                    <p className="text-xs text-[rgba(245,239,227,0.60)] mt-1">{stat.label}</p>
                   </div>
                 ))}
               </div>
             )}
 
             {/* IP Management */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-              <h3 className="text-base font-bold text-gray-900 mb-4">IP Management</h3>
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+              <h3 className="text-base font-bold text-[#F5EFE3] mb-4">IP Management</h3>
               <div className="grid sm:grid-cols-2 gap-6">
                 {/* Block IP */}
                 <div className="space-y-3">
-                  <p className="text-sm font-semibold text-gray-700">Block an IP Address</p>
+                  <p className="text-sm font-semibold text-[rgba(245,239,227,0.70)]">Block an IP Address</p>
                   <input
                     type="text"
                     value={blockIPInput}
@@ -1121,7 +1121,7 @@ export default function Admin() {
                 </div>
                 {/* Unblock IP */}
                 <div className="space-y-3">
-                  <p className="text-sm font-semibold text-gray-700">Unblock an IP Address</p>
+                  <p className="text-sm font-semibold text-[rgba(245,239,227,0.70)]">Unblock an IP Address</p>
                   <input
                     type="text"
                     value={blockIPInput}
@@ -1143,7 +1143,7 @@ export default function Admin() {
                   {/* Blocked IPs list */}
                   {securityStatsQuery.data?.permanentBlocklist && securityStatsQuery.data.permanentBlocklist > 0 && (
                     <div className="mt-3">
-                      <p className="text-xs font-semibold text-gray-600 mb-2">{securityStatsQuery.data.permanentBlocklist} IP(s) in permanent blocklist</p>
+                      <p className="text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-2">{securityStatsQuery.data.permanentBlocklist} IP(s) in permanent blocklist</p>
                     </div>
                   )}
                 </div>
@@ -1151,11 +1151,11 @@ export default function Admin() {
             </div>
 
             {/* Account Lockout Management */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-              <h3 className="text-base font-bold text-gray-900 mb-4">Account Lockout Management</h3>
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+              <h3 className="text-base font-bold text-[#F5EFE3] mb-4">Account Lockout Management</h3>
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="space-y-3">
-                  <p className="text-sm font-semibold text-gray-700">Unlock a Locked Account</p>
+                  <p className="text-sm font-semibold text-[rgba(245,239,227,0.70)]">Unlock a Locked Account</p>
                   <input
                     type="email"
                     value={unlockEmailInput}
@@ -1176,7 +1176,7 @@ export default function Admin() {
                 </div>
                 {securityStatsQuery.data?.lockedAccounts && securityStatsQuery.data.lockedAccounts.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-gray-600 mb-2">Currently Locked:</p>
+                    <p className="text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-2">Currently Locked:</p>
                     <div className="space-y-1 max-h-40 overflow-y-auto">
                       {securityStatsQuery.data.lockedAccounts.map((acct) => (
                         <div key={acct.email} className="flex items-center justify-between bg-amber-50 rounded-lg px-3 py-1.5">
@@ -1196,9 +1196,9 @@ export default function Admin() {
             </div>
 
             {/* Security Events Log */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                <h3 className="text-base font-bold text-gray-900">Security Event Log</h3>
+                <h3 className="text-base font-bold text-[#F5EFE3]">Security Event Log</h3>
                 <div className="flex flex-wrap items-center gap-2">
                   <select
                     value={securityFilter}
@@ -1211,7 +1211,7 @@ export default function Admin() {
                     <option value="medium">Medium</option>
                     <option value="low">Low</option>
                   </select>
-                  <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+                  <label className="flex items-center gap-1.5 text-sm text-[rgba(245,239,227,0.60)] cursor-pointer">
                     <input
                       type="checkbox"
                       checked={showResolvedEvents}
@@ -1234,39 +1234,39 @@ export default function Admin() {
                 </div>
               </div>
               {securityEventsQuery.isLoading ? (
-                <div className="py-8 text-center text-gray-600 text-sm">Loading events...</div>
+                <div className="py-8 text-center text-[rgba(245,239,227,0.60)] text-sm">Loading events...</div>
               ) : securityEventsQuery.data && securityEventsQuery.data.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Time</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Event</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Severity</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">IP</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Details</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Action</th>
+                      <tr className="border-b border-white/8">
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-[rgba(245,239,227,0.60)]">Time</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-[rgba(245,239,227,0.60)]">Event</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-[rgba(245,239,227,0.60)]">Severity</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-[rgba(245,239,227,0.60)]">IP</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-[rgba(245,239,227,0.60)]">Details</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-[rgba(245,239,227,0.60)]">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       {securityEventsQuery.data.map(event => (
-                        <tr key={event.id} className={`hover:bg-gray-50 transition-colors ${event.resolved ? "opacity-50" : ""}`}>
-                          <td className="py-2 px-3 text-xs text-gray-600 whitespace-nowrap">
+                        <tr key={event.id} className={`hover:bg-[#1C2333] transition-colors ${event.resolved ? "opacity-50" : ""}`}>
+                          <td className="py-2 px-3 text-xs text-[rgba(245,239,227,0.60)] whitespace-nowrap">
                             {new Date(event.createdAt).toLocaleString()}
                           </td>
-                          <td className="py-2 px-3 font-mono text-xs text-gray-700">{event.eventType}</td>
+                          <td className="py-2 px-3 font-mono text-xs text-[rgba(245,239,227,0.70)]">{event.eventType}</td>
                           <td className="py-2 px-3">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              event.severity === "critical" ? "bg-red-100 text-red-700" :
+                              event.severity === "critical" ? "bg-red-500/15 text-red-400" :
                               event.severity === "high" ? "bg-orange-100 text-orange-700" :
-                              event.severity === "medium" ? "bg-amber-100 text-amber-700" :
-                              "bg-gray-100 text-gray-600"
+                              event.severity === "medium" ? "bg-amber-500/15 text-amber-400" :
+                              "bg-[#243040] text-[rgba(245,239,227,0.60)]"
                             }`}>
                               {event.severity}
                             </span>
                           </td>
-                          <td className="py-2 px-3 font-mono text-xs text-gray-600">{event.ip ?? "—"}</td>
-                          <td className="py-2 px-3 text-xs text-gray-600 max-w-xs truncate">{event.details ?? event.email ?? "—"}</td>
+                          <td className="py-2 px-3 font-mono text-xs text-[rgba(245,239,227,0.60)]">{event.ip ?? "—"}</td>
+                          <td className="py-2 px-3 text-xs text-[rgba(245,239,227,0.60)] max-w-xs truncate">{event.details ?? event.email ?? "—"}</td>
                           <td className="py-2 px-3">
                             {!event.resolved && (
                               <button
@@ -1283,7 +1283,7 @@ export default function Admin() {
                   </table>
                 </div>
               ) : (
-                <div className="py-8 text-center text-gray-600">
+                <div className="py-8 text-center text-[rgba(245,239,227,0.60)]">
                   <Shield className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">No security events found.</p>
                 </div>
@@ -1295,8 +1295,8 @@ export default function Admin() {
         {/* Invite Codes Tab */}
         {activeTab === "invites" && (
           <section aria-label="Invite Codes" className="space-y-6">
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-              <h3 className="text-base font-bold text-gray-900 mb-4">Generate Invite Code</h3>
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+              <h3 className="text-base font-bold text-[#F5EFE3] mb-4">Generate Invite Code</h3>
               <div className="flex gap-3">
                 <input
                   value={newInviteNote}
@@ -1313,12 +1313,12 @@ export default function Admin() {
                 </Button>
               </div>
             </div>
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-              <h3 className="text-base font-bold text-gray-900 mb-4">Active Invite Codes</h3>
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+              <h3 className="text-base font-bold text-[#F5EFE3] mb-4">Active Invite Codes</h3>
               {invitesQuery.isLoading ? (
-                <div className="py-8 text-center text-gray-600">Loading...</div>
+                <div className="py-8 text-center text-[rgba(245,239,227,0.60)]">Loading...</div>
               ) : !invitesQuery.data?.length ? (
-                <div className="py-8 text-center text-gray-600">
+                <div className="py-8 text-center text-[rgba(245,239,227,0.60)]">
                   <Key className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">No invite codes yet. Generate one above.</p>
                 </div>
@@ -1326,37 +1326,37 @@ export default function Admin() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Code</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Note</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Status</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Created</th>
-                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600">Actions</th>
+                      <tr className="border-b border-white/8">
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-[rgba(245,239,227,0.60)]">Code</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-[rgba(245,239,227,0.60)]">Note</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-[rgba(245,239,227,0.60)]">Status</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-[rgba(245,239,227,0.60)]">Created</th>
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-[rgba(245,239,227,0.60)]">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {invitesQuery.data.map((inv: any) => (
-                        <tr key={inv.id} className="border-b border-gray-50 hover:bg-gray-50">
+                        <tr key={inv.id} className="border-b border-gray-50 hover:bg-[#1C2333]">
                           <td className="py-2 px-3">
                             <div className="flex items-center gap-2">
                               <span className="font-mono font-bold text-[#0D1117]">{inv.code}</span>
                               <button
                                 onClick={() => { navigator.clipboard.writeText(inv.code); setCopiedCode(inv.code); setTimeout(() => setCopiedCode(null), 2000); }}
-                                className="p-1 rounded hover:bg-gray-100 text-gray-600 hover:text-gray-600"
+                                className="p-1 rounded hover:bg-[#243040] text-[rgba(245,239,227,0.60)] hover:text-[rgba(245,239,227,0.60)]"
                               >
                                 {copiedCode === inv.code ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                               </button>
                             </div>
                           </td>
-                          <td className="py-2 px-3 text-gray-600">{inv.note || "—"}</td>
+                          <td className="py-2 px-3 text-[rgba(245,239,227,0.60)]">{inv.note || "—"}</td>
                           <td className="py-2 px-3">
                             {inv.usedBy ? (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Used</span>
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-[#243040] text-[rgba(245,239,227,0.60)]">Used</span>
                             ) : (
                               <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-600">Available</span>
                             )}
                           </td>
-                          <td className="py-2 px-3 text-gray-600 text-xs">{new Date(inv.createdAt).toLocaleDateString()}</td>
+                          <td className="py-2 px-3 text-[rgba(245,239,227,0.60)] text-xs">{new Date(inv.createdAt).toLocaleDateString()}</td>
                           <td className="py-2 px-3">
                             {!inv.usedBy && (
                               <button

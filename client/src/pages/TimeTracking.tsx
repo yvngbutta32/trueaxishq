@@ -187,7 +187,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-[#0D1117]">Time Tracking</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Track billable hours and generate invoices instantly</p>
+          <p className="text-sm text-[rgba(245,239,227,0.50)] mt-0.5">Track billable hours and generate invoices instantly</p>
         </div>
         <Button
           onClick={() => setShowForm(!showForm)}
@@ -205,20 +205,20 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
           { label: "Sessions Today", value: String(todayCount), icon: Timer, color: "#10B981" },
           { label: "Avg Rate/hr", value: avgRate !== null ? formatCurrency(avgRate) : "—", icon: TrendingUp, color: "#FF6B6B" },
         ].map(c => (
-          <div key={c.label} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <div key={c.label} className="bg-[#161B22] rounded-xl p-4 shadow-sm border border-white/8">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: c.color + "15" }}>
                 <c.icon className="w-4 h-4" style={{ color: c.color }} />
               </div>
             </div>
             <p className="text-xl font-bold text-[#0D1117]">{c.value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{c.label}</p>
+            <p className="text-xs text-[rgba(245,239,227,0.50)] mt-0.5">{c.label}</p>
           </div>
         ))}
       </div>
 
       {/* Live Timer */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <div className="bg-[#161B22] rounded-xl p-5 shadow-sm border border-white/8">
         <h3 className="font-bold text-sm text-[#0D1117] mb-4 flex items-center gap-2">
           <Timer className="w-4 h-4 text-[#D4922A]" />
           Live Timer
@@ -271,7 +271,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
             ) : (
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-[#0D1117]">{runningEntry.description || "Timer running…"}</p>
-                {runningEntry.clientName && <p className="text-xs text-gray-400">{runningEntry.clientName}</p>}
+                {runningEntry.clientName && <p className="text-xs text-[rgba(245,239,227,0.40)]">{runningEntry.clientName}</p>}
               </div>
             )}
           </div>
@@ -301,11 +301,11 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
 
       {/* Manual Entry Form */}
       {showForm && (
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div className="bg-[#161B22] rounded-xl p-5 shadow-sm border border-white/8">
           <h3 className="font-bold text-sm text-[#0D1117] mb-4">Add Manual Entry</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Client</label>
+              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5">Client</label>
               <select
                 value={form.clientId}
                 onChange={e => setForm(p => ({ ...p, clientId: e.target.value }))}
@@ -316,7 +316,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Date *</label>
+              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5">Date *</label>
               <input
                 type="date"
                 value={form.date}
@@ -325,7 +325,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Duration (hours) *</label>
+              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5">Duration (hours) *</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -337,7 +337,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Hourly Rate ($)</label>
+              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5">Hourly Rate ($)</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -349,7 +349,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Description</label>
+              <label className="block text-xs font-semibold text-[rgba(245,239,227,0.60)] mb-1.5">Description</label>
               <input
                 value={form.description}
                 onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
@@ -367,7 +367,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
                 onChange={e => setForm(p => ({ ...p, billable: e.target.checked }))}
                 className="w-4 h-4 accent-[#D4922A]"
               />
-              <label htmlFor="billable" className="text-sm text-gray-700 cursor-pointer">Billable</label>
+              <label htmlFor="billable" className="text-sm text-[rgba(245,239,227,0.70)] cursor-pointer">Billable</label>
             </div>
           </div>
           <div className="flex gap-2 mt-4">
@@ -385,11 +385,11 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
       )}
 
       {/* Entries List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="bg-[#161B22] rounded-xl shadow-sm border border-white/8 overflow-hidden">
+        <div className="px-5 py-4 border-b border-white/8 flex items-center justify-between">
           <h3 className="font-bold text-sm text-[#0D1117]">Recent Entries</h3>
           {(entries?.length ?? 0) > 0 && (
-            <span className="text-xs text-gray-400">{entries!.length} entries</span>
+            <span className="text-xs text-[rgba(245,239,227,0.40)]">{entries!.length} entries</span>
           )}
         </div>
         {isLoading ? (
@@ -399,8 +399,8 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
         ) : !entries || entries.length === 0 ? (
           <div className="p-10 text-center">
             <Clock className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-gray-500">No time entries yet</p>
-            <p className="text-xs text-gray-400 mt-1">Start the timer or add a manual entry above</p>
+            <p className="text-sm font-semibold text-[rgba(245,239,227,0.50)]">No time entries yet</p>
+            <p className="text-xs text-[rgba(245,239,227,0.40)] mt-1">Start the timer or add a manual entry above</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-50">
@@ -418,7 +418,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
               return (
                 <div
                   key={entry.id}
-                  className={`flex items-center gap-3 px-5 py-3.5 transition-colors ${entry.invoiced ? "bg-green-50/40" : "hover:bg-gray-50"}`}
+                  className={`flex items-center gap-3 px-5 py-3.5 transition-colors ${entry.invoiced ? "bg-green-50/40" : "hover:bg-[#1C2333]"}`}
                 >
                   {/* Status icon */}
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
@@ -445,7 +445,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-[rgba(245,239,227,0.40)] mt-0.5">
                       {entry.clientName || "No client"} · {new Date(entry.startedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                       {rate > 0 && !isRunning && <span className="ml-1 text-gray-300">· ${rate}/hr</span>}
                     </p>
@@ -495,7 +495,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
 
       {/* Invoice generation hint */}
       {(entries?.some((e: any) => !e.endedAt === false && e.billable && parseFloat(String(e.hourlyRate ?? "0")) > 0 && !e.invoiced)) && (
-        <p className="text-xs text-gray-400 text-center pb-2">
+        <p className="text-xs text-[rgba(245,239,227,0.40)] text-center pb-2">
           Click <span className="font-semibold text-[#D4922A]">Invoice</span> on any completed billable entry to generate an invoice instantly.
         </p>
       )}

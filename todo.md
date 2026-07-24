@@ -1091,3 +1091,32 @@
 - [ ] Onboarding checklist wiring — wire checklist steps to real DB events (not localStorage)
 - [ ] Google Calendar OAuth — complete the full OAuth flow (token exchange + event sync)
 - [ ] PWA service worker — verify sw.js is registered and caching correctly on production
+
+## Premium Polish & Feature Completion (Jul 2026)
+
+### Dark Theme Unification — Dashboard
+- [x] Dashboard background: change bg-[#F5F5F7] to dark surface bg-[#0D1117]
+- [x] All panel cards: replace bg-white with bg-[#161B22], border-gray-100 with border-white/8
+- [x] All panel text: replace text-[#1C2333] with text-[#F5EFE3], text-gray-600 with text-white/55
+- [x] All panel hover states: replace hover:bg-gray-50 with hover:bg-white/5
+- [x] All status badges: dark equivalents (bg-green-500/15 text-green-400 etc)
+- [x] form-input-light CSS: converted to dark theme
+- [x] OnboardingChecklist: dark theme
+- [x] Invoice preview: dark status badges
+
+### Premium Design Polish
+- [ ] Sidebar: amber left-border indicator on active nav item
+- [ ] Sidebar: subtle dividers between nav groups
+- [ ] Header: improve visual hierarchy with panel subtitle
+- [ ] Dashboard stat cards: subtle gradient/glow on hover
+- [ ] Typography: remove all inline style fontFamily Inter, use CSS class
+- [ ] MobileBottomNav: dark theme polish
+- [ ] MobileQuickStats: dark theme polish
+- [ ] All empty states: consistent dark-theme styling
+
+### Functional Completions
+- [ ] ClientsPanel: add defaultRate field to add/edit client form
+- [ ] TimeTracking: auto-fill hourly rate from client defaultRate when client selected
+- [ ] Bulk invoice from selected time entries (checkboxes + Create Invoice button)
+- [ ] Onboarding checklist: wire steps to real DB events
+- [ ] Audit log CSV export button in Admin Security tab
