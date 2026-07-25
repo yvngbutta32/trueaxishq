@@ -71,7 +71,9 @@ export const appRouter = router({
       .input(z.object({
         name: z.string().trim().min(1).max(255),
         email: safeEmail,
-        password: z.string().min(8).max(128),
+        password: z.string().min(8).max(128)
+          .regex(/[a-zA-Z]/, "Password must contain at least one letter")
+          .regex(/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, "Password must contain at least one number or symbol"),
         inviteCode: z.string().trim().min(1).max(32),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -266,7 +268,7 @@ export const appRouter = router({
           });
 
           // Build reset URL from the request origin (works in any environment)
-          const origin = input.origin || ctx.req.headers.origin || ctx.req.headers.referer?.replace(/\/[^/]*$/, '') || 'https://trueaxishq.manus.space';
+          const origin = input.origin || ctx.req.headers.origin || 'https://trueaxishq.manus.space';
           const resetUrl = `${origin}/reset-password?token=${token}`;
           // Send real email to the user
           await sendEmail({
@@ -703,7 +705,7 @@ export const appRouter = router({
               requestToken: reqToken,
               status: "requested",
             });
-            const origin = process.env.VITE_FRONTEND_FORGE_API_URL?.replace("/api", "") || "https://trueaxishq.com";
+            const origin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
             sendEmail({
               to: inv.clientEmail,
               subject: `How did we do? Share your feedback`,
@@ -785,13 +787,11 @@ export const appRouter = router({
         .filter(i => i.status === "sent" && i.dueDate && i.dueDate < today)
         .map(i => i.id);
       if (overdueIds.length > 0) {
-        // Batch update all overdue invoices in a single query
-        requireDb().then(db =>
-          db.update(invoices)
-            .set({ status: "overdue", updatedAt: new Date() })
-            .where(inArray(invoices.id, overdueIds))
-            .catch(() => {})
-        ).catch(() => {});
+        // Batch update all overdue invoices in a single query — reuse existing db connection
+        db.update(invoices)
+          .set({ status: "overdue", updatedAt: new Date() })
+          .where(inArray(invoices.id, overdueIds))
+          .catch(() => {});
       }
       const totalRevenue = all.filter(i => i.status === "paid").reduce((s, i) => s + parseFloat(String(i.amount)), 0);
       const outstanding = all.filter(i => i.status === "sent" || i.status === "overdue").reduce((s, i) => s + parseFloat(String(i.amount)), 0);
@@ -920,7 +920,7 @@ export const appRouter = router({
       .input(z.object({ token: z.string().min(1).max(128) }))
       .query(async ({ input }) => {
         const db = await requireDb();
-        const [inv] = await db.select().from(invoices).where(eq(invoices.payLinkToken, input.token));
+        const [inv] = await db.select().from(invoices).where(eq(invoices.payLinkToken, input.token)).limit(1);
         if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Payment link not found or expired" });
         if (inv.status === "paid") return { invoice: inv, alreadyPaid: true };
         return { invoice: inv, alreadyPaid: false };
@@ -929,7 +929,7 @@ export const appRouter = router({
       .input(z.object({ token: z.string().min(1).max(128), origin: z.string().url() }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
-        const [inv] = await db.select().from(invoices).where(eq(invoices.payLinkToken, input.token));
+        const [inv] = await db.select().from(invoices).where(eq(invoices.payLinkToken, input.token)).limit(1);
         if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
         if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice already paid" });
         const amountCents = Math.round(parseFloat(String(inv.amount)) * 100);
@@ -1999,8 +1999,8 @@ Only include actions when you have actually generated a complete draft. For gene
               sessionsCount: 1,
               lastContactedAt: new Date(),
             });
-            clientId = Number((inserted as any).insertId);
-            isNewClient = true;
+            clientId = Number((inserted as any).insertId) || null;
+            isNewClient = clientId !== null && clientId > 0;
           }
         }
 
@@ -2337,24 +2337,33 @@ Only include actions when you have actually generated a complete draft. For gene
         // Use frontend-provided origin (most reliable), fall back to request header
         const origin = input.origin || ctx.req.headers.origin || "";
 
-        // Check for existing valid token
+        // Check for existing valid token (not expired)
         const [existing] = await db.select().from(clientPortalTokens)
           .where(and(
             eq(clientPortalTokens.userId, ctx.user.id),
             eq(clientPortalTokens.clientId, input.clientId)
           )).limit(1);
 
-        if (existing) {
+        const crypto = await import("crypto");
+        const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
+        const isExpired = existing?.expiresAt && new Date() > existing.expiresAt;
+        const isStale = existing?.createdAt && (Date.now() - new Date(existing.createdAt).getTime() > ninetyDaysMs);
+
+        if (existing && !isExpired && !isStale) {
           return { token: existing.token, url: `${origin}/portal/${existing.token}` };
         }
 
-        // Create new token
-        const crypto = await import("crypto");
+        // Create (or rotate) token — delete old one if present
+        if (existing) {
+          await db.delete(clientPortalTokens).where(eq(clientPortalTokens.id, existing.id));
+        }
         const token = crypto.randomBytes(32).toString("hex");
+        const expiresAt = new Date(Date.now() + ninetyDaysMs);
         await db.insert(clientPortalTokens).values({
           userId: ctx.user.id,
           clientId: input.clientId,
           token,
+          expiresAt,
         });
         return { token, url: `${origin}/portal/${token}` };
       }),

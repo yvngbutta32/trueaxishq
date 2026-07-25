@@ -65,8 +65,9 @@ function getGreeting() {
   return "Good evening";
 }
 
-function formatCurrency(n: number | string) {
-  return `$${parseFloat(String(n)).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+function formatCurrency(n: number | string | null | undefined) {
+  const val = parseFloat(String(n ?? 0));
+  return `$${(isNaN(val) ? 0 : val).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
 function formatDate(d: Date | string | null | undefined) {

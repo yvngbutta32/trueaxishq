@@ -37,7 +37,8 @@ const failedLogins    = new Map<string, { count: number; firstAt: number; locked
 
 // ─── Suspicious patterns ─────────────────────────────────────────────────────
 const SUSPICIOUS_PATTERNS: RegExp[] = [
-  /(\bUNION\b|\bSELECT\b|\bDROP\b|\bINSERT\b|\bDELETE\b|\bUPDATE\b)\s+/i,
+  // SQL injection: require SQL context (keyword followed by another SQL keyword or identifier)
+  /\b(UNION\s+SELECT|SELECT\s+\*|DROP\s+TABLE|DROP\s+DATABASE|INSERT\s+INTO|DELETE\s+FROM|UPDATE\s+\w+\s+SET)\b/i,
   /<script[\s>]/i,
   /javascript:/i,
   /\.\.[/\\]/,
@@ -224,11 +225,37 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
     return res.status(429).json({ error: "Too many requests. Please try again later." });
   }
 
-  // 3. Rate limiting — only applies to /api/ routes, never to static assets
-  // Static assets (JS/CSS/images) must never count against the rate limit
+  // 3. Security headers — apply to ALL responses including static assets
+  res.setHeader(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://fonts.googleapis.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https:",
+      "connect-src 'self' https://api.stripe.com https://fonts.googleapis.com https://d2xsxph8kpxj0f.cloudfront.net https://api.manus.im https://*.manus.space https://*.manus.computer wss: ws: https:",
+      "frame-src https://js.stripe.com https://hooks.stripe.com",
+      "frame-ancestors 'self' https://*.manus.space https://*.manus.computer https://*.trueaxishq.com",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "upgrade-insecure-requests",
+    ].join("; ")
+  );
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  res.removeHeader("X-Powered-By");
+  res.removeHeader("Server");
+
+  // Rate limiting — only applies to /api/ routes, never to static assets
   const isApiRoute = req.path.startsWith("/api/");
   if (!isApiRoute) {
-    // Still apply security headers but skip rate limiting for static assets
     return next();
   }
   // auth.me is a read-only session check called on every page load — use general limit
@@ -257,36 +284,6 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
     alertOwner("⚠️ Security Alert — Suspicious Payload Detected", details);
     return res.status(400).json({ error: "Invalid request." });
   }
-
-  // 5. Comprehensive security headers
-  // Content Security Policy — strict, no inline scripts
-  res.setHeader(
-    "Content-Security-Policy",
-    [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://fonts.googleapis.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://api.stripe.com https://fonts.googleapis.com https://d2xsxph8kpxj0f.cloudfront.net https://api.manus.im https://*.manus.space https://*.manus.computer wss: ws: https:",
-      "frame-src https://js.stripe.com https://hooks.stripe.com",
-      "frame-ancestors 'self' https://*.manus.space https://*.manus.computer https://*.trueaxishq.com",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "upgrade-insecure-requests",
-    ].join("; ")
-  );
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "SAMEORIGIN");
-  res.setHeader("X-XSS-Protection", "1; mode=block");
-  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
-  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-  // Remove server fingerprinting headers
-  res.removeHeader("X-Powered-By");
-  res.removeHeader("Server");
 
   next();
 }

@@ -247,8 +247,11 @@ async function runFollowUpRules() {
                 AND c.email IS NOT NULL
                 AND c.email != ''
                 AND (
-                  SELECT MAX(b.createdAt) FROM bookings b
-                  WHERE b.clientId = c.id AND b.userId = c.userId
+                  COALESCE(
+                    (SELECT MAX(b.createdAt) FROM bookings b
+                     WHERE b.clientId = c.id AND b.userId = c.userId),
+                    '2000-01-01 00:00:00'
+                  )
                 ) < ${cutoffStr}
                 AND NOT EXISTS (
                   SELECT 1 FROM followUps fu
@@ -278,7 +281,7 @@ async function runFollowUpRules() {
                 .replace(/\{senderName\}/g, senderName);
 
               // Save as draft first — only mark sent after email succeeds
-              const [fuResult] = await db.insert(followUps).values({
+              const fuInsertResult = await db.insert(followUps).values({
                 userId: rule.userId,
                 clientId: client.id,
                 clientName: client.name,
@@ -287,7 +290,9 @@ async function runFollowUpRules() {
                 body: personalizedBody,
                 status: "draft",
               });
-              const fuId = (fuResult as any).insertId;
+              // MySQL returns ResultSetHeader; handle both array and direct forms
+              const fuId = (fuInsertResult as any)?.insertId
+                ?? (Array.isArray(fuInsertResult) ? (fuInsertResult[0] as any)?.insertId : null);
 
               // Send the actual email
               await sendEmail({
@@ -336,21 +341,35 @@ async function runFollowUpRules() {
 }
 
 // ─── Monthly report sent-once guard ──────────────────────────────────────────
-let lastMonthlyReportSent = ""; // "YYYY-MM" format — reset on server restart
-
 // ─── Job: Monthly business report email (runs on 1st of month) ───────────────
 async function runMonthlyReport() {
   const now = new Date();
   // Only run on the 1st of the month (check within the hourly window)
   if (now.getDate() !== 1) return;
 
-  // Prevent sending more than once per month (across multiple hourly runs on the 1st)
+  // Prevent sending more than once per month — use DB so server restarts don't re-send
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  if (lastMonthlyReportSent === monthKey) {
-    console.log(`[Jobs] Monthly report already sent for ${monthKey} — skipping`);
-    return;
+  try {
+    const guardDb = await getDb();
+    if (!guardDb) return;
+    const sentCheck = await guardDb.execute(
+      sql`SELECT 1 FROM notifications WHERE title = ${`monthly_report_guard:${monthKey}`} LIMIT 1`
+    ) as any;
+    const sentRows = Array.isArray(sentCheck) ? sentCheck[0] ?? [] : sentCheck?.rows ?? [];
+    if (sentRows.length > 0) {
+      console.log(`[Jobs] Monthly report already sent for ${monthKey} — skipping`);
+      return;
+    }
+    // Insert guard record before sending to prevent double-send on concurrent runs
+    await guardDb.insert(notifications).values({
+      userId: 0,
+      title: `monthly_report_guard:${monthKey}`,
+      body: monthKey,
+      type: 'info',
+    });
+  } catch {
+    console.warn('[Jobs] Could not check monthly report guard — proceeding anyway');
   }
-  lastMonthlyReportSent = monthKey;
 
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
