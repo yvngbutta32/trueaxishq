@@ -24,7 +24,7 @@ const PLAN_COLORS: Record<string, string> = {
 export default function Billing() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
-  const [interval, setInterval] = useState<"monthly" | "annual">("monthly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
   useEffect(() => { document.title = "Billing — TrueAxis HQ"; }, []);
 
   const subscriptionQuery = trpc.billing.getSubscription.useQuery(undefined, {
@@ -166,10 +166,10 @@ export default function Billing() {
             {(["monthly", "annual"] as const).map(opt => (
               <button
                 key={opt}
-                onClick={() => setInterval(opt)}
-                aria-pressed={interval === opt}
+                onClick={() => setBillingCycle(opt)}
+                aria-pressed={billingCycle === opt}
                 className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all min-h-[40px] ${
-                  interval === opt
+                  billingCycle === opt
                     ? "gradient-amber text-white shadow-sm"
                     : "text-[rgba(26,26,26,0.50)] hover:text-[#1A1A1A]"
                 }`}
@@ -195,7 +195,7 @@ export default function Billing() {
             ) : (
               plans.map((plan) => {
                 const isCurrent = plan.id === currentPlan;
-                const price = interval === "annual"
+                const price = billingCycle === "annual"
                   ? Math.round((plan.annualPrice / 100) * 0.8)
                   : plan.monthlyPrice / 100;
                 const Icon = PLAN_ICONS[plan.id] ?? Zap;
@@ -211,7 +211,7 @@ export default function Billing() {
                         ? "border-blue-400/60"
                         : "border-white/15 hover:border-white/30"
                     }`}
-                    aria-label={`${plan.name} plan — $${price} per ${interval === "annual" ? "month (billed annually)" : "month"}`}
+                    aria-label={`${plan.name} plan — $${price} per ${billingCycle === "annual" ? "month (billed annually)" : "month"}`}
                   >
                     {plan.highlighted && (
                       <div className="text-xs font-bold text-[#007A65] bg-[#D4922A]/10 border border-[#D4922A]/20 rounded-full px-3 py-1 text-center mb-4 -mt-1" role="note">
@@ -236,7 +236,7 @@ export default function Billing() {
                     <div className="mb-5">
                       <span className="text-3xl font-extrabold text-white">${price}</span>
                       <span className="text-sm text-[rgba(26,26,26,0.55)]">/mo</span>
-                      {interval === "annual" && (
+                      {billingCycle === "annual" && (
                         <p className="text-xs text-green-600 font-semibold mt-0.5">Billed annually</p>
                       )}
                     </div>
@@ -270,7 +270,7 @@ export default function Billing() {
                           }
                           checkoutMutation.mutate({
                             planId: plan.id as "starter" | "pro" | "agency",
-                            interval,
+                            interval: billingCycle,
                             origin: window.location.origin,
                           });
                         }}

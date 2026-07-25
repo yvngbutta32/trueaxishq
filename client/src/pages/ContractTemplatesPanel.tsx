@@ -47,6 +47,7 @@ export default function ContractTemplatesPanel() {
         toast.success(`Loaded ${data.seeded} built-in contract templates!`);
       }
     },
+    onError: (e) => toast.error("Failed to load templates: " + e.message),
   });
 
   useEffect(() => {

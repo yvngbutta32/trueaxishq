@@ -1414,3 +1414,13 @@
 - [x] Fix document upload security: added MIME type allowlist (PDF, Word, Excel, PowerPoint, CSV, images only) to documentUpload.ts - previously accepted any file type
 - [x] Fix avatarUpload.ts error handlers: use safeErrorMessage() instead of leaking raw err.message to clients
 - [x] Fix documentUpload.ts error handler: use safeErrorMessage() instead of leaking raw err.message to clients
+
+## Pass 6 Deep Audit (Jul 2026)
+- [x] Fix digestHandler.ts: invoice amounts divided by /100 (stored as dollars, not cents) - amounts showed 100x too small in daily digest
+- [x] Fix AIAssistant.tsx: setTimeout in useEffect missing clearTimeout cleanup (memory leak)
+- [x] Fix ContractTemplatesPanel.tsx: seedMutation missing onError handler
+- [x] Fix Billing.tsx: state variable named interval/setInterval shadowing global setInterval
+- [x] Fix Billing.tsx: createCheckout mutation now correctly passes interval field (was billingCycle)
+- [x] Verified: AIAssistant saveActionMutation already had onError (false positive from audit script)
+- [x] Verified: TimeTracking setTimeouts are inside mutation callbacks, not useEffect (no cleanup needed)
+- [x] Verified: HealthMonitor setTimeout is in event handler (onBlur), not useEffect (no cleanup needed)

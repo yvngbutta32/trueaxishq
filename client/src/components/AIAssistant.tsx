@@ -276,7 +276,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, panel
   };
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
-  useEffect(() => { if (expanded) setTimeout(() => inputRef.current?.focus(), 150); }, [expanded]);
+  useEffect(() => { if (!expanded) return; const t = setTimeout(() => inputRef.current?.focus(), 150); return () => clearTimeout(t); }, [expanded]);
   useEffect(() => {
     if (!expanded) return;
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") setExpanded(false); };

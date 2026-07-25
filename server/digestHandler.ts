@@ -83,12 +83,12 @@ export async function dailyDigestHandler(req: Request, res: Response) {
       lines.push("✅ **Overdue Invoices:** None — you're all caught up!");
     } else {
       const totalOwed = allOverdue.reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0);
-      lines.push(`🔴 **Overdue Invoices (${allOverdue.length}) — $${(totalOwed / 100).toFixed(2)} owed:**`);
+      lines.push(`🔴 **Overdue Invoices (${allOverdue.length}) — $${totalOwed.toFixed(2)} owed:**`);
       for (const inv of allOverdue.slice(0, 5)) {
         const daysOverdue = inv.dueDate
           ? Math.floor((nowMs - Number(inv.dueDate)) / (1000 * 60 * 60 * 24))
           : 0;
-        lines.push(`  • Invoice #${inv.invoiceNumber || inv.id} — $${(Number(inv.amount || 0) / 100).toFixed(2)} (${daysOverdue}d overdue)`);
+        lines.push(`  • Invoice #${inv.invoiceNumber || inv.id} — $${Number(inv.amount || 0).toFixed(2)} (${daysOverdue}d overdue)`);
       }
       if (allOverdue.length > 5) lines.push(`  • ...and ${allOverdue.length - 5} more`);
     }
