@@ -9,12 +9,37 @@ import path from "path";
 import crypto from "crypto";
 import { storagePut } from "./storage";
 import { authenticateRequest } from "./auth";
+import { safeErrorMessage } from "./utils";
 
 const MAX_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
+
+// Allowlist of safe document MIME types — prevents arbitrary file uploads
+const ALLOWED_DOC_MIME = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "text/csv",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_SIZE_BYTES },
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_DOC_MIME.has(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("File type not allowed. Accepted: PDF, Word, Excel, PowerPoint, CSV, plain text, and images."));
+    }
+  },
 });
 
 export const documentUploadRouter = Router();
@@ -54,8 +79,8 @@ documentUploadRouter.post(
         sizeBytes: req.file.size,
       });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Upload failed.";
-      console.error("[DocumentUpload] POST:", msg);
+      const msg = safeErrorMessage(err, "Upload failed.");
+      console.error("[DocumentUpload] POST:", err);
       res.status(500).json({ error: msg });
     }
   }

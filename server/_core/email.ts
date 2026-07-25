@@ -172,6 +172,21 @@ function baseTemplate(content: string, accentColor = "#E8A020"): string {
 </html>`;
 }
 
+// ─── HTML Escape Helper ─────────────────────────────────────────────────────────
+/**
+ * Escapes user-supplied strings before interpolating into HTML email templates.
+ * Prevents XSS if a client name or invoice number contains HTML special chars.
+ */
+function esc(str: string | undefined | null): string {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
 // ─── Email Templates ──────────────────────────────────────────────────────────
 
 export function forgotPasswordEmail(opts: { name: string; resetUrl: string }): string {
@@ -195,12 +210,12 @@ export function invoiceReminderEmail(opts: {
 }): string {
   return baseTemplate(`
     <h2>Invoice Reminder</h2>
-    <p class="greeting">Hi ${opts.clientName},</p>
+    <p class="greeting">Hi ${esc(opts.clientName)},</p>
     <p>This is a friendly reminder that the following invoice is still outstanding. Please arrange payment at your earliest convenience.</p>
     <div class="detail-box">
-      <div class="detail-row"><span class="detail-label">Invoice #</span><span class="detail-value">${opts.invoiceNumber}</span></div>
-      <div class="detail-row"><span class="detail-label">Amount Due</span><span class="detail-value">${opts.amount}</span></div>
-      <div class="detail-row"><span class="detail-label">Due Date</span><span class="detail-value"><span class="badge badge-red">${opts.dueDate}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Invoice #</span><span class="detail-value">${esc(opts.invoiceNumber)}</span></div>
+      <div class="detail-row"><span class="detail-label">Amount Due</span><span class="detail-value">${esc(opts.amount)}</span></div>
+      <div class="detail-row"><span class="detail-label">Due Date</span><span class="detail-value"><span class="badge badge-red">${esc(opts.dueDate)}</span></span></div>
     </div>
     ${opts.portalUrl ? `<a href="${opts.portalUrl}" class="btn">View &amp; Pay Invoice &rarr;</a>` : ""}
     <p class="note">If you've already sent payment, please disregard this message. Thank you!</p>
@@ -217,13 +232,13 @@ export function bookingConfirmationEmail(opts: {
 }): string {
   return baseTemplate(`
     <h2>Booking Confirmed &#10003;</h2>
-    <p class="greeting">Hi ${opts.clientName},</p>
+    <p class="greeting">Hi ${esc(opts.clientName)},</p>
     <p>Your session is confirmed. Here are your booking details:</p>
     <div class="detail-box">
-      <div class="detail-row"><span class="detail-label">Service</span><span class="detail-value">${opts.serviceName}</span></div>
-      <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${opts.date}</span></div>
-      <div class="detail-row"><span class="detail-label">Time</span><span class="detail-value">${opts.time}</span></div>
-      <div class="detail-row"><span class="detail-label">With</span><span class="detail-value">${opts.freelancerName}</span></div>
+      <div class="detail-row"><span class="detail-label">Service</span><span class="detail-value">${esc(opts.serviceName)}</span></div>
+      <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${esc(opts.date)}</span></div>
+      <div class="detail-row"><span class="detail-label">Time</span><span class="detail-value">${esc(opts.time)}</span></div>
+      <div class="detail-row"><span class="detail-label">With</span><span class="detail-value">${esc(opts.freelancerName)}</span></div>
     </div>
     <p>We look forward to working with you. If you have any questions before your session, simply reply to this email.</p>
     ${opts.cancelUrl ? `<hr class="divider" /><p class="note">Need to cancel or reschedule? <a href="${opts.cancelUrl}" style="color:#E8A020;font-weight:600;">Click here</a> (available up to 24 hours before your session).</p>` : ""}
@@ -239,12 +254,12 @@ export function invoicePaidEmail(opts: {
 }): string {
   return baseTemplate(`
     <h2>Payment Received <span class="badge badge-green" style="vertical-align:middle;margin-left:6px;">Paid</span></h2>
-    <p class="greeting">Hi ${opts.clientName},</p>
+    <p class="greeting">Hi ${esc(opts.clientName)},</p>
     <p>Thank you — we've received your payment. Here's your receipt summary:</p>
     <div class="detail-box">
-      <div class="detail-row"><span class="detail-label">Invoice #</span><span class="detail-value">${opts.invoiceNumber}</span></div>
-      <div class="detail-row"><span class="detail-label">Amount Paid</span><span class="detail-value"><span class="badge badge-green">${opts.amount}</span></span></div>
-      <div class="detail-row"><span class="detail-label">Payment Date</span><span class="detail-value">${opts.paidDate}</span></div>
+      <div class="detail-row"><span class="detail-label">Invoice #</span><span class="detail-value">${esc(opts.invoiceNumber)}</span></div>
+      <div class="detail-row"><span class="detail-label">Amount Paid</span><span class="detail-value"><span class="badge badge-green">${esc(opts.amount)}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Payment Date</span><span class="detail-value">${esc(opts.paidDate)}</span></div>
     </div>
     ${opts.receiptUrl ? `<a href="${opts.receiptUrl}" class="btn">Download Receipt &rarr;</a>` : ""}
     <p class="note">Thank you for your business. We appreciate the opportunity to work with you.</p>
@@ -257,9 +272,9 @@ export function followUpEmail(opts: {
   body: string;
 }): string {
   return baseTemplate(`
-    <h2>${opts.subject}</h2>
-    <p class="greeting">Hi ${opts.clientName},</p>
-    ${opts.body.split("\n").filter(l => l.trim()).map(line => `<p>${line}</p>`).join("")}
+    <h2>${esc(opts.subject)}</h2>
+    <p class="greeting">Hi ${esc(opts.clientName)},</p>
+    ${opts.body.split("\n").filter(l => l.trim()).map(line => `<p>${esc(line)}</p>`).join("")}
     <hr class="divider" />
     <p class="note">This message was sent via TrueAxis HQ. Reply directly to this email to respond.</p>
   `);
@@ -273,8 +288,8 @@ export function testimonialRequestEmail(opts: {
 }): string {
   return baseTemplate(`
     <h2>How did we do? &#11088;</h2>
-    <p class="greeting">Hi ${opts.clientName},</p>
-    <p>Thank you for working with <strong>${opts.freelancerName}</strong> on <strong>${opts.serviceName}</strong>. We'd love to hear about your experience.</p>
+    <p class="greeting">Hi ${esc(opts.clientName)},</p>
+    <p>Thank you for working with <strong>${esc(opts.freelancerName)}</strong> on <strong>${esc(opts.serviceName)}</strong>. We'd love to hear about your experience.</p>
     <p>It takes less than 60 seconds and helps us serve future clients better:</p>
     <a href="${opts.testimonialUrl}" class="btn">Share Your Feedback &rarr;</a>
     <hr class="divider" />
@@ -294,20 +309,20 @@ export function monthlyReportEmail(opts: {
   dashboardUrl: string;
 }): string {
   return baseTemplate(`
-    <h2>${opts.month} Business Report</h2>
+    <h2>${esc(opts.month)} Business Report</h2>
     <p class="greeting">Hi ${opts.name || "there"},</p>
     <p>Here's your monthly snapshot from TrueAxis HQ:</p>
     <div class="detail-box">
-      <div class="detail-row"><span class="detail-label">Total Revenue</span><span class="detail-value">${opts.totalRevenue}</span></div>
-      <div class="detail-row"><span class="detail-label">New Clients</span><span class="detail-value">${opts.newClients}</span></div>
-      <div class="detail-row"><span class="detail-label">Invoices Paid</span><span class="detail-value"><span class="badge badge-green">${opts.invoicesPaid}</span></span></div>
-      <div class="detail-row"><span class="detail-label">Outstanding Invoices</span><span class="detail-value"><span class="badge ${opts.invoicesOutstanding > 0 ? "badge-red" : "badge-green"}">${opts.invoicesOutstanding}</span></span></div>
-      ${opts.topClient ? `<div class="detail-row"><span class="detail-label">Top Client</span><span class="detail-value">${opts.topClient}</span></div>` : ""}
+      <div class="detail-row"><span class="detail-label">Total Revenue</span><span class="detail-value">${esc(opts.totalRevenue)}</span></div>
+      <div class="detail-row"><span class="detail-label">New Clients</span><span class="detail-value">${esc(String(opts.newClients))}</span></div>
+      <div class="detail-row"><span class="detail-label">Invoices Paid</span><span class="detail-value"><span class="badge badge-green">${esc(String(opts.invoicesPaid))}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Outstanding Invoices</span><span class="detail-value"><span class="badge ${opts.invoicesOutstanding > 0 ? "badge-red" : "badge-green"}">${esc(String(opts.invoicesOutstanding))}</span></span></div>
+      ${opts.topClient ? `<div class="detail-row"><span class="detail-label">Top Client</span><span class="detail-value">${esc(opts.topClient)}</span></div>` : ""}
     </div>
     ${opts.aiInsight ? `
     <div class="highlight-box">
       <div class="hl-label">&#129302; AI Insight</div>
-      <p>${opts.aiInsight}</p>
+      <p>${esc(opts.aiInsight)}</p>
     </div>` : ""}
     <a href="${opts.dashboardUrl}" class="btn">View Full Dashboard &rarr;</a>
     <hr class="divider" />
@@ -326,10 +341,10 @@ export function bookingCancelConfirmEmail(opts: {
   const isCancelled = opts.action === "cancel";
   return baseTemplate(`
     <h2>${isCancelled ? "Booking Cancelled" : "Booking Rescheduled"}</h2>
-    <p class="greeting">Hi ${opts.clientName},</p>
+    <p class="greeting">Hi ${esc(opts.clientName)},</p>
     <p>${isCancelled
-      ? `Your booking for <strong>${opts.serviceName}</strong> on <strong>${opts.date} at ${opts.time}</strong> has been successfully cancelled.`
-      : `Your booking for <strong>${opts.serviceName}</strong> on <strong>${opts.date} at ${opts.time}</strong> has been rescheduled.`
+      ? `Your booking for <strong>${esc(opts.serviceName)}</strong> on <strong>${esc(opts.date)} at ${esc(opts.time)}</strong> has been successfully cancelled.`
+      : `Your booking for <strong>${esc(opts.serviceName)}</strong> on <strong>${esc(opts.date)} at ${esc(opts.time)}</strong> has been rescheduled.`
     }</p>
     ${opts.rebookUrl ? `<a href="${opts.rebookUrl}" class="btn">${isCancelled ? "Book a New Appointment" : "Book Again"} &rarr;</a>` : ""}
     <hr class="divider" />

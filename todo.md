@@ -1408,3 +1408,9 @@
 - [x] Add JWT_SECRET missing warning in auth.ts for dev environments
 - [x] Fix db.ts 'pending' as any cast - use correct 'sent' status
 - [x] Fix icalExport.ts description field not escaped with escapeIcal
+
+## Pass 5 Deep Audit Fixes
+- [x] Fix XSS vulnerability: added escapeHtml (esc()) helper to email.ts and applied to all 32 user-supplied string interpolations in email templates
+- [x] Fix document upload security: added MIME type allowlist (PDF, Word, Excel, PowerPoint, CSV, images only) to documentUpload.ts - previously accepted any file type
+- [x] Fix avatarUpload.ts error handlers: use safeErrorMessage() instead of leaking raw err.message to clients
+- [x] Fix documentUpload.ts error handler: use safeErrorMessage() instead of leaking raw err.message to clients

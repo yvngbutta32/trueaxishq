@@ -8,6 +8,7 @@ import multer from "multer";
 import path from "path";
 import crypto from "crypto";
 import { storagePut } from "./storage";
+import { safeErrorMessage } from "./utils";
 import { getDb } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -71,8 +72,8 @@ avatarUploadRouter.post(
 
       res.json({ success: true, url });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Upload failed.";
-      console.error("[AvatarUpload] POST:", msg);
+      const msg = safeErrorMessage(err, "Upload failed.");
+      console.error("[AvatarUpload] POST:", err);
       res.status(500).json({ error: msg });
     }
   }
@@ -103,8 +104,8 @@ avatarUploadRouter.delete(
 
       res.json({ success: true });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to remove avatar.";
-      console.error("[AvatarUpload] DELETE:", msg);
+      const msg = safeErrorMessage(err, "Failed to remove avatar.");
+      console.error("[AvatarUpload] DELETE:", err);
       res.status(500).json({ error: msg });
     }
   }
