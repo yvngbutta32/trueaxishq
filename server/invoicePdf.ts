@@ -40,7 +40,10 @@ invoicePdfRouter.get("/api/invoices/:id/pdf", async (req, res) => {
     doc.on("data", (chunk: Buffer) => chunks.push(chunk));
     doc.on("end", () => {
       const pdf = Buffer.concat(chunks);
-      const filename = `invoice-${inv.invoiceNumber || inv.id}.pdf`;
+      // Sanitize the filename to prevent Content-Disposition header injection.
+      // Strip any character that is not alphanumeric, hyphen, or underscore.
+      const rawName = String(inv.invoiceNumber || inv.id).replace(/[^a-zA-Z0-9\-_]/g, "_");
+      const filename = `invoice-${rawName}.pdf`;
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
       res.setHeader("Content-Length", pdf.length);

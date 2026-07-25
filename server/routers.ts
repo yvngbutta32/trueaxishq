@@ -1683,8 +1683,29 @@ Only include actions when you have actually generated a complete draft. For gene
         }
         return { url: portalSession.url };
       }),
+    // Verifies a Stripe checkout session_id is real and belongs to this user.
+    // Called by CheckoutSuccess page to prevent false "subscription active" display.
+    verifyCheckoutSession: protectedProcedure
+      .input(z.object({ sessionId: z.string().min(1).max(200) }))
+      .query(async ({ input, ctx }) => {
+        let stripe: Stripe;
+        try { stripe = getStripe(); } catch { return { valid: false, planId: null }; }
+        try {
+          const session = await stripe.checkout.sessions.retrieve(input.sessionId);
+          const isValid =
+            session.payment_status === "paid" &&
+            session.status === "complete" &&
+            session.metadata?.user_id === ctx.user.id.toString();
+          return {
+            valid: isValid,
+            planId: isValid ? (session.metadata?.plan_id ?? null) : null,
+          };
+        } catch (err: any) {
+          console.error("[Stripe] verifyCheckoutSession failed:", err?.message);
+          return { valid: false, planId: null };
+        }
+      }),
   }),
-
   // ── Admin ─────────────────────────────────────────────────────────────────
   admin: router({
     listUsers: ownerProcedure

@@ -155,7 +155,7 @@ export default function Proposals() {
     total: proposalList.length,
     draft: proposalList.filter(p => p.status === "draft").length,
     signed: proposalList.filter(p => p.status === "signed").length,
-    totalValue: proposalList.filter(p => p.status === "signed").reduce((s, p) => s + parseFloat(String(p.total)), 0),
+    totalValue: proposalList.filter(p => p.status === "signed").reduce((s, p) => s + (parseFloat(String(p.total)) || 0), 0),
   };
 
   return (
@@ -238,7 +238,7 @@ export default function Proposals() {
                   <p className="text-xs text-[rgba(26,26,26,0.45)] mt-0.5">{p.clientName}{p.clientEmail ? ` · ${p.clientEmail}` : ""} · Created {new Date(p.createdAt).toLocaleDateString()}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="font-bold text-[rgba(26,26,26,0.9)]">${parseFloat(String(p.total)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
+                  <p className="font-bold text-[rgba(26,26,26,0.9)]">${(parseFloat(String(p.total)) || 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
                   {p.validUntil && <p className="text-xs text-[rgba(26,26,26,0.4)]">Valid until {p.validUntil}</p>}
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

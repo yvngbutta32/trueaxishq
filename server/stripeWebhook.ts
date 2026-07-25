@@ -1,32 +1,37 @@
 import type { Request, Response } from "express";
 import Stripe from "stripe";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDb } from "./db";
-import { users, invoices } from "../drizzle/schema";
+import { users, invoices, stripeWebhookEvents } from "../drizzle/schema";
 import { notifyOwner } from "./_core/notification";
 
-// ─── Idempotency cache — prevents duplicate processing of retried webhooks ────
-const processedEvents = new Map<string, number>();
-const EVENT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-
-function isAlreadyProcessed(eventId: string): boolean {
-  const ts = processedEvents.get(eventId);
-  if (!ts) return false;
-  if (Date.now() - ts > EVENT_CACHE_TTL_MS) {
-    processedEvents.delete(eventId);
+// ─── DB-backed idempotency — survives server restarts ─────────────────────────
+// Uses a unique index on stripeWebhookEvents.eventId so concurrent duplicate
+// deliveries are also safely rejected at the DB level.
+async function isAlreadyProcessed(eventId: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false; // If DB is down, let it through and rely on retry logic
+  try {
+    const rows = await db
+      .select({ id: stripeWebhookEvents.id })
+      .from(stripeWebhookEvents)
+      .where(eq(stripeWebhookEvents.eventId, eventId))
+      .limit(1);
+    return rows.length > 0;
+  } catch {
     return false;
   }
-  return true;
 }
 
-function markProcessed(eventId: string) {
-  processedEvents.set(eventId, Date.now());
-  // Prune stale entries to prevent memory leak
-  if (processedEvents.size > 10000) {
-    const cutoff = Date.now() - EVENT_CACHE_TTL_MS;
-    for (const [id, ts] of Array.from(processedEvents.entries())) {
-      if (ts < cutoff) processedEvents.delete(id);
-    }
+async function markProcessed(eventId: string, eventType: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.insert(stripeWebhookEvents).values({ eventId, eventType }).onDuplicateKeyUpdate({
+      set: { eventType: sql`VALUES(${stripeWebhookEvents.eventType})` },
+    });
+  } catch {
+    // Duplicate key = already processed by a concurrent request — safe to ignore
   }
 }
 
@@ -51,7 +56,7 @@ async function flushRetryQueue() {
       await processEvent(item.eventType, item.data);
       const idx = retryQueue.indexOf(item);
       if (idx !== -1) retryQueue.splice(idx, 1);
-      markProcessed(item.eventId);
+      await markProcessed(item.eventId, item.eventType);
       console.log(`[Webhook Retry] ✅ ${item.eventType} (${item.eventId}) on attempt ${item.attempts + 1}`);
     } catch (err) {
       item.attempts++;
@@ -239,7 +244,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
   }
 
   // Idempotency guard
-  if (isAlreadyProcessed(event.id)) {
+  if (await isAlreadyProcessed(event.id)) {
     console.log(`[Webhook] Duplicate event ${event.id} ignored`);
     return res.json({ received: true, duplicate: true });
   }
@@ -251,7 +256,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
   try {
     await processEvent(event.type, event.data.object);
     // Mark processed only after success to allow retries on failure
-    markProcessed(event.id);
+    await markProcessed(event.id, event.type);
     console.log(`[Webhook] ✅ Processed ${event.type} (${event.id})`);
   } catch (err) {
     console.error(`[Webhook] ❌ Failed to process ${event.type} (${event.id}):`, err);

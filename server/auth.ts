@@ -21,6 +21,11 @@ import type { User } from "../drizzle/schema";
 
 const BCRYPT_ROUNDS = 12;
 
+// Dummy hash used for constant-time comparison when user is not found.
+// Prevents timing-based email enumeration: without this, an attacker can
+// distinguish "email not found" (fast) from "wrong password" (slow bcrypt).
+const DUMMY_HASH = "$2a$12$dummyhashfortimingnormalizationXXXXXXXXXXXXXXXXXXXXXXXX";
+
 // ─── Session token helpers ────────────────────────────────────────────────────
 
 function getSessionSecret() {
@@ -117,8 +122,17 @@ export async function loginUser(data: {
   const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
   const user = result[0];
 
-  if (!user) throw new Error("INVALID_CREDENTIALS");
-  if (!user.passwordHash) throw new Error("NO_PASSWORD"); // OAuth-only account
+  if (!user) {
+    // Always run bcrypt even when user is not found to prevent timing-based
+    // email enumeration. The result is discarded — we always throw INVALID_CREDENTIALS.
+    await verifyPassword(data.password, DUMMY_HASH);
+    throw new Error("INVALID_CREDENTIALS");
+  }
+  if (!user.passwordHash) {
+    // OAuth-only account — still run bcrypt to normalize timing
+    await verifyPassword(data.password, DUMMY_HASH);
+    throw new Error("NO_PASSWORD");
+  }
 
   const valid = await verifyPassword(data.password, user.passwordHash);
   if (!valid) throw new Error("INVALID_CREDENTIALS");

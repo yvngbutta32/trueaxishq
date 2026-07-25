@@ -62,6 +62,7 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounce query
   useEffect(() => {
@@ -69,14 +70,20 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
     return () => clearTimeout(t);
   }, [query]);
 
-  // Focus input when opened
+  // Focus input when opened — store timer in a ref so we can clear it on unmount
   useEffect(() => {
     if (open) {
       setQuery("");
       setDebouncedQuery("");
       setCursor(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      focusTimerRef.current = setTimeout(() => inputRef.current?.focus(), 50);
     }
+    return () => {
+      if (focusTimerRef.current !== null) {
+        clearTimeout(focusTimerRef.current);
+        focusTimerRef.current = null;
+      }
+    };
   }, [open]);
 
   const { data, isFetching, isError } = trpc.search.global.useQuery(

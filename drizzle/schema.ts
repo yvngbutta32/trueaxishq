@@ -774,3 +774,17 @@ export const contractTemplates = mysqlTable("contractTemplates", {
 );
 export type ContractTemplate = typeof contractTemplates.$inferSelect;
 export type InsertContractTemplate = typeof contractTemplates.$inferInsert;
+
+// ── Stripe Webhook Events (idempotency) ───────────────────────────────────────
+// Stores processed Stripe event IDs so duplicate webhook deliveries are safely
+// deduplicated even after server restarts (replaces the in-memory Set).
+export const stripeWebhookEvents = mysqlTable("stripeWebhookEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: varchar("eventId", { length: 255 }).notNull(),
+  eventType: varchar("eventType", { length: 100 }).notNull(),
+  processedAt: timestamp("processedAt").defaultNow().notNull(),
+},
+(t) => [uniqueIndex("stripeWebhookEvents_eventId_idx").on(t.eventId)]
+);
+export type StripeWebhookEvent = typeof stripeWebhookEvents.$inferSelect;
+export type InsertStripeWebhookEvent = typeof stripeWebhookEvents.$inferInsert;

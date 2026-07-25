@@ -5,9 +5,10 @@
 import type { Request, Response } from "express";
 import { sdk } from "./_core/sdk";
 import { getDb } from "./db";
-import { bookings, invoices, followUps } from "../drizzle/schema";
+import { bookings, invoices, followUps, users } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { notifyOwner } from "./_core/notification";
+import { ENV } from "./_core/env";
 
 export async function dailyDigestHandler(req: Request, res: Response) {
   try {
@@ -18,6 +19,31 @@ export async function dailyDigestHandler(req: Request, res: Response) {
       return res.status(403).json({ error: "cron-only endpoint" });
     }
 
+    // Resolve the owner's userId so we only show their data.
+    // On a multi-user deployment, queries without a userId filter would mix
+    // data from all users — this scopes every query to the owner only.
+    let ownerUserId: number | null = null;
+    if (ENV.ownerOpenId) {
+      const [ownerRow] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.openId, ENV.ownerOpenId))
+        .limit(1);
+      ownerUserId = ownerRow?.id ?? null;
+    }
+    // Fallback: find the first admin user if OWNER_OPEN_ID is not set
+    if (!ownerUserId) {
+      const [adminRow] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.role, "admin"))
+        .limit(1);
+      ownerUserId = adminRow?.id ?? null;
+    }
+    if (!ownerUserId) {
+      console.warn("[dailyDigest] Could not resolve owner userId — digest will be empty");
+    }
+
     const now = new Date();
     const dateStr = now.toLocaleDateString("en-US", {
       weekday: "long", month: "long", day: "numeric", timeZone: "UTC"
@@ -26,45 +52,65 @@ export async function dailyDigestHandler(req: Request, res: Response) {
     // Today's date string for bookings (stored as varchar "YYYY-MM-DD")
     const todayStr = now.toISOString().slice(0, 10);
 
-    // Get today's bookings
-    const todayBookings = await db
-      .select()
-      .from(bookings)
-      .where(
-        and(
-          eq(bookings.date, todayStr),
-          eq(bookings.status, "scheduled")
-        )
-      );
+    // Get today's bookings — scoped to owner
+    const todayBookings = ownerUserId
+      ? await db
+          .select()
+          .from(bookings)
+          .where(
+            and(
+              eq(bookings.userId, ownerUserId),
+              eq(bookings.date, todayStr),
+              eq(bookings.status, "scheduled")
+            )
+          )
+      : [];
 
-    // Get overdue invoices
+    // Get overdue invoices — scoped to owner
     const nowMs = now.getTime();
-    const overdueInvoices = await db
-      .select()
-      .from(invoices)
-      .where(eq(invoices.status, "overdue"));
+    const overdueInvoices = ownerUserId
+      ? await db
+          .select()
+          .from(invoices)
+          .where(
+            and(
+              eq(invoices.userId, ownerUserId),
+              eq(invoices.status, "overdue")
+            )
+          )
+      : [];
 
-    // Also get sent invoices past due date
-    const sentPastDue = await db
-      .select()
-      .from(invoices)
-      .where(
-        and(
-          eq(invoices.status, "sent"),
-          sql`${invoices.dueDate} < ${nowMs}`
-        )
-      );
+    // Also get sent invoices past due date — scoped to owner
+    const sentPastDue = ownerUserId
+      ? await db
+          .select()
+          .from(invoices)
+          .where(
+            and(
+              eq(invoices.userId, ownerUserId),
+              eq(invoices.status, "sent"),
+              sql`${invoices.dueDate} < ${nowMs}`
+            )
+          )
+      : [];
 
     const allOverdue = [...overdueInvoices, ...sentPastDue];
 
-    // Get pending follow-ups (draft = not yet sent)
-    const pendingFollowUps = await db
-      .select()
-      .from(followUps)
-      .where(eq(followUps.status, "draft"));
+    // Get pending follow-ups (draft = not yet sent) — scoped to owner
+    const pendingFollowUps = ownerUserId
+      ? await db
+          .select()
+          .from(followUps)
+          .where(
+            and(
+              eq(followUps.userId, ownerUserId),
+              eq(followUps.status, "draft")
+            )
+          )
+      : [];
 
     // Build digest content
-    const lines: string[] = [`📅 Good morning! Here's your TrueAxis HQ digest for ${dateStr}.`, ""];
+    const lines: string[] = [`📅 Good morning! Here's your SkillBridge AI digest for ${dateStr}.`, ""];
 
     // Today's bookings
     if (todayBookings.length === 0) {

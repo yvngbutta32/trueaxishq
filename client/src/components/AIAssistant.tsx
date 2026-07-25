@@ -291,7 +291,10 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, panel
     const newMessage: Message = { role: "user", content, timestamp: new Date() };
     const updated = [...messages, newMessage];
     setMessages(updated);
-    chatMutation.mutate({ messages: updated.map(m => ({ role: m.role, content: m.content })), context });
+    // Cap history to last 20 messages to prevent token-limit errors and excessive API costs.
+    // The full local history is preserved in `messages` state for display purposes.
+    const historyToSend = updated.slice(-20).map(m => ({ role: m.role, content: m.content }));
+    chatMutation.mutate({ messages: historyToSend, context });
   };
 
   const handleTextareaKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -383,6 +386,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, panel
         onKeyDown={handleTextareaKey}
         placeholder="Ask anything, or say 'draft an invoice for…'"
         rows={1}
+        maxLength={2000}
         className="flex-1 resize-none text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#D4922A] focus:ring-2 focus:ring-[#D4922A]/20 transition-colors"
         disabled={chatMutation.isPending}
         style={{ minHeight: 44, maxHeight: 120, touchAction: "pan-y" }}
