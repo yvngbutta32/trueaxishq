@@ -248,6 +248,15 @@ export const appRouter = router({
           const [user] = await db.select({ id: users.id, name: users.name, email: users.email })
             .from(users).where(eq(users.email, input.email.trim().toLowerCase())).limit(1);
           if (!user) return { success: true }; // silent — don't reveal if email exists
+          // Per-email rate limit: max 3 reset requests per hour
+          const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+          const [{ recentCount }] = await db.select({ recentCount: sql<number>`COUNT(*)` })
+            .from(passwordResetTokens)
+            .where(and(
+              eq(passwordResetTokens.userId, user.id),
+              sql`${passwordResetTokens.createdAt} > ${oneHourAgo}`,
+            ));
+          if (Number(recentCount) >= 3) return { success: true }; // silently drop excess requests
 
           // Generate a secure random token
           const crypto = await import("crypto");
@@ -293,7 +302,8 @@ export const appRouter = router({
     resetPassword: publicProcedure
       .input(z.object({
         token: z.string().min(1).max(200),
-        newPassword: z.string().min(8).max(128),
+        newPassword: z.string().min(8).max(128)
+          .regex(/^(?=.*[a-zA-Z])(?=.*[\d\W]).+$/, "Password must contain at least one letter and one number or symbol."),
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
@@ -323,7 +333,8 @@ export const appRouter = router({
     changePassword: protectedProcedure
       .input(z.object({
         currentPassword: z.string().min(1).max(128),
-        newPassword: z.string().min(8).max(128),
+        newPassword: z.string().min(8).max(128)
+          .regex(/^(?=.*[a-zA-Z])(?=.*[\d\W]).+$/, "Password must contain at least one letter and one number or symbol."),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
@@ -1717,39 +1728,55 @@ Only include actions when you have actually generated a complete draft. For gene
       .query(async ({ input }) => {
         const db = await requireDb();
         const offset = (input.page - 1) * input.limit;
-        const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
-        const filtered = input.search
-          ? allUsers.filter(u => {
-              const q = input.search!.toLowerCase();
-              return u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q);
-            })
-          : allUsers;
-        return { users: filtered.slice(offset, offset + input.limit), total: filtered.length };
+        const searchFilter = input.search
+          ? or(like(users.name, `%${input.search}%`), like(users.email, `%${input.search}%`))
+          : undefined;
+        const [{ total }] = await db.select({ total: sql<number>`COUNT(*)` }).from(users)
+          .where(searchFilter);
+        const userList = await db.select().from(users)
+          .where(searchFilter)
+          .orderBy(desc(users.createdAt))
+          .limit(input.limit)
+          .offset(offset);
+        return { users: userList, total: Number(total ?? 0) };
       }),
 
     revenueStats: ownerProcedure.query(async () => {
       const db = await requireDb();
-      const allUsers = await db.select().from(users);
-      const paidUsers = allUsers.filter(u => u.subscriptionStatus === "active");
+      // Use SQL aggregates instead of loading all users into memory
+      const [{ totalUsers }] = await db.select({ totalUsers: sql<number>`COUNT(*)` }).from(users);
+      const planRows = await db.select({
+        planId: users.planId,
+        count: sql<number>`COUNT(*)`,
+      }).from(users)
+        .where(eq(users.subscriptionStatus, "active"))
+        .groupBy(users.planId);
       const byPlan: Record<string, number> = { starter: 0, pro: 0, agency: 0, free: 0 };
       let mrr = 0;
-      for (const u of paidUsers) {
-        const planId = (u.planId ?? "free") as PlanId | "free";
-        byPlan[planId] = (byPlan[planId] ?? 0) + 1;
-        if (planId !== "free" && PLANS[planId as PlanId]) mrr += PLANS[planId as PlanId].monthlyPrice / 100;
+      let paidCount = 0;
+      for (const row of planRows) {
+        const planId = (row.planId ?? "free") as PlanId | "free";
+        const cnt = Number(row.count);
+        byPlan[planId] = (byPlan[planId] ?? 0) + cnt;
+        if (planId !== "free" && PLANS[planId as PlanId]) mrr += PLANS[planId as PlanId].monthlyPrice / 100 * cnt;
+        paidCount += cnt;
       }
-      byPlan.free = allUsers.length - paidUsers.length;
-      const allLeads = await db.select({ id: leads.id }).from(leads);
-      return { totalUsers: allUsers.length, paidUsers: paidUsers.length, mrr, arr: mrr * 12, byPlan, totalLeads: allLeads.length };
+      byPlan.free = Number(totalUsers) - paidCount;
+      const [{ totalLeads }] = await db.select({ totalLeads: sql<number>`COUNT(*)` }).from(leads);
+      return { totalUsers: Number(totalUsers), paidUsers: paidCount, mrr, arr: mrr * 12, byPlan, totalLeads: Number(totalLeads) };
     }),
 
     listLeads: ownerProcedure
       .input(z.object({ page: z.number().int().min(1).default(1), limit: z.number().int().min(1).max(100).default(50) }))
       .query(async ({ input }) => {
         const db = await requireDb();
-        const all = await db.select().from(leads).orderBy(desc(leads.createdAt));
         const offset = (input.page - 1) * input.limit;
-        return { leads: all.slice(offset, offset + input.limit), total: all.length };
+        const [{ total }] = await db.select({ total: sql<number>`COUNT(*)` }).from(leads);
+        const leadList = await db.select().from(leads)
+          .orderBy(desc(leads.createdAt))
+          .limit(input.limit)
+          .offset(offset);
+        return { leads: leadList, total: Number(total ?? 0) };
       }),
 
     setUserRole: ownerProcedure
@@ -2023,6 +2050,23 @@ Only include actions when you have actually generated a complete draft. For gene
             clientId = Number((inserted as any).insertId) || null;
             isNewClient = clientId !== null && clientId > 0;
           }
+        }
+
+        // ── Conflict detection: reject if the same slot is already booked ─────
+        const conflictingBooking = await db.select({ id: bookings.id })
+          .from(bookings)
+          .where(and(
+            eq(bookings.userId, hostId),
+            eq(bookings.date, input.preferredDate),
+            eq(bookings.time, input.preferredTime),
+            sql`${bookings.status} NOT IN ('cancelled', 'no_show')`,
+          ))
+          .limit(1);
+        if (conflictingBooking.length > 0) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: `The ${input.preferredDate} at ${input.preferredTime} slot is no longer available. Please choose a different time.`,
+          });
         }
 
         const bookingResult = await db.insert(bookings).values({
@@ -2493,10 +2537,11 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ type: z.enum(["all", "contract", "proposal"]).default("all") }))
       .query(async ({ ctx, input }) => {
         const db = await requireDb();
+        const typeFilter = input.type !== "all" ? eq(contracts.type, input.type) : undefined;
         const rows = await db.select().from(contracts)
-          .where(eq(contracts.userId, ctx.user.id))
+          .where(and(eq(contracts.userId, ctx.user.id), typeFilter))
           .orderBy(desc(contracts.createdAt));
-        return input.type === "all" ? rows : rows.filter(r => r.type === input.type);
+        return rows;
       }),
 
     get: protectedProcedure
@@ -2611,9 +2656,9 @@ Only include actions when you have actually generated a complete draft. For gene
     }),
     unreadCount: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
-      const rows = await db.select({ id: notifications.id }).from(notifications)
+      const [row] = await db.select({ count: sql<number>`COUNT(*)` }).from(notifications)
         .where(and(eq(notifications.userId, ctx.user.id), eq(notifications.read, false)));
-      return { count: rows.length };
+      return { count: Number(row?.count ?? 0) };
     }),
     markRead: protectedProcedure
       .input(z.object({ id: z.number() }))
@@ -3737,20 +3782,20 @@ Only include actions when you have actually generated a complete draft. For gene
         year: z.number().int().optional(),
         month: z.number().int().min(1).max(12).optional(),
         category: z.string().optional(),
-      }))
+      })
+      )
       .query(async ({ input, ctx }) => {
         const db = await requireDb();
         const uid = ctx.user.id;
-        let rows = await db.select().from(expenses).where(eq(expenses.userId, uid)).orderBy(desc(expenses.createdAt));
-        if (input.year) rows = rows.filter(e => e.date.startsWith(String(input.year)));
-        if (input.month) rows = rows.filter(e => {
-          const parts = e.date.split("-");
-          return parseInt(parts[1] ?? "0") === input.month;
-        });
-        if (input.category) rows = rows.filter(e => e.category === input.category);
+        const filters = [eq(expenses.userId, uid)];
+        if (input.year) filters.push(sql`YEAR(${expenses.date}) = ${input.year}`);
+        if (input.month) filters.push(sql`MONTH(${expenses.date}) = ${input.month}`);
+        if (input.category) filters.push(eq(expenses.category, input.category));
+        const rows = await db.select().from(expenses)
+          .where(and(...filters))
+          .orderBy(desc(expenses.createdAt));
         return rows;
       }),
-
     create: protectedProcedure
       .input(z.object({
         amount: z.number().min(0.01).max(999999),
