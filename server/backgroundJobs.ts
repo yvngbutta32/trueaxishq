@@ -110,7 +110,7 @@ async function runRecurringInvoices() {
           if (rec.clientEmail) {
             await sendEmail({
               to: rec.clientEmail,
-              subject: `Invoice ${invoiceNumber} from SkillBridge AI`,
+              subject: `Invoice ${invoiceNumber} from TrueAxis HQ`,
               html: invoiceReminderEmail({
                 clientName: rec.clientName,
                 invoiceNumber,
@@ -431,7 +431,7 @@ async function runMonthlyReport() {
 
           await sendEmail({
             to: user.email,
-            subject: `Your ${monthLabel} Business Report — SkillBridge AI`,
+            subject: `Your ${monthLabel} Business Report — TrueAxis HQ`,
             html: monthlyReportEmail({
               name: displayName,
               month: monthLabel,
@@ -440,7 +440,7 @@ async function runMonthlyReport() {
               invoicesPaid,
               invoicesOutstanding,
               aiInsight: `You completed ${totalBookings} booking${totalBookings !== 1 ? "s" : ""} this month.`,
-              dashboardUrl: process.env.VITE_FRONTEND_FORGE_API_URL?.replace("/api", "") || "https://skillbridge-ai.com",
+              dashboardUrl: process.env.VITE_FRONTEND_FORGE_API_URL?.replace("/api", "") || "https://trueaxis-hq.com",
             }),
           });
 

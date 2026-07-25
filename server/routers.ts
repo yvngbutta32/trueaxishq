@@ -277,12 +277,12 @@ export const appRouter = router({
           });
 
           // Build reset URL from the request origin (works in any environment)
-          const origin = input.origin || ctx.req.headers.origin || 'https://skillbridge-ai.manus.space';
+          const origin = input.origin || ctx.req.headers.origin || 'https://trueaxis-hq.manus.space';
           const resetUrl = `${origin}/reset-password?token=${token}`;
           // Send real email to the user
           await sendEmail({
             to: user.email!,
-            subject: "Reset Your SkillBridge AI Password",
+            subject: "Reset Your TrueAxis HQ Password",
             html: forgotPasswordEmail({ name: user.name || "there", resetUrl }),
           });
           // Also notify owner for audit purposes
@@ -716,7 +716,7 @@ export const appRouter = router({
               requestToken: reqToken,
               status: "requested",
             });
-            const origin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://skillbridge-ai.com";
+            const origin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxis-hq.com";
             sendEmail({
               to: inv.clientEmail,
               subject: `How did we do? Share your feedback`,
@@ -828,7 +828,7 @@ export const appRouter = router({
         if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice has already been paid." });
 
         const stripe = getStripe();
-        const origin = input.origin || ctx.req.headers.origin || process.env.SITE_ORIGIN || "https://skillbridge-ai.manus.space";
+        const origin = input.origin || ctx.req.headers.origin || process.env.SITE_ORIGIN || "https://trueaxis-hq.manus.space";
         const amountCents = Math.round(parseFloat(String(inv.amount)) * 100);
         if (amountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
 
@@ -841,7 +841,7 @@ export const appRouter = router({
               currency: "usd",
               product_data: {
                 name: inv.service || `Invoice #${inv.invoiceNumber}`,
-                description: `Invoice #${inv.invoiceNumber} from ${ctx.user.name || "SkillBridge AI"}`,
+                description: `Invoice #${inv.invoiceNumber} from ${ctx.user.name || "TrueAxis HQ"}`,
               },
               unit_amount: amountCents,
             },
@@ -1074,7 +1074,7 @@ export const appRouter = router({
         const userRecord = await db.select({ name: users.name, businessName: users.businessName })
           .from(users).where(eq(users.id, ctx.user.id)).limit(1);
         const userName = userRecord[0]?.name || ctx.user.name || "Your Coach";
-        const businessName = userRecord[0]?.businessName || "SkillBridge AI";
+        const businessName = userRecord[0]?.businessName || "TrueAxis HQ";
 
         let subject = `Checking in — ${input.clientName}`;
         let body = `Hi ${input.clientName},\n\nI wanted to reach out and see how you've been doing since our last session together. I hope you've been making great progress on your goals!\n\nI'd love to hear how things are going and discuss what we can work on next. Feel free to reply to this email or book your next session whenever you're ready.\n\nLooking forward to connecting soon!\n\nWarm regards,\n${userName}\n${businessName}`;
@@ -1404,7 +1404,7 @@ export const appRouter = router({
         const contextStr = input.context
           ? `User context: ${input.context.clientCount ?? 0} active clients, $${input.context.revenue ?? 0} revenue this month, ${input.context.bookingsThisWeek ?? 0} bookings this week, plan: ${input.context.planId ?? "free"}, currently viewing: ${input.context.activePanel ?? "dashboard"}.`
           : "";
-        const systemPrompt = `You are SkillBridge AI Assistant — a smart, friendly business advisor for freelancers and solo service providers. Help users grow their business, manage clients, understand analytics, write follow-up emails, create invoice descriptions, draft contracts, and give actionable advice. Be concise, warm, and practical. ${contextStr} The user's name is ${ctx.user.name ?? "there"}.
+        const systemPrompt = `You are TrueAxis HQ Assistant — a smart, friendly business advisor for freelancers and solo service providers. Help users grow their business, manage clients, understand analytics, write follow-up emails, create invoice descriptions, draft contracts, and give actionable advice. Be concise, warm, and practical. ${contextStr} The user's name is ${ctx.user.name ?? "there"}.
 
 IMPORTANT: When you generate a saveable artifact (invoice draft, contract draft, follow-up email draft, or a note), you MUST return your response as a JSON object with this exact structure:
 {
@@ -1657,7 +1657,7 @@ Only include actions when you have actually generated a complete draft. For gene
             line_items: [{
               price_data: {
                 currency: "usd",
-                product_data: { name: `SkillBridge AI — ${plan.name}`, description: plan.description },
+                product_data: { name: `TrueAxis HQ — ${plan.name}`, description: plan.description },
                 unit_amount: unitAmount,
                 recurring: intervalConfig,
               },
@@ -2106,7 +2106,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const hostDetails = await db.select({ name: users.name, businessName: users.businessName })
           .from(users).where(eq(users.id, host[0].id)).limit(1);
         const freelancerName = hostDetails[0]?.businessName || hostDetails[0]?.name || "Your service provider";
-        const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://skillbridge-ai.com";
+        const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxis-hq.com";
         const cancelUrl = newBookingId ? `${siteOrigin}/booking/cancel/${cancelToken}` : undefined;
         sendEmail({
           to: input.clientEmail,
@@ -4047,7 +4047,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const [row] = await db.select().from(proposals)
           .where(and(eq(proposals.id, input.id), eq(proposals.userId, ctx.user.id))).limit(1);
         if (!row) throw new TRPCError({ code: "NOT_FOUND" });
-        const origin = input.origin || ctx.req.headers.origin || "https://skillbridge-ai.manus.space";
+        const origin = input.origin || ctx.req.headers.origin || "https://trueaxis-hq.manus.space";
         const link = `${origin}/proposal/${row.token}`;
         if (row.clientEmail) {
           await sendEmail({

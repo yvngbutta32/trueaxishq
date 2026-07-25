@@ -14,7 +14,7 @@ export default function AdminLogin() {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    document.title = "Admin Login — SkillBridge AI";
+    document.title = "Admin Login — TrueAxis HQ";
   }, []);
 
   // Already authenticated as owner — go straight to admin

@@ -1,5 +1,5 @@
 /**
- * SkillBridge AI — Comprehensive Security System
+ * TrueAxis HQ — Comprehensive Security System
  *
  * Layers:
  * 1. IP blocklist (permanent + temporary auto-block)
@@ -236,7 +236,7 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
       "img-src 'self' data: blob: https:",
       "connect-src 'self' https://api.stripe.com https://fonts.googleapis.com https://d2xsxph8kpxj0f.cloudfront.net https://api.manus.im https://*.manus.space https://*.manus.computer wss: ws: https:",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
-      "frame-ancestors 'self' https://*.manus.space https://*.manus.computer https://*.skillbridge-ai.com",
+      "frame-ancestors 'self' https://*.manus.space https://*.manus.computer https://*.trueaxis-hq.com",
       "base-uri 'self'",
       "form-action 'self'",
       "upgrade-insecure-requests",

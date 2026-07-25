@@ -55,12 +55,12 @@ function generateICS({
   const start = parseDateTime(date, time);
   const end = new Date(start.getTime() + durationMins * 60 * 1000);
   const now = new Date();
-  const uid = `booking-${Date.now()}@skillbridge-ai.com`;
+  const uid = `booking-${Date.now()}@trueaxis-hq.com`;
 
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//SkillBridge AI//Booking//EN",
+    "PRODID:-//TrueAxis HQ//Booking//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:REQUEST",
     "BEGIN:VEVENT",
@@ -154,7 +154,7 @@ function getNextDays(count: number) {
 export default function BookingPage() {
   const params = useParams<{ username: string }>();
   const username = params.username ?? "";
-  useEffect(() => { document.title = username ? `Book with @${username} — SkillBridge AI` : "Book a Session — SkillBridge AI"; }, [username]);
+  useEffect(() => { document.title = username ? `Book with @${username} — TrueAxis HQ` : "Book a Session — TrueAxis HQ"; }, [username]);
 
   const [step, setStep] = useState<"details" | "datetime" | "confirm" | "success">("details");
   const [form, setForm] = useState({
@@ -218,7 +218,7 @@ export default function BookingPage() {
   // Success / Confirmation screen
   if (step === "success") {
     const icsTitle = `${form.service} with ${host.name}`;
-    const icsDescription = `Service: ${form.service}\nClient: ${form.clientName}\nEmail: ${form.clientEmail}${form.message ? `\nMessage: ${form.message}` : ""}\n\nBooked via SkillBridge AI`;
+    const icsDescription = `Service: ${form.service}\nClient: ${form.clientName}\nEmail: ${form.clientEmail}${form.message ? `\nMessage: ${form.message}` : ""}\n\nBooked via TrueAxis HQ`;
     const icsContent = generateICS({
       title: icsTitle,
       description: icsDescription,
@@ -226,7 +226,7 @@ export default function BookingPage() {
       time: form.preferredTime,
       durationMins: 60,
       organizerName: host.name ?? "Your Host",
-      organizerEmail: "noreply@skillbridge-ai.com",
+      organizerEmail: "noreply@trueaxis-hq.com",
       attendeeEmail: form.clientEmail,
       attendeeName: form.clientName,
     });
@@ -245,7 +245,7 @@ export default function BookingPage() {
           <div className="max-w-xl mx-auto flex items-center gap-3">
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-              alt="SkillBridge AI"
+              alt="TrueAxis HQ"
               className="h-7 w-auto object-contain flex-shrink-0"
             />
           </div>
@@ -376,7 +376,7 @@ export default function BookingPage() {
         <div className="max-w-xl mx-auto flex items-center gap-3">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-            alt="SkillBridge AI"
+            alt="TrueAxis HQ"
             className="h-7 w-auto object-contain flex-shrink-0"
           />
           <div className="w-px h-5 bg-white/15 flex-shrink-0" aria-hidden="true" />

@@ -110,7 +110,7 @@ export async function dailyDigestHandler(req: Request, res: Response) {
       : [];
 
     // Build digest content
-    const lines: string[] = [`📅 Good morning! Here's your SkillBridge AI digest for ${dateStr}.`, ""];
+    const lines: string[] = [`📅 Good morning! Here's your TrueAxis HQ digest for ${dateStr}.`, ""];
 
     // Today's bookings
     if (todayBookings.length === 0) {

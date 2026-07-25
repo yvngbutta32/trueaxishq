@@ -1,4 +1,4 @@
-/* SkillBridge AI — Onboarding Checklist
+/* TrueAxis HQ — Onboarding Checklist
  * Progress is driven by real DB data via trpc.onboarding.status
  * Dismiss state is kept in localStorage (intentional — it's a UI preference, not business data)
  */
@@ -6,7 +6,7 @@ import { useState } from "react";
 import { CheckCircle, Circle, ChevronDown, ChevronUp, X, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
-const DISMISS_KEY = "skillbridge_onboarding_dismissed_v2";
+const DISMISS_KEY = "trueaxis_onboarding_dismissed_v2";
 
 interface Step {
   id: keyof ReturnType<typeof useOnboardingStatus>["data"] extends undefined ? never : keyof NonNullable<ReturnType<typeof useOnboardingStatus>["data"]>;

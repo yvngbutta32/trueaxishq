@@ -16,7 +16,7 @@ const perks = [
 
 export default function Register() {
   const [, navigate] = useLocation();
-  useEffect(() => { document.title = "Create Account — SkillBridge AI"; }, []);
+  useEffect(() => { document.title = "Create Account — TrueAxis HQ"; }, []);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +32,7 @@ export default function Register() {
       if (data.user) {
         utils.auth.me.setData(undefined, data.user as any);
       }
-      toast.success("Account created! Welcome to SkillBridge AI.");
+      toast.success("Account created! Welcome to TrueAxis HQ.");
       navigate("/dashboard");
     },
     onError: (err) => {
@@ -90,7 +90,7 @@ export default function Register() {
           aria-label="Go to homepage"
           style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >
-          <img src={LOGO_URL} alt="SkillBridge AI" className="h-10 w-auto object-contain" />
+          <img src={LOGO_URL} alt="TrueAxis HQ" className="h-10 w-auto object-contain" />
         </button>
 
         {/* Main copy */}
@@ -147,7 +147,7 @@ export default function Register() {
 
         {/* Footer note */}
         <p className="relative z-10 text-xs" style={{ color: "rgba(26,26,26,0.50)" }}>
-          © 2026 SkillBridge AI. All rights reserved.
+          © 2026 TrueAxis HQ. All rights reserved.
         </p>
       </div>
 
@@ -160,7 +160,7 @@ export default function Register() {
           aria-label="Go to homepage"
           style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >
-          <img src={LOGO_URL} alt="SkillBridge AI" className="h-10 w-auto object-contain" />
+          <img src={LOGO_URL} alt="TrueAxis HQ" className="h-10 w-auto object-contain" />
         </button>
 
         <div className="w-full max-w-md">

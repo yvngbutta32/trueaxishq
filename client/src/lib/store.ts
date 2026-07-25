@@ -1,4 +1,4 @@
-/* SkillBridge AI — Global App Store
+/* TrueAxis HQ — Global App Store
  * Provides shared state for clients, invoices, bookings, follow-ups across all dashboard pages.
  * Uses React context + localStorage persistence so data survives page refreshes.
  */

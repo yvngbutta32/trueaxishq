@@ -1,5 +1,5 @@
 /**
- * SkillBridge AI — Transactional Email (Multi-Provider, 100% Free)
+ * TrueAxis HQ — Transactional Email (Multi-Provider, 100% Free)
  *
  * Works out of the box with ZERO configuration — emails are stored as
  * in-app notifications and logged to console when no SMTP is configured.
@@ -105,7 +105,7 @@ export async function sendEmail(payload: EmailPayload): Promise<EmailResult> {
 
   try {
     const info = await transporter.sendMail({
-      from: safePayload.from || `"SkillBridge AI" <${senderEmail}>`,
+      from: safePayload.from || `"TrueAxis HQ" <${senderEmail}>`,
       to: safePayload.to,
       subject: safePayload.subject,
       html: safePayload.html,
@@ -128,7 +128,7 @@ function baseTemplate(content: string, accentColor = "#E8A020"): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SkillBridge AI</title>
+  <title>TrueAxis HQ</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #F4F4F5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: #18181B; }
@@ -175,14 +175,14 @@ function baseTemplate(content: string, accentColor = "#E8A020"): string {
         <div class="header-brand">
           <div class="header-logo"><span>T</span></div>
           <div>
-            <div class="header-name">SkillBridge AI</div>
+            <div class="header-name">TrueAxis HQ</div>
             <div class="header-tagline">AI-Powered Business OS for Freelancers</div>
           </div>
         </div>
       </div>
       <div class="body">${content}</div>
       <div class="footer">
-        <p>&copy; ${new Date().getFullYear()} SkillBridge AI &mdash; <a href="#">Unsubscribe</a> &middot; <a href="#">Privacy Policy</a></p>
+        <p>&copy; ${new Date().getFullYear()} TrueAxis HQ &mdash; <a href="#">Unsubscribe</a> &middot; <a href="#">Privacy Policy</a></p>
       </div>
     </div>
   </div>
@@ -211,7 +211,7 @@ export function forgotPasswordEmail(opts: { name: string; resetUrl: string }): s
   return baseTemplate(`
     <h2>Reset Your Password</h2>
     <p class="greeting">Hi ${opts.name || "there"},</p>
-    <p>We received a request to reset the password on your SkillBridge AI account. Click the button below to set a new password:</p>
+    <p>We received a request to reset the password on your TrueAxis HQ account. Click the button below to set a new password:</p>
     <a href="${opts.resetUrl}" class="btn">Reset Password &rarr;</a>
     <hr class="divider" />
     <p class="note">This link expires in <strong>1 hour</strong>. If you didn't request a password reset, you can safely ignore this email — your account remains secure.</p>
@@ -294,7 +294,7 @@ export function followUpEmail(opts: {
     <p class="greeting">Hi ${esc(opts.clientName)},</p>
     ${opts.body.split("\n").filter(l => l.trim()).map(line => `<p>${esc(line)}</p>`).join("")}
     <hr class="divider" />
-    <p class="note">This message was sent via SkillBridge AI. Reply directly to this email to respond.</p>
+    <p class="note">This message was sent via TrueAxis HQ. Reply directly to this email to respond.</p>
   `);
 }
 
@@ -329,7 +329,7 @@ export function monthlyReportEmail(opts: {
   return baseTemplate(`
     <h2>${esc(opts.month)} Business Report</h2>
     <p class="greeting">Hi ${opts.name || "there"},</p>
-    <p>Here's your monthly snapshot from SkillBridge AI:</p>
+    <p>Here's your monthly snapshot from TrueAxis HQ:</p>
     <div class="detail-box">
       <div class="detail-row"><span class="detail-label">Total Revenue</span><span class="detail-value">${esc(opts.totalRevenue)}</span></div>
       <div class="detail-row"><span class="detail-label">New Clients</span><span class="detail-value">${esc(String(opts.newClients))}</span></div>

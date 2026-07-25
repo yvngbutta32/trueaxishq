@@ -66,7 +66,7 @@ export default function ResetPassword() {
         aria-label="Go to homepage"
         style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
       >
-        <img src={LOGO_URL} alt="SkillBridge AI" className="h-12 w-auto object-contain" />
+        <img src={LOGO_URL} alt="TrueAxis HQ" className="h-12 w-auto object-contain" />
       </button>
 
       {/* Card */}

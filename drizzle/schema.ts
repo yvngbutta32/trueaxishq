@@ -225,9 +225,9 @@ export type InsertClientPulse = typeof clientPulse.$inferInsert;
 export const platformSettings = mysqlTable("platformSettings", {
   id: int("id").autoincrement().primaryKey(),
   // Site identity
-  siteName: varchar("siteName", { length: 255 }).default("SkillBridge AI").notNull(),
+  siteName: varchar("siteName", { length: 255 }).default("TrueAxis HQ").notNull(),
   siteTagline: varchar("siteTagline", { length: 512 }).default("The AI-powered business platform for freelancers & coaches"),
-  supportEmail: varchar("supportEmail", { length: 320 }).default("support@skillbridge.ai"),
+  supportEmail: varchar("supportEmail", { length: 320 }).default("support@trueaxishq.com"),
   supportPhone: varchar("supportPhone", { length: 32 }),
   // Announcement banner
   announcementEnabled: boolean("announcementEnabled").default(false).notNull(),

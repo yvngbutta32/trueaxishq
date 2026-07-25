@@ -1,4 +1,4 @@
-/* SkillBridge AI — Landing Page
+/* TrueAxis HQ — Landing Page
  * Design: Dark Navy + Amber — #0D1117 base, #D4922A amber, #F5EFE3 cream
  * Font: Inter (single family, variable)
  * All functions intact: email capture, onboarding modal, smooth scroll, animated counters
@@ -91,7 +91,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
 
   const steps = [
     {
-      title: "Welcome to SkillBridge AI",
+      title: "Welcome to TrueAxis HQ",
       subtitle: "Your business command center. Set up in 60 seconds.",
       content: (
         <div className="space-y-4">
@@ -179,7 +179,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
     },
     {
       title: "You're All Set",
-      subtitle: "Your SkillBridge AI command center is ready.",
+      subtitle: "Your TrueAxis HQ command center is ready.",
       content: (
         <div className="text-center py-4 space-y-5">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "rgba(232,160,32,0.12)", border: "1px solid rgba(232,160,32,0.25)" }}>
@@ -317,12 +317,12 @@ function Nav({ onCTA }: { onCTA: () => void }) {
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             className="flex items-center gap-2"
-            aria-label="SkillBridge AI — home"
+            aria-label="TrueAxis HQ — home"
             style={{ background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
           >
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-              alt="SkillBridge AI"
+              alt="TrueAxis HQ"
               className="h-9 w-auto object-contain"
             />
           </button>
@@ -440,7 +440,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
             </h1>
 
             <p className="mb-8 max-w-lg" style={{ fontSize: "1.125rem", color: "rgba(26,26,26,0.55)", lineHeight: 1.7 }}>
-              SkillBridge AI handles your client intake, scheduling, invoicing, and follow-ups — so you can focus on the work you love and scale to{" "}
+              TrueAxis HQ handles your client intake, scheduling, invoicing, and follow-ups — so you can focus on the work you love and scale to{" "}
               <strong style={{ color: "#1A1A1A" }}>$100K/year</strong>.
             </p>
 
@@ -489,7 +489,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C85A3A" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#D4922A" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#7A9A8A" }} />
-                <span className="ml-3 text-xs font-mono" style={{ color: "rgba(26,26,26,0.55)" }}>SkillBridge AI — Dashboard</span>
+                <span className="ml-3 text-xs font-mono" style={{ color: "rgba(26,26,26,0.55)" }}>TrueAxis HQ — Dashboard</span>
               </div>
 
               <div className="p-4 space-y-3">
@@ -647,7 +647,7 @@ function FeaturesSection() {
             Stop juggling five different tools.
           </h2>
           <p className="mt-4 max-w-xl mx-auto" style={{ color: "rgba(26,26,26,0.75)", fontSize: "1.0625rem" }}>
-            SkillBridge AI replaces your scheduling app, invoicing software, CRM, and email tool — in one platform.
+            TrueAxis HQ replaces your scheduling app, invoicing software, CRM, and email tool — in one platform.
           </p>
         </div>
 
@@ -946,7 +946,7 @@ function HowItWorksSection() {
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#7A9A8A" }} />
               <div className="flex items-center gap-1.5 ml-3">
                 <active.icon className="w-3 h-3" style={{ color: "#D4922A" }} />
-                <span className="text-xs font-mono" style={{ color: "rgba(26,26,26,0.55)" }}>SkillBridge AI — {active.label}</span>
+                <span className="text-xs font-mono" style={{ color: "rgba(26,26,26,0.55)" }}>TrueAxis HQ — {active.label}</span>
               </div>
             </div>
             <div className="p-4">
@@ -976,7 +976,7 @@ function ClientPulseShowcase() {
           <div>
             <div className="pill-retro mb-6 inline-flex">
               <Sparkles className="w-3 h-3" />
-              Exclusive to SkillBridge AI
+              Exclusive to TrueAxis HQ
             </div>
             <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em", lineHeight: 1.1 }}>
               Client Pulse AI™
@@ -1062,7 +1062,7 @@ function TestimonialsSection() {
       name: "Sarah Chen",
       role: "Life Coach",
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop",
-      quote: "I used to spend 3 hours every Monday on admin. Now it's zero. SkillBridge AI paid for itself in the first week.",
+      quote: "I used to spend 3 hours every Monday on admin. Now it's zero. TrueAxis HQ paid for itself in the first week.",
       revenue: "+$2,400/mo",
       stars: 5,
     },
@@ -1090,7 +1090,7 @@ function TestimonialsSection() {
         <div className="text-center mb-8">
           <div className="section-label mb-3">What Freelancers Say</div>
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
-            Join thousands who scaled with SkillBridge AI.
+            Join thousands who scaled with TrueAxis HQ.
           </h2>
         </div>
 
@@ -1149,7 +1149,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
           Your business command center is waiting.
         </h2>
         <p className="mt-4 mb-10" style={{ color: "rgba(26,26,26,0.75)", fontSize: "1.0625rem" }}>
-          Join 4,200+ freelancers who automated their business with SkillBridge AI. 14-day free trial. No credit card required.
+          Join 4,200+ freelancers who automated their business with TrueAxis HQ. 14-day free trial. No credit card required.
         </p>
 
         {submitted ? (
@@ -1184,11 +1184,11 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
 
 // ─── FAQ Section ─────────────────────────────────────────────────────────────
 const HOME_FAQS = [
-  { q: "Is SkillBridge AI really free to start?", a: "Yes. The Free plan gives you unlimited clients, invoices, and bookings with no credit card required. You only upgrade when you need advanced features like AI automation, recurring invoices, and priority support." },
-  { q: "How does the AI follow-up feature work?", a: "SkillBridge AI analyzes each client's booking history, invoice activity, and engagement signals to generate a personalized follow-up email in one click. You review and send — the AI does the drafting." },
-  { q: "Can I accept payments through SkillBridge AI?", a: "Yes. Connect your Stripe account and your clients can pay invoices online via credit card. Payments are processed securely by Stripe — SkillBridge AI never touches your funds." },
-  { q: "Do I need to install anything?", a: "No. SkillBridge AI is a fully web-based platform. It works on any device with a browser. You can also install it as a PWA (Progressive Web App) on your phone for a native app experience." },
-  { q: "Can clients book appointments without creating an account?", a: "Yes. Your public booking page allows clients to schedule sessions without signing up. You get a unique URL (e.g. skillbridge-ai.com/book/yourname) to share on your website or social profiles." },
+  { q: "Is TrueAxis HQ really free to start?", a: "Yes. The Free plan gives you unlimited clients, invoices, and bookings with no credit card required. You only upgrade when you need advanced features like AI automation, recurring invoices, and priority support." },
+  { q: "How does the AI follow-up feature work?", a: "TrueAxis HQ analyzes each client's booking history, invoice activity, and engagement signals to generate a personalized follow-up email in one click. You review and send — the AI does the drafting." },
+  { q: "Can I accept payments through TrueAxis HQ?", a: "Yes. Connect your Stripe account and your clients can pay invoices online via credit card. Payments are processed securely by Stripe — TrueAxis HQ never touches your funds." },
+  { q: "Do I need to install anything?", a: "No. TrueAxis HQ is a fully web-based platform. It works on any device with a browser. You can also install it as a PWA (Progressive Web App) on your phone for a native app experience." },
+  { q: "Can clients book appointments without creating an account?", a: "Yes. Your public booking page allows clients to schedule sessions without signing up. You get a unique URL (e.g. trueaxis-hq.com/book/yourname) to share on your website or social profiles." },
   { q: "What happens to my data if I cancel?", a: "Your data is always yours. You can export all clients, invoices, and bookings as CSV at any time. We retain your data for 30 days after cancellation in case you change your mind." },
 ];
 
@@ -1249,8 +1249,8 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
       links: [
         { label: "About", action: () => navigate("/about") },
         { label: "Contact", action: () => navigate("/contact") },
-        { label: "Careers", action: () => { window.location.href = "mailto:careers@skillbridge-ai.com"; } },
-        { label: "Press", action: () => { window.location.href = "mailto:press@skillbridge-ai.com"; } },
+        { label: "Careers", action: () => { window.location.href = "mailto:careers@trueaxis-hq.com"; } },
+        { label: "Press", action: () => { window.location.href = "mailto:press@trueaxis-hq.com"; } },
       ],
     },
     {
@@ -1272,7 +1272,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
             <div className="flex items-center mb-4">
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-                alt="SkillBridge AI"
+                alt="TrueAxis HQ"
                 className="h-9 w-auto object-contain"
               />
             </div>
@@ -1290,7 +1290,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`SkillBridge AI on ${s.label}`}
+                  aria-label={`TrueAxis HQ on ${s.label}`}
                   className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold"
                   style={{ background: "rgba(26,26,26,0.08)", color: "rgba(26,26,26,0.65)", border: "1px solid rgba(26,26,26,0.10)", textDecoration: "none" }}
                 >
@@ -1325,7 +1325,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
 
         <div className="amber-line mb-6" />
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style={{ color: "rgba(26,26,26,0.55)" }}>
-          <p>© {new Date().getFullYear()} SkillBridge AI. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
           <p>Built for the independent professional.</p>
         </div>
       </div>
@@ -1342,7 +1342,7 @@ export default function Home() {
   // If the user is already authenticated, skip the landing page and go straight to the dashboard
    const meQuery = trpc.auth.me.useQuery(undefined, { retry: false, refetchOnWindowFocus: false });
   useEffect(() => {
-    document.title = "SkillBridge AI — AI Business Platform for Freelancers";
+    document.title = "TrueAxis HQ — AI Business Platform for Freelancers";
   }, []);
   useEffect(() => {
     if (!meQuery.isLoading && meQuery.data) {
@@ -1394,7 +1394,7 @@ export default function Home() {
             <div className="flex items-center justify-between p-5 border-b border-[#EEECEA]">
               <div>
                 <h2 className="font-bold text-[#1A1A1A] text-base">What's New</h2>
-                <p className="text-xs text-[#6B6B6B] mt-0.5">SkillBridge AI — Latest Updates</p>
+                <p className="text-xs text-[#6B6B6B] mt-0.5">TrueAxis HQ — Latest Updates</p>
               </div>
               <button onClick={() => setChangelogOpen(false)} className="p-1.5 rounded-lg hover:bg-[#F0EEE9] transition-colors" aria-label="Close">
                 <X className="w-4 h-4 text-[#6B6B6B]" />

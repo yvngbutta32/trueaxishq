@@ -1,4 +1,4 @@
-/* SkillBridge AI — Changelog Modal
+/* TrueAxis HQ — Changelog Modal
  * Shows "What's New" once per version on dashboard load
  */
 import { useEffect, useState } from "react";
@@ -6,7 +6,7 @@ import { X, Sparkles, Clock, RefreshCw, FileSignature, Bell, Shield, Zap } from 
 import { Button } from "@/components/ui/button";
 
 const CURRENT_VERSION = "1.4.0";
-const STORAGE_KEY = `skillbridge_changelog_seen_${CURRENT_VERSION}`;
+const STORAGE_KEY = `trueaxis_changelog_seen_${CURRENT_VERSION}`;
 
 const CHANGELOG = [
   {
@@ -82,7 +82,7 @@ export function ChangelogModal() {
               <span className="text-xs font-bold text-[#D4922A] uppercase tracking-wider">What's New</span>
             </div>
             <h2 className="text-xl font-bold text-[#0D1117]">
-              SkillBridge AI v{CURRENT_VERSION}
+              TrueAxis HQ v{CURRENT_VERSION}
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">Major update — 6 new features</p>
           </div>

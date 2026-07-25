@@ -313,7 +313,7 @@ export default function ClientPortal() {
         </div>
 
         <p className="text-center text-xs text-gray-600 pb-4">
-          Powered by <span className="font-semibold text-gray-600">SkillBridge AI</span>
+          Powered by <span className="font-semibold text-gray-600">TrueAxis HQ</span>
         </p>
       </main>
     </div>

@@ -1454,3 +1454,8 @@
 - [x] Fix client/src/pages/ClientPulse.tsx: setTimeout in mutation onSuccess had no cleanup → added useRef timer with clearTimeout guard
 - [x] Applied DB migration: ALTER TABLE platformSettings MODIFY COLUMN siteName default to 'SkillBridge AI'
 - [x] Verified: TypeScript check passes (0 errors), all 29 tests pass
+## Rebrand: SkillBridge AI → TrueAxis HQ (Final, Jul 25 2026)
+- [x] Replace all "SkillBridge AI" / "skillbridge" references with "TrueAxis HQ" / "trueaxis" across 40+ source files
+- [x] Files updated: client/index.html, manifest.json, package.json, all pages, all components, all server files, schema.ts, .project-config.json
+- [x] DB schema defaults already correct (TrueAxis HQ, support@trueaxishq.com)
+- [x] 0 TypeScript errors, 29/29 tests passing

@@ -45,12 +45,12 @@ const SUGGESTED_PROMPTS = [
 const INITIAL_MESSAGE: Message = {
   role: "assistant",
   content:
-    "Hi! I'm your SkillBridge AI Assistant. I can write follow-up emails, draft invoices and contracts, give business advice, and save anything directly to your dashboard with one tap. What would you like to work on?",
+    "Hi! I'm your TrueAxis HQ Assistant. I can write follow-up emails, draft invoices and contracts, give business advice, and save anything directly to your dashboard with one tap. What would you like to work on?",
   timestamp: new Date(),
 };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const STORAGE_KEY = "skillbridge-ai-widget-pos";
+const STORAGE_KEY = "trueaxis-hq-widget-pos";
 const BUBBLE_SIZE = 56;
 const PANEL_W = 390;
 const PANEL_H = 540;

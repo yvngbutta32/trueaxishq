@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 /**
- * SkillBridge AI — Unified Button System
+ * TrueAxis HQ — Unified Button System
  *
  * Hierarchy:
  *   primary   → navy bg, white text  — main CTA, one per section

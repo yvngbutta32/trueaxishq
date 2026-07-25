@@ -28,7 +28,7 @@ export default function CheckoutSuccess() {
     if (data?.valid && !toastShown) {
       setToastShown(true);
       const timer = setTimeout(() => {
-        toast.success("Welcome to SkillBridge AI! Your subscription is now active.", {
+        toast.success("Welcome to TrueAxis HQ! Your subscription is now active.", {
           duration: 6000,
         });
       }, 800);
@@ -70,8 +70,8 @@ export default function CheckoutSuccess() {
           </div>
           <p className="text-xs text-gray-500 mt-5">
             Questions?{" "}
-            <a href="mailto:support@skillbridgeai.com" className="text-[#D4922A] hover:underline">
-              support@skillbridgeai.com
+            <a href="mailto:support@trueaxisai.com" className="text-[#D4922A] hover:underline">
+              support@trueaxisai.com
             </a>
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function CheckoutSuccess() {
           <div className="flex justify-center mb-5">
             <img
               src={import.meta.env.VITE_APP_LOGO}
-              alt={import.meta.env.VITE_APP_TITLE ?? "SkillBridge AI"}
+              alt={import.meta.env.VITE_APP_TITLE ?? "TrueAxis HQ"}
               className="h-8 w-auto object-contain"
             />
           </div>
@@ -121,7 +121,7 @@ export default function CheckoutSuccess() {
           You're all set! 🎉
         </h1>
         <p className="text-gray-600 text-sm mb-8 leading-relaxed">
-          Your subscription is now active. Welcome to SkillBridge AI — your business is about to run on autopilot.
+          Your subscription is now active. Welcome to TrueAxis HQ — your business is about to run on autopilot.
         </p>
 
         {/* What's unlocked */}
@@ -163,8 +163,8 @@ export default function CheckoutSuccess() {
 
         <p className="text-xs text-gray-600 mt-6">
           A receipt has been sent to your email. Questions? Email{" "}
-          <a href="mailto:support@skillbridgeai.com" className="text-[#D4922A] hover:underline focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-1 rounded">
-            support@skillbridgeai.com
+          <a href="mailto:support@trueaxisai.com" className="text-[#D4922A] hover:underline focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-1 rounded">
+            support@trueaxisai.com
           </a>
         </p>
       </main>

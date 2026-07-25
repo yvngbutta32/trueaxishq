@@ -169,7 +169,7 @@ export default function ProposalSign() {
               <FileText className="w-4 h-4 text-[#D4922A]" />
             </div>
             <div>
-              <p className="text-xs text-[rgba(26,26,26,0.40)] font-medium">Proposal from SkillBridge AI</p>
+              <p className="text-xs text-[rgba(26,26,26,0.40)] font-medium">Proposal from TrueAxis HQ</p>
               <p className="text-sm font-semibold text-[#1A1A1A] truncate max-w-[200px] sm:max-w-none">{proposal.title}</p>
             </div>
           </div>
@@ -332,7 +332,7 @@ export default function ProposalSign() {
         {/* Trust footer */}
         <div className="flex items-center justify-center gap-2 text-[rgba(26,26,26,0.30)] text-xs pb-8">
           <Shield className="w-3.5 h-3.5" />
-          <span>Secured by SkillBridge AI · Electronic signatures are legally binding</span>
+          <span>Secured by TrueAxis HQ · Electronic signatures are legally binding</span>
         </div>
       </div>
     </div>

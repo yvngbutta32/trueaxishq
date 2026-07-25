@@ -1,4 +1,4 @@
-/* SkillBridge AI — Full Dashboard (DB-backed)
+/* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
  * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
  */
@@ -308,14 +308,14 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             <div className="w-8 h-8 rounded-lg overflow-hidden">
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-                alt="SkillBridge AI — Dashboard"
+                alt="TrueAxis HQ — Dashboard"
                 className="w-full h-full object-cover object-left"
               />
             </div>
           ) : (
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-              alt="SkillBridge AI — Dashboard"
+              alt="TrueAxis HQ — Dashboard"
               className="h-9 w-auto object-contain"
             />
           )}
@@ -398,7 +398,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
 
 // ─── Changelog Modal ─────────────────────────────────────────────────────────
 const CHANGELOG_VERSION = "1.4.0";
-const CHANGELOG_KEY = `skillbridge_changelog_${CHANGELOG_VERSION}`;
+const CHANGELOG_KEY = `trueaxis_changelog_${CHANGELOG_VERSION}`;
 
 function ChangelogModal() {
   const [open, setOpen] = useState(() => !localStorage.getItem(CHANGELOG_KEY));
@@ -411,7 +411,7 @@ function ChangelogModal() {
         <div className="flex items-center justify-between p-5 border-b border-[#EEECEA]">
           <div>
             <h2 className="font-extrabold text-[#1A1A1A] text-base">What's New in v{CHANGELOG_VERSION} 🎉</h2>
-            <p className="text-xs text-[#6B6B6B] mt-0.5">SkillBridge AI — Latest Updates</p>
+            <p className="text-xs text-[#6B6B6B] mt-0.5">TrueAxis HQ — Latest Updates</p>
           </div>
           <button onClick={dismiss} className="p-2 rounded-lg hover:bg-[#F0EEE9] transition-colors" aria-label="Close">
             <X className="w-4 h-4 text-[#6B6B6B]" />
@@ -2809,7 +2809,7 @@ function FollowUpsPanel() {
             <div className="bg-[#F7F6F3] border border-[#DDDBD7] rounded-xl mb-4 overflow-hidden">
               <div className="px-4 py-2 border-b border-[#DDDBD7] flex items-center gap-2">
                 <span className="text-[11px] font-bold text-[#3D3D3D] uppercase tracking-wide w-14">From</span>
-                <span className="text-sm text-[#2A2A2A]">SkillBridge AI &lt;noreply@skillbridge-ai.com&gt;</span>
+                <span className="text-sm text-[#2A2A2A]">TrueAxis HQ &lt;noreply@trueaxis-hq.com&gt;</span>
               </div>
               <div className="px-4 py-2 border-b border-[#DDDBD7] flex items-center gap-2">
                 <span className="text-[11px] font-bold text-[#3D3D3D] uppercase tracking-wide w-14">To</span>
@@ -2832,7 +2832,7 @@ function FollowUpsPanel() {
                     <span className="text-white font-black text-xs">T</span>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-[#1A1A1A] leading-none">SkillBridge AI</p>
+                    <p className="text-sm font-bold text-[#1A1A1A] leading-none">TrueAxis HQ</p>
                     <p className="text-[10px] text-[#3D3D3D] mt-0.5">AI-Powered Business OS for Freelancers</p>
                   </div>
                 </div>
@@ -2846,7 +2846,7 @@ function FollowUpsPanel() {
                 </div>
                 {/* Footer */}
                 <div className="px-5 py-3 bg-[#F7F6F3] border-t border-[#DDDBD7]">
-                  <p className="text-[10px] text-[#3D3D3D] text-center">&copy; {new Date().getFullYear()} SkillBridge AI &mdash; <span className="text-[#D4922A]">Unsubscribe</span></p>
+                  <p className="text-[10px] text-[#3D3D3D] text-center">&copy; {new Date().getFullYear()} TrueAxis HQ &mdash; <span className="text-[#D4922A]">Unsubscribe</span></p>
                 </div>
               </div>
             </div>
@@ -3394,7 +3394,7 @@ function ApiKeysSection() {
   return (
     <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
       <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2"><Zap className="w-4 h-4 text-[#D4922A]" />API Keys</h3>
-      <p className="text-xs text-[#6B6B6B]">Use API keys to integrate SkillBridge AI with Zapier, Make, or your own tools.</p>
+      <p className="text-xs text-[#6B6B6B]">Use API keys to integrate TrueAxis HQ with Zapier, Make, or your own tools.</p>
       {createdKey && (
         <div className="bg-green-500/10 border border-green-200 rounded-xl p-3">
           <p className="text-xs font-semibold text-green-700 mb-1">Your new API key (copy it now — it won't be shown again):</p>
@@ -4324,7 +4324,7 @@ This agreement is governed by the laws of [State/Country].`,
               <div className="border border-dashed border-[#C8C5BF] rounded-lg p-4 text-center">
                 <p className="text-[10px] text-[#3D3D3D] uppercase tracking-wide mb-3">Service Provider</p>
                 <div className="h-8 border-b border-[#C8C5BF] mb-2" />
-                <p className="text-xs text-[#3D3D3D]">SkillBridge AI</p>
+                <p className="text-xs text-[#3D3D3D]">TrueAxis HQ</p>
               </div>
             </div>
 
@@ -4857,12 +4857,12 @@ export default function Dashboard() {
     return "overview";
   });
   const [collapsed, setCollapsed] = useState<boolean>(() => {
-    try { return localStorage.getItem("skillbridge_sidebar_collapsed") === "1"; } catch { return false; }
+    try { return localStorage.getItem("trueaxis_sidebar_collapsed") === "1"; } catch { return false; }
   });
   const handleSetCollapsed = (v: boolean | ((prev: boolean) => boolean)) => {
     setCollapsed(prev => {
       const next = typeof v === "function" ? v(prev) : v;
-      try { localStorage.setItem("skillbridge_sidebar_collapsed", next ? "1" : "0"); } catch {}
+      try { localStorage.setItem("trueaxis_sidebar_collapsed", next ? "1" : "0"); } catch {}
       return next;
     });
   };
@@ -4897,29 +4897,29 @@ export default function Dashboard() {
   // Update document title based on active panel
   useEffect(() => {
     const PANEL_TITLES: Record<ActivePanel, string> = {
-            overview: "Dashboard — SkillBridge AI",
-      clients: "Clients — SkillBridge AI",
-      scheduling: "Scheduling — SkillBridge AI",
-      invoices: "Invoices — SkillBridge AI",
-      followups: "Follow-Ups — SkillBridge AI",
-      analytics: "Analytics — SkillBridge AI",
-      settings: "Settings — SkillBridge AI",
-      ai: "AI Assistant — SkillBridge AI",
-      pulse: "Client Pulse — SkillBridge AI",
-      contracts: "Contracts — SkillBridge AI",
-      time: "Time Tracker — SkillBridge AI",
-      inbox: "Inbox — SkillBridge AI",
-      testimonials: "Testimonials — SkillBridge AI",
-      services: "Services — SkillBridge AI",
-      expenses: "Expenses & P&L — SkillBridge AI",
-      proposals: "Proposals — SkillBridge AI",
-      automations: "Automations — SkillBridge AI",
-      billing: "Billing — SkillBridge AI",
-      outreach: "Outreach — SkillBridge AI",
-      deals: "Deals — SkillBridge AI",
-      insights: "Insights — SkillBridge AI",
+            overview: "Dashboard — TrueAxis HQ",
+      clients: "Clients — TrueAxis HQ",
+      scheduling: "Scheduling — TrueAxis HQ",
+      invoices: "Invoices — TrueAxis HQ",
+      followups: "Follow-Ups — TrueAxis HQ",
+      analytics: "Analytics — TrueAxis HQ",
+      settings: "Settings — TrueAxis HQ",
+      ai: "AI Assistant — TrueAxis HQ",
+      pulse: "Client Pulse — TrueAxis HQ",
+      contracts: "Contracts — TrueAxis HQ",
+      time: "Time Tracker — TrueAxis HQ",
+      inbox: "Inbox — TrueAxis HQ",
+      testimonials: "Testimonials — TrueAxis HQ",
+      services: "Services — TrueAxis HQ",
+      expenses: "Expenses & P&L — TrueAxis HQ",
+      proposals: "Proposals — TrueAxis HQ",
+      automations: "Automations — TrueAxis HQ",
+      billing: "Billing — TrueAxis HQ",
+      outreach: "Outreach — TrueAxis HQ",
+      deals: "Deals — TrueAxis HQ",
+      insights: "Insights — TrueAxis HQ",
     };
-    document.title = PANEL_TITLES[active] ?? "Dashboard — SkillBridge AI";
+    document.title = PANEL_TITLES[active] ?? "Dashboard — TrueAxis HQ";
   }, [active]);
 
   // Global keyboard shortcuts: Cmd+K / Ctrl+K = search; Alt+1..9 = panel navigation
@@ -5133,7 +5133,7 @@ export default function Dashboard() {
               >
                 <img
                   src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-                  alt="SkillBridge AI — Dashboard"
+                  alt="TrueAxis HQ — Dashboard"
                   className="h-7 w-auto object-contain"
                 />
               </button>

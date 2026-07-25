@@ -11,7 +11,7 @@ const sections = [
 
 **Account Information:** When you register, we collect your name, email address, and authentication credentials. If you sign in via OAuth, we receive your name and email from the identity provider.
 
-**Business Data:** We collect the data you enter into SkillBridge AI, including client names and contact information, invoice details, booking records, follow-up messages, and business settings. This data belongs to you and is stored securely on our servers.
+**Business Data:** We collect the data you enter into TrueAxis HQ, including client names and contact information, invoice details, booking records, follow-up messages, and business settings. This data belongs to you and is stored securely on our servers.
 
 **Payment Information:** When you subscribe to a paid plan, payment is processed by Stripe. We do not store your full credit card number, CVV, or expiration date. We store only your Stripe Customer ID and subscription status to manage your account.
 
@@ -23,7 +23,7 @@ const sections = [
     title: "2. How We Use Your Information",
     content: `We use the information we collect to:
 
-- Provide, operate, and maintain the SkillBridge AI platform
+- Provide, operate, and maintain the TrueAxis HQ platform
 - Process transactions and send related billing information
 - Send you technical notices, updates, and security alerts
 - Respond to your comments and questions and provide customer support
@@ -59,7 +59,7 @@ Business data you have entered (clients, invoices, bookings) will be permanently
 
 **Legal Requirements:** We may disclose your information if required by law, subpoena, or other legal process, or if we believe disclosure is necessary to protect our rights, your safety, or the safety of others.
 
-**Business Transfers:** If SkillBridge AI is acquired or merges with another company, your data may be transferred as part of that transaction. We will notify you before your data is transferred and becomes subject to a different privacy policy.
+**Business Transfers:** If TrueAxis HQ is acquired or merges with another company, your data may be transferred as part of that transaction. We will notify you before your data is transferred and becomes subject to a different privacy policy.
 
 We do not sell your personal data to data brokers, advertisers, or any third party.`,
   },
@@ -71,7 +71,7 @@ We do not sell your personal data to data brokers, advertisers, or any third par
 
 **Correction:** You can update your profile information and business settings at any time within the platform.
 
-**Deletion:** You can request deletion of your account and all associated data by contacting us at privacy@skillbridge-ai.com.
+**Deletion:** You can request deletion of your account and all associated data by contacting us at privacy@trueaxis-hq.com.
 
 **Portability:** You can export your client list, invoices, and booking history in standard formats from your dashboard.
 
@@ -91,18 +91,18 @@ We do not use third-party advertising cookies or sell data to advertising networ
   },
   {
     title: "8. Children's Privacy",
-    content: `SkillBridge AI is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately at privacy@skillbridge-ai.com and we will delete it promptly.`,
+    content: `TrueAxis HQ is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately at privacy@trueaxis-hq.com and we will delete it promptly.`,
   },
   {
     title: "9. Changes to This Policy",
-    content: `We may update this Privacy Policy from time to time. We will notify you of material changes by email or by posting a prominent notice on our platform at least 30 days before the changes take effect. Your continued use of SkillBridge AI after the effective date constitutes your acceptance of the updated policy.`,
+    content: `We may update this Privacy Policy from time to time. We will notify you of material changes by email or by posting a prominent notice on our platform at least 30 days before the changes take effect. Your continued use of TrueAxis HQ after the effective date constitutes your acceptance of the updated policy.`,
   },
   {
     title: "10. Contact Us",
     content: `If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
 
-**Email:** privacy@skillbridge-ai.com
-**Mailing Address:** SkillBridge AI, Privacy Team, 100 Innovation Drive, Suite 400, Austin, TX 78701
+**Email:** privacy@trueaxis-hq.com
+**Mailing Address:** TrueAxis HQ, Privacy Team, 100 Innovation Drive, Suite 400, Austin, TX 78701
 
 We will respond to all privacy-related inquiries within 5 business days.`,
   },
@@ -110,7 +110,7 @@ We will respond to all privacy-related inquiries within 5 business days.`,
 
 export default function Privacy() {
   const [, navigate] = useLocation();
-  useEffect(() => { document.title = "Privacy Policy — SkillBridge AI"; }, []);
+  useEffect(() => { document.title = "Privacy Policy — TrueAxis HQ"; }, []);
   return (
     <div className="min-h-screen bg-[#F2F0EC] text-[#1A1A1A]">
       <nav className="border-b border-[#DDDBD7] px-4 sm:px-6 py-4 flex items-center justify-between">
@@ -121,7 +121,7 @@ export default function Privacy() {
         <div className="flex items-center">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-            alt="SkillBridge AI"
+            alt="TrueAxis HQ"
             className="h-8 w-auto object-contain"
           />
         </div>
@@ -138,7 +138,7 @@ export default function Privacy() {
         <p className="text-sm text-[rgba(26,26,26,0.55)] mb-12">Last updated: {LAST_UPDATED}</p>
 
         <p className="text-[rgba(26,26,26,0.80)] leading-relaxed mb-10 text-base">
-          SkillBridge AI ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform. Please read this policy carefully. If you disagree with its terms, please discontinue use of the platform.
+          TrueAxis HQ ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform. Please read this policy carefully. If you disagree with its terms, please discontinue use of the platform.
         </p>
 
         <div className="space-y-10">
@@ -160,7 +160,7 @@ export default function Privacy() {
       </div>
 
       <footer className="border-t border-[#DDDBD7] py-8 px-4 text-center text-xs text-[rgba(26,26,26,0.45)]">
-        <p>© {new Date().getFullYear()} SkillBridge AI. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>
   );
