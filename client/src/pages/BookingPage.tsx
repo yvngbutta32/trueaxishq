@@ -282,7 +282,7 @@ export default function BookingPage() {
               <div className="h-px bg-[#F7F6F3]" />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-[#3D3D3D] flex items-center gap-2"><Calendar className="w-3.5 h-3.5" />Date</span>
-                <span className="text-sm font-semibold text-[#1A1A1A]">{form.preferredDate}</span>
+                <span className="text-sm font-semibold text-[#1A1A1A]">{(() => { const d = new Date(form.preferredDate + 'T12:00:00'); return isNaN(d.getTime()) ? form.preferredDate : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); })()}</span>
               </div>
               <div className="h-px bg-[#F7F6F3]" />
               <div className="flex items-center justify-between">
@@ -566,14 +566,16 @@ export default function BookingPage() {
               <legend className="form-label mb-3">Select a date</legend>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2" role="group" aria-label="Available dates">
                 {availableDays.map(day => {
+                  // Store as ISO YYYY-MM-DD for consistent server-side handling
+                  const isoDate = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
                   const dateStr = day.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
                   const dayName = day.toLocaleDateString("en-US", { weekday: "short" });
                   const dayNum = day.getDate();
-                  const isSelected = form.preferredDate === dateStr;
+                  const isSelected = form.preferredDate === isoDate;
                   return (
                     <button
-                      key={dateStr}
-                      onClick={() => setForm(p => ({ ...p, preferredDate: dateStr }))}
+                      key={isoDate}
+                      onClick={() => setForm(p => ({ ...p, preferredDate: isoDate }))}
                       aria-pressed={isSelected}
                       aria-label={`${dayName} ${dateStr}`}
                       className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 ${
@@ -663,11 +665,11 @@ export default function BookingPage() {
                 { icon: User, label: "Your Name", value: form.clientName },
                 { icon: Mail, label: "Email", value: form.clientEmail },
                 { icon: Briefcase, label: "Service", value: form.service },
-                { icon: Calendar, label: "Date", value: form.preferredDate },
+                { icon: Calendar, label: "Date", value: (() => { const d = new Date(form.preferredDate + 'T12:00:00'); return isNaN(d.getTime()) ? form.preferredDate : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); })() },
                 { icon: Clock, label: "Time", value: form.preferredTime },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/8 border border-[#DDDBD7] flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                  <div className="w-8 h-8 rounded-lg bg-[#F7F6F3] border border-[#DDDBD7] flex items-center justify-center flex-shrink-0" aria-hidden="true">
                     <Icon className="w-4 h-4 text-[#6B6B6B]" />
                   </div>
                   <div>
@@ -679,7 +681,7 @@ export default function BookingPage() {
 
               {form.message && (
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/8 border border-[#DDDBD7] flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
+                  <div className="w-8 h-8 rounded-lg bg-[#F7F6F3] border border-[#DDDBD7] flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
                     <MessageSquare className="w-4 h-4 text-[#6B6B6B]" />
                   </div>
                   <div>

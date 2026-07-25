@@ -4611,36 +4611,36 @@ function MobileQuickStats() {
       <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
         <div className="flex items-center gap-1">
           <DollarSign className="w-3 h-3 text-[#D4922A]" />
-          <span className="text-xs font-extrabold text-[#1A1A1A]">{totalRevenue >= 1000 ? `$${(totalRevenue/1000).toFixed(1)}k` : `$${Math.round(totalRevenue)}`}</span>
+          <span className="text-xs font-extrabold text-white">{totalRevenue >= 1000 ? `$${(totalRevenue/1000).toFixed(1)}k` : `$${Math.round(totalRevenue)}`}</span>
         </div>
-        <span className="text-[9px] text-[#3D3D3D] font-medium uppercase tracking-wide">Revenue</span>
+        <span className="text-[9px] text-white/55 font-medium uppercase tracking-wide">Revenue</span>
       </div>
-      <div className="w-px h-7 bg-white/8" />
+      <div className="w-px h-7 bg-white/20" />
       {/* Active Clients */}
       <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
         <div className="flex items-center gap-1">
-          <Users className="w-3 h-3 text-[#6366F1]" />
-          <span className="text-xs font-extrabold text-[#1A1A1A]">{activeClients}</span>
+          <Users className="w-3 h-3 text-[#818CF8]" />
+          <span className="text-xs font-extrabold text-white">{activeClients}</span>
         </div>
-        <span className="text-[9px] text-[#3D3D3D] font-medium uppercase tracking-wide">Clients</span>
+        <span className="text-[9px] text-white/55 font-medium uppercase tracking-wide">Clients</span>
       </div>
-      <div className="w-px h-7 bg-white/8" />
+      <div className="w-px h-7 bg-white/20" />
       {/* Today's Sessions */}
       <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
         <div className="flex items-center gap-1">
           <Calendar className="w-3 h-3 text-[#F59E0B]" />
-          <span className="text-xs font-extrabold text-[#1A1A1A]">{todaySessions}</span>
+          <span className="text-xs font-extrabold text-white">{todaySessions}</span>
         </div>
-        <span className="text-[9px] text-[#3D3D3D] font-medium uppercase tracking-wide">Today</span>
+        <span className="text-[9px] text-white/55 font-medium uppercase tracking-wide">Today</span>
       </div>
-      <div className="w-px h-7 bg-white/8" />
+      <div className="w-px h-7 bg-white/20" />
       {/* Overdue */}
       <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
         <div className="flex items-center gap-1">
-          <AlertCircle className={`w-3 h-3 ${overdueCount > 0 ? "text-red-400" : "text-[#6B6B6B]"}`} />
-          <span className={`text-xs font-extrabold ${overdueCount > 0 ? "text-red-400" : "text-[#1A1A1A]"}`}>{overdueCount}</span>
+          <AlertCircle className={`w-3 h-3 ${overdueCount > 0 ? "text-red-400" : "text-white/40"}`} />
+          <span className={`text-xs font-extrabold ${overdueCount > 0 ? "text-red-400" : "text-white"}`}>{overdueCount}</span>
         </div>
-        <span className="text-[9px] text-[#3D3D3D] font-medium uppercase tracking-wide">Overdue</span>
+        <span className="text-[9px] text-white/55 font-medium uppercase tracking-wide">Overdue</span>
       </div>
     </div>
   );

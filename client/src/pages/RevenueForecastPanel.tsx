@@ -191,7 +191,7 @@ export default function RevenueForecastPanel() {
             <span className="text-xs font-semibold text-[rgba(26,26,26,0.6)]">Annual Progress</span>
             <span className="text-xs font-bold text-[#D4922A]">{ytdPct ?? 0}%</span>
           </div>
-          <div className="h-2.5 bg-white/8 rounded-full overflow-hidden">
+          <div className="h-2.5 bg-[#EEECEA] rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{
@@ -282,7 +282,7 @@ export default function RevenueForecastPanel() {
                 </div>
                 {m.goal != null && m.actual != null && (
                   <div className="w-16 flex-shrink-0">
-                    <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-[#EEECEA] rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full"
                         style={{

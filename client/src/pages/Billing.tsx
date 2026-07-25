@@ -80,9 +80,9 @@ export default function Billing() {
   const plans = plansQuery.data ?? [];
 
   return (
-    <div className="min-h-screen bg-[#F2F0EC] text-white">
+    <div className="min-h-screen bg-[#F2F0EC] text-[#1A1A1A]">
       <a href="#main-content" className="skip-link">Skip to main content</a>
-      <nav className="border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between">
+      <nav className="border-b border-[#DDDBD7] px-4 sm:px-6 py-4 flex items-center justify-between">
         <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Dashboard</span>
@@ -99,15 +99,15 @@ export default function Billing() {
       <main id="main-content" className="max-w-4xl mx-auto px-4 pt-10 pb-12 page-bottom">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-extrabold text-white mb-1">
+          <h1 className="text-2xl font-extrabold text-[#1A1A1A] mb-1">
             Billing & Subscription
           </h1>
           <p className="text-[rgba(26,26,26,0.55)] text-sm">Manage your plan, upgrade, or access your billing history.</p>
         </div>
 
         {/* Current Plan Card */}
-        <section aria-label="Current subscription" className="bg-[#F2F0EC] rounded-xl border border-white/10 shadow-sm p-6 mb-8">
-          <h2 className="text-base font-bold text-white mb-4">Current Plan</h2>
+        <section aria-label="Current subscription" className="bg-white rounded-xl border border-[#DDDBD7] shadow-sm p-6 mb-8">
+          <h2 className="text-base font-bold text-[#1A1A1A] mb-4">Current Plan</h2>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               {(() => {
@@ -120,7 +120,7 @@ export default function Billing() {
                 );
               })()}
               <div>
-                <p className="text-lg font-extrabold text-white capitalize">
+                <p className="text-lg font-extrabold text-[#1A1A1A] capitalize">
                   {currentPlan === "free" ? "Free Plan" : `${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan`}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -128,7 +128,7 @@ export default function Billing() {
                     currentStatus === "active" ? "bg-green-100 text-green-800" :
                     currentStatus === "past_due" ? "bg-yellow-100 text-yellow-800" :
                     currentStatus === "cancelled" ? "bg-red-100 text-red-800" :
-                    "bg-white/10 text-[rgba(26,26,26,0.65)]"
+                    "bg-[#EEECEA] text-[rgba(26,26,26,0.65)]"
                   }`} role="status">
                     {currentStatus === "active" && <CheckCircle className="w-3 h-3" aria-hidden="true" />}
                     {currentStatus === "active" ? "Active" :
@@ -142,7 +142,7 @@ export default function Billing() {
               {hasActiveSubscription && (
                 <Button
                   variant="outline"
-                  className="gap-2 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white hover:border-white/50"
+                  className="gap-2 bg-transparent border-[#DDDBD7] text-[#1A1A1A] hover:bg-[#EEECEA] hover:text-[#1A1A1A] hover:border-[#C8C5BF]"
                   onClick={() => portalMutation.mutate({ origin: window.location.origin })}
                   disabled={portalMutation.isPending}
                   aria-label="Open Stripe billing portal to manage subscription"
@@ -162,7 +162,7 @@ export default function Billing() {
 
         {/* Interval Toggle */}
         <div className="flex items-center justify-center mb-6">
-          <div className="bg-[#F2F0EC] border border-white/10 rounded-xl p-1 flex" role="group" aria-label="Billing interval">
+          <div className="bg-white border border-[#DDDBD7] rounded-xl p-1 flex" role="group" aria-label="Billing interval">
             {(["monthly", "annual"] as const).map(opt => (
               <button
                 key={opt}
@@ -204,12 +204,12 @@ export default function Billing() {
                 return (
                   <article
                     key={plan.id}
-                    className={`bg-[#F2F0EC] rounded-xl border-2 p-6 flex flex-col transition-all ${
+                    className={`bg-white rounded-xl border-2 p-6 flex flex-col transition-all ${
                       plan.highlighted
                         ? "border-[#D4922A] shadow-lg shadow-[#D4922A]/10"
                         : isCurrent
                         ? "border-blue-400/60"
-                        : "border-white/15 hover:border-white/30"
+                        : "border-[#DDDBD7] hover:border-[#C8C5BF]"
                     }`}
                     aria-label={`${plan.name} plan — $${price} per ${billingCycle === "annual" ? "month (billed annually)" : "month"}`}
                   >
@@ -228,13 +228,13 @@ export default function Billing() {
                       <Icon className="w-5 h-5 text-white" />
                     </div>
 
-                    <h3 className="text-lg font-extrabold text-white mb-1">
+                    <h3 className="text-lg font-extrabold text-[#1A1A1A] mb-1">
                       {plan.name}
                     </h3>
                     <p className="text-xs text-[rgba(26,26,26,0.55)] mb-4">{plan.description}</p>
 
                     <div className="mb-5">
-                      <span className="text-3xl font-extrabold text-white">${price}</span>
+                      <span className="text-3xl font-extrabold text-[#1A1A1A]">${price}</span>
                       <span className="text-sm text-[rgba(26,26,26,0.55)]">/mo</span>
                       {billingCycle === "annual" && (
                         <p className="text-xs text-green-600 font-semibold mt-0.5">Billed annually</p>
@@ -253,7 +253,7 @@ export default function Billing() {
                     {isCurrent ? (
                       <Button
                         variant="outline"
-                        className="w-full bg-transparent border-white/20 text-gray-400 cursor-not-allowed hover:bg-transparent hover:text-gray-400 hover:border-white/20"
+                        className="w-full bg-transparent border-[#DDDBD7] text-[rgba(26,26,26,0.40)] cursor-not-allowed hover:bg-transparent hover:text-[rgba(26,26,26,0.40)] hover:border-[#DDDBD7]"
                         disabled
                         aria-label={`You are currently on the ${plan.name} plan`}
                       >
@@ -261,7 +261,7 @@ export default function Billing() {
                       </Button>
                     ) : (
                       <Button
-                        className={`w-full gap-2 ${plan.highlighted ? "gradient-amber text-white border-0" : "bg-white/10 border-white/40 text-white hover:bg-white/20 hover:text-white hover:border-white/60"}`}
+                        className={`w-full gap-2 ${plan.highlighted ? "gradient-amber text-white border-0" : "bg-[#EEECEA] border-[#DDDBD7] text-[#1A1A1A] hover:bg-[#E5E3DF] hover:text-[#1A1A1A] hover:border-[#C8C5BF]"}`}
                         variant={plan.highlighted ? "default" : "outline"}
                         onClick={() => {
                           if (!isAuthenticated) {

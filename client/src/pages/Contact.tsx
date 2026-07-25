@@ -112,7 +112,7 @@ export default function Contact() {
                 { icon: Mail, title: "Billing", value: "billing@trueaxishq.com", sub: "For payment and subscription questions" },
                 { icon: Clock, title: "Response Time", value: "Within 4 business hours", sub: "Monday – Friday, 9am – 6pm CT" },
               ].map(({ icon: Icon, title, value, sub }) => (
-                <div key={title} className="flex items-start gap-4 bg-white/5 border border-[#DDDBD7] rounded-xl p-4">
+                <div key={title} className="flex items-start gap-4 bg-white border border-[#DDDBD7] rounded-xl p-4">
                   <div className="w-9 h-9 rounded-xl bg-[#D4922A]/15 flex items-center justify-center flex-shrink-0">
                     <Icon className="w-4 h-4 text-[#D4922A]" />
                   </div>
@@ -127,7 +127,7 @@ export default function Contact() {
           </div>
 
           {/* Right — Form */}
-          <div className="bg-white/5 border border-[#DDDBD7] rounded-xl p-6 sm:p-8">
+          <div className="bg-white border border-[#DDDBD7] rounded-xl p-6 sm:p-8">
             {submitted ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 rounded-full bg-[#D4922A]/15 flex items-center justify-center mx-auto mb-4">

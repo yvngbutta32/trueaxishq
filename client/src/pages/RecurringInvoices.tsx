@@ -283,7 +283,7 @@ export default function RecurringInvoicesPanel() {
                         {FREQUENCY_LABELS[s.frequency]}
                       </span>
                       {!s.active && (
-                        <span className="px-2 py-0.5 text-xs rounded-full bg-white/8 text-[rgba(26,26,26,0.45)] font-semibold">Paused</span>
+                        <span className="px-2 py-0.5 text-xs rounded-full bg-[#EEECEA] text-[rgba(26,26,26,0.45)] font-semibold">Paused</span>
                       )}
                     </div>
                     <p className="text-xs text-[rgba(26,26,26,0.45)] mt-0.5">
@@ -298,7 +298,7 @@ export default function RecurringInvoicesPanel() {
                     <button
                       onClick={() => toggle.mutate({ id: s.id, active: !s.active })}
                       disabled={toggle.isPending}
-                      className="p-1.5 rounded-lg hover:bg-white/8 text-[rgba(26,26,26,0.40)] hover:text-[#1A1A1A] transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-[#EEECEA] text-[rgba(26,26,26,0.40)] hover:text-[#1A1A1A] transition-colors"
                       title={s.active ? "Pause schedule" : "Resume schedule"}
                     >
                       {s.active

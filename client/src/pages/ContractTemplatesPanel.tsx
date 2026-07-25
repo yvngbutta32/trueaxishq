@@ -299,11 +299,11 @@ export default function ContractTemplatesPanel() {
                 </p>
               </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                <button onClick={() => setPreviewId(t.id)} className="p-1.5 rounded-lg hover:bg-white/8 text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors" title="Preview">
+                <button onClick={() => setPreviewId(t.id)} className="p-1.5 rounded-lg hover:bg-[#EEECEA] text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors" title="Preview">
                   <Eye className="w-3.5 h-3.5" />
                 </button>
                 {!t.isBuiltIn && (
-                  <button onClick={() => startEdit(t)} className="p-1.5 rounded-lg hover:bg-white/8 text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors" title="Edit">
+                  <button onClick={() => startEdit(t)} className="p-1.5 rounded-lg hover:bg-[#EEECEA] text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors" title="Edit">
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                 )}

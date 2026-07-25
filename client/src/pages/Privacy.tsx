@@ -112,7 +112,7 @@ export default function Privacy() {
   const [, navigate] = useLocation();
   useEffect(() => { document.title = "Privacy Policy — TrueAxis HQ"; }, []);
   return (
-    <div className="min-h-screen bg-[#F2F0EC] text-white">
+    <div className="min-h-screen bg-[#F2F0EC] text-[#1A1A1A]">
       <nav className="border-b border-[#DDDBD7] px-4 sm:px-6 py-4 flex items-center justify-between">
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
@@ -134,22 +134,22 @@ export default function Privacy() {
           </div>
           <span className="text-xs font-semibold text-[#D4922A] uppercase tracking-wider">Legal</span>
         </div>
-        <h1 className="text-4xl sm:text-5xl font-extrabold mb-3">Privacy Policy</h1>
-        <p className="text-sm text-gray-400 mb-12">Last updated: {LAST_UPDATED}</p>
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-3 text-[#1A1A1A]">Privacy Policy</h1>
+        <p className="text-sm text-[rgba(26,26,26,0.55)] mb-12">Last updated: {LAST_UPDATED}</p>
 
-        <p className="text-gray-300 leading-relaxed mb-10 text-base">
+        <p className="text-[rgba(26,26,26,0.80)] leading-relaxed mb-10 text-base">
           TrueAxis HQ ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform. Please read this policy carefully. If you disagree with its terms, please discontinue use of the platform.
         </p>
 
         <div className="space-y-10">
           {sections.map(({ title, content }) => (
             <section key={title}>
-              <h2 className="text-xl font-bold mb-4 text-white">{title}</h2>
-              <div className="text-gray-300 text-sm leading-relaxed space-y-3">
+              <h2 className="text-xl font-bold mb-4 text-[#1A1A1A]">{title}</h2>
+              <div className="text-[rgba(26,26,26,0.75)] text-sm leading-relaxed space-y-3">
                 {content.split("\n\n").map((para, i) => (
                   <p key={i} dangerouslySetInnerHTML={{
                     __html: para
-                      .replace(/\*\*(.+?)\*\*/g, "<strong class='text-white'>$1</strong>")
+                      .replace(/\*\*(.+?)\*\*/g, "<strong class='text-[#1A1A1A]'>$1</strong>")
                       .replace(/^- (.+)$/gm, "<li class='ml-4 list-disc'>$1</li>")
                   }} />
                 ))}
@@ -159,7 +159,7 @@ export default function Privacy() {
         </div>
       </div>
 
-      <footer className="border-t border-[#DDDBD7] py-8 px-4 text-center text-xs text-gray-400">
+      <footer className="border-t border-[#DDDBD7] py-8 px-4 text-center text-xs text-[rgba(26,26,26,0.45)]">
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

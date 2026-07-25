@@ -1431,3 +1431,15 @@
 - [x] Fix todayBookings filter to handle both ISO and human-readable date formats
 - [x] Fix todaySessions filter in MobileBottomNav to handle both date formats
 - [x] Add formatBookingDate() and formatBookingTime() helpers to Dashboard.tsx and ClientPortal.tsx
+
+## Pass 8 — Full Visual Audit: Spacing, Overlaps & Text Contrast (Jul 25, 2026)
+- [x] Fix Privacy.tsx: text-white/text-gray-300/400 invisible on light #F2F0EC background → changed to text-[#1A1A1A] and text-[rgba(26,26,26,0.75/0.55)]
+- [x] Fix Terms.tsx: same text-white/text-gray-300/400 on light background → same fix
+- [x] Fix Help.tsx: hero section had dark gradient background but heading/subtitle used dark text → heading now text-white, subtitle text-white/70
+- [x] Fix Help.tsx: "Still need help?" support card used bg-white/5 (nearly transparent) on light page → changed to bg-white
+- [x] Fix Contact.tsx: info cards and form used bg-white/5 (nearly transparent) on light page → changed to bg-white
+- [x] Fix Billing.tsx: entire page used text-white, border-white/10, bg-[#F2F0EC] (same as page bg) on light background → fixed all to proper dark text and visible borders/backgrounds
+- [x] Verified: About.tsx, Pricing.tsx sticky navs have proper backgrounds (rgba(247,246,243,0.97)) — no overlap
+- [x] Verified: MobileQuickStats uses dark background (rgba(22,27,34,0.98)) with text-white — correct
+- [x] Verified: Admin.tsx uses dark background throughout — text-white is correct
+- [x] Verified: All 29 tests still pass after visual fixes

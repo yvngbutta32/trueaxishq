@@ -317,7 +317,7 @@ export default function IntakeFormsPanel() {
                       <span className="font-semibold text-sm text-[#1A1A1A] truncate">{form.name}</span>
                       <Badge
                         variant="outline"
-                        className={`text-[10px] px-1.5 py-0 border-0 ${form.active ? "bg-emerald-500/15 text-emerald-400" : "bg-white/8 text-[rgba(26,26,26,0.4)]"}`}
+                        className={`text-[10px] px-1.5 py-0 border-0 ${form.active ? "bg-emerald-500/15 text-emerald-400" : "bg-[#EEECEA] text-[rgba(26,26,26,0.4)]"}`}
                       >
                         {form.active ? "Active" : "Inactive"}
                       </Badge>

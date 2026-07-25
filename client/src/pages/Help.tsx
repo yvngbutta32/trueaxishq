@@ -158,9 +158,9 @@ export default function Help() {
       </nav>
 
       {/* Hero */}
-      <section className="py-10 sm:py-14 px-4 text-center bg-gradient-to-b from-[#1A2E2A] to-[#0D1117]">
-        <h1 className="text-4xl sm:text-5xl font-extrabold mb-4">Help Center</h1>
-        <p className="text-[#3D3D3D] mb-8 max-w-lg mx-auto">Find answers to common questions, or contact our support team.</p>
+      <section className="py-10 sm:py-14 px-4 text-center" style={{ background: "linear-gradient(135deg, #1B2D4F 0%, #0D1117 100%)" }}>
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 text-white">Help Center</h1>
+        <p className="text-white/70 mb-8 max-w-lg mx-auto">Find answers to common questions, or contact our support team.</p>
         <div className="relative max-w-lg mx-auto">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input
@@ -219,7 +219,7 @@ export default function Help() {
         )}
 
         {/* Contact support */}
-        <section className="bg-white/5 border border-[#DDDBD7] rounded-xl p-8 text-center">
+        <section className="bg-white border border-[#DDDBD7] rounded-xl p-8 text-center">
           <h2 className="text-xl font-bold mb-2">Still need help?</h2>
           <p className="text-[#6B6B6B] text-sm mb-6">Our support team typically responds within 4 business hours.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

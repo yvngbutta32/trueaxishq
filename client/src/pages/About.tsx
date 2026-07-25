@@ -13,24 +13,24 @@ export default function About() {
       {/* Nav */}
       <nav
         className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
-        style={{ background: "rgba(10,10,10,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(232,160,32,0.10)" }}
+        style={{ background: "rgba(247,246,243,0.97)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(221,219,215,0.80)" }}
       >
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-sm font-medium animated-underline"
-          style={{ color: "rgba(26,26,26,0.55)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
+          style={{ color: "rgba(26,26,26,0.70)", background: "rgba(26,26,26,0.05)", border: "1px solid rgba(26,26,26,0.12)", borderRadius: "0.5rem", padding: "0.35rem 0.75rem", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </button>
-        <div className="flex items-center">
+        <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }} aria-label="Go to homepage">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
             alt="TrueAxis HQ"
             className="h-8 w-auto object-contain"
           />
-        </div>
-        <button onClick={() => navigate("/pricing")} className="btn-ghost" style={{ padding: "0.4rem 1rem", fontSize: "0.8125rem" }}>
+        </button>
+        <button onClick={() => navigate("/pricing")} className="btn-amber" style={{ padding: "0.4rem 1rem", fontSize: "0.8125rem" }}>
           View Pricing
         </button>
       </nav>

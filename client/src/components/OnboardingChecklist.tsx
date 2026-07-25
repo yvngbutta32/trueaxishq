@@ -65,7 +65,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
     <div className="bg-white rounded-xl border border-[#DDDBD7] overflow-hidden">
       {/* Header */}
       <div
-        className="flex items-center justify-between px-5 py-4 cursor-pointer select-none hover:bg-white/3 transition-colors"
+        className="flex items-center justify-between px-5 py-4 cursor-pointer select-none hover:bg-[#F7F6F3] transition-colors"
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex items-center gap-3">
@@ -109,7 +109,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
           }
           <button
             onClick={e => { e.stopPropagation(); dismiss(); }}
-            className="p-1 rounded-lg hover:bg-white/8 transition-colors"
+            className="p-1 rounded-lg hover:bg-[#EEECEA] transition-colors"
             aria-label="Dismiss checklist"
           >
             <X className="w-3.5 h-3.5 text-[rgba(26,26,26,0.65)]" />
@@ -120,7 +120,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
       {/* Progress bar */}
       {!collapsed && (
         <div className="px-5 pb-1">
-          <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-[#EEECEA] rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{ width: `${pct}%`, background: allDone ? "#10B981" : "#D4922A" }}
