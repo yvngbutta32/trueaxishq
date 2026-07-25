@@ -1,4 +1,4 @@
-/* TrueAxis HQ — Recurring Invoices Panel
+/* SkillBridge AI — Recurring Invoices Panel
  * Set up automatic invoice schedules — weekly, bi-weekly, monthly, quarterly, yearly
  * Dark-themed to match the dashboard design system.
  */

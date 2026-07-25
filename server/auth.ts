@@ -1,5 +1,5 @@
 /**
- * TrueAxis HQ — Self-Contained Email/Password Authentication
+ * SkillBridge AI — Self-Contained Email/Password Authentication
  *
  * Completely independent of Manus OAuth. Uses:
  * - bcryptjs for password hashing

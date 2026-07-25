@@ -22,7 +22,7 @@ function formatIcalDate(d: Date): string {
 }
 
 function generateUID(id: number, userId: number): string {
-  return `booking-${id}-user-${userId}@trueaxishq`;
+  return `booking-${id}-user-${userId}@skillbridge-ai`;
 }
 
 icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
@@ -71,18 +71,18 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
     const userBookings = await db.select().from(bookings)
       .where(and(eq(bookings.userId, userId)));
 
-    const calName = user?.businessName || user?.name || "TrueAxis HQ Calendar";
+    const calName = user?.businessName || user?.name || "SkillBridge AI Calendar";
     const now = formatIcalDate(new Date());
 
     const lines: string[] = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      `PRODID:-//TrueAxis HQ//Calendar//EN`,
+      `PRODID:-//SkillBridge AI//Calendar//EN`,
       "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH",
       `X-WR-CALNAME:${escapeIcal(calName)}`,
       "X-WR-TIMEZONE:UTC",
-      "X-WR-CALDESC:Bookings from TrueAxis HQ",
+      "X-WR-CALDESC:Bookings from SkillBridge AI",
     ];
 
     for (const b of userBookings) {
@@ -124,7 +124,7 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
 
     res.set({
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `attachment; filename="trueaxis-calendar.ics"`,
+      "Content-Disposition": `attachment; filename="skillbridge-calendar.ics"`,
       "Cache-Control": "no-cache, no-store",
     });
     res.send(icsContent);

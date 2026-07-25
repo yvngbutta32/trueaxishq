@@ -1,4 +1,4 @@
-/* TrueAxis HQ — Pricing Page
+/* SkillBridge AI — Pricing Page
  * Design: "Dark Amber Retro-Modern" — Charcoal #161B22, Amber #D4922A, Cream #F5F0E8
  */
 
@@ -99,7 +99,7 @@ export default function Pricing() {
   const [annual, setAnnual] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { isAuthenticated } = useAuth();
-  useEffect(() => { document.title = "Pricing — TrueAxis HQ"; }, []);
+  useEffect(() => { document.title = "Pricing — SkillBridge AI"; }, []);
 
   return (
     <div style={{ background: "#F7F6F3", minHeight: "100vh", color: "#1A1A1A" }}>
@@ -120,7 +120,7 @@ export default function Pricing() {
         <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }} aria-label="Go to homepage">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-            alt="TrueAxis HQ"
+            alt="SkillBridge AI"
             className="h-8 w-auto object-contain"
           />
         </button>
@@ -225,7 +225,7 @@ export default function Pricing() {
                 <button
                   onClick={() => {
                     if (plan.name === "Agency") {
-                      toast.info("Contact sales@trueaxishq.com for Agency pricing");
+                      toast.info("Contact sales@skillbridge-ai.com for Agency pricing");
                     } else if (isAuthenticated) {
                       navigate("/dashboard");
                     } else {
@@ -328,7 +328,7 @@ export default function Pricing() {
             </div>
             <div className="text-center sm:text-left">
               <h3 style={{ fontWeight: 700, fontSize: "1.125rem", color: "#1A1A1A" }}>30-Day Money-Back Guarantee</h3>
-              <p className="mt-1 text-sm" style={{ color: "rgba(26,26,26,0.75)" }}>Try TrueAxis HQ risk-free for 30 days. If you’re not completely satisfied, we’ll refund every cent — no questions asked, no hoops to jump through.</p>
+              <p className="mt-1 text-sm" style={{ color: "rgba(26,26,26,0.75)" }}>Try SkillBridge AI risk-free for 30 days. If you’re not completely satisfied, we’ll refund every cent — no questions asked, no hoops to jump through.</p>
             </div>
           </div>
         </div>

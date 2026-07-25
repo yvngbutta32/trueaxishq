@@ -268,12 +268,12 @@ export const appRouter = router({
           });
 
           // Build reset URL from the request origin (works in any environment)
-          const origin = input.origin || ctx.req.headers.origin || 'https://trueaxishq.manus.space';
+          const origin = input.origin || ctx.req.headers.origin || 'https://skillbridge-ai.manus.space';
           const resetUrl = `${origin}/reset-password?token=${token}`;
           // Send real email to the user
           await sendEmail({
             to: user.email!,
-            subject: "Reset Your TrueAxis HQ Password",
+            subject: "Reset Your SkillBridge AI Password",
             html: forgotPasswordEmail({ name: user.name || "there", resetUrl }),
           });
           // Also notify owner for audit purposes
@@ -705,7 +705,7 @@ export const appRouter = router({
               requestToken: reqToken,
               status: "requested",
             });
-            const origin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
+            const origin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://skillbridge-ai.com";
             sendEmail({
               to: inv.clientEmail,
               subject: `How did we do? Share your feedback`,
@@ -817,7 +817,7 @@ export const appRouter = router({
         if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice has already been paid." });
 
         const stripe = getStripe();
-        const origin = input.origin || ctx.req.headers.origin || process.env.SITE_ORIGIN || "https://trueaxishq.manus.space";
+        const origin = input.origin || ctx.req.headers.origin || process.env.SITE_ORIGIN || "https://skillbridge-ai.manus.space";
         const amountCents = Math.round(parseFloat(String(inv.amount)) * 100);
         if (amountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
 
@@ -830,7 +830,7 @@ export const appRouter = router({
               currency: "usd",
               product_data: {
                 name: inv.service || `Invoice #${inv.invoiceNumber}`,
-                description: `Invoice #${inv.invoiceNumber} from ${ctx.user.name || "TrueAxis HQ"}`,
+                description: `Invoice #${inv.invoiceNumber} from ${ctx.user.name || "SkillBridge AI"}`,
               },
               unit_amount: amountCents,
             },
@@ -1063,7 +1063,7 @@ export const appRouter = router({
         const userRecord = await db.select({ name: users.name, businessName: users.businessName })
           .from(users).where(eq(users.id, ctx.user.id)).limit(1);
         const userName = userRecord[0]?.name || ctx.user.name || "Your Coach";
-        const businessName = userRecord[0]?.businessName || "TrueAxis HQ";
+        const businessName = userRecord[0]?.businessName || "SkillBridge AI";
 
         let subject = `Checking in — ${input.clientName}`;
         let body = `Hi ${input.clientName},\n\nI wanted to reach out and see how you've been doing since our last session together. I hope you've been making great progress on your goals!\n\nI'd love to hear how things are going and discuss what we can work on next. Feel free to reply to this email or book your next session whenever you're ready.\n\nLooking forward to connecting soon!\n\nWarm regards,\n${userName}\n${businessName}`;
@@ -1393,7 +1393,7 @@ export const appRouter = router({
         const contextStr = input.context
           ? `User context: ${input.context.clientCount ?? 0} active clients, $${input.context.revenue ?? 0} revenue this month, ${input.context.bookingsThisWeek ?? 0} bookings this week, plan: ${input.context.planId ?? "free"}, currently viewing: ${input.context.activePanel ?? "dashboard"}.`
           : "";
-        const systemPrompt = `You are TrueAxis HQ Assistant — a smart, friendly business advisor for freelancers and solo service providers. Help users grow their business, manage clients, understand analytics, write follow-up emails, create invoice descriptions, draft contracts, and give actionable advice. Be concise, warm, and practical. ${contextStr} The user's name is ${ctx.user.name ?? "there"}.
+        const systemPrompt = `You are SkillBridge AI Assistant — a smart, friendly business advisor for freelancers and solo service providers. Help users grow their business, manage clients, understand analytics, write follow-up emails, create invoice descriptions, draft contracts, and give actionable advice. Be concise, warm, and practical. ${contextStr} The user's name is ${ctx.user.name ?? "there"}.
 
 IMPORTANT: When you generate a saveable artifact (invoice draft, contract draft, follow-up email draft, or a note), you MUST return your response as a JSON object with this exact structure:
 {
@@ -1646,7 +1646,7 @@ Only include actions when you have actually generated a complete draft. For gene
             line_items: [{
               price_data: {
                 currency: "usd",
-                product_data: { name: `TrueAxis HQ — ${plan.name}`, description: plan.description },
+                product_data: { name: `SkillBridge AI — ${plan.name}`, description: plan.description },
                 unit_amount: unitAmount,
                 recurring: intervalConfig,
               },
@@ -2062,7 +2062,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const hostDetails = await db.select({ name: users.name, businessName: users.businessName })
           .from(users).where(eq(users.id, host[0].id)).limit(1);
         const freelancerName = hostDetails[0]?.businessName || hostDetails[0]?.name || "Your service provider";
-        const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
+        const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://skillbridge-ai.com";
         const cancelUrl = newBookingId ? `${siteOrigin}/booking/cancel/${cancelToken}` : undefined;
         sendEmail({
           to: input.clientEmail,
@@ -2862,6 +2862,11 @@ Only include actions when you have actually generated a complete draft. For gene
           ));
         if (entries.length !== input.ids.length)
           throw new TRPCError({ code: 'NOT_FOUND', message: 'One or more time entries not found.' });
+        // Validate all entries belong to the same client
+        const uniqueClientIds = new Set(entries.map(e => e.clientId ?? null));
+        if (uniqueClientIds.size > 1) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'All selected time entries must belong to the same client. Please select entries for a single client only.' });
+        }
         for (const e of entries) {
           if (!e.endedAt) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot invoice a running timer — stop it first.' });
           if (e.invoiced) throw new TRPCError({ code: 'BAD_REQUEST', message: `Entry "${e.description ?? e.projectName}" has already been invoiced.` });
@@ -2949,6 +2954,12 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        // Verify the client belongs to this user before attaching a document
+        const [ownerCheck] = await db.select({ id: clients.id })
+          .from(clients)
+          .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id)))
+          .limit(1);
+        if (!ownerCheck) throw new TRPCError({ code: "FORBIDDEN", message: "Client not found." });
         const [result] = await db.insert(clientDocuments).values({
           userId: ctx.user.id,
           clientId: input.clientId,
@@ -3233,6 +3244,10 @@ Only include actions when you have actually generated a complete draft. For gene
         const [portalRecord] = await db.select().from(clientPortalTokens)
           .where(eq(clientPortalTokens.token, input.token)).limit(1);
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND" });
+        // Enforce token expiry (same as portal.view)
+        if (portalRecord.expiresAt && new Date(portalRecord.expiresAt) < new Date()) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Portal link has expired. Please request a new one." });
+        }
         return db.select().from(portalMessages)
           .where(and(eq(portalMessages.userId, portalRecord.userId), eq(portalMessages.clientId, portalRecord.clientId)))
           .orderBy(portalMessages.createdAt);
@@ -3987,7 +4002,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const [row] = await db.select().from(proposals)
           .where(and(eq(proposals.id, input.id), eq(proposals.userId, ctx.user.id))).limit(1);
         if (!row) throw new TRPCError({ code: "NOT_FOUND" });
-        const origin = input.origin || ctx.req.headers.origin || "https://trueaxishq.manus.space";
+        const origin = input.origin || ctx.req.headers.origin || "https://skillbridge-ai.manus.space";
         const link = `${origin}/proposal/${row.token}`;
         if (row.clientEmail) {
           await sendEmail({
@@ -4615,12 +4630,12 @@ Only include actions when you have actually generated a complete draft. For gene
     importClients: protectedProcedure
       .input(z.object({
         rows: z.array(z.object({
-          name: z.string().min(1),
-          email: z.string().email().optional(),
-          phone: z.string().optional(),
-          company: z.string().optional(),
-          notes: z.string().optional(),
-          defaultRate: z.number().optional(),
+          name: z.string().min(1).max(255),
+          email: z.string().email().max(320).optional(),
+          phone: z.string().max(50).optional(),
+          company: z.string().max(255).optional(),
+          notes: z.string().max(5000).optional(),
+          defaultRate: z.number().min(0).max(99999).optional(),
           pipelineStage: z.enum(["inquiry", "proposal_sent", "active", "completed", "lost"]).optional(),
         })).min(1).max(500),
       }))

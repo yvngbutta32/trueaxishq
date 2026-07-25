@@ -84,7 +84,7 @@ export default function Admin() {
   const { user, loading, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
-  useEffect(() => { document.title = "Admin — TrueAxis HQ"; }, []);
+  useEffect(() => { document.title = "Admin — SkillBridge AI"; }, []);
   const [page, setPage] = useState(1);
   const [broadcastTitle, setBroadcastTitle] = useState("");
   const [broadcastContent, setBroadcastContent] = useState("");
@@ -249,10 +249,14 @@ export default function Admin() {
   }
 
   // Redirect to admin login if not authenticated or not owner
-  if (!loading && (!isAuthenticated || !isOwner)) {
-    navigate("/admin-login");
-    return null;
-  }
+  // Must be in useEffect — calling navigate() during render is a React anti-pattern
+  useEffect(() => {
+    if (!loading && (!isAuthenticated || !isOwner)) {
+      navigate("/admin-login");
+    }
+  }, [loading, isAuthenticated, isOwner, navigate]);
+
+  if (!loading && (!isAuthenticated || !isOwner)) return null;
 
   const stats = statsQuery.data;
   const health = healthQuery.data;
@@ -277,7 +281,7 @@ export default function Admin() {
         <div className="flex items-center gap-3">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-            alt="TrueAxis HQ"
+            alt="SkillBridge AI"
             className="h-8 w-auto object-contain"
           />
           <div className="hidden sm:block w-px h-6 bg-[#161B22]/10" />
@@ -560,7 +564,7 @@ export default function Admin() {
                   const csv = ["Name,Email,Source,Date", ...leads.map(l => `"${l.name ?? ""}","${l.email}","${l.source ?? ""}","${new Date(l.createdAt).toLocaleDateString()}"`)].join("\n");
                   const blob = new Blob([csv], { type: "text/csv" });
                   const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a"); a.href = url; a.download = "trueaxishq-leads.csv"; a.click(); URL.revokeObjectURL(url);
+                  const a = document.createElement("a"); a.href = url; a.download = "skillbridge-ai-leads.csv"; a.click(); URL.revokeObjectURL(url);
                   toast.success(`Exported ${leads.length} leads as CSV`);
                 }}
                 className="gap-2"
@@ -664,11 +668,11 @@ export default function Admin() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="form-label">Site Name</label>
-                      <input type="text" value={settingsForm.siteName ?? ""} onChange={e => updateField("siteName", e.target.value)} className="form-input-light" placeholder="TrueAxis HQ" maxLength={255} />
+                      <input type="text" value={settingsForm.siteName ?? ""} onChange={e => updateField("siteName", e.target.value)} className="form-input-light" placeholder="SkillBridge AI" maxLength={255} />
                     </div>
                     <div>
                       <label className="form-label">Support Email</label>
-                      <input type="email" value={settingsForm.supportEmail ?? ""} onChange={e => updateField("supportEmail", e.target.value)} className="form-input-light" placeholder="support@trueaxishq.com" maxLength={320} />
+                      <input type="email" value={settingsForm.supportEmail ?? ""} onChange={e => updateField("supportEmail", e.target.value)} className="form-input-light" placeholder="support@skillbridge-ai.com" maxLength={320} />
                     </div>
                     <div>
                       <label className="form-label">Support Phone</label>
@@ -735,10 +739,10 @@ export default function Admin() {
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[
-                      { key: "socialTwitter", label: "Twitter / X", icon: Twitter, placeholder: "https://twitter.com/trueaxishq" },
-                      { key: "socialLinkedin", label: "LinkedIn", icon: Linkedin, placeholder: "https://linkedin.com/company/trueaxis-hq" },
-                      { key: "socialInstagram", label: "Instagram", icon: Instagram, placeholder: "https://instagram.com/trueaxishq" },
-                      { key: "socialYoutube", label: "YouTube", icon: Youtube, placeholder: "https://youtube.com/@trueaxishq" },
+                      { key: "socialTwitter", label: "Twitter / X", icon: Twitter, placeholder: "https://twitter.com/skillbridge-ai" },
+                      { key: "socialLinkedin", label: "LinkedIn", icon: Linkedin, placeholder: "https://linkedin.com/company/skillbridge-ai" },
+                      { key: "socialInstagram", label: "Instagram", icon: Instagram, placeholder: "https://instagram.com/skillbridge-ai" },
+                      { key: "socialYoutube", label: "YouTube", icon: Youtube, placeholder: "https://youtube.com/@skillbridge-ai" },
                     ].map(({ key, label, icon: Icon, placeholder }) => (
                       <div key={key}>
                         <label className="form-label flex items-center gap-1.5">
@@ -1013,7 +1017,7 @@ export default function Admin() {
 
         {/* ── Security Panel ──────────────────────────────────────────── */}
         {activeTab === "security" && (
-          <section id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+          <section id="security-content" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
 
             {/* Watchdog Status */}
             <div className={`rounded-xl p-6 border shadow-sm ${
@@ -1244,7 +1248,7 @@ export default function Admin() {
                       const url = URL.createObjectURL(blob);
                       const a = document.createElement("a");
                       a.href = url;
-                      a.download = `trueaxishq-security-log-${new Date().toISOString().split("T")[0]}.csv`;
+                      a.download = `skillbridge-ai-security-log-${new Date().toISOString().split("T")[0]}.csv`;
                       a.click();
                       URL.revokeObjectURL(url);
                       toast.success(`Exported ${events.length} security events`);

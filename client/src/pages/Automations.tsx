@@ -19,8 +19,7 @@ const TRIGGERS = [
   { value: "invoice_overdue", label: "Invoice Overdue", desc: "When an invoice passes its due date" },
   { value: "client_added", label: "New Client Added", desc: "When a new client is created" },
   { value: "proposal_signed", label: "Proposal Signed", desc: "When a client signs a proposal" },
-  { value: "contract_signed", label: "Contract Signed", desc: "When a contract is signed" },
-  { value: "follow_up_due", label: "Follow-Up Due", desc: "When a follow-up is due today" },
+  // Note: contract_signed and follow_up_due are not yet supported by the backend engine
 ];
 
 const ACTIONS = [

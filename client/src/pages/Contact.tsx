@@ -10,7 +10,7 @@ export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  useEffect(() => { document.title = "Contact — TrueAxis HQ"; }, []);
+  useEffect(() => { document.title = "Contact — SkillBridge AI"; }, []);
 
   const submitContact = trpc.contact.submit.useMutation();
 
@@ -39,7 +39,7 @@ export default function Contact() {
       setSubmitted(true);
       toast.success("Message sent! We'll be in touch within 4 hours.");
     } catch {
-      toast.error("Something went wrong. Please email us directly at support@trueaxishq.com");
+      toast.error("Something went wrong. Please email us directly at support@skillbridge-ai.com");
     }
   };
 
@@ -85,7 +85,7 @@ export default function Contact() {
         <div className="flex items-center">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-            alt="TrueAxis HQ"
+            alt="SkillBridge AI"
             className="h-8 w-auto object-contain"
           />
         </div>
@@ -108,8 +108,8 @@ export default function Contact() {
 
             <div className="space-y-5">
               {[
-                { icon: Mail, title: "Email Support", value: "support@trueaxishq.com", sub: "For general questions and account help" },
-                { icon: Mail, title: "Billing", value: "billing@trueaxishq.com", sub: "For payment and subscription questions" },
+                { icon: Mail, title: "Email Support", value: "support@skillbridge-ai.com", sub: "For general questions and account help" },
+                { icon: Mail, title: "Billing", value: "billing@skillbridge-ai.com", sub: "For payment and subscription questions" },
                 { icon: Clock, title: "Response Time", value: "Within 4 business hours", sub: "Monday – Friday, 9am – 6pm CT" },
               ].map(({ icon: Icon, title, value, sub }) => (
                 <div key={title} className="flex items-start gap-4 bg-white border border-[#DDDBD7] rounded-xl p-4">
@@ -166,7 +166,7 @@ export default function Contact() {
       </div>
 
       <footer className="border-t border-[#DDDBD7] py-8 px-4 text-center text-xs text-gray-600">
-        <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} SkillBridge AI. All rights reserved.</p>
       </footer>
     </div>
   );

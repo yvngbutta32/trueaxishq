@@ -1,4 +1,4 @@
-/* TrueAxis HQ — App Context
+/* SkillBridge AI — App Context
  * Global state provider for clients, invoices, bookings, follow-ups, and notifications.
  * Persists to localStorage so data survives page refreshes.
  */

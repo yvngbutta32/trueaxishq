@@ -208,7 +208,7 @@ export default function IntakeFormPage() {
         </form>
 
         <p className="text-center text-xs text-[rgba(26,26,26,0.25)] mt-4">
-          Powered by TrueAxis HQ
+          Powered by SkillBridge AI
         </p>
       </div>
     </div>

@@ -1,5 +1,5 @@
 /**
- * TrueAxis HQ — Stripe Product & Price Definitions
+ * SkillBridge AI — Stripe Product & Price Definitions
  *
  * These are created dynamically via the Stripe API on first checkout.
  * Price IDs are stored in environment variables after creation.

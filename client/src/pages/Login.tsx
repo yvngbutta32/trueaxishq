@@ -16,7 +16,7 @@ const features = [
 
 export default function Login() {
   const [, navigate] = useLocation();
-  useEffect(() => { document.title = "Sign In — TrueAxis HQ"; }, []);
+  useEffect(() => { document.title = "Sign In — SkillBridge AI"; }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -60,7 +60,7 @@ export default function Login() {
           aria-label="Go to homepage"
           style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >
-          <img src={LOGO_URL} alt="TrueAxis HQ" className="h-10 w-auto object-contain" />
+          <img src={LOGO_URL} alt="SkillBridge AI" className="h-10 w-auto object-contain" />
         </button>
 
         {/* Main copy */}
@@ -74,7 +74,7 @@ export default function Login() {
               <span style={{ color: "#D4922A" }}>running itself.</span>
             </h2>
             <p className="text-base leading-relaxed" style={{ color: "rgba(26,26,26,0.75)" }}>
-              Join 4,200+ freelancers who automated their client work with TrueAxis HQ.
+              Join 4,200+ freelancers who automated their client work with SkillBridge AI.
             </p>
           </div>
 
@@ -100,7 +100,7 @@ export default function Login() {
             style={{ background: "rgba(232,160,32,0.06)", border: "1px solid rgba(232,160,32,0.15)" }}
           >
             <p className="text-sm italic leading-relaxed mb-3" style={{ color: "rgba(26,26,26,0.85)" }}>
-              "I used to spend 3 hours every Monday on admin. Now it's zero. TrueAxis HQ paid for itself in the first week."
+              "I used to spend 3 hours every Monday on admin. Now it's zero. SkillBridge AI paid for itself in the first week."
             </p>
             <div className="flex items-center gap-2">
               <div
@@ -119,7 +119,7 @@ export default function Login() {
 
         {/* Footer note */}
           <p className="relative z-10 text-xs" style={{ color: "rgba(26,26,26,0.50)" }}>
-          © 2026 TrueAxis HQ. All rights reserved.
+          © 2026 SkillBridge AI. All rights reserved.
         </p>
       </div>
 
@@ -132,7 +132,7 @@ export default function Login() {
           aria-label="Go to homepage"
           style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >
-          <img src={LOGO_URL} alt="TrueAxis HQ" className="h-10 w-auto object-contain" />
+          <img src={LOGO_URL} alt="SkillBridge AI" className="h-10 w-auto object-contain" />
         </button>
 
         <div className="w-full max-w-md">

@@ -6,7 +6,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 export default function About() {
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
-  useEffect(() => { document.title = "About — TrueAxis HQ"; }, []);
+  useEffect(() => { document.title = "About — SkillBridge AI"; }, []);
 
   return (
     <div style={{ background: "#F7F6F3", minHeight: "100vh", color: "#1A1A1A" }}>
@@ -26,7 +26,7 @@ export default function About() {
         <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }} aria-label="Go to homepage">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-            alt="TrueAxis HQ"
+            alt="SkillBridge AI"
             className="h-8 w-auto object-contain"
           />
         </button>
@@ -49,7 +49,7 @@ export default function About() {
             <span style={{ color: "#D4922A" }}>we always needed.</span>
           </h1>
           <p className="mt-6 text-lg max-w-2xl mx-auto" style={{ color: "rgba(26,26,26,0.50)", lineHeight: 1.7 }}>
-            TrueAxis HQ was born out of frustration. We watched talented freelancers — coaches, consultants, designers, developers — spend more time on admin work than on the craft they loved. We decided to fix that.
+            SkillBridge AI was born out of frustration. We watched talented freelancers — coaches, consultants, designers, developers — spend more time on admin work than on the craft they loved. We decided to fix that.
           </p>
         </div>
       </section>
@@ -78,12 +78,12 @@ export default function About() {
         <div className="container max-w-3xl mx-auto">
           <div className="section-label mb-3 text-center">The Story</div>
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#1A1A1A", letterSpacing: "-0.025em", textAlign: "center", marginBottom: "2rem" }}>
-            Why TrueAxis HQ exists
+            Why SkillBridge AI exists
           </h2>
           <div className="space-y-5 text-base leading-relaxed" style={{ color: "rgba(26,26,26,0.85)" }}>
             <p>In 2024, the average freelancer in the United States was juggling five or more separate tools just to run their business: a scheduling app, an invoicing tool, a CRM, an email client, and a spreadsheet for everything else. They were paying $200–$400 per month for tools that didn't talk to each other — and spending 15–20 hours per week on admin work instead of billable work.</p>
-            <p>TrueAxis HQ was built to collapse all of that into one intelligent platform. We combined AI-powered automation with the core workflows every service provider needs: client management, scheduling, invoicing, follow-ups, and analytics. The result is a platform that doesn't just organize your business — it actively runs it.</p>
-            <p>Today, TrueAxis HQ serves thousands of freelancers across coaching, consulting, design, development, fitness, legal, and more. Our users report saving an average of 12 hours per week and increasing their revenue by 34% within their first six months.</p>
+            <p>SkillBridge AI was built to collapse all of that into one intelligent platform. We combined AI-powered automation with the core workflows every service provider needs: client management, scheduling, invoicing, follow-ups, and analytics. The result is a platform that doesn't just organize your business — it actively runs it.</p>
+            <p>Today, SkillBridge AI serves thousands of freelancers across coaching, consulting, design, development, fitness, legal, and more. Our users report saving an average of 12 hours per week and increasing their revenue by 34% within their first six months.</p>
             <p>We are a small, focused team. We don't have a massive marketing budget or a flashy office. What we have is a deep commitment to building software that actually works — software that makes your business feel effortless.</p>
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function About() {
 
       {/* Footer */}
       <footer className="py-8 px-4 text-center text-xs" style={{ borderTop: "1px solid rgba(232,160,32,0.08)", color: "rgba(26,26,26,0.20)" }}>
-        <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} SkillBridge AI. All rights reserved.</p>
       </footer>
     </div>
   );

@@ -25,7 +25,7 @@ export default function Billing() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
-  useEffect(() => { document.title = "Billing — TrueAxis HQ"; }, []);
+  useEffect(() => { document.title = "Billing — SkillBridge AI"; }, []);
 
   const subscriptionQuery = trpc.billing.getSubscription.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -90,7 +90,7 @@ export default function Billing() {
         <div className="flex items-center">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
-            alt="TrueAxis HQ"
+            alt="SkillBridge AI"
             className="h-8 w-auto object-contain"
           />
         </div>

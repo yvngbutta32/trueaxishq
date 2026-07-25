@@ -92,14 +92,14 @@ export default function PWAInstallBanner() {
       <div
         className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm"
         role="banner"
-        aria-label="Install TrueAxis HQ app"
+        aria-label="Install SkillBridge AI app"
       >
         <div className="bg-[#0D1117] border border-[#D4922A]/30 rounded-xl shadow-2xl p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#D4922A]/10 flex items-center justify-center flex-shrink-0">
             <Smartphone className="w-5 h-5 text-[#D4922A]" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white leading-tight">Install TrueAxis HQ</p>
+            <p className="text-sm font-semibold text-white leading-tight">Install SkillBridge AI</p>
             <p className="text-xs text-gray-400 mt-0.5">
               {isIOS ? "Add to Home Screen for the best experience" : "Install for faster access & offline use"}
             </p>
@@ -129,7 +129,7 @@ export default function PWAInstallBanner() {
         <div className="fixed inset-0 z-50 flex items-end justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-[#0D1117] border border-white/10 rounded-xl shadow-2xl p-6 w-full max-w-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-white">Install TrueAxis HQ</h3>
+              <h3 className="font-bold text-white">Install SkillBridge AI</h3>
               <button
                 onClick={handleDismiss}
                 className="w-7 h-7 flex items-center justify-center rounded-full text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
@@ -139,7 +139,7 @@ export default function PWAInstallBanner() {
               </button>
             </div>
             <p className="text-sm text-gray-400 mb-4">
-              To install TrueAxis HQ on your iPhone or iPad:
+              To install SkillBridge AI on your iPhone or iPad:
             </p>
             <ol className="space-y-3">
               <li className="flex items-start gap-3">
@@ -160,7 +160,7 @@ export default function PWAInstallBanner() {
               <li className="flex items-start gap-3">
                 <span className="w-6 h-6 rounded-full bg-[#D4922A] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
                 <p className="text-sm text-gray-300">
-                  Tap <strong className="text-white">"Add"</strong> — TrueAxis HQ will appear on your home screen
+                  Tap <strong className="text-white">"Add"</strong> — SkillBridge AI will appear on your home screen
                 </p>
               </li>
             </ol>

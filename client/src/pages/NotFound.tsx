@@ -5,7 +5,7 @@ import { useLocation } from "wouter";
 
 export default function NotFound() {
   const [, setLocation] = useLocation();
-  useEffect(() => { document.title = "Page Not Found — TrueAxis HQ"; }, []);
+  useEffect(() => { document.title = "Page Not Found — SkillBridge AI"; }, []);
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#F8F7F4]">
@@ -54,7 +54,7 @@ export default function NotFound() {
         </div>
 
         <p className="text-xs text-gray-400 mt-8">
-          TrueAxis HQ · <a href="/help" className="underline hover:text-[#D4922A]">Help Center</a> · <a href="/contact" className="underline hover:text-[#D4922A]">Contact Support</a>
+          SkillBridge AI · <a href="/help" className="underline hover:text-[#D4922A]">Help Center</a> · <a href="/contact" className="underline hover:text-[#D4922A]">Contact Support</a>
         </p>
       </div>
     </div>
