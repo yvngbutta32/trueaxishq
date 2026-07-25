@@ -4,6 +4,30 @@ import { useState, useEffect } from "react";
 import { FileText, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, CreditCard, User, Mail, Phone, Building2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
+// Normalize booking date strings: ISO "2026-08-01" → "Aug 1, 2026", already-formatted strings pass through
+function formatBookingDate(d: string): string {
+  if (!d) return "—";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+    const [y, m, day] = d.split("-").map(Number);
+    return new Date(y, m - 1, day).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+  return d;
+}
+// Normalize booking time strings: 24h "14:00" → "2:00 PM", 12h strings pass through
+function formatBookingTime(t: string): string {
+  if (!t) return "—";
+  const m24 = t.match(/^(\d{1,2}):(\d{2})$/);
+  if (m24) {
+    let h = parseInt(m24[1], 10);
+    const min = m24[2];
+    const ampm = h >= 12 ? "PM" : "AM";
+    if (h > 12) h -= 12;
+    if (h === 0) h = 12;
+    return `${h}:${min} ${ampm}`;
+  }
+  return t;
+}
+
 function statusBadge(status: string) {
   const map: Record<string, { label: string; color: string }> = {
     draft:     { label: "Draft",     color: "bg-gray-100 text-gray-600" },
@@ -250,7 +274,7 @@ export default function ClientPortal() {
                     <div className="flex items-center gap-3 text-xs text-gray-600">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {b.date} at {b.time}
+                        {formatBookingDate(b.date)} at {formatBookingTime(b.time)}
                       </span>
                       {b.duration && <span>{b.duration} min</span>}
                     </div>

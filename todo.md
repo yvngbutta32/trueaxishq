@@ -1424,3 +1424,10 @@
 - [x] Verified: AIAssistant saveActionMutation already had onError (false positive from audit script)
 - [x] Verified: TimeTracking setTimeouts are inside mutation callbacks, not useEffect (no cleanup needed)
 - [x] Verified: HealthMonitor setTimeout is in event handler (onBlur), not useEffect (no cleanup needed)
+
+## Pass 7 — Visual Testing & Date/Time Bugs (Jul 24, 2026)
+- [x] Fix raw ISO date display in Dashboard.tsx (booking date/time rendered as "2026-08-01 at 14:00" instead of "Aug 1, 2026 at 2:00 PM")
+- [x] Fix raw ISO date display in ClientPortal.tsx (same issue)
+- [x] Fix todayBookings filter to handle both ISO and human-readable date formats
+- [x] Fix todaySessions filter in MobileBottomNav to handle both date formats
+- [x] Add formatBookingDate() and formatBookingTime() helpers to Dashboard.tsx and ClientPortal.tsx

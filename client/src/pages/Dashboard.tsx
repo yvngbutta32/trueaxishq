@@ -73,6 +73,29 @@ function formatDate(d: Date | string | null | undefined) {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
+// Normalize booking date strings: ISO "2026-08-01" → "Aug 1, 2026", already-formatted strings pass through
+function formatBookingDate(d: string): string {
+  if (!d) return "—";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+    const [y, m, day] = d.split("-").map(Number);
+    return new Date(y, m - 1, day).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+  return d;
+}
+// Normalize booking time strings: 24h "14:00" → "2:00 PM", 12h strings pass through
+function formatBookingTime(t: string): string {
+  if (!t) return "—";
+  const m24 = t.match(/^(\d{1,2}):(\d{2})$/);
+  if (m24) {
+    let h = parseInt(m24[1], 10);
+    const min = m24[2];
+    const ampm = h >= 12 ? "PM" : "AM";
+    if (h > 12) h -= 12;
+    if (h === 0) h = 12;
+    return `${h}:${min} ${ampm}`;
+  }
+  return t;
+}
 
 // ─── Loading Skeleton ─────────────────────────────────────────────────────────
 function Skeleton({ className = "" }: { className?: string }) {
@@ -435,7 +458,9 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
   const { data: pulseData } = trpc.pulse.getAll.useQuery(undefined, { retry: 1 });
   const { data: pnlData } = trpc.expenses.pnl.useQuery({}, { retry: 1 });
   const todayStr = new Date().toISOString().split("T")[0];
-  const todayBookings = (recentBookings || []).filter(b => b.date === todayStr);
+  const todayHuman = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  // Handle both ISO format ("2026-07-24") from manual bookings and human-readable ("Jul 24, 2026") from public bookings
+  const todayBookings = (recentBookings || []).filter(b => b.date === todayStr || b.date === todayHuman);
 
   if (isLoading) return (
     <div className="space-y-5">
@@ -504,7 +529,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               {todayBookings.length} session{todayBookings.length > 1 ? 's' : ''} today
             </p>
             <p className="text-xs text-[#3D3D3D] mt-0.5 truncate">
-              {todayBookings.map(b => `${b.clientName} at ${b.time}`).join(" · ")}
+              {todayBookings.map(b => `${b.clientName} at ${formatBookingTime(b.time)}`).join(" · ")}
             </p>
           </div>
           <button onClick={() => setActivePanel("scheduling")} className="text-xs text-[#D4922A] font-semibold hover:underline flex-shrink-0">View</button>
@@ -733,7 +758,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#1A1A1A] truncate">{b.clientName}</p>
-                <p className="text-xs text-[#6B6B6B]">{b.date} at {b.time}</p>
+                <p className="text-xs text-[#6B6B6B]">{formatBookingDate(b.date)} at {formatBookingTime(b.time)}</p>
               </div>
               <span className="text-xs text-[#6B6B6B]">{b.duration}m</span>
             </div>
@@ -1533,13 +1558,13 @@ function SchedulingPanel() {
               <p className="text-xs text-[#6B6B6B]">{b.service || "General Session"}</p>
               {/* Mobile-only: show date/time inline */}
               <div className="flex items-center gap-2 mt-0.5 sm:hidden">
-                <span className="text-xs text-[#6B6B6B]">{b.date} · {b.time}</span>
+                <span className="text-xs text-[#6B6B6B]">{formatBookingDate(b.date)} · {formatBookingTime(b.time)}</span>
                 <span className="text-xs text-[#6B6B6B]">{b.duration}m</span>
               </div>
             </div>
             <div className="hidden sm:block">
-              <p className="text-sm font-medium text-[#1A1A1A]">{b.date}</p>
-              <p className="text-xs text-[#6B6B6B]">{b.time}</p>
+              <p className="text-sm font-medium text-[#1A1A1A]">{formatBookingDate(b.date)}</p>
+              <p className="text-xs text-[#6B6B6B]">{formatBookingTime(b.time)}</p>
             </div>
             <p className="hidden sm:block text-sm text-[#6B6B6B]">{b.duration} min</p>
             <div className="flex items-center justify-between">
@@ -4567,7 +4592,8 @@ function MobileQuickStats() {
   const totalRevenue = stats?.totalRevenue ?? 0;
   const activeClients = stats?.activeClients ?? 0;
   const todayStr = new Date().toISOString().split("T")[0];
-  const todaySessions = (scheduledBookings as any[]).filter(b => b.date === todayStr).length;
+  const todayHuman = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const todaySessions = (scheduledBookings as any[]).filter(b => b.date === todayStr || b.date === todayHuman).length;
   const overdueCount = overdueList.length;
 
   return (
