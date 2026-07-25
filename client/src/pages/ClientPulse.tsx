@@ -6,7 +6,7 @@
  * action recommendations and one-click draft-to-follow-up flow.
  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import {
@@ -112,6 +112,7 @@ function getActionConfig(actionType: string | null) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ClientPulse() {
+  const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [actionDialog, setActionDialog] = useState<{
     open: boolean;
     clientId: number;
@@ -129,7 +130,8 @@ export default function ClientPulse() {
       toast.success("Analyzing all client relationships...", {
         description: "This may take 30–60 seconds. Refresh to see updated scores.",
       });
-      setTimeout(() => refetch(), 15000);
+      if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current);
+      refetchTimerRef.current = setTimeout(() => refetch(), 15000);
     },
     onError: (err) => toast.error("Failed to start analysis", { description: err.message }),
   });

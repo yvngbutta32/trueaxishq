@@ -1,0 +1,2 @@
+ALTER TABLE `platformSettings` MODIFY COLUMN `siteName` varchar(255) NOT NULL DEFAULT 'SkillBridge AI';--> statement-breakpoint
+ALTER TABLE `platformSettings` MODIFY COLUMN `supportEmail` varchar(320) DEFAULT 'support@skillbridge.ai';

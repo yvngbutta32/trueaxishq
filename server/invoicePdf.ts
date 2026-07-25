@@ -17,7 +17,7 @@ invoicePdfRouter.get("/api/invoices/:id/pdf", async (req, res) => {
     const db = await getDb();
     if (!db) { res.status(503).json({ error: "Database unavailable" }); return; }
 
-    const invoiceId = parseInt(req.params.id);
+    const invoiceId = parseInt(req.params.id, 10);
     if (isNaN(invoiceId)) { res.status(400).json({ error: "Invalid invoice ID" }); return; }
 
     const [inv] = await db.select().from(invoices)

@@ -1443,3 +1443,14 @@
 - [x] Verified: MobileQuickStats uses dark background (rgba(22,27,34,0.98)) with text-white — correct
 - [x] Verified: Admin.tsx uses dark background throughout — text-white is correct
 - [x] Verified: All 29 tests still pass after visual fixes
+## Pass 9 — Final Sweep: Branding, parseInt Radix & setTimeout Leak (Jul 25, 2026)
+- [x] Fix package.json: name was "trueaxis-hq" → changed to "skillbridge-ai"
+- [x] Fix client/index.html: all 10+ "TrueAxis HQ" / "trueaxishq.com" references replaced with "SkillBridge AI" / "skillbridge-gipzwtye.manus.space"
+- [x] Fix client/public/manifest.json: PWA name/short_name "TrueAxis HQ"/"TrueAxis" → "SkillBridge AI"/"SkillBridge"
+- [x] Fix server/_core/index.ts: parseInt(process.env.PORT || "3000") missing radix → added radix 10
+- [x] Fix server/stripeWebhook.ts: parseInt(userId) missing radix → added radix 10
+- [x] Fix server/invoicePdf.ts: parseInt(req.params.id) missing radix → added radix 10
+- [x] Fix drizzle/schema.ts: platformSettings.siteName default "TrueAxis HQ" → "SkillBridge AI"; supportEmail default "support@trueaxishq.com" → "support@skillbridge.ai"
+- [x] Fix client/src/pages/ClientPulse.tsx: setTimeout in mutation onSuccess had no cleanup → added useRef timer with clearTimeout guard
+- [x] Applied DB migration: ALTER TABLE platformSettings MODIFY COLUMN siteName default to 'SkillBridge AI'
+- [x] Verified: TypeScript check passes (0 errors), all 29 tests pass

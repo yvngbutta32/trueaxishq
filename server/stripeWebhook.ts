@@ -126,7 +126,7 @@ async function processEvent(eventType: string, data: Stripe.Event["data"]["objec
           subscriptionStatus: "active",
           planId,
           updatedAt: new Date(),
-        }).where(eq(users.id, parseInt(userId)));
+        }).where(eq(users.id, parseInt(userId, 10)));
       } else if (customerId) {
         // Fallback: match by customer ID if user_id metadata is missing
         await db.update(users).set({
