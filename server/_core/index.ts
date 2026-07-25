@@ -53,8 +53,9 @@ async function startServer() {
   );
 
   // ── Standard body parsers ─────────────────────────────────────────────────
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // 2 MB is sufficient for JSON API calls; file uploads use multipart (avatarUploadRouter/documentUploadRouter)
+  app.use(express.json({ limit: "2mb" }));
+  app.use(express.urlencoded({ limit: "2mb", extended: true }));
 
   // ── Security middleware (rate limiting, blocklist, header hardening) ──────
   // Apply full security (rate limiting + headers) to all routes
@@ -213,6 +214,13 @@ async function startServer() {
   const { dailyDigestHandler } = await import("../digestHandler");
   app.post("/api/scheduled/dailyDigest", dailyDigestHandler);
 
+  // ── Cache-Control for API responses (no caching) ─────────────────────────
+  // Registered BEFORE static/Vite so it applies to all /api/* responses
+  app.use("/api", (_req, res, next) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    next();
+  });
+
   // ── Static / Vite ─────────────────────────────────────────────────────────
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
@@ -220,10 +228,14 @@ async function startServer() {
     serveStatic(app);
   }
 
-  // ── Cache-Control for API responses (no caching) ─────────────────────────
-  app.use("/api", (_req, res, next) => {
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    next();
+  // ── Global Express error handler ─────────────────────────────────────────
+  // 4-argument signature is required by Express to recognise this as an error handler
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    console.error("[Server] Unhandled Express error:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Internal server error" });
+    }
   });
 
   const preferredPort = parseInt(process.env.PORT || "3000");
@@ -238,5 +250,16 @@ async function startServer() {
     startBackgroundJobs();
   });
 }
+
+// ── Process-level error guards ───────────────────────────────────────────────
+process.on("unhandledRejection", (reason) => {
+  // Log but do NOT crash — a single transient DB error should not take down all users
+  console.error("[Server] Unhandled Promise Rejection:", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("[Server] Uncaught Exception — exiting for clean restart:", err);
+  process.exit(1);
+});
 
 startServer().catch(console.error);

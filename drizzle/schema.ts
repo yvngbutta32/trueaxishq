@@ -177,7 +177,9 @@ export const emailTemplates = mysqlTable("emailTemplates", {
   category: varchar("category", { length: 64 }).default("follow_up"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [index("emailTemplates_userId_idx").on(t.userId)]
+);
 
 export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = typeof emailTemplates.$inferInsert;
@@ -211,7 +213,9 @@ export const clientPulse = mysqlTable("clientPulse", {
   lastComputedAt: timestamp("lastComputedAt").defaultNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [index("clientPulse_userId_idx").on(t.userId), index("clientPulse_clientId_idx").on(t.clientId)]
+);
 
 export type ClientPulse = typeof clientPulse.$inferSelect;
 export type InsertClientPulse = typeof clientPulse.$inferInsert;
@@ -298,7 +302,9 @@ export const securityEvents = mysqlTable("securityEvents", {
   userAgent: text("userAgent"),
   resolved: boolean("resolved").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("securityEvents_ip_idx").on(t.ip), index("securityEvents_userId_idx").on(t.userId)]
+);
 
 export type SecurityEvent = typeof securityEvents.$inferSelect;
 export type InsertSecurityEvent = typeof securityEvents.$inferInsert;
@@ -316,7 +322,9 @@ export const userSessions = mysqlTable("userSessions", {
   invalidationReason: varchar("invalidationReason", { length: 64 }), // 'logout' | 'password_changed' | 'admin_revoke'
   expiresAt: timestamp("expiresAt").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("userSessions_userId_idx").on(t.userId), uniqueIndex("userSessions_tokenHash_idx").on(t.tokenHash)]
+);
 
 export type UserSession = typeof userSessions.$inferSelect;
 export type InsertUserSession = typeof userSessions.$inferInsert;
@@ -364,7 +372,9 @@ export const contracts = mysqlTable("contracts", {
   sentAt: timestamp("sentAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [index("contracts_userId_idx").on(t.userId)]
+);
 
 export type Contract = typeof contracts.$inferSelect;
 export type InsertContract = typeof contracts.$inferInsert;
@@ -379,7 +389,9 @@ export const notifications = mysqlTable("notifications", {
   link: varchar("link", { length: 512 }),
   read: boolean("read").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("notifications_userId_idx").on(t.userId), index("notifications_read_idx").on(t.read)]
+);
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
@@ -399,7 +411,9 @@ export const timeEntries = mysqlTable("timeEntries", {
   billable: boolean("billable").default(true).notNull(),
   invoiced: boolean("invoiced").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("timeEntries_userId_idx").on(t.userId)]
+);
 
 export type TimeEntry = typeof timeEntries.$inferSelect;
 export type InsertTimeEntry = typeof timeEntries.$inferInsert;
@@ -415,7 +429,9 @@ export const clientDocuments = mysqlTable("clientDocuments", {
   mimeType: varchar("mimeType", { length: 128 }),
   sizeBytes: int("sizeBytes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("clientDocuments_userId_idx").on(t.userId), index("clientDocuments_clientId_idx").on(t.clientId)]
+);
 
 export type ClientDocument = typeof clientDocuments.$inferSelect;
 export type InsertClientDocument = typeof clientDocuments.$inferInsert;
@@ -435,7 +451,9 @@ export const recurringInvoices = mysqlTable("recurringInvoices", {
   active: boolean("active").default(true).notNull(),
   lastInvoiceId: int("lastInvoiceId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("recurringInvoices_userId_idx").on(t.userId)]
+);
 
 export type RecurringInvoice = typeof recurringInvoices.$inferSelect;
 export type InsertRecurringInvoice = typeof recurringInvoices.$inferInsert;
@@ -449,7 +467,9 @@ export const auditLogs = mysqlTable("auditLogs", {
   details: text("details"),
   ip: varchar("ip", { length: 64 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("auditLogs_userId_idx").on(t.userId)]
+);
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = typeof auditLogs.$inferInsert;
 
@@ -464,7 +484,9 @@ export const userApiKeys = mysqlTable("userApiKeys", {
   expiresAt: timestamp("expiresAt"),
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("userApiKeys_userId_idx").on(t.userId)]
+);
 export type UserApiKey = typeof userApiKeys.$inferSelect;
 export type InsertUserApiKey = typeof userApiKeys.$inferInsert;
 
@@ -489,7 +511,9 @@ export const portalMessages = mysqlTable("portalMessages", {
   body: text("body").notNull(),
   read: boolean("read").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("portalMessages_userId_idx").on(t.userId), index("portalMessages_clientId_idx").on(t.clientId)]
+);
 export type PortalMessage = typeof portalMessages.$inferSelect;
 export type InsertPortalMessage = typeof portalMessages.$inferInsert;
 
@@ -505,7 +529,9 @@ export const followUpRules = mysqlTable("followUpRules", {
   lastRunAt: timestamp("lastRunAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [index("followUpRules_userId_idx").on(t.userId)]
+);
 export type FollowUpRule = typeof followUpRules.$inferSelect;
 export type InsertFollowUpRule = typeof followUpRules.$inferInsert;
 
@@ -516,7 +542,9 @@ export const clientTags = mysqlTable("clientTags", {
   clientId: int("clientId").notNull(),
   tag: varchar("tag", { length: 64 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("clientTags_userId_idx").on(t.userId), index("clientTags_clientId_idx").on(t.clientId)]
+);
 export type ClientTag = typeof clientTags.$inferSelect;
 export type InsertClientTag = typeof clientTags.$inferInsert;
 
@@ -536,7 +564,9 @@ export const testimonials = mysqlTable("testimonials", {
   approvedAt: timestamp("approvedAt"),
   submittedAt: timestamp("submittedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("testimonials_userId_idx").on(t.userId), uniqueIndex("testimonials_requestToken_idx").on(t.requestToken)]
+);
 export type Testimonial = typeof testimonials.$inferSelect;
 export type InsertTestimonial = typeof testimonials.$inferInsert;
 
@@ -550,7 +580,9 @@ export const bookingCancelTokens = mysqlTable("bookingCancelTokens", {
   used: boolean("used").default(false).notNull(),
   expiresAt: timestamp("expiresAt").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("bookingCancelTokens_userId_idx").on(t.userId), uniqueIndex("bookingCancelTokens_token_idx").on(t.token)]
+);
 export type BookingCancelToken = typeof bookingCancelTokens.$inferSelect;
 export type InsertBookingCancelToken = typeof bookingCancelTokens.$inferInsert;
 
@@ -582,7 +614,9 @@ export const services = mysqlTable("services", {
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [index("services_userId_idx").on(t.userId)]
+);
 export type Service = typeof services.$inferSelect;
 export type InsertService = typeof services.$inferInsert;
 
@@ -600,7 +634,9 @@ export const expenses = mysqlTable("expenses", {
   taxDeductible: boolean("taxDeductible").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [index("expenses_userId_idx").on(t.userId)]
+);
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = typeof expenses.$inferInsert;
 
@@ -650,7 +686,9 @@ export const automations = mysqlTable("automations", {
   lastRunAt: timestamp("lastRunAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [index("automations_userId_idx").on(t.userId)]
+);
 export type Automation = typeof automations.$inferSelect;
 export type InsertAutomation = typeof automations.$inferInsert;
 
@@ -666,7 +704,9 @@ export const automationLogs = mysqlTable("automationLogs", {
   actionsExecuted: int("actionsExecuted").default(0).notNull(),
   errorMessage: text("errorMessage"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("automationLogs_userId_idx").on(t.userId), index("automationLogs_automationId_idx").on(t.automationId)]
+);
 export type AutomationLog = typeof automationLogs.$inferSelect;
 export type InsertAutomationLog = typeof automationLogs.$inferInsert;
 
@@ -696,7 +736,9 @@ export const intakeResponses = mysqlTable("intakeResponses", {
   answers: text("answers").notNull(), // JSON object field_id → answer
   linkedClientId: int("linkedClientId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+},
+(t) => [index("intakeResponses_userId_idx").on(t.userId), index("intakeResponses_formId_idx").on(t.formId)]
+);
 export type IntakeResponse = typeof intakeResponses.$inferSelect;
 export type InsertIntakeResponse = typeof intakeResponses.$inferInsert;
 
@@ -711,7 +753,9 @@ export const revenueGoals = mysqlTable("revenueGoals", {
   label: varchar("label", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [index("revenueGoals_userId_idx").on(t.userId)]
+);
 export type RevenueGoal = typeof revenueGoals.$inferSelect;
 export type InsertRevenueGoal = typeof revenueGoals.$inferInsert;
 
@@ -725,6 +769,8 @@ export const contractTemplates = mysqlTable("contractTemplates", {
   isBuiltIn: boolean("isBuiltIn").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+},
+(t) => [index("contractTemplates_userId_idx").on(t.userId)]
+);
 export type ContractTemplate = typeof contractTemplates.$inferSelect;
 export type InsertContractTemplate = typeof contractTemplates.$inferInsert;

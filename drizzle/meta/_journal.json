@@ -169,6 +169,13 @@
       "when": 1784936470153,
       "tag": "0023_free_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1784945076138,
+      "tag": "0024_cool_magma",
+      "breakpoints": true
     }
   ]
 }

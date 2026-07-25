@@ -65,11 +65,21 @@ function getTransporter(): nodemailer.Transporter | null {
     port,
     secure: port === 465,
     auth: { user, pass },
-    tls: { rejectUnauthorized: false },
+    // Disable TLS cert verification only in development (self-signed certs);
+    // enforce strict TLS in production to prevent MITM attacks
+    tls: { rejectUnauthorized: process.env.NODE_ENV === "production" },
   });
 
   console.log(`[Email] SMTP configured via ${host}:${port} as ${user}`);
   return _transporter;
+}
+
+/**
+ * Strip newlines and carriage returns from email header fields to prevent
+ * SMTP header injection attacks (RFC 5321 §4.1.1.1).
+ */
+function sanitizeHeader(value: string): string {
+  return value.replace(/[\r\n]+/g, " ").trim();
 }
 
 /**
@@ -79,19 +89,27 @@ function getTransporter(): nodemailer.Transporter | null {
 export async function sendEmail(payload: EmailPayload): Promise<EmailResult> {
   const transporter = getTransporter();
   const senderEmail = process.env.SMTP_USER;
+  // Sanitize all header fields that could contain user-supplied data
+  const safePayload: EmailPayload = {
+    ...payload,
+    to: sanitizeHeader(payload.to),
+    subject: sanitizeHeader(payload.subject),
+    from: payload.from ? sanitizeHeader(payload.from) : payload.from,
+    replyTo: payload.replyTo ? sanitizeHeader(payload.replyTo) : payload.replyTo,
+  };
 
   if (!transporter || !senderEmail) {
-    console.log(`[Email → console] To: ${payload.to} | Subject: ${payload.subject}`);
+    console.log(`[Email → console] To: ${safePayload.to} | Subject: ${safePayload.subject}`);
     return { success: true, id: "console", mode: "console" };
   }
 
   try {
     const info = await transporter.sendMail({
-      from: payload.from || `"TrueAxis HQ" <${senderEmail}>`,
-      to: payload.to,
-      subject: payload.subject,
-      html: payload.html,
-      replyTo: payload.replyTo,
+      from: safePayload.from || `"TrueAxis HQ" <${senderEmail}>`,
+      to: safePayload.to,
+      subject: safePayload.subject,
+      html: safePayload.html,
+      replyTo: safePayload.replyTo,
     });
     console.log(`[Email → smtp] Sent to ${payload.to} — messageId: ${info.messageId}`);
     return { success: true, id: info.messageId, mode: "smtp" };

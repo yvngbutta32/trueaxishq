@@ -51,13 +51,17 @@ export default function PWAInstallBanner() {
     }
 
     // Listen for Chrome/Android install prompt
+    let bannerTimer: ReturnType<typeof setTimeout> | null = null;
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setTimeout(() => setShowBanner(true), 3000);
+      bannerTimer = setTimeout(() => setShowBanner(true), 3000);
     };
     window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      if (bannerTimer !== null) clearTimeout(bannerTimer);
+    };
   }, []);
 
   const handleInstall = async () => {
