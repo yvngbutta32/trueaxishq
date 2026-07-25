@@ -121,7 +121,7 @@ export async function dailyDigestHandler(req: Request, res: Response) {
   } catch (err) {
     console.error("[dailyDigest] error:", err);
     return res.status(500).json({
-      error: String(err),
+      error: "Internal server error",
       timestamp: new Date().toISOString(),
     });
   }

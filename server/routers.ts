@@ -817,7 +817,7 @@ export const appRouter = router({
         if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice has already been paid." });
 
         const stripe = getStripe();
-        const origin = input.origin || ctx.req.headers.origin || "https://trueaxishq.manus.space";
+        const origin = input.origin || ctx.req.headers.origin || process.env.SITE_ORIGIN || "https://trueaxishq.manus.space";
         const amountCents = Math.round(parseFloat(String(inv.amount)) * 100);
         if (amountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
 
@@ -941,7 +941,7 @@ export const appRouter = router({
             price_data: {
               currency: (inv as any).currency?.toLowerCase() ?? "usd",
               product_data: { name: `Invoice ${inv.invoiceNumber} — ${inv.clientName}` },
-              unit_amount: Math.round(parseFloat(String(inv.amount)) * 100),
+              unit_amount: amountCents,
             },
             quantity: 1,
           }],
@@ -1355,7 +1355,7 @@ export const appRouter = router({
         ltvMap[cid].invoiceCount++;
       }
       const clientLTV = Object.entries(ltvMap)
-        .map(([id, v]) => ({ clientId: parseInt(id), ...v }))
+        .map(([id, v]) => ({ clientId: parseInt(id, 10), ...v }))
         .sort((a, b) => b.ltv - a.ltv).slice(0, 10);
 
       // Referral source tracking from bookings (how clients found the user)
@@ -2041,7 +2041,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const hostDetails = await db.select({ name: users.name, businessName: users.businessName })
           .from(users).where(eq(users.id, host[0].id)).limit(1);
         const freelancerName = hostDetails[0]?.businessName || hostDetails[0]?.name || "Your service provider";
-        const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.manus.space";
+        const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
         const cancelUrl = newBookingId ? `${siteOrigin}/booking/cancel/${cancelToken}` : undefined;
         sendEmail({
           to: input.clientEmail,
@@ -2428,8 +2428,9 @@ Only include actions when you have actually generated a complete draft. For gene
             eq(invoices.clientId, portalRecord.clientId)
           )).limit(1);
         if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
-        if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice is already paid." });
-
+                if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice is already paid." });
+        const portalAmountCents = Math.round(parseFloat(String(inv.amount)) * 100);
+        if (portalAmountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
         const stripe = getStripe();
         const session = await stripe.checkout.sessions.create({
           payment_method_types: ["card"],
@@ -2438,7 +2439,7 @@ Only include actions when you have actually generated a complete draft. For gene
             price_data: {
               currency: "usd",
               product_data: { name: inv.service || "Professional Services", description: `Invoice ${inv.invoiceNumber}` },
-              unit_amount: Math.round(parseFloat(String(inv.amount)) * 100),
+              unit_amount: portalAmountCents,
             },
             quantity: 1,
           }],
@@ -3220,7 +3221,7 @@ Only include actions when you have actually generated a complete draft. For gene
         name: z.string().trim().min(1).max(255),
         triggerDays: z.number().int().min(1).max(365).default(30),
         emailSubject: z.string().trim().min(1).max(512),
-        emailBody: z.string().trim().min(1),
+        emailBody: z.string().trim().min(1).max(10000),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();

@@ -1396,3 +1396,15 @@
 - [x] Fix BookingPage.tsx: duplicate maxLength attribute removed from textarea
 - [x] Fix Field component in Dashboard.tsx: add maxLen prop to signature
 - [x] Add index and uniqueIndex imports to schema.ts
+
+## Pass 4 Deep Audit Fixes
+- [x] Fix hardcoded fallback URL in createStripePayment (routers.ts L820) - use SITE_ORIGIN env
+- [x] Fix hardcoded fallback URL in public booking confirmation email (routers.ts L2044)
+- [x] Fix double amountCents calculation in createStripePaymentForToken - reuse variable
+- [x] Fix portal createStripePayment - compute portalAmountCents once, add $0.50 minimum check
+- [x] Fix parseInt(id) without radix in analytics LTV map (routers.ts L1358)
+- [x] Add .trim() to 6 missing z.string().min(1) validators in routers.ts
+- [x] Fix digestHandler.ts String(err) in 500 response - use safe message instead
+- [x] Add JWT_SECRET missing warning in auth.ts for dev environments
+- [x] Fix db.ts 'pending' as any cast - use correct 'sent' status
+- [x] Fix icalExport.ts description field not escaped with escapeIcal

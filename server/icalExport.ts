@@ -113,7 +113,7 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
       lines.push(`DTSTART:${formatIcalDate(startDate)}`);
       lines.push(`DTEND:${formatIcalDate(endDate)}`);
       lines.push(`SUMMARY:${escapeIcal(summary)}`);
-      if (description) lines.push(`DESCRIPTION:${description}`);
+      if (description) lines.push(`DESCRIPTION:${escapeIcal(description)}`);
       lines.push(`STATUS:${b.status === "completed" ? "COMPLETED" : "CONFIRMED"}`);
       lines.push("END:VEVENT");
     }

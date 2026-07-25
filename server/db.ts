@@ -448,7 +448,7 @@ export async function getAnalyticsOverview(userId: number) {
         .from(invoices).where(eq(invoices.userId, userId)),
       db.select({ count: sql<number>`count(*)` }).from(bookings).where(eq(bookings.userId, userId)),
       db.select({ count: sql<number>`count(*)` }).from(invoices)
-        .where(and(eq(invoices.userId, userId), eq(invoices.status, "pending" as any))),
+        .where(and(eq(invoices.userId, userId), eq(invoices.status, "sent"))),
     ]);
 
     const paidInvoices = invoiceData.filter(i => i.status === "paid");

@@ -24,7 +24,11 @@ const BCRYPT_ROUNDS = 12;
 // ─── Session token helpers ────────────────────────────────────────────────────
 
 function getSessionSecret() {
-  return new TextEncoder().encode(ENV.cookieSecret || "fallback-dev-secret-change-in-prod");
+  const secret = ENV.cookieSecret;
+  if (!secret && process.env.NODE_ENV !== "production") {
+    console.warn("[Auth] WARNING: JWT_SECRET not set — using insecure fallback. Set JWT_SECRET in production.");
+  }
+  return new TextEncoder().encode(secret || "fallback-dev-secret-change-in-prod");
 }
 
 export async function createSessionToken(userId: number, email: string): Promise<string> {
