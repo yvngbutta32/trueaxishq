@@ -42,14 +42,14 @@ export default function About() {
         <div className="relative max-w-3xl mx-auto">
           <div className="pill-retro mb-6 inline-flex">
             <Heart className="w-3 h-3" />
-            Built for Freelancers, by People Who Get It
+            The Operating System for Independent Professionals
           </div>
           <h1 style={{ fontWeight: 800, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", letterSpacing: "-0.03em", color: "#1A1A1A", lineHeight: 1.1 }}>
-            We built the platform<br />
-            <span style={{ color: "#D4922A" }}>we always needed.</span>
+            Your business deserves<br />
+            <span style={{ color: "#D4922A" }}>a true axis.</span>
           </h1>
           <p className="mt-6 text-lg max-w-2xl mx-auto" style={{ color: "rgba(26,26,26,0.50)", lineHeight: 1.7 }}>
-            TrueAxis HQ was born out of frustration. We watched talented freelancers — coaches, consultants, designers, developers — spend more time on admin work than on the craft they loved. We decided to fix that.
+            TrueAxis HQ is the command center built for freelancers, coaches, and consultants who are serious about running a real business — not just surviving one project at a time.
           </p>
         </div>
       </section>
@@ -58,9 +58,9 @@ export default function About() {
       <section className="py-12 px-4" style={{ background: "#F2F0EC" }}>
         <div className="container max-w-5xl mx-auto grid md:grid-cols-3 gap-5">
           {[
-            { icon: Target, title: "Our Mission", body: "To give every freelancer and solo service provider the same operational leverage that enterprise companies have — without the enterprise price tag or complexity." },
-            { icon: Heart, title: "Our Values", body: "We believe your time is your most valuable asset. Every feature we build is designed to give you more of it. We are obsessively focused on simplicity, reliability, and real business impact." },
-            { icon: Shield, title: "Our Promise", body: "We will never sell your data. We will never lock you in. Your client data, your invoices, your business — they belong to you. Always. We are just the engine that makes it run." },
+            { icon: Target, title: "Our Mission", body: "To give every independent professional the operational backbone of a full agency — AI-powered automation, smart client management, and real-time business intelligence — in a single, focused platform." },
+            { icon: Heart, title: "Our Values", body: "Clarity over complexity. Speed over ceremony. We build every feature with one question in mind: does this give our users more time to do the work they actually love?" },
+            { icon: Shield, title: "Our Promise", body: "Your data is yours — full stop. We will never sell it, share it, or hold it hostage. TrueAxis HQ is the engine under your business. You own the business." },
           ].map(({ icon: Icon, title, body }) => (
             <div key={title} className="retro-card p-6">
               <div className="w-10 h-10 rounded flex items-center justify-center mb-4" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.18)" }}>
@@ -81,10 +81,10 @@ export default function About() {
             Why TrueAxis HQ exists
           </h2>
           <div className="space-y-5 text-base leading-relaxed" style={{ color: "rgba(26,26,26,0.85)" }}>
-            <p>In 2024, the average freelancer in the United States was juggling five or more separate tools just to run their business: a scheduling app, an invoicing tool, a CRM, an email client, and a spreadsheet for everything else. They were paying $200–$400 per month for tools that didn't talk to each other — and spending 15–20 hours per week on admin work instead of billable work.</p>
-            <p>TrueAxis HQ was built to collapse all of that into one intelligent platform. We combined AI-powered automation with the core workflows every service provider needs: client management, scheduling, invoicing, follow-ups, and analytics. The result is a platform that doesn't just organize your business — it actively runs it.</p>
-            <p>Today, TrueAxis HQ serves thousands of freelancers across coaching, consulting, design, development, fitness, legal, and more. Our users report saving an average of 12 hours per week and increasing their revenue by 34% within their first six months.</p>
-            <p>We are a small, focused team. We don't have a massive marketing budget or a flashy office. What we have is a deep commitment to building software that actually works — software that makes your business feel effortless.</p>
+            <p>Most freelancers and independent professionals are running their business on a stack of disconnected tools — a scheduling app here, an invoicing tool there, a CRM they barely use, and a spreadsheet holding everything together with duct tape. They're paying for five platforms that don't talk to each other, and spending 15 to 20 hours a week on admin work that should take minutes.</p>
+            <p>TrueAxis HQ was built to end that. The name says it all: a <em>true axis</em> is the fixed center point everything else rotates around. That's what your business needs — one intelligent hub where clients, bookings, invoices, follow-ups, and analytics all live and work together automatically.</p>
+            <p>We built the platform around three convictions. First, that AI should do the grunt work — drafting follow-up emails, flagging at-risk clients, detecting overdue invoices — so you never have to think about it. Second, that your business data should give you real insight, not just raw numbers. And third, that the best software feels invisible: it runs in the background, keeps everything moving, and only surfaces when you need it.</p>
+            <p>TrueAxis HQ is used by coaches, consultants, designers, developers, fitness professionals, and legal practitioners who are serious about building a sustainable independent business. Our users consistently report reclaiming 10 to 15 hours a week and growing their revenue within the first few months — not because they worked harder, but because their business finally started working for them.</p>
           </div>
         </div>
       </section>
@@ -116,11 +116,11 @@ export default function About() {
           </h2>
           <ul className="space-y-3">
             {[
-              "Freelancers deserve enterprise-grade tools at freelancer-friendly prices.",
-              "Automation should feel invisible — it should just work, without you having to think about it.",
-              "Your data is yours. We are stewards of it, not owners.",
-              "Good software should make you feel calm, not anxious.",
-              "The best businesses are built on trust — with clients, with tools, and with each other.",
+              "Independent professionals deserve the same operational leverage as a 10-person agency — at a price that makes sense for a solo business.",
+              "AI should handle the repetitive work. You should handle the relationships and the craft.",
+              "Your data belongs to you. We are the engine, not the owner.",
+              "A great platform should make your business feel calm and in control — not like another thing to manage.",
+              "Clarity is a feature. Every number, every alert, every suggestion in TrueAxis HQ exists to help you make a better decision faster.",
             ].map(belief => (
               <li key={belief} className="retro-card flex items-start gap-3 p-4">
                 <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#D4922A" }} />
