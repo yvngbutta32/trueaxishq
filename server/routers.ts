@@ -2541,10 +2541,41 @@ Only include actions when you have actually generated a complete draft. For gene
           cancel_url: `${input.origin}/portal/${input.token}`,
           allow_promotion_codes: true,
         });
-        return { checkoutUrl: session.url };
+                return { checkoutUrl: session.url };
+      }),
+
+    // Public: get job photos for a client via portal token
+    getPhotos: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128) }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+        if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found or expired." });
+        if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "This portal link has expired." });
+        }
+        // Fetch photos scoped strictly to this userId + clientId — never cross-user
+        const photos = await db.select({
+          id: jobPhotos.id,
+          photoType: jobPhotos.photoType,
+          uploadedBy: jobPhotos.uploadedBy,
+          photoUrl: jobPhotos.photoUrl,
+          caption: jobPhotos.caption,
+          bookingId: jobPhotos.bookingId,
+          sortOrder: jobPhotos.sortOrder,
+          createdAt: jobPhotos.createdAt,
+        }).from(jobPhotos)
+          .where(and(
+            eq(jobPhotos.userId, portalRecord.userId),
+            eq(jobPhotos.clientId, portalRecord.clientId),
+            // Only show estimate, wip, finished — never expose receipt/calculator photos
+            inArray(jobPhotos.photoType, ["estimate", "wip", "finished"])
+          ))
+          .orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt));
+        return { photos };
       }),
   }),
-
   // ── Contracts & Proposals ─────────────────────────────────────────────────
   contracts: router({
     list: protectedProcedure

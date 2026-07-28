@@ -1,7 +1,7 @@
 import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
-import { FileText, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, CreditCard, User, Mail, Phone, Building2, ExternalLink } from "lucide-react";
+import { FileText, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, CreditCard, User, Mail, Phone, Building2, Camera, X, ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
 import { toast } from "sonner";
 
 // Normalize booking date strings: ISO "2026-08-01" → "Aug 1, 2026", already-formatted strings pass through
@@ -47,11 +47,15 @@ function statusBadge(status: string) {
   );
 }
 
+type PhotoType = "estimate" | "wip" | "finished";
+
 export default function ClientPortal() {
   const params = useParams<{ token: string }>();
   const token = params.token ?? "";
   const [location] = useLocation();
   const [payingId, setPayingId] = useState<number | null>(null);
+  const [photoTab, setPhotoTab] = useState<PhotoType>("estimate");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   // Check if redirected back from successful payment
   useEffect(() => {
@@ -65,6 +69,11 @@ export default function ClientPortal() {
   }, [location]);
 
   const { data, isLoading, error } = trpc.portal.view.useQuery(
+    { token },
+    { enabled: !!token, retry: false }
+  );
+
+  const { data: photoData } = trpc.portal.getPhotos.useQuery(
     { token },
     { enabled: !!token, retry: false }
   );
@@ -284,6 +293,140 @@ export default function ClientPortal() {
             </div>
           )}
         </div>
+
+        {/* Job Photos Gallery */}
+        {(() => {
+          const allPhotos = photoData?.photos ?? [];
+          const tabs: { key: PhotoType; label: string; icon: string }[] = [
+            { key: "estimate", label: "Estimate", icon: "📋" },
+            { key: "wip",      label: "In Progress", icon: "🔨" },
+            { key: "finished", label: "Finished", icon: "✅" },
+          ];
+          const tabPhotos = allPhotos.filter(p => p.photoType === photoTab);
+          const lightboxPhotos = tabPhotos;
+
+          if (allPhotos.length === 0) return null;
+
+          return (
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              {/* Header */}
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                <Camera className="w-4 h-4 text-[#D4922A]" />
+                <h2 className="font-semibold text-gray-900">Job Photos</h2>
+                <span className="ml-auto text-xs text-gray-500">{allPhotos.length} photo{allPhotos.length !== 1 ? "s" : ""}</span>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex border-b border-gray-100">
+                {tabs.map(tab => {
+                  const count = allPhotos.filter(p => p.photoType === tab.key).length;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setPhotoTab(tab.key)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-3 text-xs font-medium transition-colors relative ${
+                        photoTab === tab.key
+                          ? "text-[#D4922A] border-b-2 border-[#D4922A] -mb-px"
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      <span>{tab.icon}</span>
+                      <span>{tab.label}</span>
+                      {count > 0 && (
+                        <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                          photoTab === tab.key ? "bg-[#D4922A] text-white" : "bg-gray-100 text-gray-600"
+                        }`}>{count}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Grid */}
+              <div className="p-4">
+                {tabPhotos.length === 0 ? (
+                  <div className="py-10 flex flex-col items-center gap-2 text-gray-400">
+                    <ImageOff className="w-8 h-8" />
+                    <p className="text-sm">
+                      {photoTab === "estimate" && "No estimate photos yet."}
+                      {photoTab === "wip" && "No work-in-progress photos yet."}
+                      {photoTab === "finished" && "No finished photos yet."}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {tabPhotos.map((photo, idx) => (
+                      <button
+                        key={photo.id}
+                        onClick={() => setLightboxIndex(idx)}
+                        className="group relative aspect-square rounded-lg overflow-hidden bg-gray-100 hover:ring-2 hover:ring-[#D4922A] transition-all"
+                      >
+                        <img
+                          src={photo.photoUrl}
+                          alt={photo.caption || `${photoTab} photo`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          loading="lazy"
+                        />
+                        {photo.caption && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                            <p className="text-white text-xs truncate">{photo.caption}</p>
+                          </div>
+                        )}
+                        {photo.uploadedBy === "client" && (
+                          <div className="absolute top-1.5 right-1.5 bg-blue-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">You</div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Lightbox */}
+              {lightboxIndex !== null && lightboxPhotos.length > 0 && (
+                <div
+                  className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+                  onClick={() => setLightboxIndex(null)}
+                >
+                  <button
+                    className="absolute top-4 right-4 text-white/80 hover:text-white"
+                    onClick={() => setLightboxIndex(null)}
+                  >
+                    <X className="w-7 h-7" />
+                  </button>
+                  {lightboxIndex > 0 && (
+                    <button
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white"
+                      onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => (i ?? 1) - 1); }}
+                    >
+                      <ChevronLeft className="w-9 h-9" />
+                    </button>
+                  )}
+                  {lightboxIndex < lightboxPhotos.length - 1 && (
+                    <button
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white"
+                      onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => (i ?? 0) + 1); }}
+                    >
+                      <ChevronRight className="w-9 h-9" />
+                    </button>
+                  )}
+                  <div className="max-w-3xl w-full" onClick={e => e.stopPropagation()}>
+                    <img
+                      src={lightboxPhotos[lightboxIndex].photoUrl}
+                      alt={lightboxPhotos[lightboxIndex].caption || "Job photo"}
+                      className="w-full max-h-[80vh] object-contain rounded-lg"
+                    />
+                    {lightboxPhotos[lightboxIndex].caption && (
+                      <p className="text-white/80 text-sm text-center mt-3">{lightboxPhotos[lightboxIndex].caption}</p>
+                    )}
+                    <p className="text-white/50 text-xs text-center mt-1">
+                      {lightboxIndex + 1} / {lightboxPhotos.length}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Provider Contact */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">

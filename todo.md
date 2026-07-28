@@ -1500,3 +1500,10 @@
 - [x] Verify background jobs are safe (system-level, always join on userId)
 - [x] Verify file upload endpoints scope photos to authenticated userId
 - [x] Verify public routes (booking, intake, portal) cannot expose private data
+
+## Client Portal — Job Photo Gallery
+- [ ] Add public tRPC procedure: photos.getForClient (scoped by portal token → clientId → bookings)
+- [ ] Build JobPhotosGallery component in ClientPortal.tsx with estimate/WIP/finished tabs
+- [x] Add lightbox viewer for full-size photo viewing
+- [ ] Show photo count badge per tab
+- [ ] Handle empty state gracefully (no photos yet message)
