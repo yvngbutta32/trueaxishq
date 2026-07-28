@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import {
   Plus, Trash2, Copy, ExternalLink, ChevronDown, ChevronRight,
   Users, Eye, X, Save, ToggleLeft, ToggleRight, ClipboardList,
-  UserPlus, Mail, Phone, AlignLeft, List, CheckSquare, Hash, Calendar,
+  UserPlus, Mail, Phone, AlignLeft, List, CheckSquare, Hash, Calendar, Link2,
 } from "lucide-react";
 
 type FieldType = "text" | "textarea" | "email" | "phone" | "select" | "checkbox" | "date" | "number";
@@ -47,6 +47,8 @@ function genId() {
 export default function IntakeFormsPanel() {
   const utils = trpc.useUtils();
   const { data: forms = [], isLoading } = trpc.intake.listForms.useQuery();
+  const { data: settings } = trpc.settings.get.useQuery(undefined, { retry: 1 });
+  const bookingUsername = settings?.bookingUsername;
   const [showCreate, setShowCreate] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [viewingResponsesId, setViewingResponsesId] = useState<number | null>(null);
@@ -351,6 +353,17 @@ export default function IntakeFormsPanel() {
                         title="Preview form"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                    {bookingUsername && (
+                      <a
+                        href={`/book/${bookingUsername}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[rgba(26,26,26,0.4)] hover:text-[#D4922A] transition-colors p-1"
+                        title="Open booking page (send to clients after intake)"
+                      >
+                        <Link2 className="w-3.5 h-3.5" />
                       </a>
                     )}
                     <button
