@@ -1469,21 +1469,21 @@
 - [x] Add real-time slot availability query (booked slots endpoint)
 - [x] Add 24-hour reminder email job for upcoming bookings
 - [x] Add 48-hour post-session check-in email job
-- [ ] Add intake-form → booking page bridge link in IntakeFormsPanel
+- [x] Add intake-form → booking page bridge link in IntakeFormsPanel
 
 ## Photo System
 - [x] Add jobPhotos table to schema
 - [x] Add S3 upload tRPC procedure: photos.getUploadUrl and photos.confirmUpload
 - [x] Add photos.listByJob, photos.delete, photos.updateCaption procedures
 - [x] Client-facing: estimate photo upload on BookingPage
-- [ ] Client-facing: estimate photo upload on IntakeFormPage
+- [x] Client-facing: estimate photo upload on IntakeFormPage
 - [x] Owner UI: JobPhotosPanel page with tabs (Estimate / WIP / Finished)
 - [x] Owner UI: drag-and-drop upload with progress bar
 - [x] Owner UI: photo receipt calculator with AI OCR, markup slider, Add to Invoice
-- [ ] Owner UI: photo receipt PDF export / shareable link
+- [x] Owner UI: photo receipt PDF export / shareable link
 - [x] Wire JobPhotosPanel into DashboardLayout sidebar nav
 
 ## Receipt Calculator — AI OCR + Markup + Invoice
 - [x] Add photos.extractReceiptTotal tRPC procedure using invokeLLM vision OCR
-- [ ] Rebuild ReceiptCalculatorTab: camera/upload → AI OCR → markup % slider → line-item editor → running total → Create Invoice button
-- [ ] Wire JobPhotosPanel into Dashboard nav sections
+- [x] Rebuild ReceiptCalculatorTab: camera/upload → AI OCR → markup % slider → line-item editor → running total → Create Invoice button
+- [x] Wire JobPhotosPanel into Dashboard nav sections
