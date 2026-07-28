@@ -1,3 +1,4 @@
+import { TRUEAXIS_LOGO_URL } from "@shared/const";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
  * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
@@ -307,14 +308,14 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
           {collapsed ? (
             <div className="w-8 h-8 rounded-lg overflow-hidden">
               <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+                src={TRUEAXIS_LOGO_URL}
                 alt="TrueAxis HQ — Dashboard"
                 className="w-full h-full object-cover object-left"
               />
             </div>
           ) : (
             <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+              src={TRUEAXIS_LOGO_URL}
               alt="TrueAxis HQ — Dashboard"
               className="h-9 w-auto object-contain"
             />
@@ -5132,7 +5133,7 @@ export default function Dashboard() {
                 style={{ background: "none", border: "none", minHeight: "auto", minWidth: "auto", padding: 0 }}
               >
                 <img
-                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+                  src={TRUEAXIS_LOGO_URL}
                   alt="TrueAxis HQ — Dashboard"
                   className="h-7 w-auto object-contain"
                 />

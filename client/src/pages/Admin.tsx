@@ -1,3 +1,4 @@
+import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -280,7 +281,7 @@ export default function Admin() {
       <header className="bg-[#0D1117] text-white px-4 sm:px-6 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
-            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+            src={TRUEAXIS_LOGO_URL}
             alt="TrueAxis HQ"
             className="h-8 w-auto object-contain"
           />

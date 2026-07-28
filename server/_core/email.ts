@@ -247,6 +247,7 @@ export function bookingConfirmationEmail(opts: {
   time: string;
   freelancerName: string;
   cancelUrl?: string;
+  rescheduleUrl?: string;
 }): string {
   return baseTemplate(`
     <h2>Booking Confirmed &#10003;</h2>
@@ -259,7 +260,7 @@ export function bookingConfirmationEmail(opts: {
       <div class="detail-row"><span class="detail-label">With</span><span class="detail-value">${esc(opts.freelancerName)}</span></div>
     </div>
     <p>We look forward to working with you. If you have any questions before your session, simply reply to this email.</p>
-    ${opts.cancelUrl ? `<hr class="divider" /><p class="note">Need to cancel or reschedule? <a href="${opts.cancelUrl}" style="color:#E8A020;font-weight:600;">Click here</a> (available up to 24 hours before your session).</p>` : ""}
+    ${(opts.cancelUrl || opts.rescheduleUrl) ? `<hr class="divider" /><p class="note">Need to make a change? ${opts.rescheduleUrl ? `<a href="${opts.rescheduleUrl}" style="color:#E8A020;font-weight:600;">Reschedule</a>` : ""}${opts.cancelUrl && opts.rescheduleUrl ? "&nbsp;&middot;&nbsp;" : ""}${opts.cancelUrl ? `<a href="${opts.cancelUrl}" style="color:#E8A020;font-weight:600;">Cancel</a>` : ""} (available up to 24 hours before your session).</p>` : ""}
   `);
 }
 
@@ -367,5 +368,95 @@ export function bookingCancelConfirmEmail(opts: {
     ${opts.rebookUrl ? `<a href="${opts.rebookUrl}" class="btn">${isCancelled ? "Book a New Appointment" : "Book Again"} &rarr;</a>` : ""}
     <hr class="divider" />
     <p class="note">If you have any questions, simply reply to this email and we'll be happy to help.</p>
+  `);
+}
+
+// ─── New Client Welcome Email ─────────────────────────────────────────────────
+export function newClientWelcomeEmail(opts: {
+  clientName: string;
+  freelancerName: string;
+  bookingUrl: string;
+}): string {
+  return baseTemplate(`
+    <h2>Welcome aboard &#127881;</h2>
+    <p class="greeting">Hi ${esc(opts.clientName)},</p>
+    <p>Thank you for booking with <strong>${esc(opts.freelancerName)}</strong> — we're excited to work with you. Your session is confirmed and you'll receive a separate confirmation with all the details.</p>
+    <div class="highlight-box">
+      <div class="hl-label">&#128161; What to expect</div>
+      <p>Before your session, feel free to jot down any questions or goals you'd like to cover. The more prepared you are, the more you'll get out of your time together.</p>
+    </div>
+    <p>Need to book another session or check your upcoming appointments? Use the link below:</p>
+    <a href="${opts.bookingUrl}" class="btn">View Booking Page &rarr;</a>
+    <hr class="divider" />
+    <p class="note">If you have any questions before your session, simply reply to this email and we'll be happy to help.</p>
+  `);
+}
+
+// ─── Intake Form Auto-Reply Email ─────────────────────────────────────────────
+export function intakeAutoReplyEmail(opts: {
+  respondentName: string;
+  formName: string;
+  freelancerName: string;
+  bookingUrl?: string;
+}): string {
+  return baseTemplate(`
+    <h2>We received your submission &#10003;</h2>
+    <p class="greeting">Hi ${esc(opts.respondentName)},</p>
+    <p>Thank you for filling out <strong>${esc(opts.formName)}</strong>. Your response has been received and <strong>${esc(opts.freelancerName)}</strong> will be in touch with you shortly.</p>
+    ${opts.bookingUrl ? `
+    <div class="highlight-box">
+      <div class="hl-label">&#128197; Ready to book a session?</div>
+      <p>While you wait, you can go ahead and schedule a time that works for you.</p>
+    </div>
+    <a href="${opts.bookingUrl}" class="btn">Book a Session &rarr;</a>` : ""}
+    <hr class="divider" />
+    <p class="note">If you have any questions, simply reply to this email and we'll get back to you as soon as possible.</p>
+  `);
+}
+
+// ─── Booking Reminder Email (24h before) ─────────────────────────────────────
+export function bookingReminderEmail(opts: {
+  clientName: string;
+  serviceName: string;
+  date: string;
+  time: string;
+  freelancerName: string;
+  cancelUrl?: string;
+  rescheduleUrl?: string;
+}): string {
+  return baseTemplate(`
+    <h2>Your session is tomorrow &#9201;</h2>
+    <p class="greeting">Hi ${esc(opts.clientName)},</p>
+    <p>Just a friendly reminder that you have a session scheduled for tomorrow. Here are your details:</p>
+    <div class="detail-box">
+      <div class="detail-row"><span class="detail-label">Service</span><span class="detail-value">${esc(opts.serviceName)}</span></div>
+      <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${esc(opts.date)}</span></div>
+      <div class="detail-row"><span class="detail-label">Time</span><span class="detail-value"><span class="badge badge-amber">${esc(opts.time)}</span></span></div>
+      <div class="detail-row"><span class="detail-label">With</span><span class="detail-value">${esc(opts.freelancerName)}</span></div>
+    </div>
+    <p>We look forward to seeing you! If you have any last-minute notes to share, simply reply to this email.</p>
+    ${(opts.cancelUrl || opts.rescheduleUrl) ? `<hr class="divider" /><p class="note">Need to make a change? ${opts.rescheduleUrl ? `<a href="${opts.rescheduleUrl}" style="color:#E8A020;font-weight:600;">Reschedule</a>` : ""}${opts.cancelUrl && opts.rescheduleUrl ? "&nbsp;&middot;&nbsp;" : ""}${opts.cancelUrl ? `<a href="${opts.cancelUrl}" style="color:#E8A020;font-weight:600;">Cancel</a>` : ""} (available up to 24 hours before your session).</p>` : ""}
+  `);
+}
+
+// ─── Post-Session Check-In Email (48h after) ─────────────────────────────────
+export function postSessionCheckInEmail(opts: {
+  clientName: string;
+  serviceName: string;
+  freelancerName: string;
+  bookingUrl: string;
+}): string {
+  return baseTemplate(`
+    <h2>How did your session go? &#127775;</h2>
+    <p class="greeting">Hi ${esc(opts.clientName)},</p>
+    <p>It's been a couple of days since your <strong>${esc(opts.serviceName)}</strong> session with <strong>${esc(opts.freelancerName)}</strong>. We hope it was valuable!</p>
+    <div class="highlight-box">
+      <div class="hl-label">&#128172; We'd love your feedback</div>
+      <p>Your experience matters. If you have a moment, reply to this email and let us know how the session went — what worked well, and what could be even better next time.</p>
+    </div>
+    <p>Ready to book your next session?</p>
+    <a href="${opts.bookingUrl}" class="btn">Book Another Session &rarr;</a>
+    <hr class="divider" />
+    <p class="note">Thank you for choosing ${esc(opts.freelancerName)}. We look forward to working with you again.</p>
   `);
 }

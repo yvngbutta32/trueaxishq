@@ -1,3 +1,4 @@
+import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { useState, useEffect } from "react";
 import { useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -244,7 +245,7 @@ export default function BookingPage() {
         <header className="bg-[#F7F6F3] border-b border-[#DDDBD7] px-4 py-3.5">
           <div className="max-w-xl mx-auto flex items-center gap-3">
             <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+              src={TRUEAXIS_LOGO_URL}
               alt="TrueAxis HQ"
               className="h-7 w-auto object-contain flex-shrink-0"
             />
@@ -375,7 +376,7 @@ export default function BookingPage() {
       <header className="bg-[#F7F6F3] border-b border-[#DDDBD7] px-4 py-3.5" role="banner">
         <div className="max-w-xl mx-auto flex items-center gap-3">
           <img
-            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+            src={TRUEAXIS_LOGO_URL}
             alt="TrueAxis HQ"
             className="h-7 w-auto object-contain flex-shrink-0"
           />

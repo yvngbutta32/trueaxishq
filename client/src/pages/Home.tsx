@@ -1,3 +1,4 @@
+import { TRUEAXIS_LOGO_URL } from "@shared/const";
 /* TrueAxis HQ — Landing Page
  * Design: Dark Navy + Amber — #0D1117 base, #D4922A amber, #F5EFE3 cream
  * Font: Inter (single family, variable)
@@ -321,7 +322,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
             style={{ background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
           >
             <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+              src={TRUEAXIS_LOGO_URL}
               alt="TrueAxis HQ"
               className="h-9 w-auto object-contain"
             />
@@ -1271,7 +1272,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
           <div>
             <div className="flex items-center mb-4">
               <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+                src={TRUEAXIS_LOGO_URL}
                 alt="TrueAxis HQ"
                 className="h-9 w-auto object-contain"
               />

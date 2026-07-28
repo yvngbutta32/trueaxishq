@@ -16,7 +16,7 @@ import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
-import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail } from "./_core/email";
+import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail } from "./_core/email";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -2007,7 +2007,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
-        const host = await db.select({ id: users.id, notifyNewBooking: users.notifyNewBooking })
+        const host = await db.select({ id: users.id, notifyNewBooking: users.notifyNewBooking, bookingUsername: users.bookingUsername })
           .from(users).where(eq(users.bookingUsername, input.hostUsername)).limit(1);
         if (!host[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Booking page not found." });
 
@@ -2106,8 +2106,9 @@ Only include actions when you have actually generated a complete draft. For gene
         const hostDetails = await db.select({ name: users.name, businessName: users.businessName })
           .from(users).where(eq(users.id, host[0].id)).limit(1);
         const freelancerName = hostDetails[0]?.businessName || hostDetails[0]?.name || "Your service provider";
-        const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxis-hq.com";
+        const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
         const cancelUrl = newBookingId ? `${siteOrigin}/booking/cancel/${cancelToken}` : undefined;
+        const rescheduleUrl = newBookingId ? `${siteOrigin}/booking/reschedule/${rescheduleToken}` : undefined;
         sendEmail({
           to: input.clientEmail,
           subject: `Booking Confirmed: ${input.service} on ${input.preferredDate}`,
@@ -2118,8 +2119,21 @@ Only include actions when you have actually generated a complete draft. For gene
             time: input.preferredTime,
             freelancerName,
             cancelUrl,
+            rescheduleUrl,
           }),
         }).catch(() => {});
+        // Send welcome email to new clients
+        if (isNewClient) {
+          sendEmail({
+            to: input.clientEmail,
+            subject: `Welcome to ${freelancerName} — We're excited to work with you!`,
+            html: newClientWelcomeEmail({
+              clientName: input.clientName,
+              freelancerName,
+              bookingUrl: `${siteOrigin}/book/${host[0].bookingUsername || ""}`,
+            }),
+          }).catch(() => {});
+        }
         return { success: true, isNewClient };
       }),
   }),
@@ -4382,9 +4396,13 @@ Only include actions when you have actually generated a complete draft. For gene
           description: intakeForms.description,
           fields: intakeForms.fields,
           active: intakeForms.active,
+          userId: intakeForms.userId,
         }).from(intakeForms).where(eq(intakeForms.publicSlug, input.slug)).limit(1);
         if (!form || !form.active) throw new TRPCError({ code: "NOT_FOUND", message: "Form not found or inactive" });
-        return form;
+        // Fetch host's booking username so the success screen can show a booking CTA
+        const [host] = await db.select({ bookingUsername: users.bookingUsername, name: users.name, businessName: users.businessName })
+          .from(users).where(eq(users.id, form.userId)).limit(1);
+        return { ...form, hostBookingUsername: host?.bookingUsername ?? null, hostName: host?.businessName || host?.name || null };
       }),
 
     submitResponse: publicProcedure
@@ -4405,6 +4423,24 @@ Only include actions when you have actually generated a complete draft. For gene
           respondentEmail: input.respondentEmail ?? null,
           answers: JSON.stringify(input.answers),
         });
+        // Send auto-reply email to respondent
+        if (input.respondentEmail) {
+          const [host] = await db.select({ name: users.name, businessName: users.businessName, bookingUsername: users.bookingUsername })
+            .from(users).where(eq(users.id, form.userId)).limit(1);
+          const freelancerName = host?.businessName || host?.name || "Your service provider";
+          const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
+          const bookingUrl = host?.bookingUsername ? `${siteOrigin}/book/${host.bookingUsername}` : undefined;
+          sendEmail({
+            to: input.respondentEmail,
+            subject: `We received your submission — ${form.name}`,
+            html: intakeAutoReplyEmail({
+              respondentName: input.respondentName || "there",
+              formName: form.name,
+              freelancerName,
+              bookingUrl,
+            }),
+          }).catch(() => {});
+        }
         return { success: true };
       }),
   }),

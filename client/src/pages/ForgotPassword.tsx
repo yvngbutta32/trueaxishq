@@ -1,11 +1,11 @@
+import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Loader2, Mail, CheckCircle2, ArrowLeft } from "lucide-react";
 
-const LOGO_URL =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png";
+
 
 export default function ForgotPassword() {
   const [, navigate] = useLocation();
@@ -36,7 +36,7 @@ export default function ForgotPassword() {
         aria-label="Go to homepage"
         style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
       >
-        <img src={LOGO_URL} alt="TrueAxis HQ" className="h-12 w-auto object-contain" />
+        <img src={TRUEAXIS_LOGO_URL} alt="TrueAxis HQ" className="h-12 w-auto object-contain" />
       </button>
 
       {/* Card */}

@@ -1459,3 +1459,26 @@
 - [x] Files updated: client/index.html, manifest.json, package.json, all pages, all components, all server files, schema.ts, .project-config.json
 - [x] DB schema defaults already correct (TrueAxis HQ, support@trueaxishq.com)
 - [x] 0 TypeScript errors, 29/29 tests passing
+
+## Inquiry-to-Booking System — Best-in-Class Enhancements (Round N)
+- [ ] Add reschedule URL to booking confirmation email
+- [ ] Add new-client welcome email when isNewClient = true after booking
+- [ ] Add auto-reply confirmation email to intake form submissions
+- [ ] Add booking CTA to intake form success screen
+- [ ] Fix hardcoded trueaxis-hq.com domain in booking submit procedure
+- [ ] Add real-time slot availability query (booked slots endpoint)
+- [ ] Add 24-hour reminder email job for upcoming bookings
+- [ ] Add 48-hour post-session check-in email job
+- [ ] Add intake-form → booking page bridge link in IntakeFormsPanel
+
+## Photo System
+- [ ] Add jobPhotos table to schema (id, userId, jobId, jobType, photoUrl, photoKey, type: estimate/wip/finished/receipt, caption, lineItemLabel, lineItemAmount, uploadedBy: client/owner, createdAt)
+- [ ] Add S3 upload tRPC procedure: photos.getUploadUrl (presigned PUT) and photos.confirmUpload
+- [ ] Add photos.listByJob, photos.delete, photos.updateCaption procedures
+- [ ] Client-facing: estimate photo upload on BookingPage (step before submission)
+- [ ] Client-facing: estimate photo upload on IntakeFormPage
+- [ ] Owner UI: JobPhotosPanel page with tabs (Estimate / Work in Progress / Finished)
+- [ ] Owner UI: drag-and-drop upload with progress bar
+- [ ] Owner UI: photo receipt calculator — attach photos to line items with label + amount
+- [ ] Owner UI: photo receipt PDF export / shareable link
+- [ ] Wire JobPhotosPanel into DashboardLayout sidebar nav

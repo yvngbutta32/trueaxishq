@@ -1,11 +1,11 @@
+import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2, CheckCircle, Zap, Shield, TrendingUp } from "lucide-react";
 
-const LOGO_URL =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png";
+
 
 const features = [
   { icon: Zap, text: "AI-powered client management & follow-ups" },
@@ -60,7 +60,7 @@ export default function Login() {
           aria-label="Go to homepage"
           style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >
-          <img src={LOGO_URL} alt="TrueAxis HQ" className="h-10 w-auto object-contain" />
+          <img src={TRUEAXIS_LOGO_URL} alt="TrueAxis HQ" className="h-10 w-auto object-contain" />
         </button>
 
         {/* Main copy */}
@@ -132,7 +132,7 @@ export default function Login() {
           aria-label="Go to homepage"
           style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >
-          <img src={LOGO_URL} alt="TrueAxis HQ" className="h-10 w-auto object-contain" />
+          <img src={TRUEAXIS_LOGO_URL} alt="TrueAxis HQ" className="h-10 w-auto object-contain" />
         </button>
 
         <div className="w-full max-w-md">

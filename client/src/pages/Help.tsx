@@ -1,3 +1,4 @@
+import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Zap, Search, ChevronDown, ChevronRight, Mail, MessageCircle, BookOpen, Zap as ZapIcon } from "lucide-react";
@@ -150,7 +151,7 @@ export default function Help() {
         </button>
         <div className="flex items-center">
           <img
-            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+            src={TRUEAXIS_LOGO_URL}
             alt="TrueAxis HQ"
             className="h-8 w-auto object-contain"
           />

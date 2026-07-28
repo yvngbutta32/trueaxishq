@@ -1,3 +1,4 @@
+import { TRUEAXIS_LOGO_URL } from "@shared/const";
 /* TrueAxis HQ — Pricing Page
  * Design: "Dark Amber Retro-Modern" — Charcoal #161B22, Amber #D4922A, Cream #F5F0E8
  */
@@ -119,7 +120,7 @@ export default function Pricing() {
         </button>
         <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }} aria-label="Go to homepage">
           <img
-            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png"
+            src={TRUEAXIS_LOGO_URL}
             alt="TrueAxis HQ"
             className="h-8 w-auto object-contain"
           />

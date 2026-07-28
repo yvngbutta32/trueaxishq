@@ -190,6 +190,13 @@
       "when": 1784955627982,
       "tag": "0026_messy_squadron_supreme",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "5",
+      "when": 1785210688723,
+      "tag": "0027_clever_expediter",
+      "breakpoints": true
     }
   ]
 }

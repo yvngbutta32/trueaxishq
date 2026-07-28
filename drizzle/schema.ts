@@ -137,6 +137,8 @@ export const bookings = mysqlTable("bookings", {
   status: mysqlEnum("status", ["scheduled", "completed", "cancelled", "no_show"]).default("scheduled").notNull(),
   notes: text("notes"),
   isPublicBooking: boolean("isPublicBooking").default(false),
+  reminderSentAt: timestamp("reminderSentAt"),
+  checkInSentAt: timestamp("checkInSentAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 },
