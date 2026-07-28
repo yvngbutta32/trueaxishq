@@ -1487,3 +1487,16 @@
 - [x] Add photos.extractReceiptTotal tRPC procedure using invokeLLM vision OCR
 - [x] Rebuild ReceiptCalculatorTab: camera/upload → AI OCR → markup % slider → line-item editor → running total → Create Invoice button
 - [x] Wire JobPhotosPanel into Dashboard nav sections
+
+## Security Audit — Data Isolation Pass
+- [x] Audit all tRPC procedures for missing userId scoping
+- [x] Fix generatePayLink: add userId to final invoices update
+- [x] Fix timeEntries.stop: add userId to final update
+- [x] Fix timeEntries.generateInvoice: add userId to mark-invoiced update
+- [x] Fix timeEntries.bulkGenerateInvoice: add userId to mark-invoiced update
+- [x] Fix contracts.convertToInvoice: add userId to final linkedInvoiceId update
+- [x] Fix proposals.send: add userId to final status update
+- [x] Fix testimonials.review: add userId to final status update
+- [x] Verify background jobs are safe (system-level, always join on userId)
+- [x] Verify file upload endpoints scope photos to authenticated userId
+- [x] Verify public routes (booking, intake, portal) cannot expose private data

@@ -924,7 +924,7 @@ export const appRouter = router({
         // Build the pay URL (uses the existing portal payment flow)
         const payUrl = `/pay/${token}`;
         await db.update(invoices).set({ payLinkToken: token, updatedAt: new Date() })
-          .where(eq(invoices.id, input.id));
+          .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id)));
         return { token, payUrl, invoiceId: input.id };
       }),
     payByToken: publicProcedure
@@ -2750,7 +2750,7 @@ Only include actions when you have actually generated a complete draft. For gene
         if (entry.endedAt) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Timer already stopped.' });
         const durationMinutes = Math.round((Date.now() - entry.startedAt.getTime()) / 60000);
         await db.update(timeEntries).set({ endedAt: new Date(), durationMinutes })
-          .where(eq(timeEntries.id, input.id));
+          .where(and(eq(timeEntries.id, input.id), eq(timeEntries.userId, ctx.user.id)));
         return { durationMinutes };
       }),
     update: protectedProcedure
@@ -2896,11 +2896,10 @@ Only include actions when you have actually generated a complete draft. For gene
         });
         const invoiceId = (result as any).insertId;
 
-        // 7. Mark the time entry as invoiced
+                // 7. Mark the time entry as invoiced (ownership already verified above)
         await db.update(timeEntries)
           .set({ invoiced: true })
-          .where(eq(timeEntries.id, input.id));
-
+          .where(and(eq(timeEntries.id, input.id), eq(timeEntries.userId, ctx.user.id)));
         return { invoiceId, invoiceNumber, amount };
       }),
 
@@ -2976,10 +2975,10 @@ Only include actions when you have actually generated a complete draft. For gene
           lineItems: JSON.stringify(lineItemsArr),
         });
         const invoiceId = (result as any).insertId;
-        // 5. Mark all entries as invoiced
+        // 5. Mark all entries as invoiced (ownership already verified above)
         await db.update(timeEntries)
           .set({ invoiced: true })
-          .where(inArray(timeEntries.id, input.ids));
+          .where(and(inArray(timeEntries.id, input.ids), eq(timeEntries.userId, ctx.user.id)));
         return { invoiceId, invoiceNumber, amount: totalAmount, entryCount: entries.length };
       }),
   }),
@@ -3500,7 +3499,7 @@ Only include actions when you have actually generated a complete draft. For gene
         await db.update(testimonials).set({
           status: input.action === "approve" ? "approved" : "rejected",
           approvedAt: input.action === "approve" ? new Date() : null,
-        }).where(eq(testimonials.id, input.id));
+        }).where(and(eq(testimonials.id, input.id), eq(testimonials.userId, ctx.user.id)));
         return { ok: true };
       }),
 
@@ -4076,7 +4075,7 @@ Only include actions when you have actually generated a complete draft. For gene
             </div>`,
           }).catch(e => console.error("[Proposals] Email failed:", e));
         }
-        await db.update(proposals).set({ status: "sent", sentAt: new Date() }).where(eq(proposals.id, input.id));
+        await db.update(proposals).set({ status: "sent", sentAt: new Date() }).where(and(eq(proposals.id, input.id), eq(proposals.userId, ctx.user.id)));
         return { success: true, link };
       }),
 
