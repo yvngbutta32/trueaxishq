@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import {
   Calendar, Clock, User, Mail, MessageSquare, Briefcase,
   CheckCircle, Zap, ArrowLeft, Loader2, Download, ExternalLink,
-  CalendarDays, Sparkles
+  CalendarDays, Sparkles, Camera, Upload, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -158,6 +158,8 @@ export default function BookingPage() {
   useEffect(() => { document.title = username ? `Book with @${username} — TrueAxis HQ` : "Book a Session — TrueAxis HQ"; }, [username]);
 
   const [step, setStep] = useState<"details" | "datetime" | "confirm" | "success">("details");
+  const [estimatePhotos, setEstimatePhotos] = useState<{ file: File; previewUrl: string }[]>([]);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [form, setForm] = useState({
     clientName: "",
     clientEmail: "",
@@ -175,7 +177,30 @@ export default function BookingPage() {
 
   const availableDays = getNextDays(14);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // Upload estimate photos first (non-blocking — failures don't block booking)
+    if (estimatePhotos.length > 0) {
+      setPhotoUploading(true);
+      for (const { file } of estimatePhotos) {
+        try {
+          const fd = new FormData();
+          fd.append("file", file);
+          fd.append("photoType", "estimate");
+          const res = await fetch("/api/photos/upload", { method: "POST", body: fd });
+          if (res.ok) {
+            const { photoKey, photoUrl } = await res.json() as { photoKey: string; photoUrl: string };
+            await fetch("/api/trpc/photos.confirmClientUpload", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ json: { photoUrl, photoKey, hostUsername: username } }),
+            });
+          }
+        } catch (err) {
+          console.error("[EstimatePhoto]", err);
+        }
+      }
+      setPhotoUploading(false);
+    }
     submitMutation.mutate({
       hostUsername: username,
       clientName: form.clientName,
@@ -649,7 +674,52 @@ export default function BookingPage() {
             <h2 className="text-xl font-bold text-[#1A1A1A] mb-1">
               Confirm your booking
             </h2>
-            <p className="text-sm text-[#6B6B6B] mb-6">Please review the details below before submitting.</p>
+            <p className="text-sm text-[#6B6B6B] mb-4">Please review the details below before submitting.</p>
+
+            {/* Estimate photo upload */}
+            <div className="mb-5 p-4 bg-[#F7F6F3] rounded-xl border border-[#DDDBD7]">
+              <p className="text-sm font-semibold text-[#1A1A1A] mb-1 flex items-center gap-1.5">
+                <Camera className="w-4 h-4 text-[#D4922A]" />
+                Estimate Photos
+                <span className="text-xs font-normal text-[#6B6B6B]">(optional)</span>
+              </p>
+              <p className="text-xs text-[#6B6B6B] mb-3">Upload photos of the work area so {host.name} can prepare an accurate estimate.</p>
+              {estimatePhotos.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {estimatePhotos.map((ep, idx) => (
+                    <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-[#DDDBD7]">
+                      <img src={ep.previewUrl} alt={`Estimate photo ${idx + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setEstimatePhotos(prev => prev.filter((_, i) => i !== idx))}
+                        className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-black"
+                        aria-label={`Remove photo ${idx + 1}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label className="flex items-center gap-2 cursor-pointer border border-dashed border-[#C8C5BF] rounded-xl px-4 py-2.5 hover:border-[#D4922A]/60 hover:bg-[#D4922A]/5 transition-all">
+                <Upload className="w-4 h-4 text-[#6B6B6B]" />
+                <span className="text-sm text-[#6B6B6B]">
+                  {estimatePhotos.length > 0 ? `${estimatePhotos.length} photo${estimatePhotos.length > 1 ? "s" : ""} added — add more` : "Click to add photos"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []).filter(f => f.size <= 16 * 1024 * 1024);
+                    const newPhotos = files.map(f => ({ file: f, previewUrl: URL.createObjectURL(f) }));
+                    setEstimatePhotos(prev => [...prev, ...newPhotos]);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
 
             <div className="bg-[#F7F6F3] rounded-xl border border-[#DDDBD7] p-5 space-y-4 mb-6">
               <div className="flex items-center gap-3 pb-4 border-b border-[#DDDBD7]">
@@ -695,8 +765,8 @@ export default function BookingPage() {
 
             <Button
               className="w-full gradient-amber text-[#1A1A1A] border-0 h-12 text-base gap-2"
-              onClick={handleSubmit}
-              disabled={submitMutation.isPending}
+              onClick={() => void handleSubmit()}
+              disabled={submitMutation.isPending || photoUploading}
               aria-label="Submit booking request"
             >
               {submitMutation.isPending ? (

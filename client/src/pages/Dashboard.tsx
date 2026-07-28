@@ -25,6 +25,7 @@ import { HealthMonitor } from "@/components/HealthMonitor";
 import { PanelErrorBoundary } from "@/components/PanelErrorBoundary";
 import GlobalSearch from "@/components/GlobalSearch";
 import BillingPanel from "./BillingPanel";
+import JobPhotosPanel from "./JobPhotosPanel";
 import OutreachPanel from "./OutreachPanel";
 import DealsPanel from "./DealsPanel";
 import InsightsPanel from "./InsightsPanel";
@@ -48,7 +49,7 @@ import {
   PieChart, Pie, Cell
 } from "recharts";
 
-type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations" | "billing" | "outreach" | "deals" | "insights";
+type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations" | "billing" | "outreach" | "deals" | "insights" | "photos";
 
 interface ConfirmState {
   open: boolean;
@@ -281,6 +282,7 @@ const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; ba
   { icon: BarChart3,       label: "Insights",   panel: "insights"   },
   { icon: Settings,        label: "Settings",   panel: "settings"   },
   { icon: Bot,             label: "AI Assistant", panel: "ai"       },
+  { icon: Camera,          label: "Job Photos",  panel: "photos"   },
 ];
 
 function Sidebar({ active, setActive, collapsed, setCollapsed }: {
@@ -4850,7 +4852,7 @@ export default function Dashboard() {
   const [active, setActive] = useState<ActivePanel>(() => {
     if (typeof window !== "undefined") {
       const param = new URLSearchParams(window.location.search).get("panel");
-      const valid: ActivePanel[] = ["overview","clients","scheduling","billing","outreach","deals","insights","settings","ai",
+      const valid: ActivePanel[] = ["overview","clients","scheduling","billing","outreach","deals","insights","settings","ai","photos",
         // Legacy sub-panel deep links — will auto-redirect to parent
         "invoices","followups","analytics","pulse","contracts","time","inbox","testimonials","services","expenses","proposals","automations"];
       if (param && valid.includes(param as ActivePanel)) return param as ActivePanel;
@@ -4919,6 +4921,7 @@ export default function Dashboard() {
       outreach: "Outreach — TrueAxis HQ",
       deals: "Deals — TrueAxis HQ",
       insights: "Insights — TrueAxis HQ",
+      photos: "Job Photos — TrueAxis HQ",
     };
     document.title = PANEL_TITLES[active] ?? "Dashboard — TrueAxis HQ";
   }, [active]);
@@ -4986,7 +4989,7 @@ export default function Dashboard() {
     contracts: "Contracts", time: "Time Tracking",
     inbox: "Smart Inbox", testimonials: "Testimonials",
     services: "Services", expenses: "Expenses & P&L", proposals: "Proposals", automations: "Automations",
-    billing: "Billing", outreach: "Outreach", deals: "Deals", insights: "Insights",
+    billing: "Billing", outreach: "Outreach", deals: "Deals", insights: "Insights", photos: "Job Photos",
   };
   const panelSubtitles: Record<ActivePanel, string> = {
     overview: "Your business at a glance",
@@ -5008,10 +5011,10 @@ export default function Dashboard() {
     automations: "Trigger actions automatically",
     billing: "Invoices, time tracking, recurring & service catalog",
     outreach: "Follow-ups, inbox & automation workflows",
-    deals: "Contracts & proposals in one place",
+        deals: "Contracts & proposals in one place",
     insights: "Analytics, client pulse & expenses",
+    photos: "Upload & manage job photos, receipts & estimates",
   };
-
   // useMemo ensures the panel JSX element is only recreated when `active` changes.
   // Without this, every Dashboard re-render (notification poll, search state, etc.)
   // returns a brand-new element reference, causing React to unmount+remount the
@@ -5084,6 +5087,11 @@ export default function Dashboard() {
       case "insights": return (
         <PanelErrorBoundary panelName="Insights">
           <InsightsPanel analyticsPanel={<AnalyticsPanel />} />
+        </PanelErrorBoundary>
+      );
+      case "photos": return (
+        <PanelErrorBoundary panelName="Job Photos">
+          <JobPhotosPanel />
         </PanelErrorBoundary>
       );
       default: return null;

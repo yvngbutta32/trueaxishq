@@ -11,6 +11,7 @@ import { handleStripeWebhook } from "../stripeWebhook";
 import { securityMiddleware } from "../security";
 import { avatarUploadRouter } from "../avatarUpload";
 import { documentUploadRouter } from "../documentUpload";
+import { photoUploadRouter } from "../photoUpload";
 import { icalRouter } from "../icalExport";
 import { startBackgroundJobs } from "../backgroundJobs";
 import { invoicePdfRouter } from "../invoicePdf";
@@ -109,6 +110,9 @@ async function startServer() {
 
   // ── Document Upload ───────────────────────────────────────────────────────────────────────────────────────
   app.use(documentUploadRouter);
+
+  // ── Photo Upload (job photos: estimate / wip / finished / receipt) ────────
+  app.use(photoUploadRouter);
 
   // ── iCal Calendar Export ──────────────────────────────────────────────────
   app.use("/api", icalRouter);

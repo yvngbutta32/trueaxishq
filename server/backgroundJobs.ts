@@ -19,7 +19,7 @@ import {
   clients,
   bookings,
 } from "../drizzle/schema";
-import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail } from "./_core/email";
+import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, bookingReminderEmail, postSessionCheckInEmail } from "./_core/email";
 
 // ─── Invoice number generator ─────────────────────────────────────────────────
 function generateInvoiceNumber(): string {
@@ -464,22 +464,161 @@ async function runMonthlyReport() {
 }
 
 // ─── Main scheduler ───────────────────────────────────────────────────────────
+// ─── Job: 24-hour booking reminders ─────────────────────────────────────────
+async function runBookingReminders() {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const db = await getDb();
+      if (!db) return;
+
+      // Find bookings scheduled for tomorrow (within a 25-hour window to be safe)
+      const now = new Date();
+      const tomorrowStart = new Date(now.getTime() + 23 * 60 * 60 * 1000);
+      const tomorrowEnd = new Date(now.getTime() + 25 * 60 * 60 * 1000);
+      const startStr = tomorrowStart.toISOString().split("T")[0];
+      const endStr = tomorrowEnd.toISOString().split("T")[0];
+
+      const upcoming = await db.execute(
+        sql`SELECT b.id, b.clientName, b.clientEmail, b.service, b.date, b.time, b.userId,
+                   u.name as ownerName, u.businessName, u.bookingUsername
+            FROM bookings b
+            JOIN users u ON u.id = b.userId
+            WHERE b.status = 'scheduled'
+              AND b.clientEmail IS NOT NULL AND b.clientEmail != ''
+              AND b.reminderSentAt IS NULL
+              AND b.date >= ${startStr} AND b.date <= ${endStr}
+            LIMIT 50`
+      ) as any;
+
+      const rows: any[] = Array.isArray(upcoming) ? upcoming[0] ?? [] : upcoming?.rows ?? [];
+
+      for (const booking of rows) {
+        try {
+          const freelancerName = booking.businessName || booking.ownerName || "Your service provider";
+          const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
+          const bookingUrl = booking.bookingUsername ? `${siteOrigin}/book/${booking.bookingUsername}` : siteOrigin;
+
+          await sendEmail({
+            to: booking.clientEmail,
+            subject: `Reminder: Your session is tomorrow — ${booking.service || "Appointment"}`,
+            html: bookingReminderEmail({
+              clientName: booking.clientName,
+              serviceName: booking.service || "Your session",
+              date: booking.date,
+              time: booking.time,
+              freelancerName,
+            }),
+          });
+
+          // Mark reminder sent
+          await db.update(bookings)
+            .set({ reminderSentAt: new Date() })
+            .where(eq(bookings.id, booking.id));
+
+          console.log(`[Jobs] Booking reminder sent for booking ${booking.id}`);
+        } catch (err) {
+          console.error(`[Jobs] Failed to send reminder for booking ${booking.id}:`, err);
+        }
+      }
+      return;
+    } catch (err: any) {
+      const isTransient = err?.code === "ECONNRESET" || err?.code === "ETIMEDOUT" || err?.code === "ECONNREFUSED";
+      console.error(`[Jobs] runBookingReminders error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
+      if (isTransient && attempt < 2) {
+        resetDbConnection();
+        await new Promise((r) => setTimeout(r, 500));
+      } else {
+        return;
+      }
+    }
+  }
+}
+
+// ─── Job: 48-hour post-session check-in ──────────────────────────────────────
+async function runPostSessionCheckIns() {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const db = await getDb();
+      if (!db) return;
+
+      // Find bookings that were 2 days ago (48 ± 1 hour window)
+      const now = new Date();
+      const twoDaysAgoStart = new Date(now.getTime() - 49 * 60 * 60 * 1000);
+      const twoDaysAgoEnd = new Date(now.getTime() - 47 * 60 * 60 * 1000);
+      const startStr = twoDaysAgoStart.toISOString().split("T")[0];
+      const endStr = twoDaysAgoEnd.toISOString().split("T")[0];
+
+      const completed = await db.execute(
+        sql`SELECT b.id, b.clientName, b.clientEmail, b.service, b.userId,
+                   u.name as ownerName, u.businessName, u.bookingUsername
+            FROM bookings b
+            JOIN users u ON u.id = b.userId
+            WHERE b.status IN ('completed', 'scheduled')
+              AND b.clientEmail IS NOT NULL AND b.clientEmail != ''
+              AND b.checkInSentAt IS NULL
+              AND b.date >= ${startStr} AND b.date <= ${endStr}
+            LIMIT 50`
+      ) as any;
+
+      const rows: any[] = Array.isArray(completed) ? completed[0] ?? [] : completed?.rows ?? [];
+
+      for (const booking of rows) {
+        try {
+          const freelancerName = booking.businessName || booking.ownerName || "Your service provider";
+          const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
+          const bookingUrl = booking.bookingUsername
+            ? `${siteOrigin}/book/${booking.bookingUsername}`
+            : siteOrigin;
+
+          await sendEmail({
+            to: booking.clientEmail,
+            subject: `How did your session go? — ${booking.service || "Your recent session"}`,
+            html: postSessionCheckInEmail({
+              clientName: booking.clientName,
+              serviceName: booking.service || "Your session",
+              freelancerName,
+              bookingUrl,
+            }),
+          });
+
+          // Mark check-in sent
+          await db.update(bookings)
+            .set({ checkInSentAt: new Date() })
+            .where(eq(bookings.id, booking.id));
+
+          console.log(`[Jobs] Post-session check-in sent for booking ${booking.id}`);
+        } catch (err) {
+          console.error(`[Jobs] Failed to send check-in for booking ${booking.id}:`, err);
+        }
+      }
+      return;
+    } catch (err: any) {
+      const isTransient = err?.code === "ECONNRESET" || err?.code === "ETIMEDOUT" || err?.code === "ECONNREFUSED";
+      console.error(`[Jobs] runPostSessionCheckIns error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
+      if (isTransient && attempt < 2) {
+        resetDbConnection();
+        await new Promise((r) => setTimeout(r, 500));
+      } else {
+        return;
+      }
+    }
+  }
+}
+
 export function startBackgroundJobs() {
   console.log("[Jobs] Background job scheduler starting...");
-
   const runAll = async () => {
     await runOverdueDetection();
     await runRecurringInvoices();
     await runFollowUpReminders();
     await runFollowUpRules();
     await runMonthlyReport();
+    await runBookingReminders();
+    await runPostSessionCheckIns();
   };
-
   // Initial run after 10 seconds (let server fully start)
   setTimeout(runAll, 10_000);
-
   // Then every hour
   setInterval(runAll, 60 * 60 * 1000);
-
-  console.log("[Jobs] Background jobs scheduled (every 1 hour, 5 jobs)");
+  console.log("[Jobs] Background jobs scheduled (every 1 hour, 7 jobs)");
 }

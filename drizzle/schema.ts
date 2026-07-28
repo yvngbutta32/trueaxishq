@@ -790,3 +790,38 @@ export const stripeWebhookEvents = mysqlTable("stripeWebhookEvents", {
 );
 export type StripeWebhookEvent = typeof stripeWebhookEvents.$inferSelect;
 export type InsertStripeWebhookEvent = typeof stripeWebhookEvents.$inferInsert;
+
+// ── Job Photos ────────────────────────────────────────────────────────────────
+// Stores photos attached to bookings/jobs: estimate photos from clients,
+// work-in-progress and finished photos from the business owner,
+// and receipt photos linked to line items for the photo receipt calculator.
+export const jobPhotos = mysqlTable("jobPhotos", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),          // owner of the job
+  // Reference to the associated booking (nullable — can also attach to a client)
+  bookingId: int("bookingId"),
+  clientId: int("clientId"),
+  // Photo classification
+  photoType: mysqlEnum("photoType", ["estimate", "wip", "finished", "receipt"]).notNull().default("estimate"),
+  uploadedBy: mysqlEnum("uploadedBy", ["client", "owner"]).notNull().default("client"),
+  // S3 storage
+  photoUrl: text("photoUrl").notNull(),
+  photoKey: varchar("photoKey", { length: 512 }).notNull(),
+  // Optional metadata
+  caption: varchar("caption", { length: 512 }),
+  // Receipt calculator fields (only used when photoType = 'receipt')
+  lineItemLabel: varchar("lineItemLabel", { length: 255 }),
+  lineItemAmount: decimal("lineItemAmount", { precision: 10, scale: 2 }),
+  sortOrder: int("sortOrder").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+},
+(t) => [
+  index("jobPhotos_userId_idx").on(t.userId),
+  index("jobPhotos_bookingId_idx").on(t.bookingId),
+  index("jobPhotos_clientId_idx").on(t.clientId),
+  index("jobPhotos_photoType_idx").on(t.photoType),
+]
+);
+export type JobPhoto = typeof jobPhotos.$inferSelect;
+export type InsertJobPhoto = typeof jobPhotos.$inferInsert;

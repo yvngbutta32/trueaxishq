@@ -10,7 +10,7 @@ import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -4767,9 +4767,271 @@ Only include actions when you have actually generated a complete draft. For gene
         notes: c.notes ?? "",
         createdAt: c.createdAt ? new Date(c.createdAt).toISOString().split("T")[0] : "",
       }));
-      return { rows, count: rows.length };
+            return { rows, count: rows.length };
     }),
   }),
 
+  // ── Job Photos ──────────────────────────────────────────────────────────────
+  photos: router({
+    // Get upload URL — returns a presigned-style upload endpoint via the storage proxy
+    getUploadUrl: protectedProcedure
+      .input(z.object({
+        fileName: z.string().min(1).max(255),
+        contentType: z.string().min(1).max(100),
+        photoType: z.enum(["estimate", "wip", "finished", "receipt"]),
+        bookingId: z.number().int().positive().optional(),
+        clientId: z.number().int().positive().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const crypto = await import("crypto");
+        const ext = input.fileName.split(".").pop()?.toLowerCase() || "jpg";
+        const key = `job-photos/${ctx.user.id}/${input.photoType}/${crypto.randomBytes(12).toString("hex")}.${ext}`;
+        // Return the key so the client can POST to /api/photos/upload
+        return { key, uploadEndpoint: `/api/photos/upload` };
+      }),
+
+    // Confirm upload — called after client has successfully uploaded the file
+    confirmUpload: protectedProcedure
+      .input(z.object({
+        photoUrl: z.string().url(),
+        photoKey: z.string().min(1).max(512),
+        photoType: z.enum(["estimate", "wip", "finished", "receipt"]),
+        bookingId: z.number().int().positive().optional(),
+        clientId: z.number().int().positive().optional(),
+        caption: z.string().max(512).optional(),
+        lineItemLabel: z.string().max(255).optional(),
+        lineItemAmount: z.number().min(0).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [result] = await db.insert(jobPhotos).values({
+          userId: ctx.user.id,
+          bookingId: input.bookingId ?? null,
+          clientId: input.clientId ?? null,
+          photoType: input.photoType,
+          uploadedBy: "owner",
+          photoUrl: input.photoUrl,
+          photoKey: input.photoKey,
+          caption: input.caption ?? null,
+          lineItemLabel: input.lineItemLabel ?? null,
+          lineItemAmount: input.lineItemAmount != null ? String(input.lineItemAmount) : null,
+        });
+        return { id: (result as any).insertId as number };
+      }),
+
+    // Public confirm — for client-uploaded estimate photos (no auth required)
+    confirmClientUpload: publicProcedure
+      .input(z.object({
+        photoUrl: z.string().url(),
+        photoKey: z.string().min(1).max(512),
+        hostUsername: z.string().min(1).max(64),
+        bookingId: z.number().int().positive().optional(),
+        caption: z.string().max(512).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [host] = await db.select({ id: users.id })
+          .from(users).where(eq(users.bookingUsername, input.hostUsername)).limit(1);
+        if (!host) throw new TRPCError({ code: "NOT_FOUND", message: "Host not found" });
+        const [result] = await db.insert(jobPhotos).values({
+          userId: host.id,
+          bookingId: input.bookingId ?? null,
+          photoType: "estimate",
+          uploadedBy: "client",
+          photoUrl: input.photoUrl,
+          photoKey: input.photoKey,
+          caption: input.caption ?? null,
+        });
+        return { id: (result as any).insertId as number };
+      }),
+
+    // List photos for a booking or all owner photos
+    list: protectedProcedure
+      .input(z.object({
+        bookingId: z.number().int().positive().optional(),
+        clientId: z.number().int().positive().optional(),
+        photoType: z.enum(["estimate", "wip", "finished", "receipt"]).optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const conditions = [eq(jobPhotos.userId, ctx.user.id)];
+        if (input.bookingId) conditions.push(eq(jobPhotos.bookingId, input.bookingId));
+        if (input.clientId) conditions.push(eq(jobPhotos.clientId, input.clientId));
+        if (input.photoType) conditions.push(eq(jobPhotos.photoType, input.photoType));
+        return db.select().from(jobPhotos)
+          .where(and(...conditions))
+          .orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt));
+      }),
+
+    // Update caption or line item details
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        caption: z.string().max(512).optional(),
+        lineItemLabel: z.string().max(255).optional(),
+        lineItemAmount: z.number().min(0).optional(),
+        sortOrder: z.number().int().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.update(jobPhotos).set({
+          caption: input.caption ?? undefined,
+          lineItemLabel: input.lineItemLabel ?? undefined,
+          lineItemAmount: input.lineItemAmount != null ? String(input.lineItemAmount) : undefined,
+          sortOrder: input.sortOrder ?? undefined,
+        }).where(and(eq(jobPhotos.id, input.id), eq(jobPhotos.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    // Delete a photo
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(jobPhotos)
+          .where(and(eq(jobPhotos.id, input.id), eq(jobPhotos.userId, ctx.user.id)));
+        return { success: true };
+      }),
+    extractReceiptTotal: protectedProcedure
+      .input(z.object({ photoUrl: z.string().url() }))
+      .mutation(async ({ input }) => {
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `You are a receipt OCR assistant. Extract all line items and the grand total from the receipt image provided. Return a JSON object with:
+- items: array of { description: string, qty: number, unitPrice: number } (qty defaults to 1 if not shown, unitPrice is the per-unit cost)
+- subtotal: number (sum before tax, 0 if not shown)
+- tax: number (tax amount, 0 if not shown)
+- total: number (the final grand total — the most important field)
+- currency: string (e.g. "USD", default "USD")
+- note: string (any caveat about readability, empty string if clear)
+Be precise with dollar amounts. If a value is ambiguous, use your best estimate.`,
+            },
+            {
+              role: "user",
+              content: [
+                { type: "text", text: "Please extract all line items and the total from this receipt image." },
+                { type: "image_url", image_url: { url: input.photoUrl, detail: "high" } },
+              ],
+            },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "receipt_extraction",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  items: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        description: { type: "string" },
+                        qty: { type: "number" },
+                        unitPrice: { type: "number" },
+                      },
+                      required: ["description", "qty", "unitPrice"],
+                      additionalProperties: false,
+                    },
+                  },
+                  subtotal: { type: "number" },
+                  tax: { type: "number" },
+                  total: { type: "number" },
+                  currency: { type: "string" },
+                  note: { type: "string" },
+                },
+                required: ["items", "subtotal", "tax", "total", "currency", "note"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+        const content = (response as any).choices?.[0]?.message?.content ?? "{}";
+        try {
+          const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
+          return {
+            items: (parsed.items ?? []) as { description: string; qty: number; unitPrice: number }[],
+            subtotal: Number(parsed.subtotal ?? 0),
+            tax: Number(parsed.tax ?? 0),
+            total: Number(parsed.total ?? 0),
+            currency: String(parsed.currency ?? "USD"),
+            note: String(parsed.note ?? ""),
+          };
+        } catch {
+          return { items: [], subtotal: 0, tax: 0, total: 0, currency: "USD", note: "Could not parse receipt." };
+        }
+      }),
+    // Add receipt line items to an existing invoice or create a new draft invoice
+    addToInvoice: protectedProcedure
+      .input(z.object({
+        invoiceId: z.number().int().positive().optional(),
+        clientName: z.string().min(1).max(255).optional(),
+        clientEmail: z.string().email().optional(),
+        clientId: z.number().int().positive().optional(),
+        lineItems: z.array(z.object({
+          description: z.string().trim().max(500),
+          qty: z.number().positive().max(9999),
+          unitPrice: z.number().min(0).max(999999),
+        })).min(1),
+        notes: z.string().max(2000).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        if (input.invoiceId) {
+          // Append line items to existing invoice
+          const [existing] = await db.select()
+            .from(invoices)
+            .where(and(eq(invoices.id, input.invoiceId), eq(invoices.userId, ctx.user.id)))
+            .limit(1);
+          if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found" });
+          const existingItems: { description: string; qty: number; unitPrice: number }[] =
+            existing.lineItems ? JSON.parse(existing.lineItems) : [];
+          const merged = [...existingItems, ...input.lineItems];
+          const newAmount = merged.reduce((sum, i) => sum + i.qty * i.unitPrice, 0);
+          await db.update(invoices).set({
+            lineItems: JSON.stringify(merged),
+            amount: String(newAmount),
+            updatedAt: new Date(),
+          }).where(and(eq(invoices.id, input.invoiceId), eq(invoices.userId, ctx.user.id)));
+          return { invoiceId: input.invoiceId, created: false };
+        } else {
+          // Create a new draft invoice
+          const total = input.lineItems.reduce((sum, i) => sum + i.qty * i.unitPrice, 0);
+          const invoiceNumber = generateInvoiceNumber();
+          const [result] = await db.insert(invoices).values({
+            userId: ctx.user.id,
+            clientId: input.clientId ?? null,
+            invoiceNumber,
+            clientName: input.clientName ?? "New Client",
+            clientEmail: input.clientEmail ?? null,
+            service: input.lineItems.map(i => i.description).join(", "),
+            amount: String(total),
+            status: "draft",
+            lineItems: JSON.stringify(input.lineItems),
+            notes: input.notes ?? null,
+          });
+          return { invoiceId: (result as any).insertId as number, created: true };
+        }
+      }),
+    // Calculate receipt total from all receipt-type photos for a booking
+    receiptTotal: protectedProcedure
+      .input(z.object({ bookingId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const items = await db.select()
+          .from(jobPhotos)
+          .where(and(
+            eq(jobPhotos.userId, ctx.user.id),
+            eq(jobPhotos.bookingId, input.bookingId),
+            eq(jobPhotos.photoType, "receipt")
+          ))
+          .orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt));
+        const total = items.reduce((sum, p) => sum + parseFloat(String(p.lineItemAmount ?? "0")), 0);
+        return { items, total: total.toFixed(2) };
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;
