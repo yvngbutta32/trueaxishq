@@ -257,7 +257,14 @@ process.on("unhandledRejection", (reason) => {
   console.error("[Server] Unhandled Promise Rejection:", reason);
 });
 
-process.on("uncaughtException", (err) => {
+process.on("uncaughtException", (err: any) => {
+  // Transient network/DB errors should never crash the server
+  const isTransient = err?.code === "ECONNRESET" || err?.code === "ETIMEDOUT" ||
+    err?.code === "ECONNREFUSED" || err?.code === "EPIPE" || err?.code === "ENOTFOUND";
+  if (isTransient) {
+    console.warn("[Server] Transient uncaught exception (ignored):", err?.code, err?.message);
+    return;
+  }
   console.error("[Server] Uncaught Exception — exiting for clean restart:", err);
   process.exit(1);
 });

@@ -4,9 +4,9 @@
  * Enables: Offline support, faster loads, PWA installability
  */
 
-const CACHE_NAME = "trueaxis-hq-v1";
-const STATIC_CACHE = "trueaxis-static-v1";
-const API_CACHE = "trueaxis-api-v1";
+const CACHE_NAME = "trueaxis-hq-v2";
+const STATIC_CACHE = "trueaxis-static-v2";
+const API_CACHE = "trueaxis-api-v2";
 
 // Assets to pre-cache on install (app shell)
 const APP_SHELL = [
@@ -60,10 +60,25 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets (JS, CSS, images): Cache-first
-  if (
-    url.pathname.match(/\.(js|css|woff2?|ttf|eot|svg|png|jpg|jpeg|webp|ico)$/)
-  ) {
+  // JS/CSS bundles: Network-first (prevents stale bundles after deploys/restarts).
+  // Fonts/images/icons: Cache-first (safe — they are content-addressed by hash).
+  if (url.pathname.match(/\.(js|css)$/)) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then((cached) => cached ?? Response.error()))
+    );
+    return;
+  }
+
+  // Static assets (fonts, images, icons): Cache-first
+  if (url.pathname.match(/\.(woff2?|ttf|eot|svg|png|jpg|jpeg|webp|ico)$/)) {
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;
