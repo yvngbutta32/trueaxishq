@@ -1502,8 +1502,23 @@
 - [x] Verify public routes (booking, intake, portal) cannot expose private data
 
 ## Client Portal — Job Photo Gallery
-- [ ] Add public tRPC procedure: photos.getForClient (scoped by portal token → clientId → bookings)
-- [ ] Build JobPhotosGallery component in ClientPortal.tsx with estimate/WIP/finished tabs
+- [x] Add public tRPC procedure: photos.getForClient (scoped by portal token → clientId → bookings)
+- [x] Build JobPhotosGallery component in ClientPortal.tsx with estimate/WIP/finished tabs
 - [x] Add lightbox viewer for full-size photo viewing
-- [ ] Show photo count badge per tab
-- [ ] Handle empty state gracefully (no photos yet message)
+- [x] Show photo count badge per tab
+- [x] Handle empty state gracefully (no photos yet message)
+
+## Competitive Product-Hardening Program — 2026
+- [x] Research current freelancer, agency, coach, and field-service operating-system competitors and customer pain points
+- [x] Produce a capability-gap matrix and rank opportunities by customer impact, differentiation, delivery effort, and operational risk
+- [x] Audit end-to-end critical journeys: signup, onboarding, lead capture, booking, portal, invoice payment, documents, photos, and automated follow-ups
+- [x] Implement the highest-priority differentiated workflows identified through research
+- [x] Expand regression coverage for all newly changed critical journeys
+- [x] Validate reliability, authorization boundaries, mobile usability, and production logs before release
+
+### Prioritized Build: Interactive Client Hub & Trustworthy Automation
+- [x] Make public photo uploads portal-token-bound and validate the uploaded file ownership before persistence
+- [x] Add a client-facing messaging experience to the Client Portal using the existing token-scoped message system
+- [x] Add client photo upload from the Client Portal with clear estimate-photo context and success/error feedback
+- [x] Make automation execution honest and dependable: execute supported actions, record per-run results, and prevent unsupported actions from being offered
+- [x] Add regression tests for portal authorization, client messaging, client photo persistence, and automation action execution

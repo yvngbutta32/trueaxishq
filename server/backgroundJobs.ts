@@ -20,6 +20,7 @@ import {
   bookings,
 } from "../drizzle/schema";
 import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, bookingReminderEmail, postSessionCheckInEmail } from "./_core/email";
+import { processDueAutomations } from "./automationEngine";
 
 // ─── Invoice number generator ─────────────────────────────────────────────────
 function generateInvoiceNumber(): string {
@@ -615,10 +616,11 @@ export function startBackgroundJobs() {
     await runMonthlyReport();
     await runBookingReminders();
     await runPostSessionCheckIns();
+    await processDueAutomations();
   };
   // Initial run after 10 seconds (let server fully start)
   setTimeout(runAll, 10_000);
   // Then every hour
   setInterval(runAll, 60 * 60 * 1000);
-  console.log("[Jobs] Background jobs scheduled (every 1 hour, 7 jobs)");
+  console.log("[Jobs] Background jobs scheduled (every 1 hour, 8 jobs)");
 }

@@ -1,7 +1,7 @@
 import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { useState, useEffect } from "react";
-import { FileText, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, CreditCard, User, Mail, Phone, Building2, Camera, X, ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { FileText, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, CreditCard, User, Mail, Phone, Building2, Camera, X, ChevronLeft, ChevronRight, ImageOff, MessageCircle, Send, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 // Normalize booking date strings: ISO "2026-08-01" → "Aug 1, 2026", already-formatted strings pass through
@@ -56,6 +56,9 @@ export default function ClientPortal() {
   const [payingId, setPayingId] = useState<number | null>(null);
   const [photoTab, setPhotoTab] = useState<PhotoType>("estimate");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [messageDraft, setMessageDraft] = useState("");
+  const [portalPhotoUploading, setPortalPhotoUploading] = useState(false);
+  const portalPhotoInputRef = useRef<HTMLInputElement>(null);
 
   // Check if redirected back from successful payment
   useEffect(() => {
@@ -73,9 +76,14 @@ export default function ClientPortal() {
     { enabled: !!token, retry: false }
   );
 
-  const { data: photoData } = trpc.portal.getPhotos.useQuery(
+  const { data: photoData, refetch: refetchPhotos } = trpc.portal.getPhotos.useQuery(
     { token },
     { enabled: !!token, retry: false }
+  );
+
+  const { data: messages, refetch: refetchMessages } = trpc.portalMsg.listForPortal.useQuery(
+    { token },
+    { enabled: !!token, retry: false, refetchInterval: 30_000 }
   );
 
   const payInvoice = trpc.portal.payInvoice.useMutation({
@@ -91,6 +99,51 @@ export default function ClientPortal() {
       setPayingId(null);
     },
   });
+
+  const sendPortalMessage = trpc.portalMsg.send.useMutation({
+    onSuccess: async () => {
+      setMessageDraft("");
+      await refetchMessages();
+      toast.success("Message sent to your provider.");
+    },
+    onError: (err) => toast.error(err.message || "Your message could not be sent. Please try again."),
+  });
+
+  const confirmClientPhoto = trpc.photos.confirmClientUpload.useMutation();
+
+  const handlePortalPhotoUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    if (file.size > 16 * 1024 * 1024) {
+      toast.error("Please choose a photo smaller than 16 MB.");
+      return;
+    }
+
+    setPortalPhotoUploading(true);
+    try {
+      const payload = new FormData();
+      payload.append("file", file);
+      payload.append("photoType", "estimate");
+      payload.append("portalToken", token);
+      const response = await fetch("/api/photos/upload", { method: "POST", body: payload });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || "Photo upload failed.");
+      }
+      const { photoUrl, photoKey } = await response.json() as { photoUrl: string; photoKey: string };
+      await confirmClientPhoto.mutateAsync({ photoUrl, photoKey, portalToken: token, caption: "Client estimate photo" });
+      await refetchPhotos();
+      setPhotoTab("estimate");
+      toast.success("Estimate photo added for your provider to review.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Photo upload failed. Please try again.");
+    } finally {
+      setPortalPhotoUploading(false);
+      if (portalPhotoInputRef.current) portalPhotoInputRef.current.value = "";
+    }
+  };
 
   if (isLoading) {
     return (
@@ -305,15 +358,32 @@ export default function ClientPortal() {
           const tabPhotos = allPhotos.filter(p => p.photoType === photoTab);
           const lightboxPhotos = tabPhotos;
 
-          if (allPhotos.length === 0) return null;
-
           return (
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               {/* Header */}
               <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
                 <Camera className="w-4 h-4 text-[#D4922A]" />
                 <h2 className="font-semibold text-gray-900">Job Photos</h2>
-                <span className="ml-auto text-xs text-gray-500">{allPhotos.length} photo{allPhotos.length !== 1 ? "s" : ""}</span>
+                <span className="ml-auto text-xs text-gray-500 hidden sm:inline">{allPhotos.length} photo{allPhotos.length !== 1 ? "s" : ""}</span>
+                <input
+                  ref={portalPhotoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif"
+                  className="sr-only"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) void handlePortalPhotoUpload(file);
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => portalPhotoInputRef.current?.click()}
+                  disabled={portalPhotoUploading}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#D4922A] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#b6781d] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {portalPhotoUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                  {portalPhotoUploading ? "Uploading" : "Share a photo"}
+                </button>
               </div>
 
               {/* Tabs */}
@@ -348,7 +418,7 @@ export default function ClientPortal() {
                   <div className="py-10 flex flex-col items-center gap-2 text-gray-400">
                     <ImageOff className="w-8 h-8" />
                     <p className="text-sm">
-                      {photoTab === "estimate" && "No estimate photos yet."}
+                      {photoTab === "estimate" && "No estimate photos yet. Share one to help your provider prepare an accurate estimate."}
                       {photoTab === "wip" && "No work-in-progress photos yet."}
                       {photoTab === "finished" && "No finished photos yet."}
                     </p>
@@ -427,6 +497,68 @@ export default function ClientPortal() {
             </div>
           );
         })()}
+
+        {/* Secure Portal Messages */}
+        <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" aria-labelledby="portal-messages-heading">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+            <MessageCircle className="w-4 h-4 text-[#D4922A]" />
+            <h2 id="portal-messages-heading" className="font-semibold text-gray-900">Messages</h2>
+            <span className="ml-auto text-xs text-gray-500">Private conversation with {providerName}</span>
+          </div>
+          <div className="max-h-80 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50/60" aria-live="polite">
+            {!messages || messages.length === 0 ? (
+              <div className="py-5 text-center text-sm text-gray-500">
+                <MessageCircle className="w-7 h-7 mx-auto mb-2 text-gray-300" />
+                Send a message if you have a question about your appointment, invoice, or job photos.
+              </div>
+            ) : (
+              messages.map((message) => {
+                const fromClient = message.senderRole === "client";
+                return (
+                  <div key={message.id} className={`flex ${fromClient ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-sm ${fromClient ? "bg-[#D4922A] text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"}`}>
+                      <p className="whitespace-pre-wrap break-words">{message.body}</p>
+                      <p className={`mt-1 text-[10px] ${fromClient ? "text-white/75" : "text-gray-400"}`}>
+                        {fromClient ? "You" : providerName} · {message.createdAt ? new Date(message.createdAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : ""}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          <form
+            className="border-t border-gray-100 p-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const body = messageDraft.trim();
+              if (!body || sendPortalMessage.isPending) return;
+              sendPortalMessage.mutate({ token, body });
+            }}
+          >
+            <label htmlFor="portal-message" className="sr-only">Message your provider</label>
+            <div className="flex items-end gap-2">
+              <textarea
+                id="portal-message"
+                value={messageDraft}
+                onChange={(event) => setMessageDraft(event.target.value.slice(0, 4000))}
+                maxLength={4000}
+                rows={2}
+                placeholder={`Message ${providerName}…`}
+                className="min-h-[48px] flex-1 resize-y rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-[#D4922A] focus:ring-2 focus:ring-[#D4922A]/20"
+              />
+              <button
+                type="submit"
+                disabled={!messageDraft.trim() || sendPortalMessage.isPending}
+                className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-[#D4922A] px-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#b6781d] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {sendPortalMessage.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                <span className="hidden sm:inline">Send</span>
+              </button>
+            </div>
+            <p className="mt-1.5 text-right text-[11px] text-gray-400">{messageDraft.length}/4,000</p>
+          </form>
+        </section>
 
         {/* Provider Contact */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">

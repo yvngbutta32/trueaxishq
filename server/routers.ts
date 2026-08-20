@@ -10,6 +10,7 @@ import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
+import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats } from "./security";
@@ -4204,7 +4205,7 @@ Only include actions when you have actually generated a complete draft. For gene
           value: z.string(),
         })).default([]),
         actions: z.array(z.object({
-          type: z.enum(["send_email", "create_followup", "send_invoice", "notify_owner", "create_task"]),
+          type: z.enum(SUPPORTED_AUTOMATION_ACTIONS),
           config: z.record(z.string(), z.any()),
         })).min(1),
         active: z.boolean().default(true),
@@ -4233,7 +4234,7 @@ Only include actions when you have actually generated a complete draft. For gene
         trigger: z.enum(["booking_confirmed", "invoice_sent", "invoice_overdue", "client_added", "proposal_signed", "invoice_paid"]).optional(),
         triggerDelayHours: z.number().int().min(0).max(720).optional(),
         conditions: z.array(z.object({ field: z.string(), operator: z.string(), value: z.string() })).optional(),
-        actions: z.array(z.object({ type: z.string(), config: z.record(z.string(), z.any()) })).optional(),
+        actions: z.array(z.object({ type: z.enum(SUPPORTED_AUTOMATION_ACTIONS), config: z.record(z.string(), z.any()) })).optional(),
         active: z.boolean().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -4315,30 +4316,37 @@ Only include actions when you have actually generated a complete draft. For gene
         const [auto] = await db.select().from(automations)
           .where(and(eq(automations.id, input.id), eq(automations.userId, ctx.user.id))).limit(1);
         if (!auto) throw new TRPCError({ code: "NOT_FOUND" });
-        const actions = JSON.parse(auto.actions || "[]");
+        const actions = JSON.parse(auto.actions || "[]") as Array<{ type: string; config: Record<string, unknown> }>;
         let executed = 0;
+        const skipped: string[] = [];
         for (const action of actions) {
           try {
             if (action.type === "notify_owner") {
-              await notifyOwner({ title: action.config.title || "Automation triggered", content: action.config.message || `Automation "${auto.name}" was manually run.` });
-              executed++;
-            } else if (action.type === "create_followup") {
-              // Queue a follow-up for the owner to review
-              executed++;
+              const delivered = await notifyOwner({
+                title: typeof action.config.title === "string" ? action.config.title : "Automation test",
+                content: typeof action.config.message === "string" ? action.config.message : `Automation "${auto.name}" was manually tested.`,
+              });
+              if (delivered) executed++;
+              else skipped.push("Owner notification service unavailable");
+            } else {
+              skipped.push(`${action.type} runs automatically when a matching ${auto.trigger} event is due.`);
             }
           } catch (e) {
-            console.error("[Automation] Action failed:", e);
+            skipped.push(e instanceof Error ? e.message : "Automation test failed");
           }
         }
-        await db.update(automations).set({ runCount: sql`${automations.runCount} + 1`, lastRunAt: new Date() }).where(eq(automations.id, auto.id));
+        if (executed > 0) {
+          await db.update(automations).set({ runCount: sql`${automations.runCount} + 1`, lastRunAt: new Date() }).where(eq(automations.id, auto.id));
+        }
         await db.insert(automationLogs).values({
           automationId: auto.id,
           userId: ctx.user.id,
           trigger: "manual",
-          status: "success",
+          status: executed > 0 ? "success" : "skipped",
           actionsExecuted: executed,
+          errorMessage: skipped.length ? skipped.join(" | ").slice(0, 4000) : null,
         });
-        return { success: true, actionsExecuted: executed };
+        return { success: true, actionsExecuted: executed, skipped };
       }),
   }),
 
@@ -4849,23 +4857,61 @@ Only include actions when you have actually generated a complete draft. For gene
         return { id: (result as any).insertId as number };
       }),
 
-    // Public confirm — for client-uploaded estimate photos (no auth required)
+    // Public confirm — for verified client-uploaded estimate photos.
     confirmClientUpload: publicProcedure
       .input(z.object({
         photoUrl: z.string().url(),
         photoKey: z.string().min(1).max(512),
-        hostUsername: z.string().min(1).max(64),
+        hostUsername: z.string().trim().min(1).max(64).optional(),
+        portalToken: z.string().min(1).max(128).optional(),
         bookingId: z.number().int().positive().optional(),
         caption: z.string().max(512).optional(),
+      }).refine(input => Boolean(input.hostUsername || input.portalToken), {
+        message: "A booking host or portal token is required.",
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
-        const [host] = await db.select({ id: users.id })
-          .from(users).where(eq(users.bookingUsername, input.hostUsername)).limit(1);
-        if (!host) throw new TRPCError({ code: "NOT_FOUND", message: "Host not found" });
+        let userId: number;
+        let clientId: number | null = null;
+
+        if (input.portalToken) {
+          const [portalRecord] = await db.select({
+            userId: clientPortalTokens.userId,
+            clientId: clientPortalTokens.clientId,
+            expiresAt: clientPortalTokens.expiresAt,
+          }).from(clientPortalTokens)
+            .where(eq(clientPortalTokens.token, input.portalToken))
+            .limit(1);
+          if (!portalRecord || (portalRecord.expiresAt && portalRecord.expiresAt < new Date())) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Portal link not found or expired." });
+          }
+          userId = portalRecord.userId;
+          clientId = portalRecord.clientId;
+        } else {
+          const [host] = await db.select({ id: users.id })
+            .from(users).where(eq(users.bookingUsername, input.hostUsername!)).limit(1);
+          if (!host) throw new TRPCError({ code: "NOT_FOUND", message: "Host not found" });
+          userId = host.id;
+        }
+
+        if (!input.photoKey.startsWith(`job-photos/${userId}/estimate/`)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Photo upload does not belong to this portal or booking page." });
+        }
+
+        if (input.bookingId) {
+          const [booking] = await db.select({ id: bookings.id, clientId: bookings.clientId })
+            .from(bookings)
+            .where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, userId)))
+            .limit(1);
+          if (!booking || (clientId !== null && booking.clientId !== clientId)) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found." });
+          }
+        }
+
         const [result] = await db.insert(jobPhotos).values({
-          userId: host.id,
+          userId,
           bookingId: input.bookingId ?? null,
+          clientId,
           photoType: "estimate",
           uploadedBy: "client",
           photoUrl: input.photoUrl,

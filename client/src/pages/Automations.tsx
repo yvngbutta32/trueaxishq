@@ -23,15 +23,13 @@ const TRIGGERS = [
 ];
 
 const ACTIONS = [
-  { value: "send_email", label: "Send Email", desc: "Send an automated email to the client" },
-  { value: "create_followup", label: "Create Follow-Up", desc: "Auto-create a follow-up reminder" },
-  { value: "send_invoice", label: "Send Invoice", desc: "Auto-generate an invoice from a booking" },
-  { value: "notify_owner", label: "Notify Me", desc: "Send yourself a notification" },
-  { value: "create_task", label: "Create Task", desc: "Add a task to your to-do list" },
+  { value: "send_email", label: "Send Email", desc: "Send an automated email to the matching client" },
+  { value: "create_followup", label: "Create Follow-Up", desc: "Create a reviewable follow-up draft for the matching client" },
+  { value: "notify_owner", label: "Notify Me", desc: "Send yourself an owner notification" },
 ] as const;
 
 type TriggerType = "booking_confirmed" | "invoice_sent" | "invoice_overdue" | "client_added" | "proposal_signed" | "invoice_paid";
-type ActionType = "send_email" | "create_followup" | "send_invoice" | "notify_owner" | "create_task";
+type ActionType = "send_email" | "create_followup" | "notify_owner";
 type AutomationForm = {
   name: string;
   trigger: TriggerType;
@@ -59,7 +57,10 @@ export default function Automations() {
     onError: (e: { message: string }) => toast.error(e.message),
   });
   const testMut = trpc.automations.run.useMutation({
-    onSuccess: (d: { actionsExecuted: number }) => toast.success(`Test ran: ${d.actionsExecuted} action(s) executed`),
+    onSuccess: (d: { actionsExecuted: number; skipped: string[] }) => {
+      if (d.actionsExecuted > 0) toast.success(`Test ran: ${d.actionsExecuted} notification action(s) executed`);
+      else toast.message(d.skipped[0] || "This automation will run when a matching event is due.");
+    },
     onError: (e: { message: string }) => toast.error(e.message),
   });
 
@@ -241,14 +242,17 @@ export default function Automations() {
                         <button onClick={() => removeAction(idx)} className="p-1.5 rounded hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.4)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                       )}
                     </div>
-                    {(action.type === "send_email" || action.type === "notify_owner") && (
-                      <Input value={action.config.message ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, message: e.target.value })} placeholder={action.type === "send_email" ? "Email message to client..." : "Notification message..."} className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
+                    {(action.type === "send_email" || action.type === "create_followup") && (
+                      <>
+                        <Input value={action.config.subject ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, subject: e.target.value })} placeholder="Subject (e.g. A quick follow-up)" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
+                        <textarea value={action.config.message ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, message: e.target.value })} placeholder={action.type === "send_email" ? "Message to the matching client..." : "Draft follow-up message..."} maxLength={4000} rows={3} className="w-full rounded-md border border-[rgba(26,26,26,0.12)] bg-white px-3 py-2 text-sm text-[rgba(26,26,26,0.9)] outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20" />
+                      </>
                     )}
-                    {action.type === "create_followup" && (
-                      <Input value={action.config.daysAfter ?? "1"} onChange={e => updateAction(idx, "config", { ...action.config, daysAfter: e.target.value })} placeholder="Days after trigger" type="number" min="0" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
-                    )}
-                    {action.type === "create_task" && (
-                      <Input value={action.config.title ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, title: e.target.value })} placeholder="Task title (e.g. Send welcome kit)" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
+                    {action.type === "notify_owner" && (
+                      <>
+                        <Input value={action.config.title ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, title: e.target.value })} placeholder="Notification title" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
+                        <textarea value={action.config.message ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, message: e.target.value })} placeholder="Notification message..." maxLength={4000} rows={3} className="w-full rounded-md border border-[rgba(26,26,26,0.12)] bg-white px-3 py-2 text-sm text-[rgba(26,26,26,0.9)] outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20" />
+                      </>
                     )}
                   </div>
                 ))}
