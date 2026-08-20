@@ -8,7 +8,7 @@ import { Router, Request, Response } from "express";
 import multer from "multer";
 import path from "path";
 import crypto from "crypto";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { safeErrorMessage } from "./utils";
 import { getDb } from "./db";
@@ -88,7 +88,7 @@ photoUploadRouter.post(
         if (portalToken) {
           const [portal] = await db.select({ userId: clientPortalTokens.userId, expiresAt: clientPortalTokens.expiresAt })
             .from(clientPortalTokens)
-            .where(eq(clientPortalTokens.token, portalToken))
+            .where(and(eq(clientPortalTokens.token, portalToken), eq(clientPortalTokens.revoked, false)))
             .limit(1);
           if (!portal || (portal.expiresAt && portal.expiresAt < new Date())) {
             res.status(403).json({ error: "Your portal session is invalid or has expired." });

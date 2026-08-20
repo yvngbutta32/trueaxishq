@@ -339,6 +339,8 @@ export const clientPortalTokens = mysqlTable("clientPortalTokens", {
   clientId: int("clientId").notNull(),   // client who can view it
   token: varchar("token", { length: 128 }).notNull().unique(),
   expiresAt: timestamp("expiresAt"),     // null = never expires
+  revoked: boolean("revoked").default(false).notNull(),
+  revokedAt: timestamp("revokedAt"),
   lastViewedAt: timestamp("lastViewedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 },
@@ -397,6 +399,17 @@ export const notifications = mysqlTable("notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+
+// ─── Background Job Run Guards ────────────────────────────────────────────────
+// Dedicated idempotency records for system jobs. This deliberately avoids using
+// a synthetic user notification as an operational lock.
+export const jobRunGuards = mysqlTable("jobRunGuards", {
+  jobKey: varchar("jobKey", { length: 191 }).primaryKey(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type JobRunGuard = typeof jobRunGuards.$inferSelect;
+export type InsertJobRunGuard = typeof jobRunGuards.$inferInsert;
 
 // ─── Time Tracking ────────────────────────────────────────────────────────────
 export const timeEntries = mysqlTable("timeEntries", {

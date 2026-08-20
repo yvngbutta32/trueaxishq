@@ -4,16 +4,10 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
  * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
  */
 
-import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo } from "react";
+import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, lazy, Suspense } from "react";
 import { useFormFields } from "@/hooks/useFormFields";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
-import ClientPulsePanel from "./ClientPulse";
-import TimeTrackingPanel from "./TimeTracking";
-import Services from "./Services";
-import Expenses from "./Expenses";
-import Proposals from "./Proposals";
-import Automations from "./Automations";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,11 +18,6 @@ import AIAssistant from "@/components/AIAssistant";
 import { HealthMonitor } from "@/components/HealthMonitor";
 import { PanelErrorBoundary } from "@/components/PanelErrorBoundary";
 import GlobalSearch from "@/components/GlobalSearch";
-import BillingPanel from "./BillingPanel";
-import JobPhotosPanel from "./JobPhotosPanel";
-import OutreachPanel from "./OutreachPanel";
-import DealsPanel from "./DealsPanel";
-import InsightsPanel from "./InsightsPanel";
 import { PanelTabs } from "@/components/PanelTabs";
 import {
   LayoutDashboard, Users, Calendar, FileText, Mail,
@@ -49,6 +38,18 @@ import {
   PieChart, Pie, Cell
 } from "recharts";
 
+const ClientPulsePanel = lazy(() => import("./ClientPulse"));
+const TimeTrackingPanel = lazy(() => import("./TimeTracking"));
+const Services = lazy(() => import("./Services"));
+const Expenses = lazy(() => import("./Expenses"));
+const Proposals = lazy(() => import("./Proposals"));
+const Automations = lazy(() => import("./Automations"));
+const BillingPanel = lazy(() => import("./BillingPanel"));
+const JobPhotosPanel = lazy(() => import("./JobPhotosPanel"));
+const OutreachPanel = lazy(() => import("./OutreachPanel"));
+const DealsPanel = lazy(() => import("./DealsPanel"));
+const InsightsPanel = lazy(() => import("./InsightsPanel"));
+
 type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations" | "billing" | "outreach" | "deals" | "insights" | "photos";
 
 interface ConfirmState {
@@ -58,6 +59,20 @@ interface ConfirmState {
   onConfirm: () => void;
 }
 const defaultConfirm: ConfirmState = { open: false, title: "", description: "", onConfirm: () => {} };
+const LEGACY_PANEL_REDIRECTS: Partial<Record<ActivePanel, ActivePanel>> = {
+  invoices: "billing",
+  followups: "outreach",
+  analytics: "insights",
+  pulse: "insights",
+  contracts: "deals",
+  time: "billing",
+  inbox: "outreach",
+  testimonials: "clients",
+  services: "billing",
+  expenses: "insights",
+  proposals: "deals",
+  automations: "outreach",
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getGreeting() {
@@ -352,7 +367,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
       {/* Footer */}
       <div className="p-3 border-t border-[#243A5E] space-y-1">
 
-        {(user as any)?.isOwner && (
+        {(user as { isOwner?: boolean } | null)?.isOwner && (
           <button onClick={() => navigate("/admin")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/65 hover:bg-white/10 hover:text-white transition-all" aria-label="Admin panel">
             <Star className="w-4 h-4 flex-shrink-0" />
             {!collapsed && <span>Admin Panel</span>}
@@ -4760,7 +4775,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
               <CreditCard className="w-4 h-4" />
               Billing
             </button>
-            {(user as any)?.isOwner && (
+            {(user as { isOwner?: boolean } | null)?.isOwner && (
               <button
                 onClick={() => { navigate("/admin"); setShowSheet(false); }}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/8 text-white/65 hover:bg-white/15 hover:text-white transition-all text-xs font-medium"
@@ -4896,6 +4911,14 @@ export default function Dashboard() {
       mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     });
   };
+
+  // Preserve legacy deep links without scheduling a state update during render.
+  useEffect(() => {
+    const targetPanel = LEGACY_PANEL_REDIRECTS[active];
+    if (targetPanel) setActiveWithScroll(targetPanel);
+  // setActiveWithScroll intentionally performs a scroll after the state transition.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
 
   // Update document title based on active panel
   useEffect(() => {
@@ -5034,19 +5057,19 @@ export default function Dashboard() {
         </PanelErrorBoundary>
       );
       case "scheduling": return <PanelErrorBoundary panelName="Scheduling"><SchedulingPanel /></PanelErrorBoundary>;
-      // Orphaned sub-panels: redirect to their parent consolidated panel
-      case "invoices":    { setTimeout(() => setActive("billing"),   0); return null; }
-      case "followups":   { setTimeout(() => setActive("outreach"),  0); return null; }
-      case "analytics":   { setTimeout(() => setActive("insights"),  0); return null; }
-      case "pulse":       { setTimeout(() => setActive("insights"),  0); return null; }
-      case "contracts":   { setTimeout(() => setActive("deals"),     0); return null; }
-      case "time":        { setTimeout(() => setActive("billing"),   0); return null; }
-      case "inbox":       { setTimeout(() => setActive("outreach"),  0); return null; }
-      case "testimonials":{ setTimeout(() => setActive("clients"),   0); return null; }
-      case "services":    { setTimeout(() => setActive("billing"),   0); return null; }
-      case "expenses":    { setTimeout(() => setActive("insights"),  0); return null; }
-      case "proposals":   { setTimeout(() => setActive("deals"),     0); return null; }
-      case "automations": { setTimeout(() => setActive("outreach"),  0); return null; }
+      // Legacy deep links redirect through the effect above.
+      case "invoices":
+      case "followups":
+      case "analytics":
+      case "pulse":
+      case "contracts":
+      case "time":
+      case "inbox":
+      case "testimonials":
+      case "services":
+      case "expenses":
+      case "proposals":
+      case "automations": return null;
       case "settings": return <PanelErrorBoundary panelName="Settings"><SettingsPanel /></PanelErrorBoundary>;
       // ─── AI Assistant — full embedded chat panel ───────────────────────────
       case "ai": return (
@@ -5252,8 +5275,8 @@ export default function Dashboard() {
               onClick={() => setActiveWithScroll("settings")}
               title="Go to Settings"
             >
-              {(user as any)?.avatarUrl ? (
-                <img src={(user as any).avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+              {(user as { avatarUrl?: string } | null)?.avatarUrl ? (
+                <img src={(user as { avatarUrl?: string }).avatarUrl} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full gradient-amber flex items-center justify-center text-white text-xs font-bold">
                   {user?.name?.slice(0, 2).toUpperCase() || "U"}
@@ -5265,7 +5288,9 @@ export default function Dashboard() {
 
         {/* Panel Content — pb-[130px] ensures content clears MobileQuickStats (~40px) + MobileBottomNav (~62px) + buffer on mobile */}
         <div className="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-x-hidden pb-[130px] md:pb-6">
-          {activePanel}
+          <Suspense fallback={<div className="flex min-h-48 items-center justify-center text-sm text-[#6B6B6B]"><Loader2 className="mr-2 h-5 w-5 animate-spin text-[#D4922A]" />Loading workspace…</div>}>
+            {activePanel}
+          </Suspense>
         </div>
       </main>
 

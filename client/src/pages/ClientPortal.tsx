@@ -28,6 +28,28 @@ function formatBookingTime(t: string): string {
   return t;
 }
 
+function formatPortalDate(value: Date | string | null | undefined, options: Intl.DateTimeFormatOptions = { dateStyle: "medium" }): string {
+  if (!value) return "—";
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString(undefined, options);
+}
+
+function formatPortalTimestamp(value: Date | string | null | undefined): string {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+}
+
+function isSafeImageUrl(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || (import.meta.env.DEV && url.protocol === "http:");
+  } catch {
+    return false;
+  }
+}
+
 function statusBadge(status: string) {
   const map: Record<string, { label: string; color: string }> = {
     draft:     { label: "Draft",     color: "bg-gray-100 text-gray-600" },
@@ -111,6 +133,18 @@ export default function ClientPortal() {
 
   const confirmClientPhoto = trpc.photos.confirmClientUpload.useMutation();
 
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const visiblePhotos = (photoData?.photos ?? []).filter(photo => photo.photoType === photoTab && isSafeImageUrl(photo.photoUrl));
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setLightboxIndex(null);
+      if (event.key === "ArrowLeft") setLightboxIndex(index => index !== null && index > 0 ? index - 1 : index);
+      if (event.key === "ArrowRight") setLightboxIndex(index => index !== null && index < visiblePhotos.length - 1 ? index + 1 : index);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [lightboxIndex, photoData?.photos, photoTab]);
+
   const handlePortalPhotoUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please choose an image file.");
@@ -183,7 +217,7 @@ export default function ClientPortal() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {freelancer?.avatarUrl ? (
+            {isSafeImageUrl(freelancer?.avatarUrl) ? (
               <img src={freelancer.avatarUrl} alt={providerName} className="w-9 h-9 rounded-full object-cover" />
             ) : (
               <div className="w-9 h-9 rounded-full bg-[#D4922A] flex items-center justify-center text-white font-bold text-sm">
@@ -279,7 +313,7 @@ export default function ClientPortal() {
                     <p className="text-xs text-gray-600 truncate">{inv.service || "Professional Services"}</p>
                     {inv.dueDate && (
                       <p className="text-xs text-gray-600 mt-0.5">
-                        Due {new Date(inv.dueDate).toLocaleDateString()}
+                        Due {formatPortalDate(inv.dueDate)}
                       </p>
                     )}
                   </div>
@@ -305,7 +339,7 @@ export default function ClientPortal() {
                     {inv.status === "paid" && (
                       <span className="flex items-center gap-1 text-green-600 text-xs font-medium">
                         <CheckCircle className="w-3.5 h-3.5" />
-                        Paid {inv.paidAt ? new Date(inv.paidAt).toLocaleDateString() : ""}
+                        Paid {formatPortalDate(inv.paidAt)}
                       </span>
                     )}
                   </div>
@@ -355,7 +389,7 @@ export default function ClientPortal() {
             { key: "wip",      label: "In Progress", icon: "🔨" },
             { key: "finished", label: "Finished", icon: "✅" },
           ];
-          const tabPhotos = allPhotos.filter(p => p.photoType === photoTab);
+          const tabPhotos = allPhotos.filter(p => p.photoType === photoTab && isSafeImageUrl(p.photoUrl));
           const lightboxPhotos = tabPhotos;
 
           return (
@@ -519,7 +553,7 @@ export default function ClientPortal() {
                     <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-sm ${fromClient ? "bg-[#D4922A] text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"}`}>
                       <p className="whitespace-pre-wrap break-words">{message.body}</p>
                       <p className={`mt-1 text-[10px] ${fromClient ? "text-white/75" : "text-gray-400"}`}>
-                        {fromClient ? "You" : providerName} · {message.createdAt ? new Date(message.createdAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : ""}
+                        {fromClient ? "You" : providerName} · {formatPortalTimestamp(message.createdAt)}
                       </p>
                     </div>
                   </div>
@@ -564,7 +598,7 @@ export default function ClientPortal() {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">Contact Your Provider</h2>
           <div className="flex items-center gap-4">
-            {freelancer?.avatarUrl ? (
+            {isSafeImageUrl(freelancer?.avatarUrl) ? (
               <img src={freelancer.avatarUrl} alt={providerName} className="w-12 h-12 rounded-full object-cover" />
             ) : (
               <div className="w-12 h-12 rounded-full bg-[#D4922A] flex items-center justify-center text-white font-bold">

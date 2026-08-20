@@ -127,7 +127,7 @@ export default function Automations() {
       {automations.length === 0 && !isLoading && (
         <div className="bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)] rounded-xl p-5">
           <h3 className="text-sm font-semibold text-[#A78BFA] mb-3 flex items-center gap-2"><Zap className="w-4 h-4" /> How Automations Work</h3>
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
             {[
               { step: "1", title: "Choose a Trigger", desc: "Something happens in your business (booking, payment, etc.)" },
               { step: "2", title: "Define Actions", desc: "What should happen automatically (email, follow-up, notification)" },
@@ -166,7 +166,13 @@ export default function Automations() {
         <div className="space-y-3">
           {automations.map(a => {
             const triggerDef = TRIGGERS.find(t => t.value === a.trigger);
-            const actions = JSON.parse(a.actions || "[]") as { type: string }[];
+            let actions: { type: string }[] = [];
+            try {
+              const parsed: unknown = JSON.parse(a.actions || "[]");
+              actions = Array.isArray(parsed) ? parsed.filter((action): action is { type: string } => Boolean(action) && typeof action === "object" && "type" in action && typeof action.type === "string") : [];
+            } catch {
+              actions = [];
+            }
             return (
               <div key={a.id} className={`group flex items-center gap-4 border rounded-xl px-5 py-4 transition-all ${a.active ? "bg-white border-[rgba(26,26,26,0.07)] hover:border-[rgba(139,92,246,0.3)]" : "bg-[rgba(255,255,255,0.02)] border-[rgba(26,26,26,0.04)] opacity-60"}`}>
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${a.active ? "bg-[rgba(139,92,246,0.15)]" : "bg-[rgba(255,255,255,0.05)]"}`}>
@@ -182,15 +188,15 @@ export default function Automations() {
                   <div className="flex items-center gap-1.5 mt-0.5 text-xs text-[rgba(26,26,26,0.45)]">
                     <span className="text-[#A78BFA]">{triggerDef?.label ?? a.trigger}</span>
                     <ChevronRight className="w-3 h-3" />
-                    <span>{actions.map(ac => ACTIONS.find(x => x.value === ac.type)?.label ?? ac.type).join(", ")}</span>
+                    <span>{actions.length ? actions.map(ac => ACTIONS.find(x => x.value === ac.type)?.label ?? ac.type).join(", ") : "No valid actions configured"}</span>
                   </div>
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => testMut.mutate({ id: a.id })} title="Test run" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#A78BFA] transition-colors"><Play className="w-4 h-4" /></button>
-                  <button onClick={() => toggleMut.mutate({ id: a.id, active: !a.active })} title={a.active ? "Pause" : "Activate"} className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors">
+                <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
+                  <button aria-label={`Test ${a.name}`} onClick={() => testMut.mutate({ id: a.id })} title="Test run" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#A78BFA] transition-colors"><Play className="w-4 h-4" /></button>
+                  <button aria-label={`${a.active ? "Pause" : "Activate"} ${a.name}`} onClick={() => toggleMut.mutate({ id: a.id, active: !a.active })} title={a.active ? "Pause" : "Activate"} className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors">
                     {a.active ? <ToggleRight className="w-4 h-4 text-[#34D399]" /> : <ToggleLeft className="w-4 h-4" />}
                   </button>
-                  <button onClick={() => setDeleteConfirm(a.id)} title="Delete" className="p-2 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                  <button aria-label={`Delete ${a.name}`} onClick={() => setDeleteConfirm(a.id)} title="Delete" className="p-2 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             );

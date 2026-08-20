@@ -1522,3 +1522,27 @@
 - [x] Add client photo upload from the Client Portal with clear estimate-photo context and success/error feedback
 - [x] Make automation execution honest and dependable: execute supported actions, record per-run results, and prevent unsupported actions from being offered
 - [x] Add regression tests for portal authorization, client messaging, client photo persistence, and automation action execution
+
+## State-of-the-Art Quality Pass — 2026
+- [x] Audit every route and critical journey for usability, accessibility, loading/error behavior, and responsive layout quality
+- [x] Audit client and server code for dead paths, insecure defaults, invalid assumptions, performance bottlenecks, and observability gaps
+- [x] Audit built assets and runtime behavior for performance and caching opportunities
+- [x] Implement verified high-impact fixes and product-quality upgrades
+- [x] Add regression coverage for all newly fixed critical paths
+- [x] Run type checks, full tests, production build, runtime-log checks, and visual validation before publishing
+
+### Complete Verified Remediation Register
+- [x] Move client-list search and status filtering from in-memory processing to database filtering
+- [x] Add request-IP throttling to password-reset requests in addition to per-email throttling
+- [x] Centralize password-strength validation so register, reset, and change-password rules cannot drift
+- [x] Add explicit portal-token revocation support and enforce it on every portal route
+- [ ] Complete Dashboard maintainability remediation: extract stable panel boundaries and remove verified unsafe `any` casts
+- [ ] Complete Dashboard accessibility remediation: robust modal/select labeling, focus behavior, and memoization of verified expensive calculations
+- [x] Complete Client Portal remediation: safe media URLs, robust date formatting, and complete keyboard-accessible lightbox behavior
+- [x] Complete Automations remediation: mobile layout, malformed-action resilience, and touch/keyboard-visible action controls
+- [x] Complete scheduler remediation: safe follow-up interval SQL, dedicated monthly idempotency guard, UTC monthly boundary, and isolated job failures
+- [x] Complete security remediation: trusted-proxy IP resolution, stale violation cleanup, and CSP hardening review
+- [x] Correct API cache middleware ordering so all API endpoints receive no-store cache headers
+- [x] Add automated tests for every server and portal remediation item
+- [x] Address verified production build warnings through practical code splitting or bundle optimization
+- [x] Remove or replace unverified public trust and financial claims in the landing-page hero

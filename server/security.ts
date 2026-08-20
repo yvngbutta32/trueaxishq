@@ -32,8 +32,11 @@ const LOCKOUT_DURATION_MS      = 10 * 60_000; // 10-minute account lockout
 const requestCounts   = new Map<string, { count: number; windowStart: number }>();
 const blocklist       = new Set<string>();                      // permanent manual blocks
 const blockedUntil    = new Map<string, number>();              // temporary auto-blocks
-const violationCounts = new Map<string, number>();              // per-IP violation count
+const violationCounts = new Map<string, { count: number; lastAt: number }>(); // per-IP violation count + TTL
 const failedLogins    = new Map<string, { count: number; firstAt: number; lockedUntil?: number }>();
+const passwordResetRequests = new Map<string, { count: number; windowStart: number }>();
+const PASSWORD_RESET_WINDOW_MS = 60 * 60_000;
+const PASSWORD_RESET_MAX_PER_IP = 10;
 
 // ─── Suspicious patterns ─────────────────────────────────────────────────────
 const SUSPICIOUS_PATTERNS: RegExp[] = [
@@ -53,9 +56,9 @@ const SUSPICIOUS_PATTERNS: RegExp[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 export function getClientIp(req: Request): string {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (typeof forwarded === "string") return forwarded.split(",")[0].trim();
-  return req.socket?.remoteAddress ?? "unknown";
+  // Express derives req.ip using the configured trust-proxy policy. Do not
+  // parse X-Forwarded-For directly: an untrusted client can forge that header.
+  return req.ip || req.socket?.remoteAddress || "unknown";
 }
 
 function isSuspicious(req: Request): boolean {
@@ -107,8 +110,9 @@ async function alertOwner(title: string, content: string) {
 }
 
 function recordViolation(ip: string, req: Request, reason: string) {
-  const count = (violationCounts.get(ip) ?? 0) + 1;
-  violationCounts.set(ip, count);
+  const now = Date.now();
+  const count = (violationCounts.get(ip)?.count ?? 0) + 1;
+  violationCounts.set(ip, { count, lastAt: now });
   if (count >= VIOLATION_BLOCK_THRESHOLD) {
     blockedUntil.set(ip, Date.now() + BLOCK_DURATION_MS);
     const details = `IP: ${ip} | Method: ${req.method} | Path: ${req.path} | Reason: auto-blocked after ${count} violations (latest: ${reason}) | UA: ${req.headers["user-agent"] ?? "unknown"} | Time: ${new Date().toISOString()}`;
@@ -165,6 +169,22 @@ export function clearFailedLogins(email: string) {
   failedLogins.delete(email.toLowerCase());
 }
 
+/**
+ * Limits password-reset requests by source IP without disclosing whether an
+ * account exists. The caller should preserve the generic success response.
+ */
+export function allowPasswordResetRequest(ip: string): boolean {
+  const now = Date.now();
+  const existing = passwordResetRequests.get(ip);
+  if (!existing || now - existing.windowStart >= PASSWORD_RESET_WINDOW_MS) {
+    passwordResetRequests.set(ip, { count: 1, windowStart: now });
+    return true;
+  }
+  if (existing.count >= PASSWORD_RESET_MAX_PER_IP) return false;
+  existing.count++;
+  return true;
+}
+
 // ─── Manual IP management (called from admin procedures) ─────────────────────
 export function manualBlockIP(ip: string) {
   blocklist.add(ip);
@@ -187,9 +207,9 @@ export function getSecurityStats() {
       .filter(([, v]) => v.lockedUntil && v.lockedUntil > Date.now())
       .map(([email, v]) => ({ email, lockedUntil: v.lockedUntil! })),
     topViolators: Array.from(violationCounts.entries())
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 10)
-      .map(([ip, count]) => ({ ip, count })),
+      .map(([ip, data]) => ({ ip, count: data.count })),
   };
 }
 
@@ -199,6 +219,9 @@ setInterval(() => {
   for (const [ip, until] of Array.from(blockedUntil.entries())) {
     if (now > until) { blockedUntil.delete(ip); violationCounts.delete(ip); }
   }
+  for (const [ip, data] of Array.from(violationCounts.entries())) {
+    if (now - data.lastAt > BLOCK_DURATION_MS) violationCounts.delete(ip);
+  }
   for (const [ip, data] of Array.from(requestCounts.entries())) {
     if (now - data.windowStart > RATE_LIMIT_WINDOW_MS * 2) requestCounts.delete(ip);
   }
@@ -206,12 +229,18 @@ setInterval(() => {
     if (data.lockedUntil && now > data.lockedUntil) failedLogins.delete(email);
     else if (!data.lockedUntil && now - data.firstAt > RATE_LIMIT_WINDOW_MS * 10) failedLogins.delete(email);
   }
+  for (const [ip, data] of Array.from(passwordResetRequests.entries())) {
+    if (now - data.windowStart >= PASSWORD_RESET_WINDOW_MS) passwordResetRequests.delete(ip);
+  }
 }, 5 * 60_000);
 
 // ─── Main security middleware ─────────────────────────────────────────────────
 export function securityMiddleware(req: Request, res: Response, next: NextFunction) {
   const ip = getClientIp(req);
   const now = Date.now();
+  const scriptSource = process.env.NODE_ENV === "production"
+    ? "script-src 'self' 'unsafe-inline' https://js.stripe.com https://fonts.googleapis.com"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://fonts.googleapis.com";
 
   // 1. Permanent manual blocklist
   if (blocklist.has(ip)) {
@@ -230,7 +259,7 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://fonts.googleapis.com",
+      scriptSource,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",

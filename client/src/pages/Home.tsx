@@ -447,7 +447,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
 
             <div className="flex flex-col sm:flex-row gap-3 mb-10">
               <button onClick={onCTA} className="btn-amber">
-                Start Free — 14 Days
+                Get Started
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button
@@ -458,21 +458,19 @@ function Hero({ onCTA }: { onCTA: () => void }) {
               </button>
             </div>
 
-            {/* Social proof counter */}
+            {/* Product scope */}
             <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ background: "rgba(232,160,32,0.06)", border: "1px solid rgba(232,160,32,0.14)" }}>
-              <div className="flex -space-x-2">
-                {["#6366F1", "#D4922A", "#5A9A7A", "#FF6B6B"].map((c, i) => (
-                  <div key={i} className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-white text-[9px] font-bold" style={{ background: c }}>U{i + 1}</div>
-                ))}
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "rgba(232,160,32,0.14)", color: "#D4922A" }}>
+                <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-bold" style={{ color: "#1A1A1A" }}>Trusted by 4,200+ freelancers</p>
-                <p className="text-[10px]" style={{ color: "rgba(26,26,26,0.65)" }}>Coaches · Designers · Consultants · Developers</p>
+                <p className="text-xs font-bold" style={{ color: "#1A1A1A" }}>One connected operating system</p>
+                <p className="text-[10px]" style={{ color: "rgba(26,26,26,0.65)" }}>Clients · Bookings · Invoices · Follow-ups</p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>
-              {["No credit card required", "Cancel anytime", "30-day money-back guarantee"].map(t => (
+              {["Client portal included", "Private workspaces", "Mobile-ready workflow"].map(t => (
                 <span key={t} className="flex items-center gap-1.5">
                   <CheckCircle className="w-3.5 h-3.5" style={{ color: "#D4922A" }} />
                   {t}
@@ -575,9 +573,9 @@ function Hero({ onCTA }: { onCTA: () => void }) {
 // ─── Ticker Bar ───────────────────────────────────────────────────────────────
 function TickerBar() {
   const items = [
-    "4,200+ Freelancers", "12 hrs saved/week", "$2.4M invoiced", "AI-Powered CRM",
-    "Client Pulse™", "Zero-Overhead Billing", "Smart Follow-Ups", "Live Analytics",
-    "14-Day Free Trial", "No Credit Card", "Cancel Anytime", "GDPR Compliant",
+    "AI-Powered CRM", "Client Pulse", "Smart Invoices", "Smart Follow-Ups",
+    "Live Analytics", "Client Portal", "Secure Job Photos", "Proposal Signing",
+    "Time Tracking", "Expense Tracking", "Booking Automation", "Business Insights",
   ];
   const doubled = [...items, ...items];
 
@@ -1150,7 +1148,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
           Your business command center is waiting.
         </h2>
         <p className="mt-4 mb-10" style={{ color: "rgba(26,26,26,0.75)", fontSize: "1.0625rem" }}>
-          Join 4,200+ freelancers who automated their business with TrueAxis HQ. 14-day free trial. No credit card required.
+          Bring your clients, bookings, invoices, and follow-ups into one focused workspace built for independent professionals.
         </p>
 
         {submitted ? (

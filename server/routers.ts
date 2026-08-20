@@ -11,9 +11,10 @@ import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
 import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
+import { strongPasswordSchema } from "./passwordPolicy";
 import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
-import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats } from "./security";
+import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
@@ -72,9 +73,7 @@ export const appRouter = router({
       .input(z.object({
         name: z.string().trim().min(1).max(255),
         email: safeEmail,
-        password: z.string().min(8).max(128)
-          .regex(/[a-zA-Z]/, "Password must contain at least one letter")
-          .regex(/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, "Password must contain at least one number or symbol"),
+        password: strongPasswordSchema,
         inviteCode: z.string().trim().min(1).max(32),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -245,6 +244,8 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         // Always return success to prevent email enumeration
         try {
+          const requestIp = getClientIp(ctx.req);
+          if (!allowPasswordResetRequest(requestIp)) return { success: true };
           const db = await requireDb();
           const [user] = await db.select({ id: users.id, name: users.name, email: users.email })
             .from(users).where(eq(users.email, input.email.trim().toLowerCase())).limit(1);
@@ -303,8 +304,7 @@ export const appRouter = router({
     resetPassword: publicProcedure
       .input(z.object({
         token: z.string().min(1).max(200),
-        newPassword: z.string().min(8).max(128)
-          .regex(/^(?=.*[a-zA-Z])(?=.*[\d\W]).+$/, "Password must contain at least one letter and one number or symbol."),
+        newPassword: strongPasswordSchema,
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
@@ -334,8 +334,7 @@ export const appRouter = router({
     changePassword: protectedProcedure
       .input(z.object({
         currentPassword: z.string().min(1).max(128),
-        newPassword: z.string().min(8).max(128)
-          .regex(/^(?=.*[a-zA-Z])(?=.*[\d\W]).+$/, "Password must contain at least one letter and one number or symbol."),
+        newPassword: strongPasswordSchema,
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
@@ -424,21 +423,21 @@ export const appRouter = router({
       }).optional())
       .query(async ({ ctx, input }) => {
         const db = await requireDb();
-        const all = await db.select().from(clients)
-          .where(eq(clients.userId, ctx.user.id))
-          .orderBy(desc(clients.createdAt));
-        let filtered = all;
+        const filters = [eq(clients.userId, ctx.user.id)];
         if (input?.search) {
-          const q = input.search.toLowerCase();
-          filtered = filtered.filter(c =>
-            c.name.toLowerCase().includes(q) ||
-            c.email?.toLowerCase().includes(q) ||
-            c.service?.toLowerCase().includes(q)
-          );
+          const searchPattern = `%${input.search}%`;
+          filters.push(or(
+            like(clients.name, searchPattern),
+            like(clients.email, searchPattern),
+            like(clients.service, searchPattern),
+          )!);
         }
         if (input?.status && input.status !== "all") {
-          filtered = filtered.filter(c => c.status === input.status);
+          filters.push(eq(clients.status, input.status));
         }
+        const filtered = await db.select().from(clients)
+          .where(and(...filters))
+          .orderBy(desc(clients.createdAt));
         // Attach lastActivity: most recent booking or invoice date per client
         const clientIds = filtered.map(c => c.id);
         let lastActivityMap: Record<number, Date | null> = {};
@@ -2429,7 +2428,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const isExpired = existing?.expiresAt && new Date() > existing.expiresAt;
         const isStale = existing?.createdAt && (Date.now() - new Date(existing.createdAt).getTime() > ninetyDaysMs);
 
-        if (existing && !isExpired && !isStale) {
+        if (existing && !existing.revoked && !isExpired && !isStale) {
           return { token: existing.token, url: `${origin}/portal/${existing.token}` };
         }
 
@@ -2448,13 +2447,27 @@ Only include actions when you have actually generated a complete draft. For gene
         return { token, url: `${origin}/portal/${token}` };
       }),
 
+    revokeToken: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await requireDb();
+        await db.update(clientPortalTokens)
+          .set({ revoked: true, revokedAt: new Date() })
+          .where(and(
+            eq(clientPortalTokens.userId, ctx.user.id),
+            eq(clientPortalTokens.clientId, input.clientId),
+            eq(clientPortalTokens.revoked, false),
+          ));
+        return { success: true };
+      }),
+
     // Public: view the portal (no auth required — token is the secret)
     view: publicProcedure
       .input(z.object({ token: z.string().min(1).max(128) }))
       .query(async ({ input }) => {
         const db = await requireDb();
         const [portalRecord] = await db.select().from(clientPortalTokens)
-          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
 
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found or expired." });
         if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
@@ -2504,7 +2517,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .mutation(async ({ input }) => {
         const db = await requireDb();
         const [portalRecord] = await db.select().from(clientPortalTokens)
-          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found." });
         if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Portal link has expired. Please request a new one." });
@@ -2551,7 +2564,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .query(async ({ input }) => {
         const db = await requireDb();
         const [portalRecord] = await db.select().from(clientPortalTokens)
-          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found or expired." });
         if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
           throw new TRPCError({ code: "FORBIDDEN", message: "This portal link has expired." });
@@ -3303,7 +3316,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .mutation(async ({ input }) => {
         const db = await requireDb();
         const [portalRecord] = await db.select().from(clientPortalTokens)
-          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found." });
         if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Portal link has expired." });
@@ -3332,7 +3345,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .query(async ({ input }) => {
         const db = await requireDb();
         const [portalRecord] = await db.select().from(clientPortalTokens)
-          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND" });
         // Enforce token expiry (same as portal.view)
         if (portalRecord.expiresAt && new Date(portalRecord.expiresAt) < new Date()) {
@@ -4880,7 +4893,7 @@ Only include actions when you have actually generated a complete draft. For gene
             clientId: clientPortalTokens.clientId,
             expiresAt: clientPortalTokens.expiresAt,
           }).from(clientPortalTokens)
-            .where(eq(clientPortalTokens.token, input.portalToken))
+            .where(and(eq(clientPortalTokens.token, input.portalToken), eq(clientPortalTokens.revoked, false)))
             .limit(1);
           if (!portalRecord || (portalRecord.expiresAt && portalRecord.expiresAt < new Date())) {
             throw new TRPCError({ code: "FORBIDDEN", message: "Portal link not found or expired." });
