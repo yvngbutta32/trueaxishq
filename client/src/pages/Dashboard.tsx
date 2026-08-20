@@ -125,6 +125,7 @@ function Modal({ open, onClose, title, children, wide }: {
   open: boolean; onClose: () => void; title: string; children: React.ReactNode; wide?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const titleId = useRef(`dashboard-modal-title-${Math.random().toString(36).slice(2)}`).current;
   // Keep a ref so the keydown handler always calls the latest onClose without
   // being listed as a dependency — this prevents the effect from re-running
   // (and stealing focus from inputs) every time the parent re-renders and
@@ -133,7 +134,30 @@ function Modal({ open, onClose, title, children, wide }: {
   useLayoutEffect(() => { onCloseRef.current = onClose; });
   useEffect(() => {
     if (!open) return;
-    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onCloseRef.current(); };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onCloseRef.current();
+        return;
+      }
+      if (e.key !== "Tab" || !ref.current) return;
+      const focusable = Array.from(ref.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )).filter(element => !element.hasAttribute("hidden"));
+      if (!focusable.length) {
+        e.preventDefault();
+        ref.current.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     document.addEventListener("keydown", handleKey);
     // Focus the modal backdrop only on initial open, not on every re-render.
     // requestAnimationFrame defers until after paint so the modal is visible.
@@ -143,7 +167,7 @@ function Modal({ open, onClose, title, children, wide }: {
   }, [open]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
       <div
         ref={ref}
@@ -151,7 +175,7 @@ function Modal({ open, onClose, title, children, wide }: {
         className={`relative bg-white rounded-xl shadow-2xl w-full ${wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto outline-none`}
       >
         <div className="flex items-center justify-between p-5 border-b border-[#DDDBD7]">
-          <h2 className="font-bold text-[#1A1A1A] text-base">{title}</h2>
+          <h2 id={titleId} className="font-bold text-[#1A1A1A] text-base">{title}</h2>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-[#EEECEA] transition-colors" aria-label="Close dialog">
             <X className="w-4 h-4 text-[#6B6B6B]" />
           </button>
@@ -864,7 +888,7 @@ function ClientsPanel() {
       return [
         c.name, c.email || "", c.phone || "", c.service || "",
         c.status, pulse?.healthScore ?? "",
-        (c as any).lastActivity ? new Date((c as any).lastActivity).toLocaleDateString() : ""
+        c.lastActivity ? new Date(c.lastActivity).toLocaleDateString() : ""
       ];
     });
     const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
@@ -1190,8 +1214,8 @@ function ClientsPanel() {
                 <p className="text-sm font-semibold text-[#1A1A1A] truncate">{c.name}</p>
                 <p className="text-xs text-[#6B6B6B] truncate">
                   {c.email || "No email"}
-                  {(c as any).lastActivity && (
-                    <span className="ml-2 text-[#3D3D3D]">· last seen {new Date((c as any).lastActivity).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                  {c.lastActivity && (
+                    <span className="ml-2 text-[#3D3D3D]">· last seen {new Date(c.lastActivity).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
                   )}
                 </p>
               </div>
@@ -1740,12 +1764,13 @@ function InvoicesPanel() {
     onSuccess: () => { utils.recurring.list.invalidate(); toast.success("Schedule deleted"); },
     onError: (e) => toast.error(e.message),
   });
-  const activeScheduleCount = schedules?.filter((s) => s.active).length ?? 0;
-  const estMonthlyRevenue = schedules?.filter((s) => s.active).reduce((sum: number, s: any) => {
-    const amt = parseFloat(String(s.amount));
-    const mult = s.frequency === "weekly" ? 4.33 : s.frequency === "biweekly" ? 2.17 : s.frequency === "monthly" ? 1 : s.frequency === "quarterly" ? 0.33 : 0.083;
-    return sum + amt * mult;
-  }, 0) ?? 0;
+  const activeSchedules = useMemo(() => (schedules ?? []).filter(schedule => schedule.active), [schedules]);
+  const activeScheduleCount = activeSchedules.length;
+  const estMonthlyRevenue = useMemo(() => activeSchedules.reduce((sum, schedule) => {
+    const amount = Number.parseFloat(String(schedule.amount));
+    const multiplier = schedule.frequency === "weekly" ? 4.33 : schedule.frequency === "biweekly" ? 2.17 : schedule.frequency === "monthly" ? 1 : schedule.frequency === "quarterly" ? 0.33 : 0.083;
+    return sum + (Number.isFinite(amount) ? amount : 0) * multiplier;
+  }, 0), [activeSchedules]);
 
   // ── Invoice state ─────────────────────────────────────────────────────────
   const [showAdd, setShowAdd] = useState(false);

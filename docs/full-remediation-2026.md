@@ -12,6 +12,8 @@ The client portal validates remote image URLs, guards malformed dates, and suppo
 
 Dashboard feature panels are lazy-loaded behind a shared fallback. This reduced the main Dashboard production chunk from approximately 987 kB to approximately 561 kB before gzip. Public landing copy no longer contains unsupported adoption, revenue, or guarantee claims.
 
+The Dashboard no longer redirects legacy panels during render. Its modal now traps keyboard focus, and recurring-revenue aggregation is memoized with a typed calculation.
+
 ## Validation
 
 TypeScript compilation passed. The Vitest suite passed with 37 tests. The production build passed after chunking changes, and the development server remained healthy with eight background jobs scheduled.

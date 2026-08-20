@@ -1536,8 +1536,8 @@
 - [x] Add request-IP throttling to password-reset requests in addition to per-email throttling
 - [x] Centralize password-strength validation so register, reset, and change-password rules cannot drift
 - [x] Add explicit portal-token revocation support and enforce it on every portal route
-- [ ] Complete Dashboard maintainability remediation: extract stable panel boundaries and remove verified unsafe `any` casts
-- [ ] Complete Dashboard accessibility remediation: robust modal/select labeling, focus behavior, and memoization of verified expensive calculations
+- [x] Complete Dashboard maintainability remediation: extract stable panel boundaries and remove verified unsafe `any` casts
+- [x] Complete Dashboard accessibility remediation: robust modal/select labeling, focus behavior, and memoization of verified expensive calculations
 - [x] Complete Client Portal remediation: safe media URLs, robust date formatting, and complete keyboard-accessible lightbox behavior
 - [x] Complete Automations remediation: mobile layout, malformed-action resilience, and touch/keyboard-visible action controls
 - [x] Complete scheduler remediation: safe follow-up interval SQL, dedicated monthly idempotency guard, UTC monthly boundary, and isolated job failures
