@@ -1531,6 +1531,13 @@
 - [x] Add regression coverage for all newly fixed critical paths
 - [x] Run type checks, full tests, production build, runtime-log checks, and visual validation before publishing
 
+## Self-Contained Authentication Cleanup
+- [x] Audit all client, server, package, route, and configuration references to Manus login and OAuth
+- [x] Remove any remaining Manus OAuth login redirects, callback routes, and related client dependencies
+- [x] Preserve self-contained email/password registration, login, logout, reset-password, and session authentication
+- [x] Add regression coverage for the self-contained authentication contract
+- [x] Run full auth-flow validation, production build, and publish the cleanup release
+
 ### Complete Verified Remediation Register
 - [x] Move client-list search and status filtering from in-memory processing to database filtering
 - [x] Add request-IP throttling to password-reset requests in addition to per-email throttling

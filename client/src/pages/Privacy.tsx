@@ -10,7 +10,7 @@ const sections = [
     title: "1. Information We Collect",
     content: `We collect information you provide directly to us when you create an account, use our services, or contact us for support.
 
-**Account Information:** When you register, we collect your name, email address, and authentication credentials. If you sign in via OAuth, we receive your name and email from the identity provider.
+**Account Information:** When you register, we collect your name, email address, and securely hashed authentication credentials needed to operate your account.
 
 **Business Data:** We collect the data you enter into TrueAxis HQ, including client names and contact information, invoice details, booking records, follow-up messages, and business settings. This data belongs to you and is stored securely on our servers.
 

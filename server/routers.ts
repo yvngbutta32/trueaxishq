@@ -65,7 +65,7 @@ export const appRouter = router({
     me: publicProcedure.query(opts => {
       const user = opts.ctx.user;
       if (!user) return null;
-      const isOwner = Boolean(ENV.ownerOpenId && user.openId === ENV.ownerOpenId);
+      const isOwner = user.role === "admin";
       return { ...user, isOwner };
     }),
 
@@ -185,14 +185,10 @@ export const appRouter = router({
           const user = await loginUser({ email: input.email, password: input.password });
           const db = await requireDb();
 
-          // Determine if this user is the owner:
-          // 1. Their openId matches OWNER_OPEN_ID (OAuth-registered owner), OR
-          // 2. Their role is already 'admin', OR
-          // 3. They are the ONLY admin in the system (bootstrap: first admin account)
+          // Administrators are managed entirely through the local database role.
+          // On an empty installation, the first successful admin login bootstraps the role.
           let isOwner = false;
-          if (ENV.ownerOpenId && user.openId === ENV.ownerOpenId) {
-            isOwner = true;
-          } else if (user.role === "admin") {
+          if (user.role === "admin") {
             isOwner = true;
           } else {
             // Bootstrap: if no other admin exists, auto-promote this user

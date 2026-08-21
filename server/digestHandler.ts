@@ -3,19 +3,26 @@
  * Sends the owner a morning briefing: today's bookings, overdue invoices, follow-ups pending
  */
 import type { Request, Response } from "express";
-import { sdk } from "./_core/sdk";
+import { timingSafeEqual } from "crypto";
 import { getDb } from "./db";
 import { bookings, invoices, followUps, users } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { notifyOwner } from "./_core/notification";
-import { ENV } from "./_core/env";
+
+function isAuthorizedDigestRequest(req: Request): boolean {
+  const expected = process.env.DIGEST_CRON_SECRET;
+  const provided = req.get("x-digest-cron-secret");
+  if (!expected || !provided) return false;
+  const expectedBuffer = Buffer.from(expected);
+  const providedBuffer = Buffer.from(provided);
+  return expectedBuffer.length === providedBuffer.length && timingSafeEqual(expectedBuffer, providedBuffer);
+}
 
 export async function dailyDigestHandler(req: Request, res: Response) {
   try {
     const db = await getDb();
     if (!db) return res.status(503).json({ error: "DB unavailable" });
-    const user = await sdk.authenticateRequest(req);
-    if (!user.isCron) {
+    if (!isAuthorizedDigestRequest(req)) {
       return res.status(403).json({ error: "cron-only endpoint" });
     }
 
@@ -23,23 +30,12 @@ export async function dailyDigestHandler(req: Request, res: Response) {
     // On a multi-user deployment, queries without a userId filter would mix
     // data from all users — this scopes every query to the owner only.
     let ownerUserId: number | null = null;
-    if (ENV.ownerOpenId) {
-      const [ownerRow] = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.openId, ENV.ownerOpenId))
-        .limit(1);
-      ownerUserId = ownerRow?.id ?? null;
-    }
-    // Fallback: find the first admin user if OWNER_OPEN_ID is not set
-    if (!ownerUserId) {
-      const [adminRow] = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.role, "admin"))
-        .limit(1);
-      ownerUserId = adminRow?.id ?? null;
-    }
+    const [adminRow] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.role, "admin"))
+      .limit(1);
+    ownerUserId = adminRow?.id ?? null;
     if (!ownerUserId) {
       console.warn("[dailyDigest] Could not resolve owner userId — digest will be empty");
     }
