@@ -6,15 +6,18 @@
  */
 import { Router, Request, Response } from "express";
 import multer from "multer";
-import path from "path";
 import crypto from "crypto";
 import { and, eq } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { safeErrorMessage } from "./utils";
 import { getDb } from "./db";
 import { clientPortalTokens, users } from "../drizzle/schema";
+import { getClientIp } from "./security";
 
 const MAX_SIZE_BYTES = 16 * 1024 * 1024; // 16 MB
+const PUBLIC_UPLOAD_WINDOW_MS = 10 * 60_000;
+const PUBLIC_UPLOAD_MAX_PER_WINDOW = 12;
+const publicUploadWindows = new Map<string, { count: number; startedAt: number }>();
 
 const ALLOWED_IMAGE_MIME = new Set([
   "image/jpeg",
@@ -40,6 +43,29 @@ const upload = multer({
 
 export const photoUploadRouter = Router();
 
+function detectedImageMime(buffer: Buffer): "image/jpeg" | "image/png" | "image/webp" | "image/gif" | "image/heic" | null {
+  if (buffer.length < 12) return null;
+  if (buffer.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))) return "image/jpeg";
+  if (buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return "image/png";
+  if (buffer.subarray(0, 4).toString("ascii") === "RIFF" && buffer.subarray(8, 12).toString("ascii") === "WEBP") return "image/webp";
+  if (["GIF87a", "GIF89a"].includes(buffer.subarray(0, 6).toString("ascii"))) return "image/gif";
+  if (buffer.subarray(4, 8).toString("ascii") === "ftyp" && ["heic", "heix", "hevc", "hevx", "mif1", "msf1"].includes(buffer.subarray(8, 12).toString("ascii"))) return "image/heic";
+  return null;
+}
+
+function allowPublicUpload(ip: string, ownerId: number): boolean {
+  const now = Date.now();
+  const key = `${ip}:${ownerId}`;
+  const existing = publicUploadWindows.get(key);
+  if (!existing || now - existing.startedAt >= PUBLIC_UPLOAD_WINDOW_MS) {
+    publicUploadWindows.set(key, { count: 1, startedAt: now });
+    return true;
+  }
+  if (existing.count >= PUBLIC_UPLOAD_MAX_PER_WINDOW) return false;
+  existing.count++;
+  return true;
+}
+
 // ── POST /api/photos/upload ─────────────────────────────────────────────────
 // Works for authenticated owners and verified client contexts.
 // - Authenticated owners can upload estimate, WIP, finished, and receipt photos.
@@ -56,8 +82,13 @@ photoUploadRouter.post(
         return;
       }
 
+      const verifiedMime = detectedImageMime(req.file.buffer);
+      if (!verifiedMime) {
+        res.status(400).json({ error: "The uploaded file is not a supported image." });
+        return;
+      }
       const originalName = req.file.originalname || "photo";
-      const ext = path.extname(originalName).toLowerCase() || ".jpg";
+      const ext = ({ "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/gif": ".gif", "image/heic": ".heic" } as const)[verifiedMime];
       const suffix = crypto.randomBytes(12).toString("hex");
 
       // Try to get an authenticated owner from the session cookie.
@@ -112,6 +143,11 @@ photoUploadRouter.post(
           return;
         }
 
+        if (!allowPublicUpload(getClientIp(req), userId)) {
+          res.status(429).json({ error: "Too many photo uploads. Please wait and try again." });
+          return;
+        }
+
         // Never permit public visitors to select an internal photo category.
         photoType = "estimate";
       }
@@ -119,14 +155,14 @@ photoUploadRouter.post(
       const folder = `job-photos/${userId}/${photoType}/${folderSuffix}`;
 
       const key = `${folder}/${suffix}${ext}`;
-      const { url } = await storagePut(key, req.file.buffer, req.file.mimetype);
+      const { url } = await storagePut(key, req.file.buffer, verifiedMime);
 
       res.json({
         success: true,
         photoKey: key,
         photoUrl: url,
         fileName: originalName,
-        mimeType: req.file.mimetype,
+        mimeType: verifiedMime,
         sizeBytes: req.file.size,
       });
     } catch (err: unknown) {
@@ -136,3 +172,15 @@ photoUploadRouter.post(
     }
   }
 );
+
+photoUploadRouter.use((error: unknown, _req: Request, res: Response, next: (error?: unknown) => void) => {
+  if (error instanceof multer.MulterError) {
+    res.status(400).json({ error: error.code === "LIMIT_FILE_SIZE" ? "Photo must be 16 MB or smaller." : "Invalid photo upload." });
+    return;
+  }
+  if (error instanceof Error && error.message.includes("Only image files")) {
+    res.status(400).json({ error: error.message });
+    return;
+  }
+  next(error);
+});

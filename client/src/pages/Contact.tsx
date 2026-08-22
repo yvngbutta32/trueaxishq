@@ -40,7 +40,7 @@ export default function Contact() {
       setSubmitted(true);
       toast.success("Message sent! We'll be in touch within 4 hours.");
     } catch {
-      toast.error("Something went wrong. Please email us directly at support@trueaxis-hq.com");
+      toast.error("Something went wrong. Please email us directly at support@trueaxishq.com");
     }
   };
 
@@ -109,8 +109,8 @@ export default function Contact() {
 
             <div className="space-y-5">
               {[
-                { icon: Mail, title: "Email Support", value: "support@trueaxis-hq.com", sub: "For general questions and account help" },
-                { icon: Mail, title: "Billing", value: "billing@trueaxis-hq.com", sub: "For payment and subscription questions" },
+                { icon: Mail, title: "Email Support", value: "support@trueaxishq.com", sub: "For general questions and account help" },
+                { icon: Mail, title: "Billing", value: "billing@trueaxishq.com", sub: "For payment and subscription questions" },
                 { icon: Clock, title: "Response Time", value: "Within 4 business hours", sub: "Monday – Friday, 9am – 6pm CT" },
               ].map(({ icon: Icon, title, value, sub }) => (
                 <div key={title} className="flex items-start gap-4 bg-white border border-[#DDDBD7] rounded-xl p-4">

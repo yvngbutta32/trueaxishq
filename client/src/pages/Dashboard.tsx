@@ -4,7 +4,7 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
  * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
  */
 
-import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
 import { useFormFields } from "@/hooks/useFormFields";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
@@ -199,6 +199,7 @@ const Field = memo(function Field({ label, value, onChange, placeholder, type = 
 }) {
   const cls = "form-input-light";
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const controlId = useId();
 
   // Auto-resize textarea using useLayoutEffect to avoid synchronous layout reflow in onChange
   useLayoutEffect(() => {
@@ -214,9 +215,10 @@ const Field = memo(function Field({ label, value, onChange, placeholder, type = 
 
   return (
     <div>
-      <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">{label}{required && " *"}</label>
+      <label htmlFor={controlId} className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">{label}{required && " *"}</label>
       {textarea
         ? <textarea
+            id={controlId}
             ref={taRef}
             value={value}
             onChange={handleChange}
@@ -231,6 +233,7 @@ const Field = memo(function Field({ label, value, onChange, placeholder, type = 
             spellCheck={false}
           />
         : <input
+            id={controlId}
             type={type === "number" ? "text" : type}
             inputMode={type === "number" ? "decimal" : type === "email" ? "email" : type === "tel" ? "tel" : type === "url" ? "url" : undefined}
             value={value}
@@ -2886,7 +2889,7 @@ function FollowUpsPanel() {
             <div className="bg-[#F7F6F3] border border-[#DDDBD7] rounded-xl mb-4 overflow-hidden">
               <div className="px-4 py-2 border-b border-[#DDDBD7] flex items-center gap-2">
                 <span className="text-[11px] font-bold text-[#3D3D3D] uppercase tracking-wide w-14">From</span>
-                <span className="text-sm text-[#2A2A2A]">TrueAxis HQ &lt;noreply@trueaxis-hq.com&gt;</span>
+                <span className="text-sm text-[#2A2A2A]">TrueAxis HQ &lt;noreply@trueaxishq.com&gt;</span>
               </div>
               <div className="px-4 py-2 border-b border-[#DDDBD7] flex items-center gap-2">
                 <span className="text-[11px] font-bold text-[#3D3D3D] uppercase tracking-wide w-14">To</span>
@@ -4744,15 +4747,21 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
     {
       label: "Work",
       items: [
+        { icon: FileSignature, label: "Jobs",         panel: "jobs"       as ActivePanel },
+        { icon: Calendar,      label: "Field Mode",   panel: "field"      as ActivePanel },
+        { icon: FileText,      label: "Job Photos",   panel: "photos"     as ActivePanel },
+        { icon: BarChart3,     label: "Executive",    panel: "executive"  as ActivePanel },
         { icon: Mail,          label: "Outreach",     panel: "outreach"   as ActivePanel },
         { icon: FileSignature, label: "Deals",        panel: "deals"      as ActivePanel },
         { icon: BarChart3,     label: "Insights",     panel: "insights"   as ActivePanel },
+        { icon: Bot,           label: "Automations",  panel: "automations" as ActivePanel },
         { icon: Bot,           label: "AI Assistant", panel: "ai"         as ActivePanel, badge: "AI" },
       ],
     },
     {
       label: "Account",
       items: [
+        { icon: Settings,      label: "Launch",       panel: "launch"     as ActivePanel },
         { icon: Settings,      label: "Settings",     panel: "settings"   as ActivePanel },
       ],
     },
@@ -5340,8 +5349,9 @@ export default function Dashboard() {
             )}
 
             {/* User Avatar */}
-            <div
-              className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+            <button
+              type="button"
+              className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] focus-visible:ring-offset-2"
               aria-label={`Logged in as ${user?.name || "User"}`}
               onClick={() => setActiveWithScroll("settings")}
               title="Go to Settings"
@@ -5353,7 +5363,7 @@ export default function Dashboard() {
                   {user?.name?.slice(0, 2).toUpperCase() || "U"}
                 </div>
               )}
-            </div>
+            </button>
           </div>
         </header>
 

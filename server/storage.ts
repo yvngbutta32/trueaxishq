@@ -46,7 +46,19 @@ function ensureTrailingSlash(value: string): string {
 }
 
 function normalizeKey(relKey: string): string {
-  return relKey.replace(/^\/+/, "");
+  const key = relKey.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (
+    !key ||
+    key.length > 512 ||
+    key.includes("..") ||
+    key.startsWith("/") ||
+    key.endsWith("/") ||
+    key.split("/").some(segment => !segment || segment === ".") ||
+    !/^[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(key)
+  ) {
+    throw new Error("Invalid storage key");
+  }
+  return key;
 }
 
 function toFormData(

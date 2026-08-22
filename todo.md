@@ -1548,6 +1548,23 @@
 ### SMTP Deferral
 - [x] Defer real SMTP activation until the owner provides verified provider credentials; retain safe readiness diagnostics in the app
 
+## No-Manual-Input Completion Pass
+- [x] Re-audit all active server routes, database mutations, background jobs, public-token flows, and file-upload paths for credential-free defects
+- [x] Re-audit every public page and owner workspace for responsive layout, accessibility, factual content, empty states, and recovery paths
+- [x] Verify live database schema alignment, migration safety, indexes, and background-job compatibility
+- [x] Remove remaining dead code, stale configuration, unverified claims, and unnecessary platform assumptions
+- [x] Add or strengthen deterministic tests for every new finding and remaining critical workflow
+- [x] Perform final static analysis, test, production-build, runtime-log, database, and visual checks before SMTP activation
+
+### Audit Findings Pending Direct Verification
+- [x] Harden session revocation, security-payload limits, exact auth-rate classification, and unauthorized-session semantics where confirmed
+- [x] Verify and harden public booking/portal/photo actions: rate limits, PII minimization, atomic cancellation, policy-consistent timing, and canonical slot time formatting
+- [x] Complete automation and scheduler correctness: conditions, trigger timestamps, notification-flag resets, batching, reminder windows, report aggregates, invoice uniqueness, and message links
+- [x] Harden document/avatar/photo storage ownership, key sanitation, content validation, rate limits, and client-error responses
+- [x] Correct confirmed database migration/index/constraint drift without destructive changes
+- [x] Correct all confirmed mobile navigation, field upload, keyboard, form-label, contrast, and dead-import issues in owner surfaces
+- [x] Correct all confirmed public factual, domain, CTA, security-link, placeholder-social, and registration-flow issues
+
 ## Full-Scope Competitive Analysis & Market Leadership Roadmap
 - [x] Research direct competitors, adjacent platforms, pricing, positioning, and feature sets
 - [x] Analyze verified customer reviews for recurring delight, friction, migration, support, and reliability themes

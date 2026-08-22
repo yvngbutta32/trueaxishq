@@ -115,7 +115,7 @@ export default function BookingCancel() {
               </div>
               <div className="flex gap-3">
                 <Button variant="outline" className="flex-1" onClick={() => window.history.back()}>Keep Booking</Button>
-                <Button onClick={() => cancelMutation.mutate({ token, origin: window.location.origin })} disabled={cancelMutation.isPending} className="flex-1 bg-red-500 hover:bg-red-600 text-white">
+                <Button onClick={() => cancelMutation.mutate({ token })} disabled={cancelMutation.isPending} className="flex-1 bg-red-500 hover:bg-red-600 text-white">
                   {cancelMutation.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Cancelling…</> : "Yes, Cancel"}
                 </Button>
               </div>

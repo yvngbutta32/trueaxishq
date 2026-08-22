@@ -22,14 +22,15 @@ import {
 } from "../drizzle/schema";
 import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, bookingReminderEmail, postSessionCheckInEmail } from "./_core/email";
 import { processDueAutomations } from "./automationEngine";
+import { randomBytes } from "node:crypto";
 
 // ─── Invoice number generator ─────────────────────────────────────────────────
 function generateInvoiceNumber(): string {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
-  const rand = String(Math.floor(Math.random() * 9000) + 1000);
-  return `INV-${year}${month}-${rand}`;
+  const suffix = randomBytes(5).toString("hex").toUpperCase();
+  return `INV-${year}${month}-${suffix}`;
 }
 
 // ─── Next due date calculator ─────────────────────────────────────────────────
@@ -444,7 +445,7 @@ async function runMonthlyReport() {
               invoicesPaid,
               invoicesOutstanding,
               aiInsight: `You completed ${totalBookings} booking${totalBookings !== 1 ? "s" : ""} this month.`,
-              dashboardUrl: process.env.VITE_FRONTEND_FORGE_API_URL?.replace("/api", "") || "https://trueaxis-hq.com",
+              dashboardUrl: process.env.VITE_FRONTEND_FORGE_API_URL?.replace("/api", "") || "https://trueaxishq.com",
             }),
           });
 

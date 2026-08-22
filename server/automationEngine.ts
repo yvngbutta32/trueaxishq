@@ -149,8 +149,8 @@ async function findTargets(
     const rows = await db.select().from(invoices).where(and(
       eq(invoices.userId, userId),
       eq(invoices.status, "sent"),
-      gte(invoices.createdAt, notBefore),
-      lte(invoices.createdAt, dueBefore),
+      gte(invoices.updatedAt, notBefore),
+      lte(invoices.updatedAt, dueBefore),
     )).limit(100);
     return rows.map(row => ({ entityType: "invoice", entityId: row.id, userId, clientId: row.clientId, clientName: row.clientName, clientEmail: row.clientEmail, service: row.service, invoiceNumber: row.invoiceNumber }));
   }

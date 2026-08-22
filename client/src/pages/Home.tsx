@@ -1148,11 +1148,11 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
 
 // ─── FAQ Section ─────────────────────────────────────────────────────────────
 const HOME_FAQS = [
-  { q: "Is TrueAxis HQ really free to start?", a: "Yes. The Free plan gives you unlimited clients, invoices, and bookings with no credit card required. You only upgrade when you need advanced features like AI automation, recurring invoices, and priority support." },
+  { q: "Is TrueAxis HQ free to try?", a: "Yes. Every plan begins with a 14-day free trial and no credit card is required to start. The Starter plan supports up to 20 active clients; Pro and Agency plans add unlimited client capacity and advanced workflow tools." },
   { q: "How does the AI follow-up feature work?", a: "TrueAxis HQ analyzes each client's booking history, invoice activity, and engagement signals to generate a personalized follow-up email in one click. You review and send — the AI does the drafting." },
   { q: "Can I accept payments through TrueAxis HQ?", a: "Yes. Connect your Stripe account and your clients can pay invoices online via credit card. Payments are processed securely by Stripe — TrueAxis HQ never touches your funds." },
   { q: "Do I need to install anything?", a: "No. TrueAxis HQ is a fully web-based platform. It works on any device with a browser. You can also install it as a PWA (Progressive Web App) on your phone for a native app experience." },
-  { q: "Can clients book appointments without creating an account?", a: "Yes. Your public booking page allows clients to schedule sessions without signing up. You get a unique URL (e.g. trueaxis-hq.com/book/yourname) to share on your website or social profiles." },
+  { q: "Can clients book appointments without creating an account?", a: "Yes. Your public booking page allows clients to schedule sessions without signing up. You get a unique URL (e.g. trueaxishq.com/book/yourname) to share on your website or social profiles." },
   { q: "What happens to my data if I cancel?", a: "Your data is always yours. You can export all clients, invoices, and bookings as CSV at any time. We retain your data for 30 days after cancellation in case you change your mind." },
 ];
 
@@ -1213,8 +1213,8 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
       links: [
         { label: "About", action: () => navigate("/about") },
         { label: "Contact", action: () => navigate("/contact") },
-        { label: "Careers", action: () => { window.location.href = "mailto:careers@trueaxis-hq.com"; } },
-        { label: "Press", action: () => { window.location.href = "mailto:press@trueaxis-hq.com"; } },
+        { label: "Careers", action: () => { window.location.href = "mailto:careers@trueaxishq.com"; } },
+        { label: "Press", action: () => { window.location.href = "mailto:press@trueaxishq.com"; } },
       ],
     },
     {
@@ -1223,7 +1223,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
         { label: "Privacy Policy", action: () => navigate("/privacy") },
         { label: "Terms of Service", action: () => navigate("/terms") },
         { label: "Help Center", action: () => navigate("/help") },
-        { label: "Security", action: () => navigate("/help") },
+        { label: "Security", action: () => navigate("/privacy#security") },
       ],
     },
   ];
@@ -1243,25 +1243,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
             <p className="text-sm mb-4" style={{ color: "rgba(26,26,26,0.65)", lineHeight: 1.7 }}>
               The AI-powered business OS for freelancers and solo service professionals.
             </p>
-            <div className="flex gap-2">
-              {([
-                { label: "X", href: "https://x.com" },
-                { label: "in", href: "https://linkedin.com" },
-                { label: "IG", href: "https://instagram.com" },
-              ] as { label: string; href: string }[]).map(s => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`TrueAxis HQ on ${s.label}`}
-                  className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold"
-                  style={{ background: "rgba(26,26,26,0.08)", color: "rgba(26,26,26,0.65)", border: "1px solid rgba(26,26,26,0.10)", textDecoration: "none" }}
-                >
-                  {s.label}
-                </a>
-              ))}
-            </div>
+            <p className="text-xs" style={{ color: "rgba(26,26,26,0.52)" }}>Official social channels will be published here when available.</p>
           </div>
 
           {/* Link columns */}

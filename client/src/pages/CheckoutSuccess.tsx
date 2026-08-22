@@ -70,8 +70,8 @@ export default function CheckoutSuccess() {
           </div>
           <p className="text-xs text-gray-500 mt-5">
             Questions?{" "}
-            <a href="mailto:support@trueaxisai.com" className="text-[#D4922A] hover:underline">
-              support@trueaxisai.com
+            <a href="mailto:support@trueaxishq.com" className="text-[#D4922A] hover:underline">
+              support@trueaxishq.com
             </a>
           </p>
         </div>
@@ -163,8 +163,8 @@ export default function CheckoutSuccess() {
 
         <p className="text-xs text-gray-600 mt-6">
           A receipt has been sent to your email. Questions? Email{" "}
-          <a href="mailto:support@trueaxisai.com" className="text-[#D4922A] hover:underline focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-1 rounded">
-            support@trueaxisai.com
+          <a href="mailto:support@trueaxishq.com" className="text-[#D4922A] hover:underline focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-1 rounded">
+            support@trueaxishq.com
           </a>
         </p>
       </main>

@@ -72,7 +72,7 @@ We do not sell your personal data to data brokers, advertisers, or any third par
 
 **Correction:** You can update your profile information and business settings at any time within the platform.
 
-**Deletion:** You can request deletion of your account and all associated data by contacting us at privacy@trueaxis-hq.com.
+**Deletion:** You can request deletion of your account and all associated data by contacting us at privacy@trueaxishq.com.
 
 **Portability:** You can export your client list, invoices, and booking history in standard formats from your dashboard.
 
@@ -92,7 +92,7 @@ We do not use third-party advertising cookies or sell data to advertising networ
   },
   {
     title: "8. Children's Privacy",
-    content: `TrueAxis HQ is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately at privacy@trueaxis-hq.com and we will delete it promptly.`,
+    content: `TrueAxis HQ is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately at privacy@trueaxishq.com and we will delete it promptly.`,
   },
   {
     title: "9. Changes to This Policy",
@@ -102,7 +102,7 @@ We do not use third-party advertising cookies or sell data to advertising networ
     title: "10. Contact Us",
     content: `If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
 
-**Email:** privacy@trueaxis-hq.com
+**Email:** privacy@trueaxishq.com
 **Mailing Address:** TrueAxis HQ, Privacy Team, 100 Innovation Drive, Suite 400, Austin, TX 78701
 
 We will respond to all privacy-related inquiries within 5 business days.`,

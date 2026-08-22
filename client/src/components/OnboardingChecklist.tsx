@@ -71,10 +71,14 @@ export function OnboardingChecklist({ onNavigate }: Props) {
   return (
     <div className="bg-white rounded-xl border border-[#DDDBD7] overflow-hidden">
       {/* Header */}
-      <div
-        className="flex items-center justify-between px-5 py-4 cursor-pointer select-none hover:bg-[#F7F6F3] transition-colors"
-        onClick={() => setCollapsed(!collapsed)}
-      >
+      <div className="flex items-center justify-between px-5 py-4">
+        <button
+          type="button"
+          className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-lg text-left hover:bg-[#F7F6F3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] focus-visible:ring-offset-2"
+          onClick={() => setCollapsed(!collapsed)}
+          aria-expanded={!collapsed}
+          aria-controls="onboarding-checklist-content"
+        >
         <div className="flex items-center gap-3">
           <div className="relative w-9 h-9">
             {isLoading ? (
@@ -114,14 +118,16 @@ export function OnboardingChecklist({ onNavigate }: Props) {
             ? <ChevronDown className="w-4 h-4 text-[rgba(26,26,26,0.65)]" />
             : <ChevronUp className="w-4 h-4 text-[rgba(26,26,26,0.65)]" />
           }
-          <button
-            onClick={e => { e.stopPropagation(); dismiss(); }}
-            className="p-1 rounded-lg hover:bg-[#EEECEA] transition-colors"
-            aria-label="Dismiss checklist"
-          >
-            <X className="w-3.5 h-3.5 text-[rgba(26,26,26,0.65)]" />
-          </button>
         </div>
+        </button>
+        <button
+          type="button"
+          onClick={dismiss}
+          className="ml-2 p-1 rounded-lg hover:bg-[#EEECEA] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A]"
+          aria-label="Dismiss checklist"
+        >
+          <X className="w-3.5 h-3.5 text-[rgba(26,26,26,0.65)]" />
+        </button>
       </div>
 
       {/* Progress bar */}
@@ -138,7 +144,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
 
       {/* Steps */}
       {!collapsed && (
-        <div className="px-5 pb-4 pt-3 space-y-2">
+        <div id="onboarding-checklist-content" className="px-5 pb-4 pt-3 space-y-2">
           <div className="mb-4 rounded-xl border border-[#D4922A]/25 bg-[#fffaf0] p-3">
             <div className="flex items-start gap-2"><Rocket className="mt-0.5 h-4 w-4 shrink-0 text-[#D4922A]" /><div><p className="text-xs font-bold text-[#1A1A1A]">Start with a workflow kit</p><p className="mt-0.5 text-xs text-[rgba(26,26,26,0.62)]">Add editable starter services for the way you work. Prices stay at $0 until you set them.</p></div></div>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">

@@ -673,7 +673,7 @@ export default function Admin() {
                     </div>
                     <div>
                       <label className="form-label">Support Email</label>
-                      <input type="email" value={settingsForm.supportEmail ?? ""} onChange={e => updateField("supportEmail", e.target.value)} className="form-input-light" placeholder="support@trueaxis-hq.com" maxLength={320} />
+                      <input type="email" value={settingsForm.supportEmail ?? ""} onChange={e => updateField("supportEmail", e.target.value)} className="form-input-light" placeholder="support@trueaxishq.com" maxLength={320} />
                     </div>
                     <div>
                       <label className="form-label">Support Phone</label>
@@ -1034,9 +1034,9 @@ export default function Admin() {
                     watchdogQuery.data?.healthy === false ? "bg-red-500 animate-pulse" :
                     watchdogQuery.data?.healthy === true ? "bg-green-500" : "bg-gray-300"
                   }`} />
-                  <h2 className="text-lg font-bold text-[#F5EFE3]">Watchdog Status</h2>
+                  <h2 className={`text-lg font-bold ${watchdogQuery.data?.healthy === false ? "text-red-950" : watchdogQuery.data?.healthy === true ? "text-green-950" : "text-[#F5EFE3]"}`}>Watchdog Status</h2>
                   {watchdogQuery.data?.checkedAt && (
-                    <span className="text-xs text-[rgba(245,239,227,0.60)]">Last checked: {new Date(watchdogQuery.data.checkedAt).toLocaleTimeString()}</span>
+                    <span className={`text-xs ${watchdogQuery.data?.healthy === false ? "text-red-800" : watchdogQuery.data?.healthy === true ? "text-green-800" : "text-[rgba(245,239,227,0.60)]"}`}>Last checked: {new Date(watchdogQuery.data.checkedAt).toLocaleTimeString()}</span>
                   )}
                 </div>
                 <Button size="sm" variant="outline" onClick={() => watchdogQuery.refetch()} disabled={watchdogQuery.isFetching}>

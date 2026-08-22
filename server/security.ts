@@ -37,6 +37,8 @@ const failedLogins    = new Map<string, { count: number; firstAt: number; locked
 const passwordResetRequests = new Map<string, { count: number; windowStart: number }>();
 const PASSWORD_RESET_WINDOW_MS = 60 * 60_000;
 const PASSWORD_RESET_MAX_PER_IP = 10;
+const MAX_INSPECTION_FIELDS = 40;
+const MAX_INSPECTION_VALUE_CHARS = 2_000;
 
 // ─── Suspicious patterns ─────────────────────────────────────────────────────
 const SUSPICIOUS_PATTERNS: RegExp[] = [
@@ -61,13 +63,26 @@ export function getClientIp(req: Request): string {
   return req.ip || req.socket?.remoteAddress || "unknown";
 }
 
+function inspectionText(value: unknown): string {
+  if (typeof value === "string") return value.slice(0, MAX_INSPECTION_VALUE_CHARS);
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) return value.slice(0, MAX_INSPECTION_FIELDS).map(inspectionText).join(" ");
+  if (value && typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>)
+      .slice(0, MAX_INSPECTION_FIELDS)
+      .map(([key, fieldValue]) => `${key} ${inspectionText(fieldValue)}`)
+      .join(" ");
+  }
+  return "";
+}
+
 function isSuspicious(req: Request): boolean {
   const contentType = req.headers["content-type"] ?? "";
   if (contentType.includes("multipart") || contentType.includes("octet-stream")) return false;
   const toCheck = [
     req.url,
-    JSON.stringify(req.query),
-    typeof req.body === "object" ? JSON.stringify(req.body) : String(req.body ?? ""),
+    inspectionText(req.query),
+    inspectionText(req.body),
   ].join(" ");
   return SUSPICIOUS_PATTERNS.some(p => p.test(toCheck));
 }
@@ -265,7 +280,7 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
       "img-src 'self' data: blob: https:",
       "connect-src 'self' https://api.stripe.com https://fonts.googleapis.com https://d2xsxph8kpxj0f.cloudfront.net https://api.manus.im https://*.manus.space https://*.manus.computer wss: ws: https:",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
-      "frame-ancestors 'self' https://*.manus.space https://*.manus.computer https://*.trueaxishq.com https://trueaxishq.com https://www.trueaxishq.com https://*.trueaxis-hq.com",
+      "frame-ancestors 'self' https://*.manus.space https://*.manus.computer https://*.trueaxishq.com https://trueaxishq.com https://www.trueaxishq.com https://*.trueaxishq.com",
       "base-uri 'self'",
       "form-action 'self'",
       "upgrade-insecure-requests",
@@ -288,9 +303,11 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
     return next();
   }
   // auth.me is a read-only session check called on every page load — use general limit
-  const isAuthMeRoute = req.path.includes("auth.me") || req.path.includes("auth%2Eme");
+  let requestTarget = req.originalUrl;
+  try { requestTarget = decodeURIComponent(req.originalUrl); } catch { /* keep raw URL */ }
+  const isAuthMeRoute = /(?:^|[/.?,&])auth\.me(?:$|[/? ,&])/.test(requestTarget);
   // Strict auth limit only for actual login/register/password mutation endpoints
-  const isAuthRoute = !isAuthMeRoute && (req.path.includes("/oauth") || req.path.includes("auth.login") || req.path.includes("auth.register") || req.path.includes("auth.forgotPassword") || req.path.includes("auth.resetPassword"));
+  const isAuthRoute = !isAuthMeRoute && (requestTarget.includes("/oauth") || /(?:^|[/.?,&])auth\.(?:login|register|forgotPassword|resetPassword)(?:$|[/? ,&])/.test(requestTarget));
   const isAIRoute   = req.path.includes("/ai") || req.path.includes("/pulse") || req.path.includes("/followUps");
   const maxRequests = isAuthRoute ? RATE_LIMIT_MAX_AUTH : isAIRoute ? RATE_LIMIT_MAX_AI : RATE_LIMIT_MAX_GENERAL;
 

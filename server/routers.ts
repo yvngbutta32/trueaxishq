@@ -13,7 +13,7 @@ import { getDb } from "./db";
 import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities } from "../drizzle/schema";
-import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
+import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
@@ -22,6 +22,27 @@ import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmati
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
+
+function hoursUntilBooking(date: string, time: string): number | null {
+  const match = time.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  let normalizedTime = time.trim();
+  if (match) {
+    let hour = Number(match[1]);
+    const minute = match[2];
+    if (match[3].toUpperCase() === "PM" && hour !== 12) hour += 12;
+    if (match[3].toUpperCase() === "AM" && hour === 12) hour = 0;
+    normalizedTime = `${String(hour).padStart(2, "0")}:${minute}`;
+  }
+  const start = new Date(`${date}T${normalizedTime}:00`);
+  return Number.isNaN(start.getTime()) ? null : (start.getTime() - Date.now()) / 3_600_000;
+}
+
+function enforceBookingChangeWindow(date: string, time: string) {
+  const hours = hoursUntilBooking(date, time);
+  if (hours !== null && hours < 24) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Appointments can only be changed up to 24 hours before the scheduled start time." });
+  }
+}
 
 // ─── Stripe client (lazy, cached) ─────────────────────────────────────────────
 let _stripe: Stripe | null = null;
@@ -117,6 +138,7 @@ export const appRouter = router({
           }).where(eq(inviteCodes.id, invite.id));
 
           const token = await createSessionToken(user.id, user.email ?? input.email);
+          await recordSession(user.id, token, ctx.req);
           const cookieOptions = getSessionCookieOptions(ctx.req);
           ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
           return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
@@ -155,6 +177,7 @@ export const appRouter = router({
           const dbConn = await requireDb();
           await dbConn.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
           const token = await createSessionToken(user.id, user.email ?? input.email);
+          await recordSession(user.id, token, ctx.req);
           const cookieOptions = getSessionCookieOptions(ctx.req);
           ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
           return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
@@ -215,6 +238,7 @@ export const appRouter = router({
           logSecurityEvent({ eventType: "login_success", severity: "low", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"], details: "Admin login" });
           await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
           const token = await createSessionToken(user.id, user.email ?? input.email);
+          await recordSession(user.id, token, ctx.req);
           const cookieOptions = getSessionCookieOptions(ctx.req);
           ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
           return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
@@ -229,7 +253,9 @@ export const appRouter = router({
         }
       }),
 
-    logout: publicProcedure.mutation(({ ctx }) => {
+    logout: publicProcedure.mutation(async ({ ctx }) => {
+      const token = ctx.req.headers.cookie?.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]+)`))?.[1];
+      await revokeSession(token, "logout");
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
@@ -712,7 +738,7 @@ export const appRouter = router({
               requestToken: reqToken,
               status: "requested",
             });
-            const origin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxis-hq.com";
+            const origin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
             sendEmail({
               to: inv.clientEmail,
               subject: `How did we do? Share your feedback`,
@@ -1031,6 +1057,8 @@ export const appRouter = router({
         await db.update(bookings).set({
           status: input.status,
           slotKey: input.status === "scheduled" ? `${ctx.user.id}|${booking.date}|${booking.time}` : null,
+          reminderSentAt: input.status === "scheduled" ? null : undefined,
+          checkInSentAt: input.status === "scheduled" ? null : undefined,
           updatedAt: new Date(),
         })
           .where(and(eq(bookings.id, input.id), eq(bookings.userId, ctx.user.id)));
@@ -3238,6 +3266,10 @@ Only include actions when you have actually generated a complete draft. For gene
           .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id)))
           .limit(1);
         if (!ownerCheck) throw new TRPCError({ code: "FORBIDDEN", message: "Client not found." });
+        const expectedPrefix = `documents/${ctx.user.id}/`;
+        if (!input.fileKey.startsWith(expectedPrefix) || input.fileKey.includes("..")) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Document upload could not be verified." });
+        }
         const [result] = await db.insert(clientDocuments).values({
           userId: ctx.user.id,
           clientId: input.clientId,
@@ -3767,7 +3799,13 @@ Only include actions when you have actually generated a complete draft. For gene
               sql`${bookings.id} != ${booking.id}`,
             ))
           : [];
-        return { booking, action: tokenRow.action, freelancerName: host?.businessName || host?.name || "Your provider", bookingUsername: host?.bookingUsername, bookedSlots };
+        return {
+          booking: { service: booking.service, date: booking.date, time: booking.time },
+          action: tokenRow.action,
+          freelancerName: host?.businessName || host?.name || "Your provider",
+          bookingUsername: host?.bookingUsername,
+          bookedSlots,
+        };
       }),
 
     // Public: atomically move an existing booking using a one-time reschedule link.
@@ -3790,6 +3828,7 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!booking || booking.status !== "scheduled") {
           throw new TRPCError({ code: "BAD_REQUEST", message: "This booking can no longer be rescheduled." });
         }
+        enforceBookingChangeWindow(booking.date, booking.time);
         if (booking.date === input.date && booking.time === input.time) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Please choose a different appointment time." });
         }
@@ -3845,18 +3884,24 @@ Only include actions when you have actually generated a complete draft. For gene
 
     // Public: execute cancel
     cancel: publicProcedure
-      .input(z.object({ token: z.string().min(1).max(128), origin: z.string().url() }))
+      .input(z.object({ token: z.string().min(1).max(128) }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
         const [tokenRow] = await db.select().from(bookingCancelTokens)
           .where(eq(bookingCancelTokens.token, input.token)).limit(1);
         if (!tokenRow || tokenRow.used) throw new TRPCError({ code: "BAD_REQUEST", message: "Link already used or not found." });
         if (new Date() > tokenRow.expiresAt) throw new TRPCError({ code: "BAD_REQUEST", message: "Link expired." });
-        const [booking] = await db.select().from(bookings).where(eq(bookings.id, tokenRow.bookingId)).limit(1);
+        const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, tokenRow.bookingId), eq(bookings.userId, tokenRow.userId))).limit(1);
         if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
-        // Cancel the booking
-        await db.update(bookings).set({ status: "cancelled", slotKey: null }).where(eq(bookings.id, booking.id));
-        await db.update(bookingCancelTokens).set({ used: true }).where(eq(bookingCancelTokens.id, tokenRow.id));
+        enforceBookingChangeWindow(booking.date, booking.time);
+        await db.transaction(async (tx) => {
+          await tx.update(bookings)
+            .set({ status: "cancelled", slotKey: null, reminderSentAt: null, checkInSentAt: null })
+            .where(and(eq(bookings.id, booking.id), eq(bookings.userId, tokenRow.userId), eq(bookings.status, "scheduled")));
+          await tx.update(bookingCancelTokens)
+            .set({ used: true })
+            .where(and(eq(bookingCancelTokens.id, tokenRow.id), eq(bookingCancelTokens.used, false)));
+        });
         // Notify owner
         await db.insert(notifications).values({
           userId: tokenRow.userId,
@@ -3866,7 +3911,8 @@ Only include actions when you have actually generated a complete draft. For gene
         });
         // Send confirmation email to client
         const [host] = await db.select({ bookingUsername: users.bookingUsername }).from(users).where(eq(users.id, tokenRow.userId)).limit(1);
-        const rebookUrl = host?.bookingUsername ? `${input.origin}/book/${host.bookingUsername}` : undefined;
+        const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
+        const rebookUrl = host?.bookingUsername ? `${siteOrigin}/book/${host.bookingUsername}` : undefined;
         if (booking.clientEmail) {
           sendEmail({
             to: booking.clientEmail,

@@ -56,7 +56,7 @@ function generateICS({
   const start = parseDateTime(date, time);
   const end = new Date(start.getTime() + durationMins * 60 * 1000);
   const now = new Date();
-  const uid = `booking-${Date.now()}@trueaxis-hq.com`;
+  const uid = `booking-${Date.now()}@trueaxishq.com`;
 
   return [
     "BEGIN:VCALENDAR",
@@ -250,7 +250,7 @@ export default function BookingPage() {
       time: form.preferredTime,
       durationMins: 60,
       organizerName: host.name ?? "Your Host",
-      organizerEmail: "noreply@trueaxis-hq.com",
+      organizerEmail: "noreply@trueaxishq.com",
       attendeeEmail: form.clientEmail,
       attendeeName: form.clientName,
     });

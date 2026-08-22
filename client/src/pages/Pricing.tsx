@@ -226,7 +226,7 @@ export default function Pricing() {
                 <button
                   onClick={() => {
                     if (plan.name === "Agency") {
-                      toast.info("Contact sales@trueaxis-hq.com for Agency pricing");
+                      toast.info("Contact sales@trueaxishq.com for Agency pricing");
                     } else if (isAuthenticated) {
                       navigate("/dashboard");
                     } else {
@@ -375,7 +375,7 @@ export default function Pricing() {
             Start your free trial today.
           </h2>
           <p className="mt-3 mb-8" style={{ color: "rgba(26,26,26,0.75)" }}>14 days free. No credit card. Cancel anytime.</p>
-          <button onClick={() => navigate("/dashboard")} className="btn-amber" style={{ padding: "0.75rem 2.5rem", fontSize: "1rem" }}>
+          <button onClick={() => navigate(isAuthenticated ? "/dashboard" : "/register")} className="btn-amber" style={{ padding: "0.75rem 2.5rem", fontSize: "1rem" }}>
             Get Started Free
             <Zap className="w-4 h-4" />
           </button>
