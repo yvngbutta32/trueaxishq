@@ -236,15 +236,21 @@ export default function ClientPortal() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center px-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 max-w-md w-full text-center">
-          <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-7 h-7 text-red-500" />
+      <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center px-4 py-10">
+        <div className="relative max-w-md w-full overflow-hidden rounded-3xl border border-[#D4922A]/20 bg-white p-8 text-center shadow-xl shadow-[#1B2D4F]/10 sm:p-10">
+          <div className="absolute inset-x-0 top-0 h-1.5 bg-[#D4922A]" />
+          <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full bg-[#1B2D4F] px-3 py-1.5 text-xs font-bold text-white">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#D4922A]" /> TrueAxis HQ Client Portal
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Portal Not Found</h2>
-          <p className="text-gray-600 text-sm">
-            This portal link is invalid or has expired. Please contact your service provider for a new link.
+          <div className="w-14 h-14 bg-[#FFF1F1] rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-7 h-7 text-[#FF6B6B]" />
+          </div>
+          <h2 className="text-2xl font-bold text-[#1A1A1A] mb-2">This portal link is no longer active</h2>
+          <p className="text-[rgba(26,26,26,0.62)] text-sm leading-relaxed">
+            It may have expired, been replaced, or been copied incorrectly. Contact your service provider and ask them to send a fresh secure portal link.
           </p>
+          <button type="button" onClick={() => { window.location.href = "/"; }} className="mt-6 min-h-11 rounded-xl bg-[#1B2D4F] px-5 text-sm font-bold text-white transition hover:bg-[#243A5E] focus:outline-none focus:ring-2 focus:ring-[#D4922A] focus:ring-offset-2">Return to TrueAxis HQ</button>
+          <p className="mt-4 text-xs text-[rgba(26,26,26,0.45)]">For your privacy, expired links cannot be restored from this page.</p>
         </div>
       </div>
     );

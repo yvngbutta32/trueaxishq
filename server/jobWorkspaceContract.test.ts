@@ -46,4 +46,13 @@ describe("Job Workspace contract", () => {
     expect(portalSource).toContain("slotKey: nextSlotKey");
     expect(portalSource).toContain('code: "CONFLICT"');
   });
+
+  it("links field time capture to an owned Job Workspace before storing it", () => {
+    const timeStart = routerSource.indexOf("    start: protectedProcedure", routerSource.indexOf("  time: router({"));
+    const timeEnd = routerSource.indexOf("    stop: protectedProcedure", timeStart);
+    const startSource = routerSource.slice(timeStart, timeEnd);
+    expect(startSource).toContain("jobId: z.number().int().positive().optional()");
+    expect(startSource).toContain("eq(jobs.userId, ctx.user.id)");
+    expect(startSource).toContain("jobId: input.jobId ?? null");
+  });
 });

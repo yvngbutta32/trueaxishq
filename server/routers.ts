@@ -18,7 +18,7 @@ import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
-import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail } from "./_core/email";
+import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail, getEmailDeliveryStatus } from "./_core/email";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -1212,6 +1212,33 @@ export const appRouter = router({
         ...u,
         bookingServices: u.bookingServices ? JSON.parse(u.bookingServices) : ["Coaching Session", "Strategy Call", "Consultation"],
         bookingAvailability: u.bookingAvailability ? JSON.parse(u.bookingAvailability) : {},
+      };
+    }),
+
+    launchReadiness: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [user] = await db.select({
+        bookingUsername: users.bookingUsername,
+        bookingServices: users.bookingServices,
+        businessName: users.businessName,
+        businessWebsite: users.businessWebsite,
+      }).from(users).where(eq(users.id, ctx.user.id)).limit(1);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
+
+      const [activePortal] = await db.select({ id: clientPortalTokens.id }).from(clientPortalTokens)
+        .where(and(
+          eq(clientPortalTokens.userId, ctx.user.id),
+          eq(clientPortalTokens.revoked, false),
+          sql`(${clientPortalTokens.expiresAt} IS NULL OR ${clientPortalTokens.expiresAt} > NOW())`,
+        )).limit(1);
+      const email = getEmailDeliveryStatus();
+      const services = user.bookingServices ? JSON.parse(user.bookingServices) : [];
+      return {
+        email: { configured: email.configured, sender: email.sender },
+        booking: { configured: Boolean(user.bookingUsername && Array.isArray(services) && services.length > 0), username: user.bookingUsername ?? null },
+        portal: { configured: Boolean(activePortal) },
+        payments: { configured: Boolean(process.env.STRIPE_SECRET_KEY) },
+        business: { configured: Boolean(user.businessName && user.businessWebsite), name: user.businessName ?? null },
       };
     }),
 
@@ -2886,6 +2913,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({
         clientId: z.number().optional(),
         clientName: z.string().trim().max(255).optional(),
+        jobId: z.number().int().positive().optional(),
         projectName: z.string().trim().max(255).optional(),
         description: z.string().trim().max(1000).optional(),
         hourlyRate: z.string().optional(),
@@ -2893,6 +2921,13 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        if (input.jobId) {
+          const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs)
+            .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+          if (!job || (input.clientId && job.clientId !== input.clientId)) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Selected job does not belong to this client." });
+          }
+        }
         // Stop any running timer first
         const running = await db.select().from(timeEntries)
           .where(and(eq(timeEntries.userId, ctx.user.id), sql`${timeEntries.endedAt} IS NULL`))
@@ -2907,6 +2942,7 @@ Only include actions when you have actually generated a complete draft. For gene
           userId: ctx.user.id,
           clientId: input.clientId ?? null,
           clientName: input.clientName ?? null,
+          jobId: input.jobId ?? null,
           projectName: input.projectName ?? null,
           description: input.description ?? null,
           startedAt: new Date(),
@@ -2980,6 +3016,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({
         clientId: z.number().optional(),
         clientName: z.string().trim().max(255).optional(),
+        jobId: z.number().int().positive().optional(),
         description: z.string().trim().max(1000).optional(),
         durationMinutes: z.number().min(1),
         hourlyRate: z.string().optional(),
@@ -2988,12 +3025,20 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        if (input.jobId) {
+          const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs)
+            .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+          if (!job || (input.clientId && job.clientId !== input.clientId)) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Selected job does not belong to this client." });
+          }
+        }
         const startedAt = input.date ? new Date(input.date + 'T09:00:00') : new Date();
         const endedAt = new Date(startedAt.getTime() + input.durationMinutes * 60000);
         const [result] = await db.insert(timeEntries).values({
           userId: ctx.user.id,
           clientId: input.clientId ?? null,
           clientName: input.clientName ?? null,
+          jobId: input.jobId ?? null,
           projectName: null,
           description: input.description ?? null,
           startedAt,
@@ -3936,6 +3981,47 @@ Only include actions when you have actually generated a complete draft. For gene
         recurring: hasRecurring,
       };
     }),
+
+    fastStartKits: protectedProcedure.query(() => [
+      { id: "consultant", name: "Consultant / Coach", description: "Discovery, strategy, and ongoing advisory services.", services: ["Discovery session", "Strategy session", "Ongoing advisory"] },
+      { id: "creative", name: "Creative Freelancer", description: "Discovery, kickoff, and review services for project-based work.", services: ["Discovery call", "Project kickoff", "Revision session"] },
+      { id: "agency", name: "Agency", description: "Planning, delivery, and client review services for a small team.", services: ["Discovery call", "Sprint planning", "Project review"] },
+      { id: "field_service", name: "Field Service", description: "Site visits, estimate walkthroughs, and completed service appointments.", services: ["Site visit", "Estimate walkthrough", "Service visit"] },
+    ]),
+
+    applyFastStartKit: protectedProcedure
+      .input(z.object({ kitId: z.enum(["consultant", "creative", "agency", "field_service"]) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const kitServices: Record<typeof input.kitId, Array<{ name: string; description: string; durationMinutes: number }>> = {
+          consultant: [
+            { name: "Discovery session", description: "An introductory conversation to understand goals and fit. Update the price before publishing.", durationMinutes: 45 },
+            { name: "Strategy session", description: "A focused working session for priorities, decisions, and next steps. Update the price before publishing.", durationMinutes: 60 },
+            { name: "Ongoing advisory", description: "A recurring advisory session for continuing client support. Update the price before publishing.", durationMinutes: 60 },
+          ],
+          creative: [
+            { name: "Discovery call", description: "A project-fit call to confirm scope and goals. Update the price before publishing.", durationMinutes: 30 },
+            { name: "Project kickoff", description: "A structured kickoff to align scope, timeline, and working process. Update the price before publishing.", durationMinutes: 60 },
+            { name: "Revision session", description: "A focused review session for feedback and next iterations. Update the price before publishing.", durationMinutes: 45 },
+          ],
+          agency: [
+            { name: "Discovery call", description: "An initial client conversation to identify requirements and fit. Update the price before publishing.", durationMinutes: 30 },
+            { name: "Sprint planning", description: "A planning session to align delivery priorities and responsibilities. Update the price before publishing.", durationMinutes: 60 },
+            { name: "Project review", description: "A client review session for delivered work and next decisions. Update the price before publishing.", durationMinutes: 60 },
+          ],
+          field_service: [
+            { name: "Site visit", description: "An on-site assessment or scheduled service appointment. Update the price before publishing.", durationMinutes: 60 },
+            { name: "Estimate walkthrough", description: "A walkthrough to review the proposed scope and estimate. Update the price before publishing.", durationMinutes: 45 },
+            { name: "Service visit", description: "A scheduled visit to complete documented work. Update the price before publishing.", durationMinutes: 120 },
+          ],
+        };
+        const selectedServices = kitServices[input.kitId];
+        const existing = await db.select({ name: services.name }).from(services).where(eq(services.userId, ctx.user.id));
+        const existingNames = new Set(existing.map(service => service.name.trim().toLowerCase()));
+        const toInsert = selectedServices.filter(service => !existingNames.has(service.name.toLowerCase()));
+        if (toInsert.length) await db.insert(services).values(toInsert.map(service => ({ userId: ctx.user.id, name: service.name, description: service.description, price: "0", durationMinutes: service.durationMinutes, category: "fast_start", active: true })));
+        return { added: toInsert.length, skipped: selectedServices.length - toInsert.length };
+      }),
   }),
 
   // ── Global Search ─────────────────────────────────────────────────────────

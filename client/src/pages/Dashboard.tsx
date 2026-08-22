@@ -30,7 +30,7 @@ import {
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
   Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload,
   Home, Crown, ArrowRight, Shield, Inbox, MessageSquare, Tag, ThumbsUp, CalendarX, Link2, Wifi, WifiOff,
-  Package, Receipt
+  Package, Receipt, Smartphone, Rocket
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -47,11 +47,14 @@ const Automations = lazy(() => import("./Automations"));
 const BillingPanel = lazy(() => import("./BillingPanel"));
 const JobPhotosPanel = lazy(() => import("./JobPhotosPanel"));
 const JobWorkspace = lazy(() => import("./JobWorkspace"));
+const FieldMode = lazy(() => import("./FieldMode"));
+const ExecutiveDashboard = lazy(() => import("./ExecutiveDashboard"));
+const LaunchReadiness = lazy(() => import("./LaunchReadiness"));
 const OutreachPanel = lazy(() => import("./OutreachPanel"));
 const DealsPanel = lazy(() => import("./DealsPanel"));
 const InsightsPanel = lazy(() => import("./InsightsPanel"));
 
-type ActivePanel = "overview" | "clients" | "scheduling" | "jobs" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations" | "billing" | "outreach" | "deals" | "insights" | "photos";
+type ActivePanel = "overview" | "executive" | "launch" | "clients" | "scheduling" | "jobs" | "field" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations" | "billing" | "outreach" | "deals" | "insights" | "photos";
 
 interface ConfirmState {
   open: boolean;
@@ -314,9 +317,12 @@ const LineItemRow = memo(function LineItemRow({
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; badge?: string }[] = [
   { icon: LayoutDashboard, label: "Dashboard",  panel: "overview"   },
+  { icon: Activity,        label: "Operations", panel: "executive"  },
+  { icon: Rocket,          label: "Launch",     panel: "launch"     },
   { icon: Users,           label: "Clients",    panel: "clients"    },
   { icon: Calendar,        label: "Scheduling", panel: "scheduling" },
   { icon: Package,         label: "Jobs",       panel: "jobs"       },
+  { icon: Smartphone,      label: "Field Mode", panel: "field"      },
   { icon: FileText,        label: "Billing",    panel: "billing"    },
   { icon: Mail,            label: "Outreach",   panel: "outreach"   },
   { icon: FileSignature,   label: "Deals",      panel: "deals"      },
@@ -4977,9 +4983,12 @@ export default function Dashboard() {
   useEffect(() => {
     const PANEL_TITLES: Record<ActivePanel, string> = {
             overview: "Dashboard — TrueAxis HQ",
+      executive: "Operations — TrueAxis HQ",
+      launch: "Launch Readiness — TrueAxis HQ",
       clients: "Clients — TrueAxis HQ",
       scheduling: "Scheduling — TrueAxis HQ",
       jobs: "Job Workspace — TrueAxis HQ",
+      field: "Field Mode — TrueAxis HQ",
       invoices: "Invoices — TrueAxis HQ",
       followups: "Follow-Ups — TrueAxis HQ",
       analytics: "Analytics — TrueAxis HQ",
@@ -5060,7 +5069,7 @@ export default function Dashboard() {
 
   // Panel metadata — defined before any early returns to satisfy Rules of Hooks
   const panelTitles: Record<ActivePanel, string> = {
-    overview: "Dashboard", clients: "Clients", scheduling: "Scheduling", jobs: "Job Workspace",
+    overview: "Dashboard", executive: "Operations", launch: "Launch Readiness", clients: "Clients", scheduling: "Scheduling", jobs: "Job Workspace", field: "Field Mode",
     invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics",
     settings: "Settings", ai: "AI Assistant", pulse: "Client Pulse",
     contracts: "Contracts", time: "Time Tracking",
@@ -5070,9 +5079,12 @@ export default function Dashboard() {
   };
   const panelSubtitles: Record<ActivePanel, string> = {
     overview: "Your business at a glance",
+    executive: "Cash, capacity, client decisions, and automation health",
+    launch: "Complete each operational signal before sharing with clients",
     clients: "Manage relationships & contacts",
     scheduling: "Appointments & availability",
     jobs: "Run each job from approved work to proof and profit",
+    field: "Mobile-first time, proof, and client updates",
     invoices: "Billing, payments & recurring",
     followups: "Automated client outreach",
     analytics: "Revenue & performance insights",
@@ -5112,7 +5124,10 @@ export default function Dashboard() {
         </PanelErrorBoundary>
       );
       case "scheduling": return <PanelErrorBoundary panelName="Scheduling"><SchedulingPanel /></PanelErrorBoundary>;
+      case "executive": return <PanelErrorBoundary panelName="Executive Operating Dashboard"><ExecutiveDashboard /></PanelErrorBoundary>;
+      case "launch": return <PanelErrorBoundary panelName="Launch Readiness"><LaunchReadiness onNavigate={setActiveWithScroll} /></PanelErrorBoundary>;
       case "jobs": return <PanelErrorBoundary panelName="Job Workspace"><JobWorkspace /></PanelErrorBoundary>;
+      case "field": return <PanelErrorBoundary panelName="Field Mode"><FieldMode /></PanelErrorBoundary>;
       // Legacy deep links redirect through the effect above.
       case "invoices":
       case "followups":

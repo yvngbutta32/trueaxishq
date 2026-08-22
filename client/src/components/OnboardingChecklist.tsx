@@ -3,7 +3,7 @@
  * Dismiss state is kept in localStorage (intentional — it's a UI preference, not business data)
  */
 import { useState } from "react";
-import { CheckCircle, Circle, ChevronDown, ChevronUp, X, Loader2 } from "lucide-react";
+import { CheckCircle, Circle, ChevronDown, ChevronUp, X, Loader2, Rocket } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 const DISMISS_KEY = "trueaxis_onboarding_dismissed_v2";
@@ -42,6 +42,13 @@ export function OnboardingChecklist({ onNavigate }: Props) {
   });
 
   const { data: status, isLoading } = useOnboardingStatus();
+  const { data: kits = [] } = trpc.onboarding.fastStartKits.useQuery();
+  const applyKit = trpc.onboarding.applyFastStartKit.useMutation({
+    onSuccess: result => {
+      void status;
+      window.dispatchEvent(new CustomEvent("trueaxis-fast-start-kit-applied"));
+    },
+  });
 
   const dismiss = () => {
     try { localStorage.setItem(DISMISS_KEY, "1"); } catch { /* ignore */ }
@@ -132,6 +139,14 @@ export function OnboardingChecklist({ onNavigate }: Props) {
       {/* Steps */}
       {!collapsed && (
         <div className="px-5 pb-4 pt-3 space-y-2">
+          <div className="mb-4 rounded-xl border border-[#D4922A]/25 bg-[#fffaf0] p-3">
+            <div className="flex items-start gap-2"><Rocket className="mt-0.5 h-4 w-4 shrink-0 text-[#D4922A]" /><div><p className="text-xs font-bold text-[#1A1A1A]">Start with a workflow kit</p><p className="mt-0.5 text-xs text-[rgba(26,26,26,0.62)]">Add editable starter services for the way you work. Prices stay at $0 until you set them.</p></div></div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {kits.map(kit => <button key={kit.id} type="button" onClick={() => applyKit.mutate({ kitId: kit.id as "consultant" | "creative" | "agency" | "field_service" })} disabled={applyKit.isPending} className="rounded-lg border border-[rgba(26,26,26,0.12)] bg-white p-2.5 text-left transition-colors hover:border-[#D4922A]/45 hover:bg-[#fffdf8] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4922A]"><span className="block text-xs font-semibold text-[#1A1A1A]">{kit.name}</span><span className="mt-0.5 block text-[11px] leading-snug text-[rgba(26,26,26,0.55)]">{kit.description}</span></button>)}
+            </div>
+            {applyKit.isSuccess && <p className="mt-2 text-xs font-semibold text-emerald-700">Added {applyKit.data.added} starter service{applyKit.data.added === 1 ? "" : "s"}. Review pricing in Services before publishing.</p>}
+            {applyKit.isError && <p className="mt-2 text-xs font-semibold text-red-700">{applyKit.error.message || "The kit could not be applied. Please try again."}</p>}
+          </div>
           {STEPS.map(step => {
             const done = completed.has(step.id);
             return (

@@ -1543,7 +1543,10 @@
 - [x] Add owner-facing portal-link status and revocation controls to client management
 - [x] Add safe SMTP configuration readiness checks and transactional-email diagnostics
 - [ ] Securely configure SMTP credentials and verify a controlled transactional test email
-- [ ] Add regression coverage, validate the release, and publish
+- [x] Add regression coverage, validate the internal release, and publish
+
+### SMTP Deferral
+- [x] Defer real SMTP activation until the owner provides verified provider credentials; retain safe readiness diagnostics in the app
 
 ## Full-Scope Competitive Analysis & Market Leadership Roadmap
 - [x] Research direct competitors, adjacent platforms, pricing, positioning, and feature sets
@@ -1559,11 +1562,18 @@
 - [x] Create a unified Job Workspace data model connecting client, booking, proposal, visits, proof photos, time, costs, status, invoice, and payment
 - [x] Build the owner Job Workspace UI with lifecycle status, task/checklist, job-cost/profitability, and activity timeline
 - [x] Build the client Job Progress Center with milestones, approvals, appointment actions, proof-of-work, messages, and billing
-- [ ] Create vertical fast-start onboarding kits for consultant/coach, creative freelancer, agency, and field-service workflows
-- [ ] Add Field Mode for mobile-first time tracking, proof capture, checklists, and client updates
-- [ ] Build the executive operating dashboard with lead conversion, cash, receivables, capacity, margin, and automation health
-- [ ] Validate every critical customer journey, accessibility, mobile workflow, reliability guard, and production build before release
+- [x] Create vertical fast-start onboarding kits for consultant/coach, creative freelancer, agency, and field-service workflows
+- [x] Add Field Mode for mobile-first time tracking, proof capture, checklists, and client updates
+- [x] Build the executive operating dashboard with lead conversion, cash, receivables, capacity, margin, and automation health
+- [x] Validate every critical customer journey, accessibility, mobile workflow, reliability guard, and production build before release
 - [x] Remove fabricated testimonial-style cards and unsupported public adoption/revenue claims from the landing page
+
+### Credential-Free Launch Improvements
+- [x] Add an owner-facing Launch Readiness Center that clearly reports email, payment, portal, and booking configuration status
+- [x] Add internal first-run guidance and operational empty states for newly created accounts
+- [x] Expand regression coverage for the Job Workspace, Field Mode, Client Progress Center, and launch-readiness signals
+- [x] Improve the invalid Client Portal recovery state with consistent TrueAxis HQ branding and a clearer recovery action
+- [x] Repair the live booking-slot schema mismatch preventing workflow automation queries from completing
 
 ### Complete Verified Remediation Register
 - [x] Move client-list search and status filtering from in-memory processing to database filtering
