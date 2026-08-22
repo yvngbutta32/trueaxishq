@@ -124,16 +124,21 @@ export type InsertInvoice = typeof invoices.$inferInsert;
 
 // ─── Bookings / Appointments ──────────────────────────────────────────────────
 
-export const bookings = mysqlTable("bookings", {
+export const bookings = mysqlTable(
+  "bookings",
+  {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   clientId: int("clientId"),
   clientName: varchar("clientName", { length: 255 }).notNull(),
   clientEmail: varchar("clientEmail", { length: 320 }),
   service: varchar("service", { length: 255 }),
-  date: varchar("date", { length: 32 }).notNull(),
-  time: varchar("time", { length: 32 }).notNull(),
-  duration: int("duration").default(60),
+    date: varchar("date", { length: 32 }).notNull(),
+    time: varchar("time", { length: 32 }).notNull(),
+    // Present only while a booking occupies a live appointment slot. The unique
+    // index prevents concurrent public/admin reschedules from double-booking it.
+    slotKey: varchar("slotKey", { length: 200 }),
+    duration: int("duration").default(60),
   status: mysqlEnum("status", ["scheduled", "completed", "cancelled", "no_show"]).default("scheduled").notNull(),
   notes: text("notes"),
   isPublicBooking: boolean("isPublicBooking").default(false),
@@ -141,8 +146,12 @@ export const bookings = mysqlTable("bookings", {
   checkInSentAt: timestamp("checkInSentAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-},
-(t) => [index("bookings_userId_idx").on(t.userId), index("bookings_date_idx").on(t.date)]
+  },
+  (t) => [
+    index("bookings_userId_idx").on(t.userId),
+    index("bookings_date_idx").on(t.date),
+    uniqueIndex("bookings_live_slot_unique_idx").on(t.slotKey),
+  ]
 );
 
 export type Booking = typeof bookings.$inferSelect;

@@ -1053,6 +1053,17 @@ function ClientsPanel() {
     },
     onError: (e) => toast.error(e.message),
   });
+  const { data: portalStatus } = trpc.portal.status.useQuery(
+    { clientId: selectedId! },
+    { enabled: Boolean(selectedId) }
+  );
+  const revokePortalToken = trpc.portal.revokeToken.useMutation({
+    onSuccess: () => {
+      utils.portal.status.invalidate({ clientId: selectedId! });
+      toast.success("Client portal link revoked.");
+    },
+    onError: (error) => toast.error(error.message),
+  });
 
   // Stable field setters — prevents Field memo from being bypassed on every render
   const setFormName        = useFormField(setForm, "name");
@@ -1405,6 +1416,21 @@ function ClientsPanel() {
                   >
                     <ExternalLink className="w-4 h-4" />{getPortalToken.isPending ? "Generating..." : "Share Portal"}
                   </Button>
+                  {portalStatus?.active && (
+                    <Button
+                      variant="outline"
+                      className="gap-2 border-amber-200 text-amber-700 hover:bg-amber-50"
+                      onClick={() => setClientConfirm({
+                        open: true,
+                        title: "Revoke client portal link?",
+                        description: "The current client portal URL will stop working immediately. You can create and share a new link at any time.",
+                        onConfirm: () => revokePortalToken.mutate({ clientId: selectedClient.id }),
+                      })}
+                      disabled={revokePortalToken.isPending}
+                    >
+                      <Link2 className="w-4 h-4" />{revokePortalToken.isPending ? "Revoking..." : "Revoke Portal"}
+                    </Button>
+                  )}
                   <Button variant="outline" className="gap-2 border-red-200 text-red-500 hover:bg-red-500/100/10" onClick={() => setClientConfirm({ open: true, title: "Remove Client?", description: `Remove ${selectedClient.name}? This cannot be undone.`, onConfirm: () => { deleteClient.mutate({ id: selectedClient.id }); setSelectedId(null); } })}>
                     <Trash2 className="w-4 h-4" />
                   </Button>

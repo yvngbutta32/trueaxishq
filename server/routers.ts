@@ -1013,6 +1013,7 @@ export const appRouter = router({
           duration: input.duration,
           notes: input.notes || null,
           isPublicBooking: false,
+          slotKey: `${ctx.user.id}|${input.date}|${input.time}`,
         });
         return { id: Number((result as any).insertId), success: true };
       }),
@@ -1024,7 +1025,14 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
-        await db.update(bookings).set({ status: input.status, updatedAt: new Date() })
+        const [booking] = await db.select({ date: bookings.date, time: bookings.time })
+          .from(bookings).where(and(eq(bookings.id, input.id), eq(bookings.userId, ctx.user.id))).limit(1);
+        if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
+        await db.update(bookings).set({
+          status: input.status,
+          slotKey: input.status === "scheduled" ? `${ctx.user.id}|${booking.date}|${booking.time}` : null,
+          updatedAt: new Date(),
+        })
           .where(and(eq(bookings.id, input.id), eq(bookings.userId, ctx.user.id)));
         return { success: true };
       }),
@@ -2073,6 +2081,7 @@ Only include actions when you have actually generated a complete draft. For gene
           service: input.service,
           date: input.preferredDate,
           time: input.preferredTime,
+          slotKey: `${hostId}|${input.preferredDate}|${input.preferredTime}`,
           notes: input.message || null,
           isPublicBooking: true,
           status: "scheduled",
@@ -2455,6 +2464,36 @@ Only include actions when you have actually generated a complete draft. For gene
             eq(clientPortalTokens.revoked, false),
           ));
         return { success: true };
+      }),
+
+    status: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive() }))
+      .query(async ({ input, ctx }) => {
+        const db = await requireDb();
+        const [client] = await db.select({ id: clients.id }).from(clients)
+          .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id)))
+          .limit(1);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+
+        const [tokenRecord] = await db.select({
+          revoked: clientPortalTokens.revoked,
+          revokedAt: clientPortalTokens.revokedAt,
+          expiresAt: clientPortalTokens.expiresAt,
+          createdAt: clientPortalTokens.createdAt,
+        }).from(clientPortalTokens)
+          .where(and(eq(clientPortalTokens.userId, ctx.user.id), eq(clientPortalTokens.clientId, input.clientId)))
+          .limit(1);
+
+        const expired = Boolean(tokenRecord?.expiresAt && new Date() > tokenRecord.expiresAt);
+        return {
+          exists: Boolean(tokenRecord),
+          active: Boolean(tokenRecord && !tokenRecord.revoked && !expired),
+          revoked: Boolean(tokenRecord?.revoked),
+          expired,
+          expiresAt: tokenRecord?.expiresAt ?? null,
+          revokedAt: tokenRecord?.revokedAt ?? null,
+          createdAt: tokenRecord?.createdAt ?? null,
+        };
       }),
 
     // Public: view the portal (no auth required — token is the secret)
@@ -3578,7 +3617,90 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
         const [host] = await db.select({ name: users.name, businessName: users.businessName, bookingUsername: users.bookingUsername })
           .from(users).where(eq(users.id, tokenRow.userId)).limit(1);
-        return { booking, action: tokenRow.action, freelancerName: host?.businessName || host?.name || "Your provider", bookingUsername: host?.bookingUsername };
+        const today = new Date().toISOString().slice(0, 10);
+        const bookedSlots = tokenRow.action === "reschedule"
+          ? await db.select({ date: bookings.date, time: bookings.time }).from(bookings)
+            .where(and(
+              eq(bookings.userId, tokenRow.userId),
+              eq(bookings.status, "scheduled"),
+              sql`${bookings.date} >= ${today}`,
+              sql`${bookings.id} != ${booking.id}`,
+            ))
+          : [];
+        return { booking, action: tokenRow.action, freelancerName: host?.businessName || host?.name || "Your provider", bookingUsername: host?.bookingUsername, bookedSlots };
+      }),
+
+    // Public: atomically move an existing booking using a one-time reschedule link.
+    reschedule: publicProcedure
+      .input(z.object({
+        token: z.string().min(1).max(128),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        time: z.string().trim().min(1).max(32),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [tokenRow] = await db.select().from(bookingCancelTokens)
+          .where(eq(bookingCancelTokens.token, input.token)).limit(1);
+        if (!tokenRow || tokenRow.used || tokenRow.action !== "reschedule") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This reschedule link is no longer available." });
+        }
+        if (new Date() > tokenRow.expiresAt) throw new TRPCError({ code: "BAD_REQUEST", message: "This reschedule link has expired." });
+        const [booking] = await db.select().from(bookings)
+          .where(and(eq(bookings.id, tokenRow.bookingId), eq(bookings.userId, tokenRow.userId))).limit(1);
+        if (!booking || booking.status !== "scheduled") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This booking can no longer be rescheduled." });
+        }
+        if (booking.date === input.date && booking.time === input.time) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Please choose a different appointment time." });
+        }
+        if (input.date < new Date().toISOString().slice(0, 10)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Please choose a future appointment date." });
+        }
+
+        const nextSlotKey = `${tokenRow.userId}|${input.date}|${input.time}`;
+        try {
+          await db.transaction(async (tx) => {
+            await tx.update(bookings).set({
+              date: input.date,
+              time: input.time,
+              slotKey: nextSlotKey,
+              reminderSentAt: null,
+              updatedAt: new Date(),
+            }).where(and(eq(bookings.id, booking.id), eq(bookings.userId, tokenRow.userId)));
+            await tx.update(bookingCancelTokens).set({ used: true })
+              .where(and(eq(bookingCancelTokens.id, tokenRow.id), eq(bookingCancelTokens.used, false)));
+          });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "";
+          if (message.includes("Duplicate") || message.includes("duplicate") || message.includes("1062")) {
+            throw new TRPCError({ code: "CONFLICT", message: "That appointment time was just taken. Please choose another." });
+          }
+          throw error;
+        }
+
+        await db.insert(notifications).values({
+          userId: tokenRow.userId,
+          title: `Booking Rescheduled — ${booking.clientName}`,
+          body: `${booking.clientName} moved ${booking.service ?? "their session"} from ${booking.date} at ${booking.time} to ${input.date} at ${input.time}.`,
+          type: "info",
+          link: "/dashboard?panel=schedule",
+        });
+        if (booking.clientEmail) {
+          sendEmail({
+            to: booking.clientEmail,
+            subject: `Booking Rescheduled — ${booking.service ?? "Session"}`,
+            html: bookingCancelConfirmEmail({
+              clientName: booking.clientName,
+              serviceName: booking.service ?? "Session",
+              date: input.date,
+              time: input.time,
+              previousDate: booking.date,
+              previousTime: booking.time,
+              action: "reschedule",
+            }),
+          }).catch(() => {});
+        }
+        return { ok: true, date: input.date, time: input.time };
       }),
 
     // Public: execute cancel
@@ -3593,7 +3715,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const [booking] = await db.select().from(bookings).where(eq(bookings.id, tokenRow.bookingId)).limit(1);
         if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
         // Cancel the booking
-        await db.update(bookings).set({ status: "cancelled" }).where(eq(bookings.id, booking.id));
+        await db.update(bookings).set({ status: "cancelled", slotKey: null }).where(eq(bookings.id, booking.id));
         await db.update(bookingCancelTokens).set({ used: true }).where(eq(bookingCancelTokens.id, tokenRow.id));
         // Notify owner
         await db.insert(notifications).values({

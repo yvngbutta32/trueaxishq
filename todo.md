@@ -1538,6 +1538,32 @@
 - [x] Add regression coverage for the self-contained authentication contract
 - [x] Run full auth-flow validation, production build, and publish the cleanup release
 
+## Transactional Email & Portal-Link Administration
+- [x] Audit SMTP configuration, sender defaults, and existing client portal management surfaces
+- [x] Add owner-facing portal-link status and revocation controls to client management
+- [x] Add safe SMTP configuration readiness checks and transactional-email diagnostics
+- [ ] Securely configure SMTP credentials and verify a controlled transactional test email
+- [ ] Add regression coverage, validate the release, and publish
+
+## Full-Scope Competitive Analysis & Market Leadership Roadmap
+- [x] Research direct competitors, adjacent platforms, pricing, positioning, and feature sets
+- [x] Analyze verified customer reviews for recurring delight, friction, migration, support, and reliability themes
+- [x] Audit TrueAxis HQ’s current feature coverage, user journeys, design quality, reliability, security, and launch operations
+- [x] Build a capability comparison matrix identifying parity gaps and differentiated opportunities
+- [x] Specify a prioritized product, design, engineering, growth, and operations roadmap with outcomes and implementation scope
+
+## 5/5 Product Program
+- [ ] Finish SMTP domain authentication, verified sender configuration, and transactional-email health visibility
+- [x] Build native client self-service booking reschedule and cancellation controls with atomic availability protection
+- [x] Build the Automation Center: visible run history, error states, retries, delayed actions, and rule editing
+- [ ] Create a unified Job Workspace data model connecting client, booking, proposal, visits, proof photos, time, costs, status, invoice, and payment
+- [ ] Build the owner Job Workspace UI with lifecycle status, task/checklist, job-cost/profitability, and activity timeline
+- [ ] Build the client Job Progress Center with milestones, approvals, appointment actions, proof-of-work, messages, and billing
+- [ ] Create vertical fast-start onboarding kits for consultant/coach, creative freelancer, agency, and field-service workflows
+- [ ] Add Field Mode for mobile-first time tracking, proof capture, checklists, and client updates
+- [ ] Build the executive operating dashboard with lead conversion, cash, receivables, capacity, margin, and automation health
+- [ ] Validate every critical customer journey, accessibility, mobile workflow, reliability guard, and production build before release
+
 ### Complete Verified Remediation Register
 - [x] Move client-list search and status filtering from in-memory processing to database filtering
 - [x] Add request-IP throttling to password-reset requests in addition to per-email throttling
