@@ -1,7 +1,7 @@
 import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect, useRef } from "react";
-import { FileText, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, CreditCard, User, Mail, Phone, Building2, Camera, X, ChevronLeft, ChevronRight, ImageOff, MessageCircle, Send, Upload, Loader2 } from "lucide-react";
+import { FileText, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, CreditCard, User, Mail, Phone, Building2, Camera, X, ChevronLeft, ChevronRight, ImageOff, MessageCircle, Send, Upload, Loader2, BriefcaseBusiness, ClipboardCheck, Target } from "lucide-react";
 import { toast } from "sonner";
 
 // Normalize booking date strings: ISO "2026-08-01" → "Aug 1, 2026", already-formatted strings pass through
@@ -60,6 +60,11 @@ function statusBadge(status: string) {
     completed: { label: "Completed", color: "bg-green-100 text-green-700" },
     cancelled: { label: "Cancelled", color: "bg-gray-100 text-gray-600" },
     no_show:   { label: "No Show",   color: "bg-orange-100 text-orange-700" },
+    lead: { label: "Planning", color: "bg-slate-100 text-slate-700" },
+    quoted: { label: "Quote Ready", color: "bg-violet-100 text-violet-700" },
+    approved: { label: "Approved", color: "bg-blue-100 text-blue-700" },
+    in_progress: { label: "In Progress", color: "bg-indigo-100 text-indigo-700" },
+    awaiting_client: { label: "Your Input Needed", color: "bg-orange-100 text-orange-700" },
   };
   const s = map[status] ?? { label: status, color: "bg-gray-100 text-gray-600" };
   return (
@@ -70,6 +75,7 @@ function statusBadge(status: string) {
 }
 
 type PhotoType = "estimate" | "wip" | "finished";
+const PORTAL_RESCHEDULE_TIMES = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
 
 export default function ClientPortal() {
   const params = useParams<{ token: string }>();
@@ -80,6 +86,9 @@ export default function ClientPortal() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [messageDraft, setMessageDraft] = useState("");
   const [portalPhotoUploading, setPortalPhotoUploading] = useState(false);
+  const [manageBookingId, setManageBookingId] = useState<number | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleTime, setRescheduleTime] = useState("");
   const portalPhotoInputRef = useRef<HTMLInputElement>(null);
 
   // Check if redirected back from successful payment
@@ -93,7 +102,7 @@ export default function ClientPortal() {
     }
   }, [location]);
 
-  const { data, isLoading, error } = trpc.portal.view.useQuery(
+  const { data, isLoading, error, refetch: refetchPortal } = trpc.portal.view.useQuery(
     { token },
     { enabled: !!token, retry: false }
   );
@@ -101,6 +110,16 @@ export default function ClientPortal() {
   const { data: photoData, refetch: refetchPhotos } = trpc.portal.getPhotos.useQuery(
     { token },
     { enabled: !!token, retry: false }
+  );
+
+  const { data: jobData } = trpc.portal.getJobs.useQuery(
+    { token },
+    { enabled: !!token, retry: false, refetchInterval: 60_000 }
+  );
+
+  const { data: bookingAvailability, refetch: refetchBookingAvailability } = trpc.portal.getBookingAvailability.useQuery(
+    { token, bookingId: manageBookingId ?? 0 },
+    { enabled: Boolean(token && manageBookingId), retry: false },
   );
 
   const { data: messages, refetch: refetchMessages } = trpc.portalMsg.listForPortal.useQuery(
@@ -122,6 +141,24 @@ export default function ClientPortal() {
     },
   });
 
+  const reschedulePortalBooking = trpc.portal.rescheduleBooking.useMutation({
+    onSuccess: async () => {
+      await refetchPortal();
+      setManageBookingId(null);
+      toast.success("Your appointment has been rescheduled.");
+    },
+    onError: err => toast.error(err.message || "Could not reschedule this appointment."),
+  });
+
+  const cancelPortalBooking = trpc.portal.cancelBooking.useMutation({
+    onSuccess: async () => {
+      await refetchPortal();
+      setManageBookingId(null);
+      toast.success("Your appointment has been cancelled.");
+    },
+    onError: err => toast.error(err.message || "Could not cancel this appointment."),
+  });
+
   const sendPortalMessage = trpc.portalMsg.send.useMutation({
     onSuccess: async () => {
       setMessageDraft("");
@@ -132,6 +169,13 @@ export default function ClientPortal() {
   });
 
   const confirmClientPhoto = trpc.photos.confirmClientUpload.useMutation();
+
+  useEffect(() => {
+    if (bookingAvailability?.booking) {
+      setRescheduleDate(bookingAvailability.booking.date);
+      setRescheduleTime(bookingAvailability.booking.time);
+    }
+  }, [bookingAvailability?.booking]);
 
   useEffect(() => {
     if (lightboxIndex === null) return;
@@ -361,25 +405,115 @@ export default function ClientPortal() {
           ) : (
             <div className="divide-y divide-gray-100">
               {bookings.map((b) => (
-                <div key={b.id} className="px-6 py-4 flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="font-medium text-gray-900 text-sm">{b.service || "Appointment"}</span>
-                      {statusBadge(b.status)}
+                <div key={b.id} className="px-6 py-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-medium text-gray-900 text-sm">{b.service || "Appointment"}</span>
+                        {statusBadge(b.status)}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-gray-600">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {formatBookingDate(b.date)} at {formatBookingTime(b.time)}
+                        </span>
+                        {b.duration && <span>{b.duration} min</span>}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatBookingDate(b.date)} at {formatBookingTime(b.time)}
-                      </span>
-                      {b.duration && <span>{b.duration} min</span>}
-                    </div>
+                    {b.status === "scheduled" && (
+                      <button
+                        type="button"
+                        onClick={() => { setManageBookingId(b.id); void refetchBookingAvailability(); }}
+                        className="shrink-0 rounded-lg border border-[#D4922A]/35 px-3 py-1.5 text-xs font-semibold text-[#8a5a0b] transition-colors hover:bg-[#fff8ea] focus:outline-none focus:ring-2 focus:ring-[#D4922A] focus:ring-offset-2"
+                      >
+                        Manage
+                      </button>
+                    )}
                   </div>
+                  {manageBookingId === b.id && (
+                    <div className="mt-4 rounded-xl border border-[#D4922A]/25 bg-[#fffaf0] p-4" role="region" aria-label="Manage appointment">
+                      <div className="flex items-start justify-between gap-3">
+                        <div><p className="text-sm font-semibold text-gray-900">Manage your appointment</p><p className="mt-0.5 text-xs text-gray-600">Choose another available time or cancel this appointment.</p></div>
+                        <button type="button" onClick={() => setManageBookingId(null)} className="rounded p-1 text-gray-500 hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#D4922A]" aria-label="Close appointment management"> <X className="h-4 w-4" /> </button>
+                      </div>
+                      {bookingAvailability ? (
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                          <label className="text-xs font-semibold text-gray-700">New date
+                            <input type="date" min={new Date().toISOString().slice(0, 10)} value={rescheduleDate} onChange={event => setRescheduleDate(event.target.value)} className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[#D4922A] focus:outline-none focus:ring-2 focus:ring-[#D4922A]/30" />
+                          </label>
+                          <label className="text-xs font-semibold text-gray-700">Available time
+                            <select value={rescheduleTime} onChange={event => setRescheduleTime(event.target.value)} className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[#D4922A] focus:outline-none focus:ring-2 focus:ring-[#D4922A]/30">
+                              {PORTAL_RESCHEDULE_TIMES.map(time => {
+                                const unavailable = bookingAvailability.bookedSlots.some(slot => slot.date === rescheduleDate && slot.time === time);
+                                return <option key={time} value={time} disabled={unavailable}>{formatBookingTime(time)}{unavailable ? " — unavailable" : ""}</option>;
+                              })}
+                            </select>
+                          </label>
+                          <div className="sm:col-span-2 flex flex-wrap gap-2 pt-1">
+                            <button type="button" disabled={!rescheduleDate || !rescheduleTime || reschedulePortalBooking.isPending} onClick={() => reschedulePortalBooking.mutate({ token, bookingId: b.id, date: rescheduleDate, time: rescheduleTime })} className="rounded-lg bg-[#D4922A] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#b97812] disabled:cursor-not-allowed disabled:opacity-60">{reschedulePortalBooking.isPending ? "Saving…" : "Confirm new time"}</button>
+                            <button type="button" disabled={cancelPortalBooking.isPending} onClick={() => { if (window.confirm("Cancel this appointment? This cannot be undone.")) cancelPortalBooking.mutate({ token, bookingId: b.id }); }} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:opacity-60">{cancelPortalBooking.isPending ? "Cancelling…" : "Cancel appointment"}</button>
+                          </div>
+                        </div>
+                      ) : <div className="mt-4 flex items-center gap-2 text-xs text-gray-600"><Loader2 className="h-4 w-4 animate-spin" /> Loading available times…</div>}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        {/* Job Progress Center */}
+        {(jobData?.jobs.length ?? 0) > 0 && (
+          <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" aria-labelledby="job-progress-heading">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+              <BriefcaseBusiness className="w-4 h-4 text-[#D4922A]" />
+              <div>
+                <h2 id="job-progress-heading" className="font-semibold text-gray-900">Your Work Progress</h2>
+                <p className="mt-0.5 text-xs text-gray-600">Milestones, provider updates, and proof of work in one place.</p>
+              </div>
+              <span className="ml-auto text-xs text-gray-500">{jobData?.jobs.length} active</span>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {jobData?.jobs.map(job => {
+                const completed = job.tasks.filter(task => task.status === "done").length;
+                const progress = job.tasks.length ? Math.round((completed / job.tasks.length) * 100) : 0;
+                const recentActivity = job.activities.slice(0, 2);
+                return (
+                  <article key={job.id} className="p-5 sm:p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-gray-900">{job.title}</p>{statusBadge(job.status)}</div>
+                        <p className="mt-1 text-xs font-medium tracking-wide text-[#a46c10]">{job.jobNumber}</p>
+                        {job.description && <p className="mt-2 text-sm text-gray-600">{job.description}</p>}
+                      </div>
+                      <div className="text-left sm:text-right shrink-0">
+                        <p className="text-xs text-gray-500">Target completion</p>
+                        <p className="mt-0.5 text-sm font-medium text-gray-800">{job.targetDate ? formatBookingDate(job.targetDate) : "To be confirmed"}</p>
+                        {job.proposal && ["sent", "viewed"].includes(job.proposal.status) && job.proposal.token && (
+                          <a href={`/proposal/${job.proposal.token}`} className="mt-2 inline-flex rounded-lg bg-[#1C2333] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#2B3446] focus:outline-none focus:ring-2 focus:ring-[#D4922A] focus:ring-offset-2">Review & approve</a>
+                        )}
+                        {job.proposal?.status === "signed" && <p className="mt-2 text-xs font-semibold text-emerald-700">Proposal approved</p>}
+                      </div>
+                    </div>
+                    <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                      <div className="rounded-lg bg-[#faf8f2] p-4">
+                        <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><ClipboardCheck className="h-3.5 w-3.5 text-[#D4922A]" /> Milestones</span><span className="text-xs font-semibold text-[#8a5a0b]">{progress}% complete</span></div>
+                        <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#e9e5db]"><div className="h-full rounded-full bg-[#D4922A] transition-all" style={{ width: `${progress}%` }} /></div>
+                        {job.tasks.length ? <ul className="mt-3 space-y-2">{job.tasks.slice(0, 4).map(task => <li key={task.id} className="flex items-center gap-2 text-xs text-gray-700"><CheckCircle className={`h-3.5 w-3.5 shrink-0 ${task.status === "done" ? "text-emerald-600" : "text-gray-300"}`} /><span className={task.status === "done" ? "line-through text-gray-500" : ""}>{task.title}</span></li>)}</ul> : <p className="mt-3 text-xs text-gray-500">Your provider will add milestones as work is planned.</p>}
+                      </div>
+                      <div className="rounded-lg border border-gray-100 p-4">
+                        <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><Target className="h-3.5 w-3.5 text-[#D4922A]" /> Latest updates</span>{job.photos.length > 0 && <span className="text-[11px] text-gray-500">{job.photos.length} proof photo{job.photos.length === 1 ? "" : "s"}</span>}</div>
+                        {recentActivity.length ? <div className="mt-3 space-y-3">{recentActivity.map(activity => <div key={activity.id}><p className="text-xs text-gray-700">{activity.message}</p><p className="mt-0.5 text-[11px] text-gray-500">{formatPortalTimestamp(activity.createdAt)}</p></div>)}</div> : <p className="mt-3 text-xs text-gray-500">Your provider will post updates here as the job moves forward.</p>}
+                      </div>
+                    </div>
+                    {job.photos.length > 0 && <div className="mt-4 flex gap-2 overflow-x-auto pb-1">{job.photos.slice(0, 5).filter(photo => isSafeImageUrl(photo.photoUrl)).map(photo => <img key={photo.id} src={photo.photoUrl} alt={photo.caption || `${photo.photoType} work proof`} className="h-14 w-14 shrink-0 rounded-md object-cover ring-1 ring-gray-200" loading="lazy" />)}</div>}
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Job Photos Gallery */}
         {(() => {

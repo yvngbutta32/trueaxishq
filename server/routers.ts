@@ -12,7 +12,7 @@ import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
 import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { strongPasswordSchema } from "./passwordPolicy";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -2593,6 +2593,60 @@ Only include actions when you have actually generated a complete draft. For gene
                 return { checkoutUrl: session.url };
       }),
 
+    getBookingAvailability: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128), bookingId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
+        if (!portalRecord || (portalRecord.expiresAt && new Date() > portalRecord.expiresAt)) throw new TRPCError({ code: "FORBIDDEN", message: "Portal link is no longer active." });
+        const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId))).limit(1);
+        if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Appointment not found." });
+        const today = new Date().toISOString().slice(0, 10);
+        const bookedSlots = await db.select({ date: bookings.date, time: bookings.time }).from(bookings).where(and(eq(bookings.userId, portalRecord.userId), eq(bookings.status, "scheduled"), sql`${bookings.date} >= ${today}`, sql`${bookings.id} != ${booking.id}`));
+        return { booking, bookedSlots };
+      }),
+
+    rescheduleBooking: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128), bookingId: z.number().int().positive(), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), time: z.string().trim().min(1).max(32) }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
+        if (!portalRecord || (portalRecord.expiresAt && new Date() > portalRecord.expiresAt)) throw new TRPCError({ code: "FORBIDDEN", message: "Portal link is no longer active." });
+        const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId))).limit(1);
+        if (!booking || booking.status !== "scheduled") throw new TRPCError({ code: "BAD_REQUEST", message: "This appointment can no longer be rescheduled." });
+        if (booking.date === input.date && booking.time === input.time) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a different appointment time." });
+        if (input.date < new Date().toISOString().slice(0, 10)) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a future appointment date." });
+        const nextSlotKey = `${portalRecord.userId}|${input.date}|${input.time}`;
+        try {
+          await db.update(bookings).set({ date: input.date, time: input.time, slotKey: nextSlotKey, reminderSentAt: null, updatedAt: new Date() })
+            .where(and(eq(bookings.id, booking.id), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId), eq(bookings.status, "scheduled")));
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "";
+          if (message.includes("Duplicate") || message.includes("duplicate") || message.includes("1062")) throw new TRPCError({ code: "CONFLICT", message: "That appointment time was just taken. Please choose another." });
+          throw error;
+        }
+        await db.insert(notifications).values({ userId: portalRecord.userId, title: `Booking Rescheduled — ${booking.clientName}`, body: `${booking.clientName} moved ${booking.service ?? "their appointment"} to ${input.date} at ${input.time}.`, type: "info", link: "/dashboard?panel=scheduling" });
+        if (booking.clientEmail) sendEmail({ to: booking.clientEmail, subject: `Booking Rescheduled — ${booking.service ?? "Appointment"}`, html: bookingCancelConfirmEmail({ clientName: booking.clientName, serviceName: booking.service ?? "Appointment", date: input.date, time: input.time, previousDate: booking.date, previousTime: booking.time, action: "reschedule" }) }).catch(() => {});
+        return { ok: true, date: input.date, time: input.time };
+      }),
+
+    cancelBooking: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128), bookingId: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
+        if (!portalRecord || (portalRecord.expiresAt && new Date() > portalRecord.expiresAt)) throw new TRPCError({ code: "FORBIDDEN", message: "Portal link is no longer active." });
+        const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId))).limit(1);
+        if (!booking || booking.status !== "scheduled") throw new TRPCError({ code: "BAD_REQUEST", message: "This appointment can no longer be cancelled." });
+        await db.update(bookings).set({ status: "cancelled", slotKey: null, updatedAt: new Date() }).where(and(eq(bookings.id, booking.id), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId), eq(bookings.status, "scheduled")));
+        await db.insert(notifications).values({ userId: portalRecord.userId, title: `Booking Cancelled — ${booking.clientName}`, body: `${booking.clientName} cancelled ${booking.service ?? "their appointment"} on ${booking.date} at ${booking.time}.`, type: "warning", link: "/dashboard?panel=scheduling" });
+        if (booking.clientEmail) sendEmail({ to: booking.clientEmail, subject: `Booking Cancelled — ${booking.service ?? "Appointment"}`, html: bookingCancelConfirmEmail({ clientName: booking.clientName, serviceName: booking.service ?? "Appointment", date: booking.date, time: booking.time, action: "cancel" }) }).catch(() => {});
+        return { ok: true };
+      }),
+
     // Public: get job photos for a client via portal token
     getPhotos: publicProcedure
       .input(z.object({ token: z.string().min(1).max(128) }))
@@ -2623,6 +2677,47 @@ Only include actions when you have actually generated a complete draft. For gene
           ))
           .orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt));
         return { photos };
+      }),
+
+    // Public: job progress for the portal client. Internal notes, receipt costs,
+    // and owner-only controls are intentionally excluded from this view.
+    getJobs: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128) }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
+        if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found or expired." });
+        if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Portal link has expired." });
+        }
+        const clientJobs = await db.select({
+          id: jobs.id, jobNumber: jobs.jobNumber, title: jobs.title, description: jobs.description,
+          status: jobs.status, priority: jobs.priority, startDate: jobs.startDate, targetDate: jobs.targetDate,
+          completedAt: jobs.completedAt, bookingId: jobs.bookingId, invoiceId: jobs.invoiceId, proposalId: jobs.proposalId,
+        }).from(jobs).where(and(eq(jobs.userId, portalRecord.userId), eq(jobs.clientId, portalRecord.clientId))).orderBy(desc(jobs.updatedAt));
+        const jobIds = clientJobs.map(job => job.id);
+        if (!jobIds.length) return { jobs: [] };
+        const proposalIds = clientJobs.flatMap(job => job.proposalId ? [job.proposalId] : []);
+        const [tasks, activities, photos, jobProposals] = await Promise.all([
+          db.select({ id: jobTasks.id, jobId: jobTasks.jobId, title: jobTasks.title, status: jobTasks.status, dueDate: jobTasks.dueDate, completedAt: jobTasks.completedAt, sortOrder: jobTasks.sortOrder })
+            .from(jobTasks).where(and(eq(jobTasks.userId, portalRecord.userId), inArray(jobTasks.jobId, jobIds))).orderBy(jobTasks.sortOrder, desc(jobTasks.createdAt)),
+          db.select({ id: jobActivities.id, jobId: jobActivities.jobId, actor: jobActivities.actor, eventType: jobActivities.eventType, message: jobActivities.message, createdAt: jobActivities.createdAt })
+            .from(jobActivities).where(and(eq(jobActivities.userId, portalRecord.userId), inArray(jobActivities.jobId, jobIds))).orderBy(desc(jobActivities.createdAt)),
+          db.select({ id: jobPhotos.id, jobId: jobPhotos.jobId, photoType: jobPhotos.photoType, photoUrl: jobPhotos.photoUrl, caption: jobPhotos.caption, createdAt: jobPhotos.createdAt })
+            .from(jobPhotos).where(and(eq(jobPhotos.userId, portalRecord.userId), inArray(jobPhotos.jobId, jobIds), inArray(jobPhotos.photoType, ["estimate", "wip", "finished"]))).orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt)),
+          proposalIds.length ? db.select({ id: proposals.id, title: proposals.title, status: proposals.status, token: proposals.token, validUntil: proposals.validUntil })
+            .from(proposals).where(and(eq(proposals.userId, portalRecord.userId), eq(proposals.clientId, portalRecord.clientId), inArray(proposals.id, proposalIds))) : Promise.resolve([]),
+        ]);
+        return {
+          jobs: clientJobs.map(job => ({
+            ...job,
+            tasks: tasks.filter(task => task.jobId === job.id),
+            activities: activities.filter(activity => activity.jobId === job.id && activity.eventType !== "internal_note"),
+            photos: photos.filter(photo => photo.jobId === job.id),
+            proposal: jobProposals.find(proposal => proposal.id === job.proposalId) ?? null,
+          })),
+        };
       }),
   }),
   // ── Contracts & Proposals ─────────────────────────────────────────────────
@@ -5238,6 +5333,178 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           .orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt));
         const total = items.reduce((sum, p) => sum + parseFloat(String(p.lineItemAmount ?? "0")), 0);
         return { items, total: total.toFixed(2) };
+      }),
+  }),
+
+  // ── Unified Job Workspace ──────────────────────────────────────────────────
+  jobs: router({
+    list: protectedProcedure
+      .input(z.object({ status: z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]).optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const filters = [eq(jobs.userId, ctx.user.id)];
+        if (input?.status) filters.push(eq(jobs.status, input.status));
+        return db.select({
+          id: jobs.id, jobNumber: jobs.jobNumber, title: jobs.title, status: jobs.status,
+          priority: jobs.priority, targetDate: jobs.targetDate, budgetAmount: jobs.budgetAmount,
+          clientId: jobs.clientId, clientName: clients.name, clientEmail: clients.email,
+          createdAt: jobs.createdAt, updatedAt: jobs.updatedAt,
+        }).from(jobs).innerJoin(clients, eq(jobs.clientId, clients.id)).where(and(...filters)).orderBy(desc(jobs.updatedAt));
+      }),
+
+    get: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select().from(jobs).where(and(eq(jobs.id, input.id), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        const [client] = await db.select({ id: clients.id, name: clients.name, email: clients.email, avatarInitials: clients.avatarInitials }).from(clients)
+          .where(and(eq(clients.id, job.clientId), eq(clients.userId, ctx.user.id))).limit(1);
+        const [booking] = job.bookingId ? await db.select().from(bookings).where(and(eq(bookings.id, job.bookingId), eq(bookings.userId, ctx.user.id))).limit(1) : [];
+        const [invoice] = job.invoiceId ? await db.select().from(invoices).where(and(eq(invoices.id, job.invoiceId), eq(invoices.userId, ctx.user.id))).limit(1) : [];
+        const [proposal] = job.proposalId ? await db.select().from(proposals).where(and(eq(proposals.id, job.proposalId), eq(proposals.userId, ctx.user.id))).limit(1) : [];
+        const [contract] = job.contractId ? await db.select().from(contracts).where(and(eq(contracts.id, job.contractId), eq(contracts.userId, ctx.user.id))).limit(1) : [];
+        const [tasks, activities, photos, entries] = await Promise.all([
+          db.select().from(jobTasks).where(and(eq(jobTasks.jobId, job.id), eq(jobTasks.userId, ctx.user.id))).orderBy(jobTasks.sortOrder, desc(jobTasks.createdAt)),
+          db.select().from(jobActivities).where(and(eq(jobActivities.jobId, job.id), eq(jobActivities.userId, ctx.user.id))).orderBy(desc(jobActivities.createdAt)).limit(100),
+          db.select().from(jobPhotos).where(and(eq(jobPhotos.jobId, job.id), eq(jobPhotos.userId, ctx.user.id))).orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt)),
+          db.select().from(timeEntries).where(and(eq(timeEntries.jobId, job.id), eq(timeEntries.userId, ctx.user.id))).orderBy(desc(timeEntries.startedAt)),
+        ]);
+        const receiptCost = photos.filter(photo => photo.photoType === "receipt").reduce((sum, photo) => sum + Number(photo.lineItemAmount ?? 0), 0);
+        const laborCost = entries.reduce((sum, entry) => sum + ((entry.durationMinutes ?? 0) / 60) * Number(entry.hourlyRate ?? 0), 0);
+        const revenue = Number(invoice?.amount ?? job.budgetAmount ?? 0);
+        return {
+          job, client, booking: booking ?? null, invoice: invoice ?? null, proposal: proposal ?? null, contract: contract ?? null,
+          tasks, activities, photos, entries,
+          financials: { revenue, receiptCost, laborCost, totalCost: receiptCost + laborCost, profit: revenue - receiptCost - laborCost },
+        };
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        clientId: z.number().int().positive(),
+        title: safeString(255), description: safeOptionalString(5000),
+        status: z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]).default("lead"),
+        priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
+        startDate: safeOptionalString(32), targetDate: safeOptionalString(32),
+        budgetAmount: z.number().min(0).max(99_999_999).optional(),
+        bookingId: z.number().int().positive().optional(), invoiceId: z.number().int().positive().optional(), proposalId: z.number().int().positive().optional(), contractId: z.number().int().positive().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [client] = await db.select({ id: clients.id, name: clients.name }).from(clients)
+          .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+        if (input.bookingId) {
+          const [booking] = await db.select({ id: bookings.id, clientId: bookings.clientId }).from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, ctx.user.id))).limit(1);
+          if (!booking || (booking.clientId && booking.clientId !== input.clientId)) throw new TRPCError({ code: "BAD_REQUEST", message: "Booking does not belong to this client." });
+        }
+        const jobNumber = `JOB-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+        const [result] = await db.insert(jobs).values({
+          userId: ctx.user.id, clientId: input.clientId, title: input.title, description: input.description ?? null,
+          status: input.status, priority: input.priority, startDate: input.startDate ?? null, targetDate: input.targetDate ?? null,
+          budgetAmount: input.budgetAmount === undefined ? null : String(input.budgetAmount), bookingId: input.bookingId ?? null,
+          invoiceId: input.invoiceId ?? null, proposalId: input.proposalId ?? null, contractId: input.contractId ?? null,
+          completedAt: input.status === "completed" ? new Date() : null, jobNumber,
+        });
+        const jobId = Number(result.insertId);
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId, actor: "owner", eventType: "job_created", message: `Created ${jobNumber} for ${client.name}.` });
+        return { id: jobId, jobNumber };
+      }),
+
+    createFromBooking: protectedProcedure
+      .input(z.object({ bookingId: z.number().int().positive(), targetDate: safeOptionalString(32) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, ctx.user.id))).limit(1);
+        if (!booking?.clientId) throw new TRPCError({ code: "BAD_REQUEST", message: "This booking must be linked to a client before creating a job." });
+        const [existing] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.bookingId, booking.id), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (existing) return { id: existing.id, existing: true };
+        const jobNumber = `JOB-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+        const [result] = await db.insert(jobs).values({
+          userId: ctx.user.id, clientId: booking.clientId, bookingId: booking.id, jobNumber,
+          title: booking.service ?? `Work for ${booking.clientName}`, description: booking.notes ?? null,
+          status: "scheduled", priority: "normal", startDate: booking.date, targetDate: input.targetDate ?? booking.date,
+        });
+        const jobId = Number(result.insertId);
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId, actor: "system", eventType: "job_created_from_booking", message: `Created from booking on ${booking.date} at ${booking.time}.` });
+        return { id: jobId, existing: false };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(), title: safeOptionalString(255), description: safeOptionalString(5000),
+        status: z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]).optional(),
+        priority: z.enum(["low", "normal", "high", "urgent"]).optional(), startDate: safeOptionalString(32), targetDate: safeOptionalString(32), budgetAmount: z.number().min(0).max(99_999_999).nullable().optional(), invoiceId: z.number().int().positive().nullable().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [current] = await db.select().from(jobs).where(and(eq(jobs.id, input.id), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!current) throw new TRPCError({ code: "NOT_FOUND" });
+        const { id, budgetAmount, ...rest } = input;
+        const updates: Record<string, unknown> = { ...rest, updatedAt: new Date() };
+        if (budgetAmount !== undefined) updates.budgetAmount = budgetAmount === null ? null : String(budgetAmount);
+        if (input.status === "completed" && current.status !== "completed") updates.completedAt = new Date();
+        if (input.status && input.status !== current.status) {
+          await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: id, actor: "owner", eventType: "status_changed", message: `Status changed from ${current.status.replaceAll("_", " ")} to ${input.status.replaceAll("_", " ")}.` });
+        }
+        await db.update(jobs).set(updates).where(and(eq(jobs.id, id), eq(jobs.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    addTask: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive(), title: safeString(255), description: safeOptionalString(5000), dueDate: safeOptionalString(32) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND" });
+        const [result] = await db.insert(jobTasks).values({ userId: ctx.user.id, jobId: input.jobId, title: input.title, description: input.description ?? null, dueDate: input.dueDate ?? null });
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: input.jobId, actor: "owner", eventType: "task_added", message: `Added checklist item: ${input.title}.` });
+        return { id: Number(result.insertId) };
+      }),
+
+    updateTask: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), status: z.enum(["todo", "in_progress", "done"]).optional(), title: safeOptionalString(255), dueDate: safeOptionalString(32) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [task] = await db.select().from(jobTasks).where(and(eq(jobTasks.id, input.id), eq(jobTasks.userId, ctx.user.id))).limit(1);
+        if (!task) throw new TRPCError({ code: "NOT_FOUND" });
+        const { id, ...inputUpdates } = input;
+        const updates: Record<string, unknown> = { ...inputUpdates };
+        if (input.status === "done" && task.status !== "done") updates.completedAt = new Date();
+        if (input.status && input.status !== task.status) await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: task.jobId, actor: "owner", eventType: "task_status_changed", message: `Checklist item “${task.title}” marked ${input.status.replaceAll("_", " ")}.` });
+        await db.update(jobTasks).set(updates).where(and(eq(jobTasks.id, id), eq(jobTasks.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    deleteTask: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(jobTasks).where(and(eq(jobTasks.id, input.id), eq(jobTasks.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    addUpdate: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive(), message: safeString(5000), visibleToClient: z.boolean().default(true) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND" });
+        const [result] = await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: input.jobId, actor: "owner", eventType: input.visibleToClient ? "client_update" : "internal_note", message: input.message, metadata: JSON.stringify({ visibleToClient: input.visibleToClient }) });
+        return { id: Number(result.insertId) };
+      }),
+
+    attachPhoto: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive(), photoId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        const [photo] = await db.select({ id: jobPhotos.id, photoType: jobPhotos.photoType }).from(jobPhotos).where(and(eq(jobPhotos.id, input.photoId), eq(jobPhotos.userId, ctx.user.id))).limit(1);
+        if (!job || !photo) throw new TRPCError({ code: "NOT_FOUND" });
+        await db.update(jobPhotos).set({ jobId: job.id }).where(and(eq(jobPhotos.id, photo.id), eq(jobPhotos.userId, ctx.user.id)));
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: job.id, actor: "owner", eventType: "photo_linked", message: `Linked a ${photo.photoType === "wip" ? "work-in-progress" : photo.photoType} photo.` });
+        return { success: true };
       }),
   }),
 });

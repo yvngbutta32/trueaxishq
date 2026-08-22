@@ -1556,13 +1556,14 @@
 - [ ] Finish SMTP domain authentication, verified sender configuration, and transactional-email health visibility
 - [x] Build native client self-service booking reschedule and cancellation controls with atomic availability protection
 - [x] Build the Automation Center: visible run history, error states, retries, delayed actions, and rule editing
-- [ ] Create a unified Job Workspace data model connecting client, booking, proposal, visits, proof photos, time, costs, status, invoice, and payment
-- [ ] Build the owner Job Workspace UI with lifecycle status, task/checklist, job-cost/profitability, and activity timeline
-- [ ] Build the client Job Progress Center with milestones, approvals, appointment actions, proof-of-work, messages, and billing
+- [x] Create a unified Job Workspace data model connecting client, booking, proposal, visits, proof photos, time, costs, status, invoice, and payment
+- [x] Build the owner Job Workspace UI with lifecycle status, task/checklist, job-cost/profitability, and activity timeline
+- [x] Build the client Job Progress Center with milestones, approvals, appointment actions, proof-of-work, messages, and billing
 - [ ] Create vertical fast-start onboarding kits for consultant/coach, creative freelancer, agency, and field-service workflows
 - [ ] Add Field Mode for mobile-first time tracking, proof capture, checklists, and client updates
 - [ ] Build the executive operating dashboard with lead conversion, cash, receivables, capacity, margin, and automation health
 - [ ] Validate every critical customer journey, accessibility, mobile workflow, reliability guard, and production build before release
+- [x] Remove fabricated testimonial-style cards and unsupported public adoption/revenue claims from the landing page
 
 ### Complete Verified Remediation Register
 - [x] Move client-list search and status filtering from in-memory processing to database filtering

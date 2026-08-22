@@ -425,6 +425,7 @@ export const timeEntries = mysqlTable("timeEntries", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   clientId: int("clientId"),
+  jobId: int("jobId"),
   clientName: varchar("clientName", { length: 255 }),
   projectName: varchar("projectName", { length: 255 }),
   description: text("description"),
@@ -436,7 +437,7 @@ export const timeEntries = mysqlTable("timeEntries", {
   invoiced: boolean("invoiced").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 },
-(t) => [index("timeEntries_userId_idx").on(t.userId)]
+  (t) => [index("timeEntries_userId_idx").on(t.userId), index("timeEntries_jobId_idx").on(t.jobId)]
 );
 
 export type TimeEntry = typeof timeEntries.$inferSelect;
@@ -823,6 +824,7 @@ export const jobPhotos = mysqlTable("jobPhotos", {
   // Reference to the associated booking (nullable — can also attach to a client)
   bookingId: int("bookingId"),
   clientId: int("clientId"),
+  jobId: int("jobId"),
   // Photo classification
   photoType: mysqlEnum("photoType", ["estimate", "wip", "finished", "receipt"]).notNull().default("estimate"),
   uploadedBy: mysqlEnum("uploadedBy", ["client", "owner"]).notNull().default("client"),
@@ -842,8 +844,69 @@ export const jobPhotos = mysqlTable("jobPhotos", {
   index("jobPhotos_userId_idx").on(t.userId),
   index("jobPhotos_bookingId_idx").on(t.bookingId),
   index("jobPhotos_clientId_idx").on(t.clientId),
+  index("jobPhotos_jobId_idx").on(t.jobId),
   index("jobPhotos_photoType_idx").on(t.photoType),
 ]
 );
 export type JobPhoto = typeof jobPhotos.$inferSelect;
 export type InsertJobPhoto = typeof jobPhotos.$inferInsert;
+
+// ── Unified Job Workspace ─────────────────────────────────────────────────────
+// A lifecycle record connecting client work, appointments, commercial records,
+// proof-of-work, time, cost evidence, and customer-visible progress.
+export const jobs = mysqlTable("jobs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  clientId: int("clientId").notNull(),
+  bookingId: int("bookingId"),
+  proposalId: int("proposalId"),
+  contractId: int("contractId"),
+  invoiceId: int("invoiceId"),
+  jobNumber: varchar("jobNumber", { length: 40 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  status: mysqlEnum("status", ["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]).notNull().default("lead"),
+  priority: mysqlEnum("priority", ["low", "normal", "high", "urgent"]).notNull().default("normal"),
+  startDate: varchar("startDate", { length: 32 }),
+  targetDate: varchar("targetDate", { length: 32 }),
+  completedAt: timestamp("completedAt"),
+  budgetAmount: decimal("budgetAmount", { precision: 10, scale: 2 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("jobs_userId_idx").on(t.userId),
+  index("jobs_clientId_idx").on(t.clientId),
+  index("jobs_status_idx").on(t.status),
+  uniqueIndex("jobs_userId_jobNumber_unique_idx").on(t.userId, t.jobNumber),
+]);
+export type Job = typeof jobs.$inferSelect;
+export type InsertJob = typeof jobs.$inferInsert;
+
+export const jobTasks = mysqlTable("jobTasks", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  jobId: int("jobId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  status: mysqlEnum("status", ["todo", "in_progress", "done"]).notNull().default("todo"),
+  dueDate: varchar("dueDate", { length: 32 }),
+  completedAt: timestamp("completedAt"),
+  sortOrder: int("sortOrder").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [index("jobTasks_userId_idx").on(t.userId), index("jobTasks_jobId_idx").on(t.jobId)]);
+export type JobTask = typeof jobTasks.$inferSelect;
+export type InsertJobTask = typeof jobTasks.$inferInsert;
+
+export const jobActivities = mysqlTable("jobActivities", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  jobId: int("jobId").notNull(),
+  actor: mysqlEnum("actor", ["owner", "client", "system"]).notNull().default("owner"),
+  eventType: varchar("eventType", { length: 100 }).notNull(),
+  message: text("message").notNull(),
+  metadata: text("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [index("jobActivities_userId_idx").on(t.userId), index("jobActivities_jobId_idx").on(t.jobId)]);
+export type JobActivity = typeof jobActivities.$inferSelect;
+export type InsertJobActivity = typeof jobActivities.$inferInsert;

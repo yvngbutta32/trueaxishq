@@ -46,11 +46,12 @@ const Proposals = lazy(() => import("./Proposals"));
 const Automations = lazy(() => import("./Automations"));
 const BillingPanel = lazy(() => import("./BillingPanel"));
 const JobPhotosPanel = lazy(() => import("./JobPhotosPanel"));
+const JobWorkspace = lazy(() => import("./JobWorkspace"));
 const OutreachPanel = lazy(() => import("./OutreachPanel"));
 const DealsPanel = lazy(() => import("./DealsPanel"));
 const InsightsPanel = lazy(() => import("./InsightsPanel"));
 
-type ActivePanel = "overview" | "clients" | "scheduling" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations" | "billing" | "outreach" | "deals" | "insights" | "photos";
+type ActivePanel = "overview" | "clients" | "scheduling" | "jobs" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations" | "billing" | "outreach" | "deals" | "insights" | "photos";
 
 interface ConfirmState {
   open: boolean;
@@ -315,6 +316,7 @@ const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; ba
   { icon: LayoutDashboard, label: "Dashboard",  panel: "overview"   },
   { icon: Users,           label: "Clients",    panel: "clients"    },
   { icon: Calendar,        label: "Scheduling", panel: "scheduling" },
+  { icon: Package,         label: "Jobs",       panel: "jobs"       },
   { icon: FileText,        label: "Billing",    panel: "billing"    },
   { icon: Mail,            label: "Outreach",   panel: "outreach"   },
   { icon: FileSignature,   label: "Deals",      panel: "deals"      },
@@ -4918,7 +4920,7 @@ export default function Dashboard() {
   const [active, setActive] = useState<ActivePanel>(() => {
     if (typeof window !== "undefined") {
       const param = new URLSearchParams(window.location.search).get("panel");
-      const valid: ActivePanel[] = ["overview","clients","scheduling","billing","outreach","deals","insights","settings","ai","photos",
+      const valid: ActivePanel[] = ["overview","clients","scheduling","jobs","billing","outreach","deals","insights","settings","ai","photos",
         // Legacy sub-panel deep links — will auto-redirect to parent
         "invoices","followups","analytics","pulse","contracts","time","inbox","testimonials","services","expenses","proposals","automations"];
       if (param && valid.includes(param as ActivePanel)) return param as ActivePanel;
@@ -4977,6 +4979,7 @@ export default function Dashboard() {
             overview: "Dashboard — TrueAxis HQ",
       clients: "Clients — TrueAxis HQ",
       scheduling: "Scheduling — TrueAxis HQ",
+      jobs: "Job Workspace — TrueAxis HQ",
       invoices: "Invoices — TrueAxis HQ",
       followups: "Follow-Ups — TrueAxis HQ",
       analytics: "Analytics — TrueAxis HQ",
@@ -5057,7 +5060,7 @@ export default function Dashboard() {
 
   // Panel metadata — defined before any early returns to satisfy Rules of Hooks
   const panelTitles: Record<ActivePanel, string> = {
-    overview: "Dashboard", clients: "Clients", scheduling: "Scheduling",
+    overview: "Dashboard", clients: "Clients", scheduling: "Scheduling", jobs: "Job Workspace",
     invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics",
     settings: "Settings", ai: "AI Assistant", pulse: "Client Pulse",
     contracts: "Contracts", time: "Time Tracking",
@@ -5069,6 +5072,7 @@ export default function Dashboard() {
     overview: "Your business at a glance",
     clients: "Manage relationships & contacts",
     scheduling: "Appointments & availability",
+    jobs: "Run each job from approved work to proof and profit",
     invoices: "Billing, payments & recurring",
     followups: "Automated client outreach",
     analytics: "Revenue & performance insights",
@@ -5108,6 +5112,7 @@ export default function Dashboard() {
         </PanelErrorBoundary>
       );
       case "scheduling": return <PanelErrorBoundary panelName="Scheduling"><SchedulingPanel /></PanelErrorBoundary>;
+      case "jobs": return <PanelErrorBoundary panelName="Job Workspace"><JobWorkspace /></PanelErrorBoundary>;
       // Legacy deep links redirect through the effect above.
       case "invoices":
       case "followups":
