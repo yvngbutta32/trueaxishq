@@ -30,7 +30,7 @@ import {
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
   Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload,
   Home, Crown, ArrowRight, Shield, Inbox, MessageSquare, Tag, ThumbsUp, CalendarX, Link2, Wifi, WifiOff,
-  Package, Receipt, Smartphone, Rocket
+  Package, Receipt, Smartphone, Rocket, UsersRound, MapPin, PlugZap
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -48,13 +48,16 @@ const BillingPanel = lazy(() => import("./BillingPanel"));
 const JobPhotosPanel = lazy(() => import("./JobPhotosPanel"));
 const JobWorkspace = lazy(() => import("./JobWorkspace"));
 const FieldMode = lazy(() => import("./FieldMode"));
+const TeamOperations = lazy(() => import("./TeamOperations"));
+const DispatchBoard = lazy(() => import("./DispatchBoard"));
+const IntegrationHub = lazy(() => import("./IntegrationHub"));
 const ExecutiveDashboard = lazy(() => import("./ExecutiveDashboard"));
 const LaunchReadiness = lazy(() => import("./LaunchReadiness"));
 const OutreachPanel = lazy(() => import("./OutreachPanel"));
 const DealsPanel = lazy(() => import("./DealsPanel"));
 const InsightsPanel = lazy(() => import("./InsightsPanel"));
 
-type ActivePanel = "overview" | "executive" | "launch" | "clients" | "scheduling" | "jobs" | "field" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations" | "billing" | "outreach" | "deals" | "insights" | "photos";
+type ActivePanel = "overview" | "executive" | "launch" | "clients" | "scheduling" | "jobs" | "team" | "dispatch" | "field" | "integrations" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations" | "billing" | "outreach" | "deals" | "insights" | "photos";
 
 interface ConfirmState {
   open: boolean;
@@ -325,7 +328,10 @@ const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; ba
   { icon: Users,           label: "Clients",    panel: "clients"    },
   { icon: Calendar,        label: "Scheduling", panel: "scheduling" },
   { icon: Package,         label: "Jobs",       panel: "jobs"       },
+  { icon: UsersRound,      label: "Team",       panel: "team"       },
+  { icon: MapPin,          label: "Dispatch",   panel: "dispatch"   },
   { icon: Smartphone,      label: "Field Mode", panel: "field"      },
+  { icon: PlugZap,         label: "Integrations", panel: "integrations" },
   { icon: FileText,        label: "Billing",    panel: "billing"    },
   { icon: Mail,            label: "Outreach",   panel: "outreach"   },
   { icon: FileSignature,   label: "Deals",      panel: "deals"      },
@@ -4740,7 +4746,10 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
       label: "Work",
       items: [
         { icon: FileSignature, label: "Jobs",         panel: "jobs"       as ActivePanel },
+        { icon: UsersRound,    label: "Team",         panel: "team"       as ActivePanel },
+        { icon: MapPin,        label: "Dispatch",     panel: "dispatch"   as ActivePanel },
         { icon: Calendar,      label: "Field Mode",   panel: "field"      as ActivePanel },
+        { icon: PlugZap,       label: "Integrations", panel: "integrations" as ActivePanel },
         { icon: FileText,      label: "Job Photos",   panel: "photos"     as ActivePanel },
         { icon: BarChart3,     label: "Executive",    panel: "executive"  as ActivePanel },
         { icon: Mail,          label: "Outreach",     panel: "outreach"   as ActivePanel },
@@ -4927,7 +4936,7 @@ export default function Dashboard() {
   const [active, setActive] = useState<ActivePanel>(() => {
     if (typeof window !== "undefined") {
       const param = new URLSearchParams(window.location.search).get("panel");
-      const valid: ActivePanel[] = ["overview","clients","scheduling","jobs","billing","outreach","deals","insights","settings","ai","photos",
+      const valid: ActivePanel[] = ["overview","clients","scheduling","jobs","team","dispatch","integrations","billing","outreach","deals","insights","settings","ai","photos",
         // Legacy sub-panel deep links — will auto-redirect to parent
         "invoices","followups","analytics","pulse","contracts","time","inbox","testimonials","services","expenses","proposals","automations"];
       if (param && valid.includes(param as ActivePanel)) return param as ActivePanel;
@@ -4989,7 +4998,10 @@ export default function Dashboard() {
       clients: "Clients — TrueAxis HQ",
       scheduling: "Scheduling — TrueAxis HQ",
       jobs: "Job Workspace — TrueAxis HQ",
+      team: "Team & Capacity — TrueAxis HQ",
+      dispatch: "Dispatch Board — TrueAxis HQ",
       field: "Field Mode — TrueAxis HQ",
+      integrations: "Integration Hub — TrueAxis HQ",
       invoices: "Invoices — TrueAxis HQ",
       followups: "Follow-Ups — TrueAxis HQ",
       analytics: "Analytics — TrueAxis HQ",
@@ -5070,7 +5082,7 @@ export default function Dashboard() {
 
   // Panel metadata — defined before any early returns to satisfy Rules of Hooks
   const panelTitles: Record<ActivePanel, string> = {
-    overview: "Dashboard", executive: "Operations", launch: "Launch Readiness", clients: "Clients", scheduling: "Scheduling", jobs: "Job Workspace", field: "Field Mode",
+    overview: "Dashboard", executive: "Operations", launch: "Launch Readiness", clients: "Clients", scheduling: "Scheduling", jobs: "Job Workspace", team: "Team & Capacity", dispatch: "Dispatch Board", field: "Field Mode", integrations: "Integration Hub",
     invoices: "Invoices", followups: "Follow-Ups", analytics: "Analytics",
     settings: "Settings", ai: "AI Assistant", pulse: "Client Pulse",
     contracts: "Contracts", time: "Time Tracking",
@@ -5085,7 +5097,10 @@ export default function Dashboard() {
     clients: "Manage relationships & contacts",
     scheduling: "Appointments & availability",
     jobs: "Run each job from approved work to proof and profit",
+    team: "Capacity planning and accountable job ownership",
+    dispatch: "Schedule service visits and coordinate the next field handoff",
     field: "Mobile-first time, proof, and client updates",
+    integrations: "Provider readiness and truthful connection status",
     invoices: "Billing, payments & recurring",
     followups: "Automated client outreach",
     analytics: "Revenue & performance insights",
@@ -5128,7 +5143,10 @@ export default function Dashboard() {
       case "executive": return <PanelErrorBoundary panelName="Executive Operating Dashboard"><ExecutiveDashboard /></PanelErrorBoundary>;
       case "launch": return <PanelErrorBoundary panelName="Launch Readiness"><LaunchReadiness onNavigate={setActiveWithScroll} /></PanelErrorBoundary>;
       case "jobs": return <PanelErrorBoundary panelName="Job Workspace"><JobWorkspace /></PanelErrorBoundary>;
+      case "team": return <PanelErrorBoundary panelName="Team Operations"><TeamOperations /></PanelErrorBoundary>;
+      case "dispatch": return <PanelErrorBoundary panelName="Dispatch Board"><DispatchBoard /></PanelErrorBoundary>;
       case "field": return <PanelErrorBoundary panelName="Field Mode"><FieldMode /></PanelErrorBoundary>;
+      case "integrations": return <PanelErrorBoundary panelName="Integration Hub"><IntegrationHub onOpenSettings={() => setActiveWithScroll("settings")} /></PanelErrorBoundary>;
       // Legacy deep links redirect through the effect above.
       case "invoices":
       case "followups":

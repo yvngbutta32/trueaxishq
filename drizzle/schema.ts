@@ -891,6 +891,87 @@ export const jobActivities = mysqlTable("jobActivities", {
 }, (t) => [index("jobActivities_userId_idx").on(t.userId), index("jobActivities_jobId_idx").on(t.jobId)]);
 export type JobActivity = typeof jobActivities.$inferSelect;
 
+// ─── Team Operations & Dispatch Foundation ────────────────────────────────────
+// Team members are owner-managed operational roster records. They are not
+// authenticated accounts, so a matching email never grants access to a workspace.
+export const teamMembers = mysqlTable("teamMembers", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  phone: varchar("phone", { length: 32 }),
+  role: mysqlEnum("role", ["coordinator", "manager", "specialist", "technician", "contractor"]).notNull().default("specialist"),
+  color: varchar("color", { length: 16 }).notNull().default("#D4922A"),
+  weeklyCapacityMinutes: int("weeklyCapacityMinutes").notNull().default(2400),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [index("teamMembers_userId_idx").on(t.userId), index("teamMembers_user_active_idx").on(t.userId, t.active)]);
+export type TeamMember = typeof teamMembers.$inferSelect;
+
+export const jobAssignments = mysqlTable("jobAssignments", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  jobId: int("jobId").notNull(),
+  teamMemberId: int("teamMemberId").notNull(),
+  assignmentRole: mysqlEnum("assignmentRole", ["lead", "support", "reviewer", "coordinator"]).notNull().default("support"),
+  status: mysqlEnum("status", ["assigned", "acknowledged", "declined", "completed"]).notNull().default("assigned"),
+  plannedMinutes: int("plannedMinutes"),
+  note: varchar("note", { length: 1000 }),
+  acknowledgedAt: timestamp("acknowledgedAt"),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("jobAssignments_userId_idx").on(t.userId),
+  index("jobAssignments_jobId_idx").on(t.jobId),
+  index("jobAssignments_memberId_idx").on(t.teamMemberId),
+  uniqueIndex("jobAssignments_owner_job_member_unique_idx").on(t.userId, t.jobId, t.teamMemberId),
+]);
+export type JobAssignment = typeof jobAssignments.$inferSelect;
+
+// A service visit is a planned execution window inside a job. It does not claim
+// GPS tracking, automated routing, or client-visible dispatch status.
+export const serviceVisits = mysqlTable("serviceVisits", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  jobId: int("jobId").notNull(),
+  teamMemberId: int("teamMemberId"),
+  title: varchar("title", { length: 255 }).notNull(),
+  scheduledStart: timestamp("scheduledStart").notNull(),
+  scheduledEnd: timestamp("scheduledEnd").notNull(),
+  status: mysqlEnum("status", ["scheduled", "en_route", "in_progress", "completed", "cancelled"]).notNull().default("scheduled"),
+  siteLabel: varchar("siteLabel", { length: 255 }),
+  dispatchNote: varchar("dispatchNote", { length: 1000 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("serviceVisits_userId_idx").on(t.userId),
+  index("serviceVisits_jobId_idx").on(t.jobId),
+  index("serviceVisits_member_time_idx").on(t.teamMemberId, t.scheduledStart),
+  index("serviceVisits_owner_time_idx").on(t.userId, t.scheduledStart),
+]);
+export type ServiceVisit = typeof serviceVisits.$inferSelect;
+
+// ─── Integration Readiness ────────────────────────────────────────────────────
+// This table stores only owner-visible readiness metadata. Provider credentials and
+// access tokens remain in their dedicated secure integration paths.
+export const integrationConnections = mysqlTable("integrationConnections", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  provider: mysqlEnum("provider", ["google_calendar", "outlook_calendar", "quickbooks", "gmail", "outlook", "slack", "twilio", "zapier", "stripe"]).notNull(),
+  category: mysqlEnum("category", ["calendar", "accounting", "communications", "automation", "payments"]).notNull(),
+  status: mysqlEnum("status", ["not_connected", "needs_configuration", "connected", "error"]).notNull().default("not_connected"),
+  configurationNote: varchar("configurationNote", { length: 1000 }),
+  lastCheckedAt: timestamp("lastCheckedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("integrationConnections_userId_idx").on(t.userId),
+  uniqueIndex("integrationConnections_owner_provider_unique_idx").on(t.userId, t.provider),
+]);
+export type IntegrationConnection = typeof integrationConnections.$inferSelect;
+
 // ─── Background Job Run Guards ───────────────────────────────────────────────
 // A durable primary key makes periodic jobs idempotent across multiple workers.
 export const jobRunGuards = mysqlTable("jobRunGuards", {

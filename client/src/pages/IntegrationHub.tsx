@@ -1,0 +1,60 @@
+import { useMemo, useState } from "react";
+import { trpc } from "@/lib/trpc";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { CalendarDays, CheckCircle2, CreditCard, ExternalLink, Loader2, MessageSquare, PlugZap, ShieldCheck, XCircle } from "lucide-react";
+
+type Provider = "google_calendar" | "outlook_calendar" | "quickbooks" | "gmail" | "outlook" | "slack" | "twilio" | "zapier" | "stripe";
+type Category = "calendar" | "accounting" | "communications" | "automation" | "payments";
+
+const categoryMeta: Record<Category, { label: string; icon: typeof CalendarDays }> = {
+  calendar: { label: "Calendar", icon: CalendarDays },
+  accounting: { label: "Accounting", icon: CreditCard },
+  communications: { label: "Communications", icon: MessageSquare },
+  automation: { label: "Automation", icon: PlugZap },
+  payments: { label: "Payments", icon: ShieldCheck },
+};
+
+export default function IntegrationHub({ onOpenSettings }: { onOpenSettings: () => void }) {
+  const utils = trpc.useUtils();
+  const { data: connections = [], isLoading } = trpc.integrations.list.useQuery();
+  const [selected, setSelected] = useState<Provider | null>(null);
+  const [note, setNote] = useState("");
+  const prepare = trpc.integrations.prepare.useMutation({
+    onSuccess: () => { void utils.integrations.list.invalidate(); setSelected(null); setNote(""); toast.success("Connection readiness recorded. Provider authorization is still required."); },
+    onError: error => toast.error(error.message),
+  });
+  const disconnect = trpc.integrations.disconnect.useMutation({
+    onSuccess: () => { void utils.integrations.list.invalidate(); toast.success("Local connection state removed."); },
+    onError: error => toast.error(error.message),
+  });
+
+  const selectedConnection = useMemo(() => connections.find(connection => connection.provider === selected), [connections, selected]);
+  const groups = useMemo(() => Object.entries(connections.reduce<Record<string, typeof connections>>((result, connection) => {
+    (result[connection.category] ??= []).push(connection);
+    return result;
+  }, {})), [connections]);
+
+  if (isLoading) return <div className="h-[480px] rounded-2xl bg-slate-100 animate-pulse" />;
+
+  return <div className="space-y-6">
+    <header><p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#D4922A]">Ecosystem</p><h1 className="mt-1 text-2xl font-bold text-[#1A1A1A]">Integration Hub</h1><p className="mt-1 max-w-2xl text-sm text-[rgba(26,26,26,0.62)]">A single, truthful view of the tools around your business. A provider is marked connected only after an authorized integration path confirms it.</p></header>
+
+    <section className="rounded-2xl border border-[#D4922A]/25 bg-[#D4922A]/5 p-4"><div className="flex gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#9A610A]" /><div><h2 className="text-sm font-bold text-[#1A1A1A]">Connection-state integrity</h2><p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.65)]">This hub never accepts a manual “connected” claim. Google Calendar is derived from its secure authorization record. Other entries remain in readiness states until their provider flow is implemented and verified with the owner’s account.</p></div></div></section>
+
+    <div className="space-y-6">{groups.map(([category, group]) => {
+      const meta = categoryMeta[category as Category];
+      const Icon = meta.icon;
+      return <section key={category}><div className="mb-3 flex items-center gap-2"><Icon className="h-4 w-4 text-[#D4922A]" /><h2 className="text-sm font-bold text-[#1A1A1A]">{meta.label}</h2></div><div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">{group.map(connection => <article key={connection.provider} className="flex flex-col rounded-2xl border border-[rgba(26,26,26,0.1)] bg-white p-4"><div className="flex items-start justify-between gap-3"><div><h3 className="font-bold text-[#1A1A1A]">{connection.name}</h3><p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.58)]">{connection.description}</p></div><StatusBadge status={connection.status} /></div>{connection.configurationNote && <p className="mt-3 rounded-lg bg-[#F7F6F3] px-3 py-2 text-xs text-[rgba(26,26,26,0.62)]">Readiness note: {connection.configurationNote}</p>}<div className="mt-auto pt-4">{connection.isProviderAuthorized ? <div className="flex gap-2"><Button size="sm" variant="outline" onClick={onOpenSettings} className="flex-1 border-[#D4922A]/40 text-[#8A5A0B]"><ExternalLink className="mr-1 h-3.5 w-3.5" /> Manage</Button><Button size="sm" variant="outline" onClick={() => disconnect.mutate({ provider: connection.provider as Provider })} disabled={disconnect.isPending} className="border-rose-200 text-rose-700 hover:bg-rose-50" aria-label={`Disconnect ${connection.name}`}><XCircle className="h-3.5 w-3.5" /></Button></div> : connection.provider === "google_calendar" && connection.availability === "available_now" ? <Button size="sm" onClick={onOpenSettings} className="w-full bg-[#1C2333] text-white hover:bg-[#2B3446]"><ExternalLink className="mr-1 h-3.5 w-3.5" /> Authorize in Settings</Button> : <Button size="sm" variant="outline" onClick={() => { setSelected(connection.provider as Provider); setNote(connection.configurationNote ?? ""); }} className="w-full border-[#D4922A]/40 text-[#8A5A0B]">{connection.status === "needs_configuration" ? "Update readiness" : "Prepare connection"}</Button>}</div></article>)}</div></section>;
+    })}</div>
+
+    <Dialog open={Boolean(selected)} onOpenChange={open => { if (!open) { setSelected(null); setNote(""); } }}><DialogContent className="max-w-lg bg-white"><DialogHeader><DialogTitle className="text-[#1A1A1A]">Prepare {selectedConnection?.name} connection</DialogTitle></DialogHeader><div className="space-y-3 py-2"><p className="text-sm text-[rgba(26,26,26,0.64)]">Record internal readiness for this provider. This does not submit credentials, authorize the provider, or claim a live connection.</p><label className="block text-sm font-semibold text-[#1A1A1A]">Readiness note <span className="font-normal text-[rgba(26,26,26,0.48)]">(optional)</span><textarea value={note} onChange={event => setNote(event.target.value)} maxLength={1000} rows={4} placeholder="Example: account owner is deciding which workspace to authorize" className="mt-1.5 block w-full resize-none rounded-lg border border-[rgba(26,26,26,0.16)] bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-[#D4922A]/35" /></label></div><DialogFooter><Button variant="outline" onClick={() => setSelected(null)}>Cancel</Button><Button onClick={() => selected && prepare.mutate({ provider: selected, configurationNote: note.trim() || undefined })} disabled={prepare.isPending} className="bg-[#D4922A] text-white hover:bg-[#B87716]">{prepare.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save readiness"}</Button></DialogFooter></DialogContent></Dialog>
+  </div>;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = { connected: "bg-emerald-50 text-emerald-700", needs_configuration: "bg-amber-50 text-amber-800", error: "bg-rose-50 text-rose-700", not_connected: "bg-slate-100 text-slate-600" };
+  const text: Record<string, string> = { connected: "Connected", needs_configuration: "Needs setup", error: "Needs attention", not_connected: "Not connected" };
+  return <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold ${styles[status] ?? styles.not_connected}`}>{text[status] ?? "Not connected"}</span>;
+}

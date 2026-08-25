@@ -1,0 +1,88 @@
+import { useMemo, useState } from "react";
+import { trpc } from "@/lib/trpc";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { AlertTriangle, CalendarPlus, CarFront, CheckCircle2, Clock3, Loader2, MapPin, Route, X } from "lucide-react";
+
+const VISIT_STATUSES = ["scheduled", "en_route", "in_progress", "completed", "cancelled"] as const;
+
+const toDateTimeLocal = (date: Date) => {
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+};
+const startOfNextHour = () => {
+  const date = new Date();
+  date.setMinutes(0, 0, 0);
+  date.setHours(date.getHours() + 1);
+  return date;
+};
+const defaultVisitForm = () => {
+  const start = startOfNextHour();
+  const end = new Date(start.getTime() + 60 * 60_000);
+  return { assignmentId: "", title: "", start: toDateTimeLocal(start), end: toDateTimeLocal(end), siteLabel: "", dispatchNote: "", allowConflict: false };
+};
+const label = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, character => character.toUpperCase());
+const dateTime = (value: Date | string) => new Date(value).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+
+export default function DispatchBoard() {
+  const utils = trpc.useUtils();
+  const { data: visits = [], isLoading } = trpc.dispatch.listVisits.useQuery();
+  const { data: assignments = [] } = trpc.team.listAssignments.useQuery();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState(defaultVisitForm);
+
+  const dispatchableAssignments = useMemo(() => assignments.filter(assignment => ["assigned", "acknowledged"].includes(assignment.status) && !["completed", "cancelled"].includes(assignment.jobStatus)), [assignments]);
+  const activeVisits = useMemo(() => visits.filter(visit => !["completed", "cancelled"].includes(visit.status)), [visits]);
+  const selectedAssignment = useMemo(() => assignments.find(assignment => String(assignment.id) === form.assignmentId), [assignments, form.assignmentId]);
+  const groupedVisits = useMemo(() => visits.reduce<Record<string, typeof visits>>((groups, visit) => {
+    const key = new Date(visit.scheduledStart).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+    (groups[key] ??= []).push(visit);
+    return groups;
+  }, {}), [visits]);
+
+  const invalidate = () => { void utils.dispatch.listVisits.invalidate(); void utils.jobs.get.invalidate(); };
+  const createVisit = trpc.dispatch.createVisit.useMutation({
+    onSuccess: result => { invalidate(); setCreateOpen(false); setForm(defaultVisitForm()); toast.success(result.conflictAcknowledged ? "Visit scheduled with the acknowledged overlap." : "Service visit scheduled."); },
+    onError: error => {
+      if (error.data?.code === "CONFLICT") toast.error("This time overlaps an active visit. Select the exception acknowledgement only if this is intentional.");
+      else toast.error(error.message);
+    },
+  });
+  const updateVisit = trpc.dispatch.updateVisit.useMutation({ onSuccess: invalidate, onError: error => toast.error(error.message) });
+  const cancelVisit = trpc.dispatch.cancelVisit.useMutation({ onSuccess: () => { invalidate(); toast.success("Service visit cancelled."); }, onError: error => toast.error(error.message) });
+
+  const submitVisit = () => {
+    if (!selectedAssignment) return toast.error("Choose an active job assignment.");
+    const scheduledStart = new Date(form.start);
+    const scheduledEnd = new Date(form.end);
+    if (!form.title.trim()) return toast.error("Name the service visit.");
+    if (Number.isNaN(scheduledStart.getTime()) || Number.isNaN(scheduledEnd.getTime()) || scheduledEnd <= scheduledStart) return toast.error("Choose a valid visit window.");
+    createVisit.mutate({
+      jobId: selectedAssignment.jobId,
+      teamMemberId: selectedAssignment.teamMemberId,
+      title: form.title.trim(),
+      scheduledStart,
+      scheduledEnd,
+      siteLabel: form.siteLabel.trim() || undefined,
+      dispatchNote: form.dispatchNote.trim() || undefined,
+      allowConflict: form.allowConflict,
+    });
+  };
+
+  if (isLoading) return <div className="h-[480px] rounded-2xl bg-slate-100 animate-pulse" />;
+
+  return <div className="space-y-6">
+    <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#D4922A]">Operations</p><h1 className="mt-1 text-2xl font-bold text-[#1A1A1A]">Dispatch Board</h1><p className="mt-1 max-w-2xl text-sm text-[rgba(26,26,26,0.62)]">Turn job ownership into clear service visits, controlled handoffs, and client-ready progress without hidden schedule conflicts.</p></div><Button onClick={() => setCreateOpen(true)} disabled={!dispatchableAssignments.length} className="bg-[#D4922A] text-white hover:bg-[#B87716]"><CalendarPlus className="mr-2 h-4 w-4" /> Schedule visit</Button></header>
+
+    <section className="grid gap-3 sm:grid-cols-3"><Metric label="Active visits" value={String(activeVisits.length)} detail="Scheduled, en route, or in progress" /><Metric label="Ready assignments" value={String(dispatchableAssignments.length)} detail="Job owners available for scheduling" /><Metric label="Operating boundary" value="Manual" detail="No GPS, routing, or automated ETA claims" /></section>
+
+    <section className="rounded-2xl border border-[rgba(26,26,26,0.1)] bg-white p-5"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-bold text-[#1A1A1A]">Service timeline</h2><p className="mt-1 text-xs text-[rgba(26,26,26,0.56)]">“En route” is a deliberate internal status. The board does not represent live location, route optimization, or customer ETA tracking.</p></div><Route className="h-5 w-5 text-[#D4922A]" /></div>{visits.length === 0 ? <div className="mt-5 rounded-xl bg-[#F7F6F3] px-5 py-10 text-center"><CarFront className="mx-auto h-8 w-8 text-[#D4922A]" /><h3 className="mt-3 text-sm font-bold text-[#1A1A1A]">No service visits scheduled</h3><p className="mx-auto mt-1 max-w-md text-xs text-[rgba(26,26,26,0.56)]">Create a job assignment first, then schedule a service visit for the person responsible for the work.</p>{dispatchableAssignments.length > 0 && <Button size="sm" onClick={() => setCreateOpen(true)} className="mt-4 bg-[#1C2333] text-white hover:bg-[#2B3446]"><CalendarPlus className="mr-1 h-4 w-4" /> Schedule first visit</Button>}</div> : <div className="mt-5 space-y-6">{Object.entries(groupedVisits).map(([day, dayVisits]) => <div key={day}><h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-[rgba(26,26,26,0.48)]">{day}</h3><div className="space-y-2">{dayVisits.map(visit => <article key={visit.id} className="rounded-xl border border-[rgba(26,26,26,0.1)] p-4"><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h4 className="truncate text-sm font-bold text-[#1A1A1A]">{visit.title}</h4><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${visit.status === "completed" ? "bg-emerald-50 text-emerald-700" : visit.status === "cancelled" ? "bg-slate-100 text-slate-600" : visit.status === "in_progress" ? "bg-indigo-50 text-indigo-700" : visit.status === "en_route" ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>{label(visit.status)}</span></div><p className="mt-1 text-xs text-[rgba(26,26,26,0.6)]">{visit.jobNumber} · {visit.jobTitle} · {visit.clientName}</p><div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[rgba(26,26,26,0.56)]"><span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5" />{dateTime(visit.scheduledStart)} – {new Date(visit.scheduledEnd).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>{visit.teamMemberName && <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: visit.teamMemberColor ?? "#D4922A" }} />{visit.teamMemberName}</span>}{visit.siteLabel && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{visit.siteLabel}</span>}</div>{visit.dispatchNote && <p className="mt-2 rounded-lg bg-[#F7F6F3] px-3 py-2 text-xs text-[rgba(26,26,26,0.62)]">Internal note: {visit.dispatchNote}</p>}</div><div className="flex shrink-0 items-center gap-2"><select aria-label={`Set status for ${visit.title}`} value={visit.status} onChange={event => updateVisit.mutate({ id: visit.id, status: event.target.value as typeof VISIT_STATUSES[number] })} className="rounded-lg border border-[rgba(26,26,26,0.14)] bg-white px-2 py-2 text-xs font-semibold text-[#1A1A1A]">{VISIT_STATUSES.map(status => <option key={status} value={status}>{label(status)}</option>)}</select>{visit.status !== "cancelled" && <button type="button" onClick={() => cancelVisit.mutate({ id: visit.id })} className="rounded-lg p-2 text-rose-600 hover:bg-rose-50" aria-label={`Cancel ${visit.title}`}><X className="h-4 w-4" /></button>}</div></div></article>)}</div></div>)}</div>}</section>
+
+    <Dialog open={createOpen} onOpenChange={open => { setCreateOpen(open); if (!open) setForm(defaultVisitForm()); }}><DialogContent className="max-w-lg bg-white"><DialogHeader><DialogTitle className="text-[#1A1A1A]">Schedule service visit</DialogTitle></DialogHeader><div className="space-y-4 py-2"><label className="block text-sm font-semibold text-[#1A1A1A]">Job assignment<select value={form.assignmentId} onChange={event => { const assignment = assignments.find(item => String(item.id) === event.target.value); setForm(current => ({ ...current, assignmentId: event.target.value, title: current.title || (assignment ? `${assignment.jobTitle} service visit` : "") })); }} className="mt-1.5 w-full rounded-lg border border-[rgba(26,26,26,0.16)] bg-white px-3 py-2 text-sm font-normal"><option value="">Choose a job owner…</option>{dispatchableAssignments.map(assignment => <option key={assignment.id} value={assignment.id}>{assignment.jobNumber} · {assignment.jobTitle} — {assignment.teamMemberName}</option>)}</select></label><Field label="Visit title" value={form.title} onChange={value => setForm(current => ({ ...current, title: value }))} placeholder="e.g. Onsite installation" /><div className="grid gap-3 sm:grid-cols-2"><DateField label="Start" value={form.start} onChange={value => setForm(current => ({ ...current, start: value }))} /><DateField label="End" value={form.end} onChange={value => setForm(current => ({ ...current, end: value }))} /></div><Field label="Site label (optional)" value={form.siteLabel} onChange={value => setForm(current => ({ ...current, siteLabel: value }))} placeholder="e.g. Client office" /><Field label="Internal dispatch note (optional)" value={form.dispatchNote} onChange={value => setForm(current => ({ ...current, dispatchNote: value }))} placeholder="Access, scope, or handoff details" /><label className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"><input type="checkbox" checked={form.allowConflict} onChange={event => setForm(current => ({ ...current, allowConflict: event.target.checked }))} className="mt-0.5 h-4 w-4 accent-[#D4922A]" /><span><strong>Allow an intentional overlap.</strong> Leave this unchecked for normal scheduling. Check it only when you knowingly schedule a team member in overlapping service windows.</span></label><p className="flex gap-2 rounded-lg bg-[#F7F6F3] p-3 text-xs text-[rgba(26,26,26,0.62)]"><AlertTriangle className="h-4 w-4 flex-shrink-0 text-[#D4922A]" />This records an internal service plan. It does not send an ETA, use GPS, optimize a route, or update a client portal automatically.</p></div><DialogFooter><Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button><Button onClick={submitVisit} disabled={createVisit.isPending} className="bg-[#D4922A] text-white hover:bg-[#B87716]">{createVisit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Schedule visit"}</Button></DialogFooter></DialogContent></Dialog>
+  </div>;
+}
+
+function Metric({ label, value, detail }: { label: string; value: string; detail: string }) { return <div className="rounded-2xl border border-[rgba(26,26,26,0.1)] bg-white p-4"><p className="text-xs font-semibold uppercase tracking-wide text-[rgba(26,26,26,0.48)]">{label}</p><p className="mt-2 text-2xl font-bold text-[#1A1A1A]">{value}</p><p className="mt-1 text-xs text-[rgba(26,26,26,0.56)]">{detail}</p></div>; }
+function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string }) { return <label className="block text-sm font-semibold text-[#1A1A1A]">{label}<input value={value} onChange={event => onChange(event.target.value)} placeholder={placeholder} className="mt-1.5 block w-full rounded-lg border border-[rgba(26,26,26,0.16)] bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-[#D4922A]/35" /></label>; }
+function DateField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) { return <label className="block text-sm font-semibold text-[#1A1A1A]">{label}<input type="datetime-local" value={value} onChange={event => onChange(event.target.value)} className="mt-1.5 block w-full rounded-lg border border-[rgba(26,26,26,0.16)] bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A]" /></label>; }

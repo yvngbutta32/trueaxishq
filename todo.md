@@ -1789,3 +1789,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Refresh official capability and customer-friction evidence for selected freelancer-service and field-service competitors
 - [x] Score TrueAxis HQ and competitor workflows with a transparent weighted comparison framework
 - [x] Publish and deliver a candid updated scorecard with defensible strengths, parity areas, gaps, and deferred launch gates
+
+## Competitor-Gap Expansion Program — User Requested
+- [x] Audit existing jobs, client, booking, and field models and define an owner-safe team, resource, and dispatch architecture
+- [x] Build role-aware team members, job assignments, capacity views, and workload-safe resource planning
+- [x] Build dispatch boards, assignment handoff, service visits, and client-visible coordination without claiming live GPS or routing integrations
+- [x] Build an integration-ready connection catalog and per-provider readiness model without fabricating external account connectivity
+- [x] Add deterministic integrity, authorization, and workflow tests; validate responsive operational surfaces and publish an evidence-led expansion register

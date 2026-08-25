@@ -15,7 +15,7 @@ import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, teamMembers, jobAssignments, serviceVisits, integrationConnections, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -24,6 +24,8 @@ import { withTimeout } from "./utils";
 import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail, getEmailDeliveryStatus } from "./_core/email";
 import { createPublicUploadToken, hashPublicUploadToken, isOwnerPhotoKeyForType, PUBLIC_UPLOAD_MAX_FILES, PUBLIC_UPLOAD_TTL_MS } from "./photoUploadSecurity";
 import { createGoogleOAuthState } from "./googleOAuthState";
+import { hasDispatchConflict } from "../shared/operationsPlanning";
+import { INTEGRATION_PROVIDERS, integrationCatalog, type IntegrationProvider } from "../shared/integrationCatalog";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -5684,6 +5686,409 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           .orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt));
         const total = items.reduce((sum, p) => sum + parseFloat(String(p.lineItemAmount ?? "0")), 0);
         return { items, total: total.toFixed(2) };
+      }),
+  }),
+
+  // ── Team Operations & Resource Planning ─────────────────────────────────────
+  team: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(teamMembers)
+        .where(eq(teamMembers.userId, ctx.user.id))
+        .orderBy(teamMembers.active, teamMembers.name);
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: safeString(255),
+        email: safeOptionalEmail.optional(),
+        phone: safeOptionalString(32),
+        role: z.enum(["coordinator", "manager", "specialist", "technician", "contractor"]).default("specialist"),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Use a 6-digit hex color.").default("#D4922A"),
+        weeklyCapacityMinutes: z.number().int().min(60).max(10_080).default(2400),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [result] = await db.insert(teamMembers).values({
+          userId: ctx.user.id,
+          name: input.name,
+          email: input.email?.trim().toLowerCase() || null,
+          phone: input.phone ?? null,
+          role: input.role,
+          color: input.color,
+          weeklyCapacityMinutes: input.weeklyCapacityMinutes,
+          active: true,
+        });
+        return { id: Number(result.insertId) };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        name: safeOptionalString(255),
+        email: safeOptionalEmail.optional(),
+        phone: safeOptionalString(32),
+        role: z.enum(["coordinator", "manager", "specialist", "technician", "contractor"]).optional(),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Use a 6-digit hex color.").optional(),
+        weeklyCapacityMinutes: z.number().int().min(60).max(10_080).optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const { id, email, ...rest } = input;
+        const updates: Record<string, unknown> = { ...rest, updatedAt: new Date() };
+        if (email !== undefined) updates.email = email.trim().toLowerCase() || null;
+        const result = await db.update(teamMembers).set(updates)
+          .where(and(eq(teamMembers.id, id), eq(teamMembers.userId, ctx.user.id)));
+        if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Team member not found." });
+        return { success: true };
+      }),
+
+    capacity: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [members, assignments] = await Promise.all([
+        db.select().from(teamMembers).where(eq(teamMembers.userId, ctx.user.id)).orderBy(teamMembers.active, teamMembers.name),
+        db.select({
+          teamMemberId: jobAssignments.teamMemberId,
+          plannedMinutes: jobAssignments.plannedMinutes,
+          status: jobAssignments.status,
+        }).from(jobAssignments).where(and(
+          eq(jobAssignments.userId, ctx.user.id),
+          inArray(jobAssignments.status, ["assigned", "acknowledged"]),
+        )),
+      ]);
+      return members.map(member => {
+        const plannedMinutes = assignments
+          .filter(assignment => assignment.teamMemberId === member.id)
+          .reduce((sum, assignment) => sum + Math.max(0, assignment.plannedMinutes ?? 0), 0);
+        const capacity = Math.max(1, member.weeklyCapacityMinutes);
+        return {
+          ...member,
+          plannedMinutes,
+          remainingMinutes: Math.max(0, capacity - plannedMinutes),
+          loadRatio: plannedMinutes / capacity,
+          overCapacity: plannedMinutes > capacity,
+        };
+      });
+    }),
+
+    listAssignments: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select({
+        id: jobAssignments.id,
+        jobId: jobAssignments.jobId,
+        jobNumber: jobs.jobNumber,
+        jobTitle: jobs.title,
+        jobStatus: jobs.status,
+        teamMemberId: jobAssignments.teamMemberId,
+        teamMemberName: teamMembers.name,
+        teamMemberRole: teamMembers.role,
+        teamMemberColor: teamMembers.color,
+        assignmentRole: jobAssignments.assignmentRole,
+        status: jobAssignments.status,
+        plannedMinutes: jobAssignments.plannedMinutes,
+        note: jobAssignments.note,
+        acknowledgedAt: jobAssignments.acknowledgedAt,
+        completedAt: jobAssignments.completedAt,
+        createdAt: jobAssignments.createdAt,
+      }).from(jobAssignments)
+        .innerJoin(jobs, and(eq(jobAssignments.jobId, jobs.id), eq(jobs.userId, ctx.user.id)))
+        .innerJoin(teamMembers, and(eq(jobAssignments.teamMemberId, teamMembers.id), eq(teamMembers.userId, ctx.user.id)))
+        .where(eq(jobAssignments.userId, ctx.user.id))
+        .orderBy(desc(jobAssignments.createdAt));
+    }),
+
+    assignToJob: protectedProcedure
+      .input(z.object({
+        jobId: z.number().int().positive(),
+        teamMemberId: z.number().int().positive(),
+        assignmentRole: z.enum(["lead", "support", "reviewer", "coordinator"]).default("support"),
+        plannedMinutes: z.number().int().min(0).max(10_080).optional(),
+        note: safeOptionalString(1000),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [[job], [member], [existing]] = await Promise.all([
+          db.select({ id: jobs.id, title: jobs.title }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1),
+          db.select({ id: teamMembers.id, name: teamMembers.name, active: teamMembers.active }).from(teamMembers).where(and(eq(teamMembers.id, input.teamMemberId), eq(teamMembers.userId, ctx.user.id))).limit(1),
+          db.select({ id: jobAssignments.id }).from(jobAssignments).where(and(eq(jobAssignments.userId, ctx.user.id), eq(jobAssignments.jobId, input.jobId), eq(jobAssignments.teamMemberId, input.teamMemberId))).limit(1),
+        ]);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        if (!member || !member.active) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose an active team member." });
+        if (existing) throw new TRPCError({ code: "CONFLICT", message: "This team member is already assigned to the job." });
+        const [result] = await db.insert(jobAssignments).values({
+          userId: ctx.user.id,
+          jobId: input.jobId,
+          teamMemberId: input.teamMemberId,
+          assignmentRole: input.assignmentRole,
+          plannedMinutes: input.plannedMinutes ?? null,
+          note: input.note ?? null,
+        });
+        await db.insert(jobActivities).values({
+          userId: ctx.user.id,
+          jobId: input.jobId,
+          actor: "owner",
+          eventType: "team_member_assigned",
+          message: `${member.name} assigned as ${input.assignmentRole} on this job.`,
+          metadata: JSON.stringify({ assignmentId: Number(result.insertId), teamMemberId: member.id, assignmentRole: input.assignmentRole }),
+        });
+        return { id: Number(result.insertId) };
+      }),
+
+    updateAssignment: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        assignmentRole: z.enum(["lead", "support", "reviewer", "coordinator"]).optional(),
+        status: z.enum(["assigned", "acknowledged", "declined", "completed"]).optional(),
+        plannedMinutes: z.number().int().min(0).max(10_080).nullable().optional(),
+        note: safeOptionalString(1000),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [assignment] = await db.select({ id: jobAssignments.id, jobId: jobAssignments.jobId, status: jobAssignments.status })
+          .from(jobAssignments).where(and(eq(jobAssignments.id, input.id), eq(jobAssignments.userId, ctx.user.id))).limit(1);
+        if (!assignment) throw new TRPCError({ code: "NOT_FOUND", message: "Assignment not found." });
+        const { id, status, ...rest } = input;
+        const updates: Record<string, unknown> = { ...rest, updatedAt: new Date() };
+        if (status) {
+          updates.status = status;
+          if (status === "acknowledged" && assignment.status !== "acknowledged") updates.acknowledgedAt = new Date();
+          if (status === "completed" && assignment.status !== "completed") updates.completedAt = new Date();
+        }
+        await db.update(jobAssignments).set(updates).where(and(eq(jobAssignments.id, id), eq(jobAssignments.userId, ctx.user.id)));
+        if (status && status !== assignment.status) {
+          await db.insert(jobActivities).values({
+            userId: ctx.user.id,
+            jobId: assignment.jobId,
+            actor: "owner",
+            eventType: "assignment_status_changed",
+            message: `Assignment status changed to ${status.replaceAll("_", " ")}.`,
+          });
+        }
+        return { success: true };
+      }),
+
+    removeAssignment: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [assignment] = await db.select({ jobId: jobAssignments.jobId, teamMemberId: jobAssignments.teamMemberId }).from(jobAssignments)
+          .where(and(eq(jobAssignments.id, input.id), eq(jobAssignments.userId, ctx.user.id))).limit(1);
+        if (!assignment) throw new TRPCError({ code: "NOT_FOUND", message: "Assignment not found." });
+        await db.delete(jobAssignments).where(and(eq(jobAssignments.id, input.id), eq(jobAssignments.userId, ctx.user.id)));
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: assignment.jobId, actor: "owner", eventType: "team_member_unassigned", message: "Removed a team assignment from this job." });
+        return { success: true };
+      }),
+  }),
+
+  // ── Dispatch Planning ───────────────────────────────────────────────────────
+  dispatch: router({
+    listVisits: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select({
+        id: serviceVisits.id,
+        jobId: serviceVisits.jobId,
+        jobNumber: jobs.jobNumber,
+        jobTitle: jobs.title,
+        clientName: clients.name,
+        teamMemberId: serviceVisits.teamMemberId,
+        teamMemberName: teamMembers.name,
+        teamMemberColor: teamMembers.color,
+        title: serviceVisits.title,
+        scheduledStart: serviceVisits.scheduledStart,
+        scheduledEnd: serviceVisits.scheduledEnd,
+        status: serviceVisits.status,
+        siteLabel: serviceVisits.siteLabel,
+        dispatchNote: serviceVisits.dispatchNote,
+        createdAt: serviceVisits.createdAt,
+      }).from(serviceVisits)
+        .innerJoin(jobs, and(eq(serviceVisits.jobId, jobs.id), eq(jobs.userId, ctx.user.id)))
+        .innerJoin(clients, and(eq(jobs.clientId, clients.id), eq(clients.userId, ctx.user.id)))
+        .leftJoin(teamMembers, and(eq(serviceVisits.teamMemberId, teamMembers.id), eq(teamMembers.userId, ctx.user.id)))
+        .where(eq(serviceVisits.userId, ctx.user.id))
+        .orderBy(serviceVisits.scheduledStart);
+    }),
+
+    createVisit: protectedProcedure
+      .input(z.object({
+        jobId: z.number().int().positive(),
+        teamMemberId: z.number().int().positive(),
+        title: safeString(255),
+        scheduledStart: z.date(),
+        scheduledEnd: z.date(),
+        siteLabel: safeOptionalString(255),
+        dispatchNote: safeOptionalString(1000),
+        allowConflict: z.boolean().default(false),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        if (input.scheduledEnd <= input.scheduledStart) throw new TRPCError({ code: "BAD_REQUEST", message: "A service visit must end after it starts." });
+        const [[job], [member], [assignment], existingVisits] = await Promise.all([
+          db.select({ id: jobs.id, title: jobs.title }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1),
+          db.select({ id: teamMembers.id, name: teamMembers.name, active: teamMembers.active }).from(teamMembers).where(and(eq(teamMembers.id, input.teamMemberId), eq(teamMembers.userId, ctx.user.id))).limit(1),
+          db.select({ id: jobAssignments.id }).from(jobAssignments).where(and(
+            eq(jobAssignments.userId, ctx.user.id),
+            eq(jobAssignments.jobId, input.jobId),
+            eq(jobAssignments.teamMemberId, input.teamMemberId),
+            inArray(jobAssignments.status, ["assigned", "acknowledged"]),
+          )).limit(1),
+          db.select({ id: serviceVisits.id, scheduledStart: serviceVisits.scheduledStart, scheduledEnd: serviceVisits.scheduledEnd, status: serviceVisits.status })
+            .from(serviceVisits).where(and(eq(serviceVisits.userId, ctx.user.id), eq(serviceVisits.teamMemberId, input.teamMemberId))),
+        ]);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        if (!member?.active) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose an active team member." });
+        if (!assignment) throw new TRPCError({ code: "BAD_REQUEST", message: "Assign this team member to the job before dispatching a visit." });
+        const conflict = hasDispatchConflict(existingVisits.map(visit => ({ id: visit.id, start: visit.scheduledStart, end: visit.scheduledEnd, status: visit.status })), {
+          start: input.scheduledStart,
+          end: input.scheduledEnd,
+          status: "scheduled",
+        });
+        if (conflict && !input.allowConflict) throw new TRPCError({ code: "CONFLICT", message: "This visit overlaps another active visit for the selected team member. Confirm the exception to schedule it." });
+        const [result] = await db.insert(serviceVisits).values({
+          userId: ctx.user.id,
+          jobId: input.jobId,
+          teamMemberId: input.teamMemberId,
+          title: input.title,
+          scheduledStart: input.scheduledStart,
+          scheduledEnd: input.scheduledEnd,
+          siteLabel: input.siteLabel ?? null,
+          dispatchNote: input.dispatchNote ?? null,
+        });
+        await db.insert(jobActivities).values({
+          userId: ctx.user.id,
+          jobId: input.jobId,
+          actor: "owner",
+          eventType: "service_visit_scheduled",
+          message: `${member.name} scheduled for ${input.title}.`,
+          metadata: JSON.stringify({ visitId: Number(result.insertId), teamMemberId: member.id, scheduledStart: input.scheduledStart.toISOString(), conflictAcknowledged: conflict }),
+        });
+        return { id: Number(result.insertId), conflictAcknowledged: conflict };
+      }),
+
+    updateVisit: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        title: safeOptionalString(255),
+        scheduledStart: z.date().optional(),
+        scheduledEnd: z.date().optional(),
+        status: z.enum(["scheduled", "en_route", "in_progress", "completed", "cancelled"]).optional(),
+        siteLabel: safeOptionalString(255),
+        dispatchNote: safeOptionalString(1000),
+        allowConflict: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [visit] = await db.select().from(serviceVisits).where(and(eq(serviceVisits.id, input.id), eq(serviceVisits.userId, ctx.user.id))).limit(1);
+        if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Service visit not found." });
+        const scheduledStart = input.scheduledStart ?? visit.scheduledStart;
+        const scheduledEnd = input.scheduledEnd ?? visit.scheduledEnd;
+        const status = input.status ?? visit.status;
+        if (scheduledEnd <= scheduledStart) throw new TRPCError({ code: "BAD_REQUEST", message: "A service visit must end after it starts." });
+        if (visit.teamMemberId && (input.scheduledStart || input.scheduledEnd) && status !== "cancelled") {
+          const existingVisits = await db.select({ id: serviceVisits.id, scheduledStart: serviceVisits.scheduledStart, scheduledEnd: serviceVisits.scheduledEnd, status: serviceVisits.status })
+            .from(serviceVisits).where(and(eq(serviceVisits.userId, ctx.user.id), eq(serviceVisits.teamMemberId, visit.teamMemberId)));
+          const conflict = hasDispatchConflict(existingVisits.map(item => ({ id: item.id, start: item.scheduledStart, end: item.scheduledEnd, status: item.status })), {
+            id: visit.id,
+            start: scheduledStart,
+            end: scheduledEnd,
+            status,
+          });
+          if (conflict && !input.allowConflict) throw new TRPCError({ code: "CONFLICT", message: "This visit overlaps another active visit for the selected team member. Confirm the exception to save it." });
+        }
+        const { id, allowConflict: _allowConflict, ...rest } = input;
+        await db.update(serviceVisits).set({ ...rest, updatedAt: new Date() }).where(and(eq(serviceVisits.id, id), eq(serviceVisits.userId, ctx.user.id)));
+        if (input.status && input.status !== visit.status) {
+          await db.insert(jobActivities).values({
+            userId: ctx.user.id,
+            jobId: visit.jobId,
+            actor: "owner",
+            eventType: "service_visit_status_changed",
+            message: `Service visit status changed to ${input.status.replaceAll("_", " ")}.`,
+            metadata: JSON.stringify({ visitId: visit.id, status: input.status }),
+          });
+        }
+        return { success: true };
+      }),
+
+    cancelVisit: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [visit] = await db.select({ jobId: serviceVisits.jobId, status: serviceVisits.status }).from(serviceVisits)
+          .where(and(eq(serviceVisits.id, input.id), eq(serviceVisits.userId, ctx.user.id))).limit(1);
+        if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Service visit not found." });
+        await db.update(serviceVisits).set({ status: "cancelled", updatedAt: new Date() }).where(and(eq(serviceVisits.id, input.id), eq(serviceVisits.userId, ctx.user.id)));
+        if (visit.status !== "cancelled") await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: visit.jobId, actor: "owner", eventType: "service_visit_cancelled", message: "Cancelled a service visit." });
+        return { success: true };
+      }),
+  }),
+
+  // ── Integration Readiness ──────────────────────────────────────────────────
+  integrations: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [stored, [googleToken]] = await Promise.all([
+        db.select().from(integrationConnections).where(eq(integrationConnections.userId, ctx.user.id)),
+        db.select({ id: googleCalendarTokens.id, syncEnabled: googleCalendarTokens.syncEnabled, expiresAt: googleCalendarTokens.expiresAt, updatedAt: googleCalendarTokens.updatedAt })
+          .from(googleCalendarTokens).where(eq(googleCalendarTokens.userId, ctx.user.id)).limit(1),
+      ]);
+      const byProvider = new Map(stored.map(connection => [connection.provider, connection]));
+      return INTEGRATION_PROVIDERS.map(provider => {
+        const catalog = integrationCatalog[provider];
+        const connection = byProvider.get(provider);
+        // Google status is sourced from the secure OAuth-token record, not a UI flag.
+        const googleAuthorized = provider === "google_calendar" && Boolean(googleToken?.syncEnabled);
+        return {
+          provider,
+          ...catalog,
+          status: googleAuthorized ? "connected" as const : (connection?.status ?? "not_connected"),
+          configurationNote: connection?.configurationNote ?? null,
+          lastCheckedAt: googleAuthorized ? (googleToken?.updatedAt ?? null) : (connection?.lastCheckedAt ?? null),
+          isProviderAuthorized: googleAuthorized,
+        };
+      });
+    }),
+
+    prepare: protectedProcedure
+      .input(z.object({ provider: z.enum(INTEGRATION_PROVIDERS), configurationNote: safeOptionalString(1000) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [googleToken] = input.provider === "google_calendar"
+          ? await db.select({ id: googleCalendarTokens.id, syncEnabled: googleCalendarTokens.syncEnabled }).from(googleCalendarTokens).where(eq(googleCalendarTokens.userId, ctx.user.id)).limit(1)
+          : [];
+        if (googleToken?.syncEnabled) throw new TRPCError({ code: "CONFLICT", message: "Google Calendar is already authorized. Manage it from Settings." });
+        const catalog = integrationCatalog[input.provider];
+        const [existing] = await db.select({ id: integrationConnections.id }).from(integrationConnections)
+          .where(and(eq(integrationConnections.userId, ctx.user.id), eq(integrationConnections.provider, input.provider))).limit(1);
+        const values = {
+          category: catalog.category,
+          status: "needs_configuration" as const,
+          configurationNote: input.configurationNote ?? null,
+          lastCheckedAt: null,
+          updatedAt: new Date(),
+        };
+        if (existing) {
+          await db.update(integrationConnections).set(values).where(and(eq(integrationConnections.id, existing.id), eq(integrationConnections.userId, ctx.user.id)));
+        } else {
+          await db.insert(integrationConnections).values({ userId: ctx.user.id, provider: input.provider, ...values });
+        }
+        return { success: true, status: "needs_configuration" as const };
+      }),
+
+    disconnect: protectedProcedure
+      .input(z.object({ provider: z.enum(INTEGRATION_PROVIDERS) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        if (input.provider === "google_calendar") {
+          await db.delete(googleCalendarTokens).where(eq(googleCalendarTokens.userId, ctx.user.id));
+        }
+        const catalog = integrationCatalog[input.provider];
+        const [existing] = await db.select({ id: integrationConnections.id }).from(integrationConnections)
+          .where(and(eq(integrationConnections.userId, ctx.user.id), eq(integrationConnections.provider, input.provider))).limit(1);
+        const values = { category: catalog.category, status: "not_connected" as const, configurationNote: null, lastCheckedAt: null, updatedAt: new Date() };
+        if (existing) await db.update(integrationConnections).set(values).where(and(eq(integrationConnections.id, existing.id), eq(integrationConnections.userId, ctx.user.id)));
+        else await db.insert(integrationConnections).values({ userId: ctx.user.id, provider: input.provider, ...values });
+        return { success: true };
       }),
   }),
 
