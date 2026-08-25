@@ -2567,7 +2567,10 @@ Only include actions when you have actually generated a complete draft. For gene
 
         // Create (or rotate) token — delete old one if present
         if (existing) {
-          await db.delete(clientPortalTokens).where(eq(clientPortalTokens.id, existing.id));
+          await db.delete(clientPortalTokens).where(and(
+            eq(clientPortalTokens.id, existing.id),
+            eq(clientPortalTokens.userId, ctx.user.id),
+          ));
         }
         const token = crypto.randomBytes(32).toString("hex");
         const expiresAt = new Date(Date.now() + ninetyDaysMs);

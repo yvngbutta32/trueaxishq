@@ -7,6 +7,11 @@ const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf
 describe("public booking safety contract", () => {
   const router = source("server/routers.ts");
 
+  it("keeps portal-token rotation scoped to the authenticated owner at the delete boundary", () => {
+    const portalTokenSection = router.slice(router.indexOf("clientPortalTokens).where(and("), router.indexOf("// ── Portal", router.indexOf("clientPortalTokens).where(and(")));
+    expect(portalTokenSection).toContain("eq(clientPortalTokens.userId, ctx.user.id)");
+  });
+
   it("returns only the appointment fields a token holder needs", () => {
     expect(router).toContain("booking: { service: booking.service, date: booking.date, time: booking.time }");
   });

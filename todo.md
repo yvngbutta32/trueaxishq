@@ -1708,3 +1708,6 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## Time-Entry Integrity Hardening
 - [x] Correct time-entry start, update, delete, and job-derived client association behavior so field and billing workflows fail clearly and preserve client context
 - [x] Add regression coverage for time-entry ownership predicates, running-timer recovery, and job-to-client association
+
+## Portal Token Rotation Integrity
+- [x] Add a final owner predicate to expired or rotated portal-token deletion and cover the rotation boundary with regression tests
