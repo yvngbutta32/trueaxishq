@@ -45,3 +45,13 @@ describe("proposal conversion integrity contract", () => {
     expect(conversion).toContain("linkedInvoiceId: invId");
   });
 });
+
+describe("automation manual-run integrity contract", () => {
+  it("keeps manual-run counter updates within the authenticated owner scope", () => {
+    const runStart = source.indexOf("run: protectedProcedure");
+    const runEnd = source.indexOf("// ── Intake", runStart);
+    const run = source.slice(runStart, runEnd);
+    expect(run).toContain("eq(automations.userId, ctx.user.id)");
+    expect(run).toContain("runCount: sql`${automations.runCount} + 1`");
+  });
+});

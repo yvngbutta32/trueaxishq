@@ -4807,7 +4807,10 @@ Only include actions when you have actually generated a complete draft. For gene
           }
         }
         if (executed > 0) {
-          await db.update(automations).set({ runCount: sql`${automations.runCount} + 1`, lastRunAt: new Date() }).where(eq(automations.id, auto.id));
+          await db.update(automations).set({ runCount: sql`${automations.runCount} + 1`, lastRunAt: new Date() }).where(and(
+            eq(automations.id, auto.id),
+            eq(automations.userId, ctx.user.id),
+          ));
         }
         await db.insert(automationLogs).values({
           automationId: auto.id,
