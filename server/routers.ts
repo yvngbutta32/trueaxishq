@@ -2,6 +2,7 @@ import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { eq, desc, and, sql, inArray, or, like } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
+import { randomBytes } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -76,8 +77,31 @@ function generateInvoiceNumber(): string {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
-  const rand = String(Math.floor(Math.random() * 9000) + 1000);
-  return `INV-${year}${month}-${rand}`;
+  return `INV-${year}${month}-${randomBytes(5).toString("hex").toUpperCase()}`;
+}
+
+function isInvoiceNumberConflict(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("invoices_owner_number_unique_idx") ||
+    (message.includes("Duplicate") && message.includes("invoice"));
+}
+
+async function withInvoiceNumberRetry<T>(operation: (invoiceNumber: string) => Promise<T>): Promise<{ invoiceNumber: string; result: T }> {
+  const maxAttempts = 3;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const invoiceNumber = generateInvoiceNumber();
+    try {
+      return { invoiceNumber, result: await operation(invoiceNumber) };
+    } catch (error) {
+      if (!isInvoiceNumberConflict(error) || attempt === maxAttempts - 1) {
+        if (isInvoiceNumberConflict(error)) {
+          throw new TRPCError({ code: "CONFLICT", message: "Unable to reserve an invoice number. Please retry." });
+        }
+        throw error;
+      }
+    }
+  }
+  throw new TRPCError({ code: "CONFLICT", message: "Unable to reserve an invoice number. Please retry." });
 }
 
 // ─── App Router ───────────────────────────────────────────────────────────────
@@ -894,8 +918,7 @@ export const appRouter = router({
         const [inv] = await db.select().from(invoices)
           .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id))).limit(1);
         if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
-        const invoiceNumber = generateInvoiceNumber();
-        const result = await db.insert(invoices).values({
+        const { invoiceNumber, result } = await withInvoiceNumberRetry(invoiceNumber => db.insert(invoices).values({
           userId: ctx.user.id,
           clientId: inv.clientId,
           invoiceNumber,
@@ -906,7 +929,7 @@ export const appRouter = router({
           status: "draft",
           dueDate: inv.dueDate,
           notes: inv.notes,
-        });
+        }));
         return { id: Number((result as any).insertId), invoiceNumber, success: true };
       }),
     sendReceipt: protectedProcedure

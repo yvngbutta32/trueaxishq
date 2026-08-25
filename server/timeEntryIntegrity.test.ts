@@ -61,4 +61,11 @@ describe("invoice identifier idempotency contract", () => {
   it("enforces invoice-number uniqueness within each owner workspace", () => {
     expect(schema).toContain('uniqueIndex("invoices_owner_number_unique_idx").on(t.userId, t.invoiceNumber)');
   });
+
+  it("uses bounded collision recovery and cryptographically random invoice suffixes", () => {
+    expect(source).toContain('randomBytes(5).toString("hex").toUpperCase()');
+    expect(source).toContain("const maxAttempts = 3;");
+    expect(source).toContain("function isInvoiceNumberConflict(error: unknown): boolean");
+    expect(source).toContain('throw new TRPCError({ code: "CONFLICT", message: "Unable to reserve an invoice number. Please retry." })');
+  });
 });

@@ -1724,3 +1724,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## Invoice Number Idempotency
 - [x] Add and verify a per-owner unique invoice-number constraint to prevent concurrent billing flows from creating duplicate invoice identifiers
 - [x] Add regression coverage documenting the billing identifier uniqueness contract
+
+## Invoice Collision Recovery
+- [x] Make invoice creation retry safely on a per-owner invoice-number collision so the new database guard never becomes a customer-facing billing failure
+- [x] Add deterministic regression coverage for invoice-number collision detection and retry limits
+
+## Migration Baseline Reconciliation
+- [x] Neutralize the unrelated stale operations generated alongside the reviewed billing-index migration while retaining a reconciled schema baseline for future migrations
