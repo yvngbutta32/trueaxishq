@@ -121,17 +121,17 @@ export default function CheckoutSuccess() {
           You're all set! 🎉
         </h1>
         <p className="text-gray-600 text-sm mb-8 leading-relaxed">
-          Your subscription is now active. Welcome to TrueAxis HQ — your business is about to run on autopilot.
+          Your subscription is now active. Welcome to TrueAxis HQ — your workspace is ready.
         </p>
 
         {/* What's unlocked */}
         <div className="bg-gray-50 rounded-xl p-5 mb-6 text-left space-y-3" role="list" aria-label="Features now unlocked">
           {[
-            "AI client intake forms — active",
-            "Smart scheduling — active",
-            "Automated invoicing — active",
-            "AI follow-up engine — active",
-            "Analytics dashboard — active",
+            "AI-assisted client intake",
+            "Scheduling tools",
+            "Invoice and billing workflows",
+            "Follow-up tools",
+            "Business analytics",
           ].map(feature => (
             <div key={feature} className="flex items-center gap-3" role="listitem">
               <CheckCircle className="w-4 h-4 text-[#D4922A] flex-shrink-0" aria-hidden="true" />
@@ -162,7 +162,7 @@ export default function CheckoutSuccess() {
         </div>
 
         <p className="text-xs text-gray-600 mt-6">
-          A receipt has been sent to your email. Questions? Email{" "}
+          You can review billing details from your workspace. Questions? Email{" "}
           <a href="mailto:support@trueaxishq.com" className="text-[#D4922A] hover:underline focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-1 rounded">
             support@trueaxishq.com
           </a>

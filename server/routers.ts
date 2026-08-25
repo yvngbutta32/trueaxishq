@@ -904,8 +904,11 @@ export const appRouter = router({
             client_name: inv.clientName,
           },
           client_reference_id: String(inv.id),
-          success_url: `${origin}/dashboard?panel=billing&paid=${inv.id}`,
-          cancel_url: `${origin}/dashboard?panel=billing`,
+          // Only the verified webhook may mark an invoice paid. The return marker
+          // prompts the dashboard to refresh; it never carries authority to alter
+          // a financial record from a client-controlled URL.
+          success_url: `${origin}/dashboard?panel=invoices&payment_returned=1`,
+          cancel_url: `${origin}/dashboard?panel=invoices`,
           allow_promotion_codes: true,
         });
 

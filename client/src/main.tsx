@@ -7,6 +7,7 @@ import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
+import { isExpectedPublicRecoveryPath } from "@shared/publicRecoveryTelemetry";
 
 // ─── Hardened QueryClient ─────────────────────────────────────────────────────
 // Retry up to 3 times on transient failures, but never on auth/forbidden errors
@@ -58,18 +59,18 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   }
 };
 
-const isExpectedPortalRecoveryError = (error: unknown) =>
+const isExpectedPublicRecoveryError = (error: unknown) =>
   error instanceof TRPCClientError &&
   error.data?.code === "NOT_FOUND" &&
   typeof window !== "undefined" &&
-  window.location.pathname.startsWith("/portal/");
+  isExpectedPublicRecoveryPath(window.location.pathname);
 
 queryClient.getQueryCache().subscribe((event) => {
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.query.state.error;
     redirectToLoginIfUnauthorized(error);
-    if (isExpectedPortalRecoveryError(error)) {
-      console.info("[Portal Recovery]", "Invalid or expired portal link rendered its recovery state.");
+    if (isExpectedPublicRecoveryError(error)) {
+      console.info("[Public Link Recovery]", "An invalid or expired public link rendered its recovery state.");
     } else {
       console.error("[API Query Error]", error);
     }

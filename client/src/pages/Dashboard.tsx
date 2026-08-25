@@ -1864,28 +1864,20 @@ function InvoicesPanel() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkPending, setBulkPending] = useState(false);
 
-  // Handle Stripe redirect back: ?paid=<invoiceId> — auto-mark as paid and clean URL
-  const markPaidFromUrl = trpc.invoices.markPaid.useMutation({
-    onSuccess: () => {
-      utils.invoices.list.invalidate();
-      utils.invoices.stats.invalidate();
-      toast.success("Payment received! Invoice marked as paid.");
-    },
-  });
+  // Stripe redirects after Checkout, but only the verified webhook may change
+  // an invoice's paid state. Refresh the display so the webhook-confirmed value
+  // appears promptly without trusting a client-controlled return URL.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const paidId = params.get("paid");
-    if (paidId) {
-      const id = parseInt(paidId, 10);
-      if (!isNaN(id)) {
-        markPaidFromUrl.mutate({ id });
-      }
-      // Clean the URL so the param doesn't persist on refresh
+    if (params.get("payment_returned") === "1") {
+      void utils.invoices.list.invalidate();
+      void utils.invoices.stats.invalidate();
+      toast.success("Payment received. Refreshing the webhook-confirmed invoice status…");
+      // Clean the non-authoritative return marker so it cannot replay on refresh.
       const cleanUrl = window.location.pathname + "?panel=invoices";
       window.history.replaceState({}, "", cleanUrl);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [utils.invoices.list, utils.invoices.stats]);
 
   function toggleSelect(id: number) {
     setSelectedIds(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });

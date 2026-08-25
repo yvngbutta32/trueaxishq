@@ -76,7 +76,7 @@ export default function BookingCancel() {
           <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{isReschedule ? "Booking Rescheduled" : "Booking Cancelled"}</h1>
           <p className="text-gray-600 mb-6">
-            {isReschedule ? "Your new appointment time is confirmed. You'll receive a confirmation email shortly." : "Your booking has been cancelled. You'll receive a confirmation email shortly."}
+            {isReschedule ? "Your new appointment time is confirmed." : "Your booking has been cancelled."}
           </p>
           {!isReschedule && bookingUsername && (
             <Button onClick={() => navigate(`/book/${bookingUsername}`)} className="bg-[#D4922A] hover:bg-[#D4911A] text-white">

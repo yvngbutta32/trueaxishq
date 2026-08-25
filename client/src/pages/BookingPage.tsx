@@ -294,7 +294,7 @@ export default function BookingPage() {
               You're Booked!
             </h1>
             <p className="text-[#3D3D3D] text-sm max-w-sm mx-auto">
-              Your request has been sent to <strong className="text-[#1A1A1A]">{host.name}</strong>. They'll confirm your appointment shortly.
+              Your appointment request has been recorded for <strong className="text-[#1A1A1A]">{host.name}</strong>. Keep the details below for your records.
             </p>
           </div>
 
@@ -372,11 +372,11 @@ export default function BookingPage() {
             </div>
           </div>
 
-          {/* Email note */}
+          {/* Recordkeeping note */}
           <div className="flex items-start gap-3 bg-[#D4922A]/8 border border-[#D4922A]/20 rounded-xl p-4 mb-6">
             <Mail className="w-4 h-4 text-[#D4922A] flex-shrink-0 mt-0.5" />
             <p className="text-xs text-[#3D3D3D]">
-              A confirmation has been sent to <strong className="text-[#1A1A1A]">{form.clientEmail}</strong>. Check your spam folder if you don't see it within a few minutes.
+              Add this appointment to your calendar or save these details for your records.
             </p>
           </div>
 

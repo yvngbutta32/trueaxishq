@@ -26,7 +26,7 @@ const plans = [
       "Email support",
     ],
     notIncluded: ["Client Pulse AI™", "Unlimited follow-ups", "Priority support"],
-    cta: "Start Free Trial",
+    cta: "Create Account",
     popular: false,
   },
   {
@@ -47,7 +47,7 @@ const plans = [
       "API access",
     ],
     notIncluded: [],
-    cta: "Start Free Trial",
+    cta: "Create Account",
     popular: true,
   },
   {
@@ -74,12 +74,12 @@ const plans = [
 ];
 
 const faqs = [
-  { q: "Is there a free trial?", a: "Yes — all plans come with a 14-day free trial. No credit card required to start." },
-  { q: "Can I switch plans later?", a: "Absolutely. You can upgrade or downgrade at any time. Changes take effect on your next billing cycle." },
-  { q: "What payment methods do you accept?", a: "We accept all major credit cards (Visa, Mastercard, Amex) and ACH bank transfers for annual plans." },
-  { q: "Do you offer refunds?", a: "Yes. If you're not satisfied within the first 30 days, we'll refund your payment — no questions asked." },
-  { q: "What happens to my data if I cancel?", a: "Your data is yours. We export everything in CSV/PDF format upon request and delete it within 30 days of cancellation." },
-  { q: "What is Client Pulse AI™?", a: "Client Pulse AI is our proprietary relationship intelligence engine. It scores every client 0–100 in real time, flags churn risk and upsell opportunities, and drafts re-engagement emails automatically. It's exclusive to Pro and Agency plans." },
+  { q: "How do I get started?", a: "Create an account with an invitation code to explore the workspace. Package availability and billing configuration are confirmed during onboarding." },
+  { q: "Can I manage billing later?", a: "Billing controls appear in your workspace when payment configuration is active." },
+  { q: "Which payment methods are available?", a: "Available methods are shown at checkout when payment configuration is active." },
+  { q: "Where can I ask billing questions?", a: "Contact billing@trueaxishq.com for help with billing questions." },
+  { q: "What happens to my data?", a: "Use the workspace export tools for the information available to your account. Contact support for account-specific requests." },
+  { q: "What is Client Pulse AI™?", a: "Client Pulse summarizes configured relationship signals into an owner-facing score and suggested follow-up actions. You remain responsible for reviewing every business decision and message." },
 ];
 
 const comparisonRows = [
@@ -126,7 +126,7 @@ export default function Pricing() {
           />
         </button>
         <button onClick={() => isAuthenticated ? navigate("/dashboard") : navigate("/register")} className="btn-amber" style={{ padding: "0.4rem 1rem", fontSize: "0.8125rem" }}>
-          Start Free Trial
+          Create Account
         </button>
       </nav>
 
@@ -145,7 +145,7 @@ export default function Pricing() {
             <span style={{ color: "#D4922A" }}>Keep operations in one place.</span>
           </h1>
           <p className="mt-4 mb-10 max-w-xl mx-auto" style={{ color: "rgba(26,26,26,0.75)", fontSize: "1.0625rem" }}>
-            Every plan includes a 14-day free trial. No credit card required. Cancel anytime.
+            Review package information and create an account to explore the workspace. Package availability and billing configuration are confirmed during onboarding.
           </p>
 
           {/* Billing toggle */}
@@ -162,7 +162,7 @@ export default function Pricing() {
             </button>
             <span className="text-sm font-medium flex items-center gap-2" style={{ color: annual ? "#1A1A1A" : "rgba(26,26,26,0.45)" }}>
               Annual
-              <span className="tag tag-amber" style={{ fontSize: "0.65rem" }}>Save 20%</span>
+              <span className="tag tag-amber" style={{ fontSize: "0.65rem" }}>Annual option</span>
             </span>
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function Pricing() {
       <div className="py-2.5 text-center text-xs font-semibold" style={{ background: "rgba(232,160,32,0.12)", borderTop: "1px solid rgba(232,160,32,0.20)", borderBottom: "1px solid rgba(232,160,32,0.20)", color: "#D4922A" }}>
         <span className="inline-flex items-center gap-2">
           <Shield className="w-3.5 h-3.5" />
-          Review plan capabilities before starting your 14-day trial
+          Review plan capabilities before creating your workspace
         </span>
       </div>
 
@@ -300,15 +300,15 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Trust Badges */}
+      {/* Product assurances */}
       <section className="py-12" style={{ background: "#F7F6F3", borderTop: "1px solid rgba(232,160,32,0.08)", borderBottom: "1px solid rgba(232,160,32,0.08)" }}>
         <div className="container">
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm">
             {[
-              { icon: Shield, text: "SOC 2 Type II Certified" },
-              { icon: CheckCircle, text: "GDPR Compliant" },
-              { icon: Star, text: "4.9/5 on G2 (320+ reviews)" },
-              { icon: Zap, text: "99.9% Uptime SLA" },
+              { icon: Shield, text: "Workspace-scoped access controls" },
+              { icon: CheckCircle, text: "Public links use scoped tokens" },
+              { icon: Star, text: "Evidence-led product guidance" },
+              { icon: Zap, text: "Operational health diagnostics" },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-2" style={{ color: "rgba(26,26,26,0.75)" }}>
                 <Icon className="w-4 h-4" style={{ color: "#D4922A" }} />
@@ -319,7 +319,7 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Money-Back Guarantee */}
+      {/* Billing guidance */}
       <section className="py-12 px-4" style={{ background: "#F7F6F3" }}>
         <div className="container max-w-2xl mx-auto">
           <div className="flex flex-col sm:flex-row items-center gap-6 p-7 rounded-xl" style={{ background: "rgba(232,160,32,0.05)", border: "1px solid rgba(232,160,32,0.18)" }}>
@@ -327,8 +327,8 @@ export default function Pricing() {
               <Shield className="w-8 h-8" style={{ color: "#D4922A" }} />
             </div>
             <div className="text-center sm:text-left">
-              <h3 style={{ fontWeight: 700, fontSize: "1.125rem", color: "#1A1A1A" }}>30-Day Money-Back Guarantee</h3>
-              <p className="mt-1 text-sm" style={{ color: "rgba(26,26,26,0.75)" }}>Try TrueAxis HQ risk-free for 30 days. If you’re not completely satisfied, we’ll refund every cent — no questions asked, no hoops to jump through.</p>
+              <h3 style={{ fontWeight: 700, fontSize: "1.125rem", color: "#1A1A1A" }}>Clear billing guidance</h3>
+              <p className="mt-1 text-sm" style={{ color: "rgba(26,26,26,0.75)" }}>Billing controls and payment availability are shown in your workspace when payment configuration is active. For account questions, contact billing@trueaxishq.com.</p>
             </div>
           </div>
         </div>
@@ -371,11 +371,11 @@ export default function Pricing() {
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 70% at 50% 50%, rgba(232,160,32,0.06) 0%, transparent 70%)" }} />
         <div className="container relative z-10">
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
-            Start your free trial today.
+            Explore TrueAxis HQ.
           </h2>
-          <p className="mt-3 mb-8" style={{ color: "rgba(26,26,26,0.75)" }}>14 days free. No credit card. Cancel anytime.</p>
+          <p className="mt-3 mb-8" style={{ color: "rgba(26,26,26,0.75)" }}>Create an account to explore the workflows built for your service business.</p>
           <button onClick={() => navigate(isAuthenticated ? "/dashboard" : "/register")} className="btn-amber" style={{ padding: "0.75rem 2.5rem", fontSize: "1rem" }}>
-            Get Started Free
+            Create Account
             <Zap className="w-4 h-4" />
           </button>
         </div>

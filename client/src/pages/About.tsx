@@ -85,19 +85,19 @@ export default function About() {
             <p>Most freelancers and independent professionals are running their business on a stack of disconnected tools — a scheduling app here, an invoicing tool there, a CRM they barely use, and a spreadsheet holding everything together with duct tape. They're paying for five platforms that don't talk to each other, and spending 15 to 20 hours a week on admin work that should take minutes.</p>
             <p>TrueAxis HQ was built to end that. The name says it all: a <em>true axis</em> is the fixed center point everything else rotates around. That's what your business needs — one intelligent hub where clients, bookings, invoices, follow-ups, and analytics all live and work together automatically.</p>
             <p>We built the platform around three convictions. First, that AI should do the grunt work — drafting follow-up emails, flagging at-risk clients, detecting overdue invoices — so you never have to think about it. Second, that your business data should give you real insight, not just raw numbers. And third, that the best software feels invisible: it runs in the background, keeps everything moving, and only surfaces when you need it.</p>
-            <p>TrueAxis HQ is used by coaches, consultants, designers, developers, fitness professionals, and legal practitioners who are serious about building a sustainable independent business. Our users consistently report reclaiming 10 to 15 hours a week and growing their revenue within the first few months — not because they worked harder, but because their business finally started working for them.</p>
+            <p>TrueAxis HQ is designed for coaches, consultants, designers, developers, fitness professionals, and other independent service businesses that want a clearer way to manage client work. The product brings workflow information into one workspace so owners can make decisions from their own data.</p>
           </div>
         </div>
       </section>
 
-      {/* Stats */}
+      {/* Product principles */}
       <section className="py-12 px-4" style={{ background: "#F2F0EC" }}>
         <div className="container max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl overflow-hidden" style={{ background: "rgba(232,160,32,0.08)" }}>
           {[
-            { icon: Users, value: "4,200+", label: "Active Users" },
-            { icon: Clock, value: "12 hrs", label: "Saved Per Week" },
-            { icon: TrendingUp, value: "34%", label: "Avg Revenue Increase" },
-            { icon: Shield, value: "99.9%", label: "Uptime SLA" },
+            { icon: Users, value: "Clients", label: "Relationships in context" },
+            { icon: Clock, value: "Jobs", label: "Work organized by status" },
+            { icon: TrendingUp, value: "Insights", label: "Signals for owner decisions" },
+            { icon: Shield, value: "Privacy", label: "Workspace-scoped access" },
           ].map(({ icon: Icon, value, label }) => (
             <div key={label} className="flex flex-col items-center justify-center py-10 px-6 text-center" style={{ background: "#F7F6F3" }}>
               <Icon className="w-5 h-5 mb-3" style={{ color: "rgba(232,160,32,0.50)" }} />
@@ -139,10 +139,10 @@ export default function About() {
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
             Ready to join us?
           </h2>
-          <p className="mt-3 mb-8" style={{ color: "rgba(26,26,26,0.75)" }}>Start your free 14-day trial. No credit card required.</p>
+          <p className="mt-3 mb-8" style={{ color: "rgba(26,26,26,0.75)" }}>Create an account to explore the TrueAxis HQ workspace.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button onClick={() => isAuthenticated ? navigate("/dashboard") : navigate("/register")} className="btn-amber" style={{ fontSize: "0.9375rem" }}>
-              Start Free Trial
+              Create Account
             </button>
             <button onClick={() => navigate("/pricing")} className="btn-ghost" style={{ fontSize: "0.9375rem" }}>
               View Pricing

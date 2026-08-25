@@ -1772,3 +1772,15 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Create an evidence-led complete inventory of implemented TrueAxis HQ capabilities and validation status
 - [x] Compare capabilities and workflow differentiation candidly against leading freelancer-service platforms
 - [x] Deliver a readable positioning report that distinguishes verified strengths, parity areas, gaps, and provider-account launch gates
+
+## Autonomous 10/10 Completion Standard — User Requested
+- [x] Define and apply an exhaustive 10/10 autonomous acceptance matrix across every implemented subsystem, deferring provider credentials until all autonomous work is exhausted
+- [x] Eliminate all confirmed autonomous functionality, security, reliability, accessibility, performance, observability, and public-trust gaps found by the final audit
+- [x] Add or strengthen deterministic tests and release evidence for each final autonomous remediation
+- [x] Publish the final autonomous 10/10 readiness register with provider-account items explicitly deferred and without requesting credentials again
+- [x] Classify handled invalid public links as informational recovery events instead of global client errors without suppressing unexpected or authenticated-route failures
+- [x] Remove client-controlled invoice paid-state writes from Stripe checkout return URLs and rely solely on verified webhook processing
+- [x] Resolve production dependency vulnerabilities from the final supply-chain audit using compatible package updates and retest the application
+- [x] Remove remaining unverified public delivery timelines, receipt promises, and autonomy claims from completion states
+- [x] Remove unsupported public adoption, outcome, trial, refund, compliance, service-level, and payment-method claims from marketing, pricing, help, and registration surfaces
+- [x] Remove remaining SMTP-dependent booking and newsletter confirmation claims from public submission screens

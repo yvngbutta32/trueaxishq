@@ -191,7 +191,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
               Welcome{form.name ? `, ${form.name.split(" ")[0]}` : ""}!
             </p>
             <p className="text-sm mt-1" style={{ color: "rgba(26,26,26,0.75)" }}>
-              14-day free trial · No credit card required
+              Create a workspace to explore your core business tools
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
@@ -352,7 +352,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
               Sign In
             </button>
             <button onClick={onCTA} className="btn-amber" style={{ padding: "0.5rem 1.25rem", fontSize: "0.875rem" }}>
-              Start Free Trial
+              Get Started
             </button>
           </div>
 
@@ -396,7 +396,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
               Sign In
             </button>
             <button onClick={() => { setMobileOpen(false); onCTA(); }} className="btn-amber w-full" style={{ fontSize: "0.875rem" }}>
-              Start Free Trial
+              Get Started
             </button>
           </div>
         </div>
@@ -1099,7 +1099,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
     try {
       await captureLead.mutateAsync({ email, source: "homepage-cta" });
       setSubmitted(true);
-      toast.success("You're on the list! Check your inbox.");
+      toast.success("You're on the list. Thanks for your interest!");
     } catch {
       onCTA();
     }
@@ -1119,7 +1119,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
         {submitted ? (
           <div className="inline-flex items-center gap-3 px-6 py-4 rounded-lg" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.22)" }}>
             <CheckCircle className="w-5 h-5" style={{ color: "#D4922A" }} />
-            <span style={{ color: "#1A1A1A", fontWeight: 600 }}>You're on the list — check your inbox!</span>
+            <span style={{ color: "#1A1A1A", fontWeight: 600 }}>You're on the list — thanks for your interest!</span>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
@@ -1148,7 +1148,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
 
 // ─── FAQ Section ─────────────────────────────────────────────────────────────
 const HOME_FAQS = [
-  { q: "Is TrueAxis HQ free to try?", a: "Yes. Every plan begins with a 14-day free trial and no credit card is required to start. The Starter plan supports up to 20 active clients; Pro and Agency plans add unlimited client capacity and advanced workflow tools." },
+  { q: "How can I explore TrueAxis HQ?", a: "Create an account with an invitation code to explore the workspace. Available workflows and billing configuration are confirmed during onboarding." },
   { q: "How does the AI follow-up feature work?", a: "TrueAxis HQ analyzes each client's booking history, invoice activity, and engagement signals to generate a personalized follow-up email in one click. You review and send — the AI does the drafting." },
   { q: "Can I accept payments through TrueAxis HQ?", a: "Yes. Connect your Stripe account and your clients can pay invoices online via credit card. Payments are processed securely by Stripe — TrueAxis HQ never touches your funds." },
   { q: "Do I need to install anything?", a: "No. TrueAxis HQ is a fully web-based platform. It works on any device with a browser. You can also install it as a PWA (Progressive Web App) on your phone for a native app experience." },

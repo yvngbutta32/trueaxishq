@@ -21,8 +21,8 @@ const categories = [
         a: "Go to Dashboard → Settings → Booking Page. Choose a username (e.g., yourname), add a bio, and list the services you offer. Your booking page will be live at trueaxishq.com/book/yourname. Share this link with clients so they can self-book without back-and-forth emails.",
       },
       {
-        q: "What is included in the free trial?",
-        a: "Your 14-day free trial includes full access to all Pro plan features: unlimited clients, invoicing, scheduling, AI follow-ups, analytics, and your public booking page. No credit card is required. After 14 days, you can choose a plan or your account will revert to the free tier.",
+        q: "How do I access TrueAxis HQ?",
+        a: "Create an account with an invitation code. Available workspace capabilities and billing configuration are confirmed during onboarding.",
       },
     ],
   },
@@ -90,19 +90,19 @@ const categories = [
     articles: [
       {
         q: "How do I upgrade or change my plan?",
-        a: "Go to Dashboard → Billing. You'll see your current plan and options to upgrade. Click 'Upgrade Plan' to be taken to the Stripe checkout. After payment, your new plan features are activated immediately.",
+        a: "Go to Dashboard → Billing to review billing controls. Payment options appear when payment configuration is active.",
       },
       {
         q: "How do I cancel my subscription?",
-        a: "Go to Dashboard → Billing and click 'Manage Billing'. This opens the Stripe billing portal where you can cancel your subscription. Cancellation takes effect at the end of your current billing period — you'll retain access to paid features until then.",
+        a: "Go to Dashboard → Billing to review the billing controls available to your workspace when payment configuration is active.",
       },
       {
         q: "What payment methods do you accept?",
-        a: "We accept all major credit and debit cards (Visa, Mastercard, American Express, Discover) through Stripe. We also support Apple Pay and Google Pay in supported browsers.",
+        a: "Available payment methods are shown at checkout when payment configuration is active.",
       },
       {
         q: "Do you offer refunds?",
-        a: "We offer a 14-day free trial so you can evaluate the platform before paying. After a payment has been processed, we do not offer refunds for partial billing periods. If you believe you were charged in error, contact billing@trueaxishq.com and we'll investigate promptly.",
+        a: "For account-specific billing questions, contact billing@trueaxishq.com.",
       },
     ],
   },
@@ -222,7 +222,7 @@ export default function Help() {
         {/* Contact support */}
         <section className="bg-white border border-[#DDDBD7] rounded-xl p-8 text-center">
           <h2 className="text-xl font-bold mb-2">Still need help?</h2>
-          <p className="text-[#6B6B6B] text-sm mb-6">Our support team typically responds within 4 business hours.</p>
+          <p className="text-[#6B6B6B] text-sm mb-6">Contact support for help with your TrueAxis HQ workspace.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
               href="mailto:support@trueaxishq.com"
@@ -239,7 +239,7 @@ export default function Help() {
               Open Dashboard
             </button>
           </div>
-          <p className="text-xs text-gray-600 mt-4">support@trueaxishq.com · Mon–Fri, 9am–6pm CT</p>
+          <p className="text-xs text-gray-600 mt-4">support@trueaxishq.com</p>
         </section>
       </div>
 

@@ -8,9 +8,9 @@ import { Eye, EyeOff, Loader2, KeyRound, CheckCircle, Users, Star, Lock } from "
 
 
 const perks = [
-  { icon: Star, text: "14-day free trial — no credit card required" },
-  { icon: Users, text: "Join 4,200+ freelancers already on the platform" },
-  { icon: CheckCircle, text: "Full access to all features from day one" },
+  { icon: Star, text: "Create your workspace with an invitation code" },
+  { icon: Users, text: "Bring clients, bookings, and jobs into one workspace" },
+  { icon: CheckCircle, text: "Configure the workflows that fit your service business" },
   { icon: Lock, text: "Your data is yours. We never sell it." },
 ];
 
@@ -100,8 +100,8 @@ export default function Register() {
               className="text-4xl font-extrabold leading-tight mb-4"
               style={{ color: "#1A1A1A" }}
             >
-              Start your free<br />
-              <span style={{ color: "#D4922A" }}>14-day trial.</span>
+              Create your<br />
+              <span style={{ color: "#D4922A" }}>TrueAxis HQ workspace.</span>
             </h2>
             <p className="text-base leading-relaxed" style={{ color: "rgba(26,26,26,0.75)" }}>
               Everything you need to run your freelance business — in one place.
@@ -124,25 +124,6 @@ export default function Register() {
             ))}
           </ul>
 
-          {/* Stats row */}
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { value: "4,200+", label: "Active users" },
-              { value: "12 hrs", label: "Saved/week" },
-              { value: "34%", label: "Revenue lift" },
-            ].map(({ value, label }) => (
-              <div
-                key={label}
-                className="rounded-xl p-4 text-center"
-                style={{ background: "rgba(232,160,32,0.06)", border: "1px solid rgba(232,160,32,0.12)" }}
-              >
-                <p className="text-lg font-extrabold mb-0.5" style={{ color: "#D4922A" }}>
-                  {value}
-                </p>
-                <p className="text-xs" style={{ color: "rgba(26,26,26,0.70)" }}>{label}</p>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Footer note */}
