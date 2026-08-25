@@ -1502,8 +1502,108 @@
 - [x] Verify public routes (booking, intake, portal) cannot expose private data
 
 ## Client Portal — Job Photo Gallery
-- [ ] Add public tRPC procedure: photos.getForClient (scoped by portal token → clientId → bookings)
-- [ ] Build JobPhotosGallery component in ClientPortal.tsx with estimate/WIP/finished tabs
+- [x] Add public tRPC procedure: photos.getForClient (scoped by portal token → clientId → bookings)
+- [x] Build JobPhotosGallery component in ClientPortal.tsx with estimate/WIP/finished tabs
 - [x] Add lightbox viewer for full-size photo viewing
-- [ ] Show photo count badge per tab
-- [ ] Handle empty state gracefully (no photos yet message)
+- [x] Show photo count badge per tab
+- [x] Handle empty state gracefully (no photos yet message)
+
+## Competitive Product-Hardening Program — 2026
+- [x] Research current freelancer, agency, coach, and field-service operating-system competitors and customer pain points
+- [x] Produce a capability-gap matrix and rank opportunities by customer impact, differentiation, delivery effort, and operational risk
+- [x] Audit end-to-end critical journeys: signup, onboarding, lead capture, booking, portal, invoice payment, documents, photos, and automated follow-ups
+- [x] Implement the highest-priority differentiated workflows identified through research
+- [x] Expand regression coverage for all newly changed critical journeys
+- [x] Validate reliability, authorization boundaries, mobile usability, and production logs before release
+
+### Prioritized Build: Interactive Client Hub & Trustworthy Automation
+- [x] Make public photo uploads portal-token-bound and validate the uploaded file ownership before persistence
+- [x] Add a client-facing messaging experience to the Client Portal using the existing token-scoped message system
+- [x] Add client photo upload from the Client Portal with clear estimate-photo context and success/error feedback
+- [x] Make automation execution honest and dependable: execute supported actions, record per-run results, and prevent unsupported actions from being offered
+- [x] Add regression tests for portal authorization, client messaging, client photo persistence, and automation action execution
+
+## State-of-the-Art Quality Pass — 2026
+- [x] Audit every route and critical journey for usability, accessibility, loading/error behavior, and responsive layout quality
+- [x] Audit client and server code for dead paths, insecure defaults, invalid assumptions, performance bottlenecks, and observability gaps
+- [x] Audit built assets and runtime behavior for performance and caching opportunities
+- [x] Implement verified high-impact fixes and product-quality upgrades
+- [x] Add regression coverage for all newly fixed critical paths
+- [x] Run type checks, full tests, production build, runtime-log checks, and visual validation before publishing
+
+## Self-Contained Authentication Cleanup
+- [x] Audit all client, server, package, route, and configuration references to Manus login and OAuth
+- [x] Remove any remaining Manus OAuth login redirects, callback routes, and related client dependencies
+- [x] Preserve self-contained email/password registration, login, logout, reset-password, and session authentication
+- [x] Add regression coverage for the self-contained authentication contract
+- [x] Run full auth-flow validation, production build, and publish the cleanup release
+
+## Transactional Email & Portal-Link Administration
+- [x] Audit SMTP configuration, sender defaults, and existing client portal management surfaces
+- [x] Add owner-facing portal-link status and revocation controls to client management
+- [x] Add safe SMTP configuration readiness checks and transactional-email diagnostics
+- [ ] Securely configure SMTP credentials and verify a controlled transactional test email
+- [x] Add regression coverage, validate the internal release, and publish
+
+### SMTP Deferral
+- [x] Defer real SMTP activation until the owner provides verified provider credentials; retain safe readiness diagnostics in the app
+
+## No-Manual-Input Completion Pass
+- [x] Re-audit all active server routes, database mutations, background jobs, public-token flows, and file-upload paths for credential-free defects
+- [x] Re-audit every public page and owner workspace for responsive layout, accessibility, factual content, empty states, and recovery paths
+- [x] Verify live database schema alignment, migration safety, indexes, and background-job compatibility
+- [x] Remove remaining dead code, stale configuration, unverified claims, and unnecessary platform assumptions
+- [x] Add or strengthen deterministic tests for every new finding and remaining critical workflow
+- [x] Perform final static analysis, test, production-build, runtime-log, database, and visual checks before SMTP activation
+
+### Audit Findings Pending Direct Verification
+- [x] Harden session revocation, security-payload limits, exact auth-rate classification, and unauthorized-session semantics where confirmed
+- [x] Verify and harden public booking/portal/photo actions: rate limits, PII minimization, atomic cancellation, policy-consistent timing, and canonical slot time formatting
+- [x] Complete automation and scheduler correctness: conditions, trigger timestamps, notification-flag resets, batching, reminder windows, report aggregates, invoice uniqueness, and message links
+- [x] Harden document/avatar/photo storage ownership, key sanitation, content validation, rate limits, and client-error responses
+- [x] Correct confirmed database migration/index/constraint drift without destructive changes
+- [x] Correct all confirmed mobile navigation, field upload, keyboard, form-label, contrast, and dead-import issues in owner surfaces
+- [x] Correct all confirmed public factual, domain, CTA, security-link, placeholder-social, and registration-flow issues
+
+## Full-Scope Competitive Analysis & Market Leadership Roadmap
+- [x] Research direct competitors, adjacent platforms, pricing, positioning, and feature sets
+- [x] Analyze verified customer reviews for recurring delight, friction, migration, support, and reliability themes
+- [x] Audit TrueAxis HQ’s current feature coverage, user journeys, design quality, reliability, security, and launch operations
+- [x] Build a capability comparison matrix identifying parity gaps and differentiated opportunities
+- [x] Specify a prioritized product, design, engineering, growth, and operations roadmap with outcomes and implementation scope
+
+## 5/5 Product Program
+- [ ] Finish SMTP domain authentication, verified sender configuration, and transactional-email health visibility
+- [x] Build native client self-service booking reschedule and cancellation controls with atomic availability protection
+- [x] Build the Automation Center: visible run history, error states, retries, delayed actions, and rule editing
+- [x] Create a unified Job Workspace data model connecting client, booking, proposal, visits, proof photos, time, costs, status, invoice, and payment
+- [x] Build the owner Job Workspace UI with lifecycle status, task/checklist, job-cost/profitability, and activity timeline
+- [x] Build the client Job Progress Center with milestones, approvals, appointment actions, proof-of-work, messages, and billing
+- [x] Create vertical fast-start onboarding kits for consultant/coach, creative freelancer, agency, and field-service workflows
+- [x] Add Field Mode for mobile-first time tracking, proof capture, checklists, and client updates
+- [x] Build the executive operating dashboard with lead conversion, cash, receivables, capacity, margin, and automation health
+- [x] Validate every critical customer journey, accessibility, mobile workflow, reliability guard, and production build before release
+- [x] Remove fabricated testimonial-style cards and unsupported public adoption/revenue claims from the landing page
+
+### Credential-Free Launch Improvements
+- [x] Add an owner-facing Launch Readiness Center that clearly reports email, payment, portal, and booking configuration status
+- [x] Add internal first-run guidance and operational empty states for newly created accounts
+- [x] Expand regression coverage for the Job Workspace, Field Mode, Client Progress Center, and launch-readiness signals
+- [x] Improve the invalid Client Portal recovery state with consistent TrueAxis HQ branding and a clearer recovery action
+- [x] Repair the live booking-slot schema mismatch preventing workflow automation queries from completing
+
+### Complete Verified Remediation Register
+- [x] Move client-list search and status filtering from in-memory processing to database filtering
+- [x] Add request-IP throttling to password-reset requests in addition to per-email throttling
+- [x] Centralize password-strength validation so register, reset, and change-password rules cannot drift
+- [x] Add explicit portal-token revocation support and enforce it on every portal route
+- [x] Complete Dashboard maintainability remediation: extract stable panel boundaries and remove verified unsafe `any` casts
+- [x] Complete Dashboard accessibility remediation: robust modal/select labeling, focus behavior, and memoization of verified expensive calculations
+- [x] Complete Client Portal remediation: safe media URLs, robust date formatting, and complete keyboard-accessible lightbox behavior
+- [x] Complete Automations remediation: mobile layout, malformed-action resilience, and touch/keyboard-visible action controls
+- [x] Complete scheduler remediation: safe follow-up interval SQL, dedicated monthly idempotency guard, UTC monthly boundary, and isolated job failures
+- [x] Complete security remediation: trusted-proxy IP resolution, stale violation cleanup, and CSP hardening review
+- [x] Correct API cache middleware ordering so all API endpoints receive no-store cache headers
+- [x] Add automated tests for every server and portal remediation item
+- [x] Address verified production build warnings through practical code splitting or bundle optimization
+- [x] Remove or replace unverified public trust and financial claims in the landing-page hero

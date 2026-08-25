@@ -116,7 +116,6 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     textFields.forEach(assignNullable);
     if (user.lastSignedIn !== undefined) { values.lastSignedIn = user.lastSignedIn; updateSet.lastSignedIn = user.lastSignedIn; }
     if (user.role !== undefined) { values.role = user.role; updateSet.role = user.role; }
-    else if (user.openId === ENV.ownerOpenId) { values.role = "admin"; updateSet.role = "admin"; }
     if (!values.lastSignedIn) values.lastSignedIn = new Date();
     if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
     await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
@@ -340,6 +339,7 @@ export async function createBooking(data: {
         eq(bookings.userId, data.userId),
         eq(bookings.date, data.date),
         eq(bookings.time, data.time),
+        eq(bookings.status, "scheduled"),
       ));
     if (conflicts.length > 0) throw new Error("TIME_CONFLICT");
     return db.insert(bookings).values({
@@ -349,6 +349,7 @@ export async function createBooking(data: {
       service: data.service?.slice(0, 200),
       notes: data.notes?.slice(0, 1000),
       status: "scheduled",
+      slotKey: `${data.userId}|${data.date}|${data.time}`,
       isPublicBooking: data.isPublicBooking ?? false,
     });
   }, null, "createBooking");
@@ -357,8 +358,15 @@ export async function createBooking(data: {
 export async function updateBookingStatus(bookingId: number, userId: number, status: "scheduled" | "completed" | "cancelled" | "no_show") {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
+  const [booking] = await db.select({ date: bookings.date, time: bookings.time })
+    .from(bookings).where(and(eq(bookings.id, bookingId), eq(bookings.userId, userId))).limit(1);
+  if (!booking) throw new Error("BOOKING_NOT_FOUND");
   return withRetry(
-    () => db.update(bookings).set({ status, updatedAt: new Date() })
+    () => db.update(bookings).set({
+      status,
+      slotKey: status === "scheduled" ? `${userId}|${booking.date}|${booking.time}` : null,
+      updatedAt: new Date(),
+    })
       .where(and(eq(bookings.id, bookingId), eq(bookings.userId, userId))),
     null,
     "updateBookingStatus"

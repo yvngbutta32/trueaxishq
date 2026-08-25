@@ -10,7 +10,7 @@ const sections = [
     title: "1. Information We Collect",
     content: `We collect information you provide directly to us when you create an account, use our services, or contact us for support.
 
-**Account Information:** When you register, we collect your name, email address, and authentication credentials. If you sign in via OAuth, we receive your name and email from the identity provider.
+**Account Information:** When you register, we collect your name, email address, and securely hashed authentication credentials needed to operate your account.
 
 **Business Data:** We collect the data you enter into TrueAxis HQ, including client names and contact information, invoice details, booking records, follow-up messages, and business settings. This data belongs to you and is stored securely on our servers.
 
@@ -72,7 +72,7 @@ We do not sell your personal data to data brokers, advertisers, or any third par
 
 **Correction:** You can update your profile information and business settings at any time within the platform.
 
-**Deletion:** You can request deletion of your account and all associated data by contacting us at privacy@trueaxis-hq.com.
+**Deletion:** You can request deletion of your account and all associated data by contacting us at privacy@trueaxishq.com.
 
 **Portability:** You can export your client list, invoices, and booking history in standard formats from your dashboard.
 
@@ -92,7 +92,7 @@ We do not use third-party advertising cookies or sell data to advertising networ
   },
   {
     title: "8. Children's Privacy",
-    content: `TrueAxis HQ is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately at privacy@trueaxis-hq.com and we will delete it promptly.`,
+    content: `TrueAxis HQ is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately at privacy@trueaxishq.com and we will delete it promptly.`,
   },
   {
     title: "9. Changes to This Policy",
@@ -102,7 +102,7 @@ We do not use third-party advertising cookies or sell data to advertising networ
     title: "10. Contact Us",
     content: `If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
 
-**Email:** privacy@trueaxis-hq.com
+**Email:** privacy@trueaxishq.com
 **Mailing Address:** TrueAxis HQ, Privacy Team, 100 Innovation Drive, Suite 400, Austin, TX 78701
 
 We will respond to all privacy-related inquiries within 5 business days.`,

@@ -32,8 +32,13 @@ const LOCKOUT_DURATION_MS      = 10 * 60_000; // 10-minute account lockout
 const requestCounts   = new Map<string, { count: number; windowStart: number }>();
 const blocklist       = new Set<string>();                      // permanent manual blocks
 const blockedUntil    = new Map<string, number>();              // temporary auto-blocks
-const violationCounts = new Map<string, number>();              // per-IP violation count
+const violationCounts = new Map<string, { count: number; lastAt: number }>(); // per-IP violation count + TTL
 const failedLogins    = new Map<string, { count: number; firstAt: number; lockedUntil?: number }>();
+const passwordResetRequests = new Map<string, { count: number; windowStart: number }>();
+const PASSWORD_RESET_WINDOW_MS = 60 * 60_000;
+const PASSWORD_RESET_MAX_PER_IP = 10;
+const MAX_INSPECTION_FIELDS = 40;
+const MAX_INSPECTION_VALUE_CHARS = 2_000;
 
 // ─── Suspicious patterns ─────────────────────────────────────────────────────
 const SUSPICIOUS_PATTERNS: RegExp[] = [
@@ -53,9 +58,22 @@ const SUSPICIOUS_PATTERNS: RegExp[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 export function getClientIp(req: Request): string {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (typeof forwarded === "string") return forwarded.split(",")[0].trim();
-  return req.socket?.remoteAddress ?? "unknown";
+  // Express derives req.ip using the configured trust-proxy policy. Do not
+  // parse X-Forwarded-For directly: an untrusted client can forge that header.
+  return req.ip || req.socket?.remoteAddress || "unknown";
+}
+
+function inspectionText(value: unknown): string {
+  if (typeof value === "string") return value.slice(0, MAX_INSPECTION_VALUE_CHARS);
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) return value.slice(0, MAX_INSPECTION_FIELDS).map(inspectionText).join(" ");
+  if (value && typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>)
+      .slice(0, MAX_INSPECTION_FIELDS)
+      .map(([key, fieldValue]) => `${key} ${inspectionText(fieldValue)}`)
+      .join(" ");
+  }
+  return "";
 }
 
 function isSuspicious(req: Request): boolean {
@@ -63,8 +81,8 @@ function isSuspicious(req: Request): boolean {
   if (contentType.includes("multipart") || contentType.includes("octet-stream")) return false;
   const toCheck = [
     req.url,
-    JSON.stringify(req.query),
-    typeof req.body === "object" ? JSON.stringify(req.body) : String(req.body ?? ""),
+    inspectionText(req.query),
+    inspectionText(req.body),
   ].join(" ");
   return SUSPICIOUS_PATTERNS.some(p => p.test(toCheck));
 }
@@ -107,8 +125,9 @@ async function alertOwner(title: string, content: string) {
 }
 
 function recordViolation(ip: string, req: Request, reason: string) {
-  const count = (violationCounts.get(ip) ?? 0) + 1;
-  violationCounts.set(ip, count);
+  const now = Date.now();
+  const count = (violationCounts.get(ip)?.count ?? 0) + 1;
+  violationCounts.set(ip, { count, lastAt: now });
   if (count >= VIOLATION_BLOCK_THRESHOLD) {
     blockedUntil.set(ip, Date.now() + BLOCK_DURATION_MS);
     const details = `IP: ${ip} | Method: ${req.method} | Path: ${req.path} | Reason: auto-blocked after ${count} violations (latest: ${reason}) | UA: ${req.headers["user-agent"] ?? "unknown"} | Time: ${new Date().toISOString()}`;
@@ -165,6 +184,22 @@ export function clearFailedLogins(email: string) {
   failedLogins.delete(email.toLowerCase());
 }
 
+/**
+ * Limits password-reset requests by source IP without disclosing whether an
+ * account exists. The caller should preserve the generic success response.
+ */
+export function allowPasswordResetRequest(ip: string): boolean {
+  const now = Date.now();
+  const existing = passwordResetRequests.get(ip);
+  if (!existing || now - existing.windowStart >= PASSWORD_RESET_WINDOW_MS) {
+    passwordResetRequests.set(ip, { count: 1, windowStart: now });
+    return true;
+  }
+  if (existing.count >= PASSWORD_RESET_MAX_PER_IP) return false;
+  existing.count++;
+  return true;
+}
+
 // ─── Manual IP management (called from admin procedures) ─────────────────────
 export function manualBlockIP(ip: string) {
   blocklist.add(ip);
@@ -187,9 +222,9 @@ export function getSecurityStats() {
       .filter(([, v]) => v.lockedUntil && v.lockedUntil > Date.now())
       .map(([email, v]) => ({ email, lockedUntil: v.lockedUntil! })),
     topViolators: Array.from(violationCounts.entries())
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 10)
-      .map(([ip, count]) => ({ ip, count })),
+      .map(([ip, data]) => ({ ip, count: data.count })),
   };
 }
 
@@ -199,6 +234,9 @@ setInterval(() => {
   for (const [ip, until] of Array.from(blockedUntil.entries())) {
     if (now > until) { blockedUntil.delete(ip); violationCounts.delete(ip); }
   }
+  for (const [ip, data] of Array.from(violationCounts.entries())) {
+    if (now - data.lastAt > BLOCK_DURATION_MS) violationCounts.delete(ip);
+  }
   for (const [ip, data] of Array.from(requestCounts.entries())) {
     if (now - data.windowStart > RATE_LIMIT_WINDOW_MS * 2) requestCounts.delete(ip);
   }
@@ -206,12 +244,18 @@ setInterval(() => {
     if (data.lockedUntil && now > data.lockedUntil) failedLogins.delete(email);
     else if (!data.lockedUntil && now - data.firstAt > RATE_LIMIT_WINDOW_MS * 10) failedLogins.delete(email);
   }
+  for (const [ip, data] of Array.from(passwordResetRequests.entries())) {
+    if (now - data.windowStart >= PASSWORD_RESET_WINDOW_MS) passwordResetRequests.delete(ip);
+  }
 }, 5 * 60_000);
 
 // ─── Main security middleware ─────────────────────────────────────────────────
 export function securityMiddleware(req: Request, res: Response, next: NextFunction) {
   const ip = getClientIp(req);
   const now = Date.now();
+  const scriptSource = process.env.NODE_ENV === "production"
+    ? "script-src 'self' 'unsafe-inline' https://js.stripe.com https://fonts.googleapis.com"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://fonts.googleapis.com";
 
   // 1. Permanent manual blocklist
   if (blocklist.has(ip)) {
@@ -230,13 +274,13 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://fonts.googleapis.com",
+      scriptSource,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "connect-src 'self' https://api.stripe.com https://fonts.googleapis.com https://d2xsxph8kpxj0f.cloudfront.net https://api.manus.im https://*.manus.space https://*.manus.computer wss: ws: https:",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
-      "frame-ancestors 'self' https://*.manus.space https://*.manus.computer https://*.trueaxishq.com https://trueaxishq.com https://www.trueaxishq.com https://*.trueaxis-hq.com",
+      "frame-ancestors 'self' https://*.manus.space https://*.manus.computer https://*.trueaxishq.com https://trueaxishq.com https://www.trueaxishq.com https://*.trueaxishq.com",
       "base-uri 'self'",
       "form-action 'self'",
       "upgrade-insecure-requests",
@@ -259,9 +303,11 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
     return next();
   }
   // auth.me is a read-only session check called on every page load — use general limit
-  const isAuthMeRoute = req.path.includes("auth.me") || req.path.includes("auth%2Eme");
+  let requestTarget = req.originalUrl;
+  try { requestTarget = decodeURIComponent(req.originalUrl); } catch { /* keep raw URL */ }
+  const isAuthMeRoute = /(?:^|[/.?,&])auth\.me(?:$|[/? ,&])/.test(requestTarget);
   // Strict auth limit only for actual login/register/password mutation endpoints
-  const isAuthRoute = !isAuthMeRoute && (req.path.includes("/oauth") || req.path.includes("auth.login") || req.path.includes("auth.register") || req.path.includes("auth.forgotPassword") || req.path.includes("auth.resetPassword"));
+  const isAuthRoute = !isAuthMeRoute && (requestTarget.includes("/oauth") || /(?:^|[/.?,&])auth\.(?:login|register|forgotPassword|resetPassword)(?:$|[/? ,&])/.test(requestTarget));
   const isAIRoute   = req.path.includes("/ai") || req.path.includes("/pulse") || req.path.includes("/followUps");
   const maxRequests = isAuthRoute ? RATE_LIMIT_MAX_AUTH : isAIRoute ? RATE_LIMIT_MAX_AI : RATE_LIMIT_MAX_GENERAL;
 

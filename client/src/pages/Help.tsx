@@ -18,7 +18,7 @@ const categories = [
       },
       {
         q: "How do I set up my public booking page?",
-        a: "Go to Dashboard → Settings → Booking Page. Choose a username (e.g., yourname), add a bio, and list the services you offer. Your booking page will be live at trueaxis-hq.com/book/yourname. Share this link with clients so they can self-book without back-and-forth emails.",
+        a: "Go to Dashboard → Settings → Booking Page. Choose a username (e.g., yourname), add a bio, and list the services you offer. Your booking page will be live at trueaxishq.com/book/yourname. Share this link with clients so they can self-book without back-and-forth emails.",
       },
       {
         q: "What is included in the free trial?",
@@ -58,7 +58,7 @@ const categories = [
       },
       {
         q: "How do clients book time with me?",
-        a: "Share your booking page link (trueaxis-hq.com/book/yourname) with clients. They can select a service, choose a date and time, enter their name and email, and submit the booking. You'll receive a notification and the booking will appear in your Scheduling tab automatically.",
+        a: "Share your booking page link (trueaxishq.com/book/yourname) with clients. They can select a service, choose a date and time, enter their name and email, and submit the booking. You'll receive a notification and the booking will appear in your Scheduling tab automatically.",
       },
       {
         q: "Can I block off time when I'm unavailable?",
@@ -102,7 +102,7 @@ const categories = [
       },
       {
         q: "Do you offer refunds?",
-        a: "We offer a 14-day free trial so you can evaluate the platform before paying. After a payment has been processed, we do not offer refunds for partial billing periods. If you believe you were charged in error, contact billing@trueaxis-hq.com and we'll investigate promptly.",
+        a: "We offer a 14-day free trial so you can evaluate the platform before paying. After a payment has been processed, we do not offer refunds for partial billing periods. If you believe you were charged in error, contact billing@trueaxishq.com and we'll investigate promptly.",
       },
     ],
   },
@@ -225,7 +225,7 @@ export default function Help() {
           <p className="text-[#6B6B6B] text-sm mb-6">Our support team typically responds within 4 business hours.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
-              href="mailto:support@trueaxis-hq.com"
+              href="mailto:support@trueaxishq.com"
               className="flex items-center justify-center gap-2 bg-[#D4922A] hover:bg-[#D4911A] text-white px-6 py-3 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#D4922A] focus:ring-offset-2 focus:ring-offset-[#F2F0EC] min-h-[48px]"
             >
               <Mail className="w-4 h-4" />
@@ -239,7 +239,7 @@ export default function Help() {
               Open Dashboard
             </button>
           </div>
-          <p className="text-xs text-gray-600 mt-4">support@trueaxis-hq.com · Mon–Fri, 9am–6pm CT</p>
+          <p className="text-xs text-gray-600 mt-4">support@trueaxishq.com · Mon–Fri, 9am–6pm CT</p>
         </section>
       </div>
 

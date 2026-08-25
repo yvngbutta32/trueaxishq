@@ -25,7 +25,7 @@ We offer three subscription tiers: Starter, Pro, and Agency. Features available 
 - Provide accurate, current, and complete information during registration
 - Maintain and promptly update your account information
 - Keep your password confidential and not share it with third parties
-- Notify us immediately at security@trueaxis-hq.com if you suspect unauthorized access to your account
+- Notify us immediately at security@trueaxishq.com if you suspect unauthorized access to your account
 - Accept responsibility for all activity that occurs under your account
 
 You must be at least 18 years old to create an account. By registering, you represent that you meet this requirement.`,
@@ -105,7 +105,7 @@ You waive any right to participate in a class action lawsuit or class-wide arbit
     title: "12. Contact",
     content: `For questions about these Terms, please contact us at:
 
-**Email:** legal@trueaxis-hq.com
+**Email:** legal@trueaxishq.com
 **Address:** TrueAxis HQ, Legal Department, 100 Innovation Drive, Suite 400, Austin, TX 78701`,
   },
 ];

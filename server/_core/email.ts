@@ -46,16 +46,33 @@ export interface EmailResult {
 let _transporter: nodemailer.Transporter | null = null;
 let _transporterChecked = false;
 
+export function getEmailDeliveryStatus() {
+  const host = process.env.SMTP_HOST?.trim();
+  const rawPort = process.env.SMTP_PORT?.trim() || "587";
+  const port = Number.parseInt(rawPort, 10);
+  const user = process.env.SMTP_USER?.trim();
+  const pass = process.env.SMTP_PASS;
+  const sender = process.env.SMTP_FROM?.trim() || user || null;
+  const validPort = Number.isInteger(port) && port >= 1 && port <= 65_535;
+  return {
+    configured: Boolean(host && user && pass && validPort),
+    host: host ?? null,
+    port: validPort ? port : null,
+    sender,
+  };
+}
+
 function getTransporter(): nodemailer.Transporter | null {
   if (_transporterChecked) return _transporter;
   _transporterChecked = true;
 
-  const host = process.env.SMTP_HOST;
-  const port = parseInt(process.env.SMTP_PORT || "587", 10);
-  const user = process.env.SMTP_USER;
+  const status = getEmailDeliveryStatus();
+  const host = process.env.SMTP_HOST?.trim();
+  const port = status.port ?? 587;
+  const user = process.env.SMTP_USER?.trim();
   const pass = process.env.SMTP_PASS;
 
-  if (!host || !user || !pass) {
+  if (!status.configured || !host || !user || !pass) {
     console.log("[Email] No SMTP configured — emails will be logged to console. See server/_core/email.ts for setup instructions.");
     return null;
   }
@@ -88,7 +105,7 @@ function sanitizeHeader(value: string): string {
  */
 export async function sendEmail(payload: EmailPayload): Promise<EmailResult> {
   const transporter = getTransporter();
-  const senderEmail = process.env.SMTP_USER;
+  const senderEmail = getEmailDeliveryStatus().sender;
   // Sanitize all header fields that could contain user-supplied data
   const safePayload: EmailPayload = {
     ...payload,
@@ -356,6 +373,8 @@ export function bookingCancelConfirmEmail(opts: {
   time: string;
   action: "cancel" | "reschedule";
   rebookUrl?: string;
+  previousDate?: string;
+  previousTime?: string;
 }): string {
   const isCancelled = opts.action === "cancel";
   return baseTemplate(`
@@ -363,7 +382,7 @@ export function bookingCancelConfirmEmail(opts: {
     <p class="greeting">Hi ${esc(opts.clientName)},</p>
     <p>${isCancelled
       ? `Your booking for <strong>${esc(opts.serviceName)}</strong> on <strong>${esc(opts.date)} at ${esc(opts.time)}</strong> has been successfully cancelled.`
-      : `Your booking for <strong>${esc(opts.serviceName)}</strong> on <strong>${esc(opts.date)} at ${esc(opts.time)}</strong> has been rescheduled.`
+      : `Your booking for <strong>${esc(opts.serviceName)}</strong>${opts.previousDate && opts.previousTime ? `, previously scheduled for <strong>${esc(opts.previousDate)} at ${esc(opts.previousTime)}</strong>,` : ""} is now confirmed for <strong>${esc(opts.date)} at ${esc(opts.time)}</strong>.`
     }</p>
     ${opts.rebookUrl ? `<a href="${opts.rebookUrl}" class="btn">${isCancelled ? "Book a New Appointment" : "Book Again"} &rarr;</a>` : ""}
     <hr class="divider" />

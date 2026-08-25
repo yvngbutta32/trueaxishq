@@ -64,6 +64,14 @@ async function startServer() {
   // from consuming the per-IP quota and causing 429 on page load
   app.use(securityMiddleware);
 
+  // ── Cache-Control for API responses (no caching) ─────────────────────────
+  // Must be registered before every API route so sensitive JSON, documents,
+  // portal pages, and upload responses cannot be cached by an intermediary.
+  app.use("/api", (_req, res, next) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    next();
+  });
+
   // ── Health Check ─────────────────────────────────────────────────────────
   app.get("/api/health", async (_req, res) => {
     const start = Date.now();
@@ -217,13 +225,6 @@ async function startServer() {
   // ── Scheduled / Heartbeat handlers ─────────────────────────────────────────
   const { dailyDigestHandler } = await import("../digestHandler");
   app.post("/api/scheduled/dailyDigest", dailyDigestHandler);
-
-  // ── Cache-Control for API responses (no caching) ─────────────────────────
-  // Registered BEFORE static/Vite so it applies to all /api/* responses
-  app.use("/api", (_req, res, next) => {
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    next();
-  });
 
   // ── Static / Vite ─────────────────────────────────────────────────────────
   if (process.env.NODE_ENV === "development") {

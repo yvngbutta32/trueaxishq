@@ -12,7 +12,7 @@ import { trpc } from "@/lib/trpc";
 import {
   Zap, Calendar, FileText, Mail, BarChart3, Users,
   ArrowRight, CheckCircle, Star, Menu, X, Sparkles,
-  TrendingUp, Brain, Activity, Target
+  TrendingUp, Brain, Activity, Target, Briefcase, Shield
 } from "lucide-react";
 
 // ─── Animated Counter ────────────────────────────────────────────────────────
@@ -441,13 +441,12 @@ function Hero({ onCTA }: { onCTA: () => void }) {
             </h1>
 
             <p className="mb-8 max-w-lg" style={{ fontSize: "1.125rem", color: "rgba(26,26,26,0.55)", lineHeight: 1.7 }}>
-              TrueAxis HQ handles your client intake, scheduling, invoicing, and follow-ups — so you can focus on the work you love and scale to{" "}
-              <strong style={{ color: "#1A1A1A" }}>$100K/year</strong>.
+              TrueAxis HQ brings client intake, scheduling, billing, job progress, and follow-ups into one workspace — so you can spend less time switching tools and more time serving clients.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-10">
               <button onClick={onCTA} className="btn-amber">
-                Start Free — 14 Days
+                Get Started
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button
@@ -458,21 +457,19 @@ function Hero({ onCTA }: { onCTA: () => void }) {
               </button>
             </div>
 
-            {/* Social proof counter */}
+            {/* Product scope */}
             <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ background: "rgba(232,160,32,0.06)", border: "1px solid rgba(232,160,32,0.14)" }}>
-              <div className="flex -space-x-2">
-                {["#6366F1", "#D4922A", "#5A9A7A", "#FF6B6B"].map((c, i) => (
-                  <div key={i} className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-white text-[9px] font-bold" style={{ background: c }}>U{i + 1}</div>
-                ))}
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "rgba(232,160,32,0.14)", color: "#D4922A" }}>
+                <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-bold" style={{ color: "#1A1A1A" }}>Trusted by 4,200+ freelancers</p>
-                <p className="text-[10px]" style={{ color: "rgba(26,26,26,0.65)" }}>Coaches · Designers · Consultants · Developers</p>
+                <p className="text-xs font-bold" style={{ color: "#1A1A1A" }}>One connected operating system</p>
+                <p className="text-[10px]" style={{ color: "rgba(26,26,26,0.65)" }}>Clients · Bookings · Invoices · Follow-ups</p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>
-              {["No credit card required", "Cancel anytime", "30-day money-back guarantee"].map(t => (
+              {["Client portal included", "Private workspaces", "Mobile-ready workflow"].map(t => (
                 <span key={t} className="flex items-center gap-1.5">
                   <CheckCircle className="w-3.5 h-3.5" style={{ color: "#D4922A" }} />
                   {t}
@@ -490,7 +487,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C85A3A" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#D4922A" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#7A9A8A" }} />
-                <span className="ml-3 text-xs font-mono" style={{ color: "rgba(26,26,26,0.55)" }}>TrueAxis HQ — Dashboard</span>
+                <span className="ml-3 text-xs font-mono" style={{ color: "rgba(26,26,26,0.55)" }}>TrueAxis HQ — Example workspace</span>
               </div>
 
               <div className="p-4 space-y-3">
@@ -498,10 +495,10 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                 <div className="rounded-lg p-3" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.10)" }}>
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <div className="text-xs" style={{ color: "rgba(26,26,26,0.55)" }}>Monthly Revenue</div>
-                      <div className="font-bold text-base" style={{ color: "#1A1A1A", letterSpacing: "-0.02em" }}>$8,240</div>
+                      <div className="text-xs" style={{ color: "rgba(26,26,26,0.55)" }}>Revenue overview</div>
+                      <div className="font-bold text-base" style={{ color: "#1A1A1A", letterSpacing: "-0.02em" }}>Your data</div>
                     </div>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#4ADE80" }}>↑ 12%</span>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#4ADE80" }}>Live view</span>
                   </div>
                   {/* SVG sparkline */}
                   <svg viewBox="0 0 160 36" className="w-full" style={{ height: 36 }} aria-hidden="true">
@@ -519,9 +516,9 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                 {/* Stats row */}
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { label: "Clients", value: "34", change: "+3" },
-                    { label: "Invoiced", value: "$12.4k", change: "this mo" },
-                    { label: "Pulse", value: "87", change: "Healthy" },
+                    { label: "Clients", value: "—", change: "Your list" },
+                    { label: "Invoiced", value: "—", change: "Your cash" },
+                    { label: "Pulse", value: "—", change: "Your signals" },
                   ].map(s => (
                     <div key={s.label} className="rounded-lg p-2.5" style={{ background: "#EEECEA", border: "1px solid rgba(212,146,42,0.08)" }}>
                       <div className="text-[10px] mb-0.5" style={{ color: "rgba(26,26,26,0.55)" }}>{s.label}</div>
@@ -537,8 +534,8 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                     <Calendar className="w-4 h-4" style={{ color: "#D4922A" }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>Strategy Session — Sarah Chen</div>
-                    <div className="text-[10px] mt-0.5" style={{ color: "rgba(26,26,26,0.50)" }}>Today · 2:00 PM · 60 min</div>
+                    <div className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>Upcoming appointment</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: "rgba(26,26,26,0.50)" }}>Client-selected time · calendar-ready</div>
                   </div>
                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#4ADE80" }}>Confirmed</span>
                 </div>
@@ -549,8 +546,8 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                     <FileText className="w-4 h-4" style={{ color: "#D4922A" }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>INV-0042 · Marcus Thompson</div>
-                    <div className="text-[10px] mt-0.5" style={{ color: "rgba(26,26,26,0.50)" }}>$1,800 · Due in 3 days</div>
+                    <div className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>Invoice status</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: "rgba(26,26,26,0.50)" }}>Track balances, due dates, and payments</div>
                   </div>
                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(212,146,42,0.12)", color: "#D4922A" }}>Pending</span>
                 </div>
@@ -559,8 +556,8 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                 <div className="rounded-lg p-3 flex items-start gap-2.5" style={{ background: "rgba(212,146,42,0.05)", border: "1px solid rgba(212,146,42,0.14)" }}>
                   <Brain className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "#D4922A" }} />
                   <div>
-                    <div className="text-[10px] font-bold mb-0.5" style={{ color: "#D4922A" }}>AI Suggestion</div>
-                    <div className="text-[10px]" style={{ color: "rgba(26,26,26,0.50)" }}>Priya hasn't booked in 47 days. Draft a re-engagement email?</div>
+                    <div className="text-[10px] font-bold mb-0.5" style={{ color: "#D4922A" }}>AI workflow prompt</div>
+                    <div className="text-[10px]" style={{ color: "rgba(26,26,26,0.50)" }}>Review activity signals and draft the next appropriate client follow-up.</div>
                   </div>
                 </div>
               </div>
@@ -575,9 +572,9 @@ function Hero({ onCTA }: { onCTA: () => void }) {
 // ─── Ticker Bar ───────────────────────────────────────────────────────────────
 function TickerBar() {
   const items = [
-    "4,200+ Freelancers", "12 hrs saved/week", "$2.4M invoiced", "AI-Powered CRM",
-    "Client Pulse™", "Zero-Overhead Billing", "Smart Follow-Ups", "Live Analytics",
-    "14-Day Free Trial", "No Credit Card", "Cancel Anytime", "GDPR Compliant",
+    "AI-Powered CRM", "Client Pulse", "Smart Invoices", "Smart Follow-Ups",
+    "Live Analytics", "Client Portal", "Secure Job Photos", "Proposal Signing",
+    "Time Tracking", "Expense Tracking", "Booking Automation", "Business Insights",
   ];
   const doubled = [...items, ...items];
 
@@ -602,10 +599,10 @@ function TickerBar() {
 // ─── Stats Bar ────────────────────────────────────────────────────────────────
 function StatsBar() {
   const stats = [
-    { label: "Freelancers Onboard", value: 4200, suffix: "+" },
-    { label: "Hours Saved Weekly", value: 12, suffix: " hrs avg" },
-    { label: "Invoices Processed", value: 2400000, suffix: "+" },
-    { label: "Avg Revenue Increase", value: 34, suffix: "%" },
+    { label: "Client intake", value: "Forms", detail: "capture & qualify" },
+    { label: "Appointments", value: "Booking", detail: "schedule & reschedule" },
+    { label: "Billing", value: "Invoices", detail: "send & track" },
+    { label: "Job progress", value: "Proof", detail: "updates & photos" },
   ];
 
   return (
@@ -614,12 +611,11 @@ function StatsBar() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl overflow-hidden" style={{ background: "rgba(232,160,32,0.08)" }}>
           {stats.map((s, i) => (
             <div key={i} className="flex flex-col items-center justify-center py-10 px-6 text-center" style={{ background: "#F7F6F3" }}>
-              <div className="stat-number text-4xl md:text-5xl mb-2">
-                <AnimatedCounter end={s.value} suffix={s.suffix} />
-              </div>
+              <div className="stat-number text-xl md:text-2xl mb-2">{s.value}</div>
               <div className="text-xs uppercase tracking-widest font-semibold" style={{ color: "rgba(26,26,26,0.65)" }}>
                 {s.label}
               </div>
+              <div className="mt-1 text-[10px]" style={{ color: "rgba(26,26,26,0.45)" }}>{s.detail}</div>
             </div>
           ))}
         </div>
@@ -1056,68 +1052,35 @@ function ClientPulseShowcase() {
   );
 }
 
-// ─── Testimonials ─────────────────────────────────────────────────────────────
-function TestimonialsSection() {
-  const testimonials = [
-    {
-      name: "Sarah Chen",
-      role: "Life Coach",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop",
-      quote: "I used to spend 3 hours every Monday on admin. Now it's zero. TrueAxis HQ paid for itself in the first week.",
-      revenue: "+$2,400/mo",
-      stars: 5,
-    },
-    {
-      name: "Marcus Thompson",
-      role: "Business Consultant",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop",
-      quote: "The Client Pulse feature is genuinely unlike anything I've seen. It told me a client was at risk before I even noticed.",
-      revenue: "+$3,800/mo",
-      stars: 5,
-    },
-    {
-      name: "Priya Sharma",
-      role: "UX Designer",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop",
-      quote: "Invoicing used to be my least favorite part of freelancing. Now it takes 30 seconds. Clients actually pay faster too.",
-      revenue: "+$1,900/mo",
-      stars: 5,
-    },
+// ─── Product Principles ────────────────────────────────────────────────────────
+function ProductPrinciplesSection() {
+  const principles = [
+    { icon: Calendar, title: "From inquiry to appointment", detail: "Capture leads, collect estimate photos, schedule appointments, and keep every client detail together." },
+    { icon: Briefcase, title: "Work you can prove", detail: "Organize milestones, updates, checklists, time, receipts, and before-and-after proof in a single job workspace." },
+    { icon: Shield, title: "Built for trust", detail: "Client portals, scoped access, revocable links, and clear billing keep collaboration professional and private." },
   ];
-
   return (
     <section className="py-16" style={{ background: "#F7F6F3" }}>
       <div className="container">
         <div className="text-center mb-8">
-          <div className="section-label mb-3">What Freelancers Say</div>
+          <div className="section-label mb-3">A clearer way to operate</div>
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
-            Join thousands who scaled with TrueAxis HQ.
+            One source of truth for client work.
           </h2>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {testimonials.map((t, i) => (
+          {principles.map((item, i) => {
+            const Icon = item.icon;
+            return (
             <div key={i} className="retro-card card-lift p-6">
-              <div className="flex gap-0.5 mb-4">
-                {Array.from({ length: t.stars }).map((_, j) => (
-                  <Star key={j} className="w-4 h-4 fill-current" style={{ color: "#D4922A" }} />
-                ))}
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: "rgba(212,146,42,0.12)", color: "#D4922A" }}>
+                <Icon className="h-5 w-5" />
               </div>
-              <blockquote className="text-sm leading-relaxed mb-5" style={{ color: "rgba(26,26,26,0.80)" }}>
-                "{t.quote}"
-              </blockquote>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <img src={t.avatar} alt={t.name} className="w-9 h-9 rounded-full object-cover" style={{ border: "1px solid rgba(232,160,32,0.18)" }} />
-                  <div>
-                    <div className="text-sm font-semibold" style={{ color: "#1A1A1A" }}>{t.name}</div>
-                    <div className="text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>{t.role}</div>
-                  </div>
-                </div>
-                <span className="tag tag-amber">{t.revenue}</span>
-              </div>
+              <h3 className="text-base font-bold" style={{ color: "#1A1A1A" }}>{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed" style={{ color: "rgba(26,26,26,0.72)" }}>{item.detail}</p>
             </div>
-          ))}
+          )})}
         </div>
       </div>
     </section>
@@ -1150,7 +1113,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
           Your business command center is waiting.
         </h2>
         <p className="mt-4 mb-10" style={{ color: "rgba(26,26,26,0.75)", fontSize: "1.0625rem" }}>
-          Join 4,200+ freelancers who automated their business with TrueAxis HQ. 14-day free trial. No credit card required.
+          Bring your clients, bookings, invoices, and follow-ups into one focused workspace built for independent professionals.
         </p>
 
         {submitted ? (
@@ -1185,11 +1148,11 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
 
 // ─── FAQ Section ─────────────────────────────────────────────────────────────
 const HOME_FAQS = [
-  { q: "Is TrueAxis HQ really free to start?", a: "Yes. The Free plan gives you unlimited clients, invoices, and bookings with no credit card required. You only upgrade when you need advanced features like AI automation, recurring invoices, and priority support." },
+  { q: "Is TrueAxis HQ free to try?", a: "Yes. Every plan begins with a 14-day free trial and no credit card is required to start. The Starter plan supports up to 20 active clients; Pro and Agency plans add unlimited client capacity and advanced workflow tools." },
   { q: "How does the AI follow-up feature work?", a: "TrueAxis HQ analyzes each client's booking history, invoice activity, and engagement signals to generate a personalized follow-up email in one click. You review and send — the AI does the drafting." },
   { q: "Can I accept payments through TrueAxis HQ?", a: "Yes. Connect your Stripe account and your clients can pay invoices online via credit card. Payments are processed securely by Stripe — TrueAxis HQ never touches your funds." },
   { q: "Do I need to install anything?", a: "No. TrueAxis HQ is a fully web-based platform. It works on any device with a browser. You can also install it as a PWA (Progressive Web App) on your phone for a native app experience." },
-  { q: "Can clients book appointments without creating an account?", a: "Yes. Your public booking page allows clients to schedule sessions without signing up. You get a unique URL (e.g. trueaxis-hq.com/book/yourname) to share on your website or social profiles." },
+  { q: "Can clients book appointments without creating an account?", a: "Yes. Your public booking page allows clients to schedule sessions without signing up. You get a unique URL (e.g. trueaxishq.com/book/yourname) to share on your website or social profiles." },
   { q: "What happens to my data if I cancel?", a: "Your data is always yours. You can export all clients, invoices, and bookings as CSV at any time. We retain your data for 30 days after cancellation in case you change your mind." },
 ];
 
@@ -1250,8 +1213,8 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
       links: [
         { label: "About", action: () => navigate("/about") },
         { label: "Contact", action: () => navigate("/contact") },
-        { label: "Careers", action: () => { window.location.href = "mailto:careers@trueaxis-hq.com"; } },
-        { label: "Press", action: () => { window.location.href = "mailto:press@trueaxis-hq.com"; } },
+        { label: "Careers", action: () => { window.location.href = "mailto:careers@trueaxishq.com"; } },
+        { label: "Press", action: () => { window.location.href = "mailto:press@trueaxishq.com"; } },
       ],
     },
     {
@@ -1260,7 +1223,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
         { label: "Privacy Policy", action: () => navigate("/privacy") },
         { label: "Terms of Service", action: () => navigate("/terms") },
         { label: "Help Center", action: () => navigate("/help") },
-        { label: "Security", action: () => navigate("/help") },
+        { label: "Security", action: () => navigate("/privacy#security") },
       ],
     },
   ];
@@ -1280,25 +1243,7 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
             <p className="text-sm mb-4" style={{ color: "rgba(26,26,26,0.65)", lineHeight: 1.7 }}>
               The AI-powered business OS for freelancers and solo service professionals.
             </p>
-            <div className="flex gap-2">
-              {([
-                { label: "X", href: "https://x.com" },
-                { label: "in", href: "https://linkedin.com" },
-                { label: "IG", href: "https://instagram.com" },
-              ] as { label: string; href: string }[]).map(s => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`TrueAxis HQ on ${s.label}`}
-                  className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold"
-                  style={{ background: "rgba(26,26,26,0.08)", color: "rgba(26,26,26,0.65)", border: "1px solid rgba(26,26,26,0.10)", textDecoration: "none" }}
-                >
-                  {s.label}
-                </a>
-              ))}
-            </div>
+            <p className="text-xs" style={{ color: "rgba(26,26,26,0.52)" }}>Official social channels will be published here when available.</p>
           </div>
 
           {/* Link columns */}
@@ -1383,7 +1328,7 @@ export default function Home() {
       <FeaturesSection />
       <HowItWorksSection />
       <ClientPulseShowcase />
-      <TestimonialsSection />
+      <ProductPrinciplesSection />
       <EmailCapture onCTA={() => setModalOpen(true)} />
       <FAQSection />
       <Footer onChangelogOpen={() => setChangelogOpen(true)} />

@@ -33,6 +33,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
 
   const { data: entries, isLoading } = trpc.time.list.useQuery();
   const { data: clients } = trpc.clients.list.useQuery();
+  const { data: jobs = [] } = trpc.jobs.list.useQuery();
   const { data: summary } = trpc.time.summary.useQuery();
   const { data: runningEntry } = trpc.time.runningEntry.useQuery();
 
@@ -44,6 +45,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     clientId: "",
+    jobId: "",
     description: "",
     durationHours: "",
     hourlyRate: "",
@@ -55,6 +57,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
   const [timerDesc, setTimerDesc] = useState("");
   const [timerClientId, setTimerClientId] = useState("");
   const [timerClientName, setTimerClientName] = useState("");
+  const [timerJobId, setTimerJobId] = useState("");
   const [timerRate, setTimerRate] = useState("");
 
   // Single-entry invoicing loading state
@@ -97,6 +100,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
       setTimerDesc("");
       setTimerClientId("");
       setTimerClientName("");
+      setTimerJobId("");
       setTimerRate("");
     },
     onError: (e) => toast.error(e.message),
@@ -108,7 +112,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
       utils.time.summary.invalidate();
       toast.success("Time entry added!");
       setShowForm(false);
-      setForm({ clientId: "", description: "", durationHours: "", hourlyRate: "", date: new Date().toISOString().split("T")[0], billable: true });
+      setForm({ clientId: "", jobId: "", description: "", durationHours: "", hourlyRate: "", date: new Date().toISOString().split("T")[0], billable: true });
     },
     onError: (e) => toast.error(e.message),
   });
@@ -158,15 +162,17 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
   });
 
   const handleStartTimer = useCallback(() => {
-    const client = clients?.find(c => String(c.id) === timerClientId);
+    const job = jobs.find(item => String(item.id) === timerJobId);
+    const client = clients?.find(c => String(c.id) === (timerClientId || job?.clientId));
     startTimer.mutate({
       description: timerDesc || undefined,
       clientId: client?.id,
-      clientName: client?.name || timerClientName || undefined,
+      clientName: client?.name || job?.clientName || timerClientName || undefined,
+      jobId: job?.id,
       hourlyRate: timerRate || undefined,
       billable: true,
     });
-  }, [clients, timerClientId, timerDesc, timerClientName, timerRate, startTimer]);
+  }, [clients, jobs, timerClientId, timerJobId, timerDesc, timerClientName, timerRate, startTimer]);
 
   const handleStopTimer = useCallback(() => {
     if (!runningEntry) return;
@@ -179,17 +185,19 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
       toast.error("Please enter a valid duration greater than 0");
       return;
     }
-    const client = clients?.find(c => String(c.id) === form.clientId);
+    const job = jobs.find(item => String(item.id) === form.jobId);
+    const client = clients?.find(c => String(c.id) === (form.clientId || job?.clientId));
     addManual.mutate({
       clientId: client?.id,
-      clientName: client?.name || undefined,
+      clientName: client?.name || job?.clientName || undefined,
+      jobId: job?.id,
       description: form.description || undefined,
       durationMinutes: Math.round(hours * 60),
       hourlyRate: form.hourlyRate || undefined,
       billable: form.billable,
       date: form.date,
     });
-  }, [form, clients, addManual]);
+  }, [form, clients, jobs, addManual]);
 
   const handleGenerateInvoice = useCallback((entryId: number) => {
     setInvoicingId(entryId);
@@ -308,6 +316,23 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
                     <option value="">No client</option>
                     {clients?.map(c => <option key={c.id} value={c.id}>{c.name}{c.defaultRate ? ` — $${parseFloat(c.defaultRate).toFixed(0)}/hr` : ""}</option>)}
                   </select>
+                  <select
+                    value={timerJobId}
+                    onChange={e => {
+                      const jid = e.target.value;
+                      const job = jobs.find(item => String(item.id) === jid);
+                      setTimerJobId(jid);
+                      if (job) {
+                        setTimerClientId(String(job.clientId));
+                        setTimerClientName(job.clientName || "");
+                      }
+                    }}
+                    className="form-input-light flex-1"
+                    aria-label="Link timer to a job"
+                  >
+                    <option value="">No job</option>
+                    {jobs.map(job => <option key={job.id} value={job.id}>{job.jobNumber} · {job.title}</option>)}
+                  </select>
                   <input
                     value={timerRate}
                     onChange={e => setTimerRate(e.target.value)}
@@ -373,6 +398,21 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
               >
                 <option value="">No client</option>
                 {clients?.map(c => <option key={c.id} value={c.id}>{c.name}{c.defaultRate ? ` — $${parseFloat(c.defaultRate).toFixed(0)}/hr` : ""}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.60)] mb-1.5">Job <span className="font-normal">(optional)</span></label>
+              <select
+                value={form.jobId}
+                onChange={e => {
+                  const jid = e.target.value;
+                  const job = jobs.find(item => String(item.id) === jid);
+                  setForm(p => ({ ...p, jobId: jid, clientId: job ? String(job.clientId) : p.clientId }));
+                }}
+                className="form-input-light"
+              >
+                <option value="">No job</option>
+                {jobs.filter(job => !form.clientId || String(job.clientId) === form.clientId).map(job => <option key={job.id} value={job.id}>{job.jobNumber} · {job.title}</option>)}
               </select>
             </div>
             <div>

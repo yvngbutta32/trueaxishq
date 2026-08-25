@@ -12,12 +12,13 @@ import { SignJWT, jwtVerify } from "jose";
 import type { Request } from "express";
 import { parse as parseCookieHeader } from "cookie";
 import { getDb } from "./db";
-import { users } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { users, userSessions } from "../drizzle/schema";
+import { and, eq, gt } from "drizzle-orm";
 import { ENV } from "./_core/env";
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { ForbiddenError } from "@shared/_core/errors";
+import { ForbiddenError, UnauthorizedError } from "@shared/_core/errors";
 import type { User } from "../drizzle/schema";
+import { createHash } from "node:crypto";
 
 const BCRYPT_ROUNDS = 12;
 
@@ -46,6 +47,32 @@ export async function createSessionToken(userId: number, email: string): Promise
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setExpirationTime(expirationSeconds)
     .sign(secretKey);
+}
+
+function hashSessionToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+export async function recordSession(userId: number, token: string, req: Request): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.insert(userSessions).values({
+    userId,
+    tokenHash: hashSessionToken(token),
+    ip: req.ip || req.socket?.remoteAddress || null,
+    userAgent: req.headers["user-agent"] ?? null,
+    isActive: true,
+    expiresAt: new Date(Date.now() + ONE_YEAR_MS),
+  });
+}
+
+export async function revokeSession(token: string | undefined | null, reason: "logout" | "password_changed" | "admin_revoke" = "logout"): Promise<void> {
+  if (!token) return;
+  const db = await getDb();
+  if (!db) return;
+  await db.update(userSessions)
+    .set({ isActive: false, invalidatedAt: new Date(), invalidationReason: reason })
+    .where(and(eq(userSessions.tokenHash, hashSessionToken(token)), eq(userSessions.isActive, true)));
 }
 
 export async function verifySessionToken(
@@ -151,10 +178,21 @@ export async function authenticateRequest(req: Request): Promise<User> {
   const sessionToken = cookies[COOKIE_NAME];
 
   const session = await verifySessionToken(sessionToken);
-  if (!session) throw ForbiddenError("Invalid or missing session");
+  if (!session || !sessionToken) throw UnauthorizedError("Invalid or missing session");
 
   const db = await getDb();
   if (!db) throw ForbiddenError("Database unavailable");
+
+  const [storedSession] = await db.select({ id: userSessions.id })
+    .from(userSessions)
+    .where(and(
+      eq(userSessions.userId, session.userId),
+      eq(userSessions.tokenHash, hashSessionToken(sessionToken)),
+      eq(userSessions.isActive, true),
+      gt(userSessions.expiresAt, new Date()),
+    ))
+    .limit(1);
+  if (!storedSession) throw UnauthorizedError("Session has expired or been revoked");
 
   const result = await db.select().from(users).where(eq(users.id, session.userId)).limit(1);
   const user = result[0];

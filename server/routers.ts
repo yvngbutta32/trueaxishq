@@ -10,16 +10,39 @@ import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos } from "../drizzle/schema";
-import { registerUser, loginUser, createSessionToken, hashPassword, verifyPassword } from "./auth";
-import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats } from "./security";
+import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
+import { strongPasswordSchema } from "./passwordPolicy";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities } from "../drizzle/schema";
+import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
+import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
-import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail } from "./_core/email";
+import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail, getEmailDeliveryStatus } from "./_core/email";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
+
+function hoursUntilBooking(date: string, time: string): number | null {
+  const match = time.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  let normalizedTime = time.trim();
+  if (match) {
+    let hour = Number(match[1]);
+    const minute = match[2];
+    if (match[3].toUpperCase() === "PM" && hour !== 12) hour += 12;
+    if (match[3].toUpperCase() === "AM" && hour === 12) hour = 0;
+    normalizedTime = `${String(hour).padStart(2, "0")}:${minute}`;
+  }
+  const start = new Date(`${date}T${normalizedTime}:00`);
+  return Number.isNaN(start.getTime()) ? null : (start.getTime() - Date.now()) / 3_600_000;
+}
+
+function enforceBookingChangeWindow(date: string, time: string) {
+  const hours = hoursUntilBooking(date, time);
+  if (hours !== null && hours < 24) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Appointments can only be changed up to 24 hours before the scheduled start time." });
+  }
+}
 
 // ─── Stripe client (lazy, cached) ─────────────────────────────────────────────
 let _stripe: Stripe | null = null;
@@ -63,7 +86,7 @@ export const appRouter = router({
     me: publicProcedure.query(opts => {
       const user = opts.ctx.user;
       if (!user) return null;
-      const isOwner = Boolean(ENV.ownerOpenId && user.openId === ENV.ownerOpenId);
+      const isOwner = user.role === "admin";
       return { ...user, isOwner };
     }),
 
@@ -71,9 +94,7 @@ export const appRouter = router({
       .input(z.object({
         name: z.string().trim().min(1).max(255),
         email: safeEmail,
-        password: z.string().min(8).max(128)
-          .regex(/[a-zA-Z]/, "Password must contain at least one letter")
-          .regex(/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, "Password must contain at least one number or symbol"),
+        password: strongPasswordSchema,
         inviteCode: z.string().trim().min(1).max(32),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -117,6 +138,7 @@ export const appRouter = router({
           }).where(eq(inviteCodes.id, invite.id));
 
           const token = await createSessionToken(user.id, user.email ?? input.email);
+          await recordSession(user.id, token, ctx.req);
           const cookieOptions = getSessionCookieOptions(ctx.req);
           ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
           return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
@@ -155,6 +177,7 @@ export const appRouter = router({
           const dbConn = await requireDb();
           await dbConn.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
           const token = await createSessionToken(user.id, user.email ?? input.email);
+          await recordSession(user.id, token, ctx.req);
           const cookieOptions = getSessionCookieOptions(ctx.req);
           ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
           return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
@@ -185,14 +208,10 @@ export const appRouter = router({
           const user = await loginUser({ email: input.email, password: input.password });
           const db = await requireDb();
 
-          // Determine if this user is the owner:
-          // 1. Their openId matches OWNER_OPEN_ID (OAuth-registered owner), OR
-          // 2. Their role is already 'admin', OR
-          // 3. They are the ONLY admin in the system (bootstrap: first admin account)
+          // Administrators are managed entirely through the local database role.
+          // On an empty installation, the first successful admin login bootstraps the role.
           let isOwner = false;
-          if (ENV.ownerOpenId && user.openId === ENV.ownerOpenId) {
-            isOwner = true;
-          } else if (user.role === "admin") {
+          if (user.role === "admin") {
             isOwner = true;
           } else {
             // Bootstrap: if no other admin exists, auto-promote this user
@@ -219,6 +238,7 @@ export const appRouter = router({
           logSecurityEvent({ eventType: "login_success", severity: "low", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"], details: "Admin login" });
           await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
           const token = await createSessionToken(user.id, user.email ?? input.email);
+          await recordSession(user.id, token, ctx.req);
           const cookieOptions = getSessionCookieOptions(ctx.req);
           ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
           return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
@@ -233,7 +253,9 @@ export const appRouter = router({
         }
       }),
 
-    logout: publicProcedure.mutation(({ ctx }) => {
+    logout: publicProcedure.mutation(async ({ ctx }) => {
+      const token = ctx.req.headers.cookie?.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]+)`))?.[1];
+      await revokeSession(token, "logout");
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
@@ -244,6 +266,8 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         // Always return success to prevent email enumeration
         try {
+          const requestIp = getClientIp(ctx.req);
+          if (!allowPasswordResetRequest(requestIp)) return { success: true };
           const db = await requireDb();
           const [user] = await db.select({ id: users.id, name: users.name, email: users.email })
             .from(users).where(eq(users.email, input.email.trim().toLowerCase())).limit(1);
@@ -302,8 +326,7 @@ export const appRouter = router({
     resetPassword: publicProcedure
       .input(z.object({
         token: z.string().min(1).max(200),
-        newPassword: z.string().min(8).max(128)
-          .regex(/^(?=.*[a-zA-Z])(?=.*[\d\W]).+$/, "Password must contain at least one letter and one number or symbol."),
+        newPassword: strongPasswordSchema,
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
@@ -333,8 +356,7 @@ export const appRouter = router({
     changePassword: protectedProcedure
       .input(z.object({
         currentPassword: z.string().min(1).max(128),
-        newPassword: z.string().min(8).max(128)
-          .regex(/^(?=.*[a-zA-Z])(?=.*[\d\W]).+$/, "Password must contain at least one letter and one number or symbol."),
+        newPassword: strongPasswordSchema,
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
@@ -423,21 +445,21 @@ export const appRouter = router({
       }).optional())
       .query(async ({ ctx, input }) => {
         const db = await requireDb();
-        const all = await db.select().from(clients)
-          .where(eq(clients.userId, ctx.user.id))
-          .orderBy(desc(clients.createdAt));
-        let filtered = all;
+        const filters = [eq(clients.userId, ctx.user.id)];
         if (input?.search) {
-          const q = input.search.toLowerCase();
-          filtered = filtered.filter(c =>
-            c.name.toLowerCase().includes(q) ||
-            c.email?.toLowerCase().includes(q) ||
-            c.service?.toLowerCase().includes(q)
-          );
+          const searchPattern = `%${input.search}%`;
+          filters.push(or(
+            like(clients.name, searchPattern),
+            like(clients.email, searchPattern),
+            like(clients.service, searchPattern),
+          )!);
         }
         if (input?.status && input.status !== "all") {
-          filtered = filtered.filter(c => c.status === input.status);
+          filters.push(eq(clients.status, input.status));
         }
+        const filtered = await db.select().from(clients)
+          .where(and(...filters))
+          .orderBy(desc(clients.createdAt));
         // Attach lastActivity: most recent booking or invoice date per client
         const clientIds = filtered.map(c => c.id);
         let lastActivityMap: Record<number, Date | null> = {};
@@ -716,7 +738,7 @@ export const appRouter = router({
               requestToken: reqToken,
               status: "requested",
             });
-            const origin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxis-hq.com";
+            const origin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
             sendEmail({
               to: inv.clientEmail,
               subject: `How did we do? Share your feedback`,
@@ -1017,6 +1039,7 @@ export const appRouter = router({
           duration: input.duration,
           notes: input.notes || null,
           isPublicBooking: false,
+          slotKey: `${ctx.user.id}|${input.date}|${input.time}`,
         });
         return { id: Number((result as any).insertId), success: true };
       }),
@@ -1028,7 +1051,16 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
-        await db.update(bookings).set({ status: input.status, updatedAt: new Date() })
+        const [booking] = await db.select({ date: bookings.date, time: bookings.time })
+          .from(bookings).where(and(eq(bookings.id, input.id), eq(bookings.userId, ctx.user.id))).limit(1);
+        if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
+        await db.update(bookings).set({
+          status: input.status,
+          slotKey: input.status === "scheduled" ? `${ctx.user.id}|${booking.date}|${booking.time}` : null,
+          reminderSentAt: input.status === "scheduled" ? null : undefined,
+          checkInSentAt: input.status === "scheduled" ? null : undefined,
+          updatedAt: new Date(),
+        })
           .where(and(eq(bookings.id, input.id), eq(bookings.userId, ctx.user.id)));
         return { success: true };
       }),
@@ -1208,6 +1240,33 @@ export const appRouter = router({
         ...u,
         bookingServices: u.bookingServices ? JSON.parse(u.bookingServices) : ["Coaching Session", "Strategy Call", "Consultation"],
         bookingAvailability: u.bookingAvailability ? JSON.parse(u.bookingAvailability) : {},
+      };
+    }),
+
+    launchReadiness: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [user] = await db.select({
+        bookingUsername: users.bookingUsername,
+        bookingServices: users.bookingServices,
+        businessName: users.businessName,
+        businessWebsite: users.businessWebsite,
+      }).from(users).where(eq(users.id, ctx.user.id)).limit(1);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
+
+      const [activePortal] = await db.select({ id: clientPortalTokens.id }).from(clientPortalTokens)
+        .where(and(
+          eq(clientPortalTokens.userId, ctx.user.id),
+          eq(clientPortalTokens.revoked, false),
+          sql`(${clientPortalTokens.expiresAt} IS NULL OR ${clientPortalTokens.expiresAt} > NOW())`,
+        )).limit(1);
+      const email = getEmailDeliveryStatus();
+      const services = user.bookingServices ? JSON.parse(user.bookingServices) : [];
+      return {
+        email: { configured: email.configured, sender: email.sender },
+        booking: { configured: Boolean(user.bookingUsername && Array.isArray(services) && services.length > 0), username: user.bookingUsername ?? null },
+        portal: { configured: Boolean(activePortal) },
+        payments: { configured: Boolean(process.env.STRIPE_SECRET_KEY) },
+        business: { configured: Boolean(user.businessName && user.businessWebsite), name: user.businessName ?? null },
       };
     }),
 
@@ -2077,6 +2136,7 @@ Only include actions when you have actually generated a complete draft. For gene
           service: input.service,
           date: input.preferredDate,
           time: input.preferredTime,
+          slotKey: `${hostId}|${input.preferredDate}|${input.preferredTime}`,
           notes: input.message || null,
           isPublicBooking: true,
           status: "scheduled",
@@ -2428,7 +2488,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const isExpired = existing?.expiresAt && new Date() > existing.expiresAt;
         const isStale = existing?.createdAt && (Date.now() - new Date(existing.createdAt).getTime() > ninetyDaysMs);
 
-        if (existing && !isExpired && !isStale) {
+        if (existing && !existing.revoked && !isExpired && !isStale) {
           return { token: existing.token, url: `${origin}/portal/${existing.token}` };
         }
 
@@ -2447,13 +2507,57 @@ Only include actions when you have actually generated a complete draft. For gene
         return { token, url: `${origin}/portal/${token}` };
       }),
 
+    revokeToken: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await requireDb();
+        await db.update(clientPortalTokens)
+          .set({ revoked: true, revokedAt: new Date() })
+          .where(and(
+            eq(clientPortalTokens.userId, ctx.user.id),
+            eq(clientPortalTokens.clientId, input.clientId),
+            eq(clientPortalTokens.revoked, false),
+          ));
+        return { success: true };
+      }),
+
+    status: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive() }))
+      .query(async ({ input, ctx }) => {
+        const db = await requireDb();
+        const [client] = await db.select({ id: clients.id }).from(clients)
+          .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id)))
+          .limit(1);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+
+        const [tokenRecord] = await db.select({
+          revoked: clientPortalTokens.revoked,
+          revokedAt: clientPortalTokens.revokedAt,
+          expiresAt: clientPortalTokens.expiresAt,
+          createdAt: clientPortalTokens.createdAt,
+        }).from(clientPortalTokens)
+          .where(and(eq(clientPortalTokens.userId, ctx.user.id), eq(clientPortalTokens.clientId, input.clientId)))
+          .limit(1);
+
+        const expired = Boolean(tokenRecord?.expiresAt && new Date() > tokenRecord.expiresAt);
+        return {
+          exists: Boolean(tokenRecord),
+          active: Boolean(tokenRecord && !tokenRecord.revoked && !expired),
+          revoked: Boolean(tokenRecord?.revoked),
+          expired,
+          expiresAt: tokenRecord?.expiresAt ?? null,
+          revokedAt: tokenRecord?.revokedAt ?? null,
+          createdAt: tokenRecord?.createdAt ?? null,
+        };
+      }),
+
     // Public: view the portal (no auth required — token is the secret)
     view: publicProcedure
       .input(z.object({ token: z.string().min(1).max(128) }))
       .query(async ({ input }) => {
         const db = await requireDb();
         const [portalRecord] = await db.select().from(clientPortalTokens)
-          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
 
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found or expired." });
         if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
@@ -2503,7 +2607,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .mutation(async ({ input }) => {
         const db = await requireDb();
         const [portalRecord] = await db.select().from(clientPortalTokens)
-          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found." });
         if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Portal link has expired. Please request a new one." });
@@ -2544,13 +2648,67 @@ Only include actions when you have actually generated a complete draft. For gene
                 return { checkoutUrl: session.url };
       }),
 
+    getBookingAvailability: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128), bookingId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
+        if (!portalRecord || (portalRecord.expiresAt && new Date() > portalRecord.expiresAt)) throw new TRPCError({ code: "FORBIDDEN", message: "Portal link is no longer active." });
+        const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId))).limit(1);
+        if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Appointment not found." });
+        const today = new Date().toISOString().slice(0, 10);
+        const bookedSlots = await db.select({ date: bookings.date, time: bookings.time }).from(bookings).where(and(eq(bookings.userId, portalRecord.userId), eq(bookings.status, "scheduled"), sql`${bookings.date} >= ${today}`, sql`${bookings.id} != ${booking.id}`));
+        return { booking, bookedSlots };
+      }),
+
+    rescheduleBooking: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128), bookingId: z.number().int().positive(), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), time: z.string().trim().min(1).max(32) }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
+        if (!portalRecord || (portalRecord.expiresAt && new Date() > portalRecord.expiresAt)) throw new TRPCError({ code: "FORBIDDEN", message: "Portal link is no longer active." });
+        const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId))).limit(1);
+        if (!booking || booking.status !== "scheduled") throw new TRPCError({ code: "BAD_REQUEST", message: "This appointment can no longer be rescheduled." });
+        if (booking.date === input.date && booking.time === input.time) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a different appointment time." });
+        if (input.date < new Date().toISOString().slice(0, 10)) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a future appointment date." });
+        const nextSlotKey = `${portalRecord.userId}|${input.date}|${input.time}`;
+        try {
+          await db.update(bookings).set({ date: input.date, time: input.time, slotKey: nextSlotKey, reminderSentAt: null, updatedAt: new Date() })
+            .where(and(eq(bookings.id, booking.id), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId), eq(bookings.status, "scheduled")));
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "";
+          if (message.includes("Duplicate") || message.includes("duplicate") || message.includes("1062")) throw new TRPCError({ code: "CONFLICT", message: "That appointment time was just taken. Please choose another." });
+          throw error;
+        }
+        await db.insert(notifications).values({ userId: portalRecord.userId, title: `Booking Rescheduled — ${booking.clientName}`, body: `${booking.clientName} moved ${booking.service ?? "their appointment"} to ${input.date} at ${input.time}.`, type: "info", link: "/dashboard?panel=scheduling" });
+        if (booking.clientEmail) sendEmail({ to: booking.clientEmail, subject: `Booking Rescheduled — ${booking.service ?? "Appointment"}`, html: bookingCancelConfirmEmail({ clientName: booking.clientName, serviceName: booking.service ?? "Appointment", date: input.date, time: input.time, previousDate: booking.date, previousTime: booking.time, action: "reschedule" }) }).catch(() => {});
+        return { ok: true, date: input.date, time: input.time };
+      }),
+
+    cancelBooking: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128), bookingId: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
+        if (!portalRecord || (portalRecord.expiresAt && new Date() > portalRecord.expiresAt)) throw new TRPCError({ code: "FORBIDDEN", message: "Portal link is no longer active." });
+        const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId))).limit(1);
+        if (!booking || booking.status !== "scheduled") throw new TRPCError({ code: "BAD_REQUEST", message: "This appointment can no longer be cancelled." });
+        await db.update(bookings).set({ status: "cancelled", slotKey: null, updatedAt: new Date() }).where(and(eq(bookings.id, booking.id), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId), eq(bookings.status, "scheduled")));
+        await db.insert(notifications).values({ userId: portalRecord.userId, title: `Booking Cancelled — ${booking.clientName}`, body: `${booking.clientName} cancelled ${booking.service ?? "their appointment"} on ${booking.date} at ${booking.time}.`, type: "warning", link: "/dashboard?panel=scheduling" });
+        if (booking.clientEmail) sendEmail({ to: booking.clientEmail, subject: `Booking Cancelled — ${booking.service ?? "Appointment"}`, html: bookingCancelConfirmEmail({ clientName: booking.clientName, serviceName: booking.service ?? "Appointment", date: booking.date, time: booking.time, action: "cancel" }) }).catch(() => {});
+        return { ok: true };
+      }),
+
     // Public: get job photos for a client via portal token
     getPhotos: publicProcedure
       .input(z.object({ token: z.string().min(1).max(128) }))
       .query(async ({ input }) => {
         const db = await requireDb();
         const [portalRecord] = await db.select().from(clientPortalTokens)
-          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found or expired." });
         if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
           throw new TRPCError({ code: "FORBIDDEN", message: "This portal link has expired." });
@@ -2574,6 +2732,47 @@ Only include actions when you have actually generated a complete draft. For gene
           ))
           .orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt));
         return { photos };
+      }),
+
+    // Public: job progress for the portal client. Internal notes, receipt costs,
+    // and owner-only controls are intentionally excluded from this view.
+    getJobs: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128) }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
+        if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found or expired." });
+        if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Portal link has expired." });
+        }
+        const clientJobs = await db.select({
+          id: jobs.id, jobNumber: jobs.jobNumber, title: jobs.title, description: jobs.description,
+          status: jobs.status, priority: jobs.priority, startDate: jobs.startDate, targetDate: jobs.targetDate,
+          completedAt: jobs.completedAt, bookingId: jobs.bookingId, invoiceId: jobs.invoiceId, proposalId: jobs.proposalId,
+        }).from(jobs).where(and(eq(jobs.userId, portalRecord.userId), eq(jobs.clientId, portalRecord.clientId))).orderBy(desc(jobs.updatedAt));
+        const jobIds = clientJobs.map(job => job.id);
+        if (!jobIds.length) return { jobs: [] };
+        const proposalIds = clientJobs.flatMap(job => job.proposalId ? [job.proposalId] : []);
+        const [tasks, activities, photos, jobProposals] = await Promise.all([
+          db.select({ id: jobTasks.id, jobId: jobTasks.jobId, title: jobTasks.title, status: jobTasks.status, dueDate: jobTasks.dueDate, completedAt: jobTasks.completedAt, sortOrder: jobTasks.sortOrder })
+            .from(jobTasks).where(and(eq(jobTasks.userId, portalRecord.userId), inArray(jobTasks.jobId, jobIds))).orderBy(jobTasks.sortOrder, desc(jobTasks.createdAt)),
+          db.select({ id: jobActivities.id, jobId: jobActivities.jobId, actor: jobActivities.actor, eventType: jobActivities.eventType, message: jobActivities.message, createdAt: jobActivities.createdAt })
+            .from(jobActivities).where(and(eq(jobActivities.userId, portalRecord.userId), inArray(jobActivities.jobId, jobIds))).orderBy(desc(jobActivities.createdAt)),
+          db.select({ id: jobPhotos.id, jobId: jobPhotos.jobId, photoType: jobPhotos.photoType, photoUrl: jobPhotos.photoUrl, caption: jobPhotos.caption, createdAt: jobPhotos.createdAt })
+            .from(jobPhotos).where(and(eq(jobPhotos.userId, portalRecord.userId), inArray(jobPhotos.jobId, jobIds), inArray(jobPhotos.photoType, ["estimate", "wip", "finished"]))).orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt)),
+          proposalIds.length ? db.select({ id: proposals.id, title: proposals.title, status: proposals.status, token: proposals.token, validUntil: proposals.validUntil })
+            .from(proposals).where(and(eq(proposals.userId, portalRecord.userId), eq(proposals.clientId, portalRecord.clientId), inArray(proposals.id, proposalIds))) : Promise.resolve([]),
+        ]);
+        return {
+          jobs: clientJobs.map(job => ({
+            ...job,
+            tasks: tasks.filter(task => task.jobId === job.id),
+            activities: activities.filter(activity => activity.jobId === job.id && activity.eventType !== "internal_note"),
+            photos: photos.filter(photo => photo.jobId === job.id),
+            proposal: jobProposals.find(proposal => proposal.id === job.proposalId) ?? null,
+          })),
+        };
       }),
   }),
   // ── Contracts & Proposals ─────────────────────────────────────────────────
@@ -2742,6 +2941,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({
         clientId: z.number().optional(),
         clientName: z.string().trim().max(255).optional(),
+        jobId: z.number().int().positive().optional(),
         projectName: z.string().trim().max(255).optional(),
         description: z.string().trim().max(1000).optional(),
         hourlyRate: z.string().optional(),
@@ -2749,6 +2949,13 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        if (input.jobId) {
+          const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs)
+            .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+          if (!job || (input.clientId && job.clientId !== input.clientId)) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Selected job does not belong to this client." });
+          }
+        }
         // Stop any running timer first
         const running = await db.select().from(timeEntries)
           .where(and(eq(timeEntries.userId, ctx.user.id), sql`${timeEntries.endedAt} IS NULL`))
@@ -2763,6 +2970,7 @@ Only include actions when you have actually generated a complete draft. For gene
           userId: ctx.user.id,
           clientId: input.clientId ?? null,
           clientName: input.clientName ?? null,
+          jobId: input.jobId ?? null,
           projectName: input.projectName ?? null,
           description: input.description ?? null,
           startedAt: new Date(),
@@ -2836,6 +3044,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({
         clientId: z.number().optional(),
         clientName: z.string().trim().max(255).optional(),
+        jobId: z.number().int().positive().optional(),
         description: z.string().trim().max(1000).optional(),
         durationMinutes: z.number().min(1),
         hourlyRate: z.string().optional(),
@@ -2844,12 +3053,20 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        if (input.jobId) {
+          const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs)
+            .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+          if (!job || (input.clientId && job.clientId !== input.clientId)) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Selected job does not belong to this client." });
+          }
+        }
         const startedAt = input.date ? new Date(input.date + 'T09:00:00') : new Date();
         const endedAt = new Date(startedAt.getTime() + input.durationMinutes * 60000);
         const [result] = await db.insert(timeEntries).values({
           userId: ctx.user.id,
           clientId: input.clientId ?? null,
           clientName: input.clientName ?? null,
+          jobId: input.jobId ?? null,
           projectName: null,
           description: input.description ?? null,
           startedAt,
@@ -3049,6 +3266,10 @@ Only include actions when you have actually generated a complete draft. For gene
           .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id)))
           .limit(1);
         if (!ownerCheck) throw new TRPCError({ code: "FORBIDDEN", message: "Client not found." });
+        const expectedPrefix = `documents/${ctx.user.id}/`;
+        if (!input.fileKey.startsWith(expectedPrefix) || input.fileKey.includes("..")) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Document upload could not be verified." });
+        }
         const [result] = await db.insert(clientDocuments).values({
           userId: ctx.user.id,
           clientId: input.clientId,
@@ -3302,7 +3523,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .mutation(async ({ input }) => {
         const db = await requireDb();
         const [portalRecord] = await db.select().from(clientPortalTokens)
-          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found." });
         if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Portal link has expired." });
@@ -3331,7 +3552,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .query(async ({ input }) => {
         const db = await requireDb();
         const [portalRecord] = await db.select().from(clientPortalTokens)
-          .where(eq(clientPortalTokens.token, input.token)).limit(1);
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND" });
         // Enforce token expiry (same as portal.view)
         if (portalRecord.expiresAt && new Date(portalRecord.expiresAt) < new Date()) {
@@ -3568,23 +3789,119 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
         const [host] = await db.select({ name: users.name, businessName: users.businessName, bookingUsername: users.bookingUsername })
           .from(users).where(eq(users.id, tokenRow.userId)).limit(1);
-        return { booking, action: tokenRow.action, freelancerName: host?.businessName || host?.name || "Your provider", bookingUsername: host?.bookingUsername };
+        const today = new Date().toISOString().slice(0, 10);
+        const bookedSlots = tokenRow.action === "reschedule"
+          ? await db.select({ date: bookings.date, time: bookings.time }).from(bookings)
+            .where(and(
+              eq(bookings.userId, tokenRow.userId),
+              eq(bookings.status, "scheduled"),
+              sql`${bookings.date} >= ${today}`,
+              sql`${bookings.id} != ${booking.id}`,
+            ))
+          : [];
+        return {
+          booking: { service: booking.service, date: booking.date, time: booking.time },
+          action: tokenRow.action,
+          freelancerName: host?.businessName || host?.name || "Your provider",
+          bookingUsername: host?.bookingUsername,
+          bookedSlots,
+        };
+      }),
+
+    // Public: atomically move an existing booking using a one-time reschedule link.
+    reschedule: publicProcedure
+      .input(z.object({
+        token: z.string().min(1).max(128),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        time: z.string().trim().min(1).max(32),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [tokenRow] = await db.select().from(bookingCancelTokens)
+          .where(eq(bookingCancelTokens.token, input.token)).limit(1);
+        if (!tokenRow || tokenRow.used || tokenRow.action !== "reschedule") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This reschedule link is no longer available." });
+        }
+        if (new Date() > tokenRow.expiresAt) throw new TRPCError({ code: "BAD_REQUEST", message: "This reschedule link has expired." });
+        const [booking] = await db.select().from(bookings)
+          .where(and(eq(bookings.id, tokenRow.bookingId), eq(bookings.userId, tokenRow.userId))).limit(1);
+        if (!booking || booking.status !== "scheduled") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This booking can no longer be rescheduled." });
+        }
+        enforceBookingChangeWindow(booking.date, booking.time);
+        if (booking.date === input.date && booking.time === input.time) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Please choose a different appointment time." });
+        }
+        if (input.date < new Date().toISOString().slice(0, 10)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Please choose a future appointment date." });
+        }
+
+        const nextSlotKey = `${tokenRow.userId}|${input.date}|${input.time}`;
+        try {
+          await db.transaction(async (tx) => {
+            await tx.update(bookings).set({
+              date: input.date,
+              time: input.time,
+              slotKey: nextSlotKey,
+              reminderSentAt: null,
+              updatedAt: new Date(),
+            }).where(and(eq(bookings.id, booking.id), eq(bookings.userId, tokenRow.userId)));
+            await tx.update(bookingCancelTokens).set({ used: true })
+              .where(and(eq(bookingCancelTokens.id, tokenRow.id), eq(bookingCancelTokens.used, false)));
+          });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "";
+          if (message.includes("Duplicate") || message.includes("duplicate") || message.includes("1062")) {
+            throw new TRPCError({ code: "CONFLICT", message: "That appointment time was just taken. Please choose another." });
+          }
+          throw error;
+        }
+
+        await db.insert(notifications).values({
+          userId: tokenRow.userId,
+          title: `Booking Rescheduled — ${booking.clientName}`,
+          body: `${booking.clientName} moved ${booking.service ?? "their session"} from ${booking.date} at ${booking.time} to ${input.date} at ${input.time}.`,
+          type: "info",
+          link: "/dashboard?panel=schedule",
+        });
+        if (booking.clientEmail) {
+          sendEmail({
+            to: booking.clientEmail,
+            subject: `Booking Rescheduled — ${booking.service ?? "Session"}`,
+            html: bookingCancelConfirmEmail({
+              clientName: booking.clientName,
+              serviceName: booking.service ?? "Session",
+              date: input.date,
+              time: input.time,
+              previousDate: booking.date,
+              previousTime: booking.time,
+              action: "reschedule",
+            }),
+          }).catch(() => {});
+        }
+        return { ok: true, date: input.date, time: input.time };
       }),
 
     // Public: execute cancel
     cancel: publicProcedure
-      .input(z.object({ token: z.string().min(1).max(128), origin: z.string().url() }))
+      .input(z.object({ token: z.string().min(1).max(128) }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
         const [tokenRow] = await db.select().from(bookingCancelTokens)
           .where(eq(bookingCancelTokens.token, input.token)).limit(1);
         if (!tokenRow || tokenRow.used) throw new TRPCError({ code: "BAD_REQUEST", message: "Link already used or not found." });
         if (new Date() > tokenRow.expiresAt) throw new TRPCError({ code: "BAD_REQUEST", message: "Link expired." });
-        const [booking] = await db.select().from(bookings).where(eq(bookings.id, tokenRow.bookingId)).limit(1);
+        const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, tokenRow.bookingId), eq(bookings.userId, tokenRow.userId))).limit(1);
         if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
-        // Cancel the booking
-        await db.update(bookings).set({ status: "cancelled" }).where(eq(bookings.id, booking.id));
-        await db.update(bookingCancelTokens).set({ used: true }).where(eq(bookingCancelTokens.id, tokenRow.id));
+        enforceBookingChangeWindow(booking.date, booking.time);
+        await db.transaction(async (tx) => {
+          await tx.update(bookings)
+            .set({ status: "cancelled", slotKey: null, reminderSentAt: null, checkInSentAt: null })
+            .where(and(eq(bookings.id, booking.id), eq(bookings.userId, tokenRow.userId), eq(bookings.status, "scheduled")));
+          await tx.update(bookingCancelTokens)
+            .set({ used: true })
+            .where(and(eq(bookingCancelTokens.id, tokenRow.id), eq(bookingCancelTokens.used, false)));
+        });
         // Notify owner
         await db.insert(notifications).values({
           userId: tokenRow.userId,
@@ -3594,7 +3911,8 @@ Only include actions when you have actually generated a complete draft. For gene
         });
         // Send confirmation email to client
         const [host] = await db.select({ bookingUsername: users.bookingUsername }).from(users).where(eq(users.id, tokenRow.userId)).limit(1);
-        const rebookUrl = host?.bookingUsername ? `${input.origin}/book/${host.bookingUsername}` : undefined;
+        const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
+        const rebookUrl = host?.bookingUsername ? `${siteOrigin}/book/${host.bookingUsername}` : undefined;
         if (booking.clientEmail) {
           sendEmail({
             to: booking.clientEmail,
@@ -3709,6 +4027,47 @@ Only include actions when you have actually generated a complete draft. For gene
         recurring: hasRecurring,
       };
     }),
+
+    fastStartKits: protectedProcedure.query(() => [
+      { id: "consultant", name: "Consultant / Coach", description: "Discovery, strategy, and ongoing advisory services.", services: ["Discovery session", "Strategy session", "Ongoing advisory"] },
+      { id: "creative", name: "Creative Freelancer", description: "Discovery, kickoff, and review services for project-based work.", services: ["Discovery call", "Project kickoff", "Revision session"] },
+      { id: "agency", name: "Agency", description: "Planning, delivery, and client review services for a small team.", services: ["Discovery call", "Sprint planning", "Project review"] },
+      { id: "field_service", name: "Field Service", description: "Site visits, estimate walkthroughs, and completed service appointments.", services: ["Site visit", "Estimate walkthrough", "Service visit"] },
+    ]),
+
+    applyFastStartKit: protectedProcedure
+      .input(z.object({ kitId: z.enum(["consultant", "creative", "agency", "field_service"]) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const kitServices: Record<typeof input.kitId, Array<{ name: string; description: string; durationMinutes: number }>> = {
+          consultant: [
+            { name: "Discovery session", description: "An introductory conversation to understand goals and fit. Update the price before publishing.", durationMinutes: 45 },
+            { name: "Strategy session", description: "A focused working session for priorities, decisions, and next steps. Update the price before publishing.", durationMinutes: 60 },
+            { name: "Ongoing advisory", description: "A recurring advisory session for continuing client support. Update the price before publishing.", durationMinutes: 60 },
+          ],
+          creative: [
+            { name: "Discovery call", description: "A project-fit call to confirm scope and goals. Update the price before publishing.", durationMinutes: 30 },
+            { name: "Project kickoff", description: "A structured kickoff to align scope, timeline, and working process. Update the price before publishing.", durationMinutes: 60 },
+            { name: "Revision session", description: "A focused review session for feedback and next iterations. Update the price before publishing.", durationMinutes: 45 },
+          ],
+          agency: [
+            { name: "Discovery call", description: "An initial client conversation to identify requirements and fit. Update the price before publishing.", durationMinutes: 30 },
+            { name: "Sprint planning", description: "A planning session to align delivery priorities and responsibilities. Update the price before publishing.", durationMinutes: 60 },
+            { name: "Project review", description: "A client review session for delivered work and next decisions. Update the price before publishing.", durationMinutes: 60 },
+          ],
+          field_service: [
+            { name: "Site visit", description: "An on-site assessment or scheduled service appointment. Update the price before publishing.", durationMinutes: 60 },
+            { name: "Estimate walkthrough", description: "A walkthrough to review the proposed scope and estimate. Update the price before publishing.", durationMinutes: 45 },
+            { name: "Service visit", description: "A scheduled visit to complete documented work. Update the price before publishing.", durationMinutes: 120 },
+          ],
+        };
+        const selectedServices = kitServices[input.kitId];
+        const existing = await db.select({ name: services.name }).from(services).where(eq(services.userId, ctx.user.id));
+        const existingNames = new Set(existing.map(service => service.name.trim().toLowerCase()));
+        const toInsert = selectedServices.filter(service => !existingNames.has(service.name.toLowerCase()));
+        if (toInsert.length) await db.insert(services).values(toInsert.map(service => ({ userId: ctx.user.id, name: service.name, description: service.description, price: "0", durationMinutes: service.durationMinutes, category: "fast_start", active: true })));
+        return { added: toInsert.length, skipped: selectedServices.length - toInsert.length };
+      }),
   }),
 
   // ── Global Search ─────────────────────────────────────────────────────────
@@ -4204,7 +4563,7 @@ Only include actions when you have actually generated a complete draft. For gene
           value: z.string(),
         })).default([]),
         actions: z.array(z.object({
-          type: z.enum(["send_email", "create_followup", "send_invoice", "notify_owner", "create_task"]),
+          type: z.enum(SUPPORTED_AUTOMATION_ACTIONS),
           config: z.record(z.string(), z.any()),
         })).min(1),
         active: z.boolean().default(true),
@@ -4233,7 +4592,7 @@ Only include actions when you have actually generated a complete draft. For gene
         trigger: z.enum(["booking_confirmed", "invoice_sent", "invoice_overdue", "client_added", "proposal_signed", "invoice_paid"]).optional(),
         triggerDelayHours: z.number().int().min(0).max(720).optional(),
         conditions: z.array(z.object({ field: z.string(), operator: z.string(), value: z.string() })).optional(),
-        actions: z.array(z.object({ type: z.string(), config: z.record(z.string(), z.any()) })).optional(),
+        actions: z.array(z.object({ type: z.enum(SUPPORTED_AUTOMATION_ACTIONS), config: z.record(z.string(), z.any()) })).optional(),
         active: z.boolean().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -4315,30 +4674,37 @@ Only include actions when you have actually generated a complete draft. For gene
         const [auto] = await db.select().from(automations)
           .where(and(eq(automations.id, input.id), eq(automations.userId, ctx.user.id))).limit(1);
         if (!auto) throw new TRPCError({ code: "NOT_FOUND" });
-        const actions = JSON.parse(auto.actions || "[]");
+        const actions = JSON.parse(auto.actions || "[]") as Array<{ type: string; config: Record<string, unknown> }>;
         let executed = 0;
+        const skipped: string[] = [];
         for (const action of actions) {
           try {
             if (action.type === "notify_owner") {
-              await notifyOwner({ title: action.config.title || "Automation triggered", content: action.config.message || `Automation "${auto.name}" was manually run.` });
-              executed++;
-            } else if (action.type === "create_followup") {
-              // Queue a follow-up for the owner to review
-              executed++;
+              const delivered = await notifyOwner({
+                title: typeof action.config.title === "string" ? action.config.title : "Automation test",
+                content: typeof action.config.message === "string" ? action.config.message : `Automation "${auto.name}" was manually tested.`,
+              });
+              if (delivered) executed++;
+              else skipped.push("Owner notification service unavailable");
+            } else {
+              skipped.push(`${action.type} runs automatically when a matching ${auto.trigger} event is due.`);
             }
           } catch (e) {
-            console.error("[Automation] Action failed:", e);
+            skipped.push(e instanceof Error ? e.message : "Automation test failed");
           }
         }
-        await db.update(automations).set({ runCount: sql`${automations.runCount} + 1`, lastRunAt: new Date() }).where(eq(automations.id, auto.id));
+        if (executed > 0) {
+          await db.update(automations).set({ runCount: sql`${automations.runCount} + 1`, lastRunAt: new Date() }).where(eq(automations.id, auto.id));
+        }
         await db.insert(automationLogs).values({
           automationId: auto.id,
           userId: ctx.user.id,
           trigger: "manual",
-          status: "success",
+          status: executed > 0 ? "success" : "skipped",
           actionsExecuted: executed,
+          errorMessage: skipped.length ? skipped.join(" | ").slice(0, 4000) : null,
         });
-        return { success: true, actionsExecuted: executed };
+        return { success: true, actionsExecuted: executed, skipped };
       }),
   }),
 
@@ -4849,23 +5215,61 @@ Only include actions when you have actually generated a complete draft. For gene
         return { id: (result as any).insertId as number };
       }),
 
-    // Public confirm — for client-uploaded estimate photos (no auth required)
+    // Public confirm — for verified client-uploaded estimate photos.
     confirmClientUpload: publicProcedure
       .input(z.object({
         photoUrl: z.string().url(),
         photoKey: z.string().min(1).max(512),
-        hostUsername: z.string().min(1).max(64),
+        hostUsername: z.string().trim().min(1).max(64).optional(),
+        portalToken: z.string().min(1).max(128).optional(),
         bookingId: z.number().int().positive().optional(),
         caption: z.string().max(512).optional(),
+      }).refine(input => Boolean(input.hostUsername || input.portalToken), {
+        message: "A booking host or portal token is required.",
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
-        const [host] = await db.select({ id: users.id })
-          .from(users).where(eq(users.bookingUsername, input.hostUsername)).limit(1);
-        if (!host) throw new TRPCError({ code: "NOT_FOUND", message: "Host not found" });
+        let userId: number;
+        let clientId: number | null = null;
+
+        if (input.portalToken) {
+          const [portalRecord] = await db.select({
+            userId: clientPortalTokens.userId,
+            clientId: clientPortalTokens.clientId,
+            expiresAt: clientPortalTokens.expiresAt,
+          }).from(clientPortalTokens)
+            .where(and(eq(clientPortalTokens.token, input.portalToken), eq(clientPortalTokens.revoked, false)))
+            .limit(1);
+          if (!portalRecord || (portalRecord.expiresAt && portalRecord.expiresAt < new Date())) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Portal link not found or expired." });
+          }
+          userId = portalRecord.userId;
+          clientId = portalRecord.clientId;
+        } else {
+          const [host] = await db.select({ id: users.id })
+            .from(users).where(eq(users.bookingUsername, input.hostUsername!)).limit(1);
+          if (!host) throw new TRPCError({ code: "NOT_FOUND", message: "Host not found" });
+          userId = host.id;
+        }
+
+        if (!input.photoKey.startsWith(`job-photos/${userId}/estimate/`)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Photo upload does not belong to this portal or booking page." });
+        }
+
+        if (input.bookingId) {
+          const [booking] = await db.select({ id: bookings.id, clientId: bookings.clientId })
+            .from(bookings)
+            .where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, userId)))
+            .limit(1);
+          if (!booking || (clientId !== null && booking.clientId !== clientId)) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found." });
+          }
+        }
+
         const [result] = await db.insert(jobPhotos).values({
-          userId: host.id,
+          userId,
           bookingId: input.bookingId ?? null,
+          clientId,
           photoType: "estimate",
           uploadedBy: "client",
           photoUrl: input.photoUrl,
@@ -5061,6 +5465,178 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           .orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt));
         const total = items.reduce((sum, p) => sum + parseFloat(String(p.lineItemAmount ?? "0")), 0);
         return { items, total: total.toFixed(2) };
+      }),
+  }),
+
+  // ── Unified Job Workspace ──────────────────────────────────────────────────
+  jobs: router({
+    list: protectedProcedure
+      .input(z.object({ status: z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]).optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const filters = [eq(jobs.userId, ctx.user.id)];
+        if (input?.status) filters.push(eq(jobs.status, input.status));
+        return db.select({
+          id: jobs.id, jobNumber: jobs.jobNumber, title: jobs.title, status: jobs.status,
+          priority: jobs.priority, targetDate: jobs.targetDate, budgetAmount: jobs.budgetAmount,
+          clientId: jobs.clientId, clientName: clients.name, clientEmail: clients.email,
+          createdAt: jobs.createdAt, updatedAt: jobs.updatedAt,
+        }).from(jobs).innerJoin(clients, eq(jobs.clientId, clients.id)).where(and(...filters)).orderBy(desc(jobs.updatedAt));
+      }),
+
+    get: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select().from(jobs).where(and(eq(jobs.id, input.id), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        const [client] = await db.select({ id: clients.id, name: clients.name, email: clients.email, avatarInitials: clients.avatarInitials }).from(clients)
+          .where(and(eq(clients.id, job.clientId), eq(clients.userId, ctx.user.id))).limit(1);
+        const [booking] = job.bookingId ? await db.select().from(bookings).where(and(eq(bookings.id, job.bookingId), eq(bookings.userId, ctx.user.id))).limit(1) : [];
+        const [invoice] = job.invoiceId ? await db.select().from(invoices).where(and(eq(invoices.id, job.invoiceId), eq(invoices.userId, ctx.user.id))).limit(1) : [];
+        const [proposal] = job.proposalId ? await db.select().from(proposals).where(and(eq(proposals.id, job.proposalId), eq(proposals.userId, ctx.user.id))).limit(1) : [];
+        const [contract] = job.contractId ? await db.select().from(contracts).where(and(eq(contracts.id, job.contractId), eq(contracts.userId, ctx.user.id))).limit(1) : [];
+        const [tasks, activities, photos, entries] = await Promise.all([
+          db.select().from(jobTasks).where(and(eq(jobTasks.jobId, job.id), eq(jobTasks.userId, ctx.user.id))).orderBy(jobTasks.sortOrder, desc(jobTasks.createdAt)),
+          db.select().from(jobActivities).where(and(eq(jobActivities.jobId, job.id), eq(jobActivities.userId, ctx.user.id))).orderBy(desc(jobActivities.createdAt)).limit(100),
+          db.select().from(jobPhotos).where(and(eq(jobPhotos.jobId, job.id), eq(jobPhotos.userId, ctx.user.id))).orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt)),
+          db.select().from(timeEntries).where(and(eq(timeEntries.jobId, job.id), eq(timeEntries.userId, ctx.user.id))).orderBy(desc(timeEntries.startedAt)),
+        ]);
+        const receiptCost = photos.filter(photo => photo.photoType === "receipt").reduce((sum, photo) => sum + Number(photo.lineItemAmount ?? 0), 0);
+        const laborCost = entries.reduce((sum, entry) => sum + ((entry.durationMinutes ?? 0) / 60) * Number(entry.hourlyRate ?? 0), 0);
+        const revenue = Number(invoice?.amount ?? job.budgetAmount ?? 0);
+        return {
+          job, client, booking: booking ?? null, invoice: invoice ?? null, proposal: proposal ?? null, contract: contract ?? null,
+          tasks, activities, photos, entries,
+          financials: { revenue, receiptCost, laborCost, totalCost: receiptCost + laborCost, profit: revenue - receiptCost - laborCost },
+        };
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        clientId: z.number().int().positive(),
+        title: safeString(255), description: safeOptionalString(5000),
+        status: z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]).default("lead"),
+        priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
+        startDate: safeOptionalString(32), targetDate: safeOptionalString(32),
+        budgetAmount: z.number().min(0).max(99_999_999).optional(),
+        bookingId: z.number().int().positive().optional(), invoiceId: z.number().int().positive().optional(), proposalId: z.number().int().positive().optional(), contractId: z.number().int().positive().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [client] = await db.select({ id: clients.id, name: clients.name }).from(clients)
+          .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+        if (input.bookingId) {
+          const [booking] = await db.select({ id: bookings.id, clientId: bookings.clientId }).from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, ctx.user.id))).limit(1);
+          if (!booking || (booking.clientId && booking.clientId !== input.clientId)) throw new TRPCError({ code: "BAD_REQUEST", message: "Booking does not belong to this client." });
+        }
+        const jobNumber = `JOB-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+        const [result] = await db.insert(jobs).values({
+          userId: ctx.user.id, clientId: input.clientId, title: input.title, description: input.description ?? null,
+          status: input.status, priority: input.priority, startDate: input.startDate ?? null, targetDate: input.targetDate ?? null,
+          budgetAmount: input.budgetAmount === undefined ? null : String(input.budgetAmount), bookingId: input.bookingId ?? null,
+          invoiceId: input.invoiceId ?? null, proposalId: input.proposalId ?? null, contractId: input.contractId ?? null,
+          completedAt: input.status === "completed" ? new Date() : null, jobNumber,
+        });
+        const jobId = Number(result.insertId);
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId, actor: "owner", eventType: "job_created", message: `Created ${jobNumber} for ${client.name}.` });
+        return { id: jobId, jobNumber };
+      }),
+
+    createFromBooking: protectedProcedure
+      .input(z.object({ bookingId: z.number().int().positive(), targetDate: safeOptionalString(32) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, ctx.user.id))).limit(1);
+        if (!booking?.clientId) throw new TRPCError({ code: "BAD_REQUEST", message: "This booking must be linked to a client before creating a job." });
+        const [existing] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.bookingId, booking.id), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (existing) return { id: existing.id, existing: true };
+        const jobNumber = `JOB-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+        const [result] = await db.insert(jobs).values({
+          userId: ctx.user.id, clientId: booking.clientId, bookingId: booking.id, jobNumber,
+          title: booking.service ?? `Work for ${booking.clientName}`, description: booking.notes ?? null,
+          status: "scheduled", priority: "normal", startDate: booking.date, targetDate: input.targetDate ?? booking.date,
+        });
+        const jobId = Number(result.insertId);
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId, actor: "system", eventType: "job_created_from_booking", message: `Created from booking on ${booking.date} at ${booking.time}.` });
+        return { id: jobId, existing: false };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(), title: safeOptionalString(255), description: safeOptionalString(5000),
+        status: z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]).optional(),
+        priority: z.enum(["low", "normal", "high", "urgent"]).optional(), startDate: safeOptionalString(32), targetDate: safeOptionalString(32), budgetAmount: z.number().min(0).max(99_999_999).nullable().optional(), invoiceId: z.number().int().positive().nullable().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [current] = await db.select().from(jobs).where(and(eq(jobs.id, input.id), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!current) throw new TRPCError({ code: "NOT_FOUND" });
+        const { id, budgetAmount, ...rest } = input;
+        const updates: Record<string, unknown> = { ...rest, updatedAt: new Date() };
+        if (budgetAmount !== undefined) updates.budgetAmount = budgetAmount === null ? null : String(budgetAmount);
+        if (input.status === "completed" && current.status !== "completed") updates.completedAt = new Date();
+        if (input.status && input.status !== current.status) {
+          await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: id, actor: "owner", eventType: "status_changed", message: `Status changed from ${current.status.replaceAll("_", " ")} to ${input.status.replaceAll("_", " ")}.` });
+        }
+        await db.update(jobs).set(updates).where(and(eq(jobs.id, id), eq(jobs.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    addTask: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive(), title: safeString(255), description: safeOptionalString(5000), dueDate: safeOptionalString(32) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND" });
+        const [result] = await db.insert(jobTasks).values({ userId: ctx.user.id, jobId: input.jobId, title: input.title, description: input.description ?? null, dueDate: input.dueDate ?? null });
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: input.jobId, actor: "owner", eventType: "task_added", message: `Added checklist item: ${input.title}.` });
+        return { id: Number(result.insertId) };
+      }),
+
+    updateTask: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), status: z.enum(["todo", "in_progress", "done"]).optional(), title: safeOptionalString(255), dueDate: safeOptionalString(32) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [task] = await db.select().from(jobTasks).where(and(eq(jobTasks.id, input.id), eq(jobTasks.userId, ctx.user.id))).limit(1);
+        if (!task) throw new TRPCError({ code: "NOT_FOUND" });
+        const { id, ...inputUpdates } = input;
+        const updates: Record<string, unknown> = { ...inputUpdates };
+        if (input.status === "done" && task.status !== "done") updates.completedAt = new Date();
+        if (input.status && input.status !== task.status) await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: task.jobId, actor: "owner", eventType: "task_status_changed", message: `Checklist item “${task.title}” marked ${input.status.replaceAll("_", " ")}.` });
+        await db.update(jobTasks).set(updates).where(and(eq(jobTasks.id, id), eq(jobTasks.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    deleteTask: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(jobTasks).where(and(eq(jobTasks.id, input.id), eq(jobTasks.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    addUpdate: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive(), message: safeString(5000), visibleToClient: z.boolean().default(true) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND" });
+        const [result] = await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: input.jobId, actor: "owner", eventType: input.visibleToClient ? "client_update" : "internal_note", message: input.message, metadata: JSON.stringify({ visibleToClient: input.visibleToClient }) });
+        return { id: Number(result.insertId) };
+      }),
+
+    attachPhoto: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive(), photoId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        const [photo] = await db.select({ id: jobPhotos.id, photoType: jobPhotos.photoType }).from(jobPhotos).where(and(eq(jobPhotos.id, input.photoId), eq(jobPhotos.userId, ctx.user.id))).limit(1);
+        if (!job || !photo) throw new TRPCError({ code: "NOT_FOUND" });
+        await db.update(jobPhotos).set({ jobId: job.id }).where(and(eq(jobPhotos.id, photo.id), eq(jobPhotos.userId, ctx.user.id)));
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: job.id, actor: "owner", eventType: "photo_linked", message: `Linked a ${photo.photoType === "wip" ? "work-in-progress" : photo.photoType} photo.` });
+        return { success: true };
       }),
   }),
 });

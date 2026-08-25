@@ -81,11 +81,11 @@ export function HealthMonitor() {
           role="tooltip"
         >
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold text-white">System Status</p>
+            <p className="text-xs font-bold text-[#1A1A1A]">System Status</p>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-              status === "healthy" ? "bg-emerald-400/20 text-emerald-400" :
-              status === "degraded" ? "bg-yellow-400/20 text-yellow-400" :
-              "bg-red-400/20 text-red-400"
+              status === "healthy" ? "bg-emerald-400/20 text-emerald-800" :
+              status === "degraded" ? "bg-yellow-400/20 text-yellow-900" :
+              "bg-red-400/20 text-red-800"
             }`}>
               {status === "healthy" ? "All Systems Go" : status === "degraded" ? "Degraded" : "Error"}
             </span>
@@ -143,10 +143,10 @@ function StatusRow({ label, status, detail }: { label: string; status: string; d
   const isOk = status === "ok" || status === "configured";
   return (
     <div className="flex items-center justify-between">
-      <span className="text-xs text-gray-400">{label}</span>
+      <span className="text-xs text-[#4A4A4A]">{label}</span>
       <div className="flex items-center gap-1.5">
         {detail && <span className="text-xs text-gray-500">{detail}</span>}
-        <span className={`text-xs font-medium ${isOk ? "text-emerald-400" : "text-yellow-400"}`}>
+        <span className={`text-xs font-medium ${isOk ? "text-emerald-800" : "text-yellow-900"}`}>
           {isOk ? "✓ OK" : "⚠ " + status.replace(/_/g, " ")}
         </span>
       </div>

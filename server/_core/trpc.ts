@@ -1,5 +1,4 @@
 import { NOT_ADMIN_ERR_MSG, UNAUTHED_ERR_MSG } from '@shared/const';
-import { ENV } from './env';
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
@@ -45,9 +44,7 @@ export const adminProcedure = t.procedure.use(
   }),
 );
 
-// ownerProcedure — restricted to the platform owner/admin
-// Allows access if: role === 'admin' (covers email-registered admins)
-// OR openId === OWNER_OPEN_ID (covers OAuth-registered owner)
+// ownerProcedure — restricted to locally managed administrators.
 export const ownerProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
@@ -56,10 +53,7 @@ export const ownerProcedure = t.procedure.use(
       throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
     }
 
-    const isAdmin = ctx.user.role === 'admin';
-    const isOwnerById = ENV.ownerOpenId ? ctx.user.openId === ENV.ownerOpenId : false;
-
-    if (!isAdmin && !isOwnerById) {
+    if (ctx.user.role !== 'admin') {
       throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
 

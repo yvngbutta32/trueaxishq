@@ -56,7 +56,7 @@ function generateICS({
   const start = parseDateTime(date, time);
   const end = new Date(start.getTime() + durationMins * 60 * 1000);
   const now = new Date();
-  const uid = `booking-${Date.now()}@trueaxis-hq.com`;
+  const uid = `booking-${Date.now()}@trueaxishq.com`;
 
   return [
     "BEGIN:VCALENDAR",
@@ -174,6 +174,7 @@ export default function BookingPage() {
     onSuccess: () => setStep("success"),
     onError: (e) => toast.error("Booking failed: " + e.message),
   });
+  const confirmClientPhoto = trpc.photos.confirmClientUpload.useMutation();
 
   const availableDays = getNextDays(14);
 
@@ -186,14 +187,11 @@ export default function BookingPage() {
           const fd = new FormData();
           fd.append("file", file);
           fd.append("photoType", "estimate");
+          fd.append("hostUsername", username);
           const res = await fetch("/api/photos/upload", { method: "POST", body: fd });
           if (res.ok) {
             const { photoKey, photoUrl } = await res.json() as { photoKey: string; photoUrl: string };
-            await fetch("/api/trpc/photos.confirmClientUpload", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ json: { photoUrl, photoKey, hostUsername: username } }),
-            });
+            await confirmClientPhoto.mutateAsync({ photoUrl, photoKey, hostUsername: username });
           }
         } catch (err) {
           console.error("[EstimatePhoto]", err);
@@ -252,7 +250,7 @@ export default function BookingPage() {
       time: form.preferredTime,
       durationMins: 60,
       organizerName: host.name ?? "Your Host",
-      organizerEmail: "noreply@trueaxis-hq.com",
+      organizerEmail: "noreply@trueaxishq.com",
       attendeeEmail: form.clientEmail,
       attendeeName: form.clientName,
     });

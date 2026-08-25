@@ -52,6 +52,10 @@ export default function IntakeFormPage() {
       const formPayload = new FormData();
       formPayload.append("file", file);
       formPayload.append("photoType", "estimate");
+      if (!formData?.hostBookingUsername) {
+        throw new Error("The booking context for this form is unavailable.");
+      }
+      formPayload.append("hostUsername", formData.hostBookingUsername);
       const uploadRes = await fetch("/api/photos/upload", { method: "POST", body: formPayload });
       if (!uploadRes.ok) throw new Error("Upload failed");
       const { photoKey, photoUrl } = await uploadRes.json() as { photoKey: string; photoUrl: string };

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Zap, Plus, Trash2, ToggleLeft, ToggleRight, Play, Clock,
-  CheckCircle, XCircle, ChevronRight, AlertCircle,
+  CheckCircle, XCircle, ChevronRight, AlertCircle, Pencil, History,
 } from "lucide-react";
 
 const TRIGGERS = [
@@ -23,27 +23,31 @@ const TRIGGERS = [
 ];
 
 const ACTIONS = [
-  { value: "send_email", label: "Send Email", desc: "Send an automated email to the client" },
-  { value: "create_followup", label: "Create Follow-Up", desc: "Auto-create a follow-up reminder" },
-  { value: "send_invoice", label: "Send Invoice", desc: "Auto-generate an invoice from a booking" },
-  { value: "notify_owner", label: "Notify Me", desc: "Send yourself a notification" },
-  { value: "create_task", label: "Create Task", desc: "Add a task to your to-do list" },
+  { value: "send_email", label: "Send Email", desc: "Send an automated email to the matching client" },
+  { value: "create_followup", label: "Create Follow-Up", desc: "Create a reviewable follow-up draft for the matching client" },
+  { value: "notify_owner", label: "Notify Me", desc: "Send yourself an owner notification" },
 ] as const;
 
 type TriggerType = "booking_confirmed" | "invoice_sent" | "invoice_overdue" | "client_added" | "proposal_signed" | "invoice_paid";
-type ActionType = "send_email" | "create_followup" | "send_invoice" | "notify_owner" | "create_task";
+type ActionType = "send_email" | "create_followup" | "notify_owner";
 type AutomationForm = {
   name: string;
+  description: string;
   trigger: TriggerType;
-  actions: { type: ActionType; config: Record<string, any> }[];
+  triggerDelayHours: number;
+  actions: { type: ActionType; config: Record<string, string> }[];
 };
-const EMPTY_FORM: AutomationForm = { name: "", trigger: "booking_confirmed" as TriggerType, actions: [{ type: "notify_owner" as ActionType, config: { message: "" } }] };
+const EMPTY_FORM: AutomationForm = { name: "", description: "", trigger: "booking_confirmed", triggerDelayHours: 0, actions: [{ type: "notify_owner", config: { message: "" } }] };
 
 export default function Automations() {
   const utils = trpc.useUtils();
   const { data: automations = [], isLoading } = trpc.automations.list.useQuery();
   const createMut = trpc.automations.create.useMutation({
     onSuccess: () => { utils.automations.list.invalidate(); toast.success("Automation created"); setOpen(false); setForm(EMPTY_FORM); },
+    onError: e => toast.error(e.message),
+  });
+  const updateDetailsMut = trpc.automations.update.useMutation({
+    onSuccess: () => { utils.automations.list.invalidate(); toast.success("Automation updated"); setOpen(false); setEditingId(null); setForm(EMPTY_FORM); },
     onError: e => toast.error(e.message),
   });
   const toggleMut = trpc.automations.update.useMutation({
@@ -59,13 +63,23 @@ export default function Automations() {
     onError: (e: { message: string }) => toast.error(e.message),
   });
   const testMut = trpc.automations.run.useMutation({
-    onSuccess: (d: { actionsExecuted: number }) => toast.success(`Test ran: ${d.actionsExecuted} action(s) executed`),
+    onSuccess: (d: { actionsExecuted: number; skipped: string[] }) => {
+      utils.automations.logs.invalidate();
+      if (d.actionsExecuted > 0) toast.success(`Test ran: ${d.actionsExecuted} notification action(s) executed`);
+      else toast.message(d.skipped[0] || "This automation will run when a matching event is due.");
+    },
     onError: (e: { message: string }) => toast.error(e.message),
   });
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<AutomationForm>(EMPTY_FORM);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [logAutomationId, setLogAutomationId] = useState<number | null>(null);
+  const { data: logs = [], isLoading: logsLoading } = trpc.automations.logs.useQuery(
+    { automationId: logAutomationId ?? undefined, limit: 20 },
+    { enabled: logAutomationId !== null },
+  );
 
   function addAction() {
     setForm(p => ({ ...p, actions: [...p.actions, { type: "notify_owner" as ActionType, config: { message: "" } }] }));
@@ -74,7 +88,7 @@ export default function Automations() {
   function removeAction(idx: number) {
     setForm(p => ({ ...p, actions: p.actions.filter((_, i) => i !== idx) }));
   }
-  function updateAction(idx: number, field: "type" | "config", value: any) {
+  function updateAction(idx: number, field: "type" | "config", value: ActionType | Record<string, string>) {
     setForm(p => ({
       ...p,
       actions: p.actions.map((a, i) => i === idx ? { ...a, [field]: value } : a),
@@ -85,7 +99,41 @@ export default function Automations() {
     if (!form.name.trim()) return toast.error("Automation name is required");
     if (!form.trigger) return toast.error("Select a trigger");
     if (form.actions.length === 0) return toast.error("Add at least one action");
-    createMut.mutate({ name: form.name, trigger: form.trigger, actions: form.actions });
+    const payload = {
+      name: form.name,
+      description: form.description || undefined,
+      trigger: form.trigger,
+      triggerDelayHours: form.triggerDelayHours,
+      actions: form.actions,
+    };
+    if (editingId !== null) updateDetailsMut.mutate({ id: editingId, ...payload });
+    else createMut.mutate(payload);
+  }
+
+  function openEdit(automation: typeof automations[number]) {
+    let parsedActions: AutomationForm["actions"] = [];
+    try {
+      const parsed: unknown = JSON.parse(automation.actions || "[]");
+      if (Array.isArray(parsed)) {
+        parsedActions = parsed
+          .filter((action): action is { type: ActionType; config?: unknown } => Boolean(action) && typeof action === "object" && "type" in action && ACTIONS.some(({ value }) => value === (action as { type?: string }).type))
+          .map((action) => ({
+            type: action.type,
+            config: action.config && typeof action.config === "object"
+              ? Object.fromEntries(Object.entries(action.config).filter(([, value]) => typeof value === "string"))
+              : {},
+          }));
+      }
+    } catch { /* Invalid persisted actions are reset to a safe editable default. */ }
+    setEditingId(automation.id);
+    setForm({
+      name: automation.name,
+      description: automation.description ?? "",
+      trigger: automation.trigger as TriggerType,
+      triggerDelayHours: automation.triggerDelayHours ?? 0,
+      actions: parsedActions.length ? parsedActions : [{ type: "notify_owner", config: { message: "" } }],
+    });
+    setOpen(true);
   }
 
   const activeCount = automations.filter(a => a.active).length;
@@ -102,7 +150,7 @@ export default function Automations() {
           <Button onClick={() => seedMut.mutate()} disabled={seedMut.isPending} variant="outline" className="border-[rgba(139,92,246,0.3)] text-[#A78BFA] hover:bg-[rgba(139,92,246,0.1)] gap-2 hidden sm:flex">
             {seedMut.isPending ? <span className="w-4 h-4 border-2 border-[#A78BFA]/40 border-t-[#A78BFA] rounded-full animate-spin" /> : <Zap className="w-4 h-4" />} Load Templates
           </Button>
-          <Button onClick={() => { setForm(EMPTY_FORM); setOpen(true); }} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold gap-2">
+          <Button onClick={() => { setEditingId(null); setForm(EMPTY_FORM); setOpen(true); }} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold gap-2">
             <Plus className="w-4 h-4" /> New Automation
           </Button>
         </div>
@@ -126,7 +174,7 @@ export default function Automations() {
       {automations.length === 0 && !isLoading && (
         <div className="bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)] rounded-xl p-5">
           <h3 className="text-sm font-semibold text-[#A78BFA] mb-3 flex items-center gap-2"><Zap className="w-4 h-4" /> How Automations Work</h3>
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
             {[
               { step: "1", title: "Choose a Trigger", desc: "Something happens in your business (booking, payment, etc.)" },
               { step: "2", title: "Define Actions", desc: "What should happen automatically (email, follow-up, notification)" },
@@ -156,7 +204,7 @@ export default function Automations() {
             <Button onClick={() => seedMut.mutate()} disabled={seedMut.isPending} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold gap-2">
               {seedMut.isPending ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Zap className="w-4 h-4" />} Load Starter Templates
             </Button>
-            <Button onClick={() => { setForm(EMPTY_FORM); setOpen(true); }} variant="outline" className="border-[rgba(139,92,246,0.3)] text-[#A78BFA] hover:bg-[rgba(139,92,246,0.1)] gap-2">
+            <Button onClick={() => { setEditingId(null); setForm(EMPTY_FORM); setOpen(true); }} variant="outline" className="border-[rgba(139,92,246,0.3)] text-[#A78BFA] hover:bg-[rgba(139,92,246,0.1)] gap-2">
               <Plus className="w-4 h-4" /> Build from Scratch
             </Button>
           </div>
@@ -165,7 +213,13 @@ export default function Automations() {
         <div className="space-y-3">
           {automations.map(a => {
             const triggerDef = TRIGGERS.find(t => t.value === a.trigger);
-            const actions = JSON.parse(a.actions || "[]") as { type: string }[];
+            let actions: { type: string }[] = [];
+            try {
+              const parsed: unknown = JSON.parse(a.actions || "[]");
+              actions = Array.isArray(parsed) ? parsed.filter((action): action is { type: string } => Boolean(action) && typeof action === "object" && "type" in action && typeof action.type === "string") : [];
+            } catch {
+              actions = [];
+            }
             return (
               <div key={a.id} className={`group flex items-center gap-4 border rounded-xl px-5 py-4 transition-all ${a.active ? "bg-white border-[rgba(26,26,26,0.07)] hover:border-[rgba(139,92,246,0.3)]" : "bg-[rgba(255,255,255,0.02)] border-[rgba(26,26,26,0.04)] opacity-60"}`}>
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${a.active ? "bg-[rgba(139,92,246,0.15)]" : "bg-[rgba(255,255,255,0.05)]"}`}>
@@ -181,15 +235,17 @@ export default function Automations() {
                   <div className="flex items-center gap-1.5 mt-0.5 text-xs text-[rgba(26,26,26,0.45)]">
                     <span className="text-[#A78BFA]">{triggerDef?.label ?? a.trigger}</span>
                     <ChevronRight className="w-3 h-3" />
-                    <span>{actions.map(ac => ACTIONS.find(x => x.value === ac.type)?.label ?? ac.type).join(", ")}</span>
+                    <span>{actions.length ? actions.map(ac => ACTIONS.find(x => x.value === ac.type)?.label ?? ac.type).join(", ") : "No valid actions configured"}</span>
                   </div>
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => testMut.mutate({ id: a.id })} title="Test run" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#A78BFA] transition-colors"><Play className="w-4 h-4" /></button>
-                  <button onClick={() => toggleMut.mutate({ id: a.id, active: !a.active })} title={a.active ? "Pause" : "Activate"} className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors">
+                <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
+                  <button aria-label={`Edit ${a.name}`} onClick={() => openEdit(a)} title="Edit automation" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#8B5CF6] transition-colors"><Pencil className="w-4 h-4" /></button>
+                  <button aria-label={`View history for ${a.name}`} onClick={() => setLogAutomationId(logAutomationId === a.id ? null : a.id)} title="View run history" className={`p-2 rounded-lg transition-colors ${logAutomationId === a.id ? "bg-[rgba(139,92,246,0.15)] text-[#8B5CF6]" : "hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#8B5CF6]"}`}><History className="w-4 h-4" /></button>
+                  <button aria-label={`Test ${a.name}`} onClick={() => testMut.mutate({ id: a.id })} title="Test run" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#A78BFA] transition-colors"><Play className="w-4 h-4" /></button>
+                  <button aria-label={`${a.active ? "Pause" : "Activate"} ${a.name}`} onClick={() => toggleMut.mutate({ id: a.id, active: !a.active })} title={a.active ? "Pause" : "Activate"} className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors">
                     {a.active ? <ToggleRight className="w-4 h-4 text-[#34D399]" /> : <ToggleLeft className="w-4 h-4" />}
                   </button>
-                  <button onClick={() => setDeleteConfirm(a.id)} title="Delete" className="p-2 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                  <button aria-label={`Delete ${a.name}`} onClick={() => setDeleteConfirm(a.id)} title="Delete" className="p-2 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             );
@@ -197,14 +253,51 @@ export default function Automations() {
         </div>
       )}
 
+      {logAutomationId !== null && (
+        <section className="rounded-xl border border-[rgba(26,26,26,0.08)] bg-white overflow-hidden" aria-label="Automation run history">
+          <div className="flex items-center justify-between gap-4 p-4 border-b border-[rgba(26,26,26,0.08)]">
+            <div>
+              <h2 className="font-semibold text-[rgba(26,26,26,0.9)]">Run History</h2>
+              <p className="text-xs text-[rgba(26,26,26,0.5)] mt-0.5">Recent executions, delivery outcomes, and recovery notes.</p>
+            </div>
+            <Button size="sm" variant="ghost" onClick={() => setLogAutomationId(null)}>Close</Button>
+          </div>
+          {logsLoading ? (
+            <div className="p-5 text-sm text-[rgba(26,26,26,0.5)]">Loading execution history…</div>
+          ) : logs.length === 0 ? (
+            <div className="p-5 text-sm text-[rgba(26,26,26,0.5)]">No runs yet. This rule will appear here when a matching event is processed.</div>
+          ) : (
+            <div className="divide-y divide-[rgba(26,26,26,0.06)]">
+              {logs.map((log) => {
+                const succeeded = log.status === "success";
+                return (
+                  <div key={log.id} className="p-4 flex gap-3">
+                    {succeeded ? <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" /> : log.status === "failed" ? <XCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" /> : <Clock className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-[rgba(26,26,26,0.85)] capitalize">{log.status} · {log.actionsExecuted} action{log.actionsExecuted === 1 ? "" : "s"} executed</p>
+                      <p className="text-xs text-[rgba(26,26,26,0.5)] mt-0.5">{log.createdAt ? new Date(log.createdAt).toLocaleString() : "Time unavailable"} · Trigger: {log.trigger}</p>
+                      {log.errorMessage && <p className="text-xs text-[rgba(26,26,26,0.65)] mt-2 break-words">{log.errorMessage}</p>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
+
       {/* Create Dialog */}
-      <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) setForm(EMPTY_FORM); }}>
+      <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) { setForm(EMPTY_FORM); setEditingId(null); } }}>
         <DialogContent className="bg-white border-[rgba(26,26,26,0.1)] text-[rgba(26,26,26,0.95)] max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle className="flex items-center gap-2"><Zap className="w-5 h-5 text-[#8B5CF6]" /> New Automation</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Zap className="w-5 h-5 text-[#8B5CF6]" /> {editingId !== null ? "Edit Automation" : "New Automation"}</DialogTitle></DialogHeader>
           <div className="space-y-5 py-2">
             <div>
               <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Automation Name *</label>
               <Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Welcome New Clients" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Internal Description</label>
+              <Input value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="What this rule protects or accomplishes" maxLength={500} className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
             </div>
 
             {/* Trigger */}
@@ -224,6 +317,15 @@ export default function Automations() {
               </div>
             </div>
 
+            <div>
+              <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Wait before running</label>
+              <div className="flex items-center gap-2">
+                <Input type="number" min={0} max={720} value={form.triggerDelayHours} onChange={e => setForm(p => ({ ...p, triggerDelayHours: Math.min(720, Math.max(0, Number(e.target.value) || 0)) }))} className="w-28 bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
+                <span className="text-sm text-[rgba(26,26,26,0.55)]">hours after the trigger</span>
+              </div>
+              <p className="text-xs text-[rgba(26,26,26,0.45)] mt-1">Use this for a timed follow-up. The run history records the final outcome.</p>
+            </div>
+
             {/* Actions */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -241,14 +343,17 @@ export default function Automations() {
                         <button onClick={() => removeAction(idx)} className="p-1.5 rounded hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.4)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                       )}
                     </div>
-                    {(action.type === "send_email" || action.type === "notify_owner") && (
-                      <Input value={action.config.message ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, message: e.target.value })} placeholder={action.type === "send_email" ? "Email message to client..." : "Notification message..."} className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
+                    {(action.type === "send_email" || action.type === "create_followup") && (
+                      <>
+                        <Input value={action.config.subject ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, subject: e.target.value })} placeholder="Subject (e.g. A quick follow-up)" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
+                        <textarea value={action.config.message ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, message: e.target.value })} placeholder={action.type === "send_email" ? "Message to the matching client..." : "Draft follow-up message..."} maxLength={4000} rows={3} className="w-full rounded-md border border-[rgba(26,26,26,0.12)] bg-white px-3 py-2 text-sm text-[rgba(26,26,26,0.9)] outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20" />
+                      </>
                     )}
-                    {action.type === "create_followup" && (
-                      <Input value={action.config.daysAfter ?? "1"} onChange={e => updateAction(idx, "config", { ...action.config, daysAfter: e.target.value })} placeholder="Days after trigger" type="number" min="0" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
-                    )}
-                    {action.type === "create_task" && (
-                      <Input value={action.config.title ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, title: e.target.value })} placeholder="Task title (e.g. Send welcome kit)" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
+                    {action.type === "notify_owner" && (
+                      <>
+                        <Input value={action.config.title ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, title: e.target.value })} placeholder="Notification title" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
+                        <textarea value={action.config.message ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, message: e.target.value })} placeholder="Notification message..." maxLength={4000} rows={3} className="w-full rounded-md border border-[rgba(26,26,26,0.12)] bg-white px-3 py-2 text-sm text-[rgba(26,26,26,0.9)] outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20" />
+                      </>
                     )}
                   </div>
                 ))}
@@ -257,8 +362,8 @@ export default function Automations() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)} className="text-[rgba(26,26,26,0.6)]">Cancel</Button>
-            <Button onClick={handleSubmit} disabled={createMut.isPending} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold">
-              Create Automation
+            <Button onClick={handleSubmit} disabled={createMut.isPending || updateDetailsMut.isPending} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold">
+              {editingId !== null ? "Save Changes" : "Create Automation"}
             </Button>
           </DialogFooter>
         </DialogContent>

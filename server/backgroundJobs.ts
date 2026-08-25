@@ -18,16 +18,19 @@ import {
   users,
   clients,
   bookings,
+  jobRunGuards,
 } from "../drizzle/schema";
 import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, bookingReminderEmail, postSessionCheckInEmail } from "./_core/email";
+import { processDueAutomations } from "./automationEngine";
+import { randomBytes } from "node:crypto";
 
 // ─── Invoice number generator ─────────────────────────────────────────────────
 function generateInvoiceNumber(): string {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
-  const rand = String(Math.floor(Math.random() * 9000) + 1000);
-  return `INV-${year}${month}-${rand}`;
+  const suffix = randomBytes(5).toString("hex").toUpperCase();
+  return `INV-${year}${month}-${suffix}`;
 }
 
 // ─── Next due date calculator ─────────────────────────────────────────────────
@@ -234,7 +237,8 @@ async function runFollowUpRules() {
 
       for (const rule of rules) {
         try {
-          const cutoffDate = new Date(Date.now() - rule.triggerDays * 24 * 60 * 60 * 1000);
+          const triggerDays = Math.min(Math.max(Math.trunc(rule.triggerDays), 1), 3650);
+          const cutoffDate = new Date(Date.now() - triggerDays * 24 * 60 * 60 * 1000);
           const cutoffStr = cutoffDate.toISOString().replace("T", " ").split(".")[0];
 
           // Find clients for this user who haven't booked since cutoff
@@ -258,7 +262,7 @@ async function runFollowUpRules() {
                   WHERE fu.clientId = c.id
                     AND fu.userId = ${rule.userId}
                     AND fu.subject = ${rule.emailSubject}
-                    AND fu.createdAt > DATE_SUB(NOW(), INTERVAL ${rule.triggerDays} DAY)
+                    AND fu.createdAt > DATE_SUB(NOW(), INTERVAL ${sql.raw(String(triggerDays))} DAY)
                 )
               LIMIT 10
             `
@@ -340,35 +344,36 @@ async function runFollowUpRules() {
   }
 }
 
-// ─── Monthly report sent-once guard ──────────────────────────────────────────
 // ─── Job: Monthly business report email (runs on 1st of month) ───────────────
 async function runMonthlyReport() {
   const now = new Date();
   // Only run on the 1st of the month (check within the hourly window)
-  if (now.getDate() !== 1) return;
+  if (now.getUTCDate() !== 1) return;
 
   // Prevent sending more than once per month — use DB so server restarts don't re-send
-  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const monthKey = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
   try {
     const guardDb = await getDb();
     if (!guardDb) return;
-    const sentCheck = await guardDb.execute(
-      sql`SELECT 1 FROM notifications WHERE title = ${`monthly_report_guard:${monthKey}`} LIMIT 1`
-    ) as any;
-    const sentRows = Array.isArray(sentCheck) ? sentCheck[0] ?? [] : sentCheck?.rows ?? [];
-    if (sentRows.length > 0) {
+    const jobKey = `monthly_report:${monthKey}`;
+    const [sentCheck] = await guardDb.select({ jobKey: jobRunGuards.jobKey })
+      .from(jobRunGuards)
+      .where(eq(jobRunGuards.jobKey, jobKey))
+      .limit(1);
+    if (sentCheck) {
       console.log(`[Jobs] Monthly report already sent for ${monthKey} — skipping`);
       return;
     }
-    // Insert guard record before sending to prevent double-send on concurrent runs
-    await guardDb.insert(notifications).values({
-      userId: 0,
-      title: `monthly_report_guard:${monthKey}`,
-      body: monthKey,
-      type: 'info',
-    });
-  } catch {
-    console.warn('[Jobs] Could not check monthly report guard — proceeding anyway');
+    // Insert before sending. The primary key protects against concurrent workers.
+    try {
+      await guardDb.insert(jobRunGuards).values({ jobKey });
+    } catch {
+      console.log(`[Jobs] Monthly report guard already claimed for ${monthKey} — skipping`);
+      return;
+    }
+  } catch (error) {
+    console.error("[Jobs] Could not establish the monthly report guard; skipping to prevent duplicate sends:", error);
+    return;
   }
 
   for (let attempt = 1; attempt <= 2; attempt++) {
@@ -440,7 +445,7 @@ async function runMonthlyReport() {
               invoicesPaid,
               invoicesOutstanding,
               aiInsight: `You completed ${totalBookings} booking${totalBookings !== 1 ? "s" : ""} this month.`,
-              dashboardUrl: process.env.VITE_FRONTEND_FORGE_API_URL?.replace("/api", "") || "https://trueaxis-hq.com",
+              dashboardUrl: process.env.VITE_FRONTEND_FORGE_API_URL?.replace("/api", "") || "https://trueaxishq.com",
             }),
           });
 
@@ -608,17 +613,27 @@ async function runPostSessionCheckIns() {
 export function startBackgroundJobs() {
   console.log("[Jobs] Background job scheduler starting...");
   const runAll = async () => {
-    await runOverdueDetection();
-    await runRecurringInvoices();
-    await runFollowUpReminders();
-    await runFollowUpRules();
-    await runMonthlyReport();
-    await runBookingReminders();
-    await runPostSessionCheckIns();
+    const jobs: Array<[string, () => Promise<void>]> = [
+      ["overdue detection", runOverdueDetection],
+      ["recurring invoices", runRecurringInvoices],
+      ["follow-up reminders", runFollowUpReminders],
+      ["follow-up rules", runFollowUpRules],
+      ["monthly report", runMonthlyReport],
+      ["booking reminders", runBookingReminders],
+      ["post-session check-ins", runPostSessionCheckIns],
+      ["workflow automations", processDueAutomations],
+    ];
+    for (const [name, job] of jobs) {
+      try {
+        await job();
+      } catch (error) {
+        console.error(`[Jobs] ${name} failed without stopping the remaining schedule:`, error);
+      }
+    }
   };
   // Initial run after 10 seconds (let server fully start)
   setTimeout(runAll, 10_000);
   // Then every hour
   setInterval(runAll, 60 * 60 * 1000);
-  console.log("[Jobs] Background jobs scheduled (every 1 hour, 7 jobs)");
+  console.log("[Jobs] Background jobs scheduled (every 1 hour, 8 jobs)");
 }
