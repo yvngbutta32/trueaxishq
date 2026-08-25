@@ -12,6 +12,7 @@ import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
 import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
+import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
@@ -1243,6 +1244,42 @@ export const appRouter = router({
         bookingServices: u.bookingServices ? JSON.parse(u.bookingServices) : ["Coaching Session", "Strategy Call", "Consultation"],
         bookingAvailability: u.bookingAvailability ? JSON.parse(u.bookingAvailability) : {},
       };
+    }),
+
+    clientExperiencePreflight: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [user] = await db.select({
+        bookingUsername: users.bookingUsername,
+        bookingServices: users.bookingServices,
+        businessName: users.businessName,
+        businessWebsite: users.businessWebsite,
+      }).from(users).where(eq(users.id, ctx.user.id)).limit(1);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
+
+      const [activePortal] = await db.select({ id: clientPortalTokens.id }).from(clientPortalTokens)
+        .where(and(
+          eq(clientPortalTokens.userId, ctx.user.id),
+          eq(clientPortalTokens.revoked, false),
+          sql`(${clientPortalTokens.expiresAt} IS NULL OR ${clientPortalTokens.expiresAt} > NOW())`,
+        )).limit(1);
+      const [automationStats] = await db.select({
+        total: sql<number>`COUNT(*)`,
+        active: sql<number>`SUM(CASE WHEN ${automations.active} = true THEN 1 ELSE 0 END)`,
+      }).from(automations).where(eq(automations.userId, ctx.user.id));
+      const email = getEmailDeliveryStatus();
+      const services = user.bookingServices ? JSON.parse(user.bookingServices) : [];
+      return buildClientExperiencePreflight({
+        businessConfigured: Boolean(user.businessName && user.businessWebsite),
+        businessName: user.businessName,
+        bookingConfigured: Boolean(user.bookingUsername && Array.isArray(services) && services.length > 0),
+        bookingUsername: user.bookingUsername,
+        serviceCount: Array.isArray(services) ? services.length : 0,
+        portalConfigured: Boolean(activePortal),
+        paymentsConfigured: Boolean(process.env.STRIPE_SECRET_KEY),
+        emailConfigured: email.configured,
+        automationCount: Number(automationStats?.total ?? 0),
+        activeAutomationCount: Number(automationStats?.active ?? 0),
+      });
     }),
 
     launchReadiness: protectedProcedure.query(async ({ ctx }) => {
