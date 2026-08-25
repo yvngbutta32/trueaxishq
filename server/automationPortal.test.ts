@@ -44,6 +44,11 @@ describe("public client-photo safeguards", () => {
 });
 
 describe("automation action contract", () => {
+  it("does not expose an automation preview without an authenticated workspace user", async () => {
+    const caller = appRouter.createCaller(makeCtx());
+    await expect(caller.automations.preview({ id: 1 })).rejects.toThrow("Please login");
+  });
+
   it("rejects previously unimplemented task actions at the API boundary", async () => {
     const caller = appRouter.createCaller(makeAuthenticatedCtx());
     await expect(caller.automations.create({
