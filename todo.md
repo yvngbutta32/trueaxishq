@@ -1701,9 +1701,9 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Remove unsupported adoption, revenue, and testimonial-style claims discovered on authenticated entry points
 
 ## Credential-Free Systems Upgrade — User Requested
-- [ ] Audit remaining dashboard, booking, billing, portal, automation, AI, and security surfaces for the next high-impact credential-free reliability gap
-- [ ] Implement the highest-value credential-free workflow improvement with secure owner and client boundaries
-- [ ] Add deterministic regression coverage and available mobile/route evidence for the new improvement
+- [x] Audit remaining dashboard, booking, billing, portal, automation, AI, and security surfaces for the next high-impact credential-free reliability gap
+- [x] Implement the highest-value credential-free workflow improvement with secure owner and client boundaries
+- [x] Add deterministic regression coverage and available mobile/route evidence for the new improvement
 
 ## Time-Entry Integrity Hardening
 - [x] Correct time-entry start, update, delete, and job-derived client association behavior so field and billing workflows fail clearly and preserve client context
@@ -1734,3 +1734,6 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ## Pricing Trust-Surface Remediation
 - [x] Remove unsupported financial-return and urgency claims from public pricing while retaining clear, factual plan positioning
+
+## Public Recovery Observability
+- [x] Keep expected invalid or expired portal-link recovery responses visible to the page without recording them as global client errors

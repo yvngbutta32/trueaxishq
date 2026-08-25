@@ -58,10 +58,21 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   }
 };
 
+const isExpectedPortalRecoveryError = (error: unknown) =>
+  error instanceof TRPCClientError &&
+  error.data?.code === "NOT_FOUND" &&
+  typeof window !== "undefined" &&
+  window.location.pathname.startsWith("/portal/");
+
 queryClient.getQueryCache().subscribe((event) => {
   if (event.type === "updated" && event.action.type === "error") {
-    redirectToLoginIfUnauthorized(event.query.state.error);
-    console.error("[API Query Error]", event.query.state.error);
+    const error = event.query.state.error;
+    redirectToLoginIfUnauthorized(error);
+    if (isExpectedPortalRecoveryError(error)) {
+      console.info("[Portal Recovery]", "Invalid or expired portal link rendered its recovery state.");
+    } else {
+      console.error("[API Query Error]", error);
+    }
   }
 });
 
