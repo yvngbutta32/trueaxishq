@@ -1720,3 +1720,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ## Automation Run Integrity
 - [x] Add a final owner predicate to manual automation-run counters and cover the execution write boundary with regression tests
+
+## Invoice Number Idempotency
+- [x] Add and verify a per-owner unique invoice-number constraint to prevent concurrent billing flows from creating duplicate invoice identifiers
+- [x] Add regression coverage documenting the billing identifier uniqueness contract

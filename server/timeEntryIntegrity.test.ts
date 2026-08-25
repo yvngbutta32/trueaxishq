@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const source = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
+const schema = readFileSync(resolve(process.cwd(), "drizzle/schema.ts"), "utf8");
 const start = source.indexOf("time: router({");
 const end = source.indexOf("// ── Contracts", start);
 const timeSource = source.slice(start, end);
@@ -53,5 +54,11 @@ describe("automation manual-run integrity contract", () => {
     const run = source.slice(runStart, runEnd);
     expect(run).toContain("eq(automations.userId, ctx.user.id)");
     expect(run).toContain("runCount: sql`${automations.runCount} + 1`");
+  });
+});
+
+describe("invoice identifier idempotency contract", () => {
+  it("enforces invoice-number uniqueness within each owner workspace", () => {
+    expect(schema).toContain('uniqueIndex("invoices_owner_number_unique_idx").on(t.userId, t.invoiceNumber)');
   });
 });

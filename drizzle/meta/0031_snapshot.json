@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "67d3bbab-1f20-4bf0-bedf-67732f0a9c68",
-  "prevId": "506016d4-7766-4a5b-9db9-22530d0ac138",
+  "id": "c556279e-edac-43ab-ac87-6fc282c636a6",
+  "prevId": "67d3bbab-1f20-4bf0-bedf-67732f0a9c68",
   "tables": {
     "auditLogs": {
       "name": "auditLogs",
@@ -471,7 +471,7 @@
         },
         "slotKey": {
           "name": "slotKey",
-          "type": "varchar(200)",
+          "type": "varchar(160)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -571,7 +571,14 @@
           ]
         }
       },
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "bookings_slotKey_unique": {
+          "name": "bookings_slotKey_unique",
+          "columns": [
+            "slotKey"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "clientDocuments": {
@@ -2369,6 +2376,14 @@
             "status"
           ],
           "isUnique": false
+        },
+        "invoices_owner_number_unique_idx": {
+          "name": "invoices_owner_number_unique_idx",
+          "columns": [
+            "userId",
+            "invoiceNumber"
+          ],
+          "isUnique": true
         }
       },
       "foreignKeys": {},
@@ -2409,15 +2424,14 @@
         },
         "actor": {
           "name": "actor",
-          "type": "enum('owner','client','system')",
+          "type": "varchar(32)",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "'owner'"
+          "autoincrement": false
         },
         "eventType": {
           "name": "eventType",
-          "type": "varchar(100)",
+          "type": "varchar(64)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -2642,7 +2656,7 @@
       "columns": {
         "jobKey": {
           "name": "jobKey",
-          "type": "varchar(191)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -2722,13 +2736,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "completedAt": {
-          "name": "completedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "sortOrder": {
           "name": "sortOrder",
           "type": "int",
@@ -2736,6 +2743,13 @@
           "notNull": true,
           "autoincrement": false,
           "default": 0
+        },
+        "completedAt": {
+          "name": "completedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "createdAt": {
           "name": "createdAt",
@@ -2814,6 +2828,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "invoiceId": {
+          "name": "invoiceId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "proposalId": {
           "name": "proposalId",
           "type": "int",
@@ -2828,16 +2849,9 @@
           "notNull": false,
           "autoincrement": false
         },
-        "invoiceId": {
-          "name": "invoiceId",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "jobNumber": {
           "name": "jobNumber",
-          "type": "varchar(40)",
+          "type": "varchar(64)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -2886,16 +2900,16 @@
           "notNull": false,
           "autoincrement": false
         },
-        "completedAt": {
-          "name": "completedAt",
-          "type": "timestamp",
+        "budgetAmount": {
+          "name": "budgetAmount",
+          "type": "decimal(12,2)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "budgetAmount": {
-          "name": "budgetAmount",
-          "type": "decimal(10,2)",
+        "completedAt": {
+          "name": "completedAt",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -2933,10 +2947,10 @@
           ],
           "isUnique": false
         },
-        "jobs_status_idx": {
-          "name": "jobs_status_idx",
+        "jobs_bookingId_idx": {
+          "name": "jobs_bookingId_idx",
           "columns": [
-            "status"
+            "bookingId"
           ],
           "isUnique": false
         },
@@ -3661,6 +3675,186 @@
           "name": "proposals_token_unique",
           "columns": [
             "token"
+          ]
+        }
+      },
+      "checkConstraint": {}
+    },
+    "publicPhotoUploadSessions": {
+      "name": "publicPhotoUploadSessions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "tokenHash": {
+          "name": "tokenHash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "purpose": {
+          "name": "purpose",
+          "type": "enum('booking','intake')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "referenceId": {
+          "name": "referenceId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "maxUploads": {
+          "name": "maxUploads",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 5
+        },
+        "uploadCount": {
+          "name": "uploadCount",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "consumedAt": {
+          "name": "consumedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {
+        "publicPhotoUploadSessions_userId_idx": {
+          "name": "publicPhotoUploadSessions_userId_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "publicPhotoUploadSessions_expiresAt_idx": {
+          "name": "publicPhotoUploadSessions_expiresAt_idx",
+          "columns": [
+            "expiresAt"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "publicPhotoUploadSessions_id": {
+          "name": "publicPhotoUploadSessions_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "publicPhotoUploadSessions_tokenHash_unique": {
+          "name": "publicPhotoUploadSessions_tokenHash_unique",
+          "columns": [
+            "tokenHash"
+          ]
+        }
+      },
+      "checkConstraint": {}
+    },
+    "publicPhotoUploads": {
+      "name": "publicPhotoUploads",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "sessionId": {
+          "name": "sessionId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "photoKey": {
+          "name": "photoKey",
+          "type": "varchar(512)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "photoUrl": {
+          "name": "photoUrl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {
+        "publicPhotoUploads_sessionId_idx": {
+          "name": "publicPhotoUploads_sessionId_idx",
+          "columns": [
+            "sessionId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "publicPhotoUploads_id": {
+          "name": "publicPhotoUploads_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "publicPhotoUploads_photoKey_unique": {
+          "name": "publicPhotoUploads_photoKey_unique",
+          "columns": [
+            "photoKey"
           ]
         }
       },

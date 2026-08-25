@@ -116,7 +116,11 @@ export const invoices = mysqlTable("invoices", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 },
-(t) => [index("invoices_userId_idx").on(t.userId), index("invoices_status_idx").on(t.status)]
+(t) => [
+  index("invoices_userId_idx").on(t.userId),
+  index("invoices_status_idx").on(t.status),
+  uniqueIndex("invoices_owner_number_unique_idx").on(t.userId, t.invoiceNumber),
+]
 );
 
 export type Invoice = typeof invoices.$inferSelect;
