@@ -54,12 +54,28 @@ export function getEmailDeliveryStatus() {
   const pass = process.env.SMTP_PASS;
   const sender = process.env.SMTP_FROM?.trim() || user || null;
   const validPort = Number.isInteger(port) && port >= 1 && port <= 65_535;
+  const issues: string[] = [];
+  if (!host) issues.push("missing_host");
+  if (!user) issues.push("missing_user");
+  if (!pass) issues.push("missing_password");
+  if (!validPort) issues.push("invalid_port");
+  if (!sender) issues.push("missing_sender");
+  if (sender && !sender.includes("@")) issues.push("invalid_sender");
   return {
-    configured: Boolean(host && user && pass && validPort),
+    configured: issues.length === 0,
     host: host ?? null,
     port: validPort ? port : null,
     sender,
+    issues,
+    secure: validPort && port === 465,
   };
+}
+
+/** Reset only the in-process transport cache; intended for tests and controlled config reloads. */
+export function resetEmailTransportCache() {
+  _transporter?.close();
+  _transporter = null;
+  _transporterChecked = false;
 }
 
 function getTransporter(): nodemailer.Transporter | null {
@@ -132,7 +148,7 @@ export async function sendEmail(payload: EmailPayload): Promise<EmailResult> {
     return { success: true, id: info.messageId, mode: "smtp" };
   } catch (err: any) {
     console.error("[Email] SMTP send failed:", err?.message || err);
-    return { success: false, error: String(err), mode: "smtp" };
+    return { success: false, error: "SMTP delivery failed. Check the configured provider and sender verification.", mode: "smtp" };
   }
 }
 

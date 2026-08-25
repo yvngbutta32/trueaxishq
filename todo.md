@@ -1590,7 +1590,7 @@
 - [x] Reconcile the validated workspace with the concurrent hardening branch without losing either change set
 - [x] Re-run TypeScript, full tests, runtime health, and public-route validation on the reconciled release
 - [x] Merge the validated combined release into GitHub main through clean pull request #1
-- [ ] Save and publish the combined release checkpoint
+- [x] Save and publish the combined release checkpoint
 
 ## Customer-Frictions Competitive Research Program — August 2026
 - [x] Audit the current TrueAxis HQ workflow baseline against recurring competitor customer complaints
@@ -1674,5 +1674,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Fix the highest-impact customer-experience problem discovered in the audit: client portal state ambiguity
 - [x] Add regression coverage for the client portal next-step priority policy and existing authorization boundaries
 - [x] Verify responsive behavior, runtime health, production build, and error recovery for the portal clarity milestone
-- [ ] Synchronize validated fixes to the connected GitHub repository and preserve a recoverable release record
-- [ ] Deliver a concise defect log, validation evidence, and remaining-risk register
+- [x] Synchronize validated fixes to the connected GitHub repository and preserve a recoverable release record
+- [x] Deliver a concise defect log, validation evidence, and remaining-risk register
+
+## Email Delivery Preparation — Credential-Free Work
+- [x] Audit every transactional email call site, sender policy, console-only fallback, and delivery error path
+- [x] Add provider-agnostic SMTP configuration validation and safe health-status reporting without exposing secrets
+- [x] Add deterministic tests for SMTP configuration parsing, required fields, TLS/port behavior, and failure visibility
+- [x] Document the exact manual steps remaining for SMTP credentials, verified sender/domain, and controlled delivery test
