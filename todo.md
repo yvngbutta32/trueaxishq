@@ -1714,3 +1714,6 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ## Contract Conversion Integrity
 - [x] Add a final owner predicate to contract-to-invoice linkage and cover the conversion write boundary with regression tests
+
+## Proposal Conversion Integrity
+- [x] Add a final owner predicate to proposal-to-invoice linkage and cover the conversion write boundary with regression tests

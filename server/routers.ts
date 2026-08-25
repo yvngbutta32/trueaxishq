@@ -4608,7 +4608,10 @@ Only include actions when you have actually generated a complete draft. For gene
           notes: row.notes,
         });
         const invId = Number(inv.insertId);
-        await db.update(proposals).set({ linkedInvoiceId: invId }).where(eq(proposals.id, row.id));
+        await db.update(proposals).set({ linkedInvoiceId: invId }).where(and(
+          eq(proposals.id, row.id),
+          eq(proposals.userId, ctx.user.id),
+        ));
         return { invoiceId: invId, invoiceNumber };
       }),
 

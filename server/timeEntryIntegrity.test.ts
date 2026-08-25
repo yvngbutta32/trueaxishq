@@ -35,3 +35,13 @@ describe("contract conversion integrity contract", () => {
     expect(conversion).toContain("linkedInvoiceId: invoiceId");
   });
 });
+
+describe("proposal conversion integrity contract", () => {
+  it("keeps proposal-to-invoice linkage within the authenticated owner scope", () => {
+    const conversionStart = source.indexOf("proposals: router({");
+    const conversionEnd = source.indexOf("delete: protectedProcedure", conversionStart);
+    const conversion = source.slice(conversionStart, conversionEnd);
+    expect(conversion).toContain("eq(proposals.userId, ctx.user.id)");
+    expect(conversion).toContain("linkedInvoiceId: invId");
+  });
+});
