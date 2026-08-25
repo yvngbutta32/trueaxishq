@@ -74,7 +74,7 @@ export default function Login() {
               <span style={{ color: "#D4922A" }}>running itself.</span>
             </h2>
             <p className="text-base leading-relaxed" style={{ color: "rgba(26,26,26,0.75)" }}>
-              Join 4,200+ freelancers who automated their client work with TrueAxis HQ.
+              Bring client intake, scheduling, billing, job progress, and follow-ups into one focused workspace.
             </p>
           </div>
 
@@ -94,24 +94,23 @@ export default function Login() {
             ))}
           </ul>
 
-          {/* Testimonial */}
           <div
             className="rounded-xl p-5"
             style={{ background: "rgba(232,160,32,0.06)", border: "1px solid rgba(232,160,32,0.15)" }}
           >
-            <p className="text-sm italic leading-relaxed mb-3" style={{ color: "rgba(26,26,26,0.85)" }}>
-              "I used to spend 3 hours every Monday on admin. Now it's zero. TrueAxis HQ paid for itself in the first week."
+            <p className="text-sm font-semibold leading-relaxed" style={{ color: "rgba(26,26,26,0.85)" }}>
+              Built for the operational handoffs that keep service work moving.
             </p>
-            <div className="flex items-center gap-2">
+            <div className="mt-3 flex items-center gap-2">
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
                 style={{ background: "#D4922A", color: "#161B22" }}
               >
-                S
+                ✓
               </div>
               <div>
-                <p className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>Sarah Chen</p>
-                <p className="text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>Sarah Chen · +$2,400/mo</p>
+                <p className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>Clear client handoffs</p>
+                <p className="text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>Bookings, proof, payments, and next steps in context.</p>
               </div>
             </div>
           </div>

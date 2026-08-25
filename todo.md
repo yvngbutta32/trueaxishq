@@ -1690,3 +1690,12 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add deterministic tests and operational evidence for the new upgrade
 - [x] Update defensible marketing and product-positioning language without universal or unsupported superiority claims
 - [x] Improve client-portal low-contrast helper text, inactive icons, empty states, and message metadata without changing the portal data contract
+
+## Field Mode Reliability & Mobile Execution — User Requested
+- [x] Audit Field Mode’s retry, duplicate-action, degraded-network, upload, time-entry, checklist, and client-update behavior
+- [x] Add resilient Field Mode recovery for interrupted proof capture and transient action failures without duplicating records
+- [x] Add deterministic regression coverage for the Field Mode recovery and ownership boundaries
+- [ ] Validate the mobile Field Mode workflow and client-visible status handoff at 375px
+
+## Public Trust-Surface Remediation
+- [x] Remove unsupported adoption, revenue, and testimonial-style claims discovered on authenticated entry points
