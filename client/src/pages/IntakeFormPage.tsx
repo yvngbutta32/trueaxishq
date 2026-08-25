@@ -40,28 +40,30 @@ export default function IntakeFormPage() {
   // Estimate photo upload state
   const [estimatePhotos, setEstimatePhotos] = useState<UploadedPhoto[]>([]);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoUploadToken, setPhotoUploadToken] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  const confirmClientUpload = trpc.photos.confirmClientUpload.useMutation();
+  const beginPublicUpload = trpc.photos.beginPublicUpload.useMutation();
 
   async function handlePhotoFile(file: File) {
     if (estimatePhotos.length >= 5) { toast.error("Maximum 5 estimate photos allowed."); return; }
     if (file.size > 16 * 1024 * 1024) { toast.error("Photo must be under 16 MB."); return; }
+    if (!formData?.hostBookingUsername) { toast.error("Photo uploads are not available for this form."); return; }
     setUploadingPhoto(true);
     try {
+      let uploadToken = photoUploadToken;
+      if (!uploadToken) {
+        const session = await beginPublicUpload.mutateAsync({ hostUsername: formData.hostBookingUsername, purpose: "intake" });
+        uploadToken = session.uploadToken;
+        setPhotoUploadToken(uploadToken);
+      }
       const formPayload = new FormData();
       formPayload.append("file", file);
       formPayload.append("photoType", "estimate");
-      if (!formData?.hostBookingUsername) {
-        throw new Error("The booking context for this form is unavailable.");
-      }
-      formPayload.append("hostUsername", formData.hostBookingUsername);
+      formPayload.append("uploadToken", uploadToken);
       const uploadRes = await fetch("/api/photos/upload", { method: "POST", body: formPayload });
       if (!uploadRes.ok) throw new Error("Upload failed");
       const { photoKey, photoUrl } = await uploadRes.json() as { photoKey: string; photoUrl: string };
-      if (formData?.hostBookingUsername) {
-        await confirmClientUpload.mutateAsync({ photoUrl, photoKey, hostUsername: formData.hostBookingUsername });
-      }
       setEstimatePhotos(prev => [...prev, { key: photoKey, url: photoUrl, previewUrl: URL.createObjectURL(file), name: file.name }]);
       toast.success("Photo added!");
     } catch { toast.error("Photo upload failed. Please try again."); }
@@ -113,8 +115,8 @@ export default function IntakeFormPage() {
       respondentEmail: respondentEmail.trim() || undefined,
       answers: {
         ...answers,
-        ...(estimatePhotos.length > 0 ? { _estimatePhotos: JSON.stringify(estimatePhotos.map(p => p.url)) } : {}),
       },
+      photoUploadToken: photoUploadToken ?? undefined,
     });
   }
 
