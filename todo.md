@@ -1658,10 +1658,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## 5/5 Product Standard — User Approved
 - [x] Score every owner, client, public, billing, automation, AI, photo, admin, and mobile surface against explicit 5/5 acceptance criteria
 - [x] Benchmark feature depth and workflow outcomes against named competitor capabilities without making unsupported superiority claims
-- [ ] Close the highest-impact functional gaps discovered by the audit, prioritizing client-to-cash, proof-of-work, portal trust, automation clarity, and mobile execution
-- [ ] Harden authorization, rate limits, data isolation, idempotency, error recovery, and external-delivery visibility across critical workflows
+- [x] Close the highest-impact functional gaps discovered by the audit, prioritizing client-to-cash, proof-of-work, portal trust, automation clarity, and mobile execution
+- [x] Harden authorization, rate limits, data isolation, idempotency, error recovery, and external-delivery visibility across critical workflows
 - [ ] Complete a responsive accessibility and performance pass across every major route and dashboard panel
-- [ ] Add or update automated tests for every new critical boundary and workflow
+- [x] Add or update automated tests for every new critical boundary and workflow
 - [ ] Validate the full product with TypeScript, tests, production build, runtime health, responsive screenshots, and controlled end-to-end journeys
 - [x] Save each validated milestone to the connected GitHub repository and preserve a recoverable release record
 
@@ -1670,7 +1670,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Do not claim universal market superiority until feature-level evidence and real user validation support it
 
 ## Continuous Hardening Program — User Approved
-- [ ] Audit current owner, client, public, billing, automation, AI, photo, admin, and mobile workflows for real defects
+- [x] Audit current owner, client, public, billing, automation, AI, photo, admin, and mobile workflows for real defects
 - [x] Fix the highest-impact customer-experience problem discovered in the audit: client portal state ambiguity
 - [x] Add regression coverage for the client portal next-step priority policy and existing authorization boundaries
 - [x] Verify responsive behavior, runtime health, production build, and error recovery for the portal clarity milestone
