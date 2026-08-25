@@ -12,13 +12,14 @@ import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
 import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { strongPasswordSchema } from "./passwordPolicy";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
 import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail, getEmailDeliveryStatus } from "./_core/email";
+import { createPublicUploadToken, hashPublicUploadToken, isOwnerPhotoKeyForType, PUBLIC_UPLOAD_MAX_FILES, PUBLIC_UPLOAD_TTL_MS } from "./photoUploadSecurity";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -2063,6 +2064,7 @@ Only include actions when you have actually generated a complete draft. For gene
         message: z.string().trim().max(1000).optional(),
         preferredDate: z.string().trim().min(1).max(50),
         preferredTime: z.string().trim().min(1).max(50),
+        photoUploadToken: z.string().regex(/^[a-f0-9]{64}$/).optional(),
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
@@ -2071,6 +2073,23 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!host[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Booking page not found." });
 
         const hostId = host[0].id;
+
+        let uploadSession: { id: number } | null = null;
+        let uploadedEstimatePhotos: { photoKey: string; photoUrl: string }[] = [];
+        if (input.photoUploadToken) {
+          const [session] = await db.select().from(publicPhotoUploadSessions)
+            .where(and(
+              eq(publicPhotoUploadSessions.tokenHash, hashPublicUploadToken(input.photoUploadToken)),
+              eq(publicPhotoUploadSessions.userId, hostId),
+              eq(publicPhotoUploadSessions.purpose, "booking")
+            )).limit(1);
+          if (!session || session.consumedAt || new Date() > session.expiresAt) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Your photo-upload session has expired. Please upload again." });
+          }
+          uploadSession = { id: session.id };
+          uploadedEstimatePhotos = await db.select({ photoKey: publicPhotoUploads.photoKey, photoUrl: publicPhotoUploads.photoUrl })
+            .from(publicPhotoUploads).where(eq(publicPhotoUploads.sessionId, session.id));
+        }
 
         // ── Auto-upsert client record ──────────────────────────────────────────
         // Check if a client with this email already exists for this host
@@ -2142,6 +2161,22 @@ Only include actions when you have actually generated a complete draft. For gene
           status: "scheduled",
         });
         const newBookingId = Number((bookingResult as any).insertId);
+
+        if (uploadSession && uploadedEstimatePhotos.length > 0 && newBookingId) {
+          await db.insert(jobPhotos).values(uploadedEstimatePhotos.map((photo) => ({
+            userId: hostId,
+            bookingId: newBookingId,
+            clientId: clientId !== null && clientId > 0 ? clientId : null,
+            photoType: "estimate" as const,
+            uploadedBy: "client" as const,
+            photoUrl: photo.photoUrl,
+            photoKey: photo.photoKey,
+          })));
+        }
+        if (uploadSession) {
+          await db.update(publicPhotoUploadSessions).set({ consumedAt: new Date() })
+            .where(and(eq(publicPhotoUploadSessions.id, uploadSession.id), eq(publicPhotoUploadSessions.userId, hostId)));
+        }
 
         if (host[0].notifyNewBooking !== false) {
           notifyOwner({
@@ -4807,18 +4842,62 @@ Only include actions when you have actually generated a complete draft. For gene
         respondentName: z.string().optional(),
         respondentEmail: z.string().email().optional(),
         answers: z.record(z.string(), z.any()),
+        photoUploadToken: z.string().regex(/^[a-f0-9]{64}$/).optional(),
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
         const [form] = await db.select().from(intakeForms).where(eq(intakeForms.publicSlug, input.slug)).limit(1);
         if (!form || !form.active) throw new TRPCError({ code: "NOT_FOUND", message: "Form not found or inactive" });
-        await db.insert(intakeResponses).values({
+
+        let uploadSession: { id: number } | null = null;
+        let uploadedEstimatePhotos: { photoKey: string; photoUrl: string }[] = [];
+        if (input.photoUploadToken) {
+          const [session] = await db.select().from(publicPhotoUploadSessions)
+            .where(and(
+              eq(publicPhotoUploadSessions.tokenHash, hashPublicUploadToken(input.photoUploadToken)),
+              eq(publicPhotoUploadSessions.userId, form.userId),
+              eq(publicPhotoUploadSessions.purpose, "intake")
+            )).limit(1);
+          if (!session || session.consumedAt || new Date() > session.expiresAt) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Your photo-upload session has expired. Please upload again." });
+          }
+          uploadSession = { id: session.id };
+          uploadedEstimatePhotos = await db.select({ photoKey: publicPhotoUploads.photoKey, photoUrl: publicPhotoUploads.photoUrl })
+            .from(publicPhotoUploads).where(eq(publicPhotoUploads.sessionId, session.id));
+        }
+
+        const { _estimatePhotos: _ignoredUntrustedPhotoUrls, ...submittedAnswers } = input.answers;
+        const savedAnswers = {
+          ...submittedAnswers,
+          ...(uploadedEstimatePhotos.length > 0 ? { _estimatePhotos: JSON.stringify(uploadedEstimatePhotos.map((photo) => photo.photoUrl)) } : {}),
+        };
+        const [responseResult] = await db.insert(intakeResponses).values({
           formId: form.id,
           userId: form.userId,
           respondentName: input.respondentName ?? null,
           respondentEmail: input.respondentEmail ?? null,
-          answers: JSON.stringify(input.answers),
+          answers: JSON.stringify(savedAnswers),
         });
+        const responseId = Number((responseResult as any).insertId);
+        let existingClientId: number | null = null;
+        if (input.respondentEmail) {
+          const [existingClient] = await db.select({ id: clients.id }).from(clients)
+            .where(and(eq(clients.userId, form.userId), eq(clients.email, input.respondentEmail))).limit(1);
+          existingClientId = existingClient?.id ?? null;
+        }
+        if (uploadSession && uploadedEstimatePhotos.length > 0) {
+          await db.insert(jobPhotos).values(uploadedEstimatePhotos.map((photo) => ({
+            userId: form.userId,
+            clientId: existingClientId,
+            photoType: "estimate" as const,
+            uploadedBy: "client" as const,
+            photoUrl: photo.photoUrl,
+            photoKey: photo.photoKey,
+            caption: responseId ? `Intake response #${responseId}` : "Intake estimate photo",
+          })));
+          await db.update(publicPhotoUploadSessions).set({ consumedAt: new Date() })
+            .where(and(eq(publicPhotoUploadSessions.id, uploadSession.id), eq(publicPhotoUploadSessions.userId, form.userId)));
+        }
         // Send auto-reply email to respondent
         if (input.respondentEmail) {
           const [host] = await db.select({ name: users.name, businessName: users.businessName, bookingUsername: users.bookingUsername })
@@ -5169,6 +5248,28 @@ Only include actions when you have actually generated a complete draft. For gene
 
   // ── Job Photos ──────────────────────────────────────────────────────────────
   photos: router({
+    beginPublicUpload: publicProcedure
+      .input(z.object({
+        hostUsername: z.string().trim().min(1).max(64),
+        purpose: z.enum(["booking", "intake"]),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [host] = await db.select({ id: users.id }).from(users)
+          .where(eq(users.bookingUsername, input.hostUsername)).limit(1);
+        if (!host) throw new TRPCError({ code: "NOT_FOUND", message: "Host not found" });
+        const uploadToken = createPublicUploadToken();
+        const expiresAt = new Date(Date.now() + PUBLIC_UPLOAD_TTL_MS);
+        await db.insert(publicPhotoUploadSessions).values({
+          tokenHash: hashPublicUploadToken(uploadToken),
+          userId: host.id,
+          purpose: input.purpose,
+          maxUploads: PUBLIC_UPLOAD_MAX_FILES,
+          expiresAt,
+        });
+        return { uploadToken, expiresAt, maxUploads: PUBLIC_UPLOAD_MAX_FILES };
+      }),
+
     // Get upload URL — returns a presigned-style upload endpoint via the storage proxy
     getUploadUrl: protectedProcedure
       .input(z.object({
@@ -5215,23 +5316,20 @@ Only include actions when you have actually generated a complete draft. For gene
         return { id: (result as any).insertId as number };
       }),
 
-    // Public confirm — for verified client-uploaded estimate photos.
+    // Portal uploads are associated immediately. Public booking/intake uploads are
+    // only verified here and associated when their submitted workflow succeeds.
     confirmClientUpload: publicProcedure
       .input(z.object({
         photoUrl: z.string().url(),
         photoKey: z.string().min(1).max(512),
-        hostUsername: z.string().trim().min(1).max(64).optional(),
         portalToken: z.string().min(1).max(128).optional(),
-        bookingId: z.number().int().positive().optional(),
+        uploadToken: z.string().regex(/^[a-f0-9]{64}$/).optional(),
         caption: z.string().max(512).optional(),
-      }).refine(input => Boolean(input.hostUsername || input.portalToken), {
-        message: "A booking host or portal token is required.",
+      }).refine(input => Boolean(input.portalToken || input.uploadToken), {
+        message: "A portal token or upload session is required.",
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
-        let userId: number;
-        let clientId: number | null = null;
-
         if (input.portalToken) {
           const [portalRecord] = await db.select({
             userId: clientPortalTokens.userId,
@@ -5243,40 +5341,30 @@ Only include actions when you have actually generated a complete draft. For gene
           if (!portalRecord || (portalRecord.expiresAt && portalRecord.expiresAt < new Date())) {
             throw new TRPCError({ code: "FORBIDDEN", message: "Portal link not found or expired." });
           }
-          userId = portalRecord.userId;
-          clientId = portalRecord.clientId;
-        } else {
-          const [host] = await db.select({ id: users.id })
-            .from(users).where(eq(users.bookingUsername, input.hostUsername!)).limit(1);
-          if (!host) throw new TRPCError({ code: "NOT_FOUND", message: "Host not found" });
-          userId = host.id;
-        }
-
-        if (!input.photoKey.startsWith(`job-photos/${userId}/estimate/`)) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Photo upload does not belong to this portal or booking page." });
-        }
-
-        if (input.bookingId) {
-          const [booking] = await db.select({ id: bookings.id, clientId: bookings.clientId })
-            .from(bookings)
-            .where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, userId)))
-            .limit(1);
-          if (!booking || (clientId !== null && booking.clientId !== clientId)) {
-            throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found." });
+          if (!isOwnerPhotoKeyForType(input.photoKey, portalRecord.userId, "estimate")) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Photo upload does not belong to this portal." });
           }
+          const [result] = await db.insert(jobPhotos).values({
+            userId: portalRecord.userId,
+            clientId: portalRecord.clientId,
+            photoType: "estimate",
+            uploadedBy: "client",
+            photoUrl: input.photoUrl,
+            photoKey: input.photoKey,
+            caption: input.caption ?? null,
+          });
+          return { id: (result as any).insertId as number, pendingAssociation: false };
         }
 
-        const [result] = await db.insert(jobPhotos).values({
-          userId,
-          bookingId: input.bookingId ?? null,
-          clientId,
-          photoType: "estimate",
-          uploadedBy: "client",
-          photoUrl: input.photoUrl,
-          photoKey: input.photoKey,
-          caption: input.caption ?? null,
-        });
-        return { id: (result as any).insertId as number };
+        const [session] = await db.select().from(publicPhotoUploadSessions)
+          .where(eq(publicPhotoUploadSessions.tokenHash, hashPublicUploadToken(input.uploadToken!))).limit(1);
+        if (!session || session.consumedAt || new Date() > session.expiresAt) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Photo-upload session is invalid or expired." });
+        }
+        const [upload] = await db.select({ id: publicPhotoUploads.id }).from(publicPhotoUploads)
+          .where(and(eq(publicPhotoUploads.sessionId, session.id), eq(publicPhotoUploads.photoKey, input.photoKey), eq(publicPhotoUploads.photoUrl, input.photoUrl))).limit(1);
+        if (!upload) throw new TRPCError({ code: "FORBIDDEN", message: "Photo was not registered to this upload session." });
+        return { id: upload.id, pendingAssociation: true };
       }),
 
     // List photos for a booking or all owner photos
@@ -5327,8 +5415,19 @@ Only include actions when you have actually generated a complete draft. For gene
         return { success: true };
       }),
     extractReceiptTotal: protectedProcedure
-      .input(z.object({ photoUrl: z.string().url() }))
-      .mutation(async ({ input }) => {
+      .input(z.object({ photoId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [photo] = await db.select({
+          photoUrl: jobPhotos.photoUrl,
+          photoKey: jobPhotos.photoKey,
+          photoType: jobPhotos.photoType,
+        }).from(jobPhotos)
+          .where(and(eq(jobPhotos.id, input.photoId), eq(jobPhotos.userId, ctx.user.id)))
+          .limit(1);
+        if (!photo || photo.photoType !== "receipt" || !isOwnerPhotoKeyForType(photo.photoKey, ctx.user.id, "receipt")) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Receipt photo not found." });
+        }
         const response = await invokeLLM({
           messages: [
             {
@@ -5346,7 +5445,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
               role: "user",
               content: [
                 { type: "text", text: "Please extract all line items and the total from this receipt image." },
-                { type: "image_url", image_url: { url: input.photoUrl, detail: "high" } },
+                { type: "image_url", image_url: { url: photo.photoUrl, detail: "high" } },
               ],
             },
           ],
