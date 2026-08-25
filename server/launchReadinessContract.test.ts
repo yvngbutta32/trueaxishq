@@ -12,7 +12,7 @@ describe("launch readiness contract", () => {
     const source = routerSource.slice(start, end);
     expect(source).toContain("getEmailDeliveryStatus()");
     expect(source).toContain("eq(clientPortalTokens.revoked, false)");
-    expect(source).toContain("email: { configured: email.configured, sender: email.sender }");
+    expect(source).toContain("email: { configured: email.configured, sender: email.sender, host: email.host, port: email.port, secure: email.secure, issues: email.issues }");
     expect(source).not.toContain("SMTP_PASS");
     expect(source).not.toContain("SMTP_USER");
   });

@@ -1301,7 +1301,7 @@ export const appRouter = router({
       const email = getEmailDeliveryStatus();
       const services = user.bookingServices ? JSON.parse(user.bookingServices) : [];
       return {
-        email: { configured: email.configured, sender: email.sender },
+        email: { configured: email.configured, sender: email.sender, host: email.host, port: email.port, secure: email.secure, issues: email.issues },
         booking: { configured: Boolean(user.bookingUsername && Array.isArray(services) && services.length > 0), username: user.bookingUsername ?? null },
         portal: { configured: Boolean(activePortal) },
         payments: { configured: Boolean(process.env.STRIPE_SECRET_KEY) },
