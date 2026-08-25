@@ -1585,6 +1585,20 @@
 - [x] Validate every critical customer journey, accessibility, mobile workflow, reliability guard, and production build before release
 - [x] Remove fabricated testimonial-style cards and unsupported public adoption/revenue claims from the landing page
 
+## Combined Workspace Reconciliation — User Approved
+- [x] Preserve the current validated workspace as the reconciliation source of truth
+- [x] Reconcile the validated workspace with the concurrent hardening branch without losing either change set
+- [x] Re-run TypeScript, full tests, runtime health, and public-route validation on the reconciled release
+- [x] Merge the validated combined release into GitHub main through clean pull request #1
+- [ ] Save and publish the combined release checkpoint
+
+## Customer-Frictions Competitive Research Program — August 2026
+- [x] Audit the current TrueAxis HQ workflow baseline against recurring competitor customer complaints
+- [x] Research attributable customer complaints about HoneyBook, Dubsado, Bonsai, Moxie, 17hats, and Hectic
+- [x] Quantify recurring complaint themes and identify root-cause workflow patterns
+- [x] Define a prioritized TrueAxis HQ complaint-solving roadmap with evidence and delivery scope
+- [x] Implement and validate the first high-impact customer-friction improvements: owner-scoped, read-only Automation Preview with configuration-gap checks and 68 passing regression tests
+
 ### Credential-Free Launch Improvements
 - [x] Add an owner-facing Launch Readiness Center that clearly reports email, payment, portal, and booking configuration status
 - [x] Add internal first-run guidance and operational empty states for newly created accounts
@@ -1607,3 +1621,58 @@
 - [x] Add automated tests for every server and portal remediation item
 - [x] Address verified production build warnings through practical code splitting or bundle optimization
 - [x] Remove or replace unverified public trust and financial claims in the landing-page hero
+
+## State-of-the-Art Competitive Excellence Program — August 2026
+- [x] Baseline current TrueAxis HQ modules, route architecture, data model, and unresolved operational gaps
+- [x] Research current competitor capabilities and customer frictions across leading freelancer and field-service platforms
+- [x] Define a measurable state-of-the-art architecture and milestone roadmap without unsupported claims
+- [x] Implement a secure Client Experience Preflight for owner-side booking, portal, payment, and status review
+- [x] Add the highest-value workflow improvement discovered during research: client-facing next-step and recovery clarity
+- [x] Add automated coverage for new authorization and workflow boundaries
+- [x] Validate TypeScript, tests, production build, responsive UI, and runtime health
+- [x] Save every validated milestone to the connected GitHub repository and create a recoverable release record for the current milestone
+
+## GitHub Release Requirement
+- [x] Confirm the completed Client Experience Preflight milestone is committed to the connected TrueAxis HQ repository before delivery
+
+---
+NOTE: This program is deliberately staged. Production launch claims remain gated on real SMTP delivery, Stripe webhook verification, legal/privacy review, and controlled end-to-end testing.
+
+---
+Competitive research focus: analyze customer friction across HoneyBook, Dubsado, Bonsai, Moxie, 17hats, Hectic, Jobber, and Housecall Pro using attributable public sources; prioritize workflow reliability, setup burden, client trust, payment clarity, mobile field work, and support recovery.
+
+---
+Next candidate milestone: owner-scoped Client Experience Preflight with no live client-data exposure and no side effects.
+
+## Superiority Standard — User Approved
+- [x] Benchmark each priority workflow against a named competitor weakness and a measurable TrueAxis HQ outcome
+- [x] Require state-of-the-art improvements to reduce setup time, ambiguity, manual rescue work, and client-facing confusion
+- [x] Preserve transparent pricing, secure data isolation, accessible mobile workflows, and explainable automation as non-negotiable quality gates
+- [ ] Do not claim universal superiority without workflow-level evidence; document the specific areas where TrueAxis HQ is materially stronger
+
+## Next Superior Milestone
+- [x] Build Client Experience Preflight for owner-side, privacy-safe review of booking, portal, payment, and status handoffs
+- [x] Add client-visible event/status clarity and safe recovery guidance where current competitor complaints indicate confusion
+- [x] Validate the Client Experience Preflight milestone with automated tests, responsive UI checks, and production-safe runtime verification
+
+## 5/5 Product Standard — User Approved
+- [ ] Score every owner, client, public, billing, automation, AI, photo, admin, and mobile surface against explicit 5/5 acceptance criteria
+- [ ] Benchmark feature depth and workflow outcomes against named competitor capabilities without making unsupported superiority claims
+- [ ] Close the highest-impact functional gaps discovered by the audit, prioritizing client-to-cash, proof-of-work, portal trust, automation clarity, and mobile execution
+- [ ] Harden authorization, rate limits, data isolation, idempotency, error recovery, and external-delivery visibility across critical workflows
+- [ ] Complete a responsive accessibility and performance pass across every major route and dashboard panel
+- [ ] Add or update automated tests for every new critical boundary and workflow
+- [ ] Validate the full product with TypeScript, tests, production build, runtime health, responsive screenshots, and controlled end-to-end journeys
+- [ ] Save each validated milestone to the connected GitHub repository and preserve a recoverable release record
+
+## 5/5 Release Claims
+- [x] Document specific areas where TrueAxis HQ is materially stronger than named alternatives
+- [ ] Do not claim universal market superiority until feature-level evidence and real user validation support it
+
+## Continuous Hardening Program — User Approved
+- [ ] Audit current owner, client, public, billing, automation, AI, photo, admin, and mobile workflows for real defects
+- [x] Fix the highest-impact customer-experience problem discovered in the audit: client portal state ambiguity
+- [x] Add regression coverage for the client portal next-step priority policy and existing authorization boundaries
+- [x] Verify responsive behavior, runtime health, production build, and error recovery for the portal clarity milestone
+- [ ] Synchronize validated fixes to the connected GitHub repository and preserve a recoverable release record
+- [ ] Deliver a concise defect log, validation evidence, and remaining-risk register

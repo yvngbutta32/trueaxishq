@@ -1,7 +1,9 @@
 import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { getClientNextStep } from "@shared/clientPortalClarity";
+export { getClientNextStep } from "@shared/clientPortalClarity";
 import { useState, useEffect, useRef } from "react";
-import { FileText, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, CreditCard, User, Mail, Phone, Building2, Camera, X, ChevronLeft, ChevronRight, ImageOff, MessageCircle, Send, Upload, Loader2, BriefcaseBusiness, ClipboardCheck, Target } from "lucide-react";
+import { FileText, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, CreditCard, User, Mail, Phone, Building2, Camera, X, ChevronLeft, ChevronRight, ImageOff, MessageCircle, Send, Upload, Loader2, BriefcaseBusiness, ClipboardCheck, Target, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 // Normalize booking date strings: ISO "2026-08-01" → "Aug 1, 2026", already-formatted strings pass through
@@ -260,6 +262,7 @@ export default function ClientPortal() {
   const providerName = freelancer?.businessName || freelancer?.name || "Your Provider";
   const unpaidInvoices = invoices.filter(inv => inv.status === "sent" || inv.status === "overdue");
   const totalOutstanding = unpaidInvoices.reduce((sum, inv) => sum + parseFloat(String(inv.amount)), 0);
+  const nextStep = getClientNextStep({ unpaidInvoices, bookings, jobs: jobData?.jobs ?? [] });
 
   return (
     <div className="min-h-screen bg-[#F5F5F7]">
@@ -287,6 +290,17 @@ export default function ClientPortal() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        {/* Next-step clarity banner */}
+        <section aria-labelledby="portal-next-step" className={`rounded-xl border p-5 ${nextStep.tone === "urgent" ? "border-rose-200 bg-rose-50" : nextStep.tone === "attention" ? "border-amber-200 bg-amber-50" : nextStep.tone === "progress" ? "border-indigo-200 bg-indigo-50" : "border-emerald-200 bg-emerald-50"}`}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${nextStep.tone === "urgent" ? "bg-rose-100 text-rose-700" : nextStep.tone === "attention" ? "bg-amber-100 text-amber-700" : nextStep.tone === "progress" ? "bg-indigo-100 text-indigo-700" : "bg-emerald-100 text-emerald-700"}`}><ClipboardCheck className="h-4 w-4" /></div>
+              <div><h2 id="portal-next-step" className="text-sm font-bold text-gray-900">{nextStep.title}</h2><p className="mt-1 text-sm leading-relaxed text-gray-700">{nextStep.detail}</p></div>
+            </div>
+            <ArrowRight className="hidden h-5 w-5 shrink-0 text-gray-500 sm:block" aria-hidden="true" />
+          </div>
+        </section>
+
         {/* Outstanding Balance Banner */}
         {totalOutstanding > 0 && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-4">

@@ -29,12 +29,12 @@ function makeAuthenticatedCtx(): TrpcContext {
 }
 
 describe("public client-photo safeguards", () => {
-  it("rejects a client photo confirmation without a booking host or portal token", async () => {
+  it("rejects a client photo confirmation without a portal token or upload session", async () => {
     const caller = appRouter.createCaller(makeCtx());
     await expect(caller.photos.confirmClientUpload({
       photoUrl: "https://cdn.example.com/photo.jpg",
       photoKey: "job-photos/1/estimate/public-client/photo.jpg",
-    })).rejects.toThrow("booking host or portal token is required");
+    })).rejects.toThrow("portal token or upload session is required");
   });
 
   it("rejects a blank portal token before any data lookup", async () => {
@@ -44,6 +44,11 @@ describe("public client-photo safeguards", () => {
 });
 
 describe("automation action contract", () => {
+  it("does not expose an automation preview without an authenticated workspace user", async () => {
+    const caller = appRouter.createCaller(makeCtx());
+    await expect(caller.automations.preview({ id: 1 })).rejects.toThrow("Please login");
+  });
+
   it("rejects previously unimplemented task actions at the API boundary", async () => {
     const caller = appRouter.createCaller(makeAuthenticatedCtx());
     await expect(caller.automations.create({
