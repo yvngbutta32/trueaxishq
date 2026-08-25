@@ -1731,3 +1731,6 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ## Migration Baseline Reconciliation
 - [x] Neutralize the unrelated stale operations generated alongside the reviewed billing-index migration while retaining a reconciled schema baseline for future migrations
+
+## Pricing Trust-Surface Remediation
+- [x] Remove unsupported financial-return and urgency claims from public pricing while retaining clear, factual plan positioning

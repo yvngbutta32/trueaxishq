@@ -142,7 +142,7 @@ export default function Pricing() {
           <h1 style={{ fontWeight: 800, fontSize: "clamp(2rem, 4.5vw, 3.25rem)", letterSpacing: "-0.03em", color: "#1A1A1A", lineHeight: 1.1 }}>
             Invest in your business.
             <br />
-            <span style={{ color: "#D4922A" }}>Get 10× back.</span>
+            <span style={{ color: "#D4922A" }}>Keep operations in one place.</span>
           </h1>
           <p className="mt-4 mb-10 max-w-xl mx-auto" style={{ color: "rgba(26,26,26,0.75)", fontSize: "1.0625rem" }}>
             Every plan includes a 14-day free trial. No credit card required. Cancel anytime.
@@ -168,12 +168,11 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Urgency Banner */}
+      {/* Pricing clarity banner */}
       <div className="py-2.5 text-center text-xs font-semibold" style={{ background: "rgba(232,160,32,0.12)", borderTop: "1px solid rgba(232,160,32,0.20)", borderBottom: "1px solid rgba(232,160,32,0.20)", color: "#D4922A" }}>
         <span className="inline-flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#D4922A] animate-pulse" />
-          Early-bird pricing ends soon — lock in your rate before the next price increase
-          <span className="w-1.5 h-1.5 rounded-full bg-[#D4922A] animate-pulse" />
+          <Shield className="w-3.5 h-3.5" />
+          Review plan capabilities before starting your 14-day trial
         </span>
       </div>
 
