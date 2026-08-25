@@ -6,3 +6,7 @@ The runtime logs showed expected `NOT_FOUND` responses for the intentionally inv
 
 
 The expanded 375px smoke checks covered `/login`, `/register`, `/pricing`, and `/portal/invalid-token`. Login and registration fields, password visibility controls, primary actions, and recovery links remained visible and reachable without horizontal overflow. Pricing remained readable with the persistent install prompt overlay; the prompt is expected PWA chrome and should be included in a final product decision. The invalid portal state remained clear and actionable. Authenticated dashboard and field-mode screens still require a real owner session for sign-off.
+
+After the trust-surface remediation, `/login` was rechecked at 375px. The sign-in form remained readable and operable; no unsupported adoption, revenue, or testimonial-style content appears on the mobile entry surface. Field Mode itself remains correctly protected behind owner authentication and therefore needs an authenticated test session for visual sign-off.
+
+The post-release log review showed only expected `NOT_FOUND` responses caused by intentionally invalid portal-token smoke checks. No new runtime, browser-console, or deployment build failure was observed in the reviewed log window.
