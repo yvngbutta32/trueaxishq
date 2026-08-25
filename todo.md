@@ -1621,3 +1621,50 @@
 - [x] Add automated tests for every server and portal remediation item
 - [x] Address verified production build warnings through practical code splitting or bundle optimization
 - [x] Remove or replace unverified public trust and financial claims in the landing-page hero
+
+## State-of-the-Art Competitive Excellence Program — August 2026
+- [ ] Baseline current TrueAxis HQ modules, route architecture, data model, and unresolved operational gaps
+- [ ] Research current competitor capabilities and customer frictions across leading freelancer and field-service platforms
+- [ ] Define a measurable state-of-the-art architecture and milestone roadmap without unsupported claims
+- [ ] Implement a secure Client Experience Preflight for owner-side booking, portal, payment, and status review
+- [ ] Add the highest-value workflow improvements discovered during research
+- [ ] Add automated coverage for new authorization and workflow boundaries
+- [ ] Validate TypeScript, tests, production build, responsive UI, and runtime health
+- [ ] Save every validated milestone to the connected GitHub repository and create a recoverable release record
+
+## GitHub Release Requirement
+- [ ] Confirm each completed milestone is committed to the connected TrueAxis HQ repository before delivery
+
+---
+NOTE: This program is deliberately staged. Production launch claims remain gated on real SMTP delivery, Stripe webhook verification, legal/privacy review, and controlled end-to-end testing.
+
+---
+Competitive research focus: analyze customer friction across HoneyBook, Dubsado, Bonsai, Moxie, 17hats, Hectic, Jobber, and Housecall Pro using attributable public sources; prioritize workflow reliability, setup burden, client trust, payment clarity, mobile field work, and support recovery.
+
+---
+Next candidate milestone: owner-scoped Client Experience Preflight with no live client-data exposure and no side effects.
+
+## Superiority Standard — User Approved
+- [ ] Benchmark each priority workflow against a named competitor weakness and a measurable TrueAxis HQ outcome
+- [ ] Require state-of-the-art improvements to reduce setup time, ambiguity, manual rescue work, and client-facing confusion
+- [ ] Preserve transparent pricing, secure data isolation, accessible mobile workflows, and explainable automation as non-negotiable quality gates
+- [ ] Do not claim universal superiority without workflow-level evidence; document the specific areas where TrueAxis HQ is materially stronger
+
+## Next Superior Milestone
+- [ ] Build Client Experience Preflight for owner-side, privacy-safe review of booking, portal, payment, and status handoffs
+- [ ] Add client-visible event/status clarity and safe recovery guidance where current competitor complaints indicate confusion
+- [ ] Validate all new state-of-the-art claims with automated tests, responsive UI checks, and production-safe runtime verification
+
+## 5/5 Product Standard — User Approved
+- [ ] Score every owner, client, public, billing, automation, AI, photo, admin, and mobile surface against explicit 5/5 acceptance criteria
+- [ ] Benchmark feature depth and workflow outcomes against named competitor capabilities without making unsupported superiority claims
+- [ ] Close the highest-impact functional gaps discovered by the audit, prioritizing client-to-cash, proof-of-work, portal trust, automation clarity, and mobile execution
+- [ ] Harden authorization, rate limits, data isolation, idempotency, error recovery, and external-delivery visibility across critical workflows
+- [ ] Complete a responsive accessibility and performance pass across every major route and dashboard panel
+- [ ] Add or update automated tests for every new critical boundary and workflow
+- [ ] Validate the full product with TypeScript, tests, production build, runtime health, responsive screenshots, and controlled end-to-end journeys
+- [ ] Save each validated milestone to the connected GitHub repository and preserve a recoverable release record
+
+## 5/5 Release Claims
+- [ ] Document specific areas where TrueAxis HQ is materially stronger than named alternatives
+- [ ] Do not claim universal market superiority until feature-level evidence and real user validation support it
