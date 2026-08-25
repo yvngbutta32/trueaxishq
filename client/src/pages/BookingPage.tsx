@@ -237,6 +237,7 @@ export default function BookingPage() {
           </div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">Page Not Found</h1>
           <p className="text-gray-600 text-sm">The booking page for <strong>@{username}</strong> doesn't exist or has been removed.</p>
+          <a href="/" className="mt-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-[#D4922A]/35 px-4 text-sm font-semibold text-[#8a5a0b] transition-colors hover:bg-[#fffaf0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A]">Return to TrueAxis HQ</a>
         </div>
       </div>
     );

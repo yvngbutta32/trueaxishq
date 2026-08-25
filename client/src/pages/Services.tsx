@@ -218,8 +218,8 @@ function ServiceCard({ service, onEdit, onDelete, onToggle, inactive }: {
           <Badge variant="outline" className="mt-1 text-xs border-[rgba(26,26,26,0.15)] text-[rgba(26,26,26,0.5)] capitalize">{service.category}</Badge>
         </div>
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-          <button onClick={() => onEdit(service)} className="p-1.5 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-          <button onClick={() => onDelete(service.id)} className="p-1.5 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+          <button type="button" aria-label={`Edit service ${service.name}`} onClick={() => onEdit(service)} className="p-1.5 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+          <button type="button" aria-label={`Delete service ${service.name}`} onClick={() => onDelete(service.id)} className="p-1.5 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
         </div>
       </div>
       {service.description && <p className="text-xs text-[rgba(26,26,26,0.45)] mb-3 line-clamp-2">{service.description}</p>}
@@ -228,7 +228,7 @@ function ServiceCard({ service, onEdit, onDelete, onToggle, inactive }: {
           <span className="flex items-center gap-1 text-[#00C9A7] font-bold text-lg"><DollarSign className="w-4 h-4" />{price.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
           {dur > 0 && <span className="flex items-center gap-1 text-xs text-[rgba(26,26,26,0.4)]"><Clock className="w-3 h-3" />{dur >= 60 ? `${dur / 60}h` : `${dur}m`}</span>}
         </div>
-        <button onClick={() => onToggle(service.id)} className="text-xs flex items-center gap-1 text-[rgba(26,26,26,0.4)] hover:text-[rgba(26,26,26,0.7)] transition-colors">
+        <button type="button" aria-label={`${inactive ? "Activate" : "Deactivate"} service ${service.name}`} onClick={() => onToggle(service.id)} className="text-xs flex items-center gap-1 text-[rgba(26,26,26,0.4)] hover:text-[rgba(26,26,26,0.7)] transition-colors">
           {inactive ? <ToggleLeft className="w-4 h-4" /> : <ToggleRight className="w-4 h-4 text-[#34D399]" />}
           {inactive ? "Activate" : "Active"}
         </button>

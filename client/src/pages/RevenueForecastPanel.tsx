@@ -138,14 +138,14 @@ export default function RevenueForecastPanel() {
             />
           </div>
           {annualGoalId && (
-            <button onClick={() => { deleteGoal.mutate({ id: annualGoalId }); setEditingGoal(null); }} className="text-red-400 hover:text-red-300 p-1" title="Remove goal">
+            <button type="button" aria-label="Remove annual revenue goal" onClick={() => { deleteGoal.mutate({ id: annualGoalId }); setEditingGoal(null); }} className="text-red-400 hover:text-red-300 p-1" title="Remove goal">
               <X className="w-4 h-4" />
             </button>
           )}
-          <button onClick={saveGoal} disabled={upsertGoal.isPending} className="text-emerald-400 hover:text-emerald-300 p-1">
+          <button type="button" aria-label="Save annual revenue goal" onClick={saveGoal} disabled={upsertGoal.isPending} className="text-emerald-400 hover:text-emerald-300 p-1">
             <Check className="w-4 h-4" />
           </button>
-          <button onClick={() => setEditingGoal(null)} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] p-1">
+          <button type="button" aria-label="Cancel annual revenue goal editing" onClick={() => setEditingGoal(null)} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] p-1">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -262,8 +262,8 @@ export default function RevenueForecastPanel() {
                         autoFocus
                         onKeyDown={e => { if (e.key === "Enter") saveGoal(); if (e.key === "Escape") setEditingGoal(null); }}
                       />
-                      <button onClick={saveGoal} className="text-emerald-400 hover:text-emerald-300"><Check className="w-3 h-3" /></button>
-                      <button onClick={() => setEditingGoal(null)} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A]"><X className="w-3 h-3" /></button>
+                      <button type="button" aria-label="Save monthly revenue goal" onClick={saveGoal} className="text-emerald-400 hover:text-emerald-300"><Check className="w-3 h-3" /></button>
+                      <button type="button" aria-label="Cancel monthly revenue goal editing" onClick={() => setEditingGoal(null)} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A]"><X className="w-3 h-3" /></button>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1">

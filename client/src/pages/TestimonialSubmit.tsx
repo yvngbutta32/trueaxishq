@@ -40,6 +40,7 @@ export default function TestimonialSubmit() {
           <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">Link Not Found</h1>
           <p className="text-gray-500">This testimonial link is invalid or has expired.</p>
+          <a href="/" className="mt-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-[#D4922A]/35 px-4 text-sm font-semibold text-[#8a5a0b] transition-colors hover:bg-[#fffaf0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A]">Return to TrueAxis HQ</a>
         </div>
       </div>
     );

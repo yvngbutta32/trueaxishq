@@ -170,7 +170,7 @@ export default function ContractTemplatesPanel() {
         <div className="bg-white border border-[#DDDBD7] rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-[#1A1A1A]">{editingId ? "Edit Template" : "New Contract Template"}</h3>
-            <button onClick={resetForm} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A]"><X className="w-4 h-4" /></button>
+            <button type="button" aria-label="Close template editor" onClick={resetForm} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A]"><X className="w-4 h-4" /></button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -216,7 +216,7 @@ export default function ContractTemplatesPanel() {
               <Sparkles className="w-4 h-4 text-[#D4922A]" />
               <h3 className="font-bold text-[#1A1A1A]">Apply Template: {useTemplate.name}</h3>
             </div>
-            <button onClick={() => setUseTemplateId(null)} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A]"><X className="w-4 h-4" /></button>
+            <button type="button" aria-label="Close apply template panel" onClick={() => setUseTemplateId(null)} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A]"><X className="w-4 h-4" /></button>
           </div>
           <p className="text-xs text-[rgba(26,26,26,0.5)]">Fill in the placeholders below. The filled contract text will be copied to your clipboard.</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -251,7 +251,7 @@ export default function ContractTemplatesPanel() {
               <h3 className="font-bold text-[#1A1A1A]">{previewTemplate.name}</h3>
               {previewTemplate.category && <Badge variant="outline" className="text-[10px] border-[#C8C5BF] text-[rgba(26,26,26,0.4)]">{previewTemplate.category}</Badge>}
             </div>
-            <button onClick={() => setPreviewId(null)} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A]"><X className="w-4 h-4" /></button>
+            <button type="button" aria-label="Close template preview" onClick={() => setPreviewId(null)} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A]"><X className="w-4 h-4" /></button>
           </div>
           <pre className="text-xs text-[rgba(26,26,26,0.7)] whitespace-pre-wrap font-mono bg-[#F7F6F3] rounded-xl p-4 max-h-80 overflow-y-auto border border-[#EEECEA]">
             {previewTemplate.body}
@@ -299,11 +299,11 @@ export default function ContractTemplatesPanel() {
                 </p>
               </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                <button onClick={() => setPreviewId(t.id)} className="p-1.5 rounded-lg hover:bg-[#EEECEA] text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors" title="Preview">
+                <button type="button" aria-label={`Preview template ${t.name}`} onClick={() => setPreviewId(t.id)} className="p-1.5 rounded-lg hover:bg-[#EEECEA] text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors" title="Preview">
                   <Eye className="w-3.5 h-3.5" />
                 </button>
                 {!t.isBuiltIn && (
-                  <button onClick={() => startEdit(t)} className="p-1.5 rounded-lg hover:bg-[#EEECEA] text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors" title="Edit">
+                  <button type="button" aria-label={`Edit template ${t.name}`} onClick={() => startEdit(t)} className="p-1.5 rounded-lg hover:bg-[#EEECEA] text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors" title="Edit">
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                 )}
@@ -314,7 +314,7 @@ export default function ContractTemplatesPanel() {
                   <Sparkles className="w-3 h-3" />Use
                 </button>
                 {!t.isBuiltIn && (
-                  <button onClick={() => deleteTemplate.mutate({ id: t.id })} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[rgba(26,26,26,0.3)] hover:text-red-400 transition-colors" title="Delete">
+                  <button type="button" aria-label={`Delete template ${t.name}`} onClick={() => deleteTemplate.mutate({ id: t.id })} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[rgba(26,26,26,0.3)] hover:text-red-400 transition-colors" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 )}

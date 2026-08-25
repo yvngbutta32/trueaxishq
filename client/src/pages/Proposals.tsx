@@ -242,17 +242,17 @@ export default function Proposals() {
                   {p.validUntil && <p className="text-xs text-[rgba(26,26,26,0.4)]">Valid until {p.validUntil}</p>}
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => setPreviewId(p.id)} title="Preview" className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors"><Eye className="w-4 h-4" /></button>
+                  <button type="button" aria-label={`Preview proposal ${p.title}`} onClick={() => setPreviewId(p.id)} title="Preview" className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors"><Eye className="w-4 h-4" /></button>
                   {p.status === "draft" && (
-                    <button onClick={() => sendMut.mutate({ id: p.id, origin: window.location.origin })} title="Send" className="p-2 rounded-lg hover:bg-[rgba(59,130,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#3B82F6] transition-colors"><Send className="w-4 h-4" /></button>
+                    <button type="button" aria-label={`Send proposal ${p.title}`} onClick={() => sendMut.mutate({ id: p.id, origin: window.location.origin })} title="Send" className="p-2 rounded-lg hover:bg-[rgba(59,130,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#3B82F6] transition-colors"><Send className="w-4 h-4" /></button>
                   )}
                   {p.status === "signed" && !p.linkedInvoiceId && (
-                    <button onClick={() => convertMut.mutate({ id: p.id })} title="Convert to Invoice" className="p-2 rounded-lg hover:bg-[rgba(0,201,167,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#00C9A7] transition-colors"><ArrowRight className="w-4 h-4" /></button>
+                    <button type="button" aria-label={`Convert proposal ${p.title} to invoice`} onClick={() => convertMut.mutate({ id: p.id })} title="Convert to Invoice" className="p-2 rounded-lg hover:bg-[rgba(0,201,167,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#00C9A7] transition-colors"><ArrowRight className="w-4 h-4" /></button>
                   )}
                   {p.token && (
-                    <button onClick={() => { const url = `${window.location.origin}/proposal/${p.token}`; navigator.clipboard.writeText(url); toast.success("Link copied"); }} title="Copy link" className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors"><Copy className="w-4 h-4" /></button>
+                    <button type="button" aria-label={`Copy secure link for proposal ${p.title}`} onClick={() => { const url = `${window.location.origin}/proposal/${p.token}`; navigator.clipboard.writeText(url); toast.success("Link copied"); }} title="Copy link" className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors"><Copy className="w-4 h-4" /></button>
                   )}
-                  <button onClick={() => setDeleteConfirm(p.id)} title="Delete" className="p-2 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                  <button type="button" aria-label={`Delete proposal ${p.title}`} onClick={() => setDeleteConfirm(p.id)} title="Delete" className="p-2 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             );

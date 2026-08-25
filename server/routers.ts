@@ -4470,7 +4470,11 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Proposal not found or link has expired." });
         // Mark as viewed if first time
         if (!row.viewedAt) {
-          await db.update(proposals).set({ viewedAt: new Date(), status: row.status === "sent" ? "viewed" : row.status }).where(eq(proposals.id, row.id));
+          await db.update(proposals).set({ viewedAt: new Date(), status: row.status === "sent" ? "viewed" : row.status }).where(and(
+            eq(proposals.id, row.id),
+            eq(proposals.token, input.token),
+            eq(proposals.status, row.status),
+          ));
         }
         return row;
       }),

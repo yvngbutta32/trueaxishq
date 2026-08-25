@@ -16,6 +16,12 @@ describe("public booking safety contract", () => {
     expect(router).toContain("booking: { service: booking.service, date: booking.date, time: booking.time }");
   });
 
+  it("uses the supplied proposal token and current status at the public viewed-state write boundary", () => {
+    const proposalView = router.slice(router.indexOf("getPublic: publicProcedure"), router.indexOf("create: protectedProcedure", router.indexOf("getPublic: publicProcedure")));
+    expect(proposalView).toContain("eq(proposals.token, input.token)");
+    expect(proposalView).toContain("eq(proposals.status, row.status)");
+  });
+
   it("consumes cancellation links transactionally and never trusts a browser-provided origin", () => {
     const cancelSection = router.slice(router.indexOf("cancel: publicProcedure"), router.indexOf("// ── Monthly Report Settings"));
     expect(router).toContain("cancel: publicProcedure");

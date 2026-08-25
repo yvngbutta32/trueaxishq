@@ -91,6 +91,7 @@ export default function ProposalSign() {
           <p className="text-[rgba(26,26,26,0.55)] text-sm">
             This proposal link is invalid or has expired. Please contact the sender for a new link.
           </p>
+          <a href="/" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[#D4922A]/35 px-4 text-sm font-semibold text-[#8a5a0b] transition-colors hover:bg-[#fffaf0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A]">Return to TrueAxis HQ</a>
         </div>
       </div>
     );
