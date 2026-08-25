@@ -1623,13 +1623,13 @@
 - [x] Remove or replace unverified public trust and financial claims in the landing-page hero
 
 ## State-of-the-Art Competitive Excellence Program — August 2026
-- [ ] Baseline current TrueAxis HQ modules, route architecture, data model, and unresolved operational gaps
-- [ ] Research current competitor capabilities and customer frictions across leading freelancer and field-service platforms
-- [ ] Define a measurable state-of-the-art architecture and milestone roadmap without unsupported claims
-- [ ] Implement a secure Client Experience Preflight for owner-side booking, portal, payment, and status review
+- [x] Baseline current TrueAxis HQ modules, route architecture, data model, and unresolved operational gaps
+- [x] Research current competitor capabilities and customer frictions across leading freelancer and field-service platforms
+- [x] Define a measurable state-of-the-art architecture and milestone roadmap without unsupported claims
+- [x] Implement a secure Client Experience Preflight for owner-side booking, portal, payment, and status review
 - [ ] Add the highest-value workflow improvements discovered during research
-- [ ] Add automated coverage for new authorization and workflow boundaries
-- [ ] Validate TypeScript, tests, production build, responsive UI, and runtime health
+- [x] Add automated coverage for new authorization and workflow boundaries
+- [x] Validate TypeScript, tests, production build, responsive UI, and runtime health
 - [ ] Save every validated milestone to the connected GitHub repository and create a recoverable release record
 
 ## GitHub Release Requirement
@@ -1645,13 +1645,13 @@ Competitive research focus: analyze customer friction across HoneyBook, Dubsado,
 Next candidate milestone: owner-scoped Client Experience Preflight with no live client-data exposure and no side effects.
 
 ## Superiority Standard — User Approved
-- [ ] Benchmark each priority workflow against a named competitor weakness and a measurable TrueAxis HQ outcome
-- [ ] Require state-of-the-art improvements to reduce setup time, ambiguity, manual rescue work, and client-facing confusion
-- [ ] Preserve transparent pricing, secure data isolation, accessible mobile workflows, and explainable automation as non-negotiable quality gates
+- [x] Benchmark each priority workflow against a named competitor weakness and a measurable TrueAxis HQ outcome
+- [x] Require state-of-the-art improvements to reduce setup time, ambiguity, manual rescue work, and client-facing confusion
+- [x] Preserve transparent pricing, secure data isolation, accessible mobile workflows, and explainable automation as non-negotiable quality gates
 - [ ] Do not claim universal superiority without workflow-level evidence; document the specific areas where TrueAxis HQ is materially stronger
 
 ## Next Superior Milestone
-- [ ] Build Client Experience Preflight for owner-side, privacy-safe review of booking, portal, payment, and status handoffs
+- [x] Build Client Experience Preflight for owner-side, privacy-safe review of booking, portal, payment, and status handoffs
 - [ ] Add client-visible event/status clarity and safe recovery guidance where current competitor complaints indicate confusion
 - [ ] Validate all new state-of-the-art claims with automated tests, responsive UI checks, and production-safe runtime verification
 
@@ -1666,5 +1666,5 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [ ] Save each validated milestone to the connected GitHub repository and preserve a recoverable release record
 
 ## 5/5 Release Claims
-- [ ] Document specific areas where TrueAxis HQ is materially stronger than named alternatives
+- [x] Document specific areas where TrueAxis HQ is materially stronger than named alternatives
 - [ ] Do not claim universal market superiority until feature-level evidence and real user validation support it
