@@ -1739,16 +1739,16 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Keep expected invalid or expired portal-link recovery responses visible to the page without recording them as global client errors
 
 ## Autonomous 5/5 Completion Program — User Requested
-- [ ] Re-audit all remaining code, public surfaces, accessibility patterns, performance boundaries, and release documentation for autonomous 5/5 gaps
-- [ ] Close every confirmed autonomous code, security, workflow, trust-surface, and mobile usability gap
-- [ ] Add or strengthen deterministic coverage and release evidence for each confirmed gap
-- [ ] Publish a final autonomous quality register that distinguishes verified 5/5 work from provider-account actions
+- [x] Re-audit all remaining code, public surfaces, accessibility patterns, performance boundaries, and release documentation for autonomous 5/5 gaps
+- [x] Close every confirmed autonomous code, security, workflow, trust-surface, and mobile usability gap
+- [x] Add or strengthen deterministic coverage and release evidence for each confirmed gap
+- [x] Publish a final autonomous quality register that distinguishes verified 5/5 work from provider-account actions
 
 ## Exhaustive Full-System Completion Pass — User Requested
-- [ ] Inventory and validate public marketing, authentication, booking, intake, portal, proposals, billing, job, photo, time, automation, AI, dashboard, admin, security, storage, and background-workflow subsystems
-- [ ] Resolve every confirmed autonomous defect, hidden reliability issue, stale claim, inaccessible interaction, and avoidable operational ambiguity
-- [ ] Build or refine the highest-value autonomous workflow enhancements revealed by the exhaustive subsystem audit
-- [ ] Produce and validate an exhaustive autonomous acceptance register with tests, build evidence, route checks, and explicitly isolated provider-account dependencies
+- [x] Inventory and validate public marketing, authentication, booking, intake, portal, proposals, billing, job, photo, time, automation, AI, dashboard, admin, security, storage, and background-workflow subsystems
+- [x] Resolve every confirmed autonomous defect, hidden reliability issue, stale claim, inaccessible interaction, and avoidable operational ambiguity
+- [x] Build or refine the highest-value autonomous workflow enhancements revealed by the exhaustive subsystem audit
+- [x] Produce and validate an exhaustive autonomous acceptance register with tests, build evidence, route checks, and explicitly isolated provider-account dependencies
 
 ## Icon Control Accessibility Remediation
 - [x] Add explicit accessible names and safe button types to confirmed icon-only owner controls across proposals, services, revenue forecasting, and job workflow surfaces
@@ -1758,3 +1758,12 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ## Public Recovery Navigation
 - [x] Add clear, safe recovery actions to invalid public booking, proposal, intake, testimonial, and booking-management states without exposing protected data
+
+## Google Calendar OAuth State Integrity
+- [x] Replace predictable user-ID OAuth callback state with a signed, expiring owner-bound state and add regression coverage for callback integrity
+
+## Stripe Webhook Verification Integrity
+- [x] Make Stripe webhook verification fail closed when the signing secret is absent outside an explicit development environment and cover the verification policy deterministically
+
+## Public Health Endpoint Disclosure
+- [x] Minimize anonymous health responses to liveness information and keep detailed integration status confined to authenticated owner operations

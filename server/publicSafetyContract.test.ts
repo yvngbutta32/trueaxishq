@@ -34,6 +34,14 @@ describe("public booking safety contract", () => {
     expect(router).toContain("function enforceBookingChangeWindow");
     expect(router).toContain("Appointments can only be changed up to 24 hours");
   });
+
+  it("keeps anonymous health responses limited to liveness while owner health uses a protected procedure", () => {
+    const entry = source("server/_core/index.ts");
+    const system = source("server/_core/systemRouter.ts");
+    expect(entry).not.toContain("checks.stripe");
+    expect(entry).not.toContain("checks.llm");
+    expect(system).toContain("health: protectedProcedure");
+  });
 });
 
 describe("upload and storage safety contract", () => {

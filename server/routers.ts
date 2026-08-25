@@ -23,6 +23,7 @@ import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
 import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail, getEmailDeliveryStatus } from "./_core/email";
 import { createPublicUploadToken, hashPublicUploadToken, isOwnerPhotoKeyForType, PUBLIC_UPLOAD_MAX_FILES, PUBLIC_UPLOAD_TTL_MS } from "./photoUploadSecurity";
+import { createGoogleOAuthState } from "./googleOAuthState";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -4067,6 +4068,14 @@ Only include actions when you have actually generated a complete draft. For gene
       .query(async ({ ctx, input }) => {
         const clientId = process.env.GOOGLE_CLIENT_ID;
         if (!clientId) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Google Calendar integration requires GOOGLE_CLIENT_ID to be configured in Settings → Secrets." });
+        const stateSecret = process.env.JWT_SECRET;
+        if (!stateSecret) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Google Calendar integration state is not configured." });
+        let state: string;
+        try {
+          state = createGoogleOAuthState(ctx.user.id, input.origin, stateSecret);
+        } catch {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Google Calendar integration requires a secure application origin." });
+        }
         const params = new URLSearchParams({
           client_id: clientId,
           redirect_uri: `${input.origin}/api/google-calendar/callback`,
@@ -4074,7 +4083,7 @@ Only include actions when you have actually generated a complete draft. For gene
           scope: "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
           access_type: "offline",
           prompt: "consent",
-          state: String(ctx.user.id),
+          state,
         });
         return { url: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}` };
       }),

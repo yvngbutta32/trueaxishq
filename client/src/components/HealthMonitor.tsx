@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { Activity, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 type HealthStatus = "healthy" | "degraded" | "error" | "checking";
 
@@ -7,6 +8,7 @@ interface HealthData {
   status: "healthy" | "degraded";
   uptime: number;
   totalLatencyMs: number;
+  timestamp: string;
   checks: {
     database?: { status: string; latencyMs?: number };
     stripe?: { status: string };
@@ -15,30 +17,12 @@ interface HealthData {
 }
 
 export function HealthMonitor() {
-  const [status, setStatus] = useState<HealthStatus>("checking");
-  const [data, setData] = useState<HealthData | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [lastChecked, setLastChecked] = useState<Date | null>(null);
-
-  const checkHealth = useCallback(async () => {
-    try {
-      const res = await fetch("/api/health", { signal: AbortSignal.timeout(5000) }).catch(() => null);
-      if (!res) { setStatus("degraded"); return; }
-      const json: HealthData = await res.json();
-      setData(json);
-      setStatus(json.status === "healthy" ? "healthy" : "degraded");
-      setLastChecked(new Date());
-    } catch {
-      setStatus("error");
-      setLastChecked(new Date());
-    }
-  }, []);
-
-  useEffect(() => {
-    checkHealth();
-    const interval = setInterval(checkHealth, 60_000); // poll every 60s
-    return () => clearInterval(interval);
-  }, [checkHealth]);
+  const healthQuery = trpc.system.health.useQuery({ timestamp: 0 }, { refetchInterval: 60_000, retry: 1 });
+  const data = healthQuery.data as HealthData | undefined;
+  const status: HealthStatus = healthQuery.isLoading ? "checking" : healthQuery.isError ? "error" : data?.status === "healthy" ? "healthy" : "degraded";
+  const lastChecked = data?.timestamp ? new Date(data.timestamp) : null;
+  const checkHealth = () => void healthQuery.refetch();
 
   const icon = {
     healthy: <CheckCircle className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />,

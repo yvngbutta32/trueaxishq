@@ -48,6 +48,10 @@ const retryQueue: RetryItem[] = [];
 const MAX_RETRIES = 5;
 const RETRY_DELAYS_MS = [5_000, 15_000, 60_000, 300_000, 900_000];
 
+export function canAcceptUnsignedStripeEvent(environment = process.env.NODE_ENV): boolean {
+  return environment === "development";
+}
+
 async function flushRetryQueue() {
   const now = Date.now();
   const due = retryQueue.filter(item => item.nextRetryAt <= now);
@@ -226,7 +230,11 @@ export async function handleStripeWebhook(req: Request, res: Response) {
 
   try {
     if (!webhookSecret || !sig) {
-      // Dev mode: parse unsigned event
+      if (!canAcceptUnsignedStripeEvent()) {
+        console.error("[Webhook] STRIPE_WEBHOOK_SECRET or Stripe signature missing outside development");
+        return res.status(503).json({ error: "Webhook signature verification is not configured" });
+      }
+      // Development-only local event inspection. Production always requires a signed event.
       event = JSON.parse(req.body.toString()) as Stripe.Event;
     } else {
       event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);

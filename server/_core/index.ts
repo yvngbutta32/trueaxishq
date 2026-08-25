@@ -15,6 +15,7 @@ import { photoUploadRouter } from "../photoUpload";
 import { icalRouter } from "../icalExport";
 import { startBackgroundJobs } from "../backgroundJobs";
 import { invoicePdfRouter } from "../invoicePdf";
+import { verifyGoogleOAuthState } from "../googleOAuthState";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -75,40 +76,19 @@ async function startServer() {
   // ── Health Check ─────────────────────────────────────────────────────────
   app.get("/api/health", async (_req, res) => {
     const start = Date.now();
-    const checks: Record<string, { status: string; latencyMs?: number; error?: string }> = {};
-
-    // DB check
+    let databaseAvailable = false;
     try {
       const { getDb } = await import("../db");
       const db = await getDb();
       if (db) {
-        const dbStart = Date.now();
         await db.execute("SELECT 1");
-        checks.database = { status: "ok", latencyMs: Date.now() - dbStart };
-      } else {
-        checks.database = { status: "unavailable" };
+        databaseAvailable = true;
       }
-    } catch (e: unknown) {
-      checks.database = { status: "error", error: e instanceof Error ? e.message : String(e) };
+    } catch {
+      databaseAvailable = false;
     }
-
-    // Stripe check
-    const stripeKey = process.env.STRIPE_SECRET_KEY;
-    checks.stripe = stripeKey ? { status: "configured" } : { status: "not_configured" };
-
-    // LLM check
-    const llmKey = process.env.BUILT_IN_FORGE_API_KEY;
-    checks.llm = llmKey ? { status: "configured" } : { status: "not_configured" };
-
-    const allOk = checks.database?.status === "ok";
-    const totalMs = Date.now() - start;
-
-    res.status(allOk ? 200 : 503).json({
-      status: allOk ? "healthy" : "degraded",
-      version: process.env.npm_package_version || "1.0.0",
-      uptime: Math.floor(process.uptime()),
-      totalLatencyMs: totalMs,
-      checks,
+    res.status(databaseAvailable ? 200 : 503).json({
+      status: databaseAvailable ? "healthy" : "degraded",
       timestamp: new Date().toISOString(),
     });
   });
@@ -131,16 +111,17 @@ async function startServer() {
   // ── Google Calendar OAuth Callback ───────────────────────────────────────
   app.get("/api/google-calendar/callback", async (req, res) => {
     const { code, state, error } = req.query as Record<string, string>;
-    const origin = `${req.protocol}://${req.get("host")}`;
+    const fallbackOrigin = `${req.protocol}://${req.get("host")}`;
 
     if (error || !code) {
-      return res.redirect(`${origin}/dashboard?gcal_error=${encodeURIComponent(error || "no_code")}`);
+      return res.redirect(`${fallbackOrigin}/dashboard?gcal_error=${encodeURIComponent(error || "no_code")}`);
     }
 
-    const userId = parseInt(state || "0", 10);
-    if (!userId) {
-      return res.redirect(`${origin}/dashboard?gcal_error=invalid_state`);
+    const oauthState = verifyGoogleOAuthState(state || "", process.env.JWT_SECRET || "");
+    if (!oauthState) {
+      return res.redirect(`${fallbackOrigin}/dashboard?gcal_error=invalid_state`);
     }
+    const { userId, origin } = oauthState;
 
     try {
       const clientId = process.env.GOOGLE_CLIENT_ID;
