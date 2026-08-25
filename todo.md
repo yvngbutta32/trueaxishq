@@ -1784,3 +1784,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Remove remaining unverified public delivery timelines, receipt promises, and autonomy claims from completion states
 - [x] Remove unsupported public adoption, outcome, trial, refund, compliance, service-level, and payment-method claims from marketing, pricing, help, and registration surfaces
 - [x] Remove remaining SMTP-dependent booking and newsletter confirmation claims from public submission screens
+
+## Refreshed Competitor Comparison & Scorecard — User Requested
+- [x] Refresh official capability and customer-friction evidence for selected freelancer-service and field-service competitors
+- [x] Score TrueAxis HQ and competitor workflows with a transparent weighted comparison framework
+- [x] Publish and deliver a candid updated scorecard with defensible strengths, parity areas, gaps, and deferred launch gates
