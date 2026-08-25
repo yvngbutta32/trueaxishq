@@ -94,3 +94,10 @@ The evidence supports a clear conclusion: independent businesses do not primaril
 #### Repeating friction signals to test against more sources
 
 The strongest repeating signals so far are not missing feature categories. They are **high setup burden**, **opaque or risky automations**, **slow recovery from support or integration failure**, **unreliable scheduling/client-payment handoffs**, **weak mobile or portal experience**, and **surprise cost or shallow capability after onboarding**. The next research pass must validate each signal across additional independent review sources before it becomes a TrueAxis HQ roadmap commitment.
+
+
+## 5/5 competitor benchmark extension
+
+Current competitor positioning confirms that the state of the art is a connected client-to-cash workflow, not a pile of independent tools. Jobber’s Client Hub covers work requests, quote approvals, appointment details, invoice payments, receipts, and service requests; its broader product positioning includes quoting, scheduling, invoicing, CRM, and field-service operations. Housecall Pro emphasizes scheduling, recurring jobs, automated invoicing, dispatching, and technician notifications. [Jobber Client Hub](https://www.getjobber.com/features/client-hub/) [Jobber Features](https://www.getjobber.com/features/) [Housecall Pro Features](https://www.housecallpro.com/features/)
+
+The resulting 5/5 requirements for TrueAxis HQ are measurable: an owner must be able to preview a client-facing journey before sharing it; a client must be able to understand the next state without contacting the owner; proof-of-work must connect estimate, scheduled work, progress, completion, invoice, and payment; mobile workflows must remain usable at the point of service; and billing/email/automation failures must expose a recoverable next action rather than silently failing. These requirements extend the existing roadmap and are now captured in the 5/5 scorecard.
