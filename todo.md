@@ -1587,8 +1587,8 @@
 
 ## Combined Workspace Reconciliation — User Approved
 - [x] Preserve the current validated workspace as the reconciliation source of truth
-- [ ] Reconcile the validated workspace with the concurrent hardening branch without losing either change set
-- [ ] Re-run TypeScript, full tests, runtime health, and public-route validation on the reconciled release
+- [x] Reconcile the validated workspace with the concurrent hardening branch without losing either change set
+- [x] Re-run TypeScript, full tests, runtime health, and public-route validation on the reconciled release
 - [ ] Save and publish the combined release checkpoint
 
 ### Credential-Free Launch Improvements
