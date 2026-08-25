@@ -440,7 +440,7 @@ function ReceiptCalculatorTab() {
     setOcrTax(0);
     setScannedPhotoUrl(photo.photoUrl);
     try {
-      const result = await extractOcrMutation.mutateAsync({ photoUrl: photo.photoUrl });
+      const result = await extractOcrMutation.mutateAsync({ photoId: photo.id });
       if (result.items.length === 0 && result.total === 0) {
         toast.warning("AI could not detect line items. Try a clearer photo.");
         setOcrNote(result.note || "No items detected.");

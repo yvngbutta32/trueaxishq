@@ -124,21 +124,17 @@ export type InsertInvoice = typeof invoices.$inferInsert;
 
 // ─── Bookings / Appointments ──────────────────────────────────────────────────
 
-export const bookings = mysqlTable(
-  "bookings",
-  {
+export const bookings = mysqlTable("bookings", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   clientId: int("clientId"),
   clientName: varchar("clientName", { length: 255 }).notNull(),
   clientEmail: varchar("clientEmail", { length: 320 }),
   service: varchar("service", { length: 255 }),
-    date: varchar("date", { length: 32 }).notNull(),
-    time: varchar("time", { length: 32 }).notNull(),
-    // Present only while a booking occupies a live appointment slot. The unique
-    // index prevents concurrent public/admin reschedules from double-booking it.
-    slotKey: varchar("slotKey", { length: 200 }),
-    duration: int("duration").default(60),
+  date: varchar("date", { length: 32 }).notNull(),
+  time: varchar("time", { length: 32 }).notNull(),
+  slotKey: varchar("slotKey", { length: 160 }).unique(),
+  duration: int("duration").default(60),
   status: mysqlEnum("status", ["scheduled", "completed", "cancelled", "no_show"]).default("scheduled").notNull(),
   notes: text("notes"),
   isPublicBooking: boolean("isPublicBooking").default(false),
@@ -146,12 +142,8 @@ export const bookings = mysqlTable(
   checkInSentAt: timestamp("checkInSentAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  },
-  (t) => [
-    index("bookings_userId_idx").on(t.userId),
-    index("bookings_date_idx").on(t.date),
-    uniqueIndex("bookings_live_slot_unique_idx").on(t.slotKey),
-  ]
+},
+(t) => [index("bookings_userId_idx").on(t.userId), index("bookings_date_idx").on(t.date), uniqueIndex("bookings_live_slot_unique_idx").on(t.slotKey)]
 );
 
 export type Booking = typeof bookings.$inferSelect;
@@ -409,17 +401,6 @@ export const notifications = mysqlTable("notifications", {
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
 
-// ─── Background Job Run Guards ────────────────────────────────────────────────
-// Dedicated idempotency records for system jobs. This deliberately avoids using
-// a synthetic user notification as an operational lock.
-export const jobRunGuards = mysqlTable("jobRunGuards", {
-  jobKey: varchar("jobKey", { length: 191 }).primaryKey(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type JobRunGuard = typeof jobRunGuards.$inferSelect;
-export type InsertJobRunGuard = typeof jobRunGuards.$inferInsert;
-
 // ─── Time Tracking ────────────────────────────────────────────────────────────
 export const timeEntries = mysqlTable("timeEntries", {
   id: int("id").autoincrement().primaryKey(),
@@ -437,7 +418,7 @@ export const timeEntries = mysqlTable("timeEntries", {
   invoiced: boolean("invoiced").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 },
-  (t) => [index("timeEntries_userId_idx").on(t.userId), index("timeEntries_jobId_idx").on(t.jobId)]
+(t) => [index("timeEntries_userId_idx").on(t.userId), index("timeEntries_jobId_idx").on(t.jobId)]
 );
 
 export type TimeEntry = typeof timeEntries.$inferSelect;
@@ -851,36 +832,33 @@ export const jobPhotos = mysqlTable("jobPhotos", {
 export type JobPhoto = typeof jobPhotos.$inferSelect;
 export type InsertJobPhoto = typeof jobPhotos.$inferInsert;
 
-// ── Unified Job Workspace ─────────────────────────────────────────────────────
-// A lifecycle record connecting client work, appointments, commercial records,
-// proof-of-work, time, cost evidence, and customer-visible progress.
+// ─── Unified Job Workspace ───────────────────────────────────────────────────
 export const jobs = mysqlTable("jobs", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   clientId: int("clientId").notNull(),
   bookingId: int("bookingId"),
+  invoiceId: int("invoiceId"),
   proposalId: int("proposalId"),
   contractId: int("contractId"),
-  invoiceId: int("invoiceId"),
-  jobNumber: varchar("jobNumber", { length: 40 }).notNull(),
+  jobNumber: varchar("jobNumber", { length: 64 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   status: mysqlEnum("status", ["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]).notNull().default("lead"),
   priority: mysqlEnum("priority", ["low", "normal", "high", "urgent"]).notNull().default("normal"),
   startDate: varchar("startDate", { length: 32 }),
   targetDate: varchar("targetDate", { length: 32 }),
+  budgetAmount: decimal("budgetAmount", { precision: 12, scale: 2 }),
   completedAt: timestamp("completedAt"),
-  budgetAmount: decimal("budgetAmount", { precision: 10, scale: 2 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (t) => [
   index("jobs_userId_idx").on(t.userId),
   index("jobs_clientId_idx").on(t.clientId),
-  index("jobs_status_idx").on(t.status),
+  index("jobs_bookingId_idx").on(t.bookingId),
   uniqueIndex("jobs_userId_jobNumber_unique_idx").on(t.userId, t.jobNumber),
 ]);
 export type Job = typeof jobs.$inferSelect;
-export type InsertJob = typeof jobs.$inferInsert;
 
 export const jobTasks = mysqlTable("jobTasks", {
   id: int("id").autoincrement().primaryKey(),
@@ -890,23 +868,60 @@ export const jobTasks = mysqlTable("jobTasks", {
   description: text("description"),
   status: mysqlEnum("status", ["todo", "in_progress", "done"]).notNull().default("todo"),
   dueDate: varchar("dueDate", { length: 32 }),
-  completedAt: timestamp("completedAt"),
   sortOrder: int("sortOrder").notNull().default(0),
+  completedAt: timestamp("completedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (t) => [index("jobTasks_userId_idx").on(t.userId), index("jobTasks_jobId_idx").on(t.jobId)]);
 export type JobTask = typeof jobTasks.$inferSelect;
-export type InsertJobTask = typeof jobTasks.$inferInsert;
 
 export const jobActivities = mysqlTable("jobActivities", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   jobId: int("jobId").notNull(),
-  actor: mysqlEnum("actor", ["owner", "client", "system"]).notNull().default("owner"),
-  eventType: varchar("eventType", { length: 100 }).notNull(),
+  actor: varchar("actor", { length: 32 }).notNull(),
+  eventType: varchar("eventType", { length: 64 }).notNull(),
   message: text("message").notNull(),
   metadata: text("metadata"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (t) => [index("jobActivities_userId_idx").on(t.userId), index("jobActivities_jobId_idx").on(t.jobId)]);
 export type JobActivity = typeof jobActivities.$inferSelect;
-export type InsertJobActivity = typeof jobActivities.$inferInsert;
+
+// ─── Background Job Run Guards ───────────────────────────────────────────────
+// A durable primary key makes periodic jobs idempotent across multiple workers.
+export const jobRunGuards = mysqlTable("jobRunGuards", {
+  jobKey: varchar("jobKey", { length: 255 }).primaryKey(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// ─── Public Photo Upload Sessions ────────────────────────────────────────────
+// A short-lived, hashed authorization record for a public booking or intake upload.
+// Upload objects are registered separately so only objects created by that session
+// can be attached to the resulting business record.
+export const publicPhotoUploadSessions = mysqlTable("publicPhotoUploadSessions", {
+  id: int("id").autoincrement().primaryKey(),
+  tokenHash: varchar("tokenHash", { length: 64 }).notNull().unique(),
+  userId: int("userId").notNull(),
+  purpose: mysqlEnum("purpose", ["booking", "intake"]).notNull(),
+  referenceId: int("referenceId"),
+  maxUploads: int("maxUploads").notNull().default(5),
+  uploadCount: int("uploadCount").notNull().default(0),
+  expiresAt: timestamp("expiresAt").notNull(),
+  consumedAt: timestamp("consumedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("publicPhotoUploadSessions_userId_idx").on(t.userId),
+  index("publicPhotoUploadSessions_expiresAt_idx").on(t.expiresAt),
+]);
+export type PublicPhotoUploadSession = typeof publicPhotoUploadSessions.$inferSelect;
+
+export const publicPhotoUploads = mysqlTable("publicPhotoUploads", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull(),
+  photoKey: varchar("photoKey", { length: 512 }).notNull().unique(),
+  photoUrl: text("photoUrl").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("publicPhotoUploads_sessionId_idx").on(t.sessionId),
+]);
+export type PublicPhotoUpload = typeof publicPhotoUploads.$inferSelect;

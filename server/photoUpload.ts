@@ -7,12 +7,13 @@
 import { Router, Request, Response } from "express";
 import multer from "multer";
 import crypto from "crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { safeErrorMessage } from "./utils";
 import { getDb } from "./db";
-import { clientPortalTokens, users } from "../drizzle/schema";
+import { clientPortalTokens, publicPhotoUploadSessions, publicPhotoUploads, users } from "../drizzle/schema";
 import { getClientIp } from "./security";
+import { getPublicUploadKeyPrefix, hashPublicUploadToken, isPublicUploadKeyForSession } from "./photoUploadSecurity";
 
 const MAX_SIZE_BYTES = 16 * 1024 * 1024; // 16 MB
 const PUBLIC_UPLOAD_WINDOW_MS = 10 * 60_000;
@@ -69,9 +70,9 @@ function allowPublicUpload(ip: string, ownerId: number): boolean {
 // ── POST /api/photos/upload ─────────────────────────────────────────────────
 // Works for authenticated owners and verified client contexts.
 // - Authenticated owners can upload estimate, WIP, finished, and receipt photos.
-// - Unauthenticated clients must supply either a valid portalToken or a valid
-//   public booking hostUsername. Their uploads are always estimate photos and
-//   are stored under that verified owner's namespace.
+// - Unauthenticated portal clients must supply a valid portal token. Booking and
+//   intake clients must supply a short-lived upload-session token. Their uploads
+//   are always estimates and cannot be associated outside that verified context.
 photoUploadRouter.post(
   "/api/photos/upload",
   upload.single("file"),
@@ -105,6 +106,7 @@ photoUploadRouter.post(
       const allowedOwnerTypes = new Set(["estimate", "wip", "finished", "receipt"]);
       let photoType = userId ? (allowedOwnerTypes.has(requestedType) ? requestedType : "wip") : "estimate";
       let folderSuffix = userId ? "owner" : "client";
+      let publicSession: { id: number; userId: number } | null = null;
 
       if (!userId) {
         const db = await getDb();
@@ -114,7 +116,7 @@ photoUploadRouter.post(
         }
 
         const portalToken = typeof req.body?.portalToken === "string" ? req.body.portalToken.trim() : "";
-        const hostUsername = typeof req.body?.hostUsername === "string" ? req.body.hostUsername.trim() : "";
+        const uploadToken = typeof req.body?.uploadToken === "string" ? req.body.uploadToken.trim() : "";
 
         if (portalToken) {
           const [portal] = await db.select({ userId: clientPortalTokens.userId, expiresAt: clientPortalTokens.expiresAt })
@@ -127,19 +129,18 @@ photoUploadRouter.post(
           }
           userId = portal.userId;
           folderSuffix = "portal-client";
-        } else if (hostUsername) {
-          const [host] = await db.select({ id: users.id })
-            .from(users)
-            .where(eq(users.bookingUsername, hostUsername))
-            .limit(1);
-          if (!host) {
-            res.status(404).json({ error: "Booking page not found." });
+        } else if (/^[a-f0-9]{64}$/.test(uploadToken)) {
+          const [session] = await db.select().from(publicPhotoUploadSessions)
+            .where(eq(publicPhotoUploadSessions.tokenHash, hashPublicUploadToken(uploadToken))).limit(1);
+          if (!session || session.consumedAt || new Date() > session.expiresAt || session.uploadCount >= session.maxUploads) {
+            res.status(403).json({ error: "This photo-upload session has expired or reached its limit." });
             return;
           }
-          userId = host.id;
-          folderSuffix = "public-client";
+          userId = session.userId;
+          publicSession = { id: session.id, userId: session.userId };
+          folderSuffix = "session-client";
         } else {
-          res.status(401).json({ error: "A valid booking or portal session is required to upload a photo." });
+          res.status(401).json({ error: "A valid portal or photo-upload session is required to upload a photo." });
           return;
         }
 
@@ -152,10 +153,27 @@ photoUploadRouter.post(
         photoType = "estimate";
       }
 
-      const folder = `job-photos/${userId}/${photoType}/${folderSuffix}`;
+      const folder = publicSession
+        ? getPublicUploadKeyPrefix(publicSession.userId, publicSession.id).replace(/\/$/, "")
+        : `job-photos/${userId}/${photoType}/${folderSuffix}`;
 
       const key = `${folder}/${suffix}${ext}`;
       const { url } = await storagePut(key, req.file.buffer, verifiedMime);
+
+      if (publicSession) {
+        if (!isPublicUploadKeyForSession(key, publicSession.userId, publicSession.id)) {
+          throw new Error("Invalid public upload key.");
+        }
+        const db = await getDb();
+        if (!db) throw new Error("Upload metadata service unavailable.");
+        await db.insert(publicPhotoUploads).values({ sessionId: publicSession.id, photoKey: key, photoUrl: url });
+        await db.update(publicPhotoUploadSessions)
+          .set({ uploadCount: sql`${publicPhotoUploadSessions.uploadCount} + 1` })
+          .where(and(
+            eq(publicPhotoUploadSessions.id, publicSession.id),
+            sql`${publicPhotoUploadSessions.uploadCount} < ${publicPhotoUploadSessions.maxUploads}`
+          ));
+      }
 
       res.json({
         success: true,

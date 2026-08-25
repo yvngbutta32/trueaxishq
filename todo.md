@@ -1585,6 +1585,12 @@
 - [x] Validate every critical customer journey, accessibility, mobile workflow, reliability guard, and production build before release
 - [x] Remove fabricated testimonial-style cards and unsupported public adoption/revenue claims from the landing page
 
+## Combined Workspace Reconciliation — User Approved
+- [x] Preserve the current validated workspace as the reconciliation source of truth
+- [ ] Reconcile the validated workspace with the concurrent hardening branch without losing either change set
+- [ ] Re-run TypeScript, full tests, runtime health, and public-route validation on the reconciled release
+- [ ] Save and publish the combined release checkpoint
+
 ### Credential-Free Launch Improvements
 - [x] Add an owner-facing Launch Readiness Center that clearly reports email, payment, portal, and booking configuration status
 - [x] Add internal first-run guidance and operational empty states for newly created accounts

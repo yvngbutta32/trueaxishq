@@ -29,12 +29,12 @@ function makeAuthenticatedCtx(): TrpcContext {
 }
 
 describe("public client-photo safeguards", () => {
-  it("rejects a client photo confirmation without a booking host or portal token", async () => {
+  it("rejects a client photo confirmation without a portal token or upload session", async () => {
     const caller = appRouter.createCaller(makeCtx());
     await expect(caller.photos.confirmClientUpload({
       photoUrl: "https://cdn.example.com/photo.jpg",
       photoKey: "job-photos/1/estimate/public-client/photo.jpg",
-    })).rejects.toThrow("booking host or portal token is required");
+    })).rejects.toThrow("portal token or upload session is required");
   });
 
   it("rejects a blank portal token before any data lookup", async () => {
