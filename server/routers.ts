@@ -11,6 +11,7 @@ import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
 import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
+import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
@@ -4583,7 +4584,24 @@ Only include actions when you have actually generated a complete draft. For gene
         }
         return db.select().from(automationLogs)
           .where(eq(automationLogs.userId, ctx.user.id))
-          .orderBy(desc(automationLogs.createdAt)).limit(input.limit);
+            .orderBy(desc(automationLogs.createdAt)).limit(input.limit);
+      }),
+
+    preview: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .query(async ({ input, ctx }) => {
+        const db = await requireDb();
+        const [automation] = await db.select().from(automations)
+          .where(and(eq(automations.id, input.id), eq(automations.userId, ctx.user.id))).limit(1);
+        if (!automation) throw new TRPCError({ code: "NOT_FOUND" });
+
+        // This is intentionally read-only: previews do not send, enqueue, write logs, or alter run counters.
+        return buildAutomationPreview({
+          name: automation.name,
+          trigger: automation.trigger,
+          triggerDelayHours: automation.triggerDelayHours,
+          actions: parseAutomationPreviewActions(automation.actions),
+        });
       }),
 
     create: protectedProcedure
