@@ -1767,3 +1767,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ## Public Health Endpoint Disclosure
 - [x] Minimize anonymous health responses to liveness information and keep detailed integration status confined to authenticated owner operations
+
+## Capability Inventory & Competitor Benchmark — User Requested
+- [x] Create an evidence-led complete inventory of implemented TrueAxis HQ capabilities and validation status
+- [x] Compare capabilities and workflow differentiation candidly against leading freelancer-service platforms
+- [x] Deliver a readable positioning report that distinguishes verified strengths, parity areas, gaps, and provider-account launch gates
