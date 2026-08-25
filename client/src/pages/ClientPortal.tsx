@@ -253,7 +253,7 @@ export default function ClientPortal() {
             It may have expired, been replaced, or been copied incorrectly. Contact your service provider and ask them to send a fresh secure portal link.
           </p>
           <button type="button" onClick={() => { window.location.href = "/"; }} className="mt-6 min-h-11 rounded-xl bg-[#1B2D4F] px-5 text-sm font-bold text-white transition hover:bg-[#243A5E] focus:outline-none focus:ring-2 focus:ring-[#D4922A] focus:ring-offset-2">Return to TrueAxis HQ</button>
-          <p className="mt-4 text-xs text-[rgba(26,26,26,0.45)]">For your privacy, expired links cannot be restored from this page.</p>
+          <p className="mt-4 text-xs text-[rgba(26,26,26,0.62)]">For your privacy, expired links cannot be restored from this page.</p>
         </div>
       </div>
     );
@@ -522,7 +522,7 @@ export default function ClientPortal() {
                       <div className="rounded-lg bg-[#faf8f2] p-4">
                         <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><ClipboardCheck className="h-3.5 w-3.5 text-[#D4922A]" /> Milestones</span><span className="text-xs font-semibold text-[#8a5a0b]">{progress}% complete</span></div>
                         <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#e9e5db]"><div className="h-full rounded-full bg-[#D4922A] transition-all" style={{ width: `${progress}%` }} /></div>
-                        {job.tasks.length ? <ul className="mt-3 space-y-2">{job.tasks.slice(0, 4).map(task => <li key={task.id} className="flex items-center gap-2 text-xs text-gray-700"><CheckCircle className={`h-3.5 w-3.5 shrink-0 ${task.status === "done" ? "text-emerald-600" : "text-gray-300"}`} /><span className={task.status === "done" ? "line-through text-gray-500" : ""}>{task.title}</span></li>)}</ul> : <p className="mt-3 text-xs text-gray-500">Your provider will add milestones as work is planned.</p>}
+                        {job.tasks.length ? <ul className="mt-3 space-y-2">{job.tasks.slice(0, 4).map(task => <li key={task.id} className="flex items-center gap-2 text-xs text-gray-700"><CheckCircle className={`h-3.5 w-3.5 shrink-0 ${task.status === "done" ? "text-emerald-600" : "text-gray-500"}`} /><span className={task.status === "done" ? "line-through text-gray-500" : ""}>{task.title}</span></li>)}</ul> : <p className="mt-3 text-xs text-gray-500">Your provider will add milestones as work is planned.</p>}
                       </div>
                       <div className="rounded-lg border border-gray-100 p-4">
                         <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><Target className="h-3.5 w-3.5 text-[#D4922A]" /> Latest updates</span>{job.photos.length > 0 && <span className="text-[11px] text-gray-500">{job.photos.length} proof photo{job.photos.length === 1 ? "" : "s"}</span>}</div>
@@ -609,7 +609,7 @@ export default function ClientPortal() {
               {/* Grid */}
               <div className="p-4">
                 {tabPhotos.length === 0 ? (
-                  <div className="py-10 flex flex-col items-center gap-2 text-gray-400">
+                  <div className="py-10 flex flex-col items-center gap-2 text-gray-500">
                     <ImageOff className="w-8 h-8" />
                     <p className="text-sm">
                       {photoTab === "estimate" && "No estimate photos yet. Share one to help your provider prepare an accurate estimate."}
@@ -702,7 +702,7 @@ export default function ClientPortal() {
           <div className="max-h-80 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50/60" aria-live="polite">
             {!messages || messages.length === 0 ? (
               <div className="py-5 text-center text-sm text-gray-500">
-                <MessageCircle className="w-7 h-7 mx-auto mb-2 text-gray-300" />
+                <MessageCircle className="w-7 h-7 mx-auto mb-2 text-gray-500" />
                 Send a message if you have a question about your appointment, invoice, or job photos.
               </div>
             ) : (
@@ -712,7 +712,7 @@ export default function ClientPortal() {
                   <div key={message.id} className={`flex ${fromClient ? "justify-end" : "justify-start"}`}>
                     <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-sm ${fromClient ? "bg-[#D4922A] text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"}`}>
                       <p className="whitespace-pre-wrap break-words">{message.body}</p>
-                      <p className={`mt-1 text-[10px] ${fromClient ? "text-white/75" : "text-gray-400"}`}>
+                      <p className={`mt-1 text-[10px] ${fromClient ? "text-white/75" : "text-gray-500"}`}>
                         {fromClient ? "You" : providerName} · {formatPortalTimestamp(message.createdAt)}
                       </p>
                     </div>
@@ -750,7 +750,7 @@ export default function ClientPortal() {
                 <span className="hidden sm:inline">Send</span>
               </button>
             </div>
-            <p className="mt-1.5 text-right text-[11px] text-gray-400">{messageDraft.length}/4,000</p>
+            <p className="mt-1.5 text-right text-[11px] text-gray-500">{messageDraft.length}/4,000</p>
           </form>
         </section>
 

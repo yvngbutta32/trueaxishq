@@ -1689,3 +1689,4 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Implement the next highest-value workflow or reliability upgrade without weakening existing security boundaries
 - [x] Add deterministic tests and operational evidence for the new upgrade
 - [x] Update defensible marketing and product-positioning language without universal or unsupported superiority claims
+- [x] Improve client-portal low-contrast helper text, inactive icons, empty states, and message metadata without changing the portal data contract
