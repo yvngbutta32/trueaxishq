@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Zap, Plus, Trash2, ToggleLeft, ToggleRight, Play, Clock,
-  CheckCircle, XCircle, ChevronRight, AlertCircle, Pencil, History,
+  CheckCircle, XCircle, ChevronRight, AlertCircle, Pencil, History, Eye, ShieldCheck,
 } from "lucide-react";
 
 const TRIGGERS = [
@@ -76,9 +76,14 @@ export default function Automations() {
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [logAutomationId, setLogAutomationId] = useState<number | null>(null);
+  const [previewAutomationId, setPreviewAutomationId] = useState<number | null>(null);
   const { data: logs = [], isLoading: logsLoading } = trpc.automations.logs.useQuery(
     { automationId: logAutomationId ?? undefined, limit: 20 },
     { enabled: logAutomationId !== null },
+  );
+  const { data: preview, isLoading: previewLoading } = trpc.automations.preview.useQuery(
+    { id: previewAutomationId ?? 0 },
+    { enabled: previewAutomationId !== null },
   );
 
   function addAction() {
@@ -240,8 +245,9 @@ export default function Automations() {
                 </div>
                 <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
                   <button aria-label={`Edit ${a.name}`} onClick={() => openEdit(a)} title="Edit automation" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#8B5CF6] transition-colors"><Pencil className="w-4 h-4" /></button>
+                  <button aria-label={`Preview ${a.name}`} onClick={() => setPreviewAutomationId(a.id)} title="Preview without running" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#8B5CF6] transition-colors"><Eye className="w-4 h-4" /></button>
                   <button aria-label={`View history for ${a.name}`} onClick={() => setLogAutomationId(logAutomationId === a.id ? null : a.id)} title="View run history" className={`p-2 rounded-lg transition-colors ${logAutomationId === a.id ? "bg-[rgba(139,92,246,0.15)] text-[#8B5CF6]" : "hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#8B5CF6]"}`}><History className="w-4 h-4" /></button>
-                  <button aria-label={`Test ${a.name}`} onClick={() => testMut.mutate({ id: a.id })} title="Test run" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#A78BFA] transition-colors"><Play className="w-4 h-4" /></button>
+                  <button aria-label={`Send test notification for ${a.name}`} onClick={() => testMut.mutate({ id: a.id })} title="Send owner-notification test" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#A78BFA] transition-colors"><Play className="w-4 h-4" /></button>
                   <button aria-label={`${a.active ? "Pause" : "Activate"} ${a.name}`} onClick={() => toggleMut.mutate({ id: a.id, active: !a.active })} title={a.active ? "Pause" : "Activate"} className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors">
                     {a.active ? <ToggleRight className="w-4 h-4 text-[#34D399]" /> : <ToggleLeft className="w-4 h-4" />}
                   </button>
@@ -285,6 +291,48 @@ export default function Automations() {
           )}
         </section>
       )}
+
+      <Dialog open={previewAutomationId !== null} onOpenChange={open => { if (!open) setPreviewAutomationId(null); }}>
+        <DialogContent className="bg-white border-[rgba(26,26,26,0.1)] text-[rgba(26,26,26,0.95)] max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Eye className="w-5 h-5 text-[#8B5CF6]" /> Automation Preview</DialogTitle>
+          </DialogHeader>
+          {previewLoading ? (
+            <div className="py-8 text-sm text-[rgba(26,26,26,0.55)]">Preparing a safe preview…</div>
+          ) : preview ? (
+            <div className="space-y-4 py-2">
+              <div className="rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.07)] p-3 text-sm text-[rgba(26,26,26,0.7)]">
+                <div className="flex items-center gap-2 font-medium text-[#6D28D9]"><ShieldCheck className="w-4 h-4" /> Preview only — nothing will be sent or changed.</div>
+                <p className="mt-1 text-xs">This review does not create drafts, send emails, write logs, or update run counts.</p>
+              </div>
+              <div className="rounded-lg border border-[rgba(26,26,26,0.08)] p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[rgba(26,26,26,0.45)]">When</p>
+                <p className="mt-1 text-sm font-medium">When {preview.triggerLabel}, run {preview.timingLabel.toLowerCase()}.</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[rgba(26,26,26,0.45)]">Expected actions</p>
+                {preview.actions.map((action, index) => (
+                  <div key={`${action.label}-${index}`} className="rounded-lg border border-[rgba(26,26,26,0.08)] p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium">{index + 1}. {action.label}</p>
+                        <p className="mt-0.5 text-xs text-[rgba(26,26,26,0.55)]">To: {action.destination}</p>
+                        <p className="mt-1 text-xs text-[rgba(26,26,26,0.65)]">{action.detail}</p>
+                      </div>
+                      <Badge variant="outline" className={action.state === "ready" ? "border-emerald-200 text-emerald-700" : "border-amber-200 text-amber-700"}>{action.state === "ready" ? "Ready" : "Needs attention"}</Badge>
+                    </div>
+                    {action.reason && <p className="mt-2 text-xs text-amber-700">{action.reason}</p>}
+                  </div>
+                ))}
+              </div>
+              {!preview.ready && preview.issues.length > 0 && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">Resolve the highlighted items before activating this rule.</div>
+              )}
+            </div>
+          ) : null}
+          <DialogFooter><Button variant="outline" onClick={() => setPreviewAutomationId(null)}>Close</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Create Dialog */}
       <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) { setForm(EMPTY_FORM); setEditingId(null); } }}>
