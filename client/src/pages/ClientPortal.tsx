@@ -1,6 +1,7 @@
 import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { getClientNextStep } from "@shared/clientPortalClarity";
+import { buildClientProofTimeline } from "@shared/clientProofTimeline";
 export { getClientNextStep } from "@shared/clientPortalClarity";
 import { useState, useEffect, useRef } from "react";
 import { FileText, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, CreditCard, User, Mail, Phone, Building2, Camera, X, ChevronLeft, ChevronRight, ImageOff, MessageCircle, Send, Upload, Loader2, BriefcaseBusiness, ClipboardCheck, Target, ArrowRight } from "lucide-react";
@@ -499,6 +500,7 @@ export default function ClientPortal() {
                 const completed = job.tasks.filter(task => task.status === "done").length;
                 const progress = job.tasks.length ? Math.round((completed / job.tasks.length) * 100) : 0;
                 const recentActivity = job.activities.slice(0, 2);
+                const proofTimeline = buildClientProofTimeline({ status: job.status, updatedAt: job.updatedAt, activities: job.activities, tasks: job.tasks, photos: job.photos.filter((photo): photo is typeof photo & { photoType: PhotoType } => photo.photoType !== "receipt") });
                 return (
                   <article key={job.id} className="p-5 sm:p-6">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -526,6 +528,10 @@ export default function ClientPortal() {
                         <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><Target className="h-3.5 w-3.5 text-[#D4922A]" /> Latest updates</span>{job.photos.length > 0 && <span className="text-[11px] text-gray-500">{job.photos.length} proof photo{job.photos.length === 1 ? "" : "s"}</span>}</div>
                         {recentActivity.length ? <div className="mt-3 space-y-3">{recentActivity.map(activity => <div key={activity.id}><p className="text-xs text-gray-700">{activity.message}</p><p className="mt-0.5 text-[11px] text-gray-500">{formatPortalTimestamp(activity.createdAt)}</p></div>)}</div> : <p className="mt-3 text-xs text-gray-500">Your provider will post updates here as the job moves forward.</p>}
                       </div>
+                    </div>
+                    <div className="mt-4 rounded-lg border border-[#D4922A]/20 bg-[#fffaf0] p-4">
+                      <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><Clock className="h-3.5 w-3.5 text-[#D4922A]" /> Proof-of-work timeline</span><span className="text-[11px] text-gray-500">{proofTimeline.length} event{proofTimeline.length === 1 ? "" : "s"}</span></div>
+                      {proofTimeline.length ? <ol className="mt-3 space-y-3">{proofTimeline.slice(0, 8).map(item => <li key={item.id} className="flex gap-3"><span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${item.kind === "photo" ? "bg-blue-50 text-blue-600" : item.kind === "milestone" ? "bg-emerald-50 text-emerald-700" : "bg-[#D4922A]/10 text-[#8a5a0b]"}`}>{item.kind === "photo" ? <Camera className="h-3 w-3" /> : item.kind === "milestone" ? <CheckCircle className="h-3 w-3" /> : <Target className="h-3 w-3" />}</span><span className="min-w-0"><span className="block text-xs font-semibold text-gray-800">{item.title}</span><span className="mt-0.5 block text-xs text-gray-600">{item.detail}</span><span className="mt-0.5 block text-[11px] text-gray-500">{formatPortalTimestamp(item.occurredAt)}</span></span></li>)}</ol> : <p className="mt-3 text-xs text-gray-500">Your provider will post milestones, updates, and proof here as the job moves forward.</p>}
                     </div>
                     {job.photos.length > 0 && <div className="mt-4 flex gap-2 overflow-x-auto pb-1">{job.photos.slice(0, 5).filter(photo => isSafeImageUrl(photo.photoUrl)).map(photo => <img key={photo.id} src={photo.photoUrl} alt={photo.caption || `${photo.photoType} work proof`} className="h-14 w-14 shrink-0 rounded-md object-cover ring-1 ring-gray-200" loading="lazy" />)}</div>}
                   </article>

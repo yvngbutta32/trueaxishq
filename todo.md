@@ -1682,3 +1682,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add provider-agnostic SMTP configuration validation and safe health-status reporting without exposing secrets
 - [x] Add deterministic tests for SMTP configuration parsing, required fields, TLS/port behavior, and failure visibility
 - [x] Document the exact manual steps remaining for SMTP credentials, verified sender/domain, and controlled delivery test
+
+## Evidence-Led Market Leadership Program — User Requested
+- [x] Define measurable workflow-level superiority targets for client-to-cash, proof-of-work, portal trust, automation reliability, mobile execution, and security
+- [x] Audit remaining product gaps and prioritize the next highest-value upgrade by user impact and implementation risk
+- [x] Implement the next highest-value workflow or reliability upgrade without weakening existing security boundaries
+- [x] Add deterministic tests and operational evidence for the new upgrade
+- [x] Update defensible marketing and product-positioning language without universal or unsupported superiority claims

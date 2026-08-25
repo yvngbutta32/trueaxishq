@@ -2822,7 +2822,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const clientJobs = await db.select({
           id: jobs.id, jobNumber: jobs.jobNumber, title: jobs.title, description: jobs.description,
           status: jobs.status, priority: jobs.priority, startDate: jobs.startDate, targetDate: jobs.targetDate,
-          completedAt: jobs.completedAt, bookingId: jobs.bookingId, invoiceId: jobs.invoiceId, proposalId: jobs.proposalId,
+          completedAt: jobs.completedAt, updatedAt: jobs.updatedAt, bookingId: jobs.bookingId, invoiceId: jobs.invoiceId, proposalId: jobs.proposalId,
         }).from(jobs).where(and(eq(jobs.userId, portalRecord.userId), eq(jobs.clientId, portalRecord.clientId))).orderBy(desc(jobs.updatedAt));
         const jobIds = clientJobs.map(job => job.id);
         if (!jobIds.length) return { jobs: [] };
