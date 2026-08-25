@@ -1589,7 +1589,15 @@
 - [x] Preserve the current validated workspace as the reconciliation source of truth
 - [x] Reconcile the validated workspace with the concurrent hardening branch without losing either change set
 - [x] Re-run TypeScript, full tests, runtime health, and public-route validation on the reconciled release
+- [x] Merge the validated combined release into GitHub main through clean pull request #1
 - [ ] Save and publish the combined release checkpoint
+
+## Customer-Frictions Competitive Research Program — August 2026
+- [x] Audit the current TrueAxis HQ workflow baseline against recurring competitor customer complaints
+- [x] Research attributable customer complaints about HoneyBook, Dubsado, Bonsai, Moxie, 17hats, and Hectic
+- [x] Quantify recurring complaint themes and identify root-cause workflow patterns
+- [x] Define a prioritized TrueAxis HQ complaint-solving roadmap with evidence and delivery scope
+- [x] Implement and validate the first high-impact customer-friction improvements: owner-scoped, read-only Automation Preview with configuration-gap checks and 68 passing regression tests
 
 ### Credential-Free Launch Improvements
 - [x] Add an owner-facing Launch Readiness Center that clearly reports email, payment, portal, and booking configuration status
