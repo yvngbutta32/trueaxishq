@@ -1699,3 +1699,12 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ## Public Trust-Surface Remediation
 - [x] Remove unsupported adoption, revenue, and testimonial-style claims discovered on authenticated entry points
+
+## Credential-Free Systems Upgrade — User Requested
+- [ ] Audit remaining dashboard, booking, billing, portal, automation, AI, and security surfaces for the next high-impact credential-free reliability gap
+- [ ] Implement the highest-value credential-free workflow improvement with secure owner and client boundaries
+- [ ] Add deterministic regression coverage and available mobile/route evidence for the new improvement
+
+## Time-Entry Integrity Hardening
+- [x] Correct time-entry start, update, delete, and job-derived client association behavior so field and billing workflows fail clearly and preserve client context
+- [x] Add regression coverage for time-entry ownership predicates, running-timer recovery, and job-to-client association

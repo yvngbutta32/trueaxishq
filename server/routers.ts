@@ -3022,12 +3022,14 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        let resolvedClientId = input.clientId ?? null;
         if (input.jobId) {
           const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs)
             .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
           if (!job || (input.clientId && job.clientId !== input.clientId)) {
             throw new TRPCError({ code: "BAD_REQUEST", message: "Selected job does not belong to this client." });
           }
+          resolvedClientId = job.clientId;
         }
         // Stop any running timer first
         const running = await db.select().from(timeEntries)
@@ -3037,11 +3039,11 @@ Only include actions when you have actually generated a complete draft. For gene
           const entry = running[0];
           const durationMinutes = Math.round((Date.now() - entry.startedAt.getTime()) / 60000);
           await db.update(timeEntries).set({ endedAt: new Date(), durationMinutes })
-            .where(eq(timeEntries.id, entry.id));
+            .where(and(eq(timeEntries.id, entry.id), eq(timeEntries.userId, ctx.user.id)));
         }
         const [result] = await db.insert(timeEntries).values({
           userId: ctx.user.id,
-          clientId: input.clientId ?? null,
+          clientId: resolvedClientId,
           clientName: input.clientName ?? null,
           jobId: input.jobId ?? null,
           projectName: input.projectName ?? null,
@@ -3077,6 +3079,12 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        const [entry] = await db.select().from(timeEntries)
+          .where(and(eq(timeEntries.id, input.id), eq(timeEntries.userId, ctx.user.id))).limit(1);
+        if (!entry) throw new TRPCError({ code: "NOT_FOUND", message: "Time entry not found." });
+        if (!entry.endedAt && input.durationMinutes !== undefined) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Stop a running timer before editing its duration." });
+        }
         const { id, ...fields } = input;
         await db.update(timeEntries).set(fields as any)
           .where(and(eq(timeEntries.id, id), eq(timeEntries.userId, ctx.user.id)));
@@ -3086,6 +3094,10 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        const [entry] = await db.select().from(timeEntries)
+          .where(and(eq(timeEntries.id, input.id), eq(timeEntries.userId, ctx.user.id))).limit(1);
+        if (!entry) throw new TRPCError({ code: "NOT_FOUND", message: "Time entry not found." });
+        if (entry.invoiced) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoiced time entries cannot be deleted." });
         await db.delete(timeEntries)
           .where(and(eq(timeEntries.id, input.id), eq(timeEntries.userId, ctx.user.id)));
         return { ok: true };
@@ -3126,18 +3138,20 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        let resolvedClientId = input.clientId ?? null;
         if (input.jobId) {
           const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs)
             .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
           if (!job || (input.clientId && job.clientId !== input.clientId)) {
             throw new TRPCError({ code: "BAD_REQUEST", message: "Selected job does not belong to this client." });
           }
+          resolvedClientId = job.clientId;
         }
         const startedAt = input.date ? new Date(input.date + 'T09:00:00') : new Date();
         const endedAt = new Date(startedAt.getTime() + input.durationMinutes * 60000);
         const [result] = await db.insert(timeEntries).values({
           userId: ctx.user.id,
-          clientId: input.clientId ?? null,
+          clientId: resolvedClientId,
           clientName: input.clientName ?? null,
           jobId: input.jobId ?? null,
           projectName: null,
