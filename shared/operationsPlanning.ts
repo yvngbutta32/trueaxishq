@@ -37,3 +37,52 @@ export function hasDispatchConflict(existingVisits: VisitWindow[], candidate: Vi
     visitWindowsOverlap(visit, candidate),
   );
 }
+
+export type OperationsException = {
+  key: string;
+  kind: "over_capacity" | "unassigned_job" | "dispatch_overlap";
+  severity: "warning" | "critical";
+  title: string;
+  detail: string;
+};
+
+type CapacitySignal = { id: number; name: string; active: boolean; weeklyCapacityMinutes: number; plannedMinutes: number };
+type JobSignal = { id: number; jobNumber: string; title: string; status: string };
+type AssignmentSignal = { jobId: number; status: string };
+type DispatchSignal = { id: number; teamMemberId: number | null; teamMemberName: string | null; title: string; scheduledStart: Date; scheduledEnd: Date; status: string };
+
+export function buildOperationsExceptions(input: { capacity: CapacitySignal[]; jobs: JobSignal[]; assignments: AssignmentSignal[]; visits: DispatchSignal[] }): OperationsException[] {
+  const exceptions: OperationsException[] = [];
+  for (const member of input.capacity) {
+    if (!member.active) continue;
+    const summary = getCapacitySummary(member.weeklyCapacityMinutes, member.plannedMinutes);
+    if (summary.isOverCapacity) {
+      const excess = Math.ceil((member.plannedMinutes - member.weeklyCapacityMinutes) / 60 * 10) / 10;
+      exceptions.push({ key: `capacity-${member.id}`, kind: "over_capacity", severity: "critical", title: `${member.name} is over planned capacity`, detail: `${excess}h exceeds the owner-defined weekly plan.` });
+    }
+  }
+  const activeAssignments = new Set(input.assignments.filter(assignment => isCapacityBearingAssignment(assignment.status)).map(assignment => assignment.jobId));
+  for (const job of input.jobs) {
+    if (!["completed", "cancelled"].includes(job.status) && !activeAssignments.has(job.id)) {
+      exceptions.push({ key: `job-${job.id}`, kind: "unassigned_job", severity: "warning", title: `${job.jobNumber} has no active job owner`, detail: job.title });
+    }
+  }
+  const byMember = new Map<number, DispatchSignal[]>();
+  for (const visit of input.visits) {
+    if (!visit.teamMemberId || visit.status === "cancelled") continue;
+    const memberVisits = byMember.get(visit.teamMemberId) ?? [];
+    memberVisits.push(visit);
+    byMember.set(visit.teamMemberId, memberVisits);
+  }
+  for (const [memberId, visits] of Array.from(byMember.entries())) {
+    for (let index = 0; index < visits.length; index += 1) {
+      for (let compareIndex = index + 1; compareIndex < visits.length; compareIndex += 1) {
+        if (visitWindowsOverlap({ start: visits[index].scheduledStart, end: visits[index].scheduledEnd }, { start: visits[compareIndex].scheduledStart, end: visits[compareIndex].scheduledEnd })) {
+          const name = visits[index].teamMemberName ?? `Team member ${memberId}`;
+          exceptions.push({ key: `overlap-${memberId}-${Math.min(visits[index].id, visits[compareIndex].id)}-${Math.max(visits[index].id, visits[compareIndex].id)}`, kind: "dispatch_overlap", severity: "critical", title: `${name} has overlapping service visits`, detail: `${visits[index].title} overlaps ${visits[compareIndex].title}.` });
+        }
+      }
+    }
+  }
+  return exceptions;
+}

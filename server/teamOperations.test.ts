@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { getCapacitySummary, hasDispatchConflict, isCapacityBearingAssignment, visitWindowsOverlap } from "../shared/operationsPlanning";
+import { buildOperationsExceptions, getCapacitySummary, hasDispatchConflict, isCapacityBearingAssignment, visitWindowsOverlap } from "../shared/operationsPlanning";
 
 describe("team operations planning", () => {
   it("calculates remaining capacity and flags over-capacity planning deterministically", () => {
@@ -24,6 +24,20 @@ describe("team operations planning", () => {
     expect(hasDispatchConflict([first], adjacent)).toBe(false);
     expect(hasDispatchConflict([first], overlapping)).toBe(true);
     expect(hasDispatchConflict([{ ...first, status: "cancelled" }], overlapping)).toBe(false);
+  });
+
+  it("turns capacity, ownerless-job, and acknowledged visit-overlap data into distinct owner exceptions", () => {
+    const exceptions = buildOperationsExceptions({
+      capacity: [{ id: 1, name: "Morgan", active: true, weeklyCapacityMinutes: 600, plannedMinutes: 720 }],
+      jobs: [{ id: 9, jobNumber: "JOB-9", title: "Unowned install", status: "in_progress" }],
+      assignments: [],
+      visits: [
+        { id: 1, teamMemberId: 1, teamMemberName: "Morgan", title: "Morning visit", scheduledStart: new Date("2026-08-25T09:00:00Z"), scheduledEnd: new Date("2026-08-25T10:30:00Z"), status: "scheduled" },
+        { id: 2, teamMemberId: 1, teamMemberName: "Morgan", title: "Overlapping visit", scheduledStart: new Date("2026-08-25T10:00:00Z"), scheduledEnd: new Date("2026-08-25T11:00:00Z"), status: "scheduled" },
+      ],
+    });
+    expect(exceptions.map(exception => exception.kind)).toEqual(["over_capacity", "unassigned_job", "dispatch_overlap"]);
+    expect(exceptions[2].detail).toContain("Morning visit overlaps Overlapping visit");
   });
 });
 

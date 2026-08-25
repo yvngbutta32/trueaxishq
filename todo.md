@@ -1796,3 +1796,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Build dispatch boards, assignment handoff, service visits, and client-visible coordination without claiming live GPS or routing integrations
 - [x] Build an integration-ready connection catalog and per-provider readiness model without fabricating external account connectivity
 - [x] Add deterministic integrity, authorization, and workflow tests; validate responsive operational surfaces and publish an evidence-led expansion register
+
+## Continued Ecosystem & Operations Depth — User Requested
+- [x] Build secure owner-managed outbound workflow webhooks with signed delivery, event selection, and delivery visibility
+- [x] Add operational workload and dispatch exception signals that clarify over-capacity and scheduling conflicts before client impact
+- [x] Add deterministic security, authorization, delivery, and operational tests; validate and publish the continued expansion evidence

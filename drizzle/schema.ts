@@ -972,6 +972,48 @@ export const integrationConnections = mysqlTable("integrationConnections", {
 ]);
 export type IntegrationConnection = typeof integrationConnections.$inferSelect;
 
+// ─── Outbound Workflow Webhooks ───────────────────────────────────────────────
+// Subscription secrets are stored encrypted; delivery rows retain only bounded
+// outcome evidence, never the original outbound payload.
+export const workflowWebhooks = mysqlTable("workflowWebhooks", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  endpointUrl: varchar("endpointUrl", { length: 2048 }).notNull(),
+  encryptedSecret: text("encryptedSecret").notNull(),
+  events: text("events").notNull(),
+  active: boolean("active").notNull().default(true),
+  failureCount: int("failureCount").notNull().default(0),
+  lastDeliveredAt: timestamp("lastDeliveredAt"),
+  lastError: varchar("lastError", { length: 1000 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("workflowWebhooks_userId_idx").on(t.userId),
+  index("workflowWebhooks_user_active_idx").on(t.userId, t.active),
+]);
+export type WorkflowWebhook = typeof workflowWebhooks.$inferSelect;
+
+export const workflowWebhookDeliveries = mysqlTable("workflowWebhookDeliveries", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  webhookId: int("webhookId").notNull(),
+  eventId: varchar("eventId", { length: 64 }).notNull(),
+  eventType: mysqlEnum("eventType", ["job.status_changed", "service_visit.scheduled", "service_visit.status_changed"]).notNull(),
+  status: mysqlEnum("status", ["pending", "delivered", "failed"]).notNull().default("pending"),
+  responseStatus: int("responseStatus"),
+  responseSummary: varchar("responseSummary", { length: 1000 }),
+  errorMessage: varchar("errorMessage", { length: 1000 }),
+  deliveredAt: timestamp("deliveredAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("workflowWebhookDeliveries_userId_idx").on(t.userId),
+  index("workflowWebhookDeliveries_webhookId_idx").on(t.webhookId),
+  index("workflowWebhookDeliveries_event_created_idx").on(t.eventType, t.createdAt),
+  uniqueIndex("workflowWebhookDeliveries_webhook_event_unique_idx").on(t.webhookId, t.eventId),
+]);
+export type WorkflowWebhookDelivery = typeof workflowWebhookDeliveries.$inferSelect;
+
 // ─── Background Job Run Guards ───────────────────────────────────────────────
 // A durable primary key makes periodic jobs idempotent across multiple workers.
 export const jobRunGuards = mysqlTable("jobRunGuards", {

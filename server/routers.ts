@@ -15,7 +15,7 @@ import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, teamMembers, jobAssignments, serviceVisits, integrationConnections, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, teamMembers, jobAssignments, serviceVisits, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -26,6 +26,8 @@ import { createPublicUploadToken, hashPublicUploadToken, isOwnerPhotoKeyForType,
 import { createGoogleOAuthState } from "./googleOAuthState";
 import { hasDispatchConflict } from "../shared/operationsPlanning";
 import { INTEGRATION_PROVIDERS, integrationCatalog, type IntegrationProvider } from "../shared/integrationCatalog";
+import { WORKFLOW_WEBHOOK_EVENTS, parseWebhookEvents } from "../shared/workflowWebhooks";
+import { createWebhookSigningSecret, deliverWorkflowWebhookEvent, encryptWebhookSecret, validateWebhookEndpoint } from "./workflowWebhookDelivery";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -5962,6 +5964,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           message: `${member.name} scheduled for ${input.title}.`,
           metadata: JSON.stringify({ visitId: Number(result.insertId), teamMemberId: member.id, scheduledStart: input.scheduledStart.toISOString(), conflictAcknowledged: conflict }),
         });
+        await deliverWorkflowWebhookEvent(db, ctx.user.id, "service_visit.scheduled", { visitId: Number(result.insertId), jobId: input.jobId, teamMemberId: member.id, title: input.title, scheduledStart: input.scheduledStart.toISOString(), scheduledEnd: input.scheduledEnd.toISOString() });
         return { id: Number(result.insertId), conflictAcknowledged: conflict };
       }),
 
@@ -6006,6 +6009,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
             message: `Service visit status changed to ${input.status.replaceAll("_", " ")}.`,
             metadata: JSON.stringify({ visitId: visit.id, status: input.status }),
           });
+          await deliverWorkflowWebhookEvent(db, ctx.user.id, "service_visit.status_changed", { visitId: visit.id, jobId: visit.jobId, previousStatus: visit.status, status: input.status });
         }
         return { success: true };
       }),
@@ -6088,6 +6092,103 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const values = { category: catalog.category, status: "not_connected" as const, configurationNote: null, lastCheckedAt: null, updatedAt: new Date() };
         if (existing) await db.update(integrationConnections).set(values).where(and(eq(integrationConnections.id, existing.id), eq(integrationConnections.userId, ctx.user.id)));
         else await db.insert(integrationConnections).values({ userId: ctx.user.id, provider: input.provider, ...values });
+        return { success: true };
+      }),
+  }),
+
+  // ── Workflow Webhooks ──────────────────────────────────────────────────────
+  webhooks: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const hooks = await db.select({
+        id: workflowWebhooks.id,
+        name: workflowWebhooks.name,
+        endpointUrl: workflowWebhooks.endpointUrl,
+        events: workflowWebhooks.events,
+        active: workflowWebhooks.active,
+        failureCount: workflowWebhooks.failureCount,
+        lastDeliveredAt: workflowWebhooks.lastDeliveredAt,
+        lastError: workflowWebhooks.lastError,
+        createdAt: workflowWebhooks.createdAt,
+        updatedAt: workflowWebhooks.updatedAt,
+      }).from(workflowWebhooks).where(eq(workflowWebhooks.userId, ctx.user.id)).orderBy(desc(workflowWebhooks.updatedAt));
+      return hooks.map(hook => ({ ...hook, events: parseWebhookEvents(hook.events) }));
+    }),
+
+    deliveries: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select({
+        id: workflowWebhookDeliveries.id,
+        webhookId: workflowWebhookDeliveries.webhookId,
+        webhookName: workflowWebhooks.name,
+        eventId: workflowWebhookDeliveries.eventId,
+        eventType: workflowWebhookDeliveries.eventType,
+        status: workflowWebhookDeliveries.status,
+        responseStatus: workflowWebhookDeliveries.responseStatus,
+        responseSummary: workflowWebhookDeliveries.responseSummary,
+        errorMessage: workflowWebhookDeliveries.errorMessage,
+        deliveredAt: workflowWebhookDeliveries.deliveredAt,
+        createdAt: workflowWebhookDeliveries.createdAt,
+      }).from(workflowWebhookDeliveries)
+        .innerJoin(workflowWebhooks, and(eq(workflowWebhookDeliveries.webhookId, workflowWebhooks.id), eq(workflowWebhooks.userId, ctx.user.id)))
+        .where(eq(workflowWebhookDeliveries.userId, ctx.user.id))
+        .orderBy(desc(workflowWebhookDeliveries.createdAt))
+        .limit(100);
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: safeString(255),
+        endpointUrl: safeUrl,
+        events: z.array(z.enum(WORKFLOW_WEBHOOK_EVENTS)).min(1).max(WORKFLOW_WEBHOOK_EVENTS.length),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const existing = await db.select({ id: workflowWebhooks.id }).from(workflowWebhooks).where(eq(workflowWebhooks.userId, ctx.user.id));
+        if (existing.length >= 3) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "You can keep up to three webhook endpoints per workspace." });
+        let endpointUrl: string;
+        try { endpointUrl = await validateWebhookEndpoint(input.endpointUrl); }
+        catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Webhook endpoint is invalid." }); }
+        const signingSecret = createWebhookSigningSecret();
+        const [result] = await db.insert(workflowWebhooks).values({
+          userId: ctx.user.id,
+          name: input.name,
+          endpointUrl,
+          encryptedSecret: encryptWebhookSecret(signingSecret),
+          events: JSON.stringify(Array.from(new Set(input.events))),
+          active: true,
+        });
+        return { id: Number(result.insertId), signingSecret };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        name: safeOptionalString(255),
+        endpointUrl: safeUrl.optional(),
+        events: z.array(z.enum(WORKFLOW_WEBHOOK_EVENTS)).min(1).max(WORKFLOW_WEBHOOK_EVENTS.length).optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const { id, endpointUrl: rawEndpoint, events, ...rest } = input;
+        const updates: Record<string, unknown> = { ...rest, updatedAt: new Date() };
+        if (rawEndpoint !== undefined) {
+          try { updates.endpointUrl = await validateWebhookEndpoint(rawEndpoint); }
+          catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Webhook endpoint is invalid." }); }
+        }
+        if (events) updates.events = JSON.stringify(Array.from(new Set(events)));
+        const result = await db.update(workflowWebhooks).set(updates).where(and(eq(workflowWebhooks.id, id), eq(workflowWebhooks.userId, ctx.user.id)));
+        if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Webhook endpoint not found." });
+        return { success: true };
+      }),
+
+    remove: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const result = await db.delete(workflowWebhooks).where(and(eq(workflowWebhooks.id, input.id), eq(workflowWebhooks.userId, ctx.user.id)));
+        if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Webhook endpoint not found." });
         return { success: true };
       }),
   }),
@@ -6205,6 +6306,9 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: id, actor: "owner", eventType: "status_changed", message: `Status changed from ${current.status.replaceAll("_", " ")} to ${input.status.replaceAll("_", " ")}.` });
         }
         await db.update(jobs).set(updates).where(and(eq(jobs.id, id), eq(jobs.userId, ctx.user.id)));
+        if (input.status && input.status !== current.status) {
+          await deliverWorkflowWebhookEvent(db, ctx.user.id, "job.status_changed", { jobId: id, jobNumber: current.jobNumber, previousStatus: current.status, status: input.status });
+        }
         return { success: true };
       }),
 
