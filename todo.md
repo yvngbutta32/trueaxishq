@@ -1648,7 +1648,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Benchmark each priority workflow against a named competitor weakness and a measurable TrueAxis HQ outcome
 - [x] Require state-of-the-art improvements to reduce setup time, ambiguity, manual rescue work, and client-facing confusion
 - [x] Preserve transparent pricing, secure data isolation, accessible mobile workflows, and explainable automation as non-negotiable quality gates
-- [ ] Do not claim universal superiority without workflow-level evidence; document the specific areas where TrueAxis HQ is materially stronger
+- [x] Do not claim universal superiority without workflow-level evidence; document the specific areas where TrueAxis HQ is materially stronger
 
 ## Next Superior Milestone
 - [x] Build Client Experience Preflight for owner-side, privacy-safe review of booking, portal, payment, and status handoffs
@@ -1656,18 +1656,18 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Validate the Client Experience Preflight milestone with automated tests, responsive UI checks, and production-safe runtime verification
 
 ## 5/5 Product Standard — User Approved
-- [ ] Score every owner, client, public, billing, automation, AI, photo, admin, and mobile surface against explicit 5/5 acceptance criteria
-- [ ] Benchmark feature depth and workflow outcomes against named competitor capabilities without making unsupported superiority claims
+- [x] Score every owner, client, public, billing, automation, AI, photo, admin, and mobile surface against explicit 5/5 acceptance criteria
+- [x] Benchmark feature depth and workflow outcomes against named competitor capabilities without making unsupported superiority claims
 - [ ] Close the highest-impact functional gaps discovered by the audit, prioritizing client-to-cash, proof-of-work, portal trust, automation clarity, and mobile execution
 - [ ] Harden authorization, rate limits, data isolation, idempotency, error recovery, and external-delivery visibility across critical workflows
 - [ ] Complete a responsive accessibility and performance pass across every major route and dashboard panel
 - [ ] Add or update automated tests for every new critical boundary and workflow
 - [ ] Validate the full product with TypeScript, tests, production build, runtime health, responsive screenshots, and controlled end-to-end journeys
-- [ ] Save each validated milestone to the connected GitHub repository and preserve a recoverable release record
+- [x] Save each validated milestone to the connected GitHub repository and preserve a recoverable release record
 
 ## 5/5 Release Claims
 - [x] Document specific areas where TrueAxis HQ is materially stronger than named alternatives
-- [ ] Do not claim universal market superiority until feature-level evidence and real user validation support it
+- [x] Do not claim universal market superiority until feature-level evidence and real user validation support it
 
 ## Continuous Hardening Program — User Approved
 - [ ] Audit current owner, client, public, billing, automation, AI, photo, admin, and mobile workflows for real defects
