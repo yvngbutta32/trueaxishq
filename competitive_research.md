@@ -47,3 +47,5 @@ On August 25, 2026, TypeScript validation completed without errors and Vitest co
 ### Reconciliation validation
 
 After reconciling the concurrent hardening checkpoint, TypeScript completed without errors and the combined suite completed with **64 passing tests**. The public booking and intake routes again rendered their expected safe unavailable-state views; the restarted service scheduled all eight background jobs without startup failure. The remaining manual verification is intentionally limited to a real owner booking link and portal token because those flows require live, user-controlled data.
+
+After the clean release branch merged into `main`, the same TypeScript and 64-test validation gate passed again. The service restart remained clean with eight scheduled background jobs, and the public booking fallback route rendered its intended unavailable state.
