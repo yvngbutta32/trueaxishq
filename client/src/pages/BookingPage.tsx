@@ -174,32 +174,36 @@ export default function BookingPage() {
     onSuccess: () => setStep("success"),
     onError: (e) => toast.error("Booking failed: " + e.message),
   });
-  const confirmClientPhoto = trpc.photos.confirmClientUpload.useMutation();
+  const beginPublicUpload = trpc.photos.beginPublicUpload.useMutation();
 
   const availableDays = getNextDays(14);
 
   const handleSubmit = async () => {
-    // Upload estimate photos first (non-blocking — failures don't block booking)
+    let photoUploadToken: string | undefined;
+    // Estimate photos are accepted only within a short-lived, booking-bound
+    // session. The final booking attaches only the files that session registered.
     if (estimatePhotos.length > 0) {
       setPhotoUploading(true);
-      for (const { file } of estimatePhotos) {
-        try {
+      try {
+        const session = await beginPublicUpload.mutateAsync({ hostUsername: username, purpose: "booking" });
+        photoUploadToken = session.uploadToken;
+        for (const { file } of estimatePhotos) {
           const fd = new FormData();
           fd.append("file", file);
           fd.append("photoType", "estimate");
-          fd.append("hostUsername", username);
+          fd.append("uploadToken", photoUploadToken);
           const res = await fetch("/api/photos/upload", { method: "POST", body: fd });
-          if (res.ok) {
-            const { photoKey, photoUrl } = await res.json() as { photoKey: string; photoUrl: string };
-            await confirmClientPhoto.mutateAsync({ photoUrl, photoKey, hostUsername: username });
-          }
-        } catch (err) {
-          console.error("[EstimatePhoto]", err);
+          if (!res.ok) throw new Error("Photo upload failed");
         }
+      } catch (err) {
+        console.error("[EstimatePhoto]", err);
+        toast.error("We could not securely upload your estimate photos. Please try again.");
+        setPhotoUploading(false);
+        return;
       }
       setPhotoUploading(false);
     }
-    submitMutation.mutate({
+    await submitMutation.mutateAsync({
       hostUsername: username,
       clientName: form.clientName,
       clientEmail: form.clientEmail,
@@ -207,6 +211,7 @@ export default function BookingPage() {
       message: form.message || undefined,
       preferredDate: form.preferredDate,
       preferredTime: form.preferredTime,
+      photoUploadToken,
     });
   };
 
