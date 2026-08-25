@@ -1711,3 +1711,6 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ## Portal Token Rotation Integrity
 - [x] Add a final owner predicate to expired or rotated portal-token deletion and cover the rotation boundary with regression tests
+
+## Contract Conversion Integrity
+- [x] Add a final owner predicate to contract-to-invoice linkage and cover the conversion write boundary with regression tests

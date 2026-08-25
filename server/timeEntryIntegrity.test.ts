@@ -25,3 +25,13 @@ describe("time-entry integrity contract", () => {
     expect(timeSource).toContain("Invoiced time entries cannot be deleted.");
   });
 });
+
+describe("contract conversion integrity contract", () => {
+  it("keeps proposal-to-invoice linkage within the authenticated owner scope", () => {
+    const conversionStart = source.indexOf("convertToInvoice: protectedProcedure");
+    const conversionEnd = source.indexOf("// ── Notifications", conversionStart);
+    const conversion = source.slice(conversionStart, conversionEnd);
+    expect(conversion).toContain("eq(contracts.userId, ctx.user.id)");
+    expect(conversion).toContain("linkedInvoiceId: invoiceId");
+  });
+});

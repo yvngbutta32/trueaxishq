@@ -2960,7 +2960,10 @@ Only include actions when you have actually generated a complete draft. For gene
           notes: `Converted from proposal: ${contract.title}`,
         });
         const invoiceId = (result as any).insertId;
-        await db.update(contracts).set({ linkedInvoiceId: invoiceId }).where(eq(contracts.id, input.id));
+        await db.update(contracts).set({ linkedInvoiceId: invoiceId }).where(and(
+          eq(contracts.id, input.id),
+          eq(contracts.userId, ctx.user.id),
+        ));
         return { invoiceId };
       }),
   }),
