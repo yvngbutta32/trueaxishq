@@ -1875,3 +1875,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add a protected owner-scoped job-cost report with status filtering, clear revenue/cost/profit/margin columns, and an empty-data state without public or client exposure
 - [x] Add a secure server-generated job-cost CSV export with conservative fields, spreadsheet-formula neutralization, and explicit no-accounting-sync scope
 - [x] Add deterministic report/export isolation and calculation contracts, document the evidence boundary, and validate the release
+
+## Owner-Only Margin Exception Signals — Evidence-Led
+- [x] Add an explicit owner-controlled margin threshold and local report signals for negative, below-threshold, and missing-revenue-basis jobs without automatic messages or client exposure
+- [x] Add deterministic threshold parsing and report-signal contracts, including clear non-accounting and non-notification boundaries
+- [x] Document the research rationale, validate the release, and preserve the external session/provider gates
