@@ -29,6 +29,7 @@ import { INTEGRATION_PROVIDERS, integrationCatalog, type IntegrationProvider } f
 import { WORKFLOW_WEBHOOK_EVENTS, parseWebhookEvents } from "../shared/workflowWebhooks";
 import { createWebhookSigningSecret, deliverWorkflowWebhookEvent, encryptWebhookSecret, validateWebhookEndpoint } from "./workflowWebhookDelivery";
 import { getTrustedPaymentReturnOrigin } from "./paymentReturnOrigin";
+import { buildClientCsv } from "./clientCsvExport";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -616,6 +617,22 @@ export const appRouter = router({
         }
         return { imported, skipped };
       }),
+    exportCsv: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const rows = await db.select({
+        name: clients.name,
+        email: clients.email,
+        phone: clients.phone,
+        service: clients.service,
+        status: clients.status,
+        notes: clients.notes,
+        createdAt: clients.createdAt,
+      }).from(clients)
+        .where(eq(clients.userId, ctx.user.id))
+        .orderBy(desc(clients.createdAt))
+        .limit(10_000);
+      return { fileName: `trueaxis-clients-${new Date().toISOString().slice(0, 10)}.csv`, csv: buildClientCsv(rows) };
+    }),
     updateStage: protectedProcedure
       .input(z.object({
         id: z.number(),

@@ -1833,3 +1833,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## Reusable Job Checklist Templates — Research-Supported
 - [x] Add owner-scoped reusable job checklist templates that can be created from an existing job and applied when starting a new job, without claiming full project-template parity
 - [x] Add deterministic ownership, task-isolation, and template-application tests; publish an evidence-labeled workflow boundary
+
+## Owner-Controlled Client CSV Export — Research-Supported
+- [x] Add an owner-scoped, conservative client CSV export with only workspace-owned CRM fields and clear scope limits
+- [x] Add deterministic export ownership, header, and injection-safety contracts; publish an evidence-labeled scope boundary

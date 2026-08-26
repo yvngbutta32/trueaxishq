@@ -898,24 +898,16 @@ function ClientsPanel() {
     onSuccess: (data) => { utils.clients.list.invalidate(); toast.success(`Imported ${data.imported} clients${data.skipped ? `, skipped ${data.skipped}` : ""}.`); setShowCsvImport(false); setCsvText(""); setCsvPreview([]); },
     onError: (e) => toast.error(e.message),
   });
+  const clientCsvExport = trpc.clients.exportCsv.useQuery(undefined, { enabled: false });
 
-  function exportClientsCSV() {
-    if (!clientList || clientList.length === 0) { toast.info("No clients to export."); return; }
-    const headers = ["Name", "Email", "Phone", "Service", "Status", "Pulse Score", "Last Activity"];
-    const rows = clientList.map(c => {
-      const pulse = pulseMap.get(c.id);
-      return [
-        c.name, c.email || "", c.phone || "", c.service || "",
-        c.status, pulse?.healthScore ?? "",
-        c.lastActivity ? new Date(c.lastActivity).toLocaleDateString() : ""
-      ];
-    });
-    const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+  async function exportClientsCSV() {
+    const result = await clientCsvExport.refetch();
+    if (!result.data) { toast.error("Client export could not be prepared."); return; }
+    const blob = new Blob([`\ufeff${result.data.csv}`], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `clients-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    const anchor = document.createElement("a"); anchor.href = url; anchor.download = result.data.fileName; anchor.click();
     URL.revokeObjectURL(url);
-    toast.success("Clients exported!");
+    toast.success("Client CSV downloaded.");
   }
 
 
