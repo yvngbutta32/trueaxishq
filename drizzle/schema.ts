@@ -972,6 +972,47 @@ export const teamMembers = mysqlTable("teamMembers", {
 }, (t) => [index("teamMembers_userId_idx").on(t.userId), index("teamMembers_user_active_idx").on(t.userId, t.active)]);
 export type TeamMember = typeof teamMembers.$inferSelect;
 
+// Authenticated staff access is a separate, opt-in layer over the owner roster.
+// A roster email alone never grants workspace access.
+export const workspaceStaffInvites = mysqlTable("workspaceStaffInvites", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerUserId: int("ownerUserId").notNull(),
+  teamMemberId: int("teamMemberId").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  role: mysqlEnum("role", ["field_member", "operations_manager"]).notNull().default("field_member"),
+  token: varchar("token", { length: 128 }).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  acceptedAt: timestamp("acceptedAt"),
+  acceptedUserId: int("acceptedUserId"),
+  revoked: boolean("revoked").notNull().default(false),
+  revokedAt: timestamp("revokedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("workspaceStaffInvites_owner_idx").on(t.ownerUserId),
+  index("workspaceStaffInvites_member_idx").on(t.teamMemberId),
+  uniqueIndex("workspaceStaffInvites_token_unique_idx").on(t.token),
+]);
+export type WorkspaceStaffInvite = typeof workspaceStaffInvites.$inferSelect;
+
+export const workspaceStaffMemberships = mysqlTable("workspaceStaffMemberships", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerUserId: int("ownerUserId").notNull(),
+  memberUserId: int("memberUserId").notNull(),
+  teamMemberId: int("teamMemberId").notNull(),
+  role: mysqlEnum("role", ["field_member", "operations_manager"]).notNull().default("field_member"),
+  active: boolean("active").notNull().default(true),
+  acceptedAt: timestamp("acceptedAt").defaultNow().notNull(),
+  revokedAt: timestamp("revokedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("workspaceStaffMemberships_owner_idx").on(t.ownerUserId),
+  index("workspaceStaffMemberships_member_idx").on(t.memberUserId),
+  uniqueIndex("workspaceStaffMemberships_owner_member_unique_idx").on(t.ownerUserId, t.memberUserId),
+  uniqueIndex("workspaceStaffMemberships_owner_team_unique_idx").on(t.ownerUserId, t.teamMemberId),
+]);
+export type WorkspaceStaffMembership = typeof workspaceStaffMemberships.$inferSelect;
+
 export const jobAssignments = mysqlTable("jobAssignments", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),

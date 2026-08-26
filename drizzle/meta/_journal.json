@@ -302,6 +302,13 @@
       "when": 1787753372380,
       "tag": "0042_bright_molten_man",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1787757063365,
+      "tag": "0043_short_blue_blade",
+      "breakpoints": true
     }
   ]
 }

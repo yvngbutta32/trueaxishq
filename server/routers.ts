@@ -16,7 +16,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -86,6 +86,8 @@ const safeOptionalEmail = z.string().trim().email("Invalid email address").max(3
 const safeUrl = z.string().url("Invalid URL").max(2048);
 const jobWorkspaceStatusSchema = z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]);
 type JobWorkspaceStatus = z.infer<typeof jobWorkspaceStatusSchema>;
+const staffWorkspaceRoleSchema = z.enum(["field_member", "operations_manager"]);
+type StaffWorkspaceRole = z.infer<typeof staffWorkspaceRoleSchema>;
 const proposalLineItemSchema = z.object({
   id: z.string().min(1).max(64),
   name: safeString(255),
@@ -100,6 +102,36 @@ const proposalPackageSchema = z.object({
   description: safeOptionalString(1000),
   lineItems: z.array(proposalLineItemSchema).min(1).max(25),
 });
+
+async function requireActiveStaffMembership(
+  db: Awaited<ReturnType<typeof requireDb>>,
+  memberUserId: number,
+  ownerUserId: number,
+) {
+  const [membership] = await db.select({
+    id: workspaceStaffMemberships.id,
+    ownerUserId: workspaceStaffMemberships.ownerUserId,
+    memberUserId: workspaceStaffMemberships.memberUserId,
+    teamMemberId: workspaceStaffMemberships.teamMemberId,
+    role: workspaceStaffMemberships.role,
+    teamMemberName: teamMembers.name,
+    rosterRole: teamMembers.role,
+    active: teamMembers.active,
+  }).from(workspaceStaffMemberships)
+    .innerJoin(teamMembers, and(
+      eq(workspaceStaffMemberships.teamMemberId, teamMembers.id),
+      eq(workspaceStaffMemberships.ownerUserId, teamMembers.userId),
+    ))
+    .where(and(
+      eq(workspaceStaffMemberships.memberUserId, memberUserId),
+      eq(workspaceStaffMemberships.ownerUserId, ownerUserId),
+      eq(workspaceStaffMemberships.active, true),
+      eq(teamMembers.active, true),
+    ))
+    .limit(1);
+  if (!membership) throw new TRPCError({ code: "FORBIDDEN", message: "You do not have active staff access to this workspace." });
+  return membership;
+}
 
 async function getOwnerJobCostReport(
   db: Awaited<ReturnType<typeof requireDb>>,
@@ -6193,6 +6225,170 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       }),
   }),
 
+  // ── Authenticated Staff Access ──────────────────────────────────────────────
+  staffAccess: router({
+    getInvite: publicProcedure
+      .input(z.object({ token: z.string().trim().length(64) }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const now = new Date();
+        const [invite] = await db.select({
+          teamMemberName: teamMembers.name,
+          role: workspaceStaffInvites.role,
+          expiresAt: workspaceStaffInvites.expiresAt,
+          acceptedAt: workspaceStaffInvites.acceptedAt,
+          revoked: workspaceStaffInvites.revoked,
+        }).from(workspaceStaffInvites)
+          .innerJoin(teamMembers, and(eq(workspaceStaffInvites.teamMemberId, teamMembers.id), eq(workspaceStaffInvites.ownerUserId, teamMembers.userId)))
+          .where(eq(workspaceStaffInvites.token, input.token)).limit(1);
+        if (!invite || invite.revoked || invite.acceptedAt || invite.expiresAt <= now) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "This staff access link is unavailable or expired." });
+        }
+        return { teamMemberName: invite.teamMemberName, role: invite.role, expiresAt: invite.expiresAt };
+      }),
+
+    register: publicProcedure
+      .input(z.object({
+        token: z.string().trim().length(64),
+        name: safeString(255),
+        email: safeEmail,
+        password: strongPasswordSchema,
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const email = input.email.trim().toLowerCase();
+        const now = new Date();
+        const [invite] = await db.select().from(workspaceStaffInvites).where(eq(workspaceStaffInvites.token, input.token)).limit(1);
+        if (!invite || invite.revoked || invite.acceptedAt || invite.expiresAt <= now || invite.email !== email) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This staff access link is unavailable or does not match this email address." });
+        }
+        const [existingUser] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
+        if (existingUser) throw new TRPCError({ code: "CONFLICT", message: "An account already exists for this email. Sign in to accept the staff access link." });
+        const passwordHash = await hashPassword(input.password);
+        let userId = 0;
+        try {
+          await db.transaction(async (tx) => {
+            const claim = await tx.update(workspaceStaffInvites).set({ acceptedAt: now })
+              .where(and(eq(workspaceStaffInvites.id, invite.id), eq(workspaceStaffInvites.revoked, false), isNull(workspaceStaffInvites.acceptedAt), gt(workspaceStaffInvites.expiresAt, now), eq(workspaceStaffInvites.email, email)));
+            if (!claim[0].affectedRows) throw new TRPCError({ code: "BAD_REQUEST", message: "This staff access link is no longer available." });
+            const [userResult] = await tx.insert(users).values({ openId: `email:${email}`, name: input.name, email, loginMethod: "email", passwordHash, lastSignedIn: now });
+            userId = Number(userResult.insertId);
+            await tx.insert(workspaceStaffMemberships).values({ ownerUserId: invite.ownerUserId, memberUserId: userId, teamMemberId: invite.teamMemberId, role: invite.role, active: true, acceptedAt: now });
+            await tx.update(workspaceStaffInvites).set({ acceptedUserId: userId }).where(and(eq(workspaceStaffInvites.id, invite.id), isNull(workspaceStaffInvites.acceptedUserId)));
+          });
+        } catch (error) {
+          if (error instanceof TRPCError) throw error;
+          throw new TRPCError({ code: "CONFLICT", message: "Unable to activate staff access. Please ask the workspace owner for a new link." });
+        }
+        const token = await createSessionToken(userId, email);
+        await recordSession(userId, token, ctx.req);
+        ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+        return { success: true, user: { id: userId, name: input.name, email, role: "staff" } };
+      }),
+
+    accept: protectedProcedure
+      .input(z.object({ token: z.string().trim().length(64) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const now = new Date();
+        const [invite] = await db.select().from(workspaceStaffInvites).where(eq(workspaceStaffInvites.token, input.token)).limit(1);
+        const email = ctx.user.email?.trim().toLowerCase();
+        if (!invite || !email || invite.revoked || invite.acceptedAt || invite.expiresAt <= now || invite.email !== email) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This staff access link is unavailable or does not match your signed-in email." });
+        }
+        try {
+          await db.transaction(async (tx) => {
+            const claim = await tx.update(workspaceStaffInvites).set({ acceptedAt: now, acceptedUserId: ctx.user.id })
+              .where(and(eq(workspaceStaffInvites.id, invite.id), eq(workspaceStaffInvites.revoked, false), isNull(workspaceStaffInvites.acceptedAt), gt(workspaceStaffInvites.expiresAt, now), eq(workspaceStaffInvites.email, email)));
+            if (!claim[0].affectedRows) throw new TRPCError({ code: "BAD_REQUEST", message: "This staff access link is no longer available." });
+            const [existingByUser] = await tx.select({ id: workspaceStaffMemberships.id, teamMemberId: workspaceStaffMemberships.teamMemberId, active: workspaceStaffMemberships.active })
+              .from(workspaceStaffMemberships).where(and(eq(workspaceStaffMemberships.ownerUserId, invite.ownerUserId), eq(workspaceStaffMemberships.memberUserId, ctx.user.id))).limit(1);
+            if (existingByUser && existingByUser.teamMemberId !== invite.teamMemberId) throw new TRPCError({ code: "CONFLICT", message: "Your account already has staff access for another team member in this workspace." });
+            if (existingByUser) {
+              await tx.update(workspaceStaffMemberships).set({ role: invite.role, active: true, revokedAt: null, updatedAt: now }).where(eq(workspaceStaffMemberships.id, existingByUser.id));
+            } else {
+              await tx.insert(workspaceStaffMemberships).values({ ownerUserId: invite.ownerUserId, memberUserId: ctx.user.id, teamMemberId: invite.teamMemberId, role: invite.role, active: true, acceptedAt: now });
+            }
+          });
+        } catch (error) {
+          if (error instanceof TRPCError) throw error;
+          throw new TRPCError({ code: "CONFLICT", message: "Unable to activate staff access. Please ask the workspace owner for a new link." });
+        }
+        return { success: true };
+      }),
+
+    workspaces: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select({
+        ownerUserId: workspaceStaffMemberships.ownerUserId,
+        teamMemberId: workspaceStaffMemberships.teamMemberId,
+        role: workspaceStaffMemberships.role,
+        teamMemberName: teamMembers.name,
+        ownerName: users.name,
+      }).from(workspaceStaffMemberships)
+        .innerJoin(teamMembers, and(eq(workspaceStaffMemberships.teamMemberId, teamMembers.id), eq(workspaceStaffMemberships.ownerUserId, teamMembers.userId)))
+        .innerJoin(users, eq(workspaceStaffMemberships.ownerUserId, users.id))
+        .where(and(eq(workspaceStaffMemberships.memberUserId, ctx.user.id), eq(workspaceStaffMemberships.active, true), eq(teamMembers.active, true)));
+    }),
+
+    assignments: protectedProcedure
+      .input(z.object({ ownerUserId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const membership = await requireActiveStaffMembership(db, ctx.user.id, input.ownerUserId);
+        const [assignments, visits] = await Promise.all([
+          db.select({
+            id: jobAssignments.id,
+            jobId: jobs.id,
+            jobNumber: jobs.jobNumber,
+            jobTitle: jobs.title,
+            jobStatus: jobs.status,
+            assignmentRole: jobAssignments.assignmentRole,
+            status: jobAssignments.status,
+            plannedMinutes: jobAssignments.plannedMinutes,
+            note: jobAssignments.note,
+            targetDate: jobs.targetDate,
+          }).from(jobAssignments)
+            .innerJoin(jobs, and(eq(jobAssignments.jobId, jobs.id), eq(jobs.userId, input.ownerUserId)))
+            .where(and(eq(jobAssignments.userId, input.ownerUserId), eq(jobAssignments.teamMemberId, membership.teamMemberId)))
+            .orderBy(desc(jobAssignments.createdAt)),
+          db.select({
+            id: serviceVisits.id,
+            jobId: serviceVisits.jobId,
+            jobNumber: jobs.jobNumber,
+            jobTitle: jobs.title,
+            title: serviceVisits.title,
+            scheduledStart: serviceVisits.scheduledStart,
+            scheduledEnd: serviceVisits.scheduledEnd,
+            status: serviceVisits.status,
+            siteLabel: serviceVisits.siteLabel,
+          }).from(serviceVisits)
+            .innerJoin(jobs, and(eq(serviceVisits.jobId, jobs.id), eq(jobs.userId, input.ownerUserId)))
+            .where(and(eq(serviceVisits.userId, input.ownerUserId), eq(serviceVisits.teamMemberId, membership.teamMemberId)))
+            .orderBy(serviceVisits.scheduledStart),
+        ]);
+        return { membership, assignments, visits };
+      }),
+
+    updateAssignmentStatus: protectedProcedure
+      .input(z.object({ ownerUserId: z.number().int().positive(), assignmentId: z.number().int().positive(), status: z.enum(["acknowledged", "declined", "completed"]) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const membership = await requireActiveStaffMembership(db, ctx.user.id, input.ownerUserId);
+        const [assignment] = await db.select({ id: jobAssignments.id, jobId: jobAssignments.jobId, status: jobAssignments.status })
+          .from(jobAssignments).where(and(eq(jobAssignments.id, input.assignmentId), eq(jobAssignments.userId, input.ownerUserId), eq(jobAssignments.teamMemberId, membership.teamMemberId))).limit(1);
+        if (!assignment) throw new TRPCError({ code: "NOT_FOUND", message: "Assigned work not found." });
+        const expectedStatus = input.status === "completed" ? "acknowledged" : "assigned";
+        if (assignment.status !== expectedStatus) throw new TRPCError({ code: "CONFLICT", message: "This assignment is no longer available for that update." });
+        const now = new Date();
+        const update = await db.update(jobAssignments).set({ status: input.status, acknowledgedAt: input.status === "acknowledged" ? now : undefined, completedAt: input.status === "completed" ? now : undefined, updatedAt: now })
+          .where(and(eq(jobAssignments.id, assignment.id), eq(jobAssignments.userId, input.ownerUserId), eq(jobAssignments.teamMemberId, membership.teamMemberId), eq(jobAssignments.status, expectedStatus)));
+        if (!update[0].affectedRows) throw new TRPCError({ code: "CONFLICT", message: "This assignment changed before your update could be saved." });
+        await db.insert(jobActivities).values({ userId: input.ownerUserId, jobId: assignment.jobId, actor: "staff", eventType: "staff_assignment_status_changed", message: `${membership.teamMemberName} marked their assignment ${input.status.replaceAll("_", " ")}.`, metadata: JSON.stringify({ assignmentId: assignment.id, teamMemberId: membership.teamMemberId, status: input.status }) });
+        return { success: true };
+      }),
+  }),
+
   // ── Team Operations & Resource Planning ─────────────────────────────────────
   team: router({
     list: protectedProcedure.query(async ({ ctx }) => {
@@ -6246,6 +6442,81 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           .where(and(eq(teamMembers.id, id), eq(teamMembers.userId, ctx.user.id)));
         if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Team member not found." });
         return { success: true };
+      }),
+
+    listStaffAccess: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [memberships, invites] = await Promise.all([
+        db.select({
+          id: workspaceStaffMemberships.id,
+          teamMemberId: workspaceStaffMemberships.teamMemberId,
+          role: workspaceStaffMemberships.role,
+          active: workspaceStaffMemberships.active,
+          acceptedAt: workspaceStaffMemberships.acceptedAt,
+          revokedAt: workspaceStaffMemberships.revokedAt,
+          teamMemberName: teamMembers.name,
+          email: users.email,
+          userName: users.name,
+        }).from(workspaceStaffMemberships)
+          .innerJoin(teamMembers, and(eq(workspaceStaffMemberships.teamMemberId, teamMembers.id), eq(teamMembers.userId, ctx.user.id)))
+          .innerJoin(users, eq(workspaceStaffMemberships.memberUserId, users.id))
+          .where(eq(workspaceStaffMemberships.ownerUserId, ctx.user.id)),
+        db.select({
+          id: workspaceStaffInvites.id,
+          teamMemberId: workspaceStaffInvites.teamMemberId,
+          email: workspaceStaffInvites.email,
+          role: workspaceStaffInvites.role,
+          expiresAt: workspaceStaffInvites.expiresAt,
+          acceptedAt: workspaceStaffInvites.acceptedAt,
+          revoked: workspaceStaffInvites.revoked,
+          teamMemberName: teamMembers.name,
+        }).from(workspaceStaffInvites)
+          .innerJoin(teamMembers, and(eq(workspaceStaffInvites.teamMemberId, teamMembers.id), eq(teamMembers.userId, ctx.user.id)))
+          .where(eq(workspaceStaffInvites.ownerUserId, ctx.user.id))
+          .orderBy(desc(workspaceStaffInvites.createdAt)),
+      ]);
+      return { memberships, invites };
+    }),
+
+    createStaffInvite: protectedProcedure
+      .input(z.object({
+        teamMemberId: z.number().int().positive(),
+        role: staffWorkspaceRoleSchema.default("field_member"),
+        origin: safeUrl,
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const trustedOrigin = getTrustedPaymentReturnOrigin(input.origin);
+        if (!trustedOrigin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use an official TrueAxis HQ origin to create a staff access link." });
+        const [member] = await db.select({ id: teamMembers.id, email: teamMembers.email, name: teamMembers.name, active: teamMembers.active })
+          .from(teamMembers).where(and(eq(teamMembers.id, input.teamMemberId), eq(teamMembers.userId, ctx.user.id))).limit(1);
+        if (!member?.active) throw new TRPCError({ code: "NOT_FOUND", message: "Choose an active team member." });
+        const email = member.email?.trim().toLowerCase();
+        if (!email) throw new TRPCError({ code: "BAD_REQUEST", message: "Add an email address to this team member before creating access." });
+        const [existingMembership] = await db.select({ id: workspaceStaffMemberships.id, active: workspaceStaffMemberships.active })
+          .from(workspaceStaffMemberships).where(and(eq(workspaceStaffMemberships.ownerUserId, ctx.user.id), eq(workspaceStaffMemberships.teamMemberId, member.id))).limit(1);
+        if (existingMembership?.active) throw new TRPCError({ code: "CONFLICT", message: "This team member already has active staff access." });
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        const token = randomBytes(32).toString("hex");
+        await db.update(workspaceStaffInvites).set({ revoked: true, revokedAt: now })
+          .where(and(eq(workspaceStaffInvites.ownerUserId, ctx.user.id), eq(workspaceStaffInvites.teamMemberId, member.id), eq(workspaceStaffInvites.revoked, false), isNull(workspaceStaffInvites.acceptedAt)));
+        const [result] = await db.insert(workspaceStaffInvites).values({ ownerUserId: ctx.user.id, teamMemberId: member.id, email, role: input.role, token, expiresAt });
+        return { id: Number(result.insertId), expiresAt, accessUrl: `${trustedOrigin}/staff-access?token=${encodeURIComponent(token)}`, message: `Share this access link privately with ${member.name}. It does not send email automatically.` };
+      }),
+
+    revokeStaffAccess: protectedProcedure
+      .input(z.object({ teamMemberId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const now = new Date();
+        const [memberResult, inviteResult, membershipResult] = await Promise.all([
+          db.update(teamMembers).set({ active: false, updatedAt: now }).where(and(eq(teamMembers.id, input.teamMemberId), eq(teamMembers.userId, ctx.user.id))),
+          db.update(workspaceStaffInvites).set({ revoked: true, revokedAt: now }).where(and(eq(workspaceStaffInvites.ownerUserId, ctx.user.id), eq(workspaceStaffInvites.teamMemberId, input.teamMemberId), eq(workspaceStaffInvites.revoked, false))),
+          db.update(workspaceStaffMemberships).set({ active: false, revokedAt: now, updatedAt: now }).where(and(eq(workspaceStaffMemberships.ownerUserId, ctx.user.id), eq(workspaceStaffMemberships.teamMemberId, input.teamMemberId), eq(workspaceStaffMemberships.active, true))),
+        ]);
+        if (!memberResult[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Team member not found." });
+        return { success: true, revokedInviteCount: inviteResult[0].affectedRows, revokedMembershipCount: membershipResult[0].affectedRows };
       }),
 
     capacity: protectedProcedure.query(async ({ ctx }) => {

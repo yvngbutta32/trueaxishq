@@ -21,6 +21,7 @@ export default function TeamOperations() {
   const { data: members = [], isLoading: membersLoading } = trpc.team.list.useQuery();
   const { data: capacity = [] } = trpc.team.capacity.useQuery();
   const { data: assignments = [], isLoading: assignmentsLoading } = trpc.team.listAssignments.useQuery();
+  const { data: staffAccess } = trpc.team.listStaffAccess.useQuery();
   const { data: jobs = [] } = trpc.jobs.list.useQuery();
   const { data: visits = [] } = trpc.dispatch.listVisits.useQuery();
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
@@ -45,6 +46,14 @@ export default function TeamOperations() {
   const updateAssignment = trpc.team.updateAssignment.useMutation({ onSuccess: invalidate, onError: error => toast.error(error.message) });
   const removeAssignment = trpc.team.removeAssignment.useMutation({ onSuccess: () => { invalidate(); toast.success("Assignment removed."); }, onError: error => toast.error(error.message) });
   const updateMember = trpc.team.update.useMutation({ onSuccess: invalidate, onError: error => toast.error(error.message) });
+  const createStaffInvite = trpc.team.createStaffInvite.useMutation({
+    onSuccess: async (data) => {
+      await navigator.clipboard?.writeText(data.accessUrl).catch(() => undefined);
+      void utils.team.listStaffAccess.invalidate();
+      toast.success("Private staff access link copied. Share it directly; no email was sent automatically.");
+    },
+    onError: error => toast.error(error.message),
+  });
 
   const activeMembers = useMemo(() => members.filter(member => member.active), [members]);
   const activeJobs = useMemo(() => jobs.filter(job => !["completed", "cancelled"].includes(job.status)), [jobs]);
@@ -110,6 +119,16 @@ export default function TeamOperations() {
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${member.overCapacity ? "bg-rose-500" : "bg-[#D4922A]"}`} style={{ width: `${percent}%` }} /></div>
         </article>;
       })}</div>}
+    </section>
+
+    <section className="rounded-2xl border border-[rgba(26,26,26,0.1)] bg-white p-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-bold text-[#1A1A1A]">Staff access</h2><p className="mt-1 max-w-2xl text-xs text-[rgba(26,26,26,0.56)]">Roster records remain private planning data until you create a private, seven-day access link for an active member with an email. Access is limited to that member’s assigned work; finance, private CRM fields, and dispatch notes remain unavailable.</p></div><span className="rounded-full bg-[#F7F6F3] px-2.5 py-1 text-xs font-bold text-[#1A1A1A]">{staffAccess?.memberships.filter(item => item.active).length ?? 0} active</span></div>
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">{activeMembers.map(member => {
+        const access = staffAccess?.memberships.find(item => item.teamMemberId === member.id && item.active);
+        const pending = staffAccess?.invites.find(item => item.teamMemberId === member.id && !item.revoked && !item.acceptedAt && new Date(item.expiresAt) > new Date());
+        return <article key={member.id} className="rounded-xl border border-[rgba(26,26,26,0.1)] p-3"><div className="flex items-start justify-between gap-3"><div><h3 className="text-sm font-bold text-[#1A1A1A]">{member.name}</h3><p className="mt-0.5 text-xs text-[rgba(26,26,26,0.56)]">{member.email || "Add an email to enable staff access"}</p></div><span className={`rounded-full px-2 py-1 text-xs font-bold ${access ? "bg-emerald-50 text-emerald-700" : pending ? "bg-amber-50 text-amber-800" : "bg-slate-100 text-slate-600"}`}>{access ? "Active" : pending ? "Link pending" : "No access"}</span></div><div className="mt-3 flex justify-end"><Button size="sm" variant="outline" disabled={!member.email || Boolean(access) || createStaffInvite.isPending} onClick={() => createStaffInvite.mutate({ teamMemberId: member.id, role: "field_member", origin: window.location.origin })} className="border-[#D4922A]/40 text-[#8A5A0B]">{pending ? "Replace access link" : "Create private link"}</Button></div></article>;
+      })}</div>
+      {!activeMembers.length && <p className="mt-4 rounded-xl bg-[#F7F6F3] p-4 text-sm text-[rgba(26,26,26,0.6)]">Add an active roster member with an email before creating staff access.</p>}
     </section>
 
     <section className="rounded-2xl border border-[rgba(26,26,26,0.1)] bg-white p-5">

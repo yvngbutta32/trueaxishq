@@ -34,6 +34,8 @@ const BookingCancel = lazy(() => import("./pages/BookingCancel"));
 const ProposalSign = lazy(() => import("./pages/ProposalSign"));
 const IntakeFormPage = lazy(() => import("./pages/IntakeFormPage"));
 const PublicInvoicePayment = lazy(() => import("./pages/PublicInvoicePayment"));
+const StaffAccess = lazy(() => import("./pages/StaffAccess"));
+const StaffWorkspace = lazy(() => import("./pages/StaffWorkspace"));
 
 // ─── Full-screen page loader ──────────────────────────────────────────────────
 function PageLoader() {
@@ -76,11 +78,13 @@ function Router() {
         <Route path="/book/:username" component={BookingPage} />
         <Route path="/pay/:token" component={PublicInvoicePayment} />
         <Route path="/success" component={CheckoutSuccess} />
+        <Route path="/staff-access" component={StaffAccess} />
 
         {/* Authenticated user routes */}
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/dashboard/:section" component={Dashboard} />
         <Route path="/billing" component={Billing} />
+        <Route path="/staff" component={StaffWorkspace} />
 
         {/* Owner admin routes */}
         <Route path="/admin-login" component={AdminLogin} />

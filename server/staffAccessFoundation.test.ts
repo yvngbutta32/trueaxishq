@@ -1,0 +1,58 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const projectFile = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
+
+describe("staff identity and role-based access foundation", () => {
+  const schema = projectFile("drizzle/schema.ts");
+  const router = projectFile("server/routers.ts");
+
+  it("keeps authenticated staff membership separate from the owner-managed roster", () => {
+    expect(schema).toContain('export const workspaceStaffInvites = mysqlTable("workspaceStaffInvites"');
+    expect(schema).toContain('export const workspaceStaffMemberships = mysqlTable("workspaceStaffMemberships"');
+    expect(schema).toContain('uniqueIndex("workspaceStaffMemberships_owner_member_unique_idx")');
+    expect(schema).toContain('uniqueIndex("workspaceStaffMemberships_owner_team_unique_idx")');
+    expect(schema).toContain('role: mysqlEnum("role", ["field_member", "operations_manager"])');
+  });
+
+  it("binds invite creation and revocation to the owner roster and trusted application origins", () => {
+    const teamStart = router.indexOf("team: router({");
+    const teamEnd = router.indexOf("// ── Dispatch Planning", teamStart);
+    const team = router.slice(teamStart, teamEnd);
+    expect(team).toContain("createStaffInvite: protectedProcedure");
+    expect(team).toContain("getTrustedPaymentReturnOrigin(input.origin)");
+    expect(team).toContain("eq(teamMembers.userId, ctx.user.id)");
+    expect(team).toContain("revokeStaffAccess: protectedProcedure");
+    expect(team).toContain("eq(workspaceStaffMemberships.ownerUserId, ctx.user.id)");
+    expect(team).toContain("It does not send email automatically.");
+  });
+
+  it("requires a final unused, unrevoked, email-bound invite predicate before staff access activates", () => {
+    const start = router.indexOf("staffAccess: router({");
+    const end = router.indexOf("// ── Team Operations", start);
+    const staff = router.slice(start, end);
+    expect(staff).toContain("register: publicProcedure");
+    expect(staff).toContain("accept: protectedProcedure");
+    expect(staff).toContain("isNull(workspaceStaffInvites.acceptedAt)");
+    expect(staff).toContain("eq(workspaceStaffInvites.revoked, false)");
+    expect(staff).toContain("gt(workspaceStaffInvites.expiresAt, now)");
+    expect(staff).toContain("eq(workspaceStaffInvites.email, email)");
+    expect(staff).toContain("await db.transaction");
+  });
+
+  it("returns only assigned operational work to staff and excludes full owner job data", () => {
+    const start = router.indexOf("staffAccess: router({");
+    const end = router.indexOf("// ── Team Operations", start);
+    const staff = router.slice(start, end);
+    expect(staff).toContain("assignments: protectedProcedure");
+    expect(staff).toContain("requireActiveStaffMembership");
+    expect(staff).toContain("eq(jobAssignments.teamMemberId, membership.teamMemberId)");
+    expect(staff).toContain("updateAssignmentStatus: protectedProcedure");
+    expect(staff).toContain('actor: "staff"');
+    expect(staff).not.toContain("expenses:");
+    expect(staff).not.toContain("financials:");
+    expect(staff).not.toContain("dispatchNote");
+    expect(staff).not.toContain("clientEmail");
+  });
+});
