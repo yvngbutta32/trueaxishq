@@ -1900,3 +1900,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add an owner-scoped proposal duplication action that creates a new draft with a fresh token and copies only reusable commercial content
 - [x] Clear client identity, validity date, viewing/signature state, invoice linkage, package selection, decline feedback, and all delivery/public state from duplicates
 - [x] Add focused contracts for owner isolation, fresh-token generation, cleared state, and public non-exposure; document and validate the release
+
+## Proposal Draft Editing Correction
+- [x] Make fresh duplicated proposal drafts directly editable in the existing proposal composer before they are shared, including owner-safe updates to standard and package-based content
+- [x] Add focused regression coverage for loading, editing, and preserving cleared duplicate-draft state; validate and document the correction

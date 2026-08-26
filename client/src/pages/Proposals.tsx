@@ -42,7 +42,11 @@ export default function Proposals() {
   const utils = trpc.useUtils();
   const { data: proposalList = [], isLoading } = trpc.proposals.list.useQuery();
   const createMut = trpc.proposals.create.useMutation({
-    onSuccess: () => { utils.proposals.list.invalidate(); toast.success("Proposal created"); setOpen(false); setForm(EMPTY_FORM); },
+    onSuccess: () => { utils.proposals.list.invalidate(); toast.success("Proposal created"); setOpen(false); setEditingId(null); setForm(EMPTY_FORM); },
+    onError: e => toast.error(e.message),
+  });
+  const updateMut = trpc.proposals.update.useMutation({
+    onSuccess: () => { utils.proposals.list.invalidate(); toast.success("Proposal draft updated"); setOpen(false); setEditingId(null); setForm(EMPTY_FORM); },
     onError: e => toast.error(e.message),
   });
   const deleteMut = trpc.proposals.delete.useMutation({
@@ -106,6 +110,7 @@ export default function Proposals() {
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<ProposalForm>(EMPTY_FORM);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [previewId, setPreviewId] = useState<number | null>(null);
 
@@ -148,14 +153,19 @@ export default function Proposals() {
     if (!form.title.trim()) return toast.error("Proposal title is required");
     if (!form.packageOptions.length && form.lineItems.some(li => !li.name.trim())) return toast.error("All line items need a name");
     if (form.packageOptions.length && (form.packageOptions.length < 2 || form.packageOptions.some(option => !option.name.trim() || option.lineItems.some(item => !item.name.trim())))) return toast.error("Add a name and at least one named item to each package.");
-    createMut.mutate({
+    const proposalInput = {
       clientName: form.clientName, clientEmail: form.clientEmail || undefined,
       title: form.title, scope: form.scope || undefined,
       lineItems: form.packageOptions.length ? [] : form.lineItems,
       packageOptions: form.packageOptions.length ? form.packageOptions : undefined,
       taxRate: parseFloat(form.taxRate || "0"),
       currency: form.currency, validUntil: form.validUntil || undefined, notes: form.notes || undefined,
-    });
+    };
+    if (editingId !== null) {
+      updateMut.mutate({ ...proposalInput, id: editingId, packageOptions: form.packageOptions, validUntil: form.validUntil || null });
+    } else {
+      createMut.mutate(proposalInput);
+    }
   }
 
   function handleAiGenerate() {
@@ -168,7 +178,24 @@ export default function Proposals() {
   }
 
   function openNewProposal() {
+    setEditingId(null);
     setForm(EMPTY_FORM);
+    setOpen(true);
+  }
+
+  function openEditProposal(proposal: typeof proposalList[number]) {
+    let lineItems: LineItem[] = [newLineItem()];
+    let packageOptions: PackageOption[] = [];
+    try {
+      const parsed = JSON.parse(proposal.lineItems || "[]");
+      if (Array.isArray(parsed) && parsed.length) lineItems = parsed.map((item: Partial<LineItem>) => ({ id: item.id || crypto.randomUUID(), name: item.name || "", description: item.description || "", qty: item.qty ?? 1, unitPrice: item.unitPrice ?? 0, total: item.total ?? 0 }));
+    } catch { /* use the fresh line item fallback */ }
+    try {
+      const parsed = JSON.parse(proposal.packageOptions || "[]");
+      if (Array.isArray(parsed)) packageOptions = parsed.map((option: Partial<PackageOption>) => ({ id: option.id || crypto.randomUUID(), name: option.name || "", description: option.description || "", lineItems: Array.isArray(option.lineItems) ? option.lineItems.map((item: Partial<LineItem>) => ({ id: item.id || crypto.randomUUID(), name: item.name || "", description: item.description || "", qty: item.qty ?? 1, unitPrice: item.unitPrice ?? 0, total: item.total ?? 0 })) : [newLineItem()] }));
+    } catch { /* no package options to edit */ }
+    setForm({ clientName: proposal.clientName || "", clientEmail: proposal.clientEmail || "", title: proposal.title, scope: proposal.scope || "", lineItems, packageOptions, taxRate: String(proposal.taxRate || "0"), currency: proposal.currency || "USD", validUntil: proposal.validUntil || "", notes: proposal.notes || "" });
+    setEditingId(proposal.id);
     setOpen(true);
   }
 
@@ -274,6 +301,7 @@ export default function Proposals() {
                   {p.token && (
                     <button type="button" aria-label={`Copy secure link for proposal ${p.title}`} onClick={() => { const url = `${window.location.origin}/proposal/${p.token}`; navigator.clipboard.writeText(url); toast.success("Link copied"); }} title="Copy link" className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors"><Copy className="w-4 h-4" /></button>
                   )}
+                  {p.status === "draft" && <button type="button" aria-label={`Edit draft proposal ${p.title}`} onClick={() => openEditProposal(p)} title="Edit draft" className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[#3B82F6] transition-colors"><Pencil className="w-4 h-4" /></button>}
                   <button type="button" aria-label={`Duplicate proposal ${p.title}`} onClick={() => duplicateMut.mutate({ id: p.id })} disabled={duplicateMut.isPending} title="Duplicate as a fresh draft" className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[#3B82F6] disabled:opacity-50 transition-colors"><FileText className="w-4 h-4" /></button>
                   <button type="button" aria-label={`Delete proposal ${p.title}`} onClick={() => setDeleteConfirm(p.id)} title="Delete" className="p-2 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
                 </div>
@@ -333,11 +361,11 @@ export default function Proposals() {
       </Dialog>
 
       {/* Create Dialog */}
-      <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) { setForm(EMPTY_FORM); setAiOpen(false); setAiBrief(""); } }}>
+      <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) { setForm(EMPTY_FORM); setEditingId(null); setAiOpen(false); setAiBrief(""); } }}>
         <DialogContent className="bg-white border-[rgba(26,26,26,0.1)] text-[rgba(26,26,26,0.95)] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>New Proposal</DialogTitle>
+              <DialogTitle>{editingId !== null ? "Edit Proposal Draft" : "New Proposal"}</DialogTitle>
               <button
                 onClick={() => setAiOpen(true)}
                 className="flex items-center gap-1.5 text-xs font-semibold text-[#D4922A] hover:text-[#F0A830] bg-[rgba(212,146,42,0.1)] hover:bg-[rgba(212,146,42,0.18)] border border-[rgba(212,146,42,0.25)] rounded-lg px-3 py-1.5 transition-all"
@@ -425,7 +453,7 @@ export default function Proposals() {
                   <div className="flex items-center gap-2"><Layers className="h-4 w-4 text-violet-700" /><h3 className="text-sm font-semibold text-violet-950">Client-selectable packages</h3></div>
                   <p className="mt-1 text-xs leading-5 text-violet-900/75">Offer two or three alternatives. The client chooses one on the secure proposal link before signing. This does not request payment or create a job.</p>
                 </div>
-                <Button type="button" size="sm" variant="outline" onClick={() => setForm(p => ({ ...p, packageOptions: p.packageOptions.length ? [] : [newPackageOption("Option 1"), newPackageOption("Option 2")] }))} className="border-violet-200 text-violet-800 hover:bg-violet-100">{form.packageOptions.length ? "Use single price" : "Offer options"}</Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => setForm(p => ({ ...p, packageOptions: p.packageOptions.length ? [] : [newPackageOption("Option 1"), newPackageOption("Option 2")], lineItems: p.packageOptions.length && !p.lineItems.length ? [newLineItem()] : p.lineItems }))} className="border-violet-200 text-violet-800 hover:bg-violet-100">{form.packageOptions.length ? "Use single price" : "Offer options"}</Button>
               </div>
               {form.packageOptions.length > 0 && <div className="mt-4 space-y-3">
                 {form.packageOptions.map((option, optionIndex) => {
@@ -465,8 +493,8 @@ export default function Proposals() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)} className="text-[rgba(26,26,26,0.6)]">Cancel</Button>
-            <Button onClick={handleSubmit} disabled={createMut.isPending} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold">
-              {createMut.isPending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Creating…</> : "Create Proposal"}
+            <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold">
+              {createMut.isPending || updateMut.isPending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Saving…</> : editingId !== null ? "Save Draft" : "Create Proposal"}
             </Button>
           </DialogFooter>
         </DialogContent>

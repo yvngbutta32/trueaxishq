@@ -4807,17 +4807,18 @@ Only include actions when you have actually generated a complete draft. For gene
         title: safeOptionalString(512),
         scope: z.string().max(10000).optional(),
         lineItems: z.array(proposalLineItemSchema).optional(),
+        packageOptions: z.array(proposalPackageSchema).max(3).optional(),
         taxRate: z.number().min(0).max(100).optional(),
         currency: z.string().length(3).optional(),
-        validUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        validUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
         notes: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const db = await requireDb();
-        const [existing] = await db.select({ status: proposals.status }).from(proposals).where(and(eq(proposals.id, input.id), eq(proposals.userId, ctx.user.id))).limit(1);
+        const [existing] = await db.select({ status: proposals.status, subtotal: proposals.subtotal, taxRate: proposals.taxRate }).from(proposals).where(and(eq(proposals.id, input.id), eq(proposals.userId, ctx.user.id))).limit(1);
         if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Proposal not found." });
         if (existing.status === "signed") throw new TRPCError({ code: "BAD_REQUEST", message: "Signed proposals cannot be edited." });
-        const { id, lineItems, taxRate, ...rest } = input;
+        const { id, lineItems, packageOptions, taxRate, ...rest } = input;
         const updates: Record<string, unknown> = { ...rest };
         if (lineItems !== undefined) {
           const normalizedLineItems = normalizeProposalLineItems(lineItems);
@@ -4829,6 +4830,17 @@ Only include actions when you have actually generated a complete draft. For gene
           updates.total = String(subtotal * (1 + rate / 100));
         } else if (taxRate !== undefined) {
           updates.taxRate = String(taxRate);
+          updates.total = String(Number(existing.subtotal) * (1 + taxRate / 100));
+        }
+        if (packageOptions !== undefined) {
+          const normalizedPackages = packageOptions.length ? packageOptions.map(option => ({ ...option, lineItems: normalizeProposalLineItems(option.lineItems) })) : null;
+          updates.packageOptions = normalizedPackages ? JSON.stringify(normalizedPackages) : null;
+          if (normalizedPackages) {
+            updates.lineItems = "[]";
+            updates.subtotal = "0";
+            updates.taxRate = String(taxRate ?? existing.taxRate ?? 0);
+            updates.total = "0";
+          }
         }
         await db.update(proposals).set(updates).where(and(eq(proposals.id, id), eq(proposals.userId, ctx.user.id)));
         return { success: true };
