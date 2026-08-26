@@ -1904,3 +1904,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## Proposal Draft Editing Correction
 - [x] Make fresh duplicated proposal drafts directly editable in the existing proposal composer before they are shared, including owner-safe updates to standard and package-based content
 - [x] Add focused regression coverage for loading, editing, and preserving cleared duplicate-draft state; validate and document the correction
+
+## Public Proposal Legal-Claim Correction
+- [x] Replace unsupported universal legal-enforceability claims in the public proposal signature workflow with factual record-of-acceptance language and an explicit owner/attorney review boundary
+- [x] Add focused regression coverage for factual public signing copy, validate, and document the correction

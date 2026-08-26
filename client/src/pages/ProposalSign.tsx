@@ -297,7 +297,7 @@ export default function ProposalSign() {
             </div>
             <div>
               <h2 className="text-sm font-bold text-[#1A1A1A]">Electronic Signature</h2>
-              <p className="text-xs text-[rgba(26,26,26,0.45)]">Type your full legal name to sign this proposal</p>
+              <p className="text-xs text-[rgba(26,26,26,0.45)]">Type your full name to record acceptance of this proposal</p>
             </div>
           </div>
 
@@ -328,7 +328,7 @@ export default function ProposalSign() {
               {agreementChecked && <CheckCircle className="w-3 h-3 text-white" />}
             </div>
             <span className="text-xs text-[rgba(26,26,26,0.55)] leading-relaxed">
-              I have read and agree to the scope of work and pricing outlined in this proposal. I understand that signing constitutes a legally binding agreement.
+              I have reviewed the scope of work and pricing outlined in this proposal and want the sender to record my acceptance in TrueAxis HQ.
             </span>
           </label>
 
@@ -352,7 +352,7 @@ export default function ProposalSign() {
         {/* Trust footer */}
         <div className="flex items-center justify-center gap-2 text-[rgba(26,26,26,0.30)] text-xs pb-8">
           <Shield className="w-3.5 h-3.5" />
-          <span>Secured by TrueAxis HQ · Electronic signatures are legally binding</span>
+          <span>Secure proposal link · Acceptance is recorded in TrueAxis HQ</span>
         </div>
       </div>
     </div>
