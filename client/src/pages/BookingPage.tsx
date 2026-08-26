@@ -231,6 +231,7 @@ export default function BookingPage() {
 
   // Success / Confirmation screen
   if (step === "success") {
+    const selectedDurationMins = host.bookingServiceCatalog?.find(service => service.name === form.service)?.durationMinutes ?? 60;
     const icsTitle = `${form.service} with ${host.name}`;
     const icsDescription = `Service: ${form.service}\nClient: ${form.clientName}\nEmail: ${form.clientEmail}${form.message ? `\nMessage: ${form.message}` : ""}\n\nBooked via TrueAxis HQ`;
     const icsContent = generateICS({
@@ -238,7 +239,7 @@ export default function BookingPage() {
       description: icsDescription,
       date: form.preferredDate,
       time: form.preferredTime,
-      durationMins: 60,
+      durationMins: selectedDurationMins,
       organizerName: host.name ?? "Your Host",
       organizerEmail: "noreply@trueaxishq.com",
       attendeeEmail: form.clientEmail,
@@ -249,7 +250,7 @@ export default function BookingPage() {
       description: icsDescription,
       date: form.preferredDate,
       time: form.preferredTime,
-      durationMins: 60,
+      durationMins: selectedDurationMins,
     });
 
     return (

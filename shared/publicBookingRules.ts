@@ -4,6 +4,15 @@ export const DEFAULT_PUBLIC_BOOKING_SERVICES = [
   "Consultation",
 ] as const;
 
+export type PublicBookingService = {
+  name: string;
+  durationMinutes: number;
+  active: boolean;
+  priceGuidance: string | null;
+};
+
+const DEFAULT_SERVICE_DURATION_MINUTES = 60;
+
 export const PUBLIC_BOOKING_TIME_SLOTS = [
   "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
   "12:00 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM",
@@ -26,16 +35,33 @@ function isSafeService(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0 && value.trim().length <= 255;
 }
 
-/** Returns only safe, configured service labels and falls back to the public defaults. */
+/** Returns only active service labels for existing booking page consumers. */
 export function getPublishedBookingServices(serialized: string | null | undefined): string[] {
-  if (!serialized) return [...DEFAULT_PUBLIC_BOOKING_SERVICES];
+  return getPublishedBookingServiceCatalog(serialized).filter(service => service.active).map(service => service.name);
+}
+
+/** Parses legacy string arrays and bounded structured catalog records without failing open. */
+export function getPublishedBookingServiceCatalog(serialized: string | null | undefined): PublicBookingService[] {
+  const defaults = () => DEFAULT_PUBLIC_BOOKING_SERVICES.map(name => ({ name, durationMinutes: DEFAULT_SERVICE_DURATION_MINUTES, active: true, priceGuidance: null }));
+  if (!serialized) return defaults();
   try {
     const parsed = JSON.parse(serialized);
-    if (!Array.isArray(parsed)) return [...DEFAULT_PUBLIC_BOOKING_SERVICES];
-    const services = Array.from(new Set(parsed.filter(isSafeService).map(service => service.trim()))).slice(0, 30);
-    return services.length > 0 ? services : [...DEFAULT_PUBLIC_BOOKING_SERVICES];
+    if (!Array.isArray(parsed)) return defaults();
+    const deduped = new Map<string, PublicBookingService>();
+    for (const item of parsed.slice(0, 30)) {
+      const legacyName = isSafeService(item) ? item.trim() : null;
+      const record = item && typeof item === "object" && !Array.isArray(item) ? item as Record<string, unknown> : null;
+      const name = legacyName ?? (isSafeService(record?.name) ? record.name.trim() : null);
+      if (!name || deduped.has(name.toLowerCase())) continue;
+      const durationMinutes = typeof record?.durationMinutes === "number" && Number.isInteger(record.durationMinutes) && record.durationMinutes >= 15 && record.durationMinutes <= 480 ? record.durationMinutes : DEFAULT_SERVICE_DURATION_MINUTES;
+      const active = typeof record?.active === "boolean" ? record.active : true;
+      const priceGuidance = typeof record?.priceGuidance === "string" && record.priceGuidance.trim().length > 0 && record.priceGuidance.trim().length <= 120 ? record.priceGuidance.trim() : null;
+      deduped.set(name.toLowerCase(), { name, durationMinutes, active, priceGuidance });
+    }
+    const services = Array.from(deduped.values());
+    return services.length > 0 ? services : defaults();
   } catch {
-    return [...DEFAULT_PUBLIC_BOOKING_SERVICES];
+    return defaults();
   }
 }
 
@@ -69,4 +95,23 @@ export function getPublishedBookingSchedule(serialized: string | null | undefine
 export function isPublishedPublicBookingSlot(date: string, time: string, schedule: PublicBookingSchedule = DEFAULT_PUBLIC_BOOKING_SCHEDULE): boolean {
   const weekday = getUtcWeekday(date);
   return weekday !== null && schedule.weekdays.includes(weekday) && schedule.timeSlots.includes(time as PublicBookingTimeSlot);
+}
+
+/** Converts a published display time into minutes after midnight for deterministic interval checks. */
+export function publicBookingTimeToMinutes(time: string): number | null {
+  const match = time.match(/^(1[0-2]|[1-9]):([0-5]\d) (AM|PM)$/);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minutes = Number(match[2]);
+  const suffix = match[3];
+  const normalizedHour = suffix === "AM" ? (hour === 12 ? 0 : hour) : (hour === 12 ? 12 : hour + 12);
+  return normalizedHour * 60 + minutes;
+}
+
+/** True when two same-day appointment intervals overlap; zero-length boundaries do not overlap. */
+export function doPublicBookingIntervalsOverlap(startTime: string, durationMinutes: number, otherStartTime: string, otherDurationMinutes: number): boolean {
+  const start = publicBookingTimeToMinutes(startTime);
+  const otherStart = publicBookingTimeToMinutes(otherStartTime);
+  if (start === null || otherStart === null || durationMinutes <= 0 || otherDurationMinutes <= 0) return true;
+  return start < otherStart + otherDurationMinutes && otherStart < start + durationMinutes;
 }

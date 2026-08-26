@@ -1982,3 +1982,9 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add owner-controlled staff invitations and bounded workspace roles so team roster records can become authenticated operational identities without exposing owner finance, private CRM fields, or internal planning by default
 - [x] Add least-privilege server predicates and a clear owner/staff workspace experience for assigned jobs, service visits, and field execution without claiming enterprise permission parity
 - [x] Add deterministic invitation, role, owner-isolation, staff-scope, revocation, and portal non-exposure contracts; validate and document the release
+
+## Structured Service Catalog and Booking Rules
+- [x] Add owner-controlled service definitions with bounded duration, optional price guidance, and active state while preserving existing plain service labels safely
+- [x] Apply active service duration to final public booking conflict checks and client calendar exports without claiming calendar synchronization, routing, or payment collection
+- [x] Add focused owner-scope, public projection, pricing privacy, duration, and legacy-setting recovery contracts; validate and document the release
+- [ ] Add optional owner-configured service buffers between appointments with interval-safe public booking enforcement and focused regression coverage

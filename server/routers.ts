@@ -35,7 +35,7 @@ import { buildJobCostCsv, type ExportableJobCostRow } from "./jobCostCsvExport";
 import { getProposalPackageSubtotal, normalizeProposalLineItems, parseProposalPackages, type ProposalPackage } from "../shared/proposalPackages";
 import { isProposalExpired } from "../shared/proposalValidity";
 import { isClientSafeJobActivityEvent } from "../shared/clientSafeJobActivity";
-import { getPublishedBookingSchedule, getPublishedBookingServices, isPublishedPublicBookingSlot, PUBLIC_BOOKING_TIME_SLOTS } from "../shared/publicBookingRules";
+import { doPublicBookingIntervalsOverlap, getPublishedBookingSchedule, getPublishedBookingServiceCatalog, getPublishedBookingServices, isPublishedPublicBookingSlot, PUBLIC_BOOKING_TIME_SLOTS } from "../shared/publicBookingRules";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -1590,7 +1590,15 @@ export const appRouter = router({
       .input(z.object({
         bookingUsername: z.string().trim().min(3).max(64).regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed").optional(),
         bookingBio: safeOptionalString(500),
-        bookingServices: z.array(z.string().trim().max(100)).max(20).optional(),
+        bookingServices: z.array(z.union([
+          z.string().trim().max(100),
+          z.object({
+            name: z.string().trim().min(1).max(100),
+            durationMinutes: z.number().int().min(15).max(480),
+            active: z.boolean(),
+            priceGuidance: z.string().trim().max(120).nullable(),
+          }),
+        ])).max(20).optional(),
         bookingAvailability: z.object({
           weekdays: z.array(z.number().int().min(0).max(6)).min(1).max(7),
           timeSlots: z.array(z.enum(PUBLIC_BOOKING_TIME_SLOTS)).min(1).max(PUBLIC_BOOKING_TIME_SLOTS.length),
@@ -2359,9 +2367,11 @@ Only include actions when you have actually generated a complete draft. For gene
             sql`${bookings.date} >= ${today}`,
             sql`${bookings.date} < ${publicWindowEnd}`,
           ));
+        const serviceCatalog = getPublishedBookingServiceCatalog(host.bookingServices).filter(service => service.active);
         return {
           ...host,
-          bookingServices: getPublishedBookingServices(host.bookingServices),
+          bookingServices: serviceCatalog.map(service => service.name),
+          bookingServiceCatalog: serviceCatalog.map(service => ({ name: service.name, durationMinutes: service.durationMinutes, priceGuidance: service.priceGuidance })),
           bookingAvailability: getPublishedBookingSchedule(host.bookingAvailability),
           bookedSlots,
         };
@@ -2388,8 +2398,8 @@ Only include actions when you have actually generated a complete draft. For gene
         if (input.preferredDate < new Date().toISOString().slice(0, 10)) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a future appointment date." });
         }
-        const publishedServices = getPublishedBookingServices(host[0].bookingServices);
-        if (!publishedServices.includes(input.service)) {
+        const selectedService = getPublishedBookingServiceCatalog(host[0].bookingServices).find(service => service.active && service.name === input.service);
+        if (!selectedService) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a service currently offered on this booking page." });
         }
         const publishedSchedule = getPublishedBookingSchedule(host[0].bookingAvailability);
@@ -2432,20 +2442,19 @@ Only include actions when you have actually generated a complete draft. For gene
         let clientId: number | null = null;
         let isNewClient = false;
 
-        // ── Conflict detection: reject if the same slot is already booked ─────
-        const conflictingBooking = await db.select({ id: bookings.id })
+        // ── Conflict detection: reject overlapping same-day durations, then retain
+        // the unique start-slot key as the transactional final fallback below. ─────
+        const scheduledBookings = await db.select({ id: bookings.id, time: bookings.time, duration: bookings.duration })
           .from(bookings)
           .where(and(
             eq(bookings.userId, hostId),
             eq(bookings.date, input.preferredDate),
-            eq(bookings.time, input.preferredTime),
             sql`${bookings.status} NOT IN ('cancelled', 'no_show')`,
-          ))
-          .limit(1);
-        if (conflictingBooking.length > 0) {
+          ));
+        if (scheduledBookings.some(booking => doPublicBookingIntervalsOverlap(input.preferredTime, selectedService.durationMinutes, booking.time, booking.duration ?? 60))) {
           throw new TRPCError({
             code: "CONFLICT",
-            message: `The ${input.preferredDate} at ${input.preferredTime} slot is no longer available. Please choose a different time.`,
+            message: `The ${input.preferredDate} at ${input.preferredTime} overlaps an existing appointment. Please choose a different time.`,
           });
         }
 
@@ -2458,6 +2467,7 @@ Only include actions when you have actually generated a complete draft. For gene
               clientName: input.clientName,
               clientEmail: input.clientEmail,
               service: input.service,
+              duration: selectedService.durationMinutes,
               date: input.preferredDate,
               time: input.preferredTime,
               slotKey: `${hostId}|${input.preferredDate}|${input.preferredTime}`,

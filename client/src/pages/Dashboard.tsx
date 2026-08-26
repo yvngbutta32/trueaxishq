@@ -1,5 +1,5 @@
 import { TRUEAXIS_LOGO_URL } from "@shared/const";
-import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, PUBLIC_BOOKING_TIME_SLOTS } from "@shared/publicBookingRules";
+import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
  * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
@@ -3592,7 +3592,7 @@ function SettingsPanel() {
   const [bookingPage, setBookingPage] = useState({
     bookingUsername: "",
     bookingBio: "",
-    bookingServices: ["Coaching Session", "Strategy Call", "Consultation"],
+    bookingServices: ["Coaching Session", "Strategy Call", "Consultation"].map(name => ({ name, durationMinutes: 60, active: true, priceGuidance: null })) as PublicBookingService[],
     bookingAvailability: { weekdays: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.weekdays], timeSlots: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.timeSlots] },
   });
   const setBookingPageField = useFormFields(setBookingPage);
@@ -3678,7 +3678,7 @@ function SettingsPanel() {
       setBookingPage({
         bookingUsername: settings.bookingUsername || "",
         bookingBio: settings.bookingBio || "",
-        bookingServices: settings.bookingServices || ["Coaching Session", "Strategy Call", "Consultation"],
+        bookingServices: getPublishedBookingServiceCatalog(JSON.stringify(settings.bookingServices || ["Coaching Session", "Strategy Call", "Consultation"])),
         bookingAvailability: settings.bookingAvailability || { weekdays: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.weekdays], timeSlots: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.timeSlots] },
       });
       setNotifications({ notifyNewBooking: settings.notifyNewBooking ?? true, notifyInvoicePaid: settings.notifyInvoicePaid ?? true, notifyNewLead: settings.notifyNewLead ?? true });
@@ -3816,16 +3816,21 @@ function SettingsPanel() {
           <div className="space-y-2 mb-3">
             {bookingPage.bookingServices.map((s, i) => (
               <div key={i} className="flex items-center gap-2 bg-[#F7F6F3] rounded-xl px-3 py-2">
-                <span className="text-sm flex-1">{s}</span>
-                <button onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.filter((_, j) => j !== i) }))} className="text-[#6B6B6B] hover:text-red-500 transition-colors" aria-label={`Remove ${s}`}>
+                <span className={`text-sm flex-1 ${s.active ? "" : "text-[#8A8882] line-through"}`}>{s.name}</span>
+                <select value={s.durationMinutes} onChange={e => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.map((service, j) => j === i ? { ...service, durationMinutes: Number(e.target.value) } : service) }))} className="form-input-light w-24 text-xs" aria-label={`${s.name} duration`}>
+                  {[30, 45, 60, 90, 120, 180, 240].map(minutes => <option key={minutes} value={minutes}>{minutes} min</option>)}
+                </select>
+                <input value={s.priceGuidance ?? ""} onChange={e => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.map((service, j) => j === i ? { ...service, priceGuidance: e.target.value.trim() || null } : service) }))} className="form-input-light w-28 text-xs" placeholder="Price note" maxLength={120} aria-label={`${s.name} price guidance`} />
+                <button type="button" onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.map((service, j) => j === i ? { ...service, active: !service.active } : service) }))} className="text-xs font-semibold text-[#D4922A]" aria-pressed={s.active}>{s.active ? "Live" : "Hidden"}</button>
+                <button onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.filter((_, j) => j !== i) }))} className="text-[#6B6B6B] hover:text-red-500 transition-colors" aria-label={`Remove ${s.name}`}>
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
           </div>
           <div className="flex gap-2 mb-2">
-            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Type a custom service..." className="form-input-light" autoComplete="off" enterKeyHint="done" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }} />
-            <Button size="sm" variant="outline" onClick={() => { if (newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, newService.trim()] })); setNewService(""); } }}>
+            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Type a custom service..." className="form-input-light" autoComplete="off" enterKeyHint="done" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, { name: newService.trim(), durationMinutes: 60, active: true, priceGuidance: null }] })); setNewService(""); } }} />
+            <Button size="sm" variant="outline" onClick={() => { if (newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, { name: newService.trim(), durationMinutes: 60, active: true, priceGuidance: null }] })); setNewService(""); } }}>
               <Plus className="w-4 h-4" />
             </Button>
           </div>
@@ -3839,17 +3844,17 @@ function SettingsPanel() {
           </button>
           {showPresetServices && (
             <div className="flex flex-wrap gap-1.5 p-3 bg-[#F7F6F3] rounded-xl border border-[#DDDBD7] max-h-48 overflow-y-auto">
-              {PRESET_SERVICES.filter(s => !bookingPage.bookingServices.includes(s)).map(s => (
+              {PRESET_SERVICES.filter(s => !bookingPage.bookingServices.some(service => service.name === s)).map(s => (
                 <button
                   key={s}
                   type="button"
-                  onClick={() => setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, s] }))}
+                  onClick={() => setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, { name: s, durationMinutes: 60, active: true, priceGuidance: null }] }))}
                   className="text-xs bg-white border border-[#DDDBD7] hover:border-[#D4922A] hover:text-[#D4922A] text-[#6B6B6B] rounded-full px-2.5 py-1 transition-colors"
                 >
                   + {s}
                 </button>
               ))}
-              {PRESET_SERVICES.filter(s => !bookingPage.bookingServices.includes(s)).length === 0 && (
+              {PRESET_SERVICES.filter(s => !bookingPage.bookingServices.some(service => service.name === s)).length === 0 && (
                 <p className="text-xs text-[#6B6B6B]">All preset services added!</p>
               )}
             </div>
