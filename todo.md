@@ -1890,3 +1890,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Enforce an existing proposal `validUntil` date on token-scoped proposal viewing and signing while preserving generic public recovery and proposals with no validity date
 - [x] Add deterministic date-boundary contracts and owner-facing clarity that validity dates are enforced through the final UTC day, without creating delivery or legal-enforceability claims
 - [x] Document the evidence boundary, validate the release, and preserve external provider/session gates
+
+## Token-Scoped Proposal Decline Capture — Evidence-Led
+- [x] Add a token-scoped client decline action with an optional bounded reason, protected expiry/status checks, and immutable final decision behavior
+- [x] Surface the recorded decline reason only in the owner proposal workspace without email, SMS, automatic follow-up, or client-portal disclosure claims
+- [x] Add deterministic contracts for token isolation, decision conflicts, public recovery, and owner-only reason exposure; document and validate the release

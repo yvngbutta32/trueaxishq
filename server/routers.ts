@@ -4723,7 +4723,8 @@ Only include actions when you have actually generated a complete draft. For gene
             eq(proposals.status, row.status),
           ));
         }
-        return row;
+        const { declineReason: _declineReason, ...publicProposal } = row;
+        return publicProposal;
       }),
 
     create: protectedProcedure
@@ -4868,6 +4869,25 @@ Only include actions when you have actually generated a complete draft. For gene
           content: `${row.clientName} signed your proposal "${row.title}"${selectedPackage ? ` after selecting ${selectedPackage.name}` : ""} for $${(selectedTotal ?? parseFloat(String(row.total))).toLocaleString()}.`,
         }).catch(() => {});
         return { success: true, selectedPackageId: selectedPackage?.id ?? null, total: selectedTotal ?? Number(row.total) };
+      }),
+
+    decline: publicProcedure
+      .input(z.object({
+        token: z.string().min(1),
+        reason: z.string().trim().max(1000).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [row] = await db.select().from(proposals).where(eq(proposals.token, input.token)).limit(1);
+        if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Proposal not found." });
+        if (isProposalExpired(row.validUntil)) throw new TRPCError({ code: "BAD_REQUEST", message: "This proposal is no longer available for a decision." });
+        if (row.status === "signed") throw new TRPCError({ code: "BAD_REQUEST", message: "This proposal has already been signed." });
+        if (row.status === "declined") throw new TRPCError({ code: "BAD_REQUEST", message: "This proposal has already been declined." });
+        await db.update(proposals).set({
+          status: "declined",
+          declineReason: input.reason || null,
+        }).where(and(eq(proposals.id, row.id), eq(proposals.token, input.token), eq(proposals.status, row.status)));
+        return { success: true };
       }),
 
     convertToInvoice: protectedProcedure

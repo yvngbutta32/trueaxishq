@@ -42,6 +42,9 @@ export default function ProposalSign() {
   const [signed, setSigned] = useState(false);
   const [agreementChecked, setAgreementChecked] = useState(false);
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
+  const [declineOpen, setDeclineOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+  const [declined, setDeclined] = useState(false);
 
   const { data: proposal, isLoading, error } = trpc.proposals.getPublic.useQuery(
     { token },
@@ -56,6 +59,14 @@ export default function ProposalSign() {
     onError: (err) => {
       toast.error(err.message || "Failed to sign proposal. Please try again.");
     },
+  });
+
+  const declineMutation = trpc.proposals.decline.useMutation({
+    onSuccess: () => {
+      setDeclined(true);
+      toast.success("Your decision has been recorded.");
+    },
+    onError: (err) => toast.error(err.message || "Unable to record this decision. Please try again."),
   });
 
   const handleSign = () => {
@@ -73,6 +84,8 @@ export default function ProposalSign() {
     }
     signMutation.mutate({ token, signatureName: signatureName.trim(), selectedPackageId: selectedPackageId ?? undefined });
   };
+
+  const handleDecline = () => declineMutation.mutate({ token, reason: declineReason.trim() || undefined });
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
@@ -128,7 +141,7 @@ export default function ProposalSign() {
   }
 
   // ── Declined ───────────────────────────────────────────────────────────────
-  if (proposal.status === "declined") {
+  if (declined || proposal.status === "declined") {
     return (
       <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center space-y-4">
@@ -271,6 +284,10 @@ export default function ProposalSign() {
             <p className="text-[rgba(26,26,26,0.60)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.notes}</p>
           </div>
         )}
+
+        <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+          {!declineOpen ? <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-sm font-semibold text-[#1A1A1A]">Need to pass on this proposal?</h2><p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.58)]">You can record a decline instead of signing. An optional note is shared only with the proposal owner.</p></div><Button type="button" variant="outline" onClick={() => setDeclineOpen(true)} className="border-slate-300 text-slate-700 hover:bg-slate-100">Decline proposal</Button></div> : <div><h2 className="text-sm font-semibold text-[#1A1A1A]">Confirm decline</h2><p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.58)]">This records a final decline for this secure proposal link. You may include an optional note for the owner.</p><textarea value={declineReason} onChange={event => setDeclineReason(event.target.value)} maxLength={1000} rows={3} placeholder="Optional note" className="mt-3 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:ring-2 focus:ring-slate-300" /><div className="mt-3 flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => { setDeclineOpen(false); setDeclineReason(""); }} disabled={declineMutation.isPending}>Keep reviewing</Button><Button type="button" onClick={handleDecline} disabled={declineMutation.isPending} className="bg-slate-700 text-white hover:bg-slate-800">{declineMutation.isPending ? "Recording…" : "Confirm decline"}</Button></div></div>}
+        </section>
 
         {/* Signature Section */}
         <div className="p-5 rounded-2xl bg-white border border-[#D4922A]/25 space-y-4">

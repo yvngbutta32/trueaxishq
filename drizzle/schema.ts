@@ -703,6 +703,7 @@ export const proposals = mysqlTable("proposals", {
   packageOptions: text("packageOptions"), // JSON: owner-defined client-selectable proposal packages; null for a standard proposal
   selectedPackageId: varchar("selectedPackageId", { length: 64 }), // immutable token-scoped choice recorded when signed
   selectedPackage: text("selectedPackage"), // JSON snapshot of the selected package at signing
+  declineReason: varchar("declineReason", { length: 1000 }), // optional token-scoped client note; owner-visible only
   signedAt: timestamp("signedAt"),
   signatureName: varchar("signatureName", { length: 255 }),
   viewedAt: timestamp("viewedAt"),

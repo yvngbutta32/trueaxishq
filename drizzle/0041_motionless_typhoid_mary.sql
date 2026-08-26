@@ -1,0 +1,1 @@
+ALTER TABLE `proposals` ADD `declineReason` varchar(1000);

@@ -253,6 +253,7 @@ export default function Proposals() {
                     </Badge>
                   </div>
                   <p className="text-xs text-[rgba(26,26,26,0.45)] mt-0.5">{p.clientName}{p.clientEmail ? ` · ${p.clientEmail}` : ""} · Created {new Date(p.createdAt).toLocaleDateString()}</p>
+                  {p.status === "declined" && p.declineReason && <p className="mt-2 rounded-lg border border-rose-100 bg-rose-50 px-2.5 py-2 text-xs leading-5 text-rose-900"><span className="font-semibold">Client note:</span> {p.declineReason}</p>}
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="font-bold text-[rgba(26,26,26,0.9)]">${(parseFloat(String(p.total)) || 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
