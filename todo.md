@@ -1908,3 +1908,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## Public Proposal Legal-Claim Correction
 - [x] Replace unsupported universal legal-enforceability claims in the public proposal signature workflow with factual record-of-acceptance language and an explicit owner/attorney review boundary
 - [x] Add focused regression coverage for factual public signing copy, validate, and document the correction
+
+## Public Terms Legal-Claim Correction
+- [x] Replace unsupported universal enforceability wording in the public Terms page with factual platform-policy language and an attorney-review boundary
+- [x] Add focused regression coverage for factual public Terms copy, validate, and document the correction

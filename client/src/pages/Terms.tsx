@@ -140,7 +140,7 @@ export default function Terms() {
         <p className="text-sm text-[rgba(26,26,26,0.55)] mb-12">Last updated: {LAST_UPDATED}</p>
 
         <p className="text-[rgba(26,26,26,0.80)] leading-relaxed mb-10 text-base">
-          Please read these Terms of Service carefully before using the TrueAxis HQ platform. These Terms constitute a legally binding agreement between you and TrueAxis HQ governing your access to and use of the platform.
+          Please read these Terms of Service carefully before using the TrueAxis HQ platform. They describe the platform policies intended to govern access and use. The owner should obtain qualified legal review before relying on any terms for a particular jurisdiction or use case.
         </p>
 
         <div className="space-y-10">
