@@ -1870,3 +1870,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add owner-scoped expense-to-job attribution and a private per-job revenue, tracked-cost, and margin summary without exposing cost data in public or client flows
 - [x] Add deterministic contracts for job ownership, expense attribution, aggregate calculations, and client-portal non-exposure
 - [x] Add owner Job Workspace controls and evidence documentation that state the bounded scope and exclude payroll, live accounting sync, staff permissions, GPS, and external-provider claims
+
+## Owner-Only Job-Cost Portfolio Report — Evidence-Led
+- [x] Add a protected owner-scoped job-cost report with status filtering, clear revenue/cost/profit/margin columns, and an empty-data state without public or client exposure
+- [x] Add a secure server-generated job-cost CSV export with conservative fields, spreadsheet-formula neutralization, and explicit no-accounting-sync scope
+- [x] Add deterministic report/export isolation and calculation contracts, document the evidence boundary, and validate the release

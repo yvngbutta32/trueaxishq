@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import {
   BriefcaseBusiness, Plus, CheckCircle2, Circle, Clock3, CalendarDays,
   DollarSign, Camera, Link2, MessageSquare, Target, Loader2, ArrowRight,
-  ClipboardCheck, AlertTriangle, Receipt, Timer, X,
+  ClipboardCheck, AlertTriangle, Receipt, Timer, X, Download, BarChart3,
 } from "lucide-react";
 
 const JOB_STATUSES = ["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"] as const;
@@ -26,6 +26,7 @@ type CreateForm = { clientId: string; bookingId: string; templateId: string; tit
 const emptyForm: CreateForm = { clientId: "", bookingId: "", templateId: "", title: "", description: "", status: "lead", priority: "normal", targetDate: "", budgetAmount: "" };
 type JobExpenseForm = { amount: string; category: string; description: string; vendor: string; date: string };
 const newExpenseForm = (): JobExpenseForm => ({ amount: "", category: "materials", description: "", vendor: "", date: new Date().toISOString().slice(0, 10) });
+const COST_REPORT_STATUSES = ["all", ...JOB_STATUSES] as const;
 
 export default function JobWorkspace() {
   const utils = trpc.useUtils();
@@ -46,6 +47,8 @@ export default function JobWorkspace() {
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [expenseForm, setExpenseForm] = useState<JobExpenseForm>(newExpenseForm);
+  const [costReportOpen, setCostReportOpen] = useState(false);
+  const [costReportStatus, setCostReportStatus] = useState<(typeof COST_REPORT_STATUSES)[number]>("all");
 
   useEffect(() => {
     if (!selectedJobId && jobs[0]) setSelectedJobId(jobs[0].id);
@@ -53,6 +56,9 @@ export default function JobWorkspace() {
   }, [jobs, selectedJobId]);
 
   const selectedJob = trpc.jobs.get.useQuery({ id: selectedJobId ?? 0 }, { enabled: selectedJobId !== null });
+  const costReportInput = { status: costReportStatus === "all" ? undefined : costReportStatus };
+  const costReport = trpc.jobs.costReport.useQuery(costReportInput, { enabled: costReportOpen });
+  const exportCostReport = trpc.jobs.exportCostReport.useQuery(costReportInput, { enabled: false });
   const candidatePhotos = trpc.photos.list.useQuery(
     { clientId: selectedJob.data?.job.clientId ?? 0 },
     { enabled: Boolean(photoPickerOpen && selectedJob.data?.job.clientId) },
@@ -114,6 +120,19 @@ export default function JobWorkspace() {
     });
   };
 
+  const downloadCostReport = async () => {
+    const result = await exportCostReport.refetch();
+    if (!result.data) return toast.error("The job-cost report could not be prepared.");
+    const blob = new Blob([result.data.csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = result.data.fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Private job-cost CSV downloaded");
+  };
+
   if (isLoading) return <div className="space-y-4"><div className="h-10 w-56 bg-slate-100 rounded-lg animate-pulse" /><div className="h-[460px] bg-slate-100 rounded-2xl animate-pulse" /></div>;
 
   return (
@@ -124,7 +143,7 @@ export default function JobWorkspace() {
           <h1 className="mt-1 text-2xl font-bold text-[#1A1A1A]">Job Workspace</h1>
           <p className="mt-1 text-sm text-[rgba(26,26,26,0.58)]">Run every client job from approved work to proof, payment, and completion.</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)} className="bg-[#D4922A] hover:bg-[#B87716] text-white gap-2"><Plus className="w-4 h-4" /> New Job</Button>
+        <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => setCostReportOpen(true)} className="gap-2 border-emerald-200 text-emerald-800 hover:bg-emerald-50"><BarChart3 className="w-4 h-4" /> Cost report</Button><Button onClick={() => setCreateOpen(true)} className="bg-[#D4922A] hover:bg-[#B87716] text-white gap-2"><Plus className="w-4 h-4" /> New Job</Button></div>
       </header>
 
       {jobs.length === 0 ? (
@@ -222,6 +241,8 @@ export default function JobWorkspace() {
           <DialogFooter><Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button><Button onClick={handleCreate} disabled={createMutation.isPending} className="bg-[#D4922A] hover:bg-[#B87716] text-white">{createMutation.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating…</> : "Create job"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={costReportOpen} onOpenChange={setCostReportOpen}><DialogContent className="max-w-6xl bg-white"><DialogHeader><DialogTitle className="flex items-center gap-2 text-[#1A1A1A]"><BarChart3 className="h-5 w-5 text-emerald-700" /> Private job-cost report</DialogTitle></DialogHeader><div className="flex flex-col gap-3 border-y border-[rgba(26,26,26,0.08)] py-3 sm:flex-row sm:items-center sm:justify-between"><p className="max-w-2xl text-sm text-[rgba(26,26,26,0.62)]">Compare tracked costs across your owned jobs. Revenue is a planning basis from a linked invoice or job budget; it is not accounting reconciliation.</p><div className="flex gap-2"><select aria-label="Filter job-cost report by status" value={costReportStatus} onChange={event => setCostReportStatus(event.target.value as typeof costReportStatus)} className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm text-[#1A1A1A]"><option value="all">All statuses</option>{JOB_STATUSES.map(status => <option key={status} value={status}>{statusLabel(status)}</option>)}</select><Button onClick={downloadCostReport} disabled={exportCostReport.isFetching} className="gap-2 bg-emerald-700 text-white hover:bg-emerald-800"><Download className="h-4 w-4" />{exportCostReport.isFetching ? "Preparing…" : "CSV"}</Button></div></div>{costReport.isLoading ? <div className="py-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-emerald-700" /><p className="mt-3 text-sm text-[rgba(26,26,26,0.58)]">Building the private report…</p></div> : costReport.data?.length === 0 ? <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/45 px-6 py-12 text-center"><Receipt className="mx-auto h-8 w-8 text-emerald-700" /><h3 className="mt-3 text-sm font-semibold text-emerald-950">No jobs match this report</h3><p className="mx-auto mt-1 max-w-md text-sm text-emerald-950/70">Create a job or adjust the status filter to begin comparing owner-only cost inputs.</p></div> : <div className="max-h-[58vh] overflow-auto"><table className="min-w-[940px] w-full text-left text-sm"><thead className="sticky top-0 bg-white text-xs uppercase tracking-wide text-[rgba(26,26,26,0.48)]"><tr className="border-b border-[rgba(26,26,26,0.1)]"><th className="px-3 py-3">Job</th><th className="px-3 py-3">Status</th><th className="px-3 py-3 text-right">Revenue basis</th><th className="px-3 py-3 text-right">Tracked cost</th><th className="px-3 py-3 text-right">Projected profit</th><th className="px-3 py-3 text-right">Margin</th></tr></thead><tbody>{costReport.data?.map(row => <tr key={row.jobNumber} className="border-b border-[rgba(26,26,26,0.07)] last:border-0"><td className="px-3 py-3"><p className="font-semibold text-[#1A1A1A]">{row.title}</p><p className="mt-0.5 text-xs text-[rgba(26,26,26,0.53)]">{row.jobNumber} · {row.clientName}</p></td><td className="px-3 py-3"><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${statusStyle[row.status] ?? "bg-slate-100 text-slate-600"}`}>{statusLabel(row.status)}</span></td><td className="px-3 py-3 text-right"><p className="font-medium text-[#1A1A1A]">{money(row.revenue)}</p><p className="mt-0.5 text-xs text-[rgba(26,26,26,0.48)]">{row.revenueSource}</p></td><td className="px-3 py-3 text-right font-medium text-[#1A1A1A]">{money(row.totalCost)}</td><td className={`px-3 py-3 text-right font-bold ${row.profit < 0 ? "text-rose-600" : "text-emerald-700"}`}>{money(row.profit)}</td><td className="px-3 py-3 text-right font-semibold text-[#1A1A1A]">{row.marginPercent === null ? "—" : `${row.marginPercent}%`}</td></tr>)}</tbody></table></div>}<DialogFooter><Button variant="outline" onClick={() => setCostReportOpen(false)}>Close</Button></DialogFooter></DialogContent></Dialog>
 
       <Dialog open={photoPickerOpen} onOpenChange={setPhotoPickerOpen}><DialogContent className="max-w-xl bg-white"><DialogHeader><DialogTitle className="text-[#1A1A1A]">Attach client proof</DialogTitle></DialogHeader><p className="text-sm text-[rgba(26,26,26,0.58)]">Choose an existing photo for this client. Upload new images from Job Photos, then return here to link them.</p><div className="grid max-h-[52vh] grid-cols-3 gap-3 overflow-y-auto py-3">{candidatePhotos.isLoading ? <Loader2 className="col-span-3 mx-auto h-6 w-6 animate-spin text-[#D4922A]" /> : candidatePhotos.data?.filter(photo => !photo.jobId).map(photo => <button key={photo.id} onClick={() => attachPhoto.mutate({ jobId: detail?.job.id ?? 0, photoId: photo.id })} disabled={attachPhoto.isPending} className="group relative aspect-square overflow-hidden rounded-lg border border-[rgba(26,26,26,0.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4922A]"><img src={photo.photoUrl} alt={photo.caption || photo.photoType} className="h-full w-full object-cover" /><span className="absolute inset-x-1 bottom-1 rounded bg-black/65 px-1 py-0.5 text-[9px] uppercase text-white">{photo.photoType}</span></button>) || <p className="col-span-3 py-8 text-center text-sm text-[rgba(26,26,26,0.55)]">No unlinked client photos found.</p>}</div><DialogFooter><Button variant="outline" onClick={() => setPhotoPickerOpen(false)}>Close</Button></DialogFooter></DialogContent></Dialog>
       <Dialog open={saveTemplateOpen} onOpenChange={open => { setSaveTemplateOpen(open); if (!open) setTemplateName(""); }}><DialogContent className="max-w-md bg-white"><DialogHeader><DialogTitle className="flex items-center gap-2 text-[#1A1A1A]"><ClipboardCheck className="h-5 w-5 text-violet-700" /> Save checklist template</DialogTitle></DialogHeader><p className="text-sm text-[rgba(26,26,26,0.62)]">This saves the active job’s task titles as a reusable private template. Client, schedule, notes, proof, and completed states are not copied.</p><label className="mt-2 block text-sm font-semibold text-[#1A1A1A]">Template name<input value={templateName} onChange={event => setTemplateName(event.target.value)} maxLength={255} placeholder={detail?.job.title ? `${detail.job.title} checklist` : "e.g. New project checklist"} className="mt-1.5 block w-full rounded-lg border border-[rgba(26,26,26,0.16)] bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A]" /></label><DialogFooter><Button variant="outline" onClick={() => setSaveTemplateOpen(false)}>Cancel</Button><Button onClick={() => detail && templateName.trim() && createChecklistTemplate.mutate({ jobId: detail.job.id, name: templateName.trim() })} disabled={!detail || !templateName.trim() || createChecklistTemplate.isPending} className="bg-violet-700 text-white hover:bg-violet-800">{createChecklistTemplate.isPending ? "Saving…" : "Save template"}</Button></DialogFooter></DialogContent></Dialog>

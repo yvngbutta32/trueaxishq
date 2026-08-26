@@ -31,6 +31,7 @@ import { WORKFLOW_WEBHOOK_EVENTS, parseWebhookEvents } from "../shared/workflowW
 import { createWebhookSigningSecret, deliverWorkflowWebhookEvent, encryptWebhookSecret, validateWebhookEndpoint } from "./workflowWebhookDelivery";
 import { getTrustedPaymentReturnOrigin } from "./paymentReturnOrigin";
 import { buildClientCsv } from "./clientCsvExport";
+import { buildJobCostCsv, type ExportableJobCostRow } from "./jobCostCsvExport";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -79,6 +80,74 @@ const safeOptionalString = (max = 255) => z.string().trim().max(max).optional();
 const safeEmail = z.string().trim().email("Invalid email address").max(320);
 const safeOptionalEmail = z.string().trim().email("Invalid email address").max(320).optional().or(z.literal(""));
 const safeUrl = z.string().url("Invalid URL").max(2048);
+const jobWorkspaceStatusSchema = z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]);
+type JobWorkspaceStatus = z.infer<typeof jobWorkspaceStatusSchema>;
+
+async function getOwnerJobCostReport(
+  db: Awaited<ReturnType<typeof requireDb>>,
+  userId: number,
+  status?: JobWorkspaceStatus,
+): Promise<ExportableJobCostRow[]> {
+  const filters = [eq(jobs.userId, userId)];
+  if (status) filters.push(eq(jobs.status, status));
+  const jobRows = await db.select({
+    id: jobs.id,
+    jobNumber: jobs.jobNumber,
+    title: jobs.title,
+    status: jobs.status,
+    targetDate: jobs.targetDate,
+    budgetAmount: jobs.budgetAmount,
+    invoiceId: jobs.invoiceId,
+    clientName: clients.name,
+    updatedAt: jobs.updatedAt,
+  }).from(jobs)
+    .innerJoin(clients, and(eq(jobs.clientId, clients.id), eq(clients.userId, userId)))
+    .where(and(...filters))
+    .orderBy(desc(jobs.updatedAt))
+    .limit(10_000);
+  if (!jobRows.length) return [];
+
+  const jobIds = jobRows.map(row => row.id);
+  const invoiceIds = jobRows.flatMap(row => row.invoiceId ? [row.invoiceId] : []);
+  const [linkedInvoices, photos, entries, linkedExpenses] = await Promise.all([
+    invoiceIds.length ? db.select({ id: invoices.id, amount: invoices.amount }).from(invoices)
+      .where(and(eq(invoices.userId, userId), inArray(invoices.id, invoiceIds))) : [],
+    db.select({ jobId: jobPhotos.jobId, photoType: jobPhotos.photoType, lineItemAmount: jobPhotos.lineItemAmount }).from(jobPhotos)
+      .where(and(eq(jobPhotos.userId, userId), inArray(jobPhotos.jobId, jobIds))),
+    db.select({ jobId: timeEntries.jobId, durationMinutes: timeEntries.durationMinutes, hourlyRate: timeEntries.hourlyRate }).from(timeEntries)
+      .where(and(eq(timeEntries.userId, userId), inArray(timeEntries.jobId, jobIds))),
+    db.select({ jobId: expenses.jobId, amount: expenses.amount }).from(expenses)
+      .where(and(eq(expenses.userId, userId), inArray(expenses.jobId, jobIds))),
+  ]);
+  const invoiceAmounts = new Map(linkedInvoices.map(invoice => [invoice.id, Number(invoice.amount ?? 0)]));
+  const receiptCosts = new Map<number, number>();
+  for (const photo of photos) if (photo.jobId && photo.photoType === "receipt") receiptCosts.set(photo.jobId, (receiptCosts.get(photo.jobId) ?? 0) + Number(photo.lineItemAmount ?? 0));
+  const laborCosts = new Map<number, number>();
+  for (const entry of entries) if (entry.jobId) laborCosts.set(entry.jobId, (laborCosts.get(entry.jobId) ?? 0) + ((entry.durationMinutes ?? 0) / 60) * Number(entry.hourlyRate ?? 0));
+  const expenseCosts = new Map<number, number>();
+  for (const expense of linkedExpenses) if (expense.jobId) expenseCosts.set(expense.jobId, (expenseCosts.get(expense.jobId) ?? 0) + Number(expense.amount ?? 0));
+
+  return jobRows.map(job => {
+    const invoiceId = job.invoiceId;
+    const hasInvoiceRevenue = invoiceId !== null && invoiceAmounts.has(invoiceId);
+    const financials = calculateJobCosting({
+      revenue: hasInvoiceRevenue && invoiceId !== null ? invoiceAmounts.get(invoiceId) ?? 0 : Number(job.budgetAmount ?? 0),
+      receiptCost: receiptCosts.get(job.id) ?? 0,
+      laborCost: laborCosts.get(job.id) ?? 0,
+      expenseCost: expenseCosts.get(job.id) ?? 0,
+    });
+    return {
+      jobNumber: job.jobNumber,
+      title: job.title,
+      clientName: job.clientName,
+      status: job.status,
+      targetDate: job.targetDate,
+      revenueSource: hasInvoiceRevenue ? "Linked invoice" : job.budgetAmount !== null ? "Job budget" : "No revenue basis",
+      ...financials,
+      updatedAt: job.updatedAt,
+    };
+  });
+}
 
 // ─── Invoice number generator ─────────────────────────────────────────────────
 function generateInvoiceNumber(): string {
@@ -6350,6 +6419,17 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
 
   // ── Unified Job Workspace ──────────────────────────────────────────────────
   jobs: router({
+    costReport: protectedProcedure
+      .input(z.object({ status: jobWorkspaceStatusSchema.optional() }).optional())
+      .query(async ({ ctx, input }) => getOwnerJobCostReport(await requireDb(), ctx.user.id, input?.status)),
+
+    exportCostReport: protectedProcedure
+      .input(z.object({ status: jobWorkspaceStatusSchema.optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        const rows = await getOwnerJobCostReport(await requireDb(), ctx.user.id, input?.status);
+        return { fileName: `trueaxis-job-cost-report-${new Date().toISOString().slice(0, 10)}.csv`, csv: buildJobCostCsv(rows) };
+      }),
+
     list: protectedProcedure
       .input(z.object({ status: z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]).optional() }).optional())
       .query(async ({ ctx, input }) => {
