@@ -1852,5 +1852,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Recalculate the TrueAxis HQ evidence-labeled competitor score using the current implemented workflow inventory
 - [x] Deliver the rating with clear strengths, gaps, and external-validation confidence boundaries
 
+## Evidence-Led Market Leadership Program — User Requested
+- [ ] Refresh documented competitor workflows and friction evidence to prioritize the remaining highest-leverage differentiation opportunities
+- [ ] Implement and validate the strongest autonomous owner-efficiency, client-trust, reliability, or workflow advantage without fabricating market-superiority claims
+- [ ] Publish an evidence-labeled differentiation update that separates completed capability from provider, live-user, and ecosystem gates
+- [x] Add owner-reviewed portal job-update templates that reuse existing token-scoped messaging without claiming email, SMS, automatic delivery, or tracking
+
 ## Verification-Loop Recovery — User Reported
 - [x] Complete the private owner custom-field workflow coherently with creation controls and focused contracts, or explicitly defer unfinished interface work without repeated verification loops
