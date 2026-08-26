@@ -1912,3 +1912,6 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## Public Terms Legal-Claim Correction
 - [x] Replace unsupported universal enforceability wording in the public Terms page with factual platform-policy language and an attorney-review boundary
 - [x] Add focused regression coverage for factual public Terms copy, validate, and document the correction
+
+## Launch Readiness Evidence Refresh
+- [x] Refresh the launch-readiness register with the current autonomous validation baseline and completed proposal/job-cost workflow evidence while preserving all real-session and provider gates

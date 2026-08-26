@@ -1,10 +1,12 @@
 # TrueAxis HQ Launch Readiness Register
 
-## Validated in the current release
+## Validated in the Current Autonomous Release
 
-The client portal now provides deterministic next-step guidance, prioritizing overdue payment recovery, then invoices awaiting review, client input requests, active work, scheduled appointments, and finally a calm up-to-date state. Its proof-of-work area connects job status, milestones, provider activities, and estimate/in-progress/finished photos through token-scoped public queries. Internal notes and receipt photos remain excluded from the client payload.
+The client portal provides deterministic next-step guidance and token-scoped proof-of-work data while excluding internal notes and receipt photos. Owner mutations retain final owner-scoped predicates; public photo uploads use short-lived hashed session tokens; and portal access is constrained by both workspace and client identity.
 
-The security audit also confirmed that owner mutations use owner-scoped predicates at the final write boundary, public photo uploads use short-lived hashed session tokens, and portal data is constrained by both the portal owner and client identity. The current autonomous release passes strict TypeScript and 131 deterministic Vitest tests across 38 files; recent production builds, dependency audits, and bundle-budget checks passed. The mobile recovery screen for an invalid portal link was visually checked at 375px wide.
+The latest autonomous sequence also added private job-cost attribution, owner-only job-cost portfolio reporting and local margin review signals, token-scoped proposal package selection, proposal validity-date enforcement, client proposal decline capture with owner-only feedback, owner-safe proposal duplication, editable duplicated drafts, and factual public acceptance/Terms copy. These additions preserve their explicit limits: they do not represent payment completion, automatic messaging, job creation, delivery, GPS, accounting sync, or universal legal enforceability.
+
+The current deterministic baseline is **48 Vitest files / 158 tests**, strict TypeScript, successful production builds, production dependency audit evidence, and configured bundle-budget checks. The comprehensive data/error sweep remains a clean inspected baseline; see `trueaxis-comprehensive-data-error-sweep-2026.md`. Public recovery at 375px has prior evidence, but it does not substitute for authenticated mobile validation.
 
 ## Open defects and launch gates
 
@@ -13,9 +15,9 @@ The security audit also confirmed that owner mutations use owner-scoped predicat
 | Transactional email | Console fallback is safe; SMTP configuration validation and diagnostics are implemented | Provider credentials, verified sender/domain, and a real inbox delivery test |
 | Stripe billing | Test integration exists but the sandbox must be claimed and webhook secret verified | End-to-end checkout, webhook subscription sync, failed-payment, and customer-portal checks |
 | Accessibility and mobile | Core portal recovery view checked at 375px; broader route audit remains | Manual checks for booking, portal, dashboard, keyboard focus, touch targets, and error recovery |
-| Proof-of-work timeline | Owner workspace and client progress center are implemented and scoped | Validate representative job data across estimate, work-in-progress, completion, and billing transitions |
+| Proof-of-work and proposal flows | Portal guidance, proof timeline, package selection, proposal expiry, decline capture, and owner follow-up workflows are implemented and scoped | Validate representative owner/client data across proposal, signature, package choice, decline, job, progress, completion, and billing transitions |
 | Product claims | Competitive roadmap is documented | Keep public claims feature-specific; do not claim universal superiority without user evidence |
 
 ## Candid assessment
 
-TrueAxis HQ is a strong controlled-beta release with meaningful security and workflow improvements. It is not yet generally launch-ready because real external delivery and payment verification have not been completed, and a full manual accessibility pass still remains. Those gates cannot be honestly marked complete from code-only validation.
+TrueAxis HQ is a strong controlled-beta release with meaningful security, proposal, job-cost, client-trust, and workflow improvements. It is not yet generally launch-ready because real external delivery and payment verification have not been completed, and a full manual authenticated accessibility/responsive pass still remains. Those gates cannot be honestly marked complete from code-only validation.
