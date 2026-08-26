@@ -1602,6 +1602,7 @@ export const appRouter = router({
         bookingAvailability: z.object({
           weekdays: z.array(z.number().int().min(0).max(6)).min(1).max(7),
           timeSlots: z.array(z.enum(PUBLIC_BOOKING_TIME_SLOTS)).min(1).max(PUBLIC_BOOKING_TIME_SLOTS.length),
+          bufferMinutes: z.number().int().min(0).max(120).optional(),
         }).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -2451,7 +2452,7 @@ Only include actions when you have actually generated a complete draft. For gene
             eq(bookings.date, input.preferredDate),
             sql`${bookings.status} NOT IN ('cancelled', 'no_show')`,
           ));
-        if (scheduledBookings.some(booking => doPublicBookingIntervalsOverlap(input.preferredTime, selectedService.durationMinutes, booking.time, booking.duration ?? 60))) {
+        if (scheduledBookings.some(booking => doPublicBookingIntervalsOverlap(input.preferredTime, selectedService.durationMinutes + publishedSchedule.bufferMinutes, booking.time, (booking.duration ?? 60) + publishedSchedule.bufferMinutes))) {
           throw new TRPCError({
             code: "CONFLICT",
             message: `The ${input.preferredDate} at ${input.preferredTime} overlaps an existing appointment. Please choose a different time.`,

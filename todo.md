@@ -1987,4 +1987,4 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add owner-controlled service definitions with bounded duration, optional price guidance, and active state while preserving existing plain service labels safely
 - [x] Apply active service duration to final public booking conflict checks and client calendar exports without claiming calendar synchronization, routing, or payment collection
 - [x] Add focused owner-scope, public projection, pricing privacy, duration, and legacy-setting recovery contracts; validate and document the release
-- [ ] Add optional owner-configured service buffers between appointments with interval-safe public booking enforcement and focused regression coverage
+- [x] Add optional owner-configured service buffers between appointments with interval-safe public booking enforcement and focused regression coverage

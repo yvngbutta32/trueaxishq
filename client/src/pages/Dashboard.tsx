@@ -3593,7 +3593,7 @@ function SettingsPanel() {
     bookingUsername: "",
     bookingBio: "",
     bookingServices: ["Coaching Session", "Strategy Call", "Consultation"].map(name => ({ name, durationMinutes: 60, active: true, priceGuidance: null })) as PublicBookingService[],
-    bookingAvailability: { weekdays: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.weekdays], timeSlots: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.timeSlots] },
+    bookingAvailability: { weekdays: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.weekdays], timeSlots: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.timeSlots], bufferMinutes: DEFAULT_PUBLIC_BOOKING_SCHEDULE.bufferMinutes },
   });
   const setBookingPageField = useFormFields(setBookingPage);
   const setBookingUsername = setBookingPageField("bookingUsername");
@@ -3679,7 +3679,7 @@ function SettingsPanel() {
         bookingUsername: settings.bookingUsername || "",
         bookingBio: settings.bookingBio || "",
         bookingServices: getPublishedBookingServiceCatalog(JSON.stringify(settings.bookingServices || ["Coaching Session", "Strategy Call", "Consultation"])),
-        bookingAvailability: settings.bookingAvailability || { weekdays: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.weekdays], timeSlots: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.timeSlots] },
+        bookingAvailability: settings.bookingAvailability || { weekdays: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.weekdays], timeSlots: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.timeSlots], bufferMinutes: DEFAULT_PUBLIC_BOOKING_SCHEDULE.bufferMinutes },
       });
       setNotifications({ notifyNewBooking: settings.notifyNewBooking ?? true, notifyInvoicePaid: settings.notifyInvoicePaid ?? true, notifyNewLead: settings.notifyNewLead ?? true });
     }
@@ -3905,6 +3905,15 @@ function SettingsPanel() {
               })}
             </div>
           </fieldset>
+          <div className="flex items-center justify-between gap-3 border-t border-[#DDDBD7] pt-4">
+            <div>
+              <p className="text-sm font-semibold text-[#1A1A1A]">Appointment buffer</p>
+              <p className="text-xs text-[#6B6B6B]">Reserve time after appointments when checking public availability.</p>
+            </div>
+            <select value={bookingPage.bookingAvailability.bufferMinutes} onChange={e => setBookingPage(p => ({ ...p, bookingAvailability: { ...p.bookingAvailability, bufferMinutes: Number(e.target.value) } }))} className="form-input-light w-28 text-sm" aria-label="Appointment buffer">
+              {[0, 15, 30, 45, 60, 90, 120].map(minutes => <option key={minutes} value={minutes}>{minutes === 0 ? "No buffer" : `${minutes} min`}</option>)}
+            </select>
+          </div>
         </div>
         <Button className="gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => updateBookingPage.mutate(bookingPage)} disabled={updateBookingPage.isPending}>
           {updateBookingPage.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Booking Page</>}

@@ -24,11 +24,13 @@ export type PublicBookingTimeSlot = typeof PUBLIC_BOOKING_TIME_SLOTS[number];
 export type PublicBookingSchedule = {
   weekdays: number[];
   timeSlots: PublicBookingTimeSlot[];
+  bufferMinutes: number;
 };
 
 export const DEFAULT_PUBLIC_BOOKING_SCHEDULE: PublicBookingSchedule = {
   weekdays: [1, 2, 3, 4, 5],
   timeSlots: [...PUBLIC_BOOKING_TIME_SLOTS],
+  bufferMinutes: 0,
 };
 
 function isSafeService(value: unknown): value is string {
@@ -80,12 +82,13 @@ function getUtcWeekday(date: string): number | null {
 export function getPublishedBookingSchedule(serialized: string | null | undefined): PublicBookingSchedule {
   if (!serialized) return { ...DEFAULT_PUBLIC_BOOKING_SCHEDULE, weekdays: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.weekdays], timeSlots: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.timeSlots] };
   try {
-    const parsed = JSON.parse(serialized) as { weekdays?: unknown; timeSlots?: unknown };
+    const parsed = JSON.parse(serialized) as { weekdays?: unknown; timeSlots?: unknown; bufferMinutes?: unknown };
     if (!Array.isArray(parsed.weekdays) || !Array.isArray(parsed.timeSlots)) throw new Error("Invalid schedule shape");
     const weekdays = Array.from(new Set(parsed.weekdays.filter(day => Number.isInteger(day) && day >= 0 && day <= 6))).sort((a, b) => a - b);
     const timeSlots = Array.from(new Set(parsed.timeSlots.filter(slot => typeof slot === "string" && PUBLIC_BOOKING_TIME_SLOTS.includes(slot as PublicBookingTimeSlot)) as PublicBookingTimeSlot[]));
     if (weekdays.length === 0 || timeSlots.length === 0) throw new Error("Empty schedule");
-    return { weekdays, timeSlots };
+    const bufferMinutes = typeof parsed.bufferMinutes === "number" && Number.isInteger(parsed.bufferMinutes) && parsed.bufferMinutes >= 0 && parsed.bufferMinutes <= 120 ? parsed.bufferMinutes : 0;
+    return { weekdays, timeSlots, bufferMinutes };
   } catch {
     return { ...DEFAULT_PUBLIC_BOOKING_SCHEDULE, weekdays: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.weekdays], timeSlots: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.timeSlots] };
   }
