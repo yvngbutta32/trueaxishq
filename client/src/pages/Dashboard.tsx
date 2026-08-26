@@ -855,6 +855,7 @@ function ClientsPanel() {
   const [showCsvImport, setShowCsvImport] = useState(false);
   const [csvText, setCsvText] = useState("");
   const [csvPreview, setCsvPreview] = useState<Array<{ name: string; email: string; phone: string; service: string; status: string }>>([]);
+  const [newCustomField, setNewCustomField] = useState({ label: "", fieldKey: "", fieldType: "text" as "text" | "select", options: "" });
 
   // Read search from header quick-search on mount
   useEffect(() => {
@@ -878,6 +879,10 @@ function ClientsPanel() {
   const { data: selectedClientCustomValues } = trpc.clients.getCustomFieldValues.useQuery({ clientId: selectedId! }, { enabled: !!selectedId });
   const setClientCustomValue = trpc.clients.setCustomFieldValue.useMutation({
     onSuccess: () => { if (selectedId) utils.clients.getCustomFieldValues.invalidate({ clientId: selectedId }); },
+    onError: error => toast.error(error.message),
+  });
+  const createClientCustomField = trpc.clients.createCustomField.useMutation({
+    onSuccess: () => { utils.clients.listCustomFields.invalidate(); setNewCustomField({ label: "", fieldKey: "", fieldType: "text", options: "" }); toast.success("Private client field added."); },
     onError: error => toast.error(error.message),
   });
   const { data: pulseData } = trpc.pulse.getAll.useQuery(undefined, { retry: 1 });
@@ -1391,6 +1396,21 @@ function ClientsPanel() {
               <div className="bg-[#F7F6F3] rounded-xl p-4">
                 <p className="text-xs font-semibold text-[#6B6B6B] mb-1">Notes</p>
                 <p className="text-sm text-[#2A2A2A] whitespace-pre-wrap">{selectedClient.notes}</p>
+              </div>
+            )}
+            {profileTab === "info" && (
+              <div className="bg-[#F7F6F3] rounded-xl p-4 space-y-3">
+                <div>
+                  <p className="text-xs font-semibold text-[#6B6B6B]">Private client fields</p>
+                  <p className="text-xs text-[#8A8A8A] mt-1">Owner-only profile details. These fields are never shown in the client portal.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input value={newCustomField.label} onChange={e => setNewCustomField(current => ({ ...current, label: e.target.value }))} placeholder="Field label" className="form-input-light text-sm" maxLength={80} />
+                  <input value={newCustomField.fieldKey} onChange={e => setNewCustomField(current => ({ ...current, fieldKey: e.target.value }))} placeholder="field_key" className="form-input-light text-sm" maxLength={80} />
+                  <select value={newCustomField.fieldType} onChange={e => setNewCustomField(current => ({ ...current, fieldType: e.target.value as "text" | "select" }))} className="form-input-light text-sm"><option value="text">Text</option><option value="select">Select</option></select>
+                  {newCustomField.fieldType === "select" && <input value={newCustomField.options} onChange={e => setNewCustomField(current => ({ ...current, options: e.target.value }))} placeholder="Options, separated by commas" className="form-input-light text-sm" maxLength={500} />}
+                </div>
+                <Button size="sm" variant="outline" disabled={!newCustomField.label.trim() || !newCustomField.fieldKey.trim() || (newCustomField.fieldType === "select" && !newCustomField.options.trim()) || createClientCustomField.isPending} onClick={() => createClientCustomField.mutate({ label: newCustomField.label.trim(), fieldKey: newCustomField.fieldKey.trim(), fieldType: newCustomField.fieldType, options: newCustomField.fieldType === "select" ? newCustomField.options.split(",").map(option => option.trim()).filter(Boolean) : [] })}>Add private field</Button>
               </div>
             )}
             {profileTab === "info" && !!clientCustomFields?.length && (
