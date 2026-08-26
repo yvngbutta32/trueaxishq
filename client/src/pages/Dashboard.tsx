@@ -1,4 +1,5 @@
 import { TRUEAXIS_LOGO_URL } from "@shared/const";
+import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, PUBLIC_BOOKING_TIME_SLOTS } from "@shared/publicBookingRules";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
  * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
@@ -3588,7 +3589,12 @@ function SettingsPanel() {
   const setBusinessPhone   = setBusinessField("businessPhone");
   const setBusinessAddress = setBusinessField("businessAddress");
   const setBusinessWebsite = setBusinessField("businessWebsite");
-  const [bookingPage, setBookingPage] = useState({ bookingUsername: "", bookingBio: "", bookingServices: ["Coaching Session", "Strategy Call", "Consultation"] });
+  const [bookingPage, setBookingPage] = useState({
+    bookingUsername: "",
+    bookingBio: "",
+    bookingServices: ["Coaching Session", "Strategy Call", "Consultation"],
+    bookingAvailability: { weekdays: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.weekdays], timeSlots: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.timeSlots] },
+  });
   const setBookingPageField = useFormFields(setBookingPage);
   const setBookingUsername = setBookingPageField("bookingUsername");
   const setBookingBio      = setBookingPageField("bookingBio");
@@ -3669,7 +3675,12 @@ function SettingsPanel() {
     if (settings) {
       setProfile({ name: settings.name || "", bio: settings.bio || "", phone: settings.phone || "" });
       setBusiness({ businessName: settings.businessName || "", businessPhone: settings.businessPhone || "", businessAddress: settings.businessAddress || "", businessWebsite: settings.businessWebsite || "" });
-      setBookingPage({ bookingUsername: settings.bookingUsername || "", bookingBio: settings.bookingBio || "", bookingServices: settings.bookingServices || ["Coaching Session", "Strategy Call", "Consultation"] });
+      setBookingPage({
+        bookingUsername: settings.bookingUsername || "",
+        bookingBio: settings.bookingBio || "",
+        bookingServices: settings.bookingServices || ["Coaching Session", "Strategy Call", "Consultation"],
+        bookingAvailability: settings.bookingAvailability || { weekdays: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.weekdays], timeSlots: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.timeSlots] },
+      });
       setNotifications({ notifyNewBooking: settings.notifyNewBooking ?? true, notifyInvoicePaid: settings.notifyInvoicePaid ?? true, notifyNewLead: settings.notifyNewLead ?? true });
     }
   }, [settings]);
@@ -3843,6 +3854,52 @@ function SettingsPanel() {
               )}
             </div>
           )}
+        </div>
+        <div className="rounded-xl border border-[#DDDBD7] bg-[#F7F6F3] p-4 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-[#6B6B6B] mb-1">Published booking availability</label>
+            <p className="text-xs text-[#6B6B6B]">Choose the weekdays and half-hour times shown on your public booking page. At least one day and one time must remain selected. This is not calendar synchronization or time-zone conversion.</p>
+          </div>
+          <fieldset>
+            <legend className="text-xs font-semibold text-[#6B6B6B] mb-2">Available days</legend>
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Published booking days">
+              {[
+                { id: 1, label: "Mon" }, { id: 2, label: "Tue" }, { id: 3, label: "Wed" }, { id: 4, label: "Thu" }, { id: 5, label: "Fri" }, { id: 6, label: "Sat" }, { id: 0, label: "Sun" },
+              ].map(day => {
+                const selected = bookingPage.bookingAvailability.weekdays.includes(day.id);
+                return <button
+                  key={day.id}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setBookingPage(p => {
+                    const current = p.bookingAvailability.weekdays;
+                    const weekdays = selected ? (current.length === 1 ? current : current.filter(value => value !== day.id)) : [...current, day.id].sort((a, b) => a - b);
+                    return { ...p, bookingAvailability: { ...p.bookingAvailability, weekdays } };
+                  })}
+                  className={`min-h-[36px] rounded-lg border px-3 text-xs font-semibold transition-colors ${selected ? "border-[#D4922A] bg-[#D4922A]/15 text-[#8A5A0B]" : "border-[#C8C5BF] bg-white text-[#6B6B6B] hover:border-[#D4922A]/60"}`}
+                >{day.label}</button>;
+              })}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend className="text-xs font-semibold text-[#6B6B6B] mb-2">Available times</legend>
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4" role="group" aria-label="Published booking times">
+              {PUBLIC_BOOKING_TIME_SLOTS.map(time => {
+                const selected = bookingPage.bookingAvailability.timeSlots.includes(time);
+                return <button
+                  key={time}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setBookingPage(p => {
+                    const current = p.bookingAvailability.timeSlots;
+                    const timeSlots = selected ? (current.length === 1 ? current : current.filter(value => value !== time)) : PUBLIC_BOOKING_TIME_SLOTS.filter(value => current.includes(value) || value === time);
+                    return { ...p, bookingAvailability: { ...p.bookingAvailability, timeSlots } };
+                  })}
+                  className={`min-h-[36px] rounded-lg border px-2 text-xs font-semibold transition-colors ${selected ? "border-[#D4922A] bg-[#D4922A]/15 text-[#8A5A0B]" : "border-[#C8C5BF] bg-white text-[#6B6B6B] hover:border-[#D4922A]/60"}`}
+                >{time}</button>;
+              })}
+            </div>
+          </fieldset>
         </div>
         <Button className="gradient-amber text-white border-0 hover:opacity-90 gap-2" onClick={() => updateBookingPage.mutate(bookingPage)} disabled={updateBookingPage.isPending}>
           {updateBookingPage.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save Booking Page</>}

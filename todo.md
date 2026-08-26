@@ -1956,3 +1956,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## Public Booking Availability Enforcement
 - [x] Enforce the owner’s published future slot availability and configured service choices in the server-side public booking mutation rather than relying on browser controls
 - [x] Add deterministic contracts for valid slots, unavailable times, disabled services, and owner-scoped availability parsing; validate and document the release
+
+## Owner-Configured Booking Availability
+- [x] Add clear owner controls for published business days and half-hour booking slots using the existing booking-availability setting without implying calendar synchronization or time-zone conversion
+- [x] Apply the parsed owner schedule consistently to public date/time choices and final server validation, with safe defaults and malformed-setting recovery
+- [x] Add deterministic schedule parsing, owner configuration, client selection, and server-enforcement contracts; validate and document the release

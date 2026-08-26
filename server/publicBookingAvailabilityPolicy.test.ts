@@ -24,6 +24,7 @@ describe("public booking availability policy", () => {
     const section = routerSource.slice(start, end);
     expect(section).toContain("const publishedServices = getPublishedBookingServices(host[0].bookingServices)");
     expect(section).toContain("if (!publishedServices.includes(input.service))");
-    expect(section).toContain("if (!isPublishedPublicBookingSlot(input.preferredDate, input.preferredTime))");
+    expect(section).toContain("const publishedSchedule = getPublishedBookingSchedule(host[0].bookingAvailability)");
+    expect(section).toContain("if (!isPublishedPublicBookingSlot(input.preferredDate, input.preferredTime, publishedSchedule))");
   });
 });

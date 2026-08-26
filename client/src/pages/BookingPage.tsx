@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PublicRecoveryState } from "@/components/PublicRecoveryState";
-import { DEFAULT_PUBLIC_BOOKING_SERVICES, PUBLIC_BOOKING_TIME_SLOTS } from "@shared/publicBookingRules";
+import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, DEFAULT_PUBLIC_BOOKING_SERVICES, PUBLIC_BOOKING_TIME_SLOTS } from "@shared/publicBookingRules";
 
 // ─── .ics calendar file generator ────────────────────────────────────────────
 function generateICS({
@@ -135,17 +135,16 @@ function buildGoogleCalendarUrl({
 
 // Services are loaded dynamically from the booking page owner's configuration
 
-function getNextDays(count: number) {
-  const days = [];
+function getNextDays(count: number, weekdays: number[]) {
+  const days: Date[] = [];
   const today = new Date();
-  for (let i = 1; i <= count; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    if (d.getDay() !== 0 && d.getDay() !== 6) { // skip weekends
-      days.push(d);
-    }
+  const start = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 12));
+  for (let i = 1; i <= 100 && days.length < count; i++) {
+    const day = new Date(start);
+    day.setUTCDate(start.getUTCDate() + i);
+    if (weekdays.includes(day.getUTCDay())) days.push(day);
   }
-  return days.slice(0, count);
+  return days;
 }
 
 export default function BookingPage() {
@@ -171,8 +170,6 @@ export default function BookingPage() {
     onError: (e) => toast.error("Booking failed: " + e.message),
   });
   const beginPublicUpload = trpc.photos.beginPublicUpload.useMutation();
-
-  const availableDays = getNextDays(14);
 
   const handleSubmit = async () => {
     let photoUploadToken: string | undefined;
@@ -229,6 +226,8 @@ export default function BookingPage() {
   }
 
   const host = pageQuery.data;
+  const publishedSchedule = host.bookingAvailability ?? DEFAULT_PUBLIC_BOOKING_SCHEDULE;
+  const availableDays = getNextDays(14, publishedSchedule.weekdays);
 
   // Success / Confirmation screen
   if (step === "success") {
@@ -574,18 +573,17 @@ export default function BookingPage() {
             <h2 className="text-xl font-bold text-[#1A1A1A] mb-1">
               Choose a date & time
             </h2>
-            <p className="text-sm text-gray-600 mb-6">All times are shown in your local timezone.</p>
+            <p className="text-sm text-gray-600 mb-6">Choose from the provider’s published appointment times.</p>
 
             {/* Date picker */}
             <fieldset className="mb-6">
               <legend className="form-label mb-3">Select a date</legend>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2" role="group" aria-label="Available dates">
                 {availableDays.map(day => {
-                  // Store as ISO YYYY-MM-DD for consistent server-side handling
-                  const isoDate = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
-                  const dateStr = day.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-                  const dayName = day.toLocaleDateString("en-US", { weekday: "short" });
-                  const dayNum = day.getDate();
+                  const isoDate = day.toISOString().slice(0, 10);
+                  const dateStr = day.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+                  const dayName = day.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
+                  const dayNum = day.getUTCDate();
                   const isSelected = form.preferredDate === isoDate;
                   return (
                     <button
@@ -612,7 +610,7 @@ export default function BookingPage() {
               <fieldset className="mb-6">
                 <legend className="form-label mb-3">Select a time</legend>
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2" role="group" aria-label="Available time slots">
-                  {PUBLIC_BOOKING_TIME_SLOTS.map(time => {
+                  {publishedSchedule.timeSlots.map(time => {
                     const isSelected = form.preferredTime === time;
                     return (
                       <button

@@ -35,7 +35,7 @@ import { buildJobCostCsv, type ExportableJobCostRow } from "./jobCostCsvExport";
 import { getProposalPackageSubtotal, normalizeProposalLineItems, parseProposalPackages, type ProposalPackage } from "../shared/proposalPackages";
 import { isProposalExpired } from "../shared/proposalValidity";
 import { isClientSafeJobActivityEvent } from "../shared/clientSafeJobActivity";
-import { getPublishedBookingServices, isPublishedPublicBookingSlot } from "../shared/publicBookingRules";
+import { getPublishedBookingSchedule, getPublishedBookingServices, isPublishedPublicBookingSlot, PUBLIC_BOOKING_TIME_SLOTS } from "../shared/publicBookingRules";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -1462,7 +1462,7 @@ export const appRouter = router({
       return {
         ...u,
         bookingServices: u.bookingServices ? JSON.parse(u.bookingServices) : ["Coaching Session", "Strategy Call", "Consultation"],
-        bookingAvailability: u.bookingAvailability ? JSON.parse(u.bookingAvailability) : {},
+        bookingAvailability: getPublishedBookingSchedule(u.bookingAvailability),
       };
     }),
 
@@ -1559,6 +1559,10 @@ export const appRouter = router({
         bookingUsername: z.string().trim().min(3).max(64).regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed").optional(),
         bookingBio: safeOptionalString(500),
         bookingServices: z.array(z.string().trim().max(100)).max(20).optional(),
+        bookingAvailability: z.object({
+          weekdays: z.array(z.number().int().min(0).max(6)).min(1).max(7),
+          timeSlots: z.array(z.enum(PUBLIC_BOOKING_TIME_SLOTS)).min(1).max(PUBLIC_BOOKING_TIME_SLOTS.length),
+        }).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
@@ -1573,6 +1577,7 @@ export const appRouter = router({
         if (input.bookingUsername !== undefined) updateData.bookingUsername = input.bookingUsername;
         if (input.bookingBio !== undefined) updateData.bookingBio = input.bookingBio;
         if (input.bookingServices !== undefined) updateData.bookingServices = JSON.stringify(input.bookingServices);
+        if (input.bookingAvailability !== undefined) updateData.bookingAvailability = JSON.stringify(getPublishedBookingSchedule(JSON.stringify(input.bookingAvailability)));
         await db.update(users).set(updateData).where(eq(users.id, ctx.user.id));
         return { success: true };
       }),
@@ -2307,6 +2312,7 @@ Only include actions when you have actually generated a complete draft. For gene
           businessName: users.businessName,
           bookingBio: users.bookingBio,
           bookingServices: users.bookingServices,
+          bookingAvailability: users.bookingAvailability,
           avatarUrl: users.avatarUrl,
         }).from(users).where(eq(users.bookingUsername, input.username)).limit(1);
         if (!result[0]) return null;
@@ -2314,6 +2320,7 @@ Only include actions when you have actually generated a complete draft. For gene
         return {
           ...host,
           bookingServices: getPublishedBookingServices(host.bookingServices),
+          bookingAvailability: getPublishedBookingSchedule(host.bookingAvailability),
         };
       }),
 
@@ -2330,7 +2337,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
-        const host = await db.select({ id: users.id, notifyNewBooking: users.notifyNewBooking, bookingUsername: users.bookingUsername, bookingServices: users.bookingServices })
+        const host = await db.select({ id: users.id, notifyNewBooking: users.notifyNewBooking, bookingUsername: users.bookingUsername, bookingServices: users.bookingServices, bookingAvailability: users.bookingAvailability })
           .from(users).where(eq(users.bookingUsername, input.hostUsername)).limit(1);
         if (!host[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Booking page not found." });
 
@@ -2342,7 +2349,8 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!publishedServices.includes(input.service)) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a service currently offered on this booking page." });
         }
-        if (!isPublishedPublicBookingSlot(input.preferredDate, input.preferredTime)) {
+        const publishedSchedule = getPublishedBookingSchedule(host[0].bookingAvailability);
+        if (!isPublishedPublicBookingSlot(input.preferredDate, input.preferredTime, publishedSchedule)) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Choose an available weekday time slot from this booking page." });
         }
 
