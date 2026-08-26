@@ -588,7 +588,7 @@ export default function BookingPage() {
                   return (
                     <button
                       key={isoDate}
-                      onClick={() => setForm(p => ({ ...p, preferredDate: isoDate }))}
+                      onClick={() => setForm(p => ({ ...p, preferredDate: isoDate, preferredTime: "" }))}
                       aria-pressed={isSelected}
                       aria-label={`${dayName} ${dateStr}`}
                       className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 ${
@@ -612,14 +612,18 @@ export default function BookingPage() {
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2" role="group" aria-label="Available time slots">
                   {publishedSchedule.timeSlots.map(time => {
                     const isSelected = form.preferredTime === time;
+                    const isOccupied = host.bookedSlots?.some((slot: { date: string; time: string }) => slot.date === form.preferredDate && slot.time === time) ?? false;
                     return (
                       <button
                         key={time}
                         onClick={() => setForm(p => ({ ...p, preferredTime: time }))}
+                        disabled={isOccupied}
                         aria-pressed={isSelected}
-                        aria-label={`${time}`}
+                        aria-label={isOccupied ? `${time} is unavailable` : time}
                         className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 ${
-                          isSelected
+                          isOccupied
+                            ? "cursor-not-allowed border-[#DDDBD7] bg-[#EEECEA] text-[#9A9892] line-through"
+                            : isSelected
                             ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]"
                             : "border-[#C8C5BF] bg-[#F7F6F3] hover:border-white/25 text-[#3D3D3D]"
                         }`}

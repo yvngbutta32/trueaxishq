@@ -1961,3 +1961,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add clear owner controls for published business days and half-hour booking slots using the existing booking-availability setting without implying calendar synchronization or time-zone conversion
 - [x] Apply the parsed owner schedule consistently to public date/time choices and final server validation, with safe defaults and malformed-setting recovery
 - [x] Add deterministic schedule parsing, owner configuration, client selection, and server-enforcement contracts; validate and document the release
+
+## Privacy-Safe Public Occupied Slot Visibility
+- [x] Return bounded future scheduled date/time pairs only from the public booking page query, with no client, service, booking ID, or owner metadata
+- [x] Disable occupied visible slots in the public booking interface while retaining the server’s final unique-slot safeguard
+- [x] Add deterministic public projection and client-control contracts; validate and document the release

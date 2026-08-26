@@ -2317,10 +2317,21 @@ Only include actions when you have actually generated a complete draft. For gene
         }).from(users).where(eq(users.bookingUsername, input.username)).limit(1);
         if (!result[0]) return null;
         const host = result[0];
+        const today = new Date().toISOString().slice(0, 10);
+        const publicWindowEnd = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        const bookedSlots = await db.select({ date: bookings.date, time: bookings.time })
+          .from(bookings)
+          .where(and(
+            eq(bookings.userId, host.id),
+            eq(bookings.status, "scheduled"),
+            sql`${bookings.date} >= ${today}`,
+            sql`${bookings.date} < ${publicWindowEnd}`,
+          ));
         return {
           ...host,
           bookingServices: getPublishedBookingServices(host.bookingServices),
           bookingAvailability: getPublishedBookingSchedule(host.bookingAvailability),
+          bookedSlots,
         };
       }),
 
