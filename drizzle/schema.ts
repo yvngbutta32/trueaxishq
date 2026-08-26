@@ -1041,6 +1041,7 @@ export const serviceVisits = mysqlTable("serviceVisits", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   jobId: int("jobId").notNull(),
+  recurringServicePlanId: int("recurringServicePlanId"),
   teamMemberId: int("teamMemberId"),
   title: varchar("title", { length: 255 }).notNull(),
   scheduledStart: timestamp("scheduledStart").notNull(),
@@ -1057,8 +1058,37 @@ export const serviceVisits = mysqlTable("serviceVisits", {
   index("serviceVisits_jobId_idx").on(t.jobId),
   index("serviceVisits_member_time_idx").on(t.teamMemberId, t.scheduledStart),
   index("serviceVisits_owner_time_idx").on(t.userId, t.scheduledStart),
+  index("serviceVisits_recurring_plan_start_idx").on(t.recurringServicePlanId, t.scheduledStart),
+  uniqueIndex("serviceVisits_recurring_plan_start_unique_idx").on(t.recurringServicePlanId, t.scheduledStart),
 ]);
 export type ServiceVisit = typeof serviceVisits.$inferSelect;
+
+// Owner-private recurring service definitions. Plans generate internal service
+// visits only when an owner explicitly requests generation; no billing, provider
+// sync, client membership, or public-plan behavior is implied by this model.
+export const recurringServicePlans = mysqlTable("recurringServicePlans", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  jobId: int("jobId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  serviceName: varchar("serviceName", { length: 255 }).notNull(),
+  frequency: mysqlEnum("frequency", ["weekly", "monthly"]).notNull(),
+  weekday: int("weekday"),
+  dayOfMonth: int("dayOfMonth"),
+  startDate: varchar("startDate", { length: 10 }).notNull(),
+  endDate: varchar("endDate", { length: 10 }),
+  durationMinutes: int("durationMinutes").notNull().default(60),
+  nextVisitAt: timestamp("nextVisitAt"),
+  planningNote: varchar("planningNote", { length: 1000 }),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("recurringServicePlans_userId_idx").on(t.userId),
+  index("recurringServicePlans_jobId_idx").on(t.jobId),
+  index("recurringServicePlans_owner_active_idx").on(t.userId, t.active),
+]);
+export type RecurringServicePlan = typeof recurringServicePlans.$inferSelect;
 
 // ─── Integration Readiness ────────────────────────────────────────────────────
 // This table stores only owner-visible readiness metadata. Provider credentials and

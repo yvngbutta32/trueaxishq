@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "a188923c-bfce-4636-8755-a86d6ebefdcb",
-  "prevId": "979ce490-c2bf-4b76-ad98-e08827c1c19c",
+  "id": "93811f0f-a52a-4cea-9cec-48aebb7b9a2e",
+  "prevId": "a188923c-bfce-4636-8755-a86d6ebefdcb",
   "tables": {
     "auditLogs": {
       "name": "auditLogs",
@@ -5236,6 +5236,14 @@
             "scheduledStart"
           ],
           "isUnique": false
+        },
+        "serviceVisits_recurring_plan_start_unique_idx": {
+          "name": "serviceVisits_recurring_plan_start_unique_idx",
+          "columns": [
+            "recurringServicePlanId",
+            "scheduledStart"
+          ],
+          "isUnique": true
         }
       },
       "foreignKeys": {},

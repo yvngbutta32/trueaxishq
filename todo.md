@@ -1988,3 +1988,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Apply active service duration to final public booking conflict checks and client calendar exports without claiming calendar synchronization, routing, or payment collection
 - [x] Add focused owner-scope, public projection, pricing privacy, duration, and legacy-setting recovery contracts; validate and document the release
 - [x] Add optional owner-configured service buffers between appointments with interval-safe public booking enforcement and focused regression coverage
+
+## Recurring Service Foundation
+- [x] Add owner-scoped recurring service definitions with a bounded frequency, service selection, start/end conditions, and private planning notes without automatic billing, provider synchronization, or client claims
+- [x] Add owner-only next-visit planning and service-visit generation controls with explicit idempotent generation and no portal exposure of internal recurrence notes
+- [x] Add focused recurrence validation, owner isolation, idempotent visit-generation, and portal non-exposure contracts; validate and document the release
+- [x] Repair the confirmed concurrent recurring-visit generation race with a final unique plan-and-start boundary before publishing the feature
+- [x] Keep generated recurring visits owner-planned and unassigned until dispatch explicitly selects a team member, with no implied staff availability or routing claim

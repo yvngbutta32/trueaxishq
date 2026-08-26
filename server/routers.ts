@@ -16,7 +16,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -36,6 +36,7 @@ import { getProposalPackageSubtotal, normalizeProposalLineItems, parseProposalPa
 import { isProposalExpired } from "../shared/proposalValidity";
 import { isClientSafeJobActivityEvent } from "../shared/clientSafeJobActivity";
 import { doPublicBookingIntervalsOverlap, getPublishedBookingSchedule, getPublishedBookingServiceCatalog, getPublishedBookingServices, isPublishedPublicBookingSlot, PUBLIC_BOOKING_TIME_SLOTS } from "../shared/publicBookingRules";
+import { isValidRecurringServicePlanInput, nextRecurringServiceDate } from "../shared/recurringServicePlans";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -6819,6 +6820,86 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         if (visit.status !== "cancelled") await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: visit.jobId, actor: "owner", eventType: "service_visit_cancelled", message: "Cancelled a service visit." });
         return { success: true };
       }),
+  }),
+
+  recurringServicePlans: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select({
+        id: recurringServicePlans.id,
+        jobId: recurringServicePlans.jobId,
+        jobNumber: jobs.jobNumber,
+        jobTitle: jobs.title,
+        name: recurringServicePlans.name,
+        serviceName: recurringServicePlans.serviceName,
+        frequency: recurringServicePlans.frequency,
+        weekday: recurringServicePlans.weekday,
+        dayOfMonth: recurringServicePlans.dayOfMonth,
+        startDate: recurringServicePlans.startDate,
+        endDate: recurringServicePlans.endDate,
+        durationMinutes: recurringServicePlans.durationMinutes,
+        nextVisitAt: recurringServicePlans.nextVisitAt,
+        planningNote: recurringServicePlans.planningNote,
+        active: recurringServicePlans.active,
+      }).from(recurringServicePlans)
+        .innerJoin(jobs, and(eq(recurringServicePlans.jobId, jobs.id), eq(jobs.userId, ctx.user.id)))
+        .where(eq(recurringServicePlans.userId, ctx.user.id))
+        .orderBy(desc(recurringServicePlans.createdAt));
+    }),
+
+    create: protectedProcedure.input(z.object({
+      jobId: z.number().int().positive(),
+      name: safeString(255),
+      serviceName: safeString(255),
+      frequency: z.enum(["weekly", "monthly"]),
+      weekday: z.number().int().min(0).max(6).nullable().optional(),
+      dayOfMonth: z.number().int().min(1).max(28).nullable().optional(),
+      startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+      durationMinutes: z.number().int().min(15).max(480).default(60),
+      planningNote: safeOptionalString(1000),
+    })).mutation(async ({ ctx, input }) => {
+      const db = await requireDb();
+      const recurrenceInput = { frequency: input.frequency, weekday: input.weekday ?? null, dayOfMonth: input.dayOfMonth ?? null, startDate: input.startDate, endDate: input.endDate ?? null };
+      if (!isValidRecurringServicePlanInput(recurrenceInput)) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a valid recurrence schedule." });
+      const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+      if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+      const firstDate = nextRecurringServiceDate(recurrenceInput, input.startDate);
+      const [result] = await db.insert(recurringServicePlans).values({
+        userId: ctx.user.id, jobId: input.jobId, name: input.name, serviceName: input.serviceName,
+        frequency: input.frequency, weekday: input.weekday ?? null, dayOfMonth: input.dayOfMonth ?? null,
+        startDate: input.startDate, endDate: input.endDate ?? null, durationMinutes: input.durationMinutes,
+        nextVisitAt: firstDate ? new Date(`${firstDate}T09:00:00.000Z`) : null, planningNote: input.planningNote ?? null,
+      });
+      return { id: Number(result.insertId) };
+    }),
+
+    generateNextVisit: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+      const db = await requireDb();
+      const [plan] = await db.select().from(recurringServicePlans).where(and(eq(recurringServicePlans.id, input.id), eq(recurringServicePlans.userId, ctx.user.id), eq(recurringServicePlans.active, true))).limit(1);
+      if (!plan?.nextVisitAt) throw new TRPCError({ code: "NOT_FOUND", message: "Active recurring plan not found." });
+      const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, plan.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+      if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+      const start = plan.nextVisitAt;
+      const end = new Date(start.getTime() + plan.durationMinutes * 60_000);
+      const [existing] = await db.select({ id: serviceVisits.id }).from(serviceVisits).where(and(eq(serviceVisits.userId, ctx.user.id), eq(serviceVisits.recurringServicePlanId, plan.id), eq(serviceVisits.scheduledStart, start))).limit(1);
+      if (existing) return { id: existing.id, created: false };
+      let result: { insertId: number | bigint } | null = null;
+      try {
+        const [inserted] = await db.insert(serviceVisits).values({ userId: ctx.user.id, jobId: plan.jobId, recurringServicePlanId: plan.id, title: plan.serviceName, scheduledStart: start, scheduledEnd: end, clientVisible: false });
+        result = inserted;
+      } catch (error) {
+        if (!String(error).includes("serviceVisits_recurring_plan_start_unique_idx")) throw error;
+        const [duplicate] = await db.select({ id: serviceVisits.id }).from(serviceVisits).where(and(eq(serviceVisits.userId, ctx.user.id), eq(serviceVisits.recurringServicePlanId, plan.id), eq(serviceVisits.scheduledStart, start))).limit(1);
+        if (duplicate) return { id: duplicate.id, created: false };
+        throw error;
+      }
+      const recurrenceInput = { frequency: plan.frequency, weekday: plan.weekday, dayOfMonth: plan.dayOfMonth, startDate: plan.startDate, endDate: plan.endDate } as const;
+      const nextDate = nextRecurringServiceDate(recurrenceInput, start.toISOString().slice(0, 10));
+      const nextAfterGenerated = nextDate === start.toISOString().slice(0, 10) ? nextRecurringServiceDate(recurrenceInput, new Date(start.getTime() + 86_400_000).toISOString().slice(0, 10)) : nextDate;
+      await db.update(recurringServicePlans).set({ nextVisitAt: nextAfterGenerated ? new Date(`${nextAfterGenerated}T09:00:00.000Z`) : null }).where(and(eq(recurringServicePlans.id, plan.id), eq(recurringServicePlans.userId, ctx.user.id)));
+      return { id: Number(result.insertId), created: true };
+    }),
   }),
 
   // ── Integration Readiness ──────────────────────────────────────────────────

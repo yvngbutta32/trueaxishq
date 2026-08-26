@@ -1,0 +1,1 @@
+ALTER TABLE `serviceVisits` ADD CONSTRAINT `serviceVisits_recurring_plan_start_unique_idx` UNIQUE(`recurringServicePlanId`,`scheduledStart`);
