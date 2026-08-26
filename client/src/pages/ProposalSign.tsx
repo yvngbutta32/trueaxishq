@@ -8,6 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { PublicRecoveryState } from "@/components/PublicRecoveryState";
+import { getProposalPackageSubtotal, parseProposalPackages } from "@shared/proposalPackages";
 import {
   CheckCircle, FileText, AlertCircle, Loader2,
   PenLine, Calendar, DollarSign, User, Shield,
@@ -40,6 +41,7 @@ export default function ProposalSign() {
   const [signatureName, setSignatureName] = useState("");
   const [signed, setSigned] = useState(false);
   const [agreementChecked, setAgreementChecked] = useState(false);
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
 
   const { data: proposal, isLoading, error } = trpc.proposals.getPublic.useQuery(
     { token },
@@ -65,7 +67,11 @@ export default function ProposalSign() {
       toast.error("Please confirm you agree to the terms.");
       return;
     }
-    signMutation.mutate({ token, signatureName: signatureName.trim() });
+    if (proposalPackages.length && !selectedPackageId) {
+      toast.error("Choose one proposal option before signing.");
+      return;
+    }
+    signMutation.mutate({ token, signatureName: signatureName.trim(), selectedPackageId: selectedPackageId ?? undefined });
   };
 
   // ── Loading ────────────────────────────────────────────────────────────────
@@ -141,6 +147,7 @@ export default function ProposalSign() {
   // ── Parse line items ───────────────────────────────────────────────────────
   let lineItems: { id: string; name: string; description?: string; qty: number; unitPrice: number; total: number }[] = [];
   try { lineItems = JSON.parse(proposal.lineItems || "[]"); } catch { lineItems = []; }
+  const proposalPackages = parseProposalPackages(proposal.packageOptions);
 
   const subtotal = parseFloat(String(proposal.subtotal || "0"));
   const taxRate = parseFloat(String(proposal.taxRate || "0"));
@@ -186,7 +193,7 @@ export default function ProposalSign() {
         {/* Meta row */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {[
-            { icon: DollarSign, label: "Total Value", value: `${proposal.currency} ${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, color: "#D4922A" },
+            { icon: DollarSign, label: "Total Value", value: proposalPackages.length ? "Choose an option" : `${proposal.currency} ${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, color: "#D4922A" },
             { icon: Calendar, label: "Valid Until", value: proposal.validUntil ? new Date(proposal.validUntil + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "Open", color: "#60a5fa" },
             { icon: Clock, label: "Status", value: proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1), color: "#22c55e" },
           ].map(({ icon: Icon, label, value, color }) => (
@@ -208,6 +215,13 @@ export default function ProposalSign() {
               <p className="text-[rgba(26,26,26,0.70)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.scope}</p>
             </div>
           </div>
+        )}
+
+        {proposalPackages.length > 0 && (
+          <section className="rounded-2xl border border-violet-200 bg-violet-50/55 p-5">
+            <div className="flex items-start gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-violet-200 bg-violet-100"><FileText className="h-4 w-4 text-violet-700" /></div><div><h2 className="text-sm font-bold uppercase tracking-wider text-violet-950">Choose your proposal option</h2><p className="mt-1 text-sm text-violet-950/70">Select one option to review and sign. Selection is recorded with your signature.</p></div></div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{proposalPackages.map(option => { const optionSubtotal = getProposalPackageSubtotal(option); const optionTax = optionSubtotal * (taxRate / 100); const optionTotal = optionSubtotal + optionTax; const selected = selectedPackageId === option.id; return <button key={option.id} type="button" onClick={() => setSelectedPackageId(option.id)} aria-pressed={selected} className={`rounded-xl border p-4 text-left transition focus:outline-none focus:ring-2 focus:ring-violet-400 ${selected ? "border-violet-500 bg-white shadow-sm" : "border-violet-200 bg-white/70 hover:border-violet-300"}`}><div className="flex items-start justify-between gap-3"><p className="font-semibold text-[#1A1A1A]">{option.name}</p><span className={`mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 ${selected ? "border-violet-600 bg-violet-600 shadow-[inset_0_0_0_2px_white]" : "border-violet-300"}`} aria-hidden="true" /></div>{option.description && <p className="mt-2 text-xs leading-5 text-[rgba(26,26,26,0.62)]">{option.description}</p>}<ul className="mt-3 space-y-1.5 border-t border-violet-100 pt-3">{option.lineItems.map(item => <li key={item.id} className="flex justify-between gap-3 text-xs text-[rgba(26,26,26,0.72)]"><span>{item.name}{item.qty > 1 ? ` × ${item.qty}` : ""}</span><span>{proposal.currency} {item.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></li>)}</ul><div className="mt-3 flex justify-between border-t border-violet-100 pt-3 text-sm font-bold text-violet-950"><span>Total{taxRate > 0 ? ` incl. ${taxRate}% tax` : ""}</span><span>{proposal.currency} {optionTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div></button>; })}</div>
+          </section>
         )}
 
         {/* Line Items */}
@@ -303,11 +317,11 @@ export default function ProposalSign() {
 
           <Button
             onClick={handleSign}
-            disabled={signMutation.isPending || !signatureName.trim() || !agreementChecked}
+            disabled={signMutation.isPending || !signatureName.trim() || !agreementChecked || (proposalPackages.length > 0 && !selectedPackageId)}
             className="w-full py-3 rounded-xl font-bold text-sm gap-2 transition-all"
             style={{
-              background: signatureName.trim() && agreementChecked ? "linear-gradient(135deg, #D4922A, #F0A830)" : undefined,
-              opacity: signatureName.trim() && agreementChecked ? 1 : 0.5,
+              background: signatureName.trim() && agreementChecked && (!proposalPackages.length || selectedPackageId) ? "linear-gradient(135deg, #D4922A, #F0A830)" : undefined,
+              opacity: signatureName.trim() && agreementChecked && (!proposalPackages.length || selectedPackageId) ? 1 : 0.5,
             }}
           >
             {signMutation.isPending ? (

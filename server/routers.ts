@@ -32,6 +32,7 @@ import { createWebhookSigningSecret, deliverWorkflowWebhookEvent, encryptWebhook
 import { getTrustedPaymentReturnOrigin } from "./paymentReturnOrigin";
 import { buildClientCsv } from "./clientCsvExport";
 import { buildJobCostCsv, type ExportableJobCostRow } from "./jobCostCsvExport";
+import { getProposalPackageSubtotal, normalizeProposalLineItems, parseProposalPackages, type ProposalPackage } from "../shared/proposalPackages";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -82,6 +83,20 @@ const safeOptionalEmail = z.string().trim().email("Invalid email address").max(3
 const safeUrl = z.string().url("Invalid URL").max(2048);
 const jobWorkspaceStatusSchema = z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]);
 type JobWorkspaceStatus = z.infer<typeof jobWorkspaceStatusSchema>;
+const proposalLineItemSchema = z.object({
+  id: z.string().min(1).max(64),
+  name: safeString(255),
+  description: safeOptionalString(500),
+  qty: z.number().min(0),
+  unitPrice: z.number().min(0),
+  total: z.number().min(0),
+});
+const proposalPackageSchema = z.object({
+  id: z.string().min(1).max(64),
+  name: safeString(255),
+  description: safeOptionalString(1000),
+  lineItems: z.array(proposalLineItemSchema).min(1).max(25),
+});
 
 async function getOwnerJobCostReport(
   db: Awaited<ReturnType<typeof requireDb>>,
@@ -4716,14 +4731,8 @@ Only include actions when you have actually generated a complete draft. For gene
         clientEmail: safeOptionalEmail,
         title: safeString(512),
         scope: z.string().max(10000).optional(),
-        lineItems: z.array(z.object({
-          id: z.string(),
-          name: safeString(255),
-          description: safeOptionalString(500),
-          qty: z.number().min(0),
-          unitPrice: z.number().min(0),
-          total: z.number().min(0),
-        })),
+        lineItems: z.array(proposalLineItemSchema),
+        packageOptions: z.array(proposalPackageSchema).min(2).max(3).optional(),
         taxRate: z.number().min(0).max(100).default(0),
         currency: z.string().length(3).default("USD"),
         validUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
@@ -4733,7 +4742,9 @@ Only include actions when you have actually generated a complete draft. For gene
         const db = await requireDb();
         const crypto = await import("crypto");
         const token = crypto.randomBytes(32).toString("hex");
-        const subtotal = input.lineItems.reduce((s, li) => s + li.total, 0);
+        const lineItems = normalizeProposalLineItems(input.lineItems);
+        const packageOptions = input.packageOptions?.map(option => ({ ...option, lineItems: normalizeProposalLineItems(option.lineItems) })) as ProposalPackage[] | undefined;
+        const subtotal = packageOptions ? 0 : lineItems.reduce((s, li) => s + li.total, 0);
         const total = subtotal * (1 + (input.taxRate / 100));
         const [row] = await db.insert(proposals).values({
           userId: ctx.user.id,
@@ -4742,7 +4753,8 @@ Only include actions when you have actually generated a complete draft. For gene
           clientEmail: input.clientEmail,
           title: input.title,
           scope: input.scope,
-          lineItems: JSON.stringify(input.lineItems),
+          lineItems: JSON.stringify(lineItems),
+          packageOptions: packageOptions ? JSON.stringify(packageOptions) : null,
           subtotal: String(subtotal),
           taxRate: String(input.taxRate),
           total: String(total),
@@ -4762,14 +4774,7 @@ Only include actions when you have actually generated a complete draft. For gene
         clientEmail: safeOptionalEmail,
         title: safeOptionalString(512),
         scope: z.string().max(10000).optional(),
-        lineItems: z.array(z.object({
-          id: z.string(),
-          name: safeString(255),
-          description: safeOptionalString(500),
-          qty: z.number().min(0),
-          unitPrice: z.number().min(0),
-          total: z.number().min(0),
-        })).optional(),
+        lineItems: z.array(proposalLineItemSchema).optional(),
         taxRate: z.number().min(0).max(100).optional(),
         currency: z.string().length(3).optional(),
         validUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
@@ -4777,11 +4782,15 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ input, ctx }) => {
         const db = await requireDb();
+        const [existing] = await db.select({ status: proposals.status }).from(proposals).where(and(eq(proposals.id, input.id), eq(proposals.userId, ctx.user.id))).limit(1);
+        if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Proposal not found." });
+        if (existing.status === "signed") throw new TRPCError({ code: "BAD_REQUEST", message: "Signed proposals cannot be edited." });
         const { id, lineItems, taxRate, ...rest } = input;
         const updates: Record<string, unknown> = { ...rest };
         if (lineItems !== undefined) {
-          updates.lineItems = JSON.stringify(lineItems);
-          const subtotal = lineItems.reduce((s, li) => s + li.total, 0);
+          const normalizedLineItems = normalizeProposalLineItems(lineItems);
+          updates.lineItems = JSON.stringify(normalizedLineItems);
+          const subtotal = normalizedLineItems.reduce((s, li) => s + li.total, 0);
           const rate = taxRate ?? 0;
           updates.subtotal = String(subtotal);
           updates.taxRate = String(rate);
@@ -4823,6 +4832,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({
         token: z.string().min(1),
         signatureName: safeString(255),
+        selectedPackageId: z.string().min(1).max(64).optional(),
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
@@ -4830,17 +4840,31 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Proposal not found." });
         if (row.status === "signed") throw new TRPCError({ code: "BAD_REQUEST", message: "This proposal has already been signed." });
         if (row.status === "declined") throw new TRPCError({ code: "BAD_REQUEST", message: "This proposal was declined." });
+        const packageOptions = parseProposalPackages(row.packageOptions);
+        const selectedPackage = packageOptions.length ? packageOptions.find(option => option.id === input.selectedPackageId) : undefined;
+        if (packageOptions.length && !selectedPackage) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose one of the available proposal options before signing." });
+        if (!packageOptions.length && input.selectedPackageId) throw new TRPCError({ code: "BAD_REQUEST", message: "This proposal does not have selectable options." });
+        const selectedLineItems = selectedPackage ? normalizeProposalLineItems(selectedPackage.lineItems) : null;
+        const selectedSubtotal = selectedPackage ? getProposalPackageSubtotal(selectedPackage) : null;
+        const selectedTotal = selectedSubtotal === null ? null : Math.round(selectedSubtotal * (1 + Number(row.taxRate ?? 0) / 100) * 100) / 100;
         await db.update(proposals).set({
           status: "signed",
           signedAt: new Date(),
           signatureName: input.signatureName,
-        }).where(eq(proposals.id, row.id));
+          ...(selectedPackage ? {
+            selectedPackageId: selectedPackage.id,
+            selectedPackage: JSON.stringify(selectedPackage),
+            lineItems: JSON.stringify(selectedLineItems),
+            subtotal: String(selectedSubtotal),
+            total: String(selectedTotal),
+          } : {}),
+        }).where(and(eq(proposals.id, row.id), eq(proposals.token, input.token), eq(proposals.status, row.status)));
         // Notify the owner
         notifyOwner({
           title: `Proposal Signed: ${row.title}`,
-          content: `${row.clientName} signed your proposal "${row.title}" for $${parseFloat(String(row.total)).toLocaleString()}.`,
+          content: `${row.clientName} signed your proposal "${row.title}"${selectedPackage ? ` after selecting ${selectedPackage.name}` : ""} for $${(selectedTotal ?? parseFloat(String(row.total))).toLocaleString()}.`,
         }).catch(() => {});
-        return { success: true };
+        return { success: true, selectedPackageId: selectedPackage?.id ?? null, total: selectedTotal ?? Number(row.total) };
       }),
 
     convertToInvoice: protectedProcedure
@@ -4850,6 +4874,8 @@ Only include actions when you have actually generated a complete draft. For gene
         const [row] = await db.select().from(proposals)
           .where(and(eq(proposals.id, input.id), eq(proposals.userId, ctx.user.id))).limit(1);
         if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+        if (row.packageOptions && row.status !== "signed") throw new TRPCError({ code: "BAD_REQUEST", message: "A package proposal can only be converted after the client signs a selected option." });
+        if (row.packageOptions && !row.selectedPackageId) throw new TRPCError({ code: "BAD_REQUEST", message: "The signed proposal does not include a package selection." });
         const lineItems = JSON.parse(row.lineItems || "[]");
         const invoiceNumber = generateInvoiceNumber();
         const [inv] = await db.insert(invoices).values({

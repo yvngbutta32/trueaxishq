@@ -1880,3 +1880,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add an explicit owner-controlled margin threshold and local report signals for negative, below-threshold, and missing-revenue-basis jobs without automatic messages or client exposure
 - [x] Add deterministic threshold parsing and report-signal contracts, including clear non-accounting and non-notification boundaries
 - [x] Document the research rationale, validate the release, and preserve the external session/provider gates
+
+## Token-Scoped Proposal Package Selection — Evidence-Led
+- [x] Add an owner-defined, bounded set of proposal packages and a token-scoped client single-choice flow that records the final selection when the proposal is signed
+- [x] Ensure proposal package selection is valid only for the proposal token, owner-scoped on configuration, immutable after signature, and does not claim payment, automatic job creation, delivery, or template-marketplace behavior
+- [x] Add focused contracts for package validation, token isolation, selected-package invoice conversion, and public recovery; document and validate the release

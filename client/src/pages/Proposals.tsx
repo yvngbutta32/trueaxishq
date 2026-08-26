@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   FileText, Plus, Send, Trash2, Eye, CheckCircle, Clock, XCircle,
-  DollarSign, Pencil, ArrowRight, Copy, ExternalLink, Sparkles, Loader2,
+  DollarSign, Pencil, ArrowRight, Copy, ExternalLink, Sparkles, Loader2, Layers,
 } from "lucide-react";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -25,14 +25,16 @@ const STATUS_ICONS: Record<string, any> = {
 };
 
 type LineItem = { id: string; name: string; description: string; qty: number; unitPrice: number; total: number };
+type PackageOption = { id: string; name: string; description: string; lineItems: LineItem[] };
 type ProposalForm = {
   clientName: string; clientEmail: string; title: string; scope: string;
-  lineItems: LineItem[]; taxRate: string; currency: string; validUntil: string; notes: string;
+  lineItems: LineItem[]; packageOptions: PackageOption[]; taxRate: string; currency: string; validUntil: string; notes: string;
 };
 
 const newLineItem = (): LineItem => ({ id: crypto.randomUUID(), name: "", description: "", qty: 1, unitPrice: 0, total: 0 });
+const newPackageOption = (name = ""): PackageOption => ({ id: crypto.randomUUID(), name, description: "", lineItems: [newLineItem()] });
 const EMPTY_FORM: ProposalForm = {
-  clientName: "", clientEmail: "", title: "", scope: "", lineItems: [newLineItem()],
+  clientName: "", clientEmail: "", title: "", scope: "", lineItems: [newLineItem()], packageOptions: [],
   taxRate: "0", currency: "USD", validUntil: "", notes: "",
 };
 
@@ -125,14 +127,29 @@ export default function Proposals() {
     }));
   }
 
+  function updatePackageLineItem(packageId: string, itemId: string, field: keyof LineItem, value: string | number) {
+    setForm(p => ({ ...p, packageOptions: p.packageOptions.map(option => option.id !== packageId ? option : {
+      ...option,
+      lineItems: option.lineItems.map(item => {
+        if (item.id !== itemId) return item;
+        const updated = { ...item, [field]: value };
+        if (field === "qty" || field === "unitPrice") updated.total = updated.qty * updated.unitPrice;
+        return updated;
+      }),
+    }) }));
+  }
+
   function handleSubmit() {
     if (!form.clientName.trim()) return toast.error("Client name is required");
     if (!form.title.trim()) return toast.error("Proposal title is required");
-    if (form.lineItems.some(li => !li.name.trim())) return toast.error("All line items need a name");
+    if (!form.packageOptions.length && form.lineItems.some(li => !li.name.trim())) return toast.error("All line items need a name");
+    if (form.packageOptions.length && (form.packageOptions.length < 2 || form.packageOptions.some(option => !option.name.trim() || option.lineItems.some(item => !item.name.trim())))) return toast.error("Add a name and at least one named item to each package.");
     createMut.mutate({
       clientName: form.clientName, clientEmail: form.clientEmail || undefined,
       title: form.title, scope: form.scope || undefined,
-      lineItems: form.lineItems, taxRate: parseFloat(form.taxRate || "0"),
+      lineItems: form.packageOptions.length ? [] : form.lineItems,
+      packageOptions: form.packageOptions.length ? form.packageOptions : undefined,
+      taxRate: parseFloat(form.taxRate || "0"),
       currency: form.currency, validUntil: form.validUntil || undefined, notes: form.notes || undefined,
     });
   }
@@ -395,6 +412,32 @@ export default function Proposals() {
                 </div>
               </div>
             </div>
+
+            <section className="rounded-xl border border-violet-200 bg-violet-50/55 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="flex items-center gap-2"><Layers className="h-4 w-4 text-violet-700" /><h3 className="text-sm font-semibold text-violet-950">Client-selectable packages</h3></div>
+                  <p className="mt-1 text-xs leading-5 text-violet-900/75">Offer two or three alternatives. The client chooses one on the secure proposal link before signing. This does not request payment or create a job.</p>
+                </div>
+                <Button type="button" size="sm" variant="outline" onClick={() => setForm(p => ({ ...p, packageOptions: p.packageOptions.length ? [] : [newPackageOption("Option 1"), newPackageOption("Option 2")] }))} className="border-violet-200 text-violet-800 hover:bg-violet-100">{form.packageOptions.length ? "Use single price" : "Offer options"}</Button>
+              </div>
+              {form.packageOptions.length > 0 && <div className="mt-4 space-y-3">
+                {form.packageOptions.map((option, optionIndex) => {
+                  const optionSubtotal = option.lineItems.reduce((sum, item) => sum + item.total, 0);
+                  const optionTotal = optionSubtotal * (1 + parseFloat(form.taxRate || "0") / 100);
+                  return <div key={option.id} className="rounded-xl border border-violet-100 bg-white p-3">
+                    <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                      <Input value={option.name} onChange={event => setForm(p => ({ ...p, packageOptions: p.packageOptions.map(item => item.id === option.id ? { ...item, name: event.target.value } : item) }))} placeholder={`Option ${optionIndex + 1} name`} className="border-violet-200 text-[#1A1A1A]" />
+                      <div className="flex items-center gap-2"><span className="text-sm font-semibold text-violet-950">${optionTotal.toFixed(2)}</span>{form.packageOptions.length > 2 && <button type="button" aria-label={`Remove ${option.name || `option ${optionIndex + 1}`}`} onClick={() => setForm(p => ({ ...p, packageOptions: p.packageOptions.filter(item => item.id !== option.id) }))} className="rounded p-1 text-violet-500 hover:bg-violet-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>}</div>
+                    </div>
+                    <Input value={option.description} onChange={event => setForm(p => ({ ...p, packageOptions: p.packageOptions.map(item => item.id === option.id ? { ...item, description: event.target.value } : item) }))} placeholder="What makes this option distinct? (optional)" className="mt-2 border-violet-100 text-sm text-[#1A1A1A]" />
+                    {option.lineItems.map(item => <div key={item.id} className="mt-2 grid grid-cols-[minmax(0,1fr)_72px_96px_auto] items-center gap-2"><Input value={item.name} onChange={event => updatePackageLineItem(option.id, item.id, "name", event.target.value)} placeholder="Included item" className="border-violet-100 text-sm text-[#1A1A1A]" /><Input type="number" min="0" value={item.qty} onChange={event => updatePackageLineItem(option.id, item.id, "qty", Number(event.target.value) || 0)} className="border-violet-100 text-sm text-[#1A1A1A]" /><Input type="number" min="0" value={item.unitPrice} onChange={event => updatePackageLineItem(option.id, item.id, "unitPrice", Number(event.target.value) || 0)} className="border-violet-100 text-sm text-[#1A1A1A]" /><span className="text-right text-xs font-semibold text-violet-900">${item.total.toFixed(2)}</span></div>)}
+                    <button type="button" onClick={() => setForm(p => ({ ...p, packageOptions: p.packageOptions.map(item => item.id === option.id ? { ...item, lineItems: [...item.lineItems, newLineItem()] } : item) }))} className="mt-2 text-xs font-semibold text-violet-700 hover:text-violet-900">+ Add package item</button>
+                  </div>;
+                })}
+                {form.packageOptions.length < 3 && <button type="button" onClick={() => setForm(p => ({ ...p, packageOptions: [...p.packageOptions, newPackageOption(`Option ${p.packageOptions.length + 1}`)] }))} className="text-xs font-semibold text-violet-700 hover:text-violet-900">+ Add another option</button>}
+              </div>}
+            </section>
 
             <div className="grid grid-cols-2 gap-3">
               <div>

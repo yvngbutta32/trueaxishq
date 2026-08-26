@@ -700,6 +700,9 @@ export const proposals = mysqlTable("proposals", {
   validUntil: varchar("validUntil", { length: 32 }),
   status: mysqlEnum("status", ["draft", "sent", "viewed", "signed", "declined"]).default("draft").notNull(),
   token: varchar("token", { length: 128 }).unique(), // public signing link token
+  packageOptions: text("packageOptions"), // JSON: owner-defined client-selectable proposal packages; null for a standard proposal
+  selectedPackageId: varchar("selectedPackageId", { length: 64 }), // immutable token-scoped choice recorded when signed
+  selectedPackage: text("selectedPackage"), // JSON snapshot of the selected package at signing
   signedAt: timestamp("signedAt"),
   signatureName: varchar("signatureName", { length: 255 }),
   viewedAt: timestamp("viewedAt"),
