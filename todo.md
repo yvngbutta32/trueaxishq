@@ -1970,3 +1970,15 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## Public Booking Fully Occupied Date Controls
 - [x] Disable a visible date when every published time slot for that date is occupied, without returning additional booking data
 - [x] Add a focused client-control contract, validate, and document the release
+
+## Fresh Full-System Competitor Comparison — User Requested
+- [x] Compare validated TrueAxis HQ capabilities and evidence boundaries across clientflow, proposals, finance, field/dispatch, automation, integrations, security, usability, and launch evidence against current official competitor material
+- [x] Publish a candid prioritized roadmap identifying what must be built, validated, or integrated to improve the product’s competitive position without unsupported market-dominance claims
+
+## Research-Only Competitor Assessment
+- [x] Deliver the current competitor comparison and prioritized gap analysis without changing product code, data, configuration, or release state
+
+## Staff Identity and Role-Based Access Foundation
+- [ ] Add owner-controlled staff invitations and bounded workspace roles so team roster records can become authenticated operational identities without exposing owner finance, private CRM fields, or internal planning by default
+- [ ] Add least-privilege server predicates and a clear owner/staff workspace experience for assigned jobs, service visits, and field execution without claiming enterprise permission parity
+- [ ] Add deterministic invitation, role, owner-isolation, staff-scope, revocation, and portal non-exposure contracts; validate and document the release
