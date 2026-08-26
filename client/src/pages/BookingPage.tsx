@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PublicRecoveryState } from "@/components/PublicRecoveryState";
+import { DEFAULT_PUBLIC_BOOKING_SERVICES, PUBLIC_BOOKING_TIME_SLOTS } from "@shared/publicBookingRules";
 
 // ─── .ics calendar file generator ────────────────────────────────────────────
 function generateICS({
@@ -133,12 +134,6 @@ function buildGoogleCalendarUrl({
 }
 
 // Services are loaded dynamically from the booking page owner's configuration
-
-const TIME_SLOTS = [
-  "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-  "12:00 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM",
-  "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM",
-];
 
 function getNextDays(count: number) {
   const days = [];
@@ -524,7 +519,7 @@ export default function BookingPage() {
                     <option value="">Select a service…</option>
                     {(host.bookingServices && host.bookingServices.length > 0
                       ? host.bookingServices
-                      : ["Coaching Session", "Strategy Call", "Consultation"]
+                      : DEFAULT_PUBLIC_BOOKING_SERVICES
                     ).map((s: string) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
@@ -617,7 +612,7 @@ export default function BookingPage() {
               <fieldset className="mb-6">
                 <legend className="form-label mb-3">Select a time</legend>
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2" role="group" aria-label="Available time slots">
-                  {TIME_SLOTS.map(time => {
+                  {PUBLIC_BOOKING_TIME_SLOTS.map(time => {
                     const isSelected = form.preferredTime === time;
                     return (
                       <button

@@ -1952,3 +1952,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Repair the confirmed Stripe billing-portal return-origin weakness by restricting account-management redirects to trusted application origins
 - [x] Repair the confirmed client-portal token URL origin weakness by restricting generated credential-bearing portal links to trusted application origins
 - [x] Repair the confirmed proposal delivery-link origin weakness by restricting emailed signing URLs to trusted application origins
+
+## Public Booking Availability Enforcement
+- [x] Enforce the owner’s published future slot availability and configured service choices in the server-side public booking mutation rather than relying on browser controls
+- [x] Add deterministic contracts for valid slots, unavailable times, disabled services, and owner-scoped availability parsing; validate and document the release

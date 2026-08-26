@@ -35,6 +35,7 @@ import { buildJobCostCsv, type ExportableJobCostRow } from "./jobCostCsvExport";
 import { getProposalPackageSubtotal, normalizeProposalLineItems, parseProposalPackages, type ProposalPackage } from "../shared/proposalPackages";
 import { isProposalExpired } from "../shared/proposalValidity";
 import { isClientSafeJobActivityEvent } from "../shared/clientSafeJobActivity";
+import { getPublishedBookingServices, isPublishedPublicBookingSlot } from "../shared/publicBookingRules";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -2312,7 +2313,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const host = result[0];
         return {
           ...host,
-          bookingServices: host.bookingServices ? JSON.parse(host.bookingServices) : ["Coaching Session", "Strategy Call", "Consultation"],
+          bookingServices: getPublishedBookingServices(host.bookingServices),
         };
       }),
 
@@ -2329,13 +2330,20 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
-        const host = await db.select({ id: users.id, notifyNewBooking: users.notifyNewBooking, bookingUsername: users.bookingUsername })
+        const host = await db.select({ id: users.id, notifyNewBooking: users.notifyNewBooking, bookingUsername: users.bookingUsername, bookingServices: users.bookingServices })
           .from(users).where(eq(users.bookingUsername, input.hostUsername)).limit(1);
         if (!host[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Booking page not found." });
 
         const hostId = host[0].id;
         if (input.preferredDate < new Date().toISOString().slice(0, 10)) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a future appointment date." });
+        }
+        const publishedServices = getPublishedBookingServices(host[0].bookingServices);
+        if (!publishedServices.includes(input.service)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a service currently offered on this booking page." });
+        }
+        if (!isPublishedPublicBookingSlot(input.preferredDate, input.preferredTime)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Choose an available weekday time slot from this booking page." });
         }
 
         let uploadSession: { id: number } | null = null;
