@@ -585,14 +585,18 @@ export default function BookingPage() {
                   const dayName = day.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
                   const dayNum = day.getUTCDate();
                   const isSelected = form.preferredDate === isoDate;
+                  const isFullyOccupied = publishedSchedule.timeSlots.every(time => host.bookedSlots?.some((slot: { date: string; time: string }) => slot.date === isoDate && slot.time === time));
                   return (
                     <button
                       key={isoDate}
                       onClick={() => setForm(p => ({ ...p, preferredDate: isoDate, preferredTime: "" }))}
+                      disabled={isFullyOccupied}
                       aria-pressed={isSelected}
-                      aria-label={`${dayName} ${dateStr}`}
+                      aria-label={isFullyOccupied ? `${dayName} ${dateStr} is fully booked` : `${dayName} ${dateStr}`}
                       className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 ${
-                        isSelected
+                        isFullyOccupied
+                          ? "cursor-not-allowed border-[#DDDBD7] bg-[#EEECEA] text-[#9A9892] opacity-70"
+                          : isSelected
                           ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]"
                           : "border-[#C8C5BF] bg-[#F7F6F3] hover:border-white/25 text-[#3D3D3D]"
                       }`}

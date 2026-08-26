@@ -1966,3 +1966,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Return bounded future scheduled date/time pairs only from the public booking page query, with no client, service, booking ID, or owner metadata
 - [x] Disable occupied visible slots in the public booking interface while retaining the server’s final unique-slot safeguard
 - [x] Add deterministic public projection and client-control contracts; validate and document the release
+
+## Public Booking Fully Occupied Date Controls
+- [x] Disable a visible date when every published time slot for that date is occupied, without returning additional booking data
+- [x] Add a focused client-control contract, validate, and document the release

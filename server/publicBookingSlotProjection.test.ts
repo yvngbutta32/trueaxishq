@@ -23,4 +23,10 @@ describe("privacy-safe public occupied booking slots", () => {
     expect(bookingPageSource).toContain("disabled={isOccupied}");
     expect(bookingPageSource).toContain("is unavailable");
   });
+
+  it("disables a date when every time published for that date is occupied", () => {
+    expect(bookingPageSource).toContain("const isFullyOccupied = publishedSchedule.timeSlots.every");
+    expect(bookingPageSource).toContain("disabled={isFullyOccupied}");
+    expect(bookingPageSource).toContain("is fully booked");
+  });
 });
