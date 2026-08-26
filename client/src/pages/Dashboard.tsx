@@ -874,6 +874,12 @@ function ClientsPanel() {
 
   const { data: clientList, isLoading } = trpc.clients.list.useQuery({ search: debouncedSearch, status: statusFilter });
   const { data: selectedClient } = trpc.clients.get.useQuery({ id: selectedId! }, { enabled: !!selectedId });
+  const { data: clientCustomFields } = trpc.clients.listCustomFields.useQuery();
+  const { data: selectedClientCustomValues } = trpc.clients.getCustomFieldValues.useQuery({ clientId: selectedId! }, { enabled: !!selectedId });
+  const setClientCustomValue = trpc.clients.setCustomFieldValue.useMutation({
+    onSuccess: () => { if (selectedId) utils.clients.getCustomFieldValues.invalidate({ clientId: selectedId }); },
+    onError: error => toast.error(error.message),
+  });
   const { data: pulseData } = trpc.pulse.getAll.useQuery(undefined, { retry: 1 });
   const { data: pipelineData, isLoading: pipelineLoading } = trpc.clients.listByStage.useQuery(undefined, { enabled: viewMode === "pipeline" });
   const updateStage = trpc.clients.updateStage.useMutation({
@@ -1385,6 +1391,18 @@ function ClientsPanel() {
               <div className="bg-[#F7F6F3] rounded-xl p-4">
                 <p className="text-xs font-semibold text-[#6B6B6B] mb-1">Notes</p>
                 <p className="text-sm text-[#2A2A2A] whitespace-pre-wrap">{selectedClient.notes}</p>
+              </div>
+            )}
+            {profileTab === "info" && !!clientCustomFields?.length && (
+              <div className="bg-[#F7F6F3] rounded-xl p-4 space-y-3">
+                <p className="text-xs font-semibold text-[#6B6B6B]">Private custom fields</p>
+                {clientCustomFields.filter(field => field.active).map(field => {
+                  const value = selectedClientCustomValues?.find(item => item.fieldId === field.id)?.value ?? "";
+                  const options = field.fieldType === "select" ? (JSON.parse(field.options || "[]") as string[]) : [];
+                  return <label key={field.id} className="block text-xs font-medium text-[#4A4A4A]">{field.label}
+                    {field.fieldType === "select" ? <select value={value} onChange={e => setClientCustomValue.mutate({ clientId: selectedClient.id, fieldId: field.id, value: e.target.value || null })} className="form-input-light mt-1 w-full text-sm"><option value="">Not set</option>{options.map(option => <option key={option} value={option}>{option}</option>)}</select> : <input defaultValue={value} onBlur={e => { if (e.target.value !== value) setClientCustomValue.mutate({ clientId: selectedClient.id, fieldId: field.id, value: e.target.value.trim() || null }); }} className="form-input-light mt-1 w-full text-sm" maxLength={2000} />}
+                  </label>;
+                })}
               </div>
             )}
             {/* Document Storage & Actions - only show on Info tab */}

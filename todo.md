@@ -1841,3 +1841,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## Owner-Managed Client Custom Fields — Research-Supported
 - [ ] Add private owner-managed text/select custom fields and client values with explicit limits and no public/client editing
 - [ ] Add deterministic field-definition, value-isolation, selection-validation, and non-exposure contracts; publish an evidence-labeled scope boundary
+
+## Competitor-Informed Owner Clarity Program — User Requested
+- [ ] Audit high-frequency owner journeys and documented competitor workflow guidance for friction, ambiguity, and unnecessary navigation
+- [ ] Implement the highest-value evidence-supported owner-clarity and workflow-simplification improvements
+- [ ] Validate the resulting professional experience with deterministic workflow contracts, available responsive evidence, and an explicit external-session boundary
