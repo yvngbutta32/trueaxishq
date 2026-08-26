@@ -61,6 +61,10 @@ export default function Proposals() {
     onSuccess: (data) => { utils.proposals.list.invalidate(); toast.success(`Invoice ${data.invoiceNumber} created`); },
     onError: e => toast.error(e.message),
   });
+  const duplicateMut = trpc.proposals.duplicate.useMutation({
+    onSuccess: () => { utils.proposals.list.invalidate(); toast.success("Draft copy created without client or sharing details."); },
+    onError: e => toast.error(e.message),
+  });
   const aiGenerateMut = trpc.ai.generateProposal.useMutation({
     onSuccess: (data) => {
       const d = data.draft;
@@ -270,6 +274,7 @@ export default function Proposals() {
                   {p.token && (
                     <button type="button" aria-label={`Copy secure link for proposal ${p.title}`} onClick={() => { const url = `${window.location.origin}/proposal/${p.token}`; navigator.clipboard.writeText(url); toast.success("Link copied"); }} title="Copy link" className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors"><Copy className="w-4 h-4" /></button>
                   )}
+                  <button type="button" aria-label={`Duplicate proposal ${p.title}`} onClick={() => duplicateMut.mutate({ id: p.id })} disabled={duplicateMut.isPending} title="Duplicate as a fresh draft" className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[#3B82F6] disabled:opacity-50 transition-colors"><FileText className="w-4 h-4" /></button>
                   <button type="button" aria-label={`Delete proposal ${p.title}`} onClick={() => setDeleteConfirm(p.id)} title="Delete" className="p-2 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>

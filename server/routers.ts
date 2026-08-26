@@ -4770,6 +4770,35 @@ Only include actions when you have actually generated a complete draft. For gene
         return { id: Number(row.insertId), token };
       }),
 
+    duplicate: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await requireDb();
+        const [source] = await db.select().from(proposals).where(and(eq(proposals.id, input.id), eq(proposals.userId, ctx.user.id))).limit(1);
+        if (!source) throw new TRPCError({ code: "NOT_FOUND", message: "Proposal not found." });
+        const crypto = await import("crypto");
+        const token = crypto.randomBytes(32).toString("hex");
+        const hasPackageOptions = Boolean(source.packageOptions);
+        const [result] = await db.insert(proposals).values({
+          userId: ctx.user.id,
+          clientId: null,
+          clientName: "",
+          clientEmail: null,
+          title: `Copy of ${source.title}`.slice(0, 512),
+          scope: source.scope,
+          lineItems: hasPackageOptions ? "[]" : source.lineItems,
+          subtotal: hasPackageOptions ? "0" : source.subtotal,
+          taxRate: source.taxRate,
+          total: hasPackageOptions ? "0" : source.total,
+          currency: source.currency,
+          packageOptions: source.packageOptions,
+          notes: source.notes,
+          token,
+          status: "draft",
+        });
+        return { id: Number(result.insertId), token };
+      }),
+
     update: protectedProcedure
       .input(z.object({
         id: z.number().int(),

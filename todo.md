@@ -1895,3 +1895,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add a token-scoped client decline action with an optional bounded reason, protected expiry/status checks, and immutable final decision behavior
 - [x] Surface the recorded decline reason only in the owner proposal workspace without email, SMS, automatic follow-up, or client-portal disclosure claims
 - [x] Add deterministic contracts for token isolation, decision conflicts, public recovery, and owner-only reason exposure; document and validate the release
+
+## Owner-Safe Proposal Duplication — Evidence-Led
+- [x] Add an owner-scoped proposal duplication action that creates a new draft with a fresh token and copies only reusable commercial content
+- [x] Clear client identity, validity date, viewing/signature state, invoice linkage, package selection, decline feedback, and all delivery/public state from duplicates
+- [x] Add focused contracts for owner isolation, fresh-token generation, cleared state, and public non-exposure; document and validate the release
