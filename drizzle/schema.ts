@@ -891,6 +891,29 @@ export const jobActivities = mysqlTable("jobActivities", {
 }, (t) => [index("jobActivities_userId_idx").on(t.userId), index("jobActivities_jobId_idx").on(t.jobId)]);
 export type JobActivity = typeof jobActivities.$inferSelect;
 
+// ─── Client Deliverable Approvals ────────────────────────────────────────────
+// Explicit owner-created review requests. These are token-scoped through the
+// client portal and intentionally exclude staffing, dispatch, and internal notes.
+export const clientApprovalRequests = mysqlTable("clientApprovalRequests", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  clientId: int("clientId").notNull(),
+  jobId: int("jobId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  status: mysqlEnum("status", ["pending", "approved", "changes_requested"]).notNull().default("pending"),
+  clientResponse: text("clientResponse"),
+  respondedAt: timestamp("respondedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("clientApprovalRequests_userId_idx").on(t.userId),
+  index("clientApprovalRequests_jobId_idx").on(t.jobId),
+  index("clientApprovalRequests_clientId_idx").on(t.clientId),
+  index("clientApprovalRequests_owner_status_idx").on(t.userId, t.status),
+]);
+export type ClientApprovalRequest = typeof clientApprovalRequests.$inferSelect;
+
 // ─── Team Operations & Dispatch Foundation ────────────────────────────────────
 // Team members are owner-managed operational roster records. They are not
 // authenticated accounts, so a matching email never grants access to a workspace.

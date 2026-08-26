@@ -68,6 +68,7 @@ function statusBadge(status: string) {
     approved: { label: "Approved", color: "bg-blue-100 text-blue-700" },
     in_progress: { label: "In Progress", color: "bg-indigo-100 text-indigo-700" },
     awaiting_client: { label: "Your Input Needed", color: "bg-orange-100 text-orange-700" },
+    changes_requested: { label: "Changes Requested", color: "bg-amber-100 text-amber-800" },
     en_route: { label: "On the way", color: "bg-amber-100 text-amber-800" },
   };
   const s = map[status] ?? { label: status, color: "bg-gray-100 text-gray-600" };
@@ -93,6 +94,7 @@ export default function ClientPortal() {
   const [manageBookingId, setManageBookingId] = useState<number | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("");
+  const [approvalNotes, setApprovalNotes] = useState<Record<number, string>>({});
   const portalPhotoInputRef = useRef<HTMLInputElement>(null);
   const handledPaymentReturn = useRef(false);
 
@@ -119,7 +121,7 @@ export default function ClientPortal() {
     { enabled: !!token, retry: false }
   );
 
-  const { data: jobData } = trpc.portal.getJobs.useQuery(
+  const { data: jobData, refetch: refetchJobs } = trpc.portal.getJobs.useQuery(
     { token },
     { enabled: !!token, retry: false, refetchInterval: 60_000 }
   );
@@ -164,6 +166,14 @@ export default function ClientPortal() {
       toast.success("Your appointment has been cancelled.");
     },
     onError: err => toast.error(err.message || "Could not cancel this appointment."),
+  });
+
+  const respondToApproval = trpc.portal.respondToApproval.useMutation({
+    onSuccess: async (result) => {
+      await refetchJobs();
+      toast.success(result.status === "approved" ? "Approval recorded. Thank you." : "Your change request has been shared with your provider.");
+    },
+    onError: err => toast.error(err.message || "Your response could not be recorded. Please try again."),
   });
 
   const sendPortalMessage = trpc.portalMsg.send.useMutation({
@@ -534,6 +544,7 @@ export default function ClientPortal() {
                       </div>
                     </div>
                     {job.visits.length > 0 && <div className="mt-4 rounded-lg border border-teal-100 bg-teal-50/60 p-4"><div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-teal-950"><Calendar className="h-3.5 w-3.5 text-teal-700" /> Upcoming service visits</span><span className="text-[11px] text-teal-800">Shared by your provider</span></div><div className="mt-3 space-y-3">{job.visits.map(visit => <div key={visit.id} className="rounded-lg border border-teal-100 bg-white p-3"><div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-semibold text-gray-900">{visit.title}</p><p className="mt-0.5 text-xs text-gray-700">{formatPortalTimestamp(visit.scheduledStart)} – {new Date(visit.scheduledEnd).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</p>{visit.siteLabel && <p className="mt-1 text-xs text-gray-600">Location: {visit.siteLabel}</p>}</div>{statusBadge(visit.status)}</div>{visit.clientUpdate && <p className="mt-2 rounded-md bg-teal-50 px-2.5 py-2 text-xs leading-5 text-teal-950">{visit.clientUpdate}</p>}</div>)}</div><p className="mt-3 text-[11px] leading-4 text-teal-900">Visit sharing shows the planned window and provider-approved update only. It does not show live location, routing, or staff details.</p></div>}
+                    {job.approvals.length > 0 && <section className="mt-4 rounded-lg border border-violet-200 bg-violet-50/60 p-4" aria-label="Deliverables needing your review"><div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-violet-950"><ClipboardCheck className="h-3.5 w-3.5 text-violet-700" /> Deliverable review</span><span className="text-[11px] text-violet-800">Shared by your provider</span></div><div className="mt-3 space-y-3">{job.approvals.map(approval => <div key={approval.id} className="rounded-lg border border-violet-100 bg-white p-3"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold text-gray-900">{approval.title}</p>{approval.description && <p className="mt-1 text-xs leading-5 text-gray-700">{approval.description}</p>}</div>{statusBadge(approval.status)}</div>{approval.status === "pending" ? <div className="mt-3"><label className="text-[11px] font-medium text-gray-700" htmlFor={`approval-note-${approval.id}`}>Optional note for your provider</label><textarea id={`approval-note-${approval.id}`} value={approvalNotes[approval.id] ?? ""} onChange={event => setApprovalNotes(current => ({ ...current, [approval.id]: event.target.value }))} maxLength={2000} rows={2} className="mt-1 w-full rounded-md border border-gray-300 px-2.5 py-2 text-xs text-gray-900 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200" placeholder="Add context or requested changes" /><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => respondToApproval.mutate({ token, approvalId: approval.id, response: "approved", note: approvalNotes[approval.id] || undefined })} disabled={respondToApproval.isPending} className="rounded-md bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-60">Approve</button><button type="button" onClick={() => respondToApproval.mutate({ token, approvalId: approval.id, response: "changes_requested", note: approvalNotes[approval.id] || undefined })} disabled={respondToApproval.isPending} className="rounded-md border border-violet-300 bg-white px-3 py-2 text-xs font-semibold text-violet-900 hover:bg-violet-50 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 disabled:opacity-60">Request changes</button></div></div> : <div className="mt-3 rounded-md bg-gray-50 px-2.5 py-2 text-xs text-gray-700">{approval.clientResponse ? <>Your note: {approval.clientResponse}</> : <>Your response was recorded {approval.respondedAt ? formatPortalTimestamp(approval.respondedAt) : ""}.</>}</div>}</div>)}</div><p className="mt-3 text-[11px] leading-4 text-violet-900">Only approval requests your provider chooses to share appear here. Internal job planning and staff details remain private.</p></section>}
                     <div className="mt-4 rounded-lg border border-[#D4922A]/20 bg-[#fffaf0] p-4">
                       <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><Clock className="h-3.5 w-3.5 text-[#D4922A]" /> Proof-of-work timeline</span><span className="text-[11px] text-gray-500">{proofTimeline.length} event{proofTimeline.length === 1 ? "" : "s"}</span></div>
                       {proofTimeline.length ? <ol className="mt-3 space-y-3">{proofTimeline.slice(0, 8).map(item => <li key={item.id} className="flex gap-3"><span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${item.kind === "photo" ? "bg-blue-50 text-blue-600" : item.kind === "milestone" ? "bg-emerald-50 text-emerald-700" : "bg-[#D4922A]/10 text-[#8a5a0b]"}`}>{item.kind === "photo" ? <Camera className="h-3 w-3" /> : item.kind === "milestone" ? <CheckCircle className="h-3 w-3" /> : <Target className="h-3 w-3" />}</span><span className="min-w-0"><span className="block text-xs font-semibold text-gray-800">{item.title}</span><span className="mt-0.5 block text-xs text-gray-600">{item.detail}</span><span className="mt-0.5 block text-[11px] text-gray-500">{formatPortalTimestamp(item.occurredAt)}</span></span></li>)}</ol> : <p className="mt-3 text-xs text-gray-500">Your provider will post milestones, updates, and proof here as the job moves forward.</p>}

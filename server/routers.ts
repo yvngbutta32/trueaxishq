@@ -15,7 +15,7 @@ import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, teamMembers, jobAssignments, serviceVisits, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -2877,7 +2877,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const jobIds = clientJobs.map(job => job.id);
         if (!jobIds.length) return { jobs: [] };
         const proposalIds = clientJobs.flatMap(job => job.proposalId ? [job.proposalId] : []);
-        const [tasks, activities, photos, jobProposals, clientVisits] = await Promise.all([
+        const [tasks, activities, photos, jobProposals, clientVisits, approvals] = await Promise.all([
           db.select({ id: jobTasks.id, jobId: jobTasks.jobId, title: jobTasks.title, status: jobTasks.status, dueDate: jobTasks.dueDate, completedAt: jobTasks.completedAt, sortOrder: jobTasks.sortOrder })
             .from(jobTasks).where(and(eq(jobTasks.userId, portalRecord.userId), inArray(jobTasks.jobId, jobIds))).orderBy(jobTasks.sortOrder, desc(jobTasks.createdAt)),
           db.select({ id: jobActivities.id, jobId: jobActivities.jobId, actor: jobActivities.actor, eventType: jobActivities.eventType, message: jobActivities.message, createdAt: jobActivities.createdAt })
@@ -2888,6 +2888,8 @@ Only include actions when you have actually generated a complete draft. For gene
             .from(proposals).where(and(eq(proposals.userId, portalRecord.userId), eq(proposals.clientId, portalRecord.clientId), inArray(proposals.id, proposalIds))) : Promise.resolve([]),
           db.select({ id: serviceVisits.id, jobId: serviceVisits.jobId, title: serviceVisits.title, scheduledStart: serviceVisits.scheduledStart, scheduledEnd: serviceVisits.scheduledEnd, status: serviceVisits.status, siteLabel: serviceVisits.siteLabel, clientUpdate: serviceVisits.clientUpdate })
             .from(serviceVisits).where(and(eq(serviceVisits.userId, portalRecord.userId), inArray(serviceVisits.jobId, jobIds), eq(serviceVisits.clientVisible, true), inArray(serviceVisits.status, ["scheduled", "en_route", "in_progress", "completed"]))).orderBy(serviceVisits.scheduledStart),
+          db.select({ id: clientApprovalRequests.id, jobId: clientApprovalRequests.jobId, title: clientApprovalRequests.title, description: clientApprovalRequests.description, status: clientApprovalRequests.status, clientResponse: clientApprovalRequests.clientResponse, respondedAt: clientApprovalRequests.respondedAt, createdAt: clientApprovalRequests.createdAt })
+            .from(clientApprovalRequests).where(and(eq(clientApprovalRequests.userId, portalRecord.userId), eq(clientApprovalRequests.clientId, portalRecord.clientId), inArray(clientApprovalRequests.jobId, jobIds))).orderBy(desc(clientApprovalRequests.createdAt)),
         ]);
         return {
           jobs: clientJobs.map(job => ({
@@ -2896,9 +2898,35 @@ Only include actions when you have actually generated a complete draft. For gene
             activities: activities.filter(activity => activity.jobId === job.id && activity.eventType !== "internal_note"),
             photos: photos.filter(photo => photo.jobId === job.id),
             visits: clientVisits.filter(visit => visit.jobId === job.id),
+            approvals: approvals.filter(approval => approval.jobId === job.id),
             proposal: jobProposals.find(proposal => proposal.id === job.proposalId) ?? null,
           })),
         };
+      }),
+
+    respondToApproval: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128), approvalId: z.number().int().positive(), response: z.enum(["approved", "changes_requested"]), note: safeOptionalString(2000) }))
+      .mutation(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
+        if (!portalRecord || (portalRecord.expiresAt && new Date() > portalRecord.expiresAt)) throw new TRPCError({ code: "FORBIDDEN", message: "This portal link is no longer active." });
+        const [approval] = await db.select().from(clientApprovalRequests).where(and(
+          eq(clientApprovalRequests.id, input.approvalId),
+          eq(clientApprovalRequests.userId, portalRecord.userId),
+          eq(clientApprovalRequests.clientId, portalRecord.clientId),
+        )).limit(1);
+        if (!approval) throw new TRPCError({ code: "NOT_FOUND", message: "Approval request not found." });
+        if (approval.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "This approval request has already been answered." });
+        await db.update(clientApprovalRequests).set({ status: input.response, clientResponse: input.note ?? null, respondedAt: new Date(), updatedAt: new Date() }).where(and(
+          eq(clientApprovalRequests.id, approval.id),
+          eq(clientApprovalRequests.userId, portalRecord.userId),
+          eq(clientApprovalRequests.clientId, portalRecord.clientId),
+          eq(clientApprovalRequests.status, "pending"),
+        ));
+        const action = input.response === "approved" ? "approved" : "requested changes to";
+        await db.insert(jobActivities).values({ userId: portalRecord.userId, jobId: approval.jobId, actor: "client", eventType: "approval_responded", message: `Client ${action} “${approval.title}”.`, metadata: JSON.stringify({ approvalId: approval.id, response: input.response, note: input.note ?? null }) });
+        return { success: true, status: input.response };
       }),
   }),
   // ── Contracts & Proposals ─────────────────────────────────────────────────
@@ -6250,18 +6278,19 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const [invoice] = job.invoiceId ? await db.select().from(invoices).where(and(eq(invoices.id, job.invoiceId), eq(invoices.userId, ctx.user.id))).limit(1) : [];
         const [proposal] = job.proposalId ? await db.select().from(proposals).where(and(eq(proposals.id, job.proposalId), eq(proposals.userId, ctx.user.id))).limit(1) : [];
         const [contract] = job.contractId ? await db.select().from(contracts).where(and(eq(contracts.id, job.contractId), eq(contracts.userId, ctx.user.id))).limit(1) : [];
-        const [tasks, activities, photos, entries] = await Promise.all([
+        const [tasks, activities, photos, entries, approvals] = await Promise.all([
           db.select().from(jobTasks).where(and(eq(jobTasks.jobId, job.id), eq(jobTasks.userId, ctx.user.id))).orderBy(jobTasks.sortOrder, desc(jobTasks.createdAt)),
           db.select().from(jobActivities).where(and(eq(jobActivities.jobId, job.id), eq(jobActivities.userId, ctx.user.id))).orderBy(desc(jobActivities.createdAt)).limit(100),
           db.select().from(jobPhotos).where(and(eq(jobPhotos.jobId, job.id), eq(jobPhotos.userId, ctx.user.id))).orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt)),
           db.select().from(timeEntries).where(and(eq(timeEntries.jobId, job.id), eq(timeEntries.userId, ctx.user.id))).orderBy(desc(timeEntries.startedAt)),
+          db.select().from(clientApprovalRequests).where(and(eq(clientApprovalRequests.jobId, job.id), eq(clientApprovalRequests.userId, ctx.user.id), eq(clientApprovalRequests.clientId, job.clientId))).orderBy(desc(clientApprovalRequests.createdAt)),
         ]);
         const receiptCost = photos.filter(photo => photo.photoType === "receipt").reduce((sum, photo) => sum + Number(photo.lineItemAmount ?? 0), 0);
         const laborCost = entries.reduce((sum, entry) => sum + ((entry.durationMinutes ?? 0) / 60) * Number(entry.hourlyRate ?? 0), 0);
         const revenue = Number(invoice?.amount ?? job.budgetAmount ?? 0);
         return {
           job, client, booking: booking ?? null, invoice: invoice ?? null, proposal: proposal ?? null, contract: contract ?? null,
-          tasks, activities, photos, entries,
+          tasks, activities, photos, entries, approvals,
           financials: { revenue, receiptCost, laborCost, totalCost: receiptCost + laborCost, profit: revenue - receiptCost - laborCost },
         };
       }),
@@ -6382,6 +6411,31 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         if (!job) throw new TRPCError({ code: "NOT_FOUND" });
         const [result] = await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: input.jobId, actor: "owner", eventType: input.visibleToClient ? "client_update" : "internal_note", message: input.message, metadata: JSON.stringify({ visibleToClient: input.visibleToClient }) });
         return { id: Number(result.insertId) };
+      }),
+
+    createApprovalRequest: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive(), title: safeString(255), description: safeOptionalString(5000) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs)
+          .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        const [result] = await db.insert(clientApprovalRequests).values({ userId: ctx.user.id, clientId: job.clientId, jobId: job.id, title: input.title, description: input.description ?? null });
+        const approvalId = Number(result.insertId);
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: job.id, actor: "owner", eventType: "approval_requested", message: `Requested client approval for “${input.title}”.`, metadata: JSON.stringify({ approvalId }) });
+        return { id: approvalId };
+      }),
+
+    deleteApprovalRequest: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [approval] = await db.select({ id: clientApprovalRequests.id, jobId: clientApprovalRequests.jobId, title: clientApprovalRequests.title }).from(clientApprovalRequests)
+          .where(and(eq(clientApprovalRequests.id, input.id), eq(clientApprovalRequests.userId, ctx.user.id))).limit(1);
+        if (!approval) throw new TRPCError({ code: "NOT_FOUND", message: "Approval request not found." });
+        await db.delete(clientApprovalRequests).where(and(eq(clientApprovalRequests.id, approval.id), eq(clientApprovalRequests.userId, ctx.user.id)));
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: approval.jobId, actor: "owner", eventType: "approval_removed", message: `Removed approval request for “${approval.title}”.` });
+        return { success: true };
       }),
 
     attachPhoto: protectedProcedure
