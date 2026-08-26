@@ -1930,3 +1930,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Repair the confirmed public portal booking-data overexposure by returning only client-safe appointment fields and add a regression contract for private-field exclusion
 - [x] Repair the confirmed client timeline activity-data overexposure by applying an explicit client-safe event allowlist that excludes staffing, dispatch, templates, and owner planning events
 - [x] Repair the confirmed public intake owner-ID overexposure by returning only public-safe form fields and add a regression contract for internal-field exclusion
+
+## Whole-Product Rating Scope — User Requested
+- [x] Assess implemented capability, client experience, owner experience, field/dispatch operations, security/privacy, reliability, accessibility, performance, integrations, analytics/financial workflow, market differentiation, and launch readiness against current evidence
+- [x] Publish a transparent out-of-10 scorecard with weighted overall score, evidence labels, external-validation deductions, and no unsupported market-dominance claim
