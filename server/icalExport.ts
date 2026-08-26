@@ -5,8 +5,9 @@
  * Completely free — pure Node.js, no external service.
  */
 import { Router } from "express";
+import { createHash } from "node:crypto";
 import { getDb } from "./db";
-import { bookings, users, clientPortalTokens } from "../drizzle/schema";
+import { bookings, users, clientPortalTokens, calendarFeedTokens } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 import { verifySessionToken } from "./auth";
 import { COOKIE_NAME } from "@shared/const";
@@ -24,6 +25,77 @@ function formatIcalDate(d: Date): string {
 function generateUID(id: number, userId: number): string {
   return `booking-${id}-user-${userId}@trueaxis-hq`;
 }
+
+function hashCalendarFeedCredential(credential: string): string {
+  return createHash("sha256").update(credential).digest("hex");
+}
+
+/**
+ * Owner subscription feed. It is addressed only by a revocable opaque
+ * credential and deliberately omits client contact information and notes.
+ */
+icalRouter.get("/calendar/feed/:credentialIcs", async (req, res) => {
+  try {
+    const credential = req.params.credentialIcs.replace(/\.ics$/, "");
+    if (!/^[A-Za-z0-9_-]{32,128}$/.test(credential)) return res.status(404).send("Not found");
+    const credentialHash = hashCalendarFeedCredential(credential);
+
+    const db = await getDb();
+    if (!db) return res.status(503).send("Database unavailable");
+
+    const [feed] = await db.select({ userId: calendarFeedTokens.userId })
+      .from(calendarFeedTokens)
+      .where(and(eq(calendarFeedTokens.tokenHash, credentialHash), eq(calendarFeedTokens.revoked, false)))
+      .limit(1);
+    if (!feed) return res.status(404).send("Not found");
+
+    void db.update(calendarFeedTokens)
+      .set({ lastAccessedAt: new Date() })
+      .where(and(eq(calendarFeedTokens.tokenHash, credentialHash), eq(calendarFeedTokens.revoked, false)))
+      .catch((err) => console.warn("[iCal] Unable to record owner feed access", err));
+
+    const [user] = await db.select({ name: users.name, businessName: users.businessName })
+      .from(users).where(eq(users.id, feed.userId)).limit(1);
+    const userBookings = await db.select().from(bookings).where(eq(bookings.userId, feed.userId));
+    const now = formatIcalDate(new Date());
+    const lines: string[] = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//TrueAxis HQ//Private Calendar Feed//EN",
+      "CALSCALE:GREGORIAN",
+      "METHOD:PUBLISH",
+      `X-WR-CALNAME:${escapeIcal(user?.businessName || user?.name || "TrueAxis HQ Calendar")}`,
+      "X-WR-TIMEZONE:UTC",
+      "X-WR-CALDESC:Private service schedule from TrueAxis HQ",
+    ];
+
+    for (const booking of userBookings) {
+      if (booking.status === "cancelled" || booking.status === "no_show") continue;
+      const startDate = new Date(`${booking.date}T${booking.time || "09:00"}:00Z`);
+      if (Number.isNaN(startDate.getTime())) continue;
+      const endDate = new Date(startDate.getTime() + (booking.duration || 60) * 60_000);
+      lines.push("BEGIN:VEVENT");
+      lines.push(`UID:${generateUID(booking.id, feed.userId)}`);
+      lines.push(`DTSTAMP:${now}`);
+      lines.push(`DTSTART:${formatIcalDate(startDate)}`);
+      lines.push(`DTEND:${formatIcalDate(endDate)}`);
+      lines.push(`SUMMARY:${escapeIcal(booking.service || "Appointment")}`);
+      lines.push(`STATUS:${booking.status === "completed" ? "COMPLETED" : "CONFIRMED"}`);
+      lines.push("END:VEVENT");
+    }
+
+    lines.push("END:VCALENDAR");
+    res.set({
+      "Content-Type": "text/calendar; charset=utf-8",
+      "Content-Disposition": "attachment; filename=\"trueaxis-private-calendar.ics\"",
+      "Cache-Control": "no-cache, no-store",
+    });
+    res.send(lines.join("\r\n"));
+  } catch (err) {
+    console.error("[iCal] Error generating private owner calendar feed:", err);
+    res.status(500).send("Failed to generate calendar feed");
+  }
+});
 
 icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
   try {

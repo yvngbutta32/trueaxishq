@@ -2,7 +2,7 @@ import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { eq, desc, and, sql, inArray, or, like, isNull, gt } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -16,7 +16,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -77,6 +77,10 @@ async function requireDb() {
   const db = await getDb();
   if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database temporarily unavailable. Please try again." });
   return db;
+}
+
+function hashCalendarFeedCredential(credential: string): string {
+  return createHash("sha256").update(credential).digest("hex");
 }
 
 // ─── Input sanitization helpers ───────────────────────────────────────────────
@@ -2849,6 +2853,81 @@ Only include actions when you have actually generated a complete draft. For gene
         memStats,
         checkedAt: new Date().toISOString(),
       };
+    }),
+  }),
+
+  // ── Private owner calendar feed ──────────────────────────────────────────────────
+  // The public subscription URL is secret-bearing. Its value is returned only when
+  // created or rotated and is never included in status responses.
+  calendarFeed: router({
+    status: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [record] = await db.select({
+        revoked: calendarFeedTokens.revoked,
+        revokedAt: calendarFeedTokens.revokedAt,
+        createdAt: calendarFeedTokens.createdAt,
+        lastAccessedAt: calendarFeedTokens.lastAccessedAt,
+      }).from(calendarFeedTokens)
+        .where(eq(calendarFeedTokens.userId, ctx.user.id))
+        .limit(1);
+      return {
+        exists: Boolean(record),
+        active: Boolean(record && !record.revoked),
+        revoked: Boolean(record?.revoked),
+        revokedAt: record?.revokedAt ?? null,
+        createdAt: record?.createdAt ?? null,
+        lastAccessedAt: record?.lastAccessedAt ?? null,
+      };
+    }),
+
+    create: protectedProcedure
+      .input(z.object({ origin: z.string().url().optional() }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await requireDb();
+        const requestedOrigin = input.origin || ctx.req.headers.origin || process.env.SITE_ORIGIN || "https://trueaxishq.com";
+        const origin = getTrustedPaymentReturnOrigin(requestedOrigin);
+        if (!origin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use an official TrueAxis HQ origin to create a private calendar feed." });
+
+        const [existing] = await db.select({ id: calendarFeedTokens.id, revoked: calendarFeedTokens.revoked })
+          .from(calendarFeedTokens).where(eq(calendarFeedTokens.userId, ctx.user.id)).limit(1);
+        if (existing && !existing.revoked) {
+          throw new TRPCError({ code: "CONFLICT", message: "A private calendar feed is already active. Rotate it if you need a new URL." });
+        }
+
+        const token = randomBytes(32).toString("base64url");
+        const tokenHash = hashCalendarFeedCredential(token);
+        if (existing) {
+          await db.update(calendarFeedTokens)
+            .set({ tokenHash, revoked: false, revokedAt: null, lastAccessedAt: null, createdAt: new Date() })
+            .where(and(eq(calendarFeedTokens.id, existing.id), eq(calendarFeedTokens.userId, ctx.user.id), eq(calendarFeedTokens.revoked, true)));
+        } else {
+          await db.insert(calendarFeedTokens).values({ userId: ctx.user.id, tokenHash });
+        }
+        return { feedUrl: `${origin}/api/calendar/feed/${token}.ics` };
+      }),
+
+    rotate: protectedProcedure
+      .input(z.object({ origin: z.string().url().optional() }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await requireDb();
+        const requestedOrigin = input.origin || ctx.req.headers.origin || process.env.SITE_ORIGIN || "https://trueaxishq.com";
+        const origin = getTrustedPaymentReturnOrigin(requestedOrigin);
+        if (!origin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use an official TrueAxis HQ origin to rotate a private calendar feed." });
+        const token = randomBytes(32).toString("base64url");
+        const tokenHash = hashCalendarFeedCredential(token);
+        const result = await db.update(calendarFeedTokens)
+          .set({ tokenHash, lastAccessedAt: null, revokedAt: null })
+          .where(and(eq(calendarFeedTokens.userId, ctx.user.id), eq(calendarFeedTokens.revoked, false)));
+        if (!result[0]?.affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "No active private calendar feed was found." });
+        return { feedUrl: `${origin}/api/calendar/feed/${token}.ics` };
+      }),
+
+    revoke: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await requireDb();
+      await db.update(calendarFeedTokens)
+        .set({ revoked: true, revokedAt: new Date() })
+        .where(and(eq(calendarFeedTokens.userId, ctx.user.id), eq(calendarFeedTokens.revoked, false)));
+      return { success: true };
     }),
   }),
 

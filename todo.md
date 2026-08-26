@@ -1,5 +1,12 @@
 # TrueAxis HQ — Todo & Feature Tracker
 
+## Revocable Owner Calendar Feed Credential — Aug 26, 2026
+
+- [x] Replace the owner-facing identifier-based calendar subscription link with a distinct opaque credential route.
+- [x] Add owner-scoped status, create, rotate, and revoke controls; show a raw subscription URL only at issuance or rotation.
+- [x] Persist only a one-way credential hash; retain service-only calendar output and portal-token client scoping.
+- [x] Add focused regression coverage and release evidence; validate with strict TypeScript, 74 Vitest files / 205 tests, production build, and bundle budgets.
+
 ## Core App Features
 - [x] Landing page with hero, features, testimonials, how-it-works, CTA, footer
 - [x] Email capture form wired to real DB (leads table)
@@ -2002,3 +2009,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## Private Calendar Feed Hardening
 - [ ] Audit the existing calendar feed for public identifier exposure and implement a rotated owner-scoped feed credential with explicit revocation, no client PII, and focused regression coverage if the assessment confirms the gap
 - [x] Repair the confirmed client-portal calendar feed overexposure by limiting portal-token access to that client’s safe appointments and excluding all client PII/internal notes
+
+## Revocable Owner Calendar Feed Credential
+- [ ] Replace owner calendar export URLs that expose a workspace identifier with a random owner-scoped feed credential that can be rotated or revoked without affecting client portal calendars
+- [ ] Add owner controls to create, copy, rotate, and revoke the private feed while preserving authenticated owner export behavior and no client PII in token-based output
+- [ ] Add focused credential-scope, rotation, revocation, and calendar-output privacy contracts; validate and document the release

@@ -358,6 +358,23 @@ export const clientPortalTokens = mysqlTable("clientPortalTokens", {
 export type ClientPortalToken = typeof clientPortalTokens.$inferSelect;
 export type InsertClientPortalToken = typeof clientPortalTokens.$inferInsert;
 
+// ─── Owner Calendar Feed Tokens ──────────────────────────────────────────────
+
+export const calendarFeedTokens = mysqlTable("calendarFeedTokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  // The raw bearer credential is returned only at creation or rotation and is
+  // never persisted, so database access alone cannot redeem a subscription URL.
+  tokenHash: varchar("tokenHash", { length: 64 }).notNull().unique(),
+  revoked: boolean("revoked").default(false).notNull(),
+  revokedAt: timestamp("revokedAt"),
+  lastAccessedAt: timestamp("lastAccessedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [uniqueIndex("calendar_feed_tokens_user_idx").on(t.userId)]);
+
+export type CalendarFeedToken = typeof calendarFeedTokens.$inferSelect;
+export type InsertCalendarFeedToken = typeof calendarFeedTokens.$inferInsert;
+
 // ─── Contracts & Proposals ────────────────────────────────────────────────────
 
 export const contracts = mysqlTable("contracts", {

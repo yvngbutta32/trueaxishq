@@ -3578,6 +3578,32 @@ function SettingsPanel() {
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const { data: settings, isLoading } = trpc.settings.get.useQuery(undefined, { retry: 1 });
+  const { data: calendarFeedStatus } = trpc.calendarFeed.status.useQuery();
+  const [issuedCalendarFeedUrl, setIssuedCalendarFeedUrl] = useState<string | null>(null);
+  const createCalendarFeed = trpc.calendarFeed.create.useMutation({
+    onSuccess: ({ feedUrl }) => {
+      setIssuedCalendarFeedUrl(feedUrl);
+      void utils.calendarFeed.status.invalidate();
+      toast.success("Private calendar feed created. Copy the URL now.");
+    },
+    onError: (error) => toast.error(error.message),
+  });
+  const rotateCalendarFeed = trpc.calendarFeed.rotate.useMutation({
+    onSuccess: ({ feedUrl }) => {
+      setIssuedCalendarFeedUrl(feedUrl);
+      void utils.calendarFeed.status.invalidate();
+      toast.success("Private calendar feed rotated. The previous URL no longer works.");
+    },
+    onError: (error) => toast.error(error.message),
+  });
+  const revokeCalendarFeed = trpc.calendarFeed.revoke.useMutation({
+    onSuccess: () => {
+      setIssuedCalendarFeedUrl(null);
+      void utils.calendarFeed.status.invalidate();
+      toast.success("Private calendar feed revoked.");
+    },
+    onError: (error) => toast.error(error.message),
+  });
   const [profile, setProfile] = useState({ name: "", bio: "", phone: "" });
   const setProfileField = useFormFields(setProfile);
   const setProfileName  = setProfileField("name");
@@ -3923,32 +3949,47 @@ function SettingsPanel() {
       {/* iCal Feed */}
       <div className="space-y-3 p-5 bg-white rounded-xl border border-[#DDDBD7]">
         <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2"><Calendar className="w-4 h-4 text-[#D4922A]" />Calendar Sync (iCal)</h3>
-        <p className="text-xs text-[#6B6B6B]">Subscribe to your booking calendar in Google Calendar, Apple Calendar, or Outlook using this live iCal feed URL.</p>
-        {user?.id ? (
+        <p className="text-xs text-[#6B6B6B]">Create a private, revocable subscription URL for Google Calendar, Apple Calendar, or Outlook. It contains service-level schedule details only, so treat it like a password.</p>
+        {issuedCalendarFeedUrl ? (
           <div className="flex items-center gap-2 bg-[#F7F6F3] rounded-xl px-3 py-2 border border-[#DDDBD7] min-w-0">
-            <span className="text-xs text-[#6B6B6B] flex-1 truncate font-mono min-w-0">{window.location.origin}/api/calendar/{user.id}.ics</span>
+            <span className="text-xs text-[#6B6B6B] flex-1 truncate font-mono min-w-0">{issuedCalendarFeedUrl}</span>
             <button
               onClick={() => {
-                const url = `${window.location.origin}/api/calendar/${user!.id}.ics`;
-                navigator.clipboard.writeText(url).then(() => toast.success("iCal URL copied!")).catch(() => toast.info(`iCal URL: ${url}`));
+                navigator.clipboard.writeText(issuedCalendarFeedUrl).then(() => toast.success("Private iCal URL copied.")).catch(() => toast.info("Copy the private feed URL shown above."));
               }}
               className="text-[#6B6B6B] hover:text-[#D4922A] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#D4922A]/10"
-              title="Copy iCal feed URL"
-              aria-label="Copy iCal feed URL"
+              title="Copy private iCal feed URL"
+              aria-label="Copy private iCal feed URL"
             >
               <Copy className="w-3.5 h-3.5" />
             </button>
-            <a href={`${window.location.origin}/api/calendar/${user!.id}.ics`} download className="text-[#6B6B6B] hover:text-[#D4922A] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#D4922A]/10" title="Download .ics file" aria-label="Download iCal file">
+            <a href={issuedCalendarFeedUrl} download className="text-[#6B6B6B] hover:text-[#D4922A] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#D4922A]/10" title="Download .ics file" aria-label="Download private iCal file">
               <Download className="w-3.5 h-3.5" />
             </a>
           </div>
         ) : (
-          <p className="text-xs text-[#6B6B6B]">Sign in to access your iCal feed.</p>
+          <p className="text-xs text-[#6B6B6B]">{calendarFeedStatus?.active ? "An active private feed exists. Rotate it to receive a replacement URL; the existing secret is not shown again." : "No active private feed exists yet."}</p>
         )}
-        {user?.id && (
+        <div className="flex flex-wrap gap-2 pt-1">
+          {!calendarFeedStatus?.active ? (
+            <Button type="button" size="sm" className="gradient-amber text-white border-0" onClick={() => createCalendarFeed.mutate({ origin: window.location.origin })} disabled={createCalendarFeed.isPending}>
+              {createCalendarFeed.isPending ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Calendar className="mr-1 h-3.5 w-3.5" />}Create private feed
+            </Button>
+          ) : (
+            <>
+              <Button type="button" size="sm" variant="outline" onClick={() => { if (window.confirm("Rotating invalidates the previous subscription URL. Continue?")) rotateCalendarFeed.mutate({ origin: window.location.origin }); }} disabled={rotateCalendarFeed.isPending}>
+                {rotateCalendarFeed.isPending ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : null}Rotate URL
+              </Button>
+              <Button type="button" size="sm" variant="outline" className="border-red-200 text-red-700 hover:bg-red-50" onClick={() => { if (window.confirm("Revoking stops every app using this subscription URL. Continue?")) revokeCalendarFeed.mutate(); }} disabled={revokeCalendarFeed.isPending}>
+                {revokeCalendarFeed.isPending ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : null}Revoke feed
+              </Button>
+            </>
+          )}
+        </div>
+        {issuedCalendarFeedUrl && (
           <div className="flex flex-col sm:flex-row gap-2 pt-1">
             <a
-              href={`https://calendar.google.com/calendar/r?cid=webcal://${typeof window !== 'undefined' ? window.location.host : ''}/api/calendar/${user.id}.ics`}
+              href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(issuedCalendarFeedUrl.replace(/^https?:/, "webcal:"))}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-500/15 text-blue-400 text-xs font-semibold transition-colors border border-blue-500/20"
@@ -3957,7 +3998,7 @@ function SettingsPanel() {
               Add to Google Calendar
             </a>
             <a
-              href={`webcal://${typeof window !== 'undefined' ? window.location.host : ''}/api/calendar/${user.id}.ics`}
+              href={issuedCalendarFeedUrl.replace(/^https?:/, "webcal:")}
               className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[#F7F6F3] hover:bg-[#EEECEA] text-[#6B6B6B] text-xs font-semibold transition-colors border border-[#DDDBD7]"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
