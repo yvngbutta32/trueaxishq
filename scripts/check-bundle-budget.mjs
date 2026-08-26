@@ -8,8 +8,11 @@ if (!existsSync(dist) || !existsSync(assets)) {
 }
 
 const files = readdirSync(assets);
-const entryMatch = readFileSync(join(dist, "index.html"), "utf8").match(/<script[^>]+src="\/assets\/([^"]+)"/);
+const html = readFileSync(join(dist, "index.html"), "utf8");
+const entryMatch = html.match(/<script[^>]+src="\/assets\/([^"]+)"/);
+const cssMatch = html.match(/<link[^>]+href="\/assets\/([^"]+\.css)"/);
 if (!entryMatch) throw new Error("Unable to identify the production entry asset.");
+if (!cssMatch) throw new Error("Unable to identify the production CSS asset.");
 
 const findAsset = prefix => {
   const file = files.find(candidate => candidate.startsWith(prefix));
@@ -22,7 +25,7 @@ const budgets = [
   { label: "dashboard route", file: findAsset("Dashboard-"), maxBytes: 650 * 1024 },
   { label: "home route", file: findAsset("Home-"), maxBytes: 140 * 1024 },
   { label: "charts vendor", file: findAsset("charts-"), maxBytes: 500 * 1024 },
-  { label: "application CSS", file: findAsset("index-").replace(/\.js$/, ".css"), maxBytes: 240 * 1024 },
+  { label: "application CSS", file: cssMatch[1], maxBytes: 240 * 1024 },
 ];
 
 const failures = [];

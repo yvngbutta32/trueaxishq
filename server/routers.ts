@@ -15,7 +15,7 @@ import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -6323,6 +6323,50 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         };
       }),
 
+    listChecklistTemplates: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const templates = await db.select().from(jobChecklistTemplates)
+        .where(eq(jobChecklistTemplates.userId, ctx.user.id))
+        .orderBy(desc(jobChecklistTemplates.updatedAt));
+      if (!templates.length) return [];
+      const templateIds = templates.map(template => template.id);
+      const items = await db.select({ id: jobChecklistTemplateItems.id, templateId: jobChecklistTemplateItems.templateId, title: jobChecklistTemplateItems.title, sortOrder: jobChecklistTemplateItems.sortOrder })
+        .from(jobChecklistTemplateItems)
+        .where(and(eq(jobChecklistTemplateItems.userId, ctx.user.id), inArray(jobChecklistTemplateItems.templateId, templateIds)))
+        .orderBy(jobChecklistTemplateItems.sortOrder, jobChecklistTemplateItems.createdAt);
+      return templates.map(template => ({ ...template, items: items.filter(item => item.templateId === template.id) }));
+    }),
+
+    createChecklistTemplateFromJob: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive(), name: safeString(255) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id, title: jobs.title }).from(jobs)
+          .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        const tasks = await db.select({ title: jobTasks.title, sortOrder: jobTasks.sortOrder }).from(jobTasks)
+          .where(and(eq(jobTasks.jobId, job.id), eq(jobTasks.userId, ctx.user.id)))
+          .orderBy(jobTasks.sortOrder, jobTasks.createdAt);
+        if (!tasks.length) throw new TRPCError({ code: "BAD_REQUEST", message: "Add at least one checklist item before saving a template." });
+        const [templateResult] = await db.insert(jobChecklistTemplates).values({ userId: ctx.user.id, name: input.name });
+        const templateId = Number(templateResult.insertId);
+        await db.insert(jobChecklistTemplateItems).values(tasks.map((task, index) => ({ userId: ctx.user.id, templateId, title: task.title, sortOrder: index })));
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: job.id, actor: "owner", eventType: "checklist_template_created", message: `Saved this checklist as template “${input.name}”.`, metadata: JSON.stringify({ templateId }) });
+        return { id: templateId, itemCount: tasks.length };
+      }),
+
+    deleteChecklistTemplate: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [template] = await db.select({ id: jobChecklistTemplates.id }).from(jobChecklistTemplates)
+          .where(and(eq(jobChecklistTemplates.id, input.id), eq(jobChecklistTemplates.userId, ctx.user.id))).limit(1);
+        if (!template) throw new TRPCError({ code: "NOT_FOUND", message: "Checklist template not found." });
+        await db.delete(jobChecklistTemplateItems).where(and(eq(jobChecklistTemplateItems.templateId, template.id), eq(jobChecklistTemplateItems.userId, ctx.user.id)));
+        await db.delete(jobChecklistTemplates).where(and(eq(jobChecklistTemplates.id, template.id), eq(jobChecklistTemplates.userId, ctx.user.id)));
+        return { ok: true };
+      }),
+
     create: protectedProcedure
       .input(z.object({
         clientId: z.number().int().positive(),
@@ -6331,7 +6375,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
         startDate: safeOptionalString(32), targetDate: safeOptionalString(32),
         budgetAmount: z.number().min(0).max(99_999_999).optional(),
-        bookingId: z.number().int().positive().optional(), invoiceId: z.number().int().positive().optional(), proposalId: z.number().int().positive().optional(), contractId: z.number().int().positive().optional(),
+        bookingId: z.number().int().positive().optional(), invoiceId: z.number().int().positive().optional(), proposalId: z.number().int().positive().optional(), contractId: z.number().int().positive().optional(), templateId: z.number().int().positive().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
@@ -6341,6 +6385,17 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         if (input.bookingId) {
           const [booking] = await db.select({ id: bookings.id, clientId: bookings.clientId }).from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, ctx.user.id))).limit(1);
           if (!booking || (booking.clientId && booking.clientId !== input.clientId)) throw new TRPCError({ code: "BAD_REQUEST", message: "Booking does not belong to this client." });
+        }
+        let templateItems: { title: string; sortOrder: number }[] = [];
+        let templateName: string | null = null;
+        if (input.templateId) {
+          const [template] = await db.select({ id: jobChecklistTemplates.id, name: jobChecklistTemplates.name }).from(jobChecklistTemplates)
+            .where(and(eq(jobChecklistTemplates.id, input.templateId), eq(jobChecklistTemplates.userId, ctx.user.id))).limit(1);
+          if (!template) throw new TRPCError({ code: "NOT_FOUND", message: "Checklist template not found." });
+          templateName = template.name;
+          templateItems = await db.select({ title: jobChecklistTemplateItems.title, sortOrder: jobChecklistTemplateItems.sortOrder }).from(jobChecklistTemplateItems)
+            .where(and(eq(jobChecklistTemplateItems.templateId, template.id), eq(jobChecklistTemplateItems.userId, ctx.user.id)))
+            .orderBy(jobChecklistTemplateItems.sortOrder, jobChecklistTemplateItems.createdAt);
         }
         const jobNumber = `JOB-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
         const [result] = await db.insert(jobs).values({
@@ -6352,6 +6407,10 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         });
         const jobId = Number(result.insertId);
         await db.insert(jobActivities).values({ userId: ctx.user.id, jobId, actor: "owner", eventType: "job_created", message: `Created ${jobNumber} for ${client.name}.` });
+        if (templateItems.length) {
+          await db.insert(jobTasks).values(templateItems.map((item, index) => ({ userId: ctx.user.id, jobId, title: item.title, status: "todo" as const, sortOrder: index })));
+          await db.insert(jobActivities).values({ userId: ctx.user.id, jobId, actor: "system", eventType: "checklist_template_applied", message: `Applied checklist template “${templateName}” with ${templateItems.length} item${templateItems.length === 1 ? "" : "s"}.`, metadata: JSON.stringify({ templateId: input.templateId }) });
+        }
         return { id: jobId, jobNumber };
       }),
 

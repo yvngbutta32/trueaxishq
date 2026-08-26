@@ -1829,3 +1829,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Implement the selected opportunity only if its ownership, privacy, and acceptance boundaries are explicit and testable
 - [x] Validate and publish the resulting evidence-labeled improvement without unsupported claims
 - [x] Add owner-controlled client sharing for existing client documents, exposing only explicitly shared file metadata through the token-scoped portal
+
+## Reusable Job Checklist Templates — Research-Supported
+- [x] Add owner-scoped reusable job checklist templates that can be created from an existing job and applied when starting a new job, without claiming full project-template parity
+- [x] Add deterministic ownership, task-isolation, and template-application tests; publish an evidence-labeled workflow boundary

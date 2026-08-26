@@ -447,6 +447,29 @@ export const clientDocuments = mysqlTable("clientDocuments", {
 export type ClientDocument = typeof clientDocuments.$inferSelect;
 export type InsertClientDocument = typeof clientDocuments.$inferInsert;
 
+// ─── Reusable Job Checklist Templates ────────────────────────────────────────
+export const jobChecklistTemplates = mysqlTable("jobChecklistTemplates", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [index("jobChecklistTemplates_owner_idx").on(t.userId)]);
+
+export const jobChecklistTemplateItems = mysqlTable("jobChecklistTemplateItems", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  templateId: int("templateId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [index("jobChecklistTemplateItems_template_idx").on(t.templateId), index("jobChecklistTemplateItems_owner_template_idx").on(t.userId, t.templateId)]);
+
+export type JobChecklistTemplate = typeof jobChecklistTemplates.$inferSelect;
+export type InsertJobChecklistTemplate = typeof jobChecklistTemplates.$inferInsert;
+export type JobChecklistTemplateItem = typeof jobChecklistTemplateItems.$inferSelect;
+export type InsertJobChecklistTemplateItem = typeof jobChecklistTemplateItems.$inferInsert;
+
 // ─── Recurring Invoices ───────────────────────────────────────────────────────
 export const recurringInvoices = mysqlTable("recurringInvoices", {
   id: int("id").autoincrement().primaryKey(),
