@@ -15,7 +15,7 @@ import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
-import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
+import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -531,6 +531,40 @@ export const appRouter = router({
           .limit(1);
         if (!result[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
         return result[0];
+      }),
+
+    listCustomFields: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(clientCustomFields).where(eq(clientCustomFields.userId, ctx.user.id)).orderBy(clientCustomFields.createdAt);
+    }),
+    createCustomField: protectedProcedure
+      .input(z.object({ label: safeString(100), fieldKey: z.string().trim().toLowerCase().regex(/^[a-z][a-z0-9_]{0,99}$/), fieldType: z.enum(["text", "select"]), options: z.array(z.string().trim().min(1).max(100)).max(30).optional() }))
+      .mutation(async ({ ctx, input }) => {
+        if (input.fieldType === "select" && (!input.options?.length || new Set(input.options).size !== input.options.length)) throw new TRPCError({ code: "BAD_REQUEST", message: "Select fields require unique options." });
+        const db = await requireDb();
+        const [result] = await db.insert(clientCustomFields).values({ userId: ctx.user.id, label: input.label, fieldKey: input.fieldKey, fieldType: input.fieldType, options: input.fieldType === "select" ? JSON.stringify(input.options) : null });
+        return { id: Number(result.insertId) };
+      }),
+    getCustomFieldValues: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [client] = await db.select({ id: clients.id }).from(clients).where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+        return db.select({ fieldId: clientCustomFieldValues.fieldId, value: clientCustomFieldValues.value }).from(clientCustomFieldValues).where(and(eq(clientCustomFieldValues.userId, ctx.user.id), eq(clientCustomFieldValues.clientId, input.clientId)));
+      }),
+    setCustomFieldValue: protectedProcedure
+      .input(z.object({ clientId: z.number().int().positive(), fieldId: z.number().int().positive(), value: z.string().trim().max(2000).nullable() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [[client], [field]] = await Promise.all([
+          db.select({ id: clients.id }).from(clients).where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1),
+          db.select().from(clientCustomFields).where(and(eq(clientCustomFields.id, input.fieldId), eq(clientCustomFields.userId, ctx.user.id), eq(clientCustomFields.active, true))).limit(1),
+        ]);
+        if (!client || !field) throw new TRPCError({ code: "NOT_FOUND", message: "Client or custom field not found." });
+        if (field.fieldType === "select" && input.value !== null && !JSON.parse(field.options ?? "[]").includes(input.value)) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose one of the configured options." });
+        await db.insert(clientCustomFieldValues).values({ userId: ctx.user.id, clientId: input.clientId, fieldId: input.fieldId, value: input.value }).onDuplicateKeyUpdate({ set: { value: input.value, updatedAt: new Date() } });
+        return { ok: true };
       }),
 
     create: protectedProcedure

@@ -1837,3 +1837,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## Owner-Controlled Client CSV Export — Research-Supported
 - [x] Add an owner-scoped, conservative client CSV export with only workspace-owned CRM fields and clear scope limits
 - [x] Add deterministic export ownership, header, and injection-safety contracts; publish an evidence-labeled scope boundary
+
+## Owner-Managed Client Custom Fields — Research-Supported
+- [ ] Add private owner-managed text/select custom fields and client values with explicit limits and no public/client editing
+- [ ] Add deterministic field-definition, value-isolation, selection-validation, and non-exposure contracts; publish an evidence-labeled scope boundary

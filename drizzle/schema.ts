@@ -447,6 +447,14 @@ export const clientDocuments = mysqlTable("clientDocuments", {
 export type ClientDocument = typeof clientDocuments.$inferSelect;
 export type InsertClientDocument = typeof clientDocuments.$inferInsert;
 
+export const clientCustomFields = mysqlTable("clientCustomFields", {
+  id: int("id").autoincrement().primaryKey(), userId: int("userId").notNull(), label: varchar("label", { length: 100 }).notNull(), fieldKey: varchar("fieldKey", { length: 100 }).notNull(), fieldType: mysqlEnum("fieldType", ["text", "select"]).notNull(), options: text("options"), active: boolean("active").default(true).notNull(), createdAt: timestamp("createdAt").defaultNow().notNull(), updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [index("clientCustomFields_owner_idx").on(t.userId), uniqueIndex("clientCustomFields_owner_key_unique").on(t.userId, t.fieldKey)]);
+
+export const clientCustomFieldValues = mysqlTable("clientCustomFieldValues", {
+  id: int("id").autoincrement().primaryKey(), userId: int("userId").notNull(), clientId: int("clientId").notNull(), fieldId: int("fieldId").notNull(), value: text("value"), updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [index("clientCustomFieldValues_owner_client_idx").on(t.userId, t.clientId), uniqueIndex("clientCustomFieldValues_owner_client_field_unique").on(t.userId, t.clientId, t.fieldId)]);
+
 // ─── Reusable Job Checklist Templates ────────────────────────────────────────
 export const jobChecklistTemplates = mysqlTable("jobChecklistTemplates", {
   id: int("id").autoincrement().primaryKey(),
