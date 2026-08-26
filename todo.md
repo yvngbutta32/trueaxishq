@@ -1860,3 +1860,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ## Verification-Loop Recovery — User Reported
 - [x] Complete the private owner custom-field workflow coherently with creation controls and focused contracts, or explicitly defer unfinished interface work without repeated verification loops
+
+## Comprehensive Data & Error Sweep — User Requested
+- [x] Audit schema, migrations, ownership predicates, public token boundaries, router coverage, client route bindings, data integrity, dependencies, and runtime logs for confirmed defects
+- [x] Repair every confirmed autonomous defect found and add focused regression coverage; no confirmed autonomous defect required repair in this sweep
+- [x] Re-run strict type, full tests, production build, dependency audit, bundle budget, database integrity checks, and responsive/public-route evidence; publish a candid sweep report
