@@ -38,6 +38,7 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
 
     // Auth: accept session cookie OR portal token query param
     let authorized = false;
+    let portalClientId: number | null = null;
 
     // Check session cookie
     const sessionToken = req.cookies?.[COOKIE_NAME];
@@ -51,11 +52,13 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
     // Check portal token (allows clients to subscribe to their provider's calendar)
     if (!authorized && req.query.token) {
       const token = String(req.query.token);
-      const [portalRecord] = await db.select().from(clientPortalTokens)
-        .where(and(eq(clientPortalTokens.token, token), eq(clientPortalTokens.userId, userId))).limit(1);
+      const [portalRecord] = await db.select({ clientId: clientPortalTokens.clientId, expiresAt: clientPortalTokens.expiresAt })
+        .from(clientPortalTokens)
+        .where(and(eq(clientPortalTokens.token, token), eq(clientPortalTokens.userId, userId), eq(clientPortalTokens.revoked, false))).limit(1);
       // Verify token exists and is not expired
       if (portalRecord && (!portalRecord.expiresAt || new Date() <= portalRecord.expiresAt)) {
         authorized = true;
+        portalClientId = portalRecord.clientId;
       }
     }
 
@@ -69,7 +72,9 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
 
     // Fetch all bookings for this user
     const userBookings = await db.select().from(bookings)
-      .where(and(eq(bookings.userId, userId)));
+      .where(portalClientId === null
+        ? eq(bookings.userId, userId)
+        : and(eq(bookings.userId, userId), eq(bookings.clientId, portalClientId)));
 
     const calName = user?.businessName || user?.name || "TrueAxis HQ Calendar";
     const now = formatIcalDate(new Date());
@@ -100,12 +105,16 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
       const durationMin = b.duration || 60;
       const endDate = new Date(startDate.getTime() + durationMin * 60_000);
 
-      const summary = [b.service, b.clientName].filter(Boolean).join(" — ") || "Appointment";
-      const description = [
-        b.clientName ? `Client: ${escapeIcal(b.clientName)}` : "",
-        b.clientEmail ? `Email: ${escapeIcal(b.clientEmail)}` : "",
-        b.notes ? `Notes: ${escapeIcal(b.notes)}` : "",
-      ].filter(Boolean).join("\\n");
+      const summary = portalClientId === null
+        ? [b.service, b.clientName].filter(Boolean).join(" — ") || "Appointment"
+        : b.service || "Appointment";
+      const description = portalClientId === null
+        ? [
+            b.clientName ? `Client: ${escapeIcal(b.clientName)}` : "",
+            b.clientEmail ? `Email: ${escapeIcal(b.clientEmail)}` : "",
+            b.notes ? `Notes: ${escapeIcal(b.notes)}` : "",
+          ].filter(Boolean).join("\\n")
+        : "";
 
       lines.push("BEGIN:VEVENT");
       lines.push(`UID:${generateUID(b.id, userId)}`);

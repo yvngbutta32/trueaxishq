@@ -1995,3 +1995,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add focused recurrence validation, owner isolation, idempotent visit-generation, and portal non-exposure contracts; validate and document the release
 - [x] Repair the confirmed concurrent recurring-visit generation race with a final unique plan-and-start boundary before publishing the feature
 - [x] Keep generated recurring visits owner-planned and unassigned until dispatch explicitly selects a team member, with no implied staff availability or routing claim
+
+## State-of-the-Art Quality Gate
+- [ ] Apply an evidence-led quality gate to every future capability: real workflow value, accessible owner/client UX, explicit privacy/security boundaries, backward compatibility, focused tests, release validation, and truthful market claims
+
+## Private Calendar Feed Hardening
+- [ ] Audit the existing calendar feed for public identifier exposure and implement a rotated owner-scoped feed credential with explicit revocation, no client PII, and focused regression coverage if the assessment confirms the gap
+- [x] Repair the confirmed client-portal calendar feed overexposure by limiting portal-token access to that client’s safe appointments and excluding all client PII/internal notes
