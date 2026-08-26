@@ -14,6 +14,9 @@ describe("public booking one-time token consumption", () => {
     expect(section).toContain("gt(bookingCancelTokens.expiresAt, new Date())");
     expect(section).toContain("if (!tokenConsume[0].affectedRows)");
     expect(section.indexOf("const tokenConsume")).toBeLessThan(section.indexOf("const bookingUpdate"));
+    expect(section).toContain('eq(bookings.status, "scheduled")');
+    expect(section).toContain("eq(bookings.date, booking.date)");
+    expect(section).toContain("eq(bookings.time, booking.time)");
   });
 
   it("consumes a valid unused cancel token before changing the booking status", () => {

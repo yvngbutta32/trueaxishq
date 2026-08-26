@@ -1057,7 +1057,9 @@ export const appRouter = router({
         if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice has already been paid." });
 
         const stripe = getStripe();
-        const origin = input.origin || ctx.req.headers.origin || process.env.SITE_ORIGIN || "https://trueaxis-hq.manus.space";
+        const requestedOrigin = input.origin || ctx.req.headers.origin || process.env.SITE_ORIGIN || "https://trueaxishq.com";
+        const origin = getTrustedPaymentReturnOrigin(requestedOrigin);
+        if (!origin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use an official TrueAxis HQ origin to continue to Checkout." });
         const amountCents = Math.round(parseFloat(String(inv.amount)) * 100);
         if (amountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
 
@@ -1995,6 +1997,8 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ origin: safeUrl }))
       .mutation(async ({ input, ctx }) => {
         const stripe = getStripe();
+        const returnOrigin = getTrustedPaymentReturnOrigin(input.origin);
+        if (!returnOrigin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use the official TrueAxis HQ billing portal to continue." });
         const db = await requireDb();
         const result = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
         const customerId = result[0]?.stripeCustomerId;
@@ -2003,7 +2007,7 @@ Only include actions when you have actually generated a complete draft. For gene
         try {
           portalSession = await stripe.billingPortal.sessions.create({
             customer: customerId,
-            return_url: `${input.origin}/dashboard`,
+            return_url: `${returnOrigin}/dashboard`,
           });
         } catch (err: any) {
           console.error("[Stripe] Portal creation failed:", err?.message);
@@ -2319,7 +2323,7 @@ Only include actions when you have actually generated a complete draft. For gene
         clientEmail: safeEmail,
         service: safeString(200),
         message: z.string().trim().max(1000).optional(),
-        preferredDate: z.string().trim().min(1).max(50),
+        preferredDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         preferredTime: z.string().trim().min(1).max(50),
         photoUploadToken: z.string().regex(/^[a-f0-9]{64}$/).optional(),
       }))
@@ -2330,6 +2334,9 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!host[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Booking page not found." });
 
         const hostId = host[0].id;
+        if (input.preferredDate < new Date().toISOString().slice(0, 10)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a future appointment date." });
+        }
 
         let uploadSession: { id: number } | null = null;
         let uploadedEstimatePhotos: { photoKey: string; photoUrl: string }[] = [];
@@ -2348,44 +2355,23 @@ Only include actions when you have actually generated a complete draft. For gene
             .from(publicPhotoUploads).where(eq(publicPhotoUploads.sessionId, session.id));
         }
 
-        // ── Auto-upsert client record ──────────────────────────────────────────
-        // Check if a client with this email already exists for this host
-        let clientId: number | null = null;
-        let isNewClient = false;
-        if (input.clientEmail) {
-          const existing = await db.select({ id: clients.id })
-            .from(clients)
-            .where(and(eq(clients.userId, hostId), eq(clients.email, input.clientEmail)))
-            .limit(1);
-          if (existing[0]) {
-            // Update their session count and last contacted timestamp
-            clientId = existing[0].id;
-            await db.update(clients).set({
-              sessionsCount: sql`sessionsCount + 1`,
-              lastContactedAt: new Date(),
-              updatedAt: new Date(),
-            }).where(eq(clients.id, clientId));
-          } else {
-            // Create a new client record
-            const initials = input.clientName
-              .split(" ")
-              .map((w: string) => w[0]?.toUpperCase() ?? "")
-              .slice(0, 2)
-              .join("");
-            const inserted = await db.insert(clients).values({
-              userId: hostId,
-              name: input.clientName,
-              email: input.clientEmail,
-              service: input.service || null,
-              status: "active",
-              avatarInitials: initials || input.clientName[0]?.toUpperCase() || "?",
-              sessionsCount: 1,
-              lastContactedAt: new Date(),
-            });
-            clientId = Number((inserted as any).insertId) || null;
-            isNewClient = clientId !== null && clientId > 0;
+        if (uploadSession) {
+          const consumeResult = await db.update(publicPhotoUploadSessions).set({ consumedAt: new Date() })
+            .where(and(
+              eq(publicPhotoUploadSessions.id, uploadSession.id),
+              eq(publicPhotoUploadSessions.userId, hostId),
+              eq(publicPhotoUploadSessions.purpose, "booking"),
+              isNull(publicPhotoUploadSessions.consumedAt),
+              gt(publicPhotoUploadSessions.expiresAt, new Date()),
+            ));
+          if (!consumeResult[0].affectedRows) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Your photo-upload session has expired. Please upload again." });
           }
         }
+
+        // Associate the client only after a slot is safely reserved below.
+        let clientId: number | null = null;
+        let isNewClient = false;
 
         // ── Conflict detection: reject if the same slot is already booked ─────
         const conflictingBooking = await db.select({ id: bookings.id })
@@ -2404,20 +2390,71 @@ Only include actions when you have actually generated a complete draft. For gene
           });
         }
 
-        const bookingResult = await db.insert(bookings).values({
-          userId: hostId,
-          clientId: clientId !== null && clientId > 0 ? clientId : null,
-          clientName: input.clientName,
-          clientEmail: input.clientEmail,
-          service: input.service,
-          date: input.preferredDate,
-          time: input.preferredTime,
-          slotKey: `${hostId}|${input.preferredDate}|${input.preferredTime}`,
-          notes: input.message || null,
-          isPublicBooking: true,
-          status: "scheduled",
-        });
-        const newBookingId = Number((bookingResult as any).insertId);
+        let newBookingId = 0;
+        try {
+          await db.transaction(async (tx) => {
+            const [bookingResult] = await tx.insert(bookings).values({
+              userId: hostId,
+              clientId: null,
+              clientName: input.clientName,
+              clientEmail: input.clientEmail,
+              service: input.service,
+              date: input.preferredDate,
+              time: input.preferredTime,
+              slotKey: `${hostId}|${input.preferredDate}|${input.preferredTime}`,
+              notes: input.message || null,
+              isPublicBooking: true,
+              status: "scheduled",
+            });
+            newBookingId = Number((bookingResult as any).insertId);
+
+            if (input.clientEmail) {
+              const initials = input.clientName
+                .split(" ")
+                .map((word: string) => word[0]?.toUpperCase() ?? "")
+                .slice(0, 2)
+                .join("");
+              const existing = await tx.select({ id: clients.id }).from(clients)
+                .where(and(eq(clients.userId, hostId), eq(clients.email, input.clientEmail))).limit(1);
+              isNewClient = !existing[0];
+              await tx.insert(clients).values({
+                userId: hostId,
+                name: input.clientName,
+                email: input.clientEmail,
+                service: input.service || null,
+                status: "active",
+                avatarInitials: initials || input.clientName[0]?.toUpperCase() || "?",
+                sessionsCount: 1,
+                lastContactedAt: new Date(),
+              }).onDuplicateKeyUpdate({
+                set: {
+                  sessionsCount: sql`${clients.sessionsCount} + 1`,
+                  lastContactedAt: new Date(),
+                  updatedAt: new Date(),
+                },
+              });
+              const [client] = await tx.select({ id: clients.id }).from(clients)
+                .where(and(eq(clients.userId, hostId), eq(clients.email, input.clientEmail))).limit(1);
+              if (!client) throw new Error("Client record could not be linked to the booking.");
+              clientId = client.id;
+              const linkResult = await tx.update(bookings).set({ clientId: client.id }).where(and(
+                eq(bookings.id, newBookingId),
+                eq(bookings.userId, hostId),
+                eq(bookings.status, "scheduled"),
+              ));
+              if (!linkResult[0].affectedRows) throw new Error("Booking could not be linked to the client.");
+            }
+          });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "";
+          if (message.includes("Duplicate") || message.includes("duplicate") || message.includes("1062")) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: `The ${input.preferredDate} at ${input.preferredTime} slot is no longer available. Please choose a different time.`,
+            });
+          }
+          throw error;
+        }
 
         if (uploadSession && uploadedEstimatePhotos.length > 0 && newBookingId) {
           await db.insert(jobPhotos).values(uploadedEstimatePhotos.map((photo) => ({
@@ -2430,11 +2467,6 @@ Only include actions when you have actually generated a complete draft. For gene
             photoKey: photo.photoKey,
           })));
         }
-        if (uploadSession) {
-          await db.update(publicPhotoUploadSessions).set({ consumedAt: new Date() })
-            .where(and(eq(publicPhotoUploadSessions.id, uploadSession.id), eq(publicPhotoUploadSessions.userId, hostId)));
-        }
-
         if (host[0].notifyNewBooking !== false) {
           notifyOwner({
             title: `New Booking — ${input.clientName}`,
@@ -2765,8 +2797,9 @@ Only include actions when you have actually generated a complete draft. For gene
           .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
         if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
 
-        // Use frontend-provided origin (most reliable), fall back to request header
-        const origin = input.origin || ctx.req.headers.origin || "";
+        const requestedOrigin = input.origin || ctx.req.headers.origin || process.env.SITE_ORIGIN || "https://trueaxishq.com";
+        const origin = getTrustedPaymentReturnOrigin(requestedOrigin);
+        if (!origin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use an official TrueAxis HQ origin to generate a client portal link." });
 
         // Check for existing valid token (not expired)
         const [existing] = await db.select().from(clientPortalTokens)
@@ -3148,12 +3181,15 @@ Only include actions when you have actually generated a complete draft. For gene
         )).limit(1);
         if (!approval) throw new TRPCError({ code: "NOT_FOUND", message: "Approval request not found." });
         if (approval.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "This approval request has already been answered." });
-        await db.update(clientApprovalRequests).set({ status: input.response, clientResponse: input.note ?? null, respondedAt: new Date(), updatedAt: new Date() }).where(and(
+        const approvalUpdate = await db.update(clientApprovalRequests).set({ status: input.response, clientResponse: input.note ?? null, respondedAt: new Date(), updatedAt: new Date() }).where(and(
           eq(clientApprovalRequests.id, approval.id),
           eq(clientApprovalRequests.userId, portalRecord.userId),
           eq(clientApprovalRequests.clientId, portalRecord.clientId),
           eq(clientApprovalRequests.status, "pending"),
         ));
+        if (!approvalUpdate[0].affectedRows) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This approval request has already been answered." });
+        }
         const action = input.response === "approved" ? "approved" : "requested changes to";
         await db.insert(jobActivities).values({ userId: portalRecord.userId, jobId: approval.jobId, actor: "client", eventType: "approval_responded", message: `Client ${action} “${approval.title}”.`, metadata: JSON.stringify({ approvalId: approval.id, response: input.response, note: input.note ?? null }) });
         return { success: true, status: input.response };
@@ -3972,7 +4008,12 @@ Only include actions when you have actually generated a complete draft. For gene
         if (portalRecord.expiresAt && new Date(portalRecord.expiresAt) < new Date()) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Portal link has expired. Please request a new one." });
         }
-        return db.select().from(portalMessages)
+        return db.select({
+          id: portalMessages.id,
+          senderRole: portalMessages.senderRole,
+          body: portalMessages.body,
+          createdAt: portalMessages.createdAt,
+        }).from(portalMessages)
           .where(and(eq(portalMessages.userId, portalRecord.userId), eq(portalMessages.clientId, portalRecord.clientId)))
           .orderBy(portalMessages.createdAt);
       }),
@@ -4087,6 +4128,8 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        const trustedOrigin = getTrustedPaymentReturnOrigin(input.origin);
+        if (!trustedOrigin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use an official TrueAxis HQ origin to create a testimonial request." });
         const crypto = await import("crypto");
         const token = crypto.randomBytes(24).toString("hex");
         await db.insert(testimonials).values({
@@ -4101,7 +4144,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const [user] = await db.select({ name: users.name, businessName: users.businessName })
           .from(users).where(eq(users.id, ctx.user.id)).limit(1);
         const freelancerName = user?.businessName || user?.name || "Your provider";
-        const testimonialUrl = `${input.origin}/testimonial/${token}`;
+        const testimonialUrl = `${trustedOrigin}/testimonial/${token}`;
         sendEmail({
           to: input.clientEmail,
           subject: `How was your experience with ${freelancerName}?`,
@@ -4272,7 +4315,13 @@ Only include actions when you have actually generated a complete draft. For gene
               slotKey: nextSlotKey,
               reminderSentAt: null,
               updatedAt: new Date(),
-            }).where(and(eq(bookings.id, booking.id), eq(bookings.userId, tokenRow.userId)));
+            }).where(and(
+              eq(bookings.id, booking.id),
+              eq(bookings.userId, tokenRow.userId),
+              eq(bookings.status, "scheduled"),
+              eq(bookings.date, booking.date),
+              eq(bookings.time, booking.time),
+            ));
             if (!bookingUpdate[0].affectedRows) {
               throw new TRPCError({ code: "BAD_REQUEST", message: "This booking can no longer be rescheduled." });
             }
@@ -4955,7 +5004,9 @@ Only include actions when you have actually generated a complete draft. For gene
         const [row] = await db.select().from(proposals)
           .where(and(eq(proposals.id, input.id), eq(proposals.userId, ctx.user.id))).limit(1);
         if (!row) throw new TRPCError({ code: "NOT_FOUND" });
-        const origin = input.origin || ctx.req.headers.origin || "https://trueaxis-hq.manus.space";
+        const requestedOrigin = input.origin || ctx.req.headers.origin || process.env.SITE_ORIGIN || "https://trueaxishq.com";
+        const origin = getTrustedPaymentReturnOrigin(requestedOrigin);
+        if (!origin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use an official TrueAxis HQ origin to send a proposal." });
         const link = `${origin}/proposal/${row.token}`;
         if (row.clientEmail) {
           await sendEmail({
@@ -5408,6 +5459,19 @@ Only include actions when you have actually generated a complete draft. For gene
           ...submittedAnswers,
           ...(uploadedEstimatePhotos.length > 0 ? { _estimatePhotos: JSON.stringify(uploadedEstimatePhotos.map((photo) => photo.photoUrl)) } : {}),
         };
+        if (uploadSession) {
+          const consumeResult = await db.update(publicPhotoUploadSessions).set({ consumedAt: new Date() })
+            .where(and(
+              eq(publicPhotoUploadSessions.id, uploadSession.id),
+              eq(publicPhotoUploadSessions.userId, form.userId),
+              eq(publicPhotoUploadSessions.purpose, "intake"),
+              isNull(publicPhotoUploadSessions.consumedAt),
+              gt(publicPhotoUploadSessions.expiresAt, new Date()),
+            ));
+          if (!consumeResult[0].affectedRows) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Your photo-upload session has expired. Please upload again." });
+          }
+        }
         const [responseResult] = await db.insert(intakeResponses).values({
           formId: form.id,
           userId: form.userId,
@@ -5431,9 +5495,7 @@ Only include actions when you have actually generated a complete draft. For gene
             photoUrl: photo.photoUrl,
             photoKey: photo.photoKey,
             caption: responseId ? `Intake response #${responseId}` : "Intake estimate photo",
-          })));
-          await db.update(publicPhotoUploadSessions).set({ consumedAt: new Date() })
-            .where(and(eq(publicPhotoUploadSessions.id, uploadSession.id), eq(publicPhotoUploadSessions.userId, form.userId)));
+          }))); 
         }
         // Send auto-reply email to respondent
         if (input.respondentEmail) {

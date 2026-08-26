@@ -89,7 +89,10 @@ export const clients = mysqlTable("clients", {
   lastContactedAt: timestamp("lastContactedAt"),
   defaultRate: decimal("defaultRate", { precision: 10, scale: 2 }),
 },
-(t) => [index("clients_userId_idx").on(t.userId)]
+(t) => [
+  index("clients_userId_idx").on(t.userId),
+  uniqueIndex("clients_user_email_unique_idx").on(t.userId, t.email),
+]
 );
 
 export type Client = typeof clients.$inferSelect;

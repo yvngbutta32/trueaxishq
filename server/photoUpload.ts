@@ -149,6 +149,23 @@ photoUploadRouter.post(
           return;
         }
 
+        if (publicSession) {
+          // Reserve the file slot before storage so parallel requests cannot
+          // exceed maxUploads after each observes the same stale count.
+          const reservation = await db.update(publicPhotoUploadSessions)
+            .set({ uploadCount: sql`${publicPhotoUploadSessions.uploadCount} + 1` })
+            .where(and(
+              eq(publicPhotoUploadSessions.id, publicSession.id),
+              sql`${publicPhotoUploadSessions.consumedAt} IS NULL`,
+              sql`${publicPhotoUploadSessions.expiresAt} > NOW()`,
+              sql`${publicPhotoUploadSessions.uploadCount} < ${publicPhotoUploadSessions.maxUploads}`,
+            ));
+          if (!reservation[0].affectedRows) {
+            res.status(403).json({ error: "This photo-upload session has expired or reached its limit." });
+            return;
+          }
+        }
+
         // Never permit public visitors to select an internal photo category.
         photoType = "estimate";
       }
@@ -167,12 +184,6 @@ photoUploadRouter.post(
         const db = await getDb();
         if (!db) throw new Error("Upload metadata service unavailable.");
         await db.insert(publicPhotoUploads).values({ sessionId: publicSession.id, photoKey: key, photoUrl: url });
-        await db.update(publicPhotoUploadSessions)
-          .set({ uploadCount: sql`${publicPhotoUploadSessions.uploadCount} + 1` })
-          .where(and(
-            eq(publicPhotoUploadSessions.id, publicSession.id),
-            sql`${publicPhotoUploadSessions.uploadCount} < ${publicPhotoUploadSessions.maxUploads}`
-          ));
       }
 
       res.json({

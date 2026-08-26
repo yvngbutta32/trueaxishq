@@ -1934,3 +1934,21 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ## Whole-Product Rating Scope — User Requested
 - [x] Assess implemented capability, client experience, owner experience, field/dispatch operations, security/privacy, reliability, accessibility, performance, integrations, analytics/financial workflow, market differentiation, and launch readiness against current evidence
 - [x] Publish a transparent out-of-10 scorecard with weighted overall score, evidence labels, external-validation deductions, and no unsupported market-dominance claim
+
+## Deep Adversarial Code and Data Audit — User Requested
+- [x] Inspect remaining high-risk public/authenticated mutations, state transitions, response projections, upload sessions, storage routes, migrations, client data rendering, and runtime patterns for confirmed defects
+- [x] Repair only confirmed issues with focused deterministic regression coverage, preserving owner/client isolation and explicit external-provider boundaries
+- [x] Run one complete release-validation pass and publish a candid deep-audit evidence record
+- [x] Repair the confirmed testimonial-request origin-poisoning path by restricting emailed token links to trusted application origins
+- [x] Repair the confirmed booking one-time reschedule state race so a concurrent owner/public state change cannot be overwritten after token consumption
+- [x] Repair the confirmed public portal-message metadata overexposure by returning only client-safe message fields
+- [x] Repair the confirmed client approval response race so only the winning pending-state transition can create activity evidence
+- [x] Repair the confirmed public upload-session quota race so concurrent uploads cannot exceed the session file limit
+- [x] Repair the confirmed intake upload-session reuse race so concurrent form submissions cannot duplicate photo-associated responses
+- [x] Repair the confirmed booking upload-session reuse race so concurrent booking submissions cannot duplicate client and appointment side effects
+- [x] Repair the confirmed public booking client-upsert race so concurrent requests cannot create duplicate workspace client records or side effects before slot reservation
+- [x] Repair the confirmed public booking past-date acceptance gap with a server-side future-date predicate and focused regression coverage
+- [x] Repair the confirmed owner invoice Checkout return-origin weakness by restricting hosted-payment redirect URLs to trusted application origins
+- [x] Repair the confirmed Stripe billing-portal return-origin weakness by restricting account-management redirects to trusted application origins
+- [x] Repair the confirmed client-portal token URL origin weakness by restricting generated credential-bearing portal links to trusted application origins
+- [x] Repair the confirmed proposal delivery-link origin weakness by restricting emailed signing URLs to trusted application origins
