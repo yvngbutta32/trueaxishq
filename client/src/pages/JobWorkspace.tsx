@@ -24,6 +24,8 @@ const statusStyle: Record<string, string> = {
 
 type CreateForm = { clientId: string; bookingId: string; templateId: string; title: string; description: string; status: typeof JOB_STATUSES[number]; priority: typeof PRIORITIES[number]; targetDate: string; budgetAmount: string };
 const emptyForm: CreateForm = { clientId: "", bookingId: "", templateId: "", title: "", description: "", status: "lead", priority: "normal", targetDate: "", budgetAmount: "" };
+type JobExpenseForm = { amount: string; category: string; description: string; vendor: string; date: string };
+const newExpenseForm = (): JobExpenseForm => ({ amount: "", category: "materials", description: "", vendor: "", date: new Date().toISOString().slice(0, 10) });
 
 export default function JobWorkspace() {
   const utils = trpc.useUtils();
@@ -43,6 +45,7 @@ export default function JobWorkspace() {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
+  const [expenseForm, setExpenseForm] = useState<JobExpenseForm>(newExpenseForm);
 
   useEffect(() => {
     if (!selectedJobId && jobs[0]) setSelectedJobId(jobs[0].id);
@@ -58,6 +61,7 @@ export default function JobWorkspace() {
   const invalidateJobs = () => {
     utils.jobs.list.invalidate();
     if (selectedJobId) utils.jobs.get.invalidate({ id: selectedJobId });
+    utils.expenses.list.invalidate();
   };
   const invalidateTemplates = () => utils.jobs.listChecklistTemplates.invalidate();
   const createMutation = trpc.jobs.create.useMutation({
@@ -72,6 +76,8 @@ export default function JobWorkspace() {
   const createApproval = trpc.jobs.createApprovalRequest.useMutation({ onSuccess: () => { invalidateJobs(); setApprovalTitle(""); setApprovalDescription(""); toast.success("Client approval request added"); }, onError: error => toast.error(error.message) });
   const deleteApproval = trpc.jobs.deleteApprovalRequest.useMutation({ onSuccess: () => { invalidateJobs(); toast.success("Approval request removed"); }, onError: error => toast.error(error.message) });
   const createChecklistTemplate = trpc.jobs.createChecklistTemplateFromJob.useMutation({ onSuccess: (result) => { invalidateTemplates(); setSaveTemplateOpen(false); setTemplateName(""); toast.success(`Saved ${result.itemCount} checklist item${result.itemCount === 1 ? "" : "s"} as a template.`); }, onError: error => toast.error(error.message) });
+  const addJobExpense = trpc.expenses.create.useMutation({ onSuccess: () => { invalidateJobs(); setExpenseForm(newExpenseForm()); toast.success("Private job cost added"); }, onError: error => toast.error(error.message) });
+  const removeJobExpense = trpc.expenses.delete.useMutation({ onSuccess: () => { invalidateJobs(); toast.success("Private job cost removed"); }, onError: error => toast.error(error.message) });
 
   const detail = selectedJob.data;
   const completion = useMemo(() => {
@@ -89,6 +95,22 @@ export default function JobWorkspace() {
       priority: createForm.priority, targetDate: createForm.targetDate || undefined, budgetAmount: budget,
       bookingId: createForm.bookingId ? Number(createForm.bookingId) : undefined,
       templateId: createForm.templateId ? Number(createForm.templateId) : undefined,
+    });
+  };
+
+  const handleAddJobExpense = () => {
+    if (!detail) return;
+    const amount = Number(expenseForm.amount);
+    if (!Number.isFinite(amount) || amount <= 0) return toast.error("Enter a valid cost amount.");
+    if (!expenseForm.description.trim()) return toast.error("Describe the cost before saving.");
+    addJobExpense.mutate({
+      jobId: detail.job.id,
+      amount,
+      category: expenseForm.category.trim() || "other",
+      description: expenseForm.description.trim(),
+      vendor: expenseForm.vendor.trim() || undefined,
+      date: expenseForm.date,
+      taxDeductible: true,
     });
   };
 
@@ -134,8 +156,8 @@ export default function JobWorkspace() {
               <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <Metric icon={<Target className="h-4 w-4" />} label="Checklist" value={`${completion}%`} detail={`${detail.tasks.filter(task => task.status === "done").length}/${detail.tasks.length || 0} completed`} />
                 <Metric icon={<DollarSign className="h-4 w-4" />} label="Revenue" value={money(detail.financials.revenue)} detail={detail.invoice?.status ?? "Budget estimate"} />
-                <Metric icon={<Receipt className="h-4 w-4" />} label="Job costs" value={money(detail.financials.totalCost)} detail={`${money(detail.financials.receiptCost)} receipts · ${money(detail.financials.laborCost)} time`} />
-                <Metric icon={<DollarSign className="h-4 w-4" />} label="Projected profit" value={money(detail.financials.profit)} detail={detail.financials.profit >= 0 ? "On track" : "Needs attention"} accent={detail.financials.profit < 0 ? "text-rose-600" : "text-emerald-600"} />
+                <Metric icon={<Receipt className="h-4 w-4" />} label="Tracked costs" value={money(detail.financials.totalCost)} detail={`${money(detail.financials.expenseCost)} expenses · ${money(detail.financials.laborCost)} time`} />
+                <Metric icon={<DollarSign className="h-4 w-4" />} label="Projected profit" value={money(detail.financials.profit)} detail={detail.financials.marginPercent === null ? "Set revenue to calculate margin" : `${detail.financials.marginPercent}% margin`} accent={detail.financials.profit < 0 ? "text-rose-600" : "text-emerald-600"} />
               </div>
             </div>
 
@@ -151,6 +173,32 @@ export default function JobWorkspace() {
                 {detail.photos.length === 0 ? <div className="mt-4 rounded-xl bg-[#F7F6F3] p-5 text-center"><Camera className="mx-auto h-6 w-6 text-[#D4922A]" /><p className="mt-2 text-sm font-medium text-[#1A1A1A]">No proof attached yet</p><p className="mt-1 text-xs text-[rgba(26,26,26,0.55)]">Use Job Photos to upload work, then attach it here.</p></div> : <div className="mt-4 grid grid-cols-3 gap-2">{detail.photos.slice(0, 6).map(photo => <button key={photo.id} type="button" onClick={() => setLightboxUrl(photo.photoUrl)} className="group relative aspect-square overflow-hidden rounded-lg bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4922A]"><img src={photo.photoUrl} alt={photo.caption || `${photo.photoType} proof`} className="h-full w-full object-cover transition-transform group-hover:scale-105" /><span className="absolute inset-x-1 bottom-1 truncate rounded bg-black/65 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-white">{photo.photoType}</span></button>)}</div>}
               </section>
             </div>
+
+            <section className="rounded-2xl border border-emerald-200 bg-emerald-50/45 p-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div><h3 className="font-bold text-emerald-950">Job costing <span className="font-normal text-emerald-800/75">· private</span></h3><p className="mt-1 text-xs text-emerald-900/80">Track costs that belong to this job. This is owner-only and does not appear in the client portal, invoices, or proof timeline.</p></div>
+                <Receipt className="h-5 w-5 shrink-0 text-emerald-700" />
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <CostSummary label="Receipt-marked proof" value={detail.financials.receiptCost} />
+                <CostSummary label="Logged time" value={detail.financials.laborCost} />
+                <CostSummary label="Tracked expenses" value={detail.financials.expenseCost} />
+                <CostSummary label="Total tracked cost" value={detail.financials.totalCost} emphasized />
+              </div>
+              <div className="mt-5 rounded-xl border border-emerald-200 bg-white p-4">
+                <h4 className="text-sm font-semibold text-[#1A1A1A]">Add a private cost</h4>
+                <p className="mt-1 text-xs text-[rgba(26,26,26,0.58)]">Record each cost once. Receipt-marked proof is already counted separately above.</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-[110px_150px_minmax(0,1fr)_minmax(0,0.75fr)_130px_auto]">
+                  <label className="text-xs font-semibold text-[rgba(26,26,26,0.64)]">Amount<input inputMode="decimal" value={expenseForm.amount} onChange={event => setExpenseForm(form => ({ ...form, amount: event.target.value }))} placeholder="$0.00" className="mt-1 block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-emerald-300" /></label>
+                  <label className="text-xs font-semibold text-[rgba(26,26,26,0.64)]">Category<select value={expenseForm.category} onChange={event => setExpenseForm(form => ({ ...form, category: event.target.value }))} className="mt-1 block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-emerald-300"><option value="materials">Materials</option><option value="permit">Permit</option><option value="rental">Rental</option><option value="travel">Travel</option><option value="other">Other</option></select></label>
+                  <label className="text-xs font-semibold text-[rgba(26,26,26,0.64)]">Description<input value={expenseForm.description} onChange={event => setExpenseForm(form => ({ ...form, description: event.target.value }))} maxLength={512} placeholder="e.g. Replacement valve" className="mt-1 block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-emerald-300" /></label>
+                  <label className="text-xs font-semibold text-[rgba(26,26,26,0.64)]">Vendor <span className="font-normal">(optional)</span><input value={expenseForm.vendor} onChange={event => setExpenseForm(form => ({ ...form, vendor: event.target.value }))} maxLength={255} placeholder="Supplier" className="mt-1 block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-emerald-300" /></label>
+                  <label className="text-xs font-semibold text-[rgba(26,26,26,0.64)]">Date<input type="date" value={expenseForm.date} onChange={event => setExpenseForm(form => ({ ...form, date: event.target.value }))} className="mt-1 block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-emerald-300" /></label>
+                  <Button onClick={handleAddJobExpense} disabled={addJobExpense.isPending} className="self-end bg-emerald-700 text-white hover:bg-emerald-800">{addJobExpense.isPending ? "Adding…" : "Add cost"}</Button>
+                </div>
+              </div>
+              <div className="mt-4 space-y-2">{detail.expenses.length === 0 ? <p className="rounded-xl border border-dashed border-emerald-200 bg-white/70 px-4 py-3 text-sm text-emerald-950/70">No private operating expenses are attributed to this job yet.</p> : detail.expenses.map(expense => <div key={expense.id} className="flex flex-col gap-2 rounded-xl border border-emerald-100 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-semibold text-[#1A1A1A]">{expense.description}</p><span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800">{expense.category}</span></div><p className="mt-1 text-xs text-[rgba(26,26,26,0.56)]">{expense.date}{expense.vendor ? ` · ${expense.vendor}` : ""}</p></div><div className="flex items-center gap-3"><p className="text-sm font-bold text-emerald-800">{money(expense.amount)}</p><Button variant="outline" size="sm" onClick={() => removeJobExpense.mutate({ id: expense.id })} disabled={removeJobExpense.isPending} className="border-emerald-200 text-emerald-800 hover:bg-emerald-50">Remove</Button></div></div>)}</div>
+            </section>
 
             <section className="rounded-2xl border border-violet-200 bg-violet-50/50 p-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div><h3 className="font-bold text-violet-950">Client approvals</h3><p className="mt-1 text-xs text-violet-900/75">Ask the client to approve a defined deliverable or request changes from their portal.</p></div><ClipboardCheck className="h-5 w-5 text-violet-700" /></div>
@@ -184,4 +232,8 @@ export default function JobWorkspace() {
 
 function Metric({ icon, label, value, detail, accent }: { icon: React.ReactNode; label: string; value: string; detail: string; accent?: string }) {
   return <div className="rounded-xl bg-[#F7F6F3] p-3"><div className="flex items-center gap-1.5 text-xs font-semibold text-[rgba(26,26,26,0.53)]">{icon}{label}</div><p className={`mt-2 text-lg font-bold text-[#1A1A1A] ${accent ?? ""}`}>{value}</p><p className="mt-0.5 truncate text-[11px] text-[rgba(26,26,26,0.45)]">{detail}</p></div>;
+}
+
+function CostSummary({ label, value, emphasized = false }: { label: string; value: number | string; emphasized?: boolean }) {
+  return <div className={`rounded-xl border p-3 ${emphasized ? "border-emerald-300 bg-emerald-100/65" : "border-emerald-100 bg-white"}`}><p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-950/65">{label}</p><p className="mt-1 text-lg font-bold text-emerald-950">{money(value)}</p></div>;
 }

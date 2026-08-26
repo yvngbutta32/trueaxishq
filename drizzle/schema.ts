@@ -666,6 +666,7 @@ export type InsertService = typeof services.$inferInsert;
 export const expenses = mysqlTable("expenses", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
+  jobId: int("jobId"),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   currency: varchar("currency", { length: 3 }).default("USD").notNull(),
   category: varchar("category", { length: 64 }).notNull().default("other"),
@@ -677,7 +678,7 @@ export const expenses = mysqlTable("expenses", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 },
-(t) => [index("expenses_userId_idx").on(t.userId)]
+(t) => [index("expenses_userId_idx").on(t.userId), index("expenses_owner_job_idx").on(t.userId, t.jobId)]
 );
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = typeof expenses.$inferInsert;

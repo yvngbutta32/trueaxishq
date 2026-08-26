@@ -1865,3 +1865,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Audit schema, migrations, ownership predicates, public token boundaries, router coverage, client route bindings, data integrity, dependencies, and runtime logs for confirmed defects
 - [x] Repair every confirmed autonomous defect found and add focused regression coverage; no confirmed autonomous defect required repair in this sweep
 - [x] Re-run strict type, full tests, production build, dependency audit, bundle budget, database integrity checks, and responsive/public-route evidence; publish a candid sweep report
+
+## Private Job-Costing & Margin Clarity — Evidence-Led
+- [x] Add owner-scoped expense-to-job attribution and a private per-job revenue, tracked-cost, and margin summary without exposing cost data in public or client flows
+- [x] Add deterministic contracts for job ownership, expense attribution, aggregate calculations, and client-portal non-exposure
+- [x] Add owner Job Workspace controls and evidence documentation that state the bounded scope and exclude payroll, live accounting sync, staff permissions, GPS, and external-provider claims

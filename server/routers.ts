@@ -15,6 +15,7 @@ import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
+import { calculateJobCosting } from "../shared/jobCosting";
 import { users, leads, clients, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -4443,6 +4444,7 @@ Only include actions when you have actually generated a complete draft. For gene
         year: z.number().int().optional(),
         month: z.number().int().min(1).max(12).optional(),
         category: z.string().optional(),
+        jobId: z.number().int().positive().optional(),
       })
       )
       .query(async ({ input, ctx }) => {
@@ -4452,6 +4454,7 @@ Only include actions when you have actually generated a complete draft. For gene
         if (input.year) filters.push(sql`YEAR(${expenses.date}) = ${input.year}`);
         if (input.month) filters.push(sql`MONTH(${expenses.date}) = ${input.month}`);
         if (input.category) filters.push(eq(expenses.category, input.category));
+        if (input.jobId) filters.push(eq(expenses.jobId, input.jobId));
         const rows = await db.select().from(expenses)
           .where(and(...filters))
           .orderBy(desc(expenses.createdAt));
@@ -4467,11 +4470,18 @@ Only include actions when you have actually generated a complete draft. For gene
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         receiptUrl: z.string().url().optional(),
         taxDeductible: z.boolean().default(true),
+        jobId: z.number().int().positive().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const db = await requireDb();
+        if (input.jobId) {
+          const [ownedJob] = await db.select({ id: jobs.id }).from(jobs)
+            .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+          if (!ownedJob) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        }
         const [row] = await db.insert(expenses).values({
           userId: ctx.user.id,
+          jobId: input.jobId,
           amount: String(input.amount),
           currency: input.currency,
           category: input.category,
@@ -4494,12 +4504,21 @@ Only include actions when you have actually generated a complete draft. For gene
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
         receiptUrl: z.string().url().optional(),
         taxDeductible: z.boolean().optional(),
+        jobId: z.number().int().positive().nullable().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const db = await requireDb();
-        const { id, amount, ...rest } = input;
-        const updates: Record<string, unknown> = { ...rest };
+        const { id, amount, jobId, ...rest } = input;
+        const updates: Record<string, unknown> = Object.fromEntries(Object.entries(rest).filter(([, value]) => value !== undefined));
         if (amount !== undefined) updates.amount = String(amount);
+        if (jobId !== undefined) {
+          if (jobId !== null) {
+            const [ownedJob] = await db.select({ id: jobs.id }).from(jobs)
+              .where(and(eq(jobs.id, jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+            if (!ownedJob) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+          }
+          updates.jobId = jobId;
+        }
         await db.update(expenses).set(updates).where(and(eq(expenses.id, id), eq(expenses.userId, ctx.user.id)));
         return { success: true };
       }),
@@ -6357,20 +6376,22 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const [invoice] = job.invoiceId ? await db.select().from(invoices).where(and(eq(invoices.id, job.invoiceId), eq(invoices.userId, ctx.user.id))).limit(1) : [];
         const [proposal] = job.proposalId ? await db.select().from(proposals).where(and(eq(proposals.id, job.proposalId), eq(proposals.userId, ctx.user.id))).limit(1) : [];
         const [contract] = job.contractId ? await db.select().from(contracts).where(and(eq(contracts.id, job.contractId), eq(contracts.userId, ctx.user.id))).limit(1) : [];
-        const [tasks, activities, photos, entries, approvals] = await Promise.all([
+        const [tasks, activities, photos, entries, approvals, jobExpenses] = await Promise.all([
           db.select().from(jobTasks).where(and(eq(jobTasks.jobId, job.id), eq(jobTasks.userId, ctx.user.id))).orderBy(jobTasks.sortOrder, desc(jobTasks.createdAt)),
           db.select().from(jobActivities).where(and(eq(jobActivities.jobId, job.id), eq(jobActivities.userId, ctx.user.id))).orderBy(desc(jobActivities.createdAt)).limit(100),
           db.select().from(jobPhotos).where(and(eq(jobPhotos.jobId, job.id), eq(jobPhotos.userId, ctx.user.id))).orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt)),
           db.select().from(timeEntries).where(and(eq(timeEntries.jobId, job.id), eq(timeEntries.userId, ctx.user.id))).orderBy(desc(timeEntries.startedAt)),
           db.select().from(clientApprovalRequests).where(and(eq(clientApprovalRequests.jobId, job.id), eq(clientApprovalRequests.userId, ctx.user.id), eq(clientApprovalRequests.clientId, job.clientId))).orderBy(desc(clientApprovalRequests.createdAt)),
+          db.select().from(expenses).where(and(eq(expenses.jobId, job.id), eq(expenses.userId, ctx.user.id))).orderBy(desc(expenses.createdAt)),
         ]);
         const receiptCost = photos.filter(photo => photo.photoType === "receipt").reduce((sum, photo) => sum + Number(photo.lineItemAmount ?? 0), 0);
         const laborCost = entries.reduce((sum, entry) => sum + ((entry.durationMinutes ?? 0) / 60) * Number(entry.hourlyRate ?? 0), 0);
+        const expenseCost = jobExpenses.reduce((sum, expense) => sum + Number(expense.amount ?? 0), 0);
         const revenue = Number(invoice?.amount ?? job.budgetAmount ?? 0);
         return {
           job, client, booking: booking ?? null, invoice: invoice ?? null, proposal: proposal ?? null, contract: contract ?? null,
-          tasks, activities, photos, entries, approvals,
-          financials: { revenue, receiptCost, laborCost, totalCost: receiptCost + laborCost, profit: revenue - receiptCost - laborCost },
+          tasks, activities, photos, entries, approvals, expenses: jobExpenses,
+          financials: calculateJobCosting({ revenue, receiptCost, laborCost, expenseCost }),
         };
       }),
 
