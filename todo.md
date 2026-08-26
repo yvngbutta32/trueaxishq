@@ -1819,6 +1819,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Implement the highest-value remaining autonomous improvements without fabricating external connectivity or requesting credentials
 - [x] Add deterministic coverage and publish evidence for the continued no-input quality pass
 - [x] Add token-scoped client approval requests for owner-defined job deliverables, with explicit approve/request-changes responses and owner-safe activity history
+- [x] Diagnose managed-preview port drift and validate fallback restart behavior; record the external sandbox port reservation without misattributing it to application code
 
 ## Evidence-First Operating Standard — User Required
 - [x] Maintain an explicit evidence ledger that labels implementation facts, cited market evidence, assumptions, and external validation gates for all continued quality decisions and claims
