@@ -1,5 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { eq, desc, and, sql, inArray, or, like } from "drizzle-orm";
+import { eq, desc, and, sql, inArray, or, like, isNull, gt } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
 import { randomBytes } from "node:crypto";
@@ -34,6 +34,7 @@ import { buildClientCsv } from "./clientCsvExport";
 import { buildJobCostCsv, type ExportableJobCostRow } from "./jobCostCsvExport";
 import { getProposalPackageSubtotal, normalizeProposalLineItems, parseProposalPackages, type ProposalPackage } from "../shared/proposalPackages";
 import { isProposalExpired } from "../shared/proposalValidity";
+import { isClientSafeJobActivityEvent } from "../shared/clientSafeJobActivity";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -245,17 +246,40 @@ export const appRouter = router({
             throw new TRPCError({ code: "CONFLICT", message: "An account with this email already exists." });
           }
 
-          const user = await registerUser({
-            name: input.name,
-            email: input.email,
-            password: input.password,
-          });
+          // Atomically claim the invite before account creation. The earlier read makes
+          // messages helpful, but this write is the final single-use predicate.
+          const claimTime = new Date();
+          const claimResult = await db.update(inviteCodes).set({ usedAt: claimTime }).where(and(
+            eq(inviteCodes.id, invite.id),
+            eq(inviteCodes.revoked, false),
+            isNull(inviteCodes.usedAt),
+            or(isNull(inviteCodes.expiresAt), gt(inviteCodes.expiresAt, claimTime)),
+          ));
+          if (!claimResult[0].affectedRows) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "This invite code is no longer available." });
+          }
 
-          // Mark invite as used
-          await db.update(inviteCodes).set({
-            usedBy: user.id,
-            usedAt: new Date(),
-          }).where(eq(inviteCodes.id, invite.id));
+          let user;
+          try {
+            user = await registerUser({
+              name: input.name,
+              email: input.email,
+              password: input.password,
+            });
+          } catch (error) {
+            // No account was created, so restore the tentative claim. A concurrent
+            // request cannot have claimed this invite because usedAt is already set.
+            await db.update(inviteCodes).set({ usedAt: null }).where(and(
+              eq(inviteCodes.id, invite.id),
+              isNull(inviteCodes.usedBy),
+            ));
+            throw error;
+          }
+
+          await db.update(inviteCodes).set({ usedBy: user.id }).where(and(
+            eq(inviteCodes.id, invite.id),
+            isNull(inviteCodes.usedBy),
+          ));
 
           const token = await createSessionToken(user.id, user.email ?? input.email);
           await recordSession(user.id, token, ctx.req);
@@ -420,8 +444,10 @@ export const appRouter = router({
             used: false,
           });
 
-          // Build reset URL from the request origin (works in any environment)
-          const origin = input.origin || ctx.req.headers.origin || 'https://trueaxis-hq.manus.space';
+          // Reset links carry a credential. Restrict their origin rather than
+          // reflecting a caller-controlled URL into the email.
+          const requestedOrigin = input.origin || ctx.req.headers.origin || "https://trueaxishq.com";
+          const origin = getTrustedPaymentReturnOrigin(requestedOrigin) ?? "https://trueaxishq.com";
           const resetUrl = `${origin}/reset-password?token=${token}`;
           // Send real email to the user
           await sendEmail({
@@ -465,9 +491,20 @@ export const appRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: "This reset link has expired. Please request a new one." });
         }
 
+        // Atomically consume the token before the password mutation. The earlier
+        // read supports a helpful recovery message; this write is the final-use
+        // predicate that prevents two concurrent submissions using the same link.
+        const consumeResult = await db.update(passwordResetTokens).set({ used: true }).where(and(
+          eq(passwordResetTokens.id, resetRecord.id),
+          eq(passwordResetTokens.used, false),
+          gt(passwordResetTokens.expiresAt, new Date()),
+        ));
+        if (!consumeResult[0].affectedRows) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid or expired reset link. Please request a new one." });
+        }
+
         const newHash = await hashPassword(input.newPassword);
         await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, resetRecord.userId));
-        await db.update(passwordResetTokens).set({ used: true }).where(eq(passwordResetTokens.id, resetRecord.id));
 
         // Password reset completed
         return { success: true };
@@ -2837,17 +2874,37 @@ Only include actions when you have actually generated a complete draft. For gene
         }).from(users).where(eq(users.id, portalRecord.userId)).limit(1);
 
         // Fetch client info
-        const [client] = await db.select().from(clients)
+        const [client] = await db.select({
+          name: clients.name,
+          email: clients.email,
+          phone: clients.phone,
+          service: clients.service,
+        }).from(clients)
           .where(and(eq(clients.id, portalRecord.clientId), eq(clients.userId, portalRecord.userId))).limit(1);
         if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client record not found." });
 
         // Fetch client's invoices
-        const clientInvoices = await db.select().from(invoices)
+        const clientInvoices = await db.select({
+          id: invoices.id,
+          invoiceNumber: invoices.invoiceNumber,
+          service: invoices.service,
+          amount: invoices.amount,
+          status: invoices.status,
+          dueDate: invoices.dueDate,
+          paidAt: invoices.paidAt,
+        }).from(invoices)
           .where(and(eq(invoices.userId, portalRecord.userId), eq(invoices.clientId, portalRecord.clientId)))
           .orderBy(desc(invoices.createdAt));
 
-        // Fetch client's bookings
-        const clientBookings = await db.select().from(bookings)
+        // Fetch client-safe appointment fields only.
+        const clientBookings = await db.select({
+          id: bookings.id,
+          service: bookings.service,
+          date: bookings.date,
+          time: bookings.time,
+          duration: bookings.duration,
+          status: bookings.status,
+        }).from(bookings)
           .where(and(eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId)))
           .orderBy(desc(bookings.createdAt));
 
@@ -2915,7 +2972,8 @@ Only include actions when you have actually generated a complete draft. For gene
         const [portalRecord] = await db.select().from(clientPortalTokens)
           .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
         if (!portalRecord || (portalRecord.expiresAt && new Date() > portalRecord.expiresAt)) throw new TRPCError({ code: "FORBIDDEN", message: "Portal link is no longer active." });
-        const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId))).limit(1);
+        const [booking] = await db.select({ id: bookings.id, date: bookings.date, time: bookings.time })
+          .from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId))).limit(1);
         if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Appointment not found." });
         const today = new Date().toISOString().slice(0, 10);
         const bookedSlots = await db.select({ date: bookings.date, time: bookings.time }).from(bookings).where(and(eq(bookings.userId, portalRecord.userId), eq(bookings.status, "scheduled"), sql`${bookings.date} >= ${today}`, sql`${bookings.id} != ${booking.id}`));
@@ -2935,8 +2993,18 @@ Only include actions when you have actually generated a complete draft. For gene
         if (input.date < new Date().toISOString().slice(0, 10)) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a future appointment date." });
         const nextSlotKey = `${portalRecord.userId}|${input.date}|${input.time}`;
         try {
-          await db.update(bookings).set({ date: input.date, time: input.time, slotKey: nextSlotKey, reminderSentAt: null, updatedAt: new Date() })
-            .where(and(eq(bookings.id, booking.id), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId), eq(bookings.status, "scheduled")));
+          const rescheduleResult = await db.update(bookings).set({ date: input.date, time: input.time, slotKey: nextSlotKey, reminderSentAt: null, updatedAt: new Date() })
+            .where(and(
+              eq(bookings.id, booking.id),
+              eq(bookings.userId, portalRecord.userId),
+              eq(bookings.clientId, portalRecord.clientId),
+              eq(bookings.status, "scheduled"),
+              eq(bookings.date, booking.date),
+              eq(bookings.time, booking.time),
+            ));
+          if (!rescheduleResult[0].affectedRows) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "This appointment was just changed. Refresh the portal before trying again." });
+          }
         } catch (error) {
           const message = error instanceof Error ? error.message : "";
           if (message.includes("Duplicate") || message.includes("duplicate") || message.includes("1062")) throw new TRPCError({ code: "CONFLICT", message: "That appointment time was just taken. Please choose another." });
@@ -2956,7 +3024,17 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!portalRecord || (portalRecord.expiresAt && new Date() > portalRecord.expiresAt)) throw new TRPCError({ code: "FORBIDDEN", message: "Portal link is no longer active." });
         const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId))).limit(1);
         if (!booking || booking.status !== "scheduled") throw new TRPCError({ code: "BAD_REQUEST", message: "This appointment can no longer be cancelled." });
-        await db.update(bookings).set({ status: "cancelled", slotKey: null, updatedAt: new Date() }).where(and(eq(bookings.id, booking.id), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId), eq(bookings.status, "scheduled")));
+        const cancelResult = await db.update(bookings).set({ status: "cancelled", slotKey: null, updatedAt: new Date() }).where(and(
+          eq(bookings.id, booking.id),
+          eq(bookings.userId, portalRecord.userId),
+          eq(bookings.clientId, portalRecord.clientId),
+          eq(bookings.status, "scheduled"),
+          eq(bookings.date, booking.date),
+          eq(bookings.time, booking.time),
+        ));
+        if (!cancelResult[0].affectedRows) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This appointment was just changed. Refresh the portal before trying again." });
+        }
         await db.insert(notifications).values({ userId: portalRecord.userId, title: `Booking Cancelled — ${booking.clientName}`, body: `${booking.clientName} cancelled ${booking.service ?? "their appointment"} on ${booking.date} at ${booking.time}.`, type: "warning", link: "/dashboard?panel=scheduling" });
         if (booking.clientEmail) sendEmail({ to: booking.clientEmail, subject: `Booking Cancelled — ${booking.service ?? "Appointment"}`, html: bookingCancelConfirmEmail({ clientName: booking.clientName, serviceName: booking.service ?? "Appointment", date: booking.date, time: booking.time, action: "cancel" }) }).catch(() => {});
         return { ok: true };
@@ -3047,7 +3125,7 @@ Only include actions when you have actually generated a complete draft. For gene
           jobs: clientJobs.map(job => ({
             ...job,
             tasks: tasks.filter(task => task.jobId === job.id),
-            activities: activities.filter(activity => activity.jobId === job.id && activity.eventType !== "internal_note"),
+            activities: activities.filter(activity => activity.jobId === job.id && isClientSafeJobActivityEvent(activity.eventType)),
             photos: photos.filter(photo => photo.jobId === job.id),
             visits: clientVisits.filter(visit => visit.jobId === job.id),
             approvals: approvals.filter(approval => approval.jobId === job.id),
@@ -4045,10 +4123,13 @@ Only include actions when you have actually generated a complete draft. For gene
           .where(eq(testimonials.requestToken, input.token)).limit(1);
         if (!t) throw new TRPCError({ code: "NOT_FOUND", message: "Testimonial link not found." });
         if (t.status !== "requested") throw new TRPCError({ code: "BAD_REQUEST", message: "This testimonial has already been submitted." });
-        await db.update(testimonials).set({
+        const submissionResult = await db.update(testimonials).set({
           body: input.body, rating: input.rating,
           status: "submitted", submittedAt: new Date(),
-        }).where(eq(testimonials.id, t.id));
+        }).where(and(eq(testimonials.id, t.id), eq(testimonials.status, "requested")));
+        if (!submissionResult[0].affectedRows) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This testimonial has already been submitted." });
+        }
         // Notify owner
         await db.insert(notifications).values({
           userId: t.userId,
@@ -4175,15 +4256,26 @@ Only include actions when you have actually generated a complete draft. For gene
         const nextSlotKey = `${tokenRow.userId}|${input.date}|${input.time}`;
         try {
           await db.transaction(async (tx) => {
-            await tx.update(bookings).set({
+            const tokenConsume = await tx.update(bookingCancelTokens).set({ used: true })
+              .where(and(
+                eq(bookingCancelTokens.id, tokenRow.id),
+                eq(bookingCancelTokens.used, false),
+                eq(bookingCancelTokens.action, "reschedule"),
+                gt(bookingCancelTokens.expiresAt, new Date()),
+              ));
+            if (!tokenConsume[0].affectedRows) {
+              throw new TRPCError({ code: "BAD_REQUEST", message: "This reschedule link is no longer available." });
+            }
+            const bookingUpdate = await tx.update(bookings).set({
               date: input.date,
               time: input.time,
               slotKey: nextSlotKey,
               reminderSentAt: null,
               updatedAt: new Date(),
             }).where(and(eq(bookings.id, booking.id), eq(bookings.userId, tokenRow.userId)));
-            await tx.update(bookingCancelTokens).set({ used: true })
-              .where(and(eq(bookingCancelTokens.id, tokenRow.id), eq(bookingCancelTokens.used, false)));
+            if (!bookingUpdate[0].affectedRows) {
+              throw new TRPCError({ code: "BAD_REQUEST", message: "This booking can no longer be rescheduled." });
+            }
           });
         } catch (error) {
           const message = error instanceof Error ? error.message : "";
@@ -4231,12 +4323,22 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
         enforceBookingChangeWindow(booking.date, booking.time);
         await db.transaction(async (tx) => {
-          await tx.update(bookings)
+          const tokenConsume = await tx.update(bookingCancelTokens).set({ used: true })
+            .where(and(
+              eq(bookingCancelTokens.id, tokenRow.id),
+              eq(bookingCancelTokens.used, false),
+              eq(bookingCancelTokens.action, "cancel"),
+              gt(bookingCancelTokens.expiresAt, new Date()),
+            ));
+          if (!tokenConsume[0].affectedRows) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Link already used or not found." });
+          }
+          const bookingUpdate = await tx.update(bookings)
             .set({ status: "cancelled", slotKey: null, reminderSentAt: null, checkInSentAt: null })
             .where(and(eq(bookings.id, booking.id), eq(bookings.userId, tokenRow.userId), eq(bookings.status, "scheduled")));
-          await tx.update(bookingCancelTokens)
-            .set({ used: true })
-            .where(and(eq(bookingCancelTokens.id, tokenRow.id), eq(bookingCancelTokens.used, false)));
+          if (!bookingUpdate[0].affectedRows) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "This booking can no longer be cancelled." });
+          }
         });
         // Notify owner
         await db.insert(notifications).values({
@@ -5261,7 +5363,14 @@ Only include actions when you have actually generated a complete draft. For gene
         // Fetch host's booking username so the success screen can show a booking CTA
         const [host] = await db.select({ bookingUsername: users.bookingUsername, name: users.name, businessName: users.businessName })
           .from(users).where(eq(users.id, form.userId)).limit(1);
-        return { ...form, hostBookingUsername: host?.bookingUsername ?? null, hostName: host?.businessName || host?.name || null };
+        return {
+          id: form.id,
+          name: form.name,
+          description: form.description,
+          fields: form.fields,
+          hostBookingUsername: host?.bookingUsername ?? null,
+          hostName: host?.businessName || host?.name || null,
+        };
       }),
 
     submitResponse: publicProcedure

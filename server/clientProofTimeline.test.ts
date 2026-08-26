@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { buildClientProofTimeline } from "../shared/clientProofTimeline";
 
 describe("client proof-of-work timeline", () => {
-  it("combines visible updates, milestones, and non-receipt photos newest first", () => {
+  it("combines explicitly client-safe updates, milestones, and non-receipt photos newest first", () => {
     const timeline = buildClientProofTimeline({
       status: "in_progress",
       updatedAt: "2026-08-25T12:00:00.000Z",
       activities: [
         { id: 1, eventType: "internal_note", message: "Private margin note", createdAt: "2026-08-25T12:04:00.000Z" },
-        { id: 2, eventType: "status_update", message: "Prep is complete", createdAt: "2026-08-25T12:03:00.000Z" },
+        { id: 2, eventType: "client_update", message: "Prep is complete", createdAt: "2026-08-25T12:03:00.000Z" },
       ],
       tasks: [{ id: 3, title: "Prepare materials", status: "done", completedAt: "2026-08-25T12:02:00.000Z" }],
       photos: [{ id: 4, photoType: "wip", photoUrl: "https://cdn.example.test/wip.jpg", caption: "On site", createdAt: "2026-08-25T12:05:00.000Z" }],

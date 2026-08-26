@@ -23,12 +23,13 @@ describe("Job Workspace contract", () => {
     expect(jobRouter).toContain("eq(jobPhotos.userId, ctx.user.id)");
   });
 
-  it("limits Client Portal job progress to the token client and excludes internal notes and receipt costs", () => {
+  it("limits Client Portal job progress to the token client and explicitly excludes operational activity and receipt costs", () => {
     const portalStart = routerSource.indexOf("getJobs: publicProcedure");
     const portalEnd = routerSource.indexOf("  }),\n  // ── Contracts", portalStart);
     const portalJobs = routerSource.slice(portalStart, portalEnd);
     expect(portalJobs).toContain("eq(jobs.clientId, portalRecord.clientId)");
-    expect(portalJobs).toContain('activity.eventType !== "internal_note"');
+    expect(portalJobs).toContain("isClientSafeJobActivityEvent(activity.eventType)");
+    expect(portalJobs).not.toContain('activity.eventType !== "internal_note"');
     expect(portalJobs).toContain('inArray(jobPhotos.photoType, ["estimate", "wip", "finished"])');
     expect(portalJobs).not.toContain('photoType: "receipt"');
     expect(portalJobs).toContain("eq(proposals.clientId, portalRecord.clientId)");

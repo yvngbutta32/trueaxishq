@@ -1,3 +1,5 @@
+import { isClientSafeJobActivityEvent } from "./clientSafeJobActivity";
+
 export type ClientProofTimelineItem = {
   id: string;
   kind: "status" | "milestone" | "photo";
@@ -36,7 +38,7 @@ export function buildClientProofTimeline(input: TimelineInput): ClientProofTimel
       occurredAt: input.updatedAt ?? null,
     },
     ...input.activities
-      .filter(activity => activity.eventType !== "internal_note" && activity.message.trim())
+      .filter(activity => isClientSafeJobActivityEvent(activity.eventType) && activity.message.trim())
       .map(activity => ({
         id: `activity-${activity.id}`,
         kind: "status" as const,

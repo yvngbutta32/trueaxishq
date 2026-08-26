@@ -1915,3 +1915,18 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ## Launch Readiness Evidence Refresh
 - [x] Refresh the launch-readiness register with the current autonomous validation baseline and completed proposal/job-cost workflow evidence while preserving all real-session and provider gates
+
+## Fresh Comprehensive Code, Data, and Runtime Audit — User Requested
+- [x] Inspect current architecture, authorization predicates, token-scoped public routes, uploads, payments, data relationships, migrations, source patterns, runtime logs, and dependency health for confirmed defects
+- [x] Repair only confirmed autonomous defects, add focused regression coverage, and preserve owner/client isolation and external-provider boundaries
+- [x] Run one complete release-validation pass, publish an updated audit record, and clearly distinguish unverified provider or authenticated-session gates
+- [x] Repair the confirmed reset-token concurrent-use race with an atomic final-use predicate and focused regression coverage
+- [x] Repair the confirmed password-reset origin-poisoning path by restricting generated reset links to trusted application origins and add focused regression coverage
+- [x] Repair the confirmed booking-management token race so concurrent public reschedule or cancellation requests cannot apply duplicate or conflicting changes
+- [x] Repair the confirmed testimonial submission race so concurrent token use cannot create duplicate client feedback notifications
+- [x] Repair the confirmed client-portal booking race so concurrent reschedule or cancellation actions cannot apply conflicting changes or duplicate side effects
+- [x] Repair the confirmed public portal client-data overexposure by returning only client-safe profile fields and add a regression contract for private-field exclusion
+- [x] Repair the confirmed public portal invoice-data overexposure by returning only client-safe invoice fields and add a regression contract for private-field exclusion
+- [x] Repair the confirmed public portal booking-data overexposure by returning only client-safe appointment fields and add a regression contract for private-field exclusion
+- [x] Repair the confirmed client timeline activity-data overexposure by applying an explicit client-safe event allowlist that excludes staffing, dispatch, templates, and owner planning events
+- [x] Repair the confirmed public intake owner-ID overexposure by returning only public-safe form fields and add a regression contract for internal-field exclusion
