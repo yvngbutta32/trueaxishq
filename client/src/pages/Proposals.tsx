@@ -443,6 +443,7 @@ export default function Proposals() {
               <div>
                 <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Valid Until</label>
                 <Input type="date" value={form.validUntil} onChange={e => setForm(p => ({...p, validUntil: e.target.value}))} className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
+                <p className="mt-1 text-[11px] leading-4 text-[rgba(26,26,26,0.45)]">Optional. When set, the secure proposal link is available through the end of this UTC date.</p>
               </div>
               <div>
                 <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Currency</label>

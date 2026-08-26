@@ -1885,3 +1885,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add an owner-defined, bounded set of proposal packages and a token-scoped client single-choice flow that records the final selection when the proposal is signed
 - [x] Ensure proposal package selection is valid only for the proposal token, owner-scoped on configuration, immutable after signature, and does not claim payment, automatic job creation, delivery, or template-marketplace behavior
 - [x] Add focused contracts for package validation, token isolation, selected-package invoice conversion, and public recovery; document and validate the release
+
+## Proposal Validity-Date Enforcement — Evidence-Led
+- [x] Enforce an existing proposal `validUntil` date on token-scoped proposal viewing and signing while preserving generic public recovery and proposals with no validity date
+- [x] Add deterministic date-boundary contracts and owner-facing clarity that validity dates are enforced through the final UTC day, without creating delivery or legal-enforceability claims
+- [x] Document the evidence boundary, validate the release, and preserve external provider/session gates

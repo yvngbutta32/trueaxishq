@@ -33,6 +33,7 @@ import { getTrustedPaymentReturnOrigin } from "./paymentReturnOrigin";
 import { buildClientCsv } from "./clientCsvExport";
 import { buildJobCostCsv, type ExportableJobCostRow } from "./jobCostCsvExport";
 import { getProposalPackageSubtotal, normalizeProposalLineItems, parseProposalPackages, type ProposalPackage } from "../shared/proposalPackages";
+import { isProposalExpired } from "../shared/proposalValidity";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -4713,6 +4714,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const db = await requireDb();
         const [row] = await db.select().from(proposals).where(eq(proposals.token, input.token)).limit(1);
         if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Proposal not found or link has expired." });
+        if (isProposalExpired(row.validUntil)) throw new TRPCError({ code: "NOT_FOUND", message: "Proposal not found or link has expired." });
         // Mark as viewed if first time
         if (!row.viewedAt) {
           await db.update(proposals).set({ viewedAt: new Date(), status: row.status === "sent" ? "viewed" : row.status }).where(and(
@@ -4840,6 +4842,7 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Proposal not found." });
         if (row.status === "signed") throw new TRPCError({ code: "BAD_REQUEST", message: "This proposal has already been signed." });
         if (row.status === "declined") throw new TRPCError({ code: "BAD_REQUEST", message: "This proposal was declined." });
+        if (isProposalExpired(row.validUntil)) throw new TRPCError({ code: "BAD_REQUEST", message: "This proposal is no longer available for signature." });
         const packageOptions = parseProposalPackages(row.packageOptions);
         const selectedPackage = packageOptions.length ? packageOptions.find(option => option.id === input.selectedPackageId) : undefined;
         if (packageOptions.length && !selectedPackage) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose one of the available proposal options before signing." });
