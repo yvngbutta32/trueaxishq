@@ -4,7 +4,7 @@
 
 The client portal now provides deterministic next-step guidance, prioritizing overdue payment recovery, then invoices awaiting review, client input requests, active work, scheduled appointments, and finally a calm up-to-date state. Its proof-of-work area connects job status, milestones, provider activities, and estimate/in-progress/finished photos through token-scoped public queries. Internal notes and receipt photos remain excluded from the client payload.
 
-The security audit also confirmed that owner mutations use owner-scoped predicates at the final write boundary, public photo uploads use short-lived hashed session tokens, and portal data is constrained by both the portal owner and client identity. The latest release passes strict TypeScript, 74 Vitest tests across 16 files, and the production bundle. The mobile recovery screen for an invalid portal link was visually checked at 375px wide.
+The security audit also confirmed that owner mutations use owner-scoped predicates at the final write boundary, public photo uploads use short-lived hashed session tokens, and portal data is constrained by both the portal owner and client identity. The current autonomous release passes strict TypeScript and 131 deterministic Vitest tests across 38 files; recent production builds, dependency audits, and bundle-budget checks passed. The mobile recovery screen for an invalid portal link was visually checked at 375px wide.
 
 ## Open defects and launch gates
 
