@@ -438,9 +438,10 @@ export const clientDocuments = mysqlTable("clientDocuments", {
   fileUrl: varchar("fileUrl", { length: 1024 }).notNull(),
   mimeType: varchar("mimeType", { length: 128 }),
   sizeBytes: int("sizeBytes"),
+  clientVisible: boolean("clientVisible").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 },
-(t) => [index("clientDocuments_userId_idx").on(t.userId), index("clientDocuments_clientId_idx").on(t.clientId)]
+(t) => [index("clientDocuments_userId_idx").on(t.userId), index("clientDocuments_clientId_idx").on(t.clientId), index("clientDocuments_owner_visible_idx").on(t.userId, t.clientVisible)]
 );
 
 export type ClientDocument = typeof clientDocuments.$inferSelect;

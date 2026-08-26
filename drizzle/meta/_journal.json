@@ -253,6 +253,13 @@
       "when": 1787708970975,
       "tag": "0035_past_spitfire",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "5",
+      "when": 1787710340171,
+      "tag": "0036_illegal_thundra",
+      "breakpoints": true
     }
   ]
 }

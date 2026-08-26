@@ -43,7 +43,7 @@ function formatPortalTimestamp(value: Date | string | null | undefined): string 
   return Number.isNaN(date.getTime()) ? "" : date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
 }
 
-function isSafeImageUrl(value: unknown): value is string {
+function isSafePortalAssetUrl(value: unknown): value is string {
   if (typeof value !== "string") return false;
   try {
     const url = new URL(value);
@@ -51,6 +51,10 @@ function isSafeImageUrl(value: unknown): value is string {
   } catch {
     return false;
   }
+}
+
+function isSafeImageUrl(value: unknown): value is string {
+  return isSafePortalAssetUrl(value);
 }
 
 function statusBadge(status: string) {
@@ -122,6 +126,11 @@ export default function ClientPortal() {
   );
 
   const { data: jobData, refetch: refetchJobs } = trpc.portal.getJobs.useQuery(
+    { token },
+    { enabled: !!token, retry: false, refetchInterval: 60_000 }
+  );
+
+  const { data: portalDocuments } = trpc.portal.getDocuments.useQuery(
     { token },
     { enabled: !!token, retry: false, refetchInterval: 60_000 }
   );
@@ -497,6 +506,14 @@ export default function ClientPortal() {
             </div>
           )}
         </div>
+
+        {(portalDocuments?.documents.length ?? 0) > 0 && (
+          <section className="overflow-hidden rounded-xl border border-sky-100 bg-white shadow-sm" aria-labelledby="shared-documents-heading">
+            <div className="flex items-center gap-2 border-b border-sky-100 bg-sky-50/60 px-6 py-4"><FileText className="h-4 w-4 text-sky-700" /><div><h2 id="shared-documents-heading" className="font-semibold text-sky-950">Shared documents</h2><p className="mt-0.5 text-xs text-sky-900">Files your provider has chosen to share with you.</p></div></div>
+            <div className="divide-y divide-gray-100">{portalDocuments?.documents.filter(document => isSafePortalAssetUrl(document.fileUrl)).map(document => <a key={document.id} href={document.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-6 py-4 transition-colors hover:bg-sky-50/50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700"><FileText className="h-4 w-4" /></span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-gray-900">{document.fileName}</span><span className="mt-0.5 block text-xs text-gray-600">{document.mimeType || "Document"}{document.sizeBytes ? ` · ${(document.sizeBytes / 1024).toFixed(0)} KB` : ""}</span></span><ArrowRight className="h-4 w-4 shrink-0 text-sky-700" aria-hidden="true" /></a>)}</div>
+            <p className="border-t border-sky-100 bg-sky-50/40 px-6 py-3 text-[11px] leading-4 text-sky-900">Only documents your provider explicitly shares appear here. Internal documents and operational notes remain private.</p>
+          </section>
+        )}
 
         {/* Job Progress Center */}
         {(jobData?.jobs.length ?? 0) > 0 && (

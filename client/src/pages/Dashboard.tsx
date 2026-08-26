@@ -1032,6 +1032,10 @@ function ClientsPanel() {
     onSuccess: () => { refetchDocs(); toast.success("Document removed."); },
     onError: (e) => toast.error(e.message),
   });
+  const setDocumentVisibility = trpc.documents.setClientVisibility.useMutation({
+    onSuccess: (result) => { refetchDocs(); toast.success(result.clientVisible ? "Document shared in the client portal." : "Document removed from the client portal."); },
+    onError: (e) => toast.error(e.message),
+  });
   const [docUploading, setDocUploading] = useState(false);
 
   const handleDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1411,6 +1415,7 @@ function ClientsPanel() {
                           <FileText className="w-3.5 h-3.5 text-[#D4922A] flex-shrink-0" />
                           <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs font-medium text-[#1A1A1A] truncate hover:underline">{doc.fileName}</a>
                           {doc.sizeBytes && <span className="text-[10px] text-[#6B6B6B] flex-shrink-0">{(doc.sizeBytes / 1024).toFixed(0)} KB</span>}
+                          <button type="button" onClick={() => setDocumentVisibility.mutate({ id: doc.id, clientVisible: !doc.clientVisible })} disabled={setDocumentVisibility.isPending} className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors disabled:opacity-60 ${doc.clientVisible ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`} aria-label={`${doc.clientVisible ? "Remove" : "Share"} ${doc.fileName} ${doc.clientVisible ? "from" : "in"} client portal`}>{doc.clientVisible ? "Shared" : "Private"}</button>
                           <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-2 rounded hover:bg-red-500/100/10 text-[#3D3D3D] hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
                             <Trash2 className="w-3 h-3" />
                           </button>

@@ -1,0 +1,2 @@
+ALTER TABLE `clientDocuments` ADD `clientVisible` boolean DEFAULT false NOT NULL;--> statement-breakpoint
+CREATE INDEX `clientDocuments_owner_visible_idx` ON `clientDocuments` (`userId`,`clientVisible`);

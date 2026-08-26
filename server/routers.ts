@@ -2859,6 +2859,21 @@ Only include actions when you have actually generated a complete draft. For gene
 
     // Public: job progress for the portal client. Internal notes, receipt costs,
     // and owner-only controls are intentionally excluded from this view.
+    getDocuments: publicProcedure
+      .input(z.object({ token: z.string().min(1).max(128) }))
+      .query(async ({ input }) => {
+        const db = await requireDb();
+        const [portalRecord] = await db.select().from(clientPortalTokens)
+          .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
+        if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found or expired." });
+        if (portalRecord.expiresAt && new Date() > portalRecord.expiresAt) throw new TRPCError({ code: "FORBIDDEN", message: "Portal link has expired." });
+        const documents = await db.select({ id: clientDocuments.id, fileName: clientDocuments.fileName, fileUrl: clientDocuments.fileUrl, mimeType: clientDocuments.mimeType, sizeBytes: clientDocuments.sizeBytes, createdAt: clientDocuments.createdAt })
+          .from(clientDocuments)
+          .where(and(eq(clientDocuments.userId, portalRecord.userId), eq(clientDocuments.clientId, portalRecord.clientId), eq(clientDocuments.clientVisible, true)))
+          .orderBy(desc(clientDocuments.createdAt));
+        return { documents };
+      }),
+
     getJobs: publicProcedure
       .input(z.object({ token: z.string().min(1).max(128) }))
       .query(async ({ input }) => {
@@ -3419,6 +3434,19 @@ Only include actions when you have actually generated a complete draft. For gene
         await db.delete(clientDocuments)
           .where(and(eq(clientDocuments.id, input.id), eq(clientDocuments.userId, ctx.user.id)));
         return { ok: true };
+      }),
+    setClientVisibility: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), clientVisible: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [document] = await db.select({ id: clientDocuments.id, clientId: clientDocuments.clientId })
+          .from(clientDocuments)
+          .where(and(eq(clientDocuments.id, input.id), eq(clientDocuments.userId, ctx.user.id)))
+          .limit(1);
+        if (!document) throw new TRPCError({ code: "NOT_FOUND", message: "Document not found." });
+        await db.update(clientDocuments).set({ clientVisible: input.clientVisible })
+          .where(and(eq(clientDocuments.id, document.id), eq(clientDocuments.userId, ctx.user.id), eq(clientDocuments.clientId, document.clientId)));
+        return { ok: true, clientVisible: input.clientVisible };
       }),
     save: protectedProcedure
       .input(z.object({

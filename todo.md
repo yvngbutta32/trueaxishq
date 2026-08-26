@@ -1823,3 +1823,9 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ## Evidence-First Operating Standard — User Required
 - [x] Maintain an explicit evidence ledger that labels implementation facts, cited market evidence, assumptions, and external validation gates for all continued quality decisions and claims
+
+## Next Evidence-First Workflow Opportunity — Autonomous
+- [x] Research and audit one additional bounded workflow opportunity against official competitor evidence and the current TrueAxis implementation
+- [x] Implement the selected opportunity only if its ownership, privacy, and acceptance boundaries are explicit and testable
+- [x] Validate and publish the resulting evidence-labeled improvement without unsupported claims
+- [x] Add owner-controlled client sharing for existing client documents, exposing only explicitly shared file metadata through the token-scoped portal
