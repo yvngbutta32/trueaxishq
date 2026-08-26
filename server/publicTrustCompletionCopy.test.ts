@@ -14,6 +14,7 @@ describe("public completion copy trust boundary", () => {
     const register = source("client/src/pages/Register.tsx");
     const booking = source("client/src/pages/BookingPage.tsx");
     const home = source("client/src/pages/Home.tsx");
+    const intake = source("client/src/pages/IntakeFormPage.tsx");
 
     expect(contact).not.toContain("within 4 business hours");
     expect(bookingManage).not.toContain("confirmation email shortly");
@@ -31,5 +32,10 @@ describe("public completion copy trust boundary", () => {
     expect(booking).not.toContain("confirmation has been sent");
     expect(booking).not.toContain("confirm your appointment shortly");
     expect(home).not.toContain("Check your inbox");
+    expect(home).not.toContain("Auto-confirmation emails sent");
+    expect(home).not.toContain("Invoices write themselves.");
+    expect(home).not.toContain("retain your data for 30 days");
+    expect(intake).not.toContain("We've sent a confirmation to your email.");
+    expect(intake).not.toContain("We'll be in touch soon.");
   });
 });

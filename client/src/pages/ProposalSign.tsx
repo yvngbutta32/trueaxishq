@@ -7,6 +7,7 @@ import { useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { PublicRecoveryState } from "@/components/PublicRecoveryState";
 import {
   CheckCircle, FileText, AlertCircle, Loader2,
   PenLine, Calendar, DollarSign, User, Shield,
@@ -81,20 +82,7 @@ export default function ProposalSign() {
 
   // ── Error ──────────────────────────────────────────────────────────────────
   if (error || !proposal) {
-    return (
-      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
-            <AlertCircle className="w-8 h-8 text-red-400" />
-          </div>
-          <h1 className="text-xl font-bold text-[#1A1A1A]">Proposal Not Found</h1>
-          <p className="text-[rgba(26,26,26,0.55)] text-sm">
-            This proposal link is invalid or has expired. Please contact the sender for a new link.
-          </p>
-          <a href="/" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[#D4922A]/35 px-4 text-sm font-semibold text-[#8a5a0b] transition-colors hover:bg-[#fffaf0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A]">Return to TrueAxis HQ</a>
-        </div>
-      </div>
-    );
+    return <PublicRecoveryState eyebrow="TrueAxis HQ proposal" title="This proposal link is unavailable" description="It may be expired, replaced, or copied incorrectly. Contact the sender to request a new secure link." privacyNote="For privacy, unavailable proposal links cannot be restored from this page." />;
   }
 
   // ── Already Signed ─────────────────────────────────────────────────────────

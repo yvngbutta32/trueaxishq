@@ -931,7 +931,8 @@ export const jobAssignments = mysqlTable("jobAssignments", {
 export type JobAssignment = typeof jobAssignments.$inferSelect;
 
 // A service visit is a planned execution window inside a job. It does not claim
-// GPS tracking, automated routing, or client-visible dispatch status.
+// GPS tracking or automated routing. Owners may optionally share a curated
+// appointment window and client-safe update; staffing and dispatch notes stay private.
 export const serviceVisits = mysqlTable("serviceVisits", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
@@ -943,6 +944,8 @@ export const serviceVisits = mysqlTable("serviceVisits", {
   status: mysqlEnum("status", ["scheduled", "en_route", "in_progress", "completed", "cancelled"]).notNull().default("scheduled"),
   siteLabel: varchar("siteLabel", { length: 255 }),
   dispatchNote: varchar("dispatchNote", { length: 1000 }),
+  clientVisible: boolean("clientVisible").notNull().default(false),
+  clientUpdate: varchar("clientUpdate", { length: 500 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (t) => [

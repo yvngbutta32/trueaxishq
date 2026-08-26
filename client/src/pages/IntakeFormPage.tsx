@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { CheckCircle, ClipboardList, Camera, X, Upload, CalendarDays, ImageIcon } from "lucide-react";
+import { PublicRecoveryState } from "@/components/PublicRecoveryState";
 
 interface UploadedPhoto {
   key: string;
@@ -132,7 +133,7 @@ export default function IntakeFormPage() {
           </div>
           <h1 className="text-2xl font-bold text-[#1A1A1A] mb-2">Thank you!</h1>
           <p className="text-sm text-[rgba(26,26,26,0.55)] mb-6">
-            Your response has been submitted.{respondentEmail ? " We've sent a confirmation to your email." : " We'll be in touch soon."}
+            Your response has been recorded. Keep this page open if you would like to continue to the next available step.
           </p>
           {bookingUrl && (
             <div className="bg-white border border-[#DDDBD7] rounded-2xl p-5 text-left">
@@ -173,16 +174,7 @@ export default function IntakeFormPage() {
   }
 
   if (isError || !formData) {
-    return (
-      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center">
-          <ClipboardList className="w-12 h-12 text-[rgba(26,26,26,0.2)] mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-[#1A1A1A] mb-2">Form Not Available</h1>
-          <p className="text-sm text-[rgba(26,26,26,0.5)]">This form is no longer active or does not exist.</p>
-          <a href="/" className="mt-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-[#D4922A]/35 px-4 text-sm font-semibold text-[#8a5a0b] transition-colors hover:bg-[#fffaf0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A]">Return to TrueAxis HQ</a>
-        </div>
-      </div>
-    );
+    return <PublicRecoveryState eyebrow="TrueAxis HQ intake" title="This form is unavailable" description="It may be inactive, expired, or copied incorrectly. Ask the sender for a current secure link if you still need to respond." privacyNote="For privacy, unavailable intake links cannot be restored from this page." />;
   }
 
   return (

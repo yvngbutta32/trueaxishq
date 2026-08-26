@@ -410,19 +410,18 @@ function Hero({ onCTA }: { onCTA: () => void }) {
   const [, navigate] = useLocation();
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden retro-grid" style={{ paddingTop: "4rem" }} aria-labelledby="hero-heading">
-      {/* Radial amber glow */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 60% at 65% 40%, rgba(232,160,32,0.09) 0%, transparent 70%)" }} />
+    <section className="trueaxis-hero relative min-h-[min(100dvh,980px)] flex items-center overflow-hidden" style={{ paddingTop: "4rem" }} aria-labelledby="hero-heading">
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 60% at 78% 32%, rgba(0,168,143,0.16) 0%, transparent 68%), radial-gradient(ellipse 55% 45% at 8% 82%, rgba(255,107,107,0.10) 0%, transparent 70%)" }} />
       {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent, #F7F6F3)" }} />
 
       <div className="container relative z-10">
-        <div className="grid lg:grid-cols-2 gap-16 items-center py-20">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center py-12 sm:py-16 lg:py-20">
           {/* Left — copy */}
           <div>
             <div className="pill-retro mb-6 inline-flex">
               <Sparkles className="w-3 h-3" />
-              AI-Powered Business OS for Freelancers
+              The service-business operating system
             </div>
 
             <h1
@@ -436,42 +435,42 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                 color: "#1A1A1A",
               }}
             >
-              Your Business,{" "}
-              <span style={{ color: "#D4922A" }}>Running Itself</span>
+              Make every client
+              <span className="block" style={{ color: "#007A68" }}>next step visible.</span>
             </h1>
 
-            <p className="mb-8 max-w-lg" style={{ fontSize: "1.125rem", color: "rgba(26,26,26,0.55)", lineHeight: 1.7 }}>
-              TrueAxis HQ brings client intake, scheduling, billing, job progress, and follow-ups into one workspace — so you can spend less time switching tools and more time serving clients.
+            <p className="mb-8 max-w-lg" style={{ fontSize: "1.125rem", color: "#4A4A4A", lineHeight: 1.7 }}>
+              Bring inquiry, booking, proof of work, billing, and follow-up into one workspace—so your team can act with context instead of chasing it across tools.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-10">
               <button onClick={onCTA} className="btn-amber">
-                Get Started
+                Build your workspace
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button
                 onClick={() => document.querySelector("#how-it-works")?.scrollIntoView({ behavior: "smooth" })}
                 className="btn-ghost"
               >
-                See How It Works
+                See the workflow
               </button>
             </div>
 
             {/* Product scope */}
-            <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ background: "rgba(232,160,32,0.06)", border: "1px solid rgba(232,160,32,0.14)" }}>
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "rgba(232,160,32,0.14)", color: "#D4922A" }}>
+            <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ background: "rgba(0,168,143,0.07)", border: "1px solid rgba(0,168,143,0.18)" }}>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "rgba(0,168,143,0.14)", color: "#007A68" }}>
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-bold" style={{ color: "#1A1A1A" }}>One connected operating system</p>
-                <p className="text-[10px]" style={{ color: "rgba(26,26,26,0.65)" }}>Clients · Bookings · Invoices · Follow-ups</p>
+                <p className="text-xs font-bold" style={{ color: "#1A1A1A" }}>One operational record</p>
+                <p className="text-[10px]" style={{ color: "#4A4A4A" }}>Clients · Jobs · Proof · Billing · Follow-ups</p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>
-              {["Client portal included", "Private workspaces", "Mobile-ready workflow"].map(t => (
+            <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "#4A4A4A" }}>
+              {["Owner-reviewed workflows", "Workspace-scoped data", "Field-ready operations"].map(t => (
                 <span key={t} className="flex items-center gap-1.5">
-                  <CheckCircle className="w-3.5 h-3.5" style={{ color: "#D4922A" }} />
+                  <CheckCircle className="w-3.5 h-3.5" style={{ color: "#007A68" }} />
                   {t}
                 </span>
               ))}
@@ -479,8 +478,8 @@ function Hero({ onCTA }: { onCTA: () => void }) {
           </div>
 
           {/* Right — dashboard preview */}
-          <div className="relative hidden lg:block">
-            <div className="absolute inset-0 rounded-xl glow-amber opacity-30 blur-xl" />
+          <div className="relative mt-2 lg:mt-0">
+            <div className="absolute inset-0 rounded-2xl opacity-30 blur-xl" style={{ background: "linear-gradient(135deg, rgba(0,168,143,0.40), rgba(255,107,107,0.30))" }} />
             <div className="relative rounded-xl overflow-hidden" style={{ background: "#F7F6F3", border: "1px solid rgba(212,146,42,0.20)", boxShadow: "0 24px 60px rgba(0,0,0,0.55)" }}>
               {/* Window bar */}
               <div className="flex items-center gap-2 px-4 py-3" style={{ background: "#EEECEA", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
@@ -739,16 +738,16 @@ function HowItWorksSection() {
           </div>
           <div className="rounded-lg p-3 flex items-center gap-3" style={{ background: "rgba(212,146,42,0.05)", border: "1px solid rgba(212,146,42,0.14)" }}>
             <Zap className="w-4 h-4 flex-shrink-0" style={{ color: "#D4922A" }} />
-            <span className="text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>Auto-confirmation emails sent to all 3 clients</span>
+            <span className="text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>Booking details stay visible in the shared workflow</span>
           </div>
         </div>
       ),
     },
     {
       icon: FileText,
-      label: "Auto Invoicing",
-      heading: "Invoices write themselves.",
-      body: "Every completed session generates a professional invoice automatically. Send, track, and follow up on payments without lifting a finger.",
+      label: "Invoice workflow",
+      heading: "Turn completed work into a clear invoice.",
+      body: "Build, send, track, and follow up on invoices from the same client and job context—without losing the details that support the charge.",
       panel: (
         <div className="space-y-3">
           <div className="rounded-lg overflow-hidden" style={{ border: "1px solid rgba(212,146,42,0.12)" }}>
@@ -1139,7 +1138,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
         )}
 
         <p className="mt-4 text-xs" style={{ color: "rgba(26,26,26,0.55)" }}>
-          No spam. Unsubscribe anytime. We respect your privacy.
+          We record your interest and keep your details in the TrueAxis HQ workspace.
         </p>
       </div>
     </section>
@@ -1150,10 +1149,10 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
 const HOME_FAQS = [
   { q: "How can I explore TrueAxis HQ?", a: "Create an account with an invitation code to explore the workspace. Available workflows and billing configuration are confirmed during onboarding." },
   { q: "How does the AI follow-up feature work?", a: "TrueAxis HQ analyzes each client's booking history, invoice activity, and engagement signals to generate a personalized follow-up email in one click. You review and send — the AI does the drafting." },
-  { q: "Can I accept payments through TrueAxis HQ?", a: "Yes. Connect your Stripe account and your clients can pay invoices online via credit card. Payments are processed securely by Stripe — TrueAxis HQ never touches your funds." },
+  { q: "Can I accept payments through TrueAxis HQ?", a: "When Stripe payment configuration is active for your workspace, clients can use the available checkout flow for invoices. Payment availability is confirmed in your billing settings." },
   { q: "Do I need to install anything?", a: "No. TrueAxis HQ is a fully web-based platform. It works on any device with a browser. You can also install it as a PWA (Progressive Web App) on your phone for a native app experience." },
   { q: "Can clients book appointments without creating an account?", a: "Yes. Your public booking page allows clients to schedule sessions without signing up. You get a unique URL (e.g. trueaxishq.com/book/yourname) to share on your website or social profiles." },
-  { q: "What happens to my data if I cancel?", a: "Your data is always yours. You can export all clients, invoices, and bookings as CSV at any time. We retain your data for 30 days after cancellation in case you change your mind." },
+  { q: "What happens to my data if I cancel?", a: "Use the workspace export tools for the information available to your account. Contact support for account-specific data and cancellation questions." },
 ];
 
 function FAQSection() {

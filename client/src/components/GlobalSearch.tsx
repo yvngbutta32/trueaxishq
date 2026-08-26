@@ -5,7 +5,7 @@
  */
 import { useState, useEffect, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Search, X, Users, FileText, Calendar, FileSignature, ArrowRight, Loader2, Command } from "lucide-react";
+import { Search, X, Users, FileText, Calendar, FileSignature, ArrowRight, Loader2, Command, BriefcaseBusiness, UsersRound, MapPin, PlugZap, Webhook, BarChart3 } from "lucide-react";
 
 type SearchResult =
   | { _type: "client"; id: number; name: string; email: string | null; service: string | null; status: string | null }
@@ -55,6 +55,18 @@ const STATUS_COLOR: Record<string, string> = {
   overdue: "#EF4444", cancelled: "#EF4444", declined: "#EF4444",
   prospect: "#F59E0B", inactive: "#6B7280",
 };
+
+const OPERATIONAL_SHORTCUTS = [
+  { panel: "clients", label: "Clients", detail: "CRM and relationships", icon: Users, color: "#6366F1" },
+  { panel: "scheduling", label: "Schedule", detail: "Bookings and calendar", icon: Calendar, color: "#D4922A" },
+  { panel: "jobs", label: "Jobs", detail: "Work and proof", icon: BriefcaseBusiness, color: "#007A68" },
+  { panel: "team", label: "Team", detail: "Capacity and assignments", icon: UsersRound, color: "#7C3AED" },
+  { panel: "dispatch", label: "Dispatch", detail: "Service visits", icon: MapPin, color: "#EA580C" },
+  { panel: "billing", label: "Billing", detail: "Invoices and time", icon: FileText, color: "#059669" },
+  { panel: "insights", label: "Insights", detail: "Signals and reporting", icon: BarChart3, color: "#2563EB" },
+  { panel: "integrations", label: "Integrations", detail: "Provider readiness", icon: PlugZap, color: "#0F766E" },
+  { panel: "webhooks", label: "Webhooks", detail: "Workflow event bridge", icon: Webhook, color: "#BE123C" },
+] as const;
 
 export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
@@ -158,7 +170,7 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
             value={query}
             onChange={e => { setQuery(e.target.value); setCursor(0); }}
             onKeyDown={handleKeyDown}
-            placeholder="Search clients, invoices, bookings, contracts…"
+            placeholder="Search records or jump to an operation…"
             className="flex-1 bg-transparent text-[#1A1A1A] placeholder-[rgba(26,26,26,0.60)] text-sm outline-none"
             autoComplete="off"
             spellCheck={false}
@@ -176,12 +188,21 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
         {/* Results */}
         <div ref={listRef} className="max-h-[400px] overflow-y-auto">
           {!debouncedQuery && (
-            <div className="py-10 text-center">
+            <div className="px-4 py-6">
               <div className="w-10 h-10 rounded-xl bg-[#D4922A]/10 flex items-center justify-center mx-auto mb-3">
                 <Command className="w-5 h-5 text-[#D4922A]" />
               </div>
-              <p className="text-sm font-medium text-[rgba(26,26,26,0.55)]">Search everything</p>
-              <p className="text-xs text-[rgba(26,26,26,0.60)] mt-1">Clients · Invoices · Bookings · Contracts</p>
+              <p className="text-center text-sm font-medium text-[rgba(26,26,26,0.72)]">Find a record or jump into an operation</p>
+              <p className="mt-1 text-center text-xs text-[rgba(26,26,26,0.60)]">Search clients, invoices, bookings, and contracts—or use a workflow shortcut.</p>
+              <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {OPERATIONAL_SHORTCUTS.map(shortcut => {
+                  const Icon = shortcut.icon;
+                  return <button key={shortcut.panel} type="button" onClick={() => { onNavigate(shortcut.panel); onClose(); }} className="flex min-h-16 items-center gap-2.5 rounded-xl border border-[#E7E5E4] bg-[#FCFCFB] p-3 text-left transition hover:border-[#D4922A]/40 hover:bg-[#FFF9EF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00A88F]">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ background: `${shortcut.color}16`, color: shortcut.color }}><Icon className="h-4 w-4" aria-hidden="true" /></span>
+                    <span className="min-w-0"><span className="block truncate text-xs font-bold text-[#1A1A1A]">{shortcut.label}</span><span className="mt-0.5 block truncate text-[10px] text-[#666]">{shortcut.detail}</span></span>
+                  </button>;
+                })}
+              </div>
             </div>
           )}
 

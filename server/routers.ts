@@ -28,6 +28,7 @@ import { hasDispatchConflict } from "../shared/operationsPlanning";
 import { INTEGRATION_PROVIDERS, integrationCatalog, type IntegrationProvider } from "../shared/integrationCatalog";
 import { WORKFLOW_WEBHOOK_EVENTS, parseWebhookEvents } from "../shared/workflowWebhooks";
 import { createWebhookSigningSecret, deliverWorkflowWebhookEvent, encryptWebhookSecret, validateWebhookEndpoint } from "./workflowWebhookDelivery";
+import { getTrustedPaymentReturnOrigin } from "./paymentReturnOrigin";
 
 // LLM timeout: 25 seconds
 const LLM_TIMEOUT_MS = 25_000;
@@ -987,7 +988,16 @@ export const appRouter = router({
       .input(z.object({ token: z.string().min(1).max(128) }))
       .query(async ({ input }) => {
         const db = await requireDb();
-        const [inv] = await db.select().from(invoices).where(eq(invoices.payLinkToken, input.token)).limit(1);
+        const [inv] = await db.select({
+          invoiceNumber: invoices.invoiceNumber,
+          clientName: invoices.clientName,
+          service: invoices.service,
+          amount: invoices.amount,
+          currency: sql<string>`'usd'`,
+          status: invoices.status,
+          dueDate: invoices.dueDate,
+          notes: invoices.notes,
+        }).from(invoices).where(eq(invoices.payLinkToken, input.token)).limit(1);
         if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Payment link not found or expired" });
         if (inv.status === "paid") return { invoice: inv, alreadyPaid: true };
         return { invoice: inv, alreadyPaid: false };
@@ -996,6 +1006,8 @@ export const appRouter = router({
       .input(z.object({ token: z.string().min(1).max(128), origin: z.string().url() }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
+        const returnOrigin = getTrustedPaymentReturnOrigin(input.origin);
+        if (!returnOrigin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use the official TrueAxis HQ payment link to continue." });
         const [inv] = await db.select().from(invoices).where(eq(invoices.payLinkToken, input.token)).limit(1);
         if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
         if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice already paid" });
@@ -1013,8 +1025,8 @@ export const appRouter = router({
             quantity: 1,
           }],
           mode: "payment",
-          success_url: `${input.origin}/pay/${input.token}?paid=1`,
-          cancel_url: `${input.origin}/pay/${input.token}`,
+          success_url: `${returnOrigin}/pay/${input.token}?payment_returned=1`,
+          cancel_url: `${returnOrigin}/pay/${input.token}`,
           metadata: { invoiceId: String(inv.id), payLinkToken: input.token },
         });
         return { checkoutUrl: session.url };
@@ -1758,6 +1770,8 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ input, ctx }) => {
         const stripe = getStripe();
+        const returnOrigin = getTrustedPaymentReturnOrigin(input.origin);
+        if (!returnOrigin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use the official TrueAxis HQ checkout to continue." });
         const plan = PLANS[input.planId];
         if (!plan) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid plan selected." });
         const db = await requireDb();
@@ -1792,8 +1806,8 @@ Only include actions when you have actually generated a complete draft. For gene
               },
               quantity: 1,
             }],
-            success_url: `${input.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${input.origin}/pricing?cancelled=true`,
+            success_url: `${returnOrigin}/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${returnOrigin}/pricing?cancelled=true`,
           });
         } catch (err: any) {
           console.error("[Stripe] Checkout creation failed:", err?.message);
@@ -2713,6 +2727,8 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ token: z.string().min(1).max(128), invoiceId: z.number().int().positive(), origin: z.string().url() }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
+        const returnOrigin = getTrustedPaymentReturnOrigin(input.origin);
+        if (!returnOrigin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use the official TrueAxis HQ portal link to continue." });
         const [portalRecord] = await db.select().from(clientPortalTokens)
           .where(and(eq(clientPortalTokens.token, input.token), eq(clientPortalTokens.revoked, false))).limit(1);
         if (!portalRecord) throw new TRPCError({ code: "NOT_FOUND", message: "Portal link not found." });
@@ -2748,8 +2764,8 @@ Only include actions when you have actually generated a complete draft. For gene
             client_name: inv.clientName,
           },
           customer_email: inv.clientEmail || undefined,
-          success_url: `${input.origin}/portal/${input.token}?paid=1`,
-          cancel_url: `${input.origin}/portal/${input.token}`,
+          success_url: `${returnOrigin}/portal/${input.token}?payment_returned=1`,
+          cancel_url: `${returnOrigin}/portal/${input.token}`,
           allow_promotion_codes: true,
         });
                 return { checkoutUrl: session.url };
@@ -2861,7 +2877,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const jobIds = clientJobs.map(job => job.id);
         if (!jobIds.length) return { jobs: [] };
         const proposalIds = clientJobs.flatMap(job => job.proposalId ? [job.proposalId] : []);
-        const [tasks, activities, photos, jobProposals] = await Promise.all([
+        const [tasks, activities, photos, jobProposals, clientVisits] = await Promise.all([
           db.select({ id: jobTasks.id, jobId: jobTasks.jobId, title: jobTasks.title, status: jobTasks.status, dueDate: jobTasks.dueDate, completedAt: jobTasks.completedAt, sortOrder: jobTasks.sortOrder })
             .from(jobTasks).where(and(eq(jobTasks.userId, portalRecord.userId), inArray(jobTasks.jobId, jobIds))).orderBy(jobTasks.sortOrder, desc(jobTasks.createdAt)),
           db.select({ id: jobActivities.id, jobId: jobActivities.jobId, actor: jobActivities.actor, eventType: jobActivities.eventType, message: jobActivities.message, createdAt: jobActivities.createdAt })
@@ -2870,6 +2886,8 @@ Only include actions when you have actually generated a complete draft. For gene
             .from(jobPhotos).where(and(eq(jobPhotos.userId, portalRecord.userId), inArray(jobPhotos.jobId, jobIds), inArray(jobPhotos.photoType, ["estimate", "wip", "finished"]))).orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt)),
           proposalIds.length ? db.select({ id: proposals.id, title: proposals.title, status: proposals.status, token: proposals.token, validUntil: proposals.validUntil })
             .from(proposals).where(and(eq(proposals.userId, portalRecord.userId), eq(proposals.clientId, portalRecord.clientId), inArray(proposals.id, proposalIds))) : Promise.resolve([]),
+          db.select({ id: serviceVisits.id, jobId: serviceVisits.jobId, title: serviceVisits.title, scheduledStart: serviceVisits.scheduledStart, scheduledEnd: serviceVisits.scheduledEnd, status: serviceVisits.status, siteLabel: serviceVisits.siteLabel, clientUpdate: serviceVisits.clientUpdate })
+            .from(serviceVisits).where(and(eq(serviceVisits.userId, portalRecord.userId), inArray(serviceVisits.jobId, jobIds), eq(serviceVisits.clientVisible, true), inArray(serviceVisits.status, ["scheduled", "en_route", "in_progress", "completed"]))).orderBy(serviceVisits.scheduledStart),
         ]);
         return {
           jobs: clientJobs.map(job => ({
@@ -2877,6 +2895,7 @@ Only include actions when you have actually generated a complete draft. For gene
             tasks: tasks.filter(task => task.jobId === job.id),
             activities: activities.filter(activity => activity.jobId === job.id && activity.eventType !== "internal_note"),
             photos: photos.filter(photo => photo.jobId === job.id),
+            visits: clientVisits.filter(visit => visit.jobId === job.id),
             proposal: jobProposals.find(proposal => proposal.id === job.proposalId) ?? null,
           })),
         };
@@ -5902,6 +5921,8 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         status: serviceVisits.status,
         siteLabel: serviceVisits.siteLabel,
         dispatchNote: serviceVisits.dispatchNote,
+        clientVisible: serviceVisits.clientVisible,
+        clientUpdate: serviceVisits.clientUpdate,
         createdAt: serviceVisits.createdAt,
       }).from(serviceVisits)
         .innerJoin(jobs, and(eq(serviceVisits.jobId, jobs.id), eq(jobs.userId, ctx.user.id)))
@@ -5920,6 +5941,8 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         scheduledEnd: z.date(),
         siteLabel: safeOptionalString(255),
         dispatchNote: safeOptionalString(1000),
+        clientVisible: z.boolean().default(false),
+        clientUpdate: z.string().trim().max(500).nullable().optional(),
         allowConflict: z.boolean().default(false),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -5955,6 +5978,8 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           scheduledEnd: input.scheduledEnd,
           siteLabel: input.siteLabel ?? null,
           dispatchNote: input.dispatchNote ?? null,
+          clientVisible: input.clientVisible,
+          clientUpdate: input.clientVisible ? input.clientUpdate ?? null : null,
         });
         await db.insert(jobActivities).values({
           userId: ctx.user.id,
@@ -5977,6 +6002,8 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         status: z.enum(["scheduled", "en_route", "in_progress", "completed", "cancelled"]).optional(),
         siteLabel: safeOptionalString(255),
         dispatchNote: safeOptionalString(1000),
+        clientVisible: z.boolean().optional(),
+        clientUpdate: z.string().trim().max(500).nullable().optional(),
         allowConflict: z.boolean().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -5998,8 +6025,10 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           });
           if (conflict && !input.allowConflict) throw new TRPCError({ code: "CONFLICT", message: "This visit overlaps another active visit for the selected team member. Confirm the exception to save it." });
         }
-        const { id, allowConflict: _allowConflict, ...rest } = input;
-        await db.update(serviceVisits).set({ ...rest, updatedAt: new Date() }).where(and(eq(serviceVisits.id, id), eq(serviceVisits.userId, ctx.user.id)));
+        const { id, allowConflict: _allowConflict, clientVisible: clientVisibleInput, clientUpdate: clientUpdateInput, ...rest } = input;
+        const clientVisible = clientVisibleInput ?? visit.clientVisible;
+        const clientUpdate = clientVisible ? (clientUpdateInput === undefined ? visit.clientUpdate : clientUpdateInput) : null;
+        await db.update(serviceVisits).set({ ...rest, clientVisible, clientUpdate, updatedAt: new Date() }).where(and(eq(serviceVisits.id, id), eq(serviceVisits.userId, ctx.user.id)));
         if (input.status && input.status !== visit.status) {
           await db.insert(jobActivities).values({
             userId: ctx.user.id,

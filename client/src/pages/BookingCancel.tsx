@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2, AlertCircle, Calendar, Clock, X } from "lucide-react";
 import { toast } from "sonner";
+import { PublicRecoveryState } from "@/components/PublicRecoveryState";
 
 const TIME_SLOTS = [
   "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
@@ -54,16 +55,7 @@ export default function BookingCancel() {
   }
 
   if (error || !data) {
-    return (
-      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
-          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Link Not Found</h1>
-          <p className="text-gray-500">This link is invalid, has already been used, or has expired.</p>
-          <a href="/" className="mt-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-[#D4922A]/35 px-4 text-sm font-semibold text-[#8a5a0b] transition-colors hover:bg-[#fffaf0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A]">Return to TrueAxis HQ</a>
-        </div>
-      </div>
-    );
+    return <PublicRecoveryState eyebrow="TrueAxis HQ booking" title="This booking link is unavailable" description="It may be expired, already used, or copied incorrectly. Ask the service provider for a new secure link if you still need to make a change." privacyNote="For privacy, unavailable booking-management links cannot be restored from this page." />;
   }
 
   const { booking, action, freelancerName, bookingUsername, bookedSlots } = data;

@@ -33,6 +33,7 @@ const TestimonialSubmit = lazy(() => import("./pages/TestimonialSubmit"));
 const BookingCancel = lazy(() => import("./pages/BookingCancel"));
 const ProposalSign = lazy(() => import("./pages/ProposalSign"));
 const IntakeFormPage = lazy(() => import("./pages/IntakeFormPage"));
+const PublicInvoicePayment = lazy(() => import("./pages/PublicInvoicePayment"));
 
 // ─── Full-screen page loader ──────────────────────────────────────────────────
 function PageLoader() {
@@ -73,6 +74,7 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/pricing" component={Pricing} />
         <Route path="/book/:username" component={BookingPage} />
+        <Route path="/pay/:token" component={PublicInvoicePayment} />
         <Route path="/success" component={CheckoutSuccess} />
 
         {/* Authenticated user routes */}

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("public invalid-link recovery navigation", () => {
-  it("keeps a safe return route on every audited public recovery state", () => {
+  it("keeps a safe return route through the shared recovery state on every audited public page", () => {
     const pages = [
       "client/src/pages/BookingPage.tsx",
       "client/src/pages/ProposalSign.tsx",
@@ -14,10 +14,12 @@ describe("public invalid-link recovery navigation", () => {
       "client/src/pages/BookingCancel.tsx",
     ];
 
-    for (const page of pages) {
-      const content = source(page);
-      expect(content).toContain('href="/"');
-      expect(content).toContain("Return to TrueAxis HQ");
-    }
+    const recoveryComponent = source("client/src/components/PublicRecoveryState.tsx");
+    expect(recoveryComponent).toContain('href="/"');
+    expect(recoveryComponent).toContain("Return to TrueAxis HQ");
+    expect(recoveryComponent).toContain("privacyNote?: string");
+    expect(recoveryComponent).toContain("{privacyNote &&");
+
+    for (const page of pages) expect(source(page)).toContain("PublicRecoveryState");
   });
 });

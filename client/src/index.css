@@ -924,6 +924,28 @@
     background-size: 32px 32px;
     pointer-events: none;
   }
+
+  /* ── TrueAxis public brand composition ─────────────────────────────────── */
+  .trueaxis-hero {
+    background:
+      linear-gradient(112deg, rgba(255,255,255,0.92) 0%, rgba(247,246,243,0.94) 52%, rgba(234,248,246,0.74) 100%);
+  }
+  .trueaxis-hero::before {
+    content: '';
+    position: absolute;
+    right: -14rem;
+    top: 5rem;
+    width: min(52vw, 40rem);
+    height: 18rem;
+    border-radius: 3rem;
+    background: linear-gradient(135deg, rgba(0,168,143,0.11), rgba(255,107,107,0.08));
+    transform: rotate(-12deg);
+    pointer-events: none;
+  }
+  @media (max-width: 639px) {
+    .trueaxis-hero::before { right: -10rem; top: 2.5rem; width: 22rem; height: 12rem; }
+    .trueaxis-hero .pill-retro { font-size: 0.6875rem; }
+  }
 }
 
 /* ── Global Search Modal entrance animation ─────────────────────────────── */

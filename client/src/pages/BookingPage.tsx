@@ -9,6 +9,7 @@ import {
   CalendarDays, Sparkles, Camera, Upload, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PublicRecoveryState } from "@/components/PublicRecoveryState";
 
 // ─── .ics calendar file generator ────────────────────────────────────────────
 function generateICS({
@@ -229,18 +230,7 @@ export default function BookingPage() {
 
   // Not found
   if (!pageQuery.data) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center max-w-sm">
-          <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-            <User className="w-8 h-8 text-gray-600" />
-          </div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Page Not Found</h1>
-          <p className="text-gray-600 text-sm">The booking page for <strong>@{username}</strong> doesn't exist or has been removed.</p>
-          <a href="/" className="mt-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-[#D4922A]/35 px-4 text-sm font-semibold text-[#8a5a0b] transition-colors hover:bg-[#fffaf0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A]">Return to TrueAxis HQ</a>
-        </div>
-      </div>
-    );
+    return <PublicRecoveryState eyebrow="TrueAxis HQ booking" title="This booking page is unavailable" description={`The booking page for @${username || "this workspace"} does not exist or is no longer available.`} privacyNote="For privacy, unavailable booking links cannot be restored from this page." />;
   }
 
   const host = pageQuery.data;
