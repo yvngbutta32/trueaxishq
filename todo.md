@@ -2159,6 +2159,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Implement only confirmed public visual or accessibility corrections without unsupported trust, delivery, outcome, or market claims.
 - [x] Add focused regression coverage and evidence documentation for any confirmed correction; preserve authenticated-session validation boundaries.
 
+### Requested assessment: evidence-led full-product scope and competitor ratings
+- [x] Inventory current TrueAxis HQ capability, validation, quality, privacy, usability, and external-gate evidence before scoring.
+- [x] Cross-examine current official competitor information and credible product evidence for comparable service-business workflow dimensions.
+- [x] Publish a transparent 10-point scorecard, methodology, and prioritized roadmap without claiming market leadership, parity, or unvalidated provider behavior.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
