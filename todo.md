@@ -2086,6 +2086,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [ ] Validate the change with controlled signed Stripe events; retain the current real-provider checkout and webhook walkthrough as an external gate.
 - [ ] Prevent successful Stripe webhook acknowledgement before durable processing state exists, so transient post-ack failures do not depend solely on process memory.
 
+### Selected field-service foundation: customer assets
+- [x] Add an owner-scoped customer-asset record linked to one client, with a bounded equipment identity and optional functional-location label.
+- [x] Surface private asset context in owner job operations without exposing assets or location details in the client portal.
+- [x] Add focused ownership, client isolation, and no-portal-projection regression coverage; validate and document the foundation.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.

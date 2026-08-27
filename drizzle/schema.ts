@@ -98,6 +98,28 @@ export const clients = mysqlTable("clients", {
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = typeof clients.$inferInsert;
 
+// ─── Customer Assets (private owner operations) ──────────────────────────────
+// Assets are deliberately owner-scoped and linked to one owner-scoped client.
+// They are not part of the public client-portal projection.
+export const customerAssets = mysqlTable("customerAssets", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  clientId: int("clientId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  assetTag: varchar("assetTag", { length: 128 }),
+  functionalLocation: varchar("functionalLocation", { length: 255 }),
+  notes: text("notes"),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("customerAssets_owner_client_idx").on(t.userId, t.clientId),
+  index("customerAssets_owner_active_idx").on(t.userId, t.active),
+]);
+
+export type CustomerAsset = typeof customerAssets.$inferSelect;
+export type InsertCustomerAsset = typeof customerAssets.$inferInsert;
+
 // ─── Invoices ─────────────────────────────────────────────────────────────────
 
 export const invoices = mysqlTable("invoices", {

@@ -27,6 +27,8 @@ type CreateForm = { clientId: string; bookingId: string; templateId: string; tit
 const emptyForm: CreateForm = { clientId: "", bookingId: "", templateId: "", title: "", description: "", status: "lead", priority: "normal", targetDate: "", budgetAmount: "" };
 type JobExpenseForm = { amount: string; category: string; description: string; vendor: string; date: string };
 const newExpenseForm = (): JobExpenseForm => ({ amount: "", category: "materials", description: "", vendor: "", date: new Date().toISOString().slice(0, 10) });
+type CustomerAssetForm = { name: string; assetTag: string; functionalLocation: string };
+const newCustomerAssetForm = (): CustomerAssetForm => ({ name: "", assetTag: "", functionalLocation: "" });
 const COST_REPORT_STATUSES = ["all", ...JOB_STATUSES] as const;
 
 export default function JobWorkspace() {
@@ -48,6 +50,7 @@ export default function JobWorkspace() {
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [expenseForm, setExpenseForm] = useState<JobExpenseForm>(newExpenseForm);
+  const [customerAssetForm, setCustomerAssetForm] = useState<CustomerAssetForm>(newCustomerAssetForm);
   const [costReportOpen, setCostReportOpen] = useState(false);
   const [costReportStatus, setCostReportStatus] = useState<(typeof COST_REPORT_STATUSES)[number]>("all");
   const [marginThresholdInput, setMarginThresholdInput] = useState("30");
@@ -70,6 +73,10 @@ export default function JobWorkspace() {
     { clientId: selectedJob.data?.job.clientId ?? 0 },
     { enabled: Boolean(photoPickerOpen && selectedJob.data?.job.clientId) },
   );
+  const customerAssets = trpc.customerAssets.list.useQuery(
+    { clientId: selectedJob.data?.job.clientId ?? 0 },
+    { enabled: Boolean(selectedJob.data?.job.clientId) },
+  );
 
   const invalidateJobs = () => {
     utils.jobs.list.invalidate();
@@ -82,6 +89,7 @@ export default function JobWorkspace() {
     onError: error => toast.error(error.message),
   });
   const updateMutation = trpc.jobs.update.useMutation({ onSuccess: () => { invalidateJobs(); toast.success("Job updated"); }, onError: error => toast.error(error.message) });
+  const createCustomerAsset = trpc.customerAssets.create.useMutation({ onSuccess: () => { customerAssets.refetch(); setCustomerAssetForm(newCustomerAssetForm); toast.success("Private customer asset added"); }, onError: error => toast.error(error.message) });
   const addTask = trpc.jobs.addTask.useMutation({ onSuccess: () => { invalidateJobs(); setTaskTitle(""); }, onError: error => toast.error(error.message) });
   const updateTask = trpc.jobs.updateTask.useMutation({ onSuccess: invalidateJobs, onError: error => toast.error(error.message) });
   const addUpdate = trpc.jobs.addUpdate.useMutation({ onSuccess: () => { invalidateJobs(); setUpdateMessage(""); toast.success(visibleToClient ? "Client update posted" : "Internal note saved"); }, onError: error => toast.error(error.message) });
@@ -199,6 +207,12 @@ export default function JobWorkspace() {
                 {detail.photos.length === 0 ? <div className="mt-4 rounded-xl bg-[#F7F6F3] p-5 text-center"><Camera className="mx-auto h-6 w-6 text-[#D4922A]" /><p className="mt-2 text-sm font-medium text-[#1A1A1A]">No proof attached yet</p><p className="mt-1 text-xs text-[rgba(26,26,26,0.55)]">Use Job Photos to upload work, then attach it here.</p></div> : <div className="mt-4 grid grid-cols-3 gap-2">{detail.photos.slice(0, 6).map(photo => <button key={photo.id} type="button" onClick={() => setLightboxUrl(photo.photoUrl)} className="group relative aspect-square overflow-hidden rounded-lg bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4922A]"><img src={photo.photoUrl} alt={photo.caption || `${photo.photoType} proof`} className="h-full w-full object-cover transition-transform group-hover:scale-105" /><span className="absolute inset-x-1 bottom-1 truncate rounded bg-black/65 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-white">{photo.photoType}</span></button>)}</div>}
               </section>
             </div>
+
+            <section className="rounded-2xl border border-sky-200 bg-sky-50/50 p-5">
+              <div className="flex items-start justify-between gap-3"><div><h3 className="font-bold text-sky-950">Customer assets <span className="font-normal text-sky-800/75">· private</span></h3><p className="mt-1 text-xs text-sky-900/75">Owner-only equipment context for this client. Asset details and locations do not appear in the client portal.</p></div><BriefcaseBusiness className="h-5 w-5 shrink-0 text-sky-700" /></div>
+              {customerAssets.isLoading ? <div className="mt-4 flex items-center gap-2 text-sm text-sky-900/70"><Loader2 className="h-4 w-4 animate-spin" /> Loading private assets…</div> : customerAssets.data?.length ? <div className="mt-4 grid gap-2 sm:grid-cols-2">{customerAssets.data.map(asset => <div key={asset.id} className="rounded-xl border border-sky-100 bg-white px-4 py-3"><p className="text-sm font-semibold text-[#1A1A1A]">{asset.name}</p>{asset.assetTag && <p className="mt-1 text-xs text-[rgba(26,26,26,0.62)]">Tag: {asset.assetTag}</p>}{asset.functionalLocation && <p className="mt-1 text-xs text-[rgba(26,26,26,0.62)]">Location: {asset.functionalLocation}</p>}</div>)}</div> : <p className="mt-4 rounded-xl border border-dashed border-sky-200 bg-white/70 px-4 py-3 text-sm text-sky-950/70">No private assets are recorded for this client yet.</p>}
+              <div className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.7fr)_minmax(0,0.9fr)_auto]"><label className="text-xs font-semibold text-sky-950">Asset name<input value={customerAssetForm.name} onChange={event => setCustomerAssetForm(form => ({ ...form, name: event.target.value }))} maxLength={255} placeholder="e.g. HVAC unit" className="mt-1 block w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-sky-300" /></label><label className="text-xs font-semibold text-sky-950">Tag <span className="font-normal">(optional)</span><input value={customerAssetForm.assetTag} onChange={event => setCustomerAssetForm(form => ({ ...form, assetTag: event.target.value }))} maxLength={128} placeholder="Serial or tag" className="mt-1 block w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-sky-300" /></label><label className="text-xs font-semibold text-sky-950">Location <span className="font-normal">(optional)</span><input value={customerAssetForm.functionalLocation} onChange={event => setCustomerAssetForm(form => ({ ...form, functionalLocation: event.target.value }))} maxLength={255} placeholder="e.g. Roof access" className="mt-1 block w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-sky-300" /></label><Button onClick={() => detail && customerAssetForm.name.trim() && createCustomerAsset.mutate({ clientId: detail.job.clientId, name: customerAssetForm.name.trim(), assetTag: customerAssetForm.assetTag.trim() || undefined, functionalLocation: customerAssetForm.functionalLocation.trim() || undefined })} disabled={!detail || !customerAssetForm.name.trim() || createCustomerAsset.isPending} className="self-end bg-sky-700 text-white hover:bg-sky-800">{createCustomerAsset.isPending ? "Adding…" : "Add asset"}</Button></div>
+            </section>
 
             <section className="rounded-2xl border border-emerald-200 bg-emerald-50/45 p-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
