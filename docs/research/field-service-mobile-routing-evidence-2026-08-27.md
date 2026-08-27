@@ -20,6 +20,8 @@ Google’s Calendar API defines incremental synchronization as a persisted full-
 
 Microsoft’s Field Service overview reinforces that advanced field-service outcomes emerge from separately designed systems: resource availability/skills, routing and traffic, mobile/offline profiles, asset and inventory records, customer communications, and service-to-cash events. This supports TrueAxis HQ’s current approach of shipping bounded dispatch and mobile improvements without representing them as full optimization, tracking, asset, or offline platforms.[10]
 
+Microsoft’s customer-asset guidance describes a distinct equipment record linked to a service account and functional location, with associated historical work. This supports treating any future TrueAxis customer-asset feature as a separate owner-scoped model with explicit client, location, and job-history boundaries—not a generic attachment or job-note field.[11]
+
 ## Product decision
 
 TrueAxis HQ currently provides owner-only private site mapping, scheduled-order route preview with optimization disabled, capacity signals, and session-limited Field Mode draft recovery. It must not claim live GPS, traffic-aware optimization, automatic client messages, offline editing, or ETA guarantees until those individual systems, consent controls, failure states, and end-to-end behavior are implemented and validated.
@@ -36,3 +38,4 @@ TrueAxis HQ currently provides owner-only private site mapping, scheduled-order 
 [8]: https://docs.stripe.com/webhooks/process-undelivered-events "Stripe undelivered webhook event processing"
 [9]: https://developers.google.com/workspace/calendar/api/guides/sync "Google Calendar incremental synchronization guide"
 [10]: https://learn.microsoft.com/en-us/dynamics365/field-service/overview "Microsoft Dynamics 365 Field Service overview"
+[11]: https://learn.microsoft.com/en-us/dynamics365/field-service/assets "Microsoft Field Service customer assets"

@@ -2084,6 +2084,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ### Identified payment-reliability gap: durable Stripe retry processing
 - [ ] Replace the process-local Stripe transient-failure retry queue with a durable, replay-safe design before claiming restart-safe payment-event recovery.
 - [ ] Validate the change with controlled signed Stripe events; retain the current real-provider checkout and webhook walkthrough as an external gate.
+- [ ] Prevent successful Stripe webhook acknowledgement before durable processing state exists, so transient post-ack failures do not depend solely on process memory.
 
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
