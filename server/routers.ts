@@ -887,6 +887,36 @@ export const appRouter = router({
         if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Customer asset not found." });
         return { success: true };
       }),
+    serviceHistory: protectedProcedure
+      .input(z.object({ assetId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [asset] = await db.select({ id: customerAssets.id, clientId: customerAssets.clientId }).from(customerAssets)
+          .where(and(eq(customerAssets.id, input.assetId), eq(customerAssets.userId, ctx.user.id))).limit(1);
+        if (!asset) throw new TRPCError({ code: "NOT_FOUND", message: "Customer asset not found." });
+        const linkedJobs = await db.select({
+          id: jobs.id,
+          jobNumber: jobs.jobNumber,
+          title: jobs.title,
+          status: jobs.status,
+          targetDate: jobs.targetDate,
+          completedAt: jobs.completedAt,
+          updatedAt: jobs.updatedAt,
+        }).from(jobs)
+          .where(and(eq(jobs.userId, ctx.user.id), eq(jobs.clientId, asset.clientId), eq(jobs.customerAssetId, asset.id)))
+          .orderBy(desc(jobs.updatedAt))
+          .limit(50);
+        const responseCounts = await db.select({ jobId: assetInspectionResponses.jobId, count: sql<number>`count(*)` }).from(assetInspectionResponses)
+          .where(and(eq(assetInspectionResponses.userId, ctx.user.id), eq(assetInspectionResponses.clientId, asset.clientId), eq(assetInspectionResponses.customerAssetId, asset.id)))
+          .groupBy(assetInspectionResponses.jobId);
+        const countByJob = new Map(responseCounts.map(row => [row.jobId, Number(row.count)]));
+        return {
+          entries: linkedJobs.map(job => ({
+            ...job,
+            inspectionResponseCount: countByJob.get(job.id) ?? 0,
+          })),
+        };
+      }),
   }),
 
   // ── Asset Inspection Templates (private owner operations) ─────────────────

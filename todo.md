@@ -2111,6 +2111,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Keep superseded templates lifecycle-controlled, private to the owner workspace, and excluded from all client portal projections.
 - [x] Add deterministic revision, owner-isolation, response-history, and portal-exclusion coverage; validate and document the milestone.
 
+### Selected private foundation: customer-asset service history
+- [x] Add an owner-only asset service-history view from existing same-owner job and inspection-response records without exposing private data in client portals.
+- [x] Keep the history observational and clearly exclude maintenance schedules, inventory, warranties, IoT, automated notifications, attachments, and compliance claims.
+- [x] Add focused owner/client isolation, private projection, and Job Workspace coverage; validate and document the milestone.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
