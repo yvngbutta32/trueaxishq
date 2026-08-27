@@ -24,6 +24,8 @@ Microsoft’s customer-asset guidance describes a distinct equipment record link
 
 Microsoft’s service-history guidance associates an asset to work-order incidents and requires all linked assets to belong to the same service account. This supports a future TrueAxis asset-to-job link only after final owner and client matching predicates are in place; the current foundation deliberately does not yet infer or automatically create service history.[12]
 
+Microsoft’s inspection guidance treats inspections as a separate template → work-order → technician response → dispatcher review workflow. It supports a future asset-inspection system only if templates, responses, attachment policy, revisioning, and offline synchronization are deliberately designed; TrueAxis’s current asset-to-job link is not an inspection workflow.[13]
+
 ## Product decision
 
 TrueAxis HQ currently provides owner-only private site mapping, scheduled-order route preview with optimization disabled, capacity signals, and session-limited Field Mode draft recovery. It must not claim live GPS, traffic-aware optimization, automatic client messages, offline editing, or ETA guarantees until those individual systems, consent controls, failure states, and end-to-end behavior are implemented and validated.
@@ -42,3 +44,4 @@ TrueAxis HQ currently provides owner-only private site mapping, scheduled-order 
 [10]: https://learn.microsoft.com/en-us/dynamics365/field-service/overview "Microsoft Dynamics 365 Field Service overview"
 [11]: https://learn.microsoft.com/en-us/dynamics365/field-service/assets "Microsoft Field Service customer assets"
 [12]: https://learn.microsoft.com/en-us/dynamics365/field-service/service-history "Microsoft Field Service asset service history"
+[13]: https://learn.microsoft.com/en-us/dynamics365/field-service/inspections-overview "Microsoft Field Service inspections overview"
