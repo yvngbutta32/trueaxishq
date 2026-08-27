@@ -2103,3 +2103,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
+
+### Selected credential-free milestone: installable-app metadata accuracy
+- [x] Update installable-app metadata to accurately describe the current service-business and field-service scope without unsupported capability claims.
+- [x] Add focused manifest regression coverage and validate the public progressive-web-app artifact.
