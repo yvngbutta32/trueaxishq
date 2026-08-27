@@ -2052,3 +2052,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Make the shared map component resolve an explicit loading failure rather than leaving private dispatch maps indefinitely pending when the provider script cannot load.
 - [x] Show an accessible, owner-safe map unavailability state without removing the Dispatch Board’s operational controls.
 - [x] Add focused recovery regression coverage and validate the mapped-workflow artifact.
+
+### Selected credential-free milestone: scheduled-capacity accuracy
+- [x] Distinguish owner-defined assignment load from current-week scheduled visit time in the owner capacity contract.
+- [x] Surface current-week scheduled time in private team and dispatch planning without treating it as attendance, GPS, or payroll evidence.
+- [x] Add focused calculation and private-projection regression coverage; validate and document the milestone.

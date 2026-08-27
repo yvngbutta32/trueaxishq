@@ -11,10 +11,11 @@ describe("Dispatch Board capacity preflight", () => {
   });
 
   it("makes capacity pressure visible before a visit is created without exposing it to clients", () => {
-    expect(source).toContain("planned capacity:");
-    expect(source).toContain("This owner is already over planned capacity");
-    expect(source).toContain("private planning signal");
-    expect(source).toContain("not GPS, availability, payroll, or a client-visible promise");
+    expect(source).toContain("assignment plan:");
+    expect(source).toContain("Scheduled this UTC week:");
+    expect(source).toContain("Review the load and confirm any exception intentionally.");
+    expect(source).toContain("private owner-planning signals");
+    expect(source).toContain("not GPS, staff availability, attendance, payroll, or client-visible promises");
   });
 
   it("retains the explicit manual dispatch boundary", () => {

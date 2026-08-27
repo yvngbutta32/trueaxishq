@@ -1,5 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { eq, desc, and, sql, inArray, or, like, isNull, gt } from "drizzle-orm";
+import { eq, desc, and, sql, inArray, or, like, isNull, gt, gte, lt } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
 import { createHash, randomBytes } from "node:crypto";
@@ -6612,7 +6612,10 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
 
     capacity: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
-      const [members, assignments] = await Promise.all([
+      const now = new Date();
+      const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - ((now.getUTCDay() + 6) % 7)));
+      const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const [members, assignments, scheduledVisits] = await Promise.all([
         db.select().from(teamMembers).where(eq(teamMembers.userId, ctx.user.id)).orderBy(teamMembers.active, teamMembers.name),
         db.select({
           teamMemberId: jobAssignments.teamMemberId,
@@ -6622,18 +6625,33 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           eq(jobAssignments.userId, ctx.user.id),
           inArray(jobAssignments.status, ["assigned", "acknowledged"]),
         )),
+        db.select({ teamMemberId: serviceVisits.teamMemberId, scheduledStart: serviceVisits.scheduledStart, scheduledEnd: serviceVisits.scheduledEnd })
+          .from(serviceVisits).where(and(
+            eq(serviceVisits.userId, ctx.user.id),
+            inArray(serviceVisits.status, ["scheduled", "en_route", "in_progress"]),
+            gte(serviceVisits.scheduledStart, weekStart),
+            lt(serviceVisits.scheduledStart, weekEnd),
+          )),
       ]);
       return members.map(member => {
         const plannedMinutes = assignments
           .filter(assignment => assignment.teamMemberId === member.id)
           .reduce((sum, assignment) => sum + Math.max(0, assignment.plannedMinutes ?? 0), 0);
         const capacity = Math.max(1, member.weeklyCapacityMinutes);
+        const scheduledMinutes = scheduledVisits
+          .filter(visit => visit.teamMemberId === member.id)
+          .reduce((sum, visit) => sum + Math.max(0, Math.round((visit.scheduledEnd.getTime() - visit.scheduledStart.getTime()) / 60_000)), 0);
         return {
           ...member,
           plannedMinutes,
           remainingMinutes: Math.max(0, capacity - plannedMinutes),
           loadRatio: plannedMinutes / capacity,
           overCapacity: plannedMinutes > capacity,
+          scheduledMinutes,
+          scheduledRemainingMinutes: Math.max(0, capacity - scheduledMinutes),
+          scheduledLoadRatio: scheduledMinutes / capacity,
+          scheduledOverCapacity: scheduledMinutes > capacity,
+          scheduleWindow: { startsAt: weekStart, endsAt: weekEnd },
         };
       });
     }),
