@@ -16,7 +16,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -884,6 +884,39 @@ export const appRouter = router({
         const result = await db.update(customerAssets).set({ active: input.active, updatedAt: new Date() })
           .where(and(eq(customerAssets.id, input.id), eq(customerAssets.userId, ctx.user.id)));
         if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Customer asset not found." });
+        return { success: true };
+      }),
+  }),
+
+  // ── Asset Inspection Templates (private owner operations) ─────────────────
+  assetInspectionTemplates: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(assetInspectionTemplates)
+        .where(eq(assetInspectionTemplates.userId, ctx.user.id))
+        .orderBy(desc(assetInspectionTemplates.updatedAt));
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        name: safeString(255),
+        fields: z.array(z.object({ id: safeString(64), label: safeString(255), required: z.boolean().default(false) })).min(1).max(50),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const result = await db.insert(assetInspectionTemplates).values({
+          userId: ctx.user.id,
+          name: input.name,
+          fields: JSON.stringify(input.fields),
+        });
+        return { id: Number((result as any).insertId), success: true };
+      }),
+    setActive: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), active: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const result = await db.update(assetInspectionTemplates).set({ active: input.active, updatedAt: new Date() })
+          .where(and(eq(assetInspectionTemplates.id, input.id), eq(assetInspectionTemplates.userId, ctx.user.id)));
+        if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Inspection template not found." });
         return { success: true };
       }),
   }),

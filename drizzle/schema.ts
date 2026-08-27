@@ -120,6 +120,26 @@ export const customerAssets = mysqlTable("customerAssets", {
 export type CustomerAsset = typeof customerAssets.$inferSelect;
 export type InsertCustomerAsset = typeof customerAssets.$inferInsert;
 
+// ─── Asset Inspection Templates (private owner operations) ─────────────────
+// These records are intentionally separate from generic job checklists and
+// public portal projections. They are foundations only; offline use, client
+// delivery, regulatory compliance, and automated maintenance are out of scope.
+export const assetInspectionTemplates = mysqlTable("assetInspectionTemplates", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  version: int("version").default(1).notNull(),
+  fields: text("fields").notNull(), // JSON inspection field definitions
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("assetInspectionTemplates_owner_active_idx").on(t.userId, t.active),
+]);
+
+export type AssetInspectionTemplate = typeof assetInspectionTemplates.$inferSelect;
+export type InsertAssetInspectionTemplate = typeof assetInspectionTemplates.$inferInsert;
+
 // ─── Invoices ─────────────────────────────────────────────────────────────────
 
 export const invoices = mysqlTable("invoices", {
