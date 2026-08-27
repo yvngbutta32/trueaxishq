@@ -64,6 +64,17 @@ export default function PWAInstallBanner() {
     };
   }, []);
 
+  useEffect(() => {
+    const hideForFormEntry = (event: FocusEvent) => {
+      const target = event.target;
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) {
+        setShowBanner(false);
+      }
+    };
+    document.addEventListener("focusin", hideForFormEntry);
+    return () => document.removeEventListener("focusin", hideForFormEntry);
+  }, []);
+
   const handleInstall = async () => {
     if (isIOS) {
       setShowIOSInstructions(true);
@@ -91,7 +102,7 @@ export default function PWAInstallBanner() {
       {/* Install Banner */}
       <div
         className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm"
-        role="banner"
+        role="region"
         aria-label="Install TrueAxis HQ app"
       >
         <div className="bg-[#0D1117] border border-[#D4922A]/30 rounded-xl shadow-2xl p-4 flex items-center gap-3">
@@ -101,7 +112,7 @@ export default function PWAInstallBanner() {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white leading-tight">Install TrueAxis HQ</p>
             <p className="text-xs text-gray-400 mt-0.5">
-              {isIOS ? "Add to Home Screen for the best experience" : "Install for faster access & offline use"}
+              {isIOS ? "Add to Home Screen for the best experience" : "Install for faster access from your home screen"}
             </p>
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -114,6 +125,7 @@ export default function PWAInstallBanner() {
               Install
             </Button>
             <button
+              type="button"
               onClick={handleDismiss}
               className="w-7 h-7 flex items-center justify-center rounded-full text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Dismiss install banner"
@@ -131,6 +143,7 @@ export default function PWAInstallBanner() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-white">Install TrueAxis HQ</h3>
               <button
+                type="button"
                 onClick={handleDismiss}
                 className="w-7 h-7 flex items-center justify-center rounded-full text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
                 aria-label="Close"
