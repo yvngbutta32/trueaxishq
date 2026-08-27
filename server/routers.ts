@@ -904,17 +904,71 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        if (new Set(input.fields.map(field => field.id)).size !== input.fields.length) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Each inspection question needs a unique field ID." });
+        }
         const result = await db.insert(assetInspectionTemplates).values({
           userId: ctx.user.id,
           name: input.name,
           fields: JSON.stringify(input.fields),
         });
-        return { id: Number((result as any).insertId), success: true };
+        const id = Number((result as any).insertId);
+        await db.update(assetInspectionTemplates).set({ templateFamilyId: id, updatedAt: new Date() })
+          .where(and(eq(assetInspectionTemplates.id, id), eq(assetInspectionTemplates.userId, ctx.user.id)));
+        return { id, success: true };
+      }),
+    revise: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        name: safeString(255),
+        fields: z.array(z.object({ id: safeString(64), label: safeString(255), required: z.boolean().default(false) })).min(1).max(50),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (new Set(input.fields.map(field => field.id)).size !== input.fields.length) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Each inspection question needs a unique field ID." });
+        }
+        const db = await requireDb();
+        const [source] = await db.select({ id: assetInspectionTemplates.id, templateFamilyId: assetInspectionTemplates.templateFamilyId, version: assetInspectionTemplates.version, active: assetInspectionTemplates.active })
+          .from(assetInspectionTemplates)
+          .where(and(eq(assetInspectionTemplates.id, input.id), eq(assetInspectionTemplates.userId, ctx.user.id))).limit(1);
+        if (!source?.active) throw new TRPCError({ code: "NOT_FOUND", message: "Active inspection template not found." });
+        const familyId = source.templateFamilyId ?? source.id;
+        let revisionId = 0;
+        let revisionVersion = 0;
+        await db.transaction(async (tx) => {
+          const versions = await tx.select({ version: assetInspectionTemplates.version }).from(assetInspectionTemplates)
+            .where(and(eq(assetInspectionTemplates.userId, ctx.user.id), eq(assetInspectionTemplates.templateFamilyId, familyId)));
+          const nextVersion = Math.max(source.version, ...versions.map(template => template.version)) + 1;
+          const deactivate = await tx.update(assetInspectionTemplates).set({ active: false, templateFamilyId: familyId, updatedAt: new Date() })
+            .where(and(eq(assetInspectionTemplates.id, source.id), eq(assetInspectionTemplates.userId, ctx.user.id), eq(assetInspectionTemplates.active, true)));
+          if (!deactivate[0].affectedRows) throw new TRPCError({ code: "CONFLICT", message: "This template was just revised. Refresh before trying again." });
+          const result = await tx.insert(assetInspectionTemplates).values({
+            userId: ctx.user.id,
+            templateFamilyId: familyId,
+            name: input.name,
+            version: nextVersion,
+            fields: JSON.stringify(input.fields),
+            active: true,
+          });
+          revisionId = Number((result as any).insertId);
+          revisionVersion = nextVersion;
+        });
+        return { id: revisionId, version: revisionVersion, success: true };
       }),
     setActive: protectedProcedure
       .input(z.object({ id: z.number().int().positive(), active: z.boolean() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        if (input.active) {
+          const [template] = await db.select({ templateFamilyId: assetInspectionTemplates.templateFamilyId }).from(assetInspectionTemplates)
+            .where(and(eq(assetInspectionTemplates.id, input.id), eq(assetInspectionTemplates.userId, ctx.user.id))).limit(1);
+          if (!template) throw new TRPCError({ code: "NOT_FOUND", message: "Inspection template not found." });
+          if (template.templateFamilyId) {
+            const [activeRevision] = await db.select({ id: assetInspectionTemplates.id }).from(assetInspectionTemplates)
+              .where(and(eq(assetInspectionTemplates.userId, ctx.user.id), eq(assetInspectionTemplates.templateFamilyId, template.templateFamilyId), eq(assetInspectionTemplates.active, true), sql`${assetInspectionTemplates.id} != ${input.id}`)).limit(1);
+            if (activeRevision) throw new TRPCError({ code: "CONFLICT", message: "Deactivate the current revision before reactivating this template." });
+          }
+        }
         const result = await db.update(assetInspectionTemplates).set({ active: input.active, updatedAt: new Date() })
           .where(and(eq(assetInspectionTemplates.id, input.id), eq(assetInspectionTemplates.userId, ctx.user.id)));
         if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Inspection template not found." });

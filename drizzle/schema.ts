@@ -127,6 +127,7 @@ export type InsertCustomerAsset = typeof customerAssets.$inferInsert;
 export const assetInspectionTemplates = mysqlTable("assetInspectionTemplates", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
+  templateFamilyId: int("templateFamilyId"), // Root template id for later private revisions; intentionally no foreign key.
   name: varchar("name", { length: 255 }).notNull(),
   version: int("version").default(1).notNull(),
   fields: text("fields").notNull(), // JSON inspection field definitions
@@ -135,6 +136,7 @@ export const assetInspectionTemplates = mysqlTable("assetInspectionTemplates", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (t) => [
   index("assetInspectionTemplates_owner_active_idx").on(t.userId, t.active),
+  index("assetInspectionTemplates_owner_family_idx").on(t.userId, t.templateFamilyId),
 ]);
 
 export type AssetInspectionTemplate = typeof assetInspectionTemplates.$inferSelect;

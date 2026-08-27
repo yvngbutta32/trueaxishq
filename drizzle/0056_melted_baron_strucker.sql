@@ -1,0 +1,2 @@
+ALTER TABLE `assetInspectionTemplates` ADD `templateFamilyId` int;--> statement-breakpoint
+CREATE INDEX `assetInspectionTemplates_owner_family_idx` ON `assetInspectionTemplates` (`userId`,`templateFamilyId`);

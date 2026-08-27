@@ -2106,6 +2106,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add private job inspection responses with explicit attachment and revision boundaries.
 - [x] Do not claim offline inspection, automated maintenance, client delivery, or regulatory compliance until separately designed and validated.
 
+### Selected private foundation: revision-safe inspection templates
+- [x] Add an owner-only template revision flow that creates a new immutable version while preserving existing private response field snapshots.
+- [x] Keep superseded templates lifecycle-controlled, private to the owner workspace, and excluded from all client portal projections.
+- [x] Add deterministic revision, owner-isolation, response-history, and portal-exclusion coverage; validate and document the milestone.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
