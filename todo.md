@@ -2037,3 +2037,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ### Selected credential-free milestone: mobile account-recovery accessibility
 - [x] Correct the visible mobile password-recovery escape action so it meets the established contrast and focus treatment.
 - [x] Add focused responsive-auth recovery regression coverage and validate the public mobile artifact.
+
+### Selected credential-free milestone: private dispatch map preview
+- [x] Add an owner-only map preview for scheduled service-visit site labels without exposing locations in the client portal.
+- [x] Add transparent geocoding error and empty-location states; do not claim routing, GPS tracking, or ETA optimization.
+- [x] Add focused regression coverage and validate the dispatch-map release artifact.
