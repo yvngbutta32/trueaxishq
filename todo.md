@@ -1703,6 +1703,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add resilient Field Mode recovery for interrupted proof capture and transient action failures without duplicating records
 - [x] Add deterministic regression coverage for the Field Mode recovery and ownership boundaries
 - [ ] Validate the mobile Field Mode workflow and client-visible status handoff at 375px
+- [x] Correct the discovered `/field-mode` mobile route mismatch or update all entry points to the canonical Field Mode route before completing responsive workflow validation.
 
 ## Public Trust-Surface Remediation
 - [x] Remove unsupported adoption, revenue, and testimonial-style claims discovered on authenticated entry points

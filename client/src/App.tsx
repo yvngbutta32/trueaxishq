@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Redirect, Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import OfflineBanner from "./components/OfflineBanner";
 import PWAInstallBanner from "./components/PWAInstallBanner";
@@ -83,6 +83,7 @@ function Router() {
         {/* Authenticated user routes */}
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/dashboard/:section" component={Dashboard} />
+        <Route path="/field-mode"><Redirect to="/dashboard/field" /></Route>
         <Route path="/billing" component={Billing} />
         <Route path="/staff" component={StaffWorkspace} />
 
