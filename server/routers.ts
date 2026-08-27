@@ -6866,7 +6866,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       const now = new Date();
       const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - ((now.getUTCDay() + 6) % 7)));
       const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const [members, assignments, scheduledVisits] = await Promise.all([
+      const [members, assignments, scheduledVisits, availabilityBlocks] = await Promise.all([
         db.select().from(teamMembers).where(eq(teamMembers.userId, ctx.user.id)).orderBy(teamMembers.active, teamMembers.name),
         db.select({
           teamMemberId: jobAssignments.teamMemberId,
@@ -6883,6 +6883,12 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
             gte(serviceVisits.scheduledStart, weekStart),
             lt(serviceVisits.scheduledStart, weekEnd),
           )),
+        db.select({ teamMemberId: staffAvailabilityBlocks.teamMemberId, startsAt: staffAvailabilityBlocks.startsAt, endsAt: staffAvailabilityBlocks.endsAt })
+          .from(staffAvailabilityBlocks).where(and(
+            eq(staffAvailabilityBlocks.userId, ctx.user.id),
+            lt(staffAvailabilityBlocks.startsAt, weekEnd),
+            gt(staffAvailabilityBlocks.endsAt, weekStart),
+          )),
       ]);
       return members.map(member => {
         const plannedMinutes = assignments
@@ -6892,6 +6898,13 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const scheduledMinutes = scheduledVisits
           .filter(visit => visit.teamMemberId === member.id)
           .reduce((sum, visit) => sum + Math.max(0, Math.round((visit.scheduledEnd.getTime() - visit.scheduledStart.getTime()) / 60_000)), 0);
+        const privateAvailabilityMinutes = availabilityBlocks
+          .filter(block => block.teamMemberId === member.id)
+          .reduce((sum, block) => {
+            const startsAt = Math.max(block.startsAt.getTime(), weekStart.getTime());
+            const endsAt = Math.min(block.endsAt.getTime(), weekEnd.getTime());
+            return sum + Math.max(0, Math.round((endsAt - startsAt) / 60_000));
+          }, 0);
         return {
           ...member,
           plannedMinutes,
@@ -6902,6 +6915,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           scheduledRemainingMinutes: Math.max(0, capacity - scheduledMinutes),
           scheduledLoadRatio: scheduledMinutes / capacity,
           scheduledOverCapacity: scheduledMinutes > capacity,
+          privateAvailabilityMinutes,
           scheduleWindow: { startsAt: weekStart, endsAt: weekEnd },
         };
       });

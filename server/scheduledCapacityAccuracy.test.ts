@@ -11,11 +11,15 @@ describe("scheduled capacity accuracy", () => {
     expect(routerSource).toContain("const weekStart = new Date(Date.UTC");
     expect(routerSource).toContain("scheduledMinutes = scheduledVisits");
     expect(routerSource).toContain("scheduledOverCapacity: scheduledMinutes > capacity");
+    expect(routerSource).toContain("privateAvailabilityMinutes = availabilityBlocks");
+    expect(routerSource).toContain("Math.max(block.startsAt.getTime(), weekStart.getTime())");
     expect(routerSource).toContain("scheduleWindow: { startsAt: weekStart, endsAt: weekEnd }");
   });
 
   it("keeps capacity signals owner-side planning information rather than attendance or client data", () => {
     expect(teamSource).toContain("scheduled this UTC week");
+    expect(teamSource).toContain("blocked in private availability this UTC week");
+    expect(teamSource).toContain("planning context only");
     expect(dispatchSource).toContain("These are private owner-planning signals");
     expect(dispatchSource).toContain("not GPS, staff availability, attendance, payroll, or client-visible promises");
   });

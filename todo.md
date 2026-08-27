@@ -2131,6 +2131,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Surface accessible owner-only conflict signals in team and dispatch planning while excluding availability details from client portals, maps, GPS, and route claims.
 - [x] Add focused owner-scope, member-scope, overlap, conflict-minimization, and portal-exclusion coverage; validate and document the milestone.
 
+### Selected field-operations refinement: availability-aware capacity context
+- [x] Add owner-only current-week private availability-block time to capacity context without reducing payroll, attendance, or contractual availability data.
+- [x] Keep availability time private and observational; do not add automatic dispatching, client exposure, GPS, calendar synchronization, or route claims.
+- [x] Add focused calculation and private-projection coverage; validate and document the refinement.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
