@@ -2102,7 +2102,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ### Planned private foundation: asset inspection templates
 - [x] Design owner-scoped reusable asset-inspection templates with explicit revision and portal-exclusion boundaries.
-- [ ] Add private job inspection responses with explicit attachment and revision boundaries.
+- [x] Add private job inspection responses with explicit attachment and revision boundaries.
 - [x] Do not claim offline inspection, automated maintenance, client delivery, or regulatory compliance until separately designed and validated.
 
 ### Selected credential-free milestone: Field Mode draft removal

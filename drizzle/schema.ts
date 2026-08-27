@@ -140,6 +140,28 @@ export const assetInspectionTemplates = mysqlTable("assetInspectionTemplates", {
 export type AssetInspectionTemplate = typeof assetInspectionTemplates.$inferSelect;
 export type InsertAssetInspectionTemplate = typeof assetInspectionTemplates.$inferInsert;
 
+// ─── Asset Inspection Responses (private owner operations) ─────────────────
+// Responses retain the selected template version and are deliberately separate
+// from client portal data, attachments, automated maintenance, and offline sync.
+export const assetInspectionResponses = mysqlTable("assetInspectionResponses", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  jobId: int("jobId").notNull(),
+  clientId: int("clientId").notNull(),
+  customerAssetId: int("customerAssetId").notNull(),
+  templateId: int("templateId").notNull(),
+  templateVersion: int("templateVersion").notNull(),
+  templateFields: text("templateFields").notNull(), // JSON field-definition snapshot at response creation
+  responses: text("responses").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("assetInspectionResponses_owner_job_idx").on(t.userId, t.jobId),
+  index("assetInspectionResponses_owner_asset_idx").on(t.userId, t.customerAssetId),
+]);
+export type AssetInspectionResponse = typeof assetInspectionResponses.$inferSelect;
+export type InsertAssetInspectionResponse = typeof assetInspectionResponses.$inferInsert;
+
 // ─── Invoices ─────────────────────────────────────────────────────────────────
 
 export const invoices = mysqlTable("invoices", {

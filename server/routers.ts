@@ -16,7 +16,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -918,6 +918,70 @@ export const appRouter = router({
           .where(and(eq(assetInspectionTemplates.id, input.id), eq(assetInspectionTemplates.userId, ctx.user.id)));
         if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Inspection template not found." });
         return { success: true };
+      }),
+  }),
+
+  // ── Asset Inspection Responses (private owner operations) ─────────────────
+  assetInspectionResponses: router({
+    listForJob: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id }).from(jobs)
+          .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        return db.select().from(assetInspectionResponses)
+          .where(and(eq(assetInspectionResponses.userId, ctx.user.id), eq(assetInspectionResponses.jobId, input.jobId)))
+          .orderBy(desc(assetInspectionResponses.updatedAt));
+      }),
+    create: protectedProcedure
+      .input(z.object({
+        jobId: z.number().int().positive(),
+        customerAssetId: z.number().int().positive(),
+        templateId: z.number().int().positive(),
+        responses: z.array(z.object({ fieldId: safeString(64), value: safeOptionalString(4000) })).min(1).max(50),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId, customerAssetId: jobs.customerAssetId }).from(jobs)
+          .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job?.clientId) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        if (job.customerAssetId !== input.customerAssetId) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Inspection responses must use the asset linked to this job." });
+        }
+        const [asset] = await db.select({ id: customerAssets.id }).from(customerAssets)
+          .where(and(eq(customerAssets.id, input.customerAssetId), eq(customerAssets.userId, ctx.user.id), eq(customerAssets.clientId, job.clientId))).limit(1);
+        if (!asset) throw new TRPCError({ code: "NOT_FOUND", message: "Customer asset not found for this job." });
+        const [template] = await db.select({ id: assetInspectionTemplates.id, version: assetInspectionTemplates.version, fields: assetInspectionTemplates.fields }).from(assetInspectionTemplates)
+          .where(and(eq(assetInspectionTemplates.id, input.templateId), eq(assetInspectionTemplates.userId, ctx.user.id), eq(assetInspectionTemplates.active, true))).limit(1);
+        if (!template) throw new TRPCError({ code: "NOT_FOUND", message: "Active inspection template not found." });
+        const templateFieldSchema = z.array(z.object({ id: safeString(64), label: safeString(255), required: z.boolean() })).min(1).max(50);
+        let templateFields: z.infer<typeof templateFieldSchema>;
+        try {
+          templateFields = templateFieldSchema.parse(JSON.parse(template.fields));
+        } catch {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Inspection template fields are invalid." });
+        }
+        const submittedValues = new Map<string, string>();
+        for (const response of input.responses) {
+          if (submittedValues.has(response.fieldId)) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Each inspection question may be answered once." });
+          }
+          if (!templateFields.some(field => field.id === response.fieldId)) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Inspection answer does not match the selected template." });
+          }
+          submittedValues.set(response.fieldId, response.value ?? "");
+        }
+        for (const field of templateFields) {
+          if (field.required && !submittedValues.get(field.id)?.trim()) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: `A response is required for ${field.label}.` });
+          }
+        }
+        const normalizedResponses = templateFields
+          .filter(field => submittedValues.has(field.id))
+          .map(field => ({ fieldId: field.id, value: submittedValues.get(field.id) ?? "" }));
+        const result = await db.insert(assetInspectionResponses).values({ userId: ctx.user.id, jobId: job.id, clientId: job.clientId, customerAssetId: asset.id, templateId: template.id, templateVersion: template.version, templateFields: JSON.stringify(templateFields), responses: JSON.stringify(normalizedResponses) });
+        return { id: Number((result as any).insertId), success: true };
       }),
   }),
 

@@ -1,0 +1,1 @@
+ALTER TABLE `assetInspectionResponses` ADD `templateFields` text NOT NULL;

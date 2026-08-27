@@ -29,6 +29,26 @@ type JobExpenseForm = { amount: string; category: string; description: string; v
 const newExpenseForm = (): JobExpenseForm => ({ amount: "", category: "materials", description: "", vendor: "", date: new Date().toISOString().slice(0, 10) });
 type CustomerAssetForm = { name: string; assetTag: string; functionalLocation: string };
 const newCustomerAssetForm = (): CustomerAssetForm => ({ name: "", assetTag: "", functionalLocation: "" });
+type InspectionField = { id: string; label: string; required: boolean };
+type InspectionAnswer = { fieldId: string; value: string };
+const parseInspectionFields = (serialized: string): InspectionField[] => {
+  try {
+    const parsed = JSON.parse(serialized);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((field): field is InspectionField => Boolean(field && typeof field.id === "string" && typeof field.label === "string" && typeof field.required === "boolean"));
+  } catch {
+    return [];
+  }
+};
+const parseInspectionAnswers = (serialized: string): InspectionAnswer[] => {
+  try {
+    const parsed = JSON.parse(serialized);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((answer): answer is InspectionAnswer => Boolean(answer && typeof answer.fieldId === "string" && typeof answer.value === "string"));
+  } catch {
+    return [];
+  }
+};
 const COST_REPORT_STATUSES = ["all", ...JOB_STATUSES] as const;
 
 export default function JobWorkspace() {
@@ -53,6 +73,8 @@ export default function JobWorkspace() {
   const [customerAssetForm, setCustomerAssetForm] = useState<CustomerAssetForm>(newCustomerAssetForm);
   const [inspectionTemplateName, setInspectionTemplateName] = useState("");
   const [inspectionTemplateFields, setInspectionTemplateFields] = useState("");
+  const [inspectionResponseTemplateId, setInspectionResponseTemplateId] = useState("");
+  const [inspectionResponseValues, setInspectionResponseValues] = useState<Record<string, string>>({});
   const [costReportOpen, setCostReportOpen] = useState(false);
   const [costReportStatus, setCostReportStatus] = useState<(typeof COST_REPORT_STATUSES)[number]>("all");
   const [marginThresholdInput, setMarginThresholdInput] = useState("30");
@@ -80,6 +102,10 @@ export default function JobWorkspace() {
     { enabled: Boolean(selectedJob.data?.job.clientId) },
   );
   const inspectionTemplates = trpc.assetInspectionTemplates.list.useQuery();
+  const inspectionResponses = trpc.assetInspectionResponses.listForJob.useQuery(
+    { jobId: selectedJobId ?? 0 },
+    { enabled: selectedJobId !== null },
+  );
 
   const invalidateJobs = () => {
     utils.jobs.list.invalidate();
@@ -96,6 +122,7 @@ export default function JobWorkspace() {
   const setCustomerAsset = trpc.jobs.setCustomerAsset.useMutation({ onSuccess: () => { invalidateJobs(); toast.success("Private asset context updated"); }, onError: error => toast.error(error.message) });
   const setCustomerAssetActive = trpc.customerAssets.setActive.useMutation({ onSuccess: () => { customerAssets.refetch(); invalidateJobs(); toast.success("Private asset lifecycle updated"); }, onError: error => toast.error(error.message) });
   const createInspectionTemplate = trpc.assetInspectionTemplates.create.useMutation({ onSuccess: () => { inspectionTemplates.refetch(); setInspectionTemplateName(""); setInspectionTemplateFields(""); toast.success("Private inspection template added"); }, onError: error => toast.error(error.message) });
+  const createInspectionResponse = trpc.assetInspectionResponses.create.useMutation({ onSuccess: () => { inspectionResponses.refetch(); setInspectionResponseTemplateId(""); setInspectionResponseValues({}); toast.success("Private inspection response saved"); }, onError: error => toast.error(error.message) });
   const addTask = trpc.jobs.addTask.useMutation({ onSuccess: () => { invalidateJobs(); setTaskTitle(""); }, onError: error => toast.error(error.message) });
   const updateTask = trpc.jobs.updateTask.useMutation({ onSuccess: invalidateJobs, onError: error => toast.error(error.message) });
   const addUpdate = trpc.jobs.addUpdate.useMutation({ onSuccess: () => { invalidateJobs(); setUpdateMessage(""); toast.success(visibleToClient ? "Client update posted" : "Internal note saved"); }, onError: error => toast.error(error.message) });
@@ -107,6 +134,10 @@ export default function JobWorkspace() {
   const removeJobExpense = trpc.expenses.delete.useMutation({ onSuccess: () => { invalidateJobs(); toast.success("Private job cost removed"); }, onError: error => toast.error(error.message) });
 
   const detail = selectedJob.data;
+  const linkedInspectionAsset = useMemo(() => customerAssets.data?.find(asset => asset.id === detail?.job.customerAssetId), [customerAssets.data, detail?.job.customerAssetId]);
+  const activeInspectionTemplates = useMemo(() => (inspectionTemplates.data ?? []).filter(template => template.active), [inspectionTemplates.data]);
+  const selectedInspectionTemplate = useMemo(() => activeInspectionTemplates.find(template => template.id === Number(inspectionResponseTemplateId)), [activeInspectionTemplates, inspectionResponseTemplateId]);
+  const selectedInspectionFields = useMemo(() => selectedInspectionTemplate ? parseInspectionFields(selectedInspectionTemplate.fields) : [], [selectedInspectionTemplate]);
   const completion = useMemo(() => {
     if (!detail?.tasks.length) return 0;
     return Math.round((detail.tasks.filter(task => task.status === "done").length / detail.tasks.length) * 100);
@@ -138,6 +169,20 @@ export default function JobWorkspace() {
       vendor: expenseForm.vendor.trim() || undefined,
       date: expenseForm.date,
       taxDeductible: true,
+    });
+  };
+
+  const handleCreateInspectionResponse = () => {
+    if (!detail || !linkedInspectionAsset || !selectedInspectionTemplate || !selectedInspectionFields.length) {
+      return toast.error("Link an eligible asset and choose a valid active template first.");
+    }
+    const missingRequired = selectedInspectionFields.find(field => field.required && !inspectionResponseValues[field.id]?.trim());
+    if (missingRequired) return toast.error(`Add a response for ${missingRequired.label}.`);
+    createInspectionResponse.mutate({
+      jobId: detail.job.id,
+      customerAssetId: linkedInspectionAsset.id,
+      templateId: selectedInspectionTemplate.id,
+      responses: selectedInspectionFields.map(field => ({ fieldId: field.id, value: inspectionResponseValues[field.id] ?? "" })),
     });
   };
 
@@ -225,6 +270,12 @@ export default function JobWorkspace() {
               <div className="flex items-start justify-between gap-3"><div><h3 className="font-bold text-cyan-950">Inspection templates <span className="font-normal text-cyan-800/75">· private foundation</span></h3><p className="mt-1 text-xs text-cyan-900/75">Create reusable owner-only question prompts. Templates do not collect responses and never appear in the client portal.</p></div><ClipboardCheck className="h-5 w-5 shrink-0 text-cyan-700" /></div>
               {inspectionTemplates.data?.length ? <div className="mt-4 flex flex-wrap gap-2">{inspectionTemplates.data.map(template => <span key={template.id} className={`rounded-full px-3 py-1 text-xs font-semibold ${template.active ? "bg-white text-cyan-900 ring-1 ring-cyan-200" : "bg-slate-100 text-slate-600 line-through"}`}>{template.name} · v{template.version}</span>)}</div> : <p className="mt-4 rounded-xl border border-dashed border-cyan-200 bg-white/70 px-4 py-3 text-sm text-cyan-950/70">No private inspection templates are recorded yet.</p>}
               <div className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)_auto]"><label className="text-xs font-semibold text-cyan-950">Template name<input value={inspectionTemplateName} onChange={event => setInspectionTemplateName(event.target.value)} maxLength={255} placeholder="e.g. Start-up check" className="mt-1 block w-full rounded-lg border border-cyan-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-cyan-300" /></label><label className="text-xs font-semibold text-cyan-950">Questions <span className="font-normal">(one per line)</span><textarea value={inspectionTemplateFields} onChange={event => setInspectionTemplateFields(event.target.value)} maxLength={4000} rows={2} placeholder={"Power on\nCheck visible condition"} className="mt-1 block w-full rounded-lg border border-cyan-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-cyan-300" /></label><Button onClick={() => { const fields = inspectionTemplateFields.split("\n").map(label => label.trim()).filter(Boolean).map((label, index) => ({ id: `field-${index + 1}`, label, required: false })); if (!inspectionTemplateName.trim() || !fields.length) return toast.error("Add a template name and at least one question."); createInspectionTemplate.mutate({ name: inspectionTemplateName.trim(), fields }); }} disabled={createInspectionTemplate.isPending} className="self-end bg-cyan-700 text-white hover:bg-cyan-800">{createInspectionTemplate.isPending ? "Adding…" : "Add template"}</Button></div>
+            </section>
+
+            <section className="rounded-2xl border border-teal-200 bg-teal-50/50 p-5">
+              <div className="flex items-start justify-between gap-3"><div><h3 className="font-bold text-teal-950">Job inspection responses <span className="font-normal text-teal-800/75">· private</span></h3><p className="mt-1 text-xs text-teal-900/75">Record internal answers for the asset linked to this job. Saved responses stay owner-only and never appear in the client portal.</p></div><ClipboardCheck className="h-5 w-5 shrink-0 text-teal-700" /></div>
+              {!linkedInspectionAsset ? <p className="mt-4 rounded-xl border border-dashed border-teal-200 bg-white/70 px-4 py-3 text-sm text-teal-950/75">Link a private customer asset to this job before recording an inspection response.</p> : <div className="mt-4 rounded-xl border border-teal-100 bg-white p-4"><p className="text-xs font-semibold uppercase tracking-wide text-teal-800">Linked asset</p><p className="mt-1 text-sm font-semibold text-[#1A1A1A]">{linkedInspectionAsset.name}{linkedInspectionAsset.assetTag ? ` · ${linkedInspectionAsset.assetTag}` : ""}</p>{!linkedInspectionAsset.active && <p className="mt-1 text-xs text-amber-700">This retained job link is inactive for new job links.</p>}<label className="mt-4 block text-xs font-semibold text-teal-950">Active inspection template<select aria-label="Choose an active private inspection template" value={inspectionResponseTemplateId} onChange={event => { setInspectionResponseTemplateId(event.target.value); setInspectionResponseValues({}); }} disabled={inspectionTemplates.isLoading || createInspectionResponse.isPending} className="mt-1 block w-full rounded-lg border border-teal-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-teal-300"><option value="">Choose a template</option>{activeInspectionTemplates.map(template => <option key={template.id} value={template.id}>{template.name} · v{template.version}</option>)}</select></label>{inspectionTemplates.isError ? <p className="mt-3 text-sm text-rose-700">Private templates could not be loaded. Try again before saving.</p> : activeInspectionTemplates.length === 0 ? <p className="mt-3 text-sm text-teal-950/75">Create an active private inspection template above before recording a response.</p> : selectedInspectionTemplate && (selectedInspectionFields.length === 0 ? <p className="mt-3 text-sm text-rose-700">This template has invalid saved fields and cannot be used for a response.</p> : <div className="mt-4 space-y-3">{selectedInspectionFields.map(field => <label key={field.id} className="block text-sm font-semibold text-teal-950">{field.label}{field.required && <span className="ml-1 text-rose-700">(required)</span>}<textarea value={inspectionResponseValues[field.id] ?? ""} onChange={event => setInspectionResponseValues(values => ({ ...values, [field.id]: event.target.value }))} maxLength={4000} rows={2} placeholder="Record an internal inspection response" className="mt-1 block w-full rounded-lg border border-teal-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-teal-300" /></label>)}<Button type="button" onClick={handleCreateInspectionResponse} disabled={createInspectionResponse.isPending} className="bg-teal-700 text-white hover:bg-teal-800">{createInspectionResponse.isPending ? "Saving…" : "Save private response"}</Button></div>)}</div>}
+              <div className="mt-4"><h4 className="text-sm font-semibold text-teal-950">Saved internal response history</h4>{inspectionResponses.isLoading ? <div className="mt-3 flex items-center gap-2 text-sm text-teal-900/70"><Loader2 className="h-4 w-4 animate-spin" /> Loading private responses…</div> : inspectionResponses.isError ? <p className="mt-3 rounded-xl border border-rose-200 bg-white px-4 py-3 text-sm text-rose-700">Private inspection responses could not be loaded for this job.</p> : inspectionResponses.data?.length ? <div className="mt-3 space-y-2">{inspectionResponses.data.map(response => { const fields = parseInspectionFields(response.templateFields); const answers = new Map(parseInspectionAnswers(response.responses).map(answer => [answer.fieldId, answer.value])); return <div key={response.id} className="rounded-xl border border-teal-100 bg-white px-4 py-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-[#1A1A1A]">Private template response · v{response.templateVersion}</p><p className="text-xs text-[rgba(26,26,26,0.55)]">Saved {dateLabel(response.updatedAt)}</p></div><div className="mt-2 space-y-1">{fields.map(field => <p key={field.id} className="text-xs text-[rgba(26,26,26,0.68)]"><span className="font-semibold text-[#1A1A1A]">{field.label}:</span> {answers.get(field.id) || "No response"}</p>)}</div></div>; })}</div> : <p className="mt-3 rounded-xl border border-dashed border-teal-200 bg-white/70 px-4 py-3 text-sm text-teal-950/70">No private inspection responses have been saved for this job.</p>}</div>
             </section>
 
             <section className="rounded-2xl border border-emerald-200 bg-emerald-50/45 p-5">
