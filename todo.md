@@ -2028,3 +2028,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add owner-scoped staff capacity signals to dispatch scheduling so teams can make a visible, intentional choice before creating conflicting work.
 - [x] Add accessible Dispatch Board capacity and conflict UI with explicit non-claims around GPS, route optimization, and real-time location.
 - [x] Add focused scope, capacity, conflict, and client-privacy regression coverage; validate and document the milestone.
+
+### Selected credential-free milestone: Field Mode on-site status handoff
+- [x] Add a controlled Field Mode job-status transition for starting and completing on-site work, with owner scope and clear client-update separation.
+- [x] Add accessible mobile status controls with loading, recovery, and no-automatic-client-notification boundaries.
+- [x] Add focused owner-scope, status-transition, and client-privacy regression coverage; validate and document the milestone.
