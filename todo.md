@@ -2091,6 +2091,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Surface private asset context in owner job operations without exposing assets or location details in the client portal.
 - [x] Add focused ownership, client isolation, and no-portal-projection regression coverage; validate and document the foundation.
 
+### Planned private foundation: asset-to-job service context
+- [x] Add an explicit owner-scoped asset-to-job link only when the asset and job belong to the same owned client.
+- [x] Show private linked-asset context in Job Workspace without automatic service-history or recurring-maintenance claims.
+- [x] Add focused owner/client-matching and portal-exclusion regression coverage; validate and document the change.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.

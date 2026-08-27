@@ -7248,6 +7248,23 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         };
       }),
 
+    setCustomerAsset: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive(), customerAssetId: z.number().int().positive().nullable() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs)
+          .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        if (input.customerAssetId !== null) {
+          const [asset] = await db.select({ id: customerAssets.id }).from(customerAssets)
+            .where(and(eq(customerAssets.id, input.customerAssetId), eq(customerAssets.userId, ctx.user.id), eq(customerAssets.clientId, job.clientId), eq(customerAssets.active, true))).limit(1);
+          if (!asset) throw new TRPCError({ code: "NOT_FOUND", message: "Active customer asset not found for this job's client." });
+        }
+        await db.update(jobs).set({ customerAssetId: input.customerAssetId, updatedAt: new Date() })
+          .where(and(eq(jobs.id, job.id), eq(jobs.userId, ctx.user.id), eq(jobs.clientId, job.clientId)));
+        return { ok: true };
+      }),
+
     listChecklistTemplates: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
       const templates = await db.select().from(jobChecklistTemplates)

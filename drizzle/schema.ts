@@ -923,6 +923,7 @@ export const jobs = mysqlTable("jobs", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   clientId: int("clientId").notNull(),
+  customerAssetId: int("customerAssetId"),
   bookingId: int("bookingId"),
   invoiceId: int("invoiceId"),
   proposalId: int("proposalId"),
@@ -941,6 +942,7 @@ export const jobs = mysqlTable("jobs", {
 }, (t) => [
   index("jobs_userId_idx").on(t.userId),
   index("jobs_clientId_idx").on(t.clientId),
+  index("jobs_customerAssetId_idx").on(t.customerAssetId),
   index("jobs_bookingId_idx").on(t.bookingId),
   uniqueIndex("jobs_userId_jobNumber_unique_idx").on(t.userId, t.jobNumber),
 ]);

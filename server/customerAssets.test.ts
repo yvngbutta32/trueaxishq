@@ -17,8 +17,9 @@ describe("customer asset foundation", () => {
     const router = source("server/routers.ts");
     const workspace = source("client/src/pages/JobWorkspace.tsx");
     const assetRouter = router.slice(router.indexOf("customerAssets: router({"), router.indexOf("// ── Invoices"));
-    const portalStart = router.indexOf("portal: router({");
-    const portalRouter = router.slice(portalStart);
+    const portalStart = router.indexOf("getJobs: publicProcedure");
+    const portalEnd = router.indexOf("// ── Contracts", portalStart);
+    const portalRouter = router.slice(portalStart, portalEnd);
     expect(assetRouter).toContain("eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id)");
     expect(assetRouter).toContain("eq(customerAssets.userId, ctx.user.id)");
     expect(assetRouter).toContain("db.insert(customerAssets).values({ userId: ctx.user.id");
