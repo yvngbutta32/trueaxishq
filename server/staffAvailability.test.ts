@@ -34,6 +34,7 @@ describe("private staff availability", () => {
     expect(dispatch).toContain("eq(staffAvailabilityBlocks.teamMemberId, block.teamMemberId)");
     expect(dispatch).toContain("ne(staffAvailabilityBlocks.id, input.id)");
     expect(dispatch).toContain("availabilityConflict");
+    expect(dispatch).toContain('visit.status !== "cancelled" && visit.teamMemberId !== null');
     expect(dispatch).toContain("block.startsAt < input.scheduledEnd && block.endsAt > input.scheduledStart");
     expect(dispatch).toContain("availabilityConflictAcknowledged: availabilityConflict");
   });

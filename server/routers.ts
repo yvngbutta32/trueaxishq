@@ -7064,7 +7064,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       ]);
       return visits.map(visit => ({
         ...visit,
-        availabilityConflict: visit.teamMemberId !== null && availabilityBlocks.some(block => block.teamMemberId === visit.teamMemberId && block.startsAt < visit.scheduledEnd && block.endsAt > visit.scheduledStart),
+        availabilityConflict: visit.status !== "cancelled" && visit.teamMemberId !== null && availabilityBlocks.some(block => block.teamMemberId === visit.teamMemberId && block.startsAt < visit.scheduledEnd && block.endsAt > visit.scheduledStart),
       }));
     }),
 
