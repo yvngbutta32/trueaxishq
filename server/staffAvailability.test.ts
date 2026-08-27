@@ -19,17 +19,20 @@ describe("private staff availability", () => {
     expect(schema).toContain('index("staffAvailabilityBlocks_owner_member_start_idx").on(t.userId, t.teamMemberId, t.startsAt)');
   });
 
-  it("uses owner-scoped create, delete, and overlap predicates", () => {
+  it("uses owner-scoped create, correction, delete, and overlap predicates", () => {
     const dispatchStart = router.indexOf("dispatch: router({");
     const dispatchEnd = router.indexOf("workflowWebhooks: router({", dispatchStart);
     const dispatch = router.slice(dispatchStart, dispatchEnd);
 
     expect(dispatch).toContain("listAvailabilityBlocks: protectedProcedure");
     expect(dispatch).toContain("createAvailabilityBlock: protectedProcedure");
+    expect(dispatch).toContain("updateAvailabilityBlock: protectedProcedure");
     expect(dispatch).toContain("deleteAvailabilityBlock: protectedProcedure");
     expect(dispatch).toContain("eq(staffAvailabilityBlocks.userId, ctx.user.id), eq(staffAvailabilityBlocks.teamMemberId, input.teamMemberId)");
     expect(dispatch).toContain("lt(staffAvailabilityBlocks.startsAt, input.endsAt), gt(staffAvailabilityBlocks.endsAt, input.startsAt)");
     expect(dispatch).toContain("eq(staffAvailabilityBlocks.id, input.id), eq(staffAvailabilityBlocks.userId, ctx.user.id)");
+    expect(dispatch).toContain("eq(staffAvailabilityBlocks.teamMemberId, block.teamMemberId)");
+    expect(dispatch).toContain("ne(staffAvailabilityBlocks.id, input.id)");
     expect(dispatch).toContain("availabilityConflict");
     expect(dispatch).toContain("block.startsAt < input.scheduledEnd && block.endsAt > input.scheduledStart");
     expect(dispatch).toContain("availabilityConflictAcknowledged: availabilityConflict");
@@ -40,6 +43,8 @@ describe("private staff availability", () => {
     expect(dispatchBoard).toContain("Private availability overlap");
     expect(dispatchBoard).toContain("not attendance, payroll, GPS, route, client-portal, or automatic reassignment data");
     expect(dispatchBoard).toContain("Add private availability block");
+    expect(dispatchBoard).toContain("Edit private availability block");
+    expect(dispatchBoard).toContain("The team member remains unchanged");
     expect(clientPortal).not.toContain("Private staff availability");
     expect(clientPortal).not.toContain("Private availability overlap");
   });

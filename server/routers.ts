@@ -1,5 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { eq, desc, and, sql, inArray, or, like, isNull, gt, gte, lt } from "drizzle-orm";
+import { eq, desc, and, sql, inArray, or, like, isNull, gt, gte, lt, ne } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
 import { createHash, randomBytes } from "node:crypto";
@@ -7097,6 +7097,28 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         if (overlap) throw new TRPCError({ code: "CONFLICT", message: "This overlaps an existing private availability block for the selected team member." });
         const result = await db.insert(staffAvailabilityBlocks).values({ userId: ctx.user.id, teamMemberId: input.teamMemberId, startsAt: input.startsAt, endsAt: input.endsAt, reason: input.reason || null });
         return { id: Number((result as any).insertId), success: true };
+      }),
+
+    updateAvailabilityBlock: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), startsAt: z.date(), endsAt: z.date(), reason: safeOptionalString(500) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        if (input.endsAt <= input.startsAt) throw new TRPCError({ code: "BAD_REQUEST", message: "Availability must end after it starts." });
+        const [block] = await db.select({ id: staffAvailabilityBlocks.id, teamMemberId: staffAvailabilityBlocks.teamMemberId })
+          .from(staffAvailabilityBlocks).where(and(eq(staffAvailabilityBlocks.id, input.id), eq(staffAvailabilityBlocks.userId, ctx.user.id))).limit(1);
+        if (!block) throw new TRPCError({ code: "NOT_FOUND", message: "Private availability block not found." });
+        const [overlap] = await db.select({ id: staffAvailabilityBlocks.id }).from(staffAvailabilityBlocks)
+          .where(and(
+            eq(staffAvailabilityBlocks.userId, ctx.user.id),
+            eq(staffAvailabilityBlocks.teamMemberId, block.teamMemberId),
+            ne(staffAvailabilityBlocks.id, input.id),
+            lt(staffAvailabilityBlocks.startsAt, input.endsAt),
+            gt(staffAvailabilityBlocks.endsAt, input.startsAt),
+          )).limit(1);
+        if (overlap) throw new TRPCError({ code: "CONFLICT", message: "This overlaps another private availability block for the same team member." });
+        await db.update(staffAvailabilityBlocks).set({ startsAt: input.startsAt, endsAt: input.endsAt, reason: input.reason || null, updatedAt: new Date() })
+          .where(and(eq(staffAvailabilityBlocks.id, input.id), eq(staffAvailabilityBlocks.userId, ctx.user.id)));
+        return { success: true };
       }),
 
     deleteAvailabilityBlock: protectedProcedure

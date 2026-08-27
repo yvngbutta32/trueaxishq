@@ -2136,6 +2136,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Keep availability time private and observational; do not add automatic dispatching, client exposure, GPS, calendar synchronization, or route claims.
 - [x] Add focused calculation and private-projection coverage; validate and document the refinement.
 
+### Selected field-operations refinement: private availability correction
+- [x] Add owner-only editing for an existing private availability block with bounded time and reason validation and no client data changes.
+- [x] Preserve same-owner/team-member isolation, conflict recalculation, and client-portal, GPS, payroll, calendar-sync, and routing exclusions.
+- [x] Add focused update, overlap, scope, and private-projection coverage; validate and document the refinement.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
