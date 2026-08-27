@@ -2145,6 +2145,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Exclude cancelled service visits from private availability-overlap signals while retaining owner-only service-visit history.
 - [x] Add focused cancelled-state and client-portal-exclusion coverage; validate and document the correction.
 
+### Selected field-operations correction: weekly scheduled-capacity boundaries
+- [x] Count only active service-visit time that overlaps the current UTC week in private capacity context.
+- [x] Add focused UTC-boundary calculation coverage; validate and document the correction without changing client-facing data or availability claims.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.

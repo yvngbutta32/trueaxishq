@@ -6880,8 +6880,8 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           .from(serviceVisits).where(and(
             eq(serviceVisits.userId, ctx.user.id),
             inArray(serviceVisits.status, ["scheduled", "en_route", "in_progress"]),
-            gte(serviceVisits.scheduledStart, weekStart),
             lt(serviceVisits.scheduledStart, weekEnd),
+            gt(serviceVisits.scheduledEnd, weekStart),
           )),
         db.select({ teamMemberId: staffAvailabilityBlocks.teamMemberId, startsAt: staffAvailabilityBlocks.startsAt, endsAt: staffAvailabilityBlocks.endsAt })
           .from(staffAvailabilityBlocks).where(and(
@@ -6897,7 +6897,11 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const capacity = Math.max(1, member.weeklyCapacityMinutes);
         const scheduledMinutes = scheduledVisits
           .filter(visit => visit.teamMemberId === member.id)
-          .reduce((sum, visit) => sum + Math.max(0, Math.round((visit.scheduledEnd.getTime() - visit.scheduledStart.getTime()) / 60_000)), 0);
+          .reduce((sum, visit) => {
+            const scheduledStart = Math.max(visit.scheduledStart.getTime(), weekStart.getTime());
+            const scheduledEnd = Math.min(visit.scheduledEnd.getTime(), weekEnd.getTime());
+            return sum + Math.max(0, Math.round((scheduledEnd - scheduledStart) / 60_000));
+          }, 0);
         const privateAvailabilityMinutes = availabilityBlocks
           .filter(block => block.teamMemberId === member.id)
           .reduce((sum, block) => {

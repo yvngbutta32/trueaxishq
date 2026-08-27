@@ -10,6 +10,10 @@ describe("scheduled capacity accuracy", () => {
   it("calculates scheduled visit time separately from active assignment planning load in the current UTC week", () => {
     expect(routerSource).toContain("const weekStart = new Date(Date.UTC");
     expect(routerSource).toContain("scheduledMinutes = scheduledVisits");
+    expect(routerSource).toContain("lt(serviceVisits.scheduledStart, weekEnd)");
+    expect(routerSource).toContain("gt(serviceVisits.scheduledEnd, weekStart)");
+    expect(routerSource).toContain("Math.max(visit.scheduledStart.getTime(), weekStart.getTime())");
+    expect(routerSource).toContain("Math.min(visit.scheduledEnd.getTime(), weekEnd.getTime())");
     expect(routerSource).toContain("scheduledOverCapacity: scheduledMinutes > capacity");
     expect(routerSource).toContain("privateAvailabilityMinutes = availabilityBlocks");
     expect(routerSource).toContain("Math.max(block.startsAt.getTime(), weekStart.getTime())");
