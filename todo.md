@@ -2082,9 +2082,9 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [ ] Add retry scheduling, delivery-attempt observability, and explicit terminal-failure handling only after a privacy and migration review.
 
 ### Identified payment-reliability gap: durable Stripe retry processing
-- [ ] Replace the process-local Stripe transient-failure retry queue with a durable, replay-safe design before claiming restart-safe payment-event recovery.
+- [x] Replace the process-local Stripe transient-failure retry queue with a durable, replay-safe design before claiming restart-safe payment-event recovery.
 - [ ] Validate the change with controlled signed Stripe events; retain the current real-provider checkout and webhook walkthrough as an external gate.
-- [ ] Prevent successful Stripe webhook acknowledgement before durable processing state exists, so transient post-ack failures do not depend solely on process memory.
+- [x] Prevent successful Stripe webhook acknowledgement before durable processing state exists, so transient post-ack failures do not depend solely on process memory.
 
 ### Selected field-service foundation: customer assets
 - [x] Add an owner-scoped customer-asset record linked to one client, with a bounded equipment identity and optional functional-location label.

@@ -79,7 +79,7 @@ function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: bool
 }
 
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
-type AdminTab = "overview" | "users" | "leads" | "broadcast" | "settings" | "health" | "security" | "invites";
+type AdminTab = "overview" | "users" | "leads" | "broadcast" | "settings" | "health" | "security" | "invites" | "stripe_recovery";
 
 export default function Admin() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -183,6 +183,9 @@ export default function Admin() {
     enabled: isAuthenticated && isOwner && activeTab === "health",
     refetchInterval: 30_000,
   });
+  const stripeRecoveryQuery = trpc.stripeRecovery.list.useQuery(undefined, {
+    enabled: isAuthenticated && isOwner && activeTab === "stripe_recovery",
+  });
 
   // Mutations
   const setRoleMutation = trpc.admin.setUserRole.useMutation({
@@ -213,6 +216,13 @@ export default function Admin() {
       settingsQuery.refetch();
       setSettingsDirty(false);
       toast.success("Settings saved successfully");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const processDueStripeEventsMutation = trpc.stripeRecovery.processDue.useMutation({
+    onSuccess: (summary) => {
+      stripeRecoveryQuery.refetch();
+      toast.success(`Recovery check completed: ${summary.processed} processed, ${summary.retryable} retryable, ${summary.terminal} terminal.`);
     },
     onError: (e) => toast.error(e.message),
   });
@@ -270,6 +280,7 @@ export default function Admin() {
     { id: "broadcast", label: "Broadcast", icon: Megaphone },
     { id: "settings", label: "Site Settings", icon: Settings },
     { id: "health", label: "System Health", icon: Activity },
+    { id: "stripe_recovery", label: "Stripe Recovery", icon: RefreshCw },
     { id: "security", label: "Security", icon: Shield },
   ];
 
@@ -1013,6 +1024,18 @@ export default function Admin() {
                 <p className="text-sm">Could not load health data. Try refreshing.</p>
               </div>
             )}
+          </section>
+        )}
+
+        {/* ── Stripe Recovery Panel ───────────────────────────────────── */}
+        {activeTab === "stripe_recovery" && (
+          <section aria-label="Stripe event recovery" className="space-y-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div><h2 className="text-xl font-bold text-[#F5EFE3]">Stripe event recovery</h2><p className="mt-1 max-w-3xl text-sm text-[rgba(245,239,227,0.65)]">Owner-only processing evidence for signed payment events. The table excludes event payloads and does not establish that Stripe or a downstream system completed a business action.</p></div>
+              <Button onClick={() => processDueStripeEventsMutation.mutate({ limit: 10 })} disabled={processDueStripeEventsMutation.isPending} className="bg-[#D4922A] text-white hover:bg-[#B87716]"><RefreshCw className={`mr-2 h-4 w-4 ${processDueStripeEventsMutation.isPending ? "animate-spin" : ""}`} />{processDueStripeEventsMutation.isPending ? "Processing…" : "Process due events"}</Button>
+            </div>
+            <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-[#F5EFE3]"><p className="font-semibold">Bounded recovery policy</p><p className="mt-1 text-xs leading-5 text-[rgba(245,239,227,0.72)]">TrueAxis HQ stores an encrypted event envelope before acknowledging a verified event. Failed processing can be retried up to five times with increasing delays; terminal events require owner review. A real-provider signed webhook walkthrough remains an external validation gate.</p></div>
+            {stripeRecoveryQuery.isLoading ? <div className="h-52 animate-pulse rounded-xl bg-white/10" /> : stripeRecoveryQuery.isError ? <div className="rounded-xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-100">Recovery evidence could not be loaded. Refresh the page or review server logs.</div> : stripeRecoveryQuery.data?.length ? <div className="overflow-x-auto rounded-xl border border-white/10 bg-[#161B22]"><table className="min-w-[760px] w-full text-left text-sm"><thead className="border-b border-white/10 text-xs uppercase tracking-wide text-[rgba(245,239,227,0.56)]"><tr><th className="px-4 py-3">Event</th><th className="px-4 py-3">State</th><th className="px-4 py-3">Attempts</th><th className="px-4 py-3">Next action</th><th className="px-4 py-3">Last issue</th></tr></thead><tbody>{stripeRecoveryQuery.data.map(event => <tr key={event.id} className="border-b border-white/5 last:border-0"><td className="px-4 py-3"><p className="font-semibold text-[#F5EFE3]">{event.eventType}</p><p className="mt-0.5 font-mono text-[11px] text-[rgba(245,239,227,0.52)]">{event.eventId}</p></td><td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-[10px] font-bold ${event.status === "processed" ? "bg-emerald-400/15 text-emerald-200" : event.status === "terminal" ? "bg-rose-400/15 text-rose-200" : "bg-amber-400/15 text-amber-100"}`}>{event.status}</span></td><td className="px-4 py-3 text-[#F5EFE3]">{event.attemptCount}</td><td className="px-4 py-3 text-xs text-[rgba(245,239,227,0.7)]">{event.nextAttemptAt ? new Date(event.nextAttemptAt).toLocaleString() : event.completedAt ? `Completed ${new Date(event.completedAt).toLocaleString()}` : "No scheduled retry"}</td><td className="max-w-[260px] truncate px-4 py-3 text-xs text-[rgba(245,239,227,0.7)]">{event.lastError || "—"}</td></tr>)}</tbody></table></div> : <div className="rounded-xl border border-dashed border-white/15 bg-[#161B22] p-8 text-center text-sm text-[rgba(245,239,227,0.68)]">No Stripe processing evidence has been recorded yet.</div>}
           </section>
         )}
 

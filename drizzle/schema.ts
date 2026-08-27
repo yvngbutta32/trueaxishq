@@ -909,16 +909,27 @@ export const contractTemplates = mysqlTable("contractTemplates", {
 export type ContractTemplate = typeof contractTemplates.$inferSelect;
 export type InsertContractTemplate = typeof contractTemplates.$inferInsert;
 
-// ── Stripe Webhook Events (idempotency) ───────────────────────────────────────
-// Stores processed Stripe event IDs so duplicate webhook deliveries are safely
-// deduplicated even after server restarts (replaces the in-memory Set).
+// ── Stripe Webhook Events (durable processing and idempotency) ────────────────
+// Stores a bounded encrypted event envelope plus processing state so accepted
+// events can be recovered after a process restart. It is not an assertion of
+// provider delivery or receiver-side processing completion.
 export const stripeWebhookEvents = mysqlTable("stripeWebhookEvents", {
   id: int("id").autoincrement().primaryKey(),
   eventId: varchar("eventId", { length: 255 }).notNull(),
   eventType: varchar("eventType", { length: 100 }).notNull(),
   processedAt: timestamp("processedAt").defaultNow().notNull(),
+  status: mysqlEnum("status", ["received", "processing", "processed", "retryable", "terminal"]).default("processed").notNull(),
+  payloadCiphertext: text("payloadCiphertext"),
+  attemptCount: int("attemptCount").default(0).notNull(),
+  nextAttemptAt: timestamp("nextAttemptAt"),
+  lastError: varchar("lastError", { length: 1000 }),
+  completedAt: timestamp("completedAt"),
+  processingStartedAt: timestamp("processingStartedAt"),
 },
-(t) => [uniqueIndex("stripeWebhookEvents_eventId_idx").on(t.eventId)]
+(t) => [
+  uniqueIndex("stripeWebhookEvents_eventId_idx").on(t.eventId),
+  index("stripeWebhookEvents_retry_due_idx").on(t.status, t.nextAttemptAt),
+]
 );
 export type StripeWebhookEvent = typeof stripeWebhookEvents.$inferSelect;
 export type InsertStripeWebhookEvent = typeof stripeWebhookEvents.$inferInsert;

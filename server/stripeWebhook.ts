@@ -1,87 +1,117 @@
 import type { Request, Response } from "express";
 import Stripe from "stripe";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, lt, lte, or, sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { users, invoices, stripeWebhookEvents } from "../drizzle/schema";
 import { notifyOwner } from "./_core/notification";
+import { decryptWebhookSecret, encryptWebhookSecret } from "./workflowWebhookDelivery";
 
-// ─── DB-backed idempotency — survives server restarts ─────────────────────────
-// Uses a unique index on stripeWebhookEvents.eventId so concurrent duplicate
-// deliveries are also safely rejected at the DB level.
-async function isAlreadyProcessed(eventId: string): Promise<boolean> {
+// ─── DB-backed receipt, idempotency, and recovery ─────────────────────────────
+// Every accepted Stripe event is written before returning 2xx. The encrypted
+// envelope permits bounded recovery after a process restart; it does not prove
+// that Stripe or any receiving business workflow completed a separate action.
+const MAX_EVENT_BYTES = 120_000;
+const MAX_PROCESSING_ATTEMPTS = 5;
+const RETRY_DELAYS_MS = [60_000, 300_000, 1_800_000, 7_200_000];
+const PROCESSING_LEASE_MS = 10 * 60_000;
+
+function truncateError(error: unknown): string {
+  const message = error instanceof Error ? error.message : "Stripe event processing failed.";
+  return message.replace(/[\r\n]+/g, " ").slice(0, 1_000);
+}
+
+function nextRetryTime(attemptCount: number): Date | null {
+  const delay = RETRY_DELAYS_MS[Math.max(0, attemptCount - 1)];
+  return delay === undefined ? null : new Date(Date.now() + delay);
+}
+
+function serializeRecoveryEnvelope(event: Stripe.Event): string {
+  const serialized = JSON.stringify({ id: event.id, type: event.type, data: { object: event.data.object } });
+  if (Buffer.byteLength(serialized, "utf8") > MAX_EVENT_BYTES) {
+    throw new Error("Stripe event exceeds the bounded recovery envelope limit.");
+  }
+  return serialized;
+}
+
+function parseRecoveryEnvelope(ciphertext: string): { eventType: string; data: Stripe.Event["data"]["object"] } {
+  const decrypted = decryptWebhookSecret(ciphertext);
+  const parsed = JSON.parse(decrypted) as { type?: unknown; data?: { object?: unknown } };
+  if (!parsed || typeof parsed.type !== "string" || !parsed.data || typeof parsed.data.object !== "object" || parsed.data.object === null) {
+    throw new Error("Stored Stripe event recovery envelope is invalid.");
+  }
+  return { eventType: parsed.type, data: parsed.data.object as Stripe.Event["data"]["object"] };
+}
+
+async function processStoredStripeEvent(eventId: string): Promise<"processed" | "skipped" | "retryable" | "terminal"> {
   const db = await getDb();
-  if (!db) return false; // If DB is down, let it through and rely on retry logic
+  if (!db) throw new Error("Database unavailable.");
+  const [event] = await db.select().from(stripeWebhookEvents).where(eq(stripeWebhookEvents.eventId, eventId)).limit(1);
+  const staleBefore = new Date(Date.now() - PROCESSING_LEASE_MS);
+  const canReclaimProcessingLease = event?.status === "processing" && Boolean(event.processingStartedAt && event.processingStartedAt < staleBefore);
+  if (!event || event.status === "processed" || event.status === "terminal" || (event.status === "processing" && !canReclaimProcessingLease) || !event.payloadCiphertext) return "skipped";
+
+  const claim = await db.update(stripeWebhookEvents).set({ status: "processing", processingStartedAt: new Date() })
+    .where(and(eq(stripeWebhookEvents.eventId, eventId), or(
+      inArray(stripeWebhookEvents.status, ["received", "retryable"]),
+      and(eq(stripeWebhookEvents.status, "processing"), lt(stripeWebhookEvents.processingStartedAt, staleBefore)),
+    )));
+  if (!claim[0].affectedRows) return "skipped";
+
   try {
-    const rows = await db
-      .select({ id: stripeWebhookEvents.id })
-      .from(stripeWebhookEvents)
-      .where(eq(stripeWebhookEvents.eventId, eventId))
-      .limit(1);
-    return rows.length > 0;
-  } catch {
-    return false;
+    const envelope = parseRecoveryEnvelope(event.payloadCiphertext);
+    await processEvent(envelope.eventType, envelope.data);
+    await db.update(stripeWebhookEvents).set({
+      status: "processed",
+      attemptCount: event.attemptCount + 1,
+      completedAt: new Date(),
+      processedAt: new Date(),
+      processingStartedAt: null,
+      nextAttemptAt: null,
+      lastError: null,
+    }).where(and(eq(stripeWebhookEvents.eventId, eventId), eq(stripeWebhookEvents.status, "processing")));
+    console.log(`[Stripe recovery] Processed ${event.eventType} (${event.eventId}).`);
+    return "processed";
+  } catch (error) {
+    const attemptCount = event.attemptCount + 1;
+    const terminal = attemptCount >= MAX_PROCESSING_ATTEMPTS;
+    const message = truncateError(error);
+    await db.update(stripeWebhookEvents).set({
+      status: terminal ? "terminal" : "retryable",
+      attemptCount,
+      processingStartedAt: null,
+      nextAttemptAt: terminal ? null : nextRetryTime(attemptCount),
+      lastError: message,
+    }).where(and(eq(stripeWebhookEvents.eventId, eventId), eq(stripeWebhookEvents.status, "processing")));
+    if (terminal) {
+      await notifyOwner({ title: "Stripe event needs review", content: `Event ${event.eventId} (${event.eventType}) reached the bounded processing limit. Review the payment provider event and application logs before taking action.` }).catch(() => undefined);
+      console.error(`[Stripe recovery] Terminal processing failure for ${event.eventType} (${event.eventId}).`);
+      return "terminal";
+    }
+    console.warn(`[Stripe recovery] Retryable processing failure for ${event.eventType} (${event.eventId}).`);
+    return "retryable";
   }
 }
 
-async function markProcessed(eventId: string, eventType: string): Promise<void> {
+export async function processDueStripeEvents(limit = 10): Promise<{ processed: number; skipped: number; retryable: number; terminal: number }> {
   const db = await getDb();
-  if (!db) return;
-  try {
-    await db.insert(stripeWebhookEvents).values({ eventId, eventType }).onDuplicateKeyUpdate({
-      set: { eventType: sql`VALUES(${stripeWebhookEvents.eventType})` },
-    });
-  } catch {
-    // Duplicate key = already processed by a concurrent request — safe to ignore
-  }
+  if (!db) throw new Error("Database unavailable.");
+  const staleBefore = new Date(Date.now() - PROCESSING_LEASE_MS);
+  const due = await db.select({ eventId: stripeWebhookEvents.eventId }).from(stripeWebhookEvents)
+    .where(or(
+      eq(stripeWebhookEvents.status, "received"),
+      and(eq(stripeWebhookEvents.status, "retryable"), lte(stripeWebhookEvents.nextAttemptAt, new Date())),
+      and(eq(stripeWebhookEvents.status, "processing"), lt(stripeWebhookEvents.processingStartedAt, staleBefore)),
+    ))
+    .orderBy(stripeWebhookEvents.nextAttemptAt)
+    .limit(Math.min(Math.max(limit, 1), 25));
+  const summary = { processed: 0, skipped: 0, retryable: 0, terminal: 0 };
+  for (const event of due) summary[await processStoredStripeEvent(event.eventId)]++;
+  return summary;
 }
-
-// ─── Retry queue for transient DB failures ────────────────────────────────────
-interface RetryItem {
-  eventId: string;
-  eventType: string;
-  data: Stripe.Event["data"]["object"];
-  attempts: number;
-  nextRetryAt: number;
-}
-
-const retryQueue: RetryItem[] = [];
-const MAX_RETRIES = 5;
-const RETRY_DELAYS_MS = [5_000, 15_000, 60_000, 300_000, 900_000];
 
 export function canAcceptUnsignedStripeEvent(environment = process.env.NODE_ENV): boolean {
   return environment === "development";
 }
-
-async function flushRetryQueue() {
-  const now = Date.now();
-  const due = retryQueue.filter(item => item.nextRetryAt <= now);
-  for (const item of due) {
-    try {
-      await processEvent(item.eventType, item.data);
-      const idx = retryQueue.indexOf(item);
-      if (idx !== -1) retryQueue.splice(idx, 1);
-      await markProcessed(item.eventId, item.eventType);
-      console.log(`[Webhook Retry] ✅ ${item.eventType} (${item.eventId}) on attempt ${item.attempts + 1}`);
-    } catch (err) {
-      item.attempts++;
-      if (item.attempts >= MAX_RETRIES) {
-        console.error(`[Webhook Retry] ❌ Giving up on ${item.eventType} (${item.eventId}) after ${MAX_RETRIES} attempts`);
-        notifyOwner({
-          title: "⚠️ Webhook Processing Failed",
-          content: `Event ${item.eventId} (${item.eventType}) failed after ${MAX_RETRIES} retries. Manual review required.`,
-        }).catch(() => {});
-        const idx = retryQueue.indexOf(item);
-        if (idx !== -1) retryQueue.splice(idx, 1);
-      } else {
-        item.nextRetryAt = Date.now() + (RETRY_DELAYS_MS[item.attempts] ?? 900_000);
-        console.warn(`[Webhook Retry] Retry ${item.attempts}/${MAX_RETRIES} for ${item.eventType} (${item.eventId})`);
-      }
-    }
-  }
-}
-
-// Flush every 30 seconds
-setInterval(flushRetryQueue, 30_000);
 
 // ─── Core event processor ─────────────────────────────────────────────────────
 async function processEvent(eventType: string, data: Stripe.Event["data"]["object"]) {
@@ -251,30 +281,33 @@ export async function handleStripeWebhook(req: Request, res: Response) {
     return res.json({ verified: true });
   }
 
-  // Idempotency guard
-  if (await isAlreadyProcessed(event.id)) {
+  // Receipt and idempotency guard. Existing historical rows use the additive
+  // default `processed` status, so duplicate events remain safely ignored.
+  const db = await getDb();
+  if (!db) return res.status(503).json({ error: "Payment event storage is temporarily unavailable" });
+  const [existing] = await db.select({ id: stripeWebhookEvents.id }).from(stripeWebhookEvents).where(eq(stripeWebhookEvents.eventId, event.id)).limit(1);
+  if (existing) {
     console.log(`[Webhook] Duplicate event ${event.id} ignored`);
     return res.json({ received: true, duplicate: true });
   }
 
-  // Acknowledge immediately — Stripe requires response within 30s
-  res.json({ received: true });
-
-  // Process asynchronously with retry fallback
   try {
-    await processEvent(event.type, event.data.object);
-    // Mark processed only after success to allow retries on failure
-    await markProcessed(event.id, event.type);
-    console.log(`[Webhook] ✅ Processed ${event.type} (${event.id})`);
-  } catch (err) {
-    console.error(`[Webhook] ❌ Failed to process ${event.type} (${event.id}):`, err);
-    // Don't mark as processed — allow retry queue to reprocess
-    retryQueue.push({
+    await db.insert(stripeWebhookEvents).values({
       eventId: event.id,
       eventType: event.type,
-      data: event.data.object,
-      attempts: 1,
-      nextRetryAt: Date.now() + (RETRY_DELAYS_MS[0] ?? 5_000),
+      status: "received",
+      payloadCiphertext: encryptWebhookSecret(serializeRecoveryEnvelope(event)),
+      attemptCount: 0,
+      processedAt: new Date(),
     });
+  } catch (error) {
+    console.error("[Webhook] Durable event receipt failed:", truncateError(error));
+    return res.status(503).json({ error: "Payment event storage is temporarily unavailable" });
   }
+
+  // Acknowledge only after the durable event receipt succeeds. Processing runs
+  // separately so a restart leaves an explicit recoverable record.
+  res.json({ received: true });
+  void processStoredStripeEvent(event.id).catch(error => console.error("[Webhook] Durable processing start failed:", truncateError(error)));
+  void processDueStripeEvents(5).catch(error => console.error("[Webhook] Due recovery check failed:", truncateError(error)));
 }

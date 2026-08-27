@@ -71,7 +71,7 @@ export function encryptWebhookSecret(secret: string): string {
   return [iv, tag, encrypted].map(value => value.toString("base64url")).join(".");
 }
 
-function decryptWebhookSecret(encrypted: string): string {
+export function decryptWebhookSecret(encrypted: string): string {
   const [ivValue, tagValue, ciphertextValue] = encrypted.split(".");
   if (!ivValue || !tagValue || !ciphertextValue) throw new Error("Webhook secret is unreadable.");
   const decipher = createDecipheriv("aes-256-gcm", getEncryptionKey(), Buffer.from(ivValue, "base64url"));
