@@ -2066,3 +2066,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ### Evidence-led competitive decision standard — Requested Aug 2026
 - [ ] Cross-examine relevant official documentation, independent review themes, security/privacy implications, and product evidence before making future competitive-readiness decisions.
 - [ ] Document feature-specific capability boundaries and validation evidence without claiming perfection, universal replacement, market leadership, or provider behavior that has not been demonstrated.
+
+### Selected credential-free milestone: Field Mode draft removal
+- [ ] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
+- [ ] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
