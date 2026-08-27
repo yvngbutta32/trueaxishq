@@ -2014,3 +2014,17 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [ ] Replace owner calendar export URLs that expose a workspace identifier with a random owner-scoped feed credential that can be rotated or revoked without affecting client portal calendars
 - [ ] Add owner controls to create, copy, rotate, and revoke the private feed while preserving authenticated owner export behavior and no client PII in token-based output
 - [ ] Add focused credential-scope, rotation, revocation, and calendar-output privacy contracts; validate and document the release
+
+## High-9 Competitive Readiness Program — Requested Aug 2026
+- [ ] Complete authenticated responsive accessibility and performance review across owner, staff, client, and public workflows at desktop and 375px mobile widths.
+- [ ] Validate controlled SMTP delivery with a verified sender/domain, delivery failures, unsubscribe handling where applicable, and owner-facing delivery observability.
+- [ ] Validate Stripe Checkout, signed webhook receipt/replay handling, and payment return flows in a controlled real-provider environment.
+- [ ] Build and validate native calendar synchronization with conflict policy, idempotent event updates, disconnect recovery, and provider error visibility rather than subscription-only feeds.
+- [ ] Build and validate field-operations maturity: map-based dispatch, route optimization, GPS/location policy, staff availability/capacity, and mobile offline recovery boundaries.
+- [ ] Build and validate a curated integration layer for accounting, messaging, review, and automation partners with least-privilege scopes, webhook verification, retries, and audit logs.
+- [ ] Run controlled authenticated owner, staff, and client end-to-end journeys with recorded accessibility, error-recovery, performance, and data-isolation evidence.
+
+### Selected credential-free milestone: dispatch capacity and conflict clarity
+- [x] Add owner-scoped staff capacity signals to dispatch scheduling so teams can make a visible, intentional choice before creating conflicting work.
+- [x] Add accessible Dispatch Board capacity and conflict UI with explicit non-claims around GPS, route optimization, and real-time location.
+- [x] Add focused scope, capacity, conflict, and client-privacy regression coverage; validate and document the milestone.
