@@ -2049,6 +2049,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add accessible route-preview loading, unavailable, and reset states that preserve the owner-only location boundary.
 - [x] Add focused regression coverage and validate the dispatch-route release artifact.
 
+### Selected field-operations refinement: private manual dispatch stop order
+- [x] Add an owner-only manual stop-order workflow for existing active service visits without claiming optimization, traffic awareness, GPS, or technician tracking.
+- [x] Keep route order and address context private to Dispatch Board; do not expose it in client portals or client-facing ETA/status flows.
+- [x] Add focused owner-scope, bounded-order, inactive-visit, and portal-exclusion coverage; validate and document the milestone.
+
 ### Selected credential-free milestone: map-provider load recovery
 - [x] Make the shared map component resolve an explicit loading failure rather than leaving private dispatch maps indefinitely pending when the provider script cannot load.
 - [x] Show an accessible, owner-safe map unavailability state without removing the Dispatch Board’s operational controls.
