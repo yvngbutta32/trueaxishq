@@ -26,6 +26,10 @@ Microsoft’s service-history guidance associates an asset to work-order inciden
 
 Microsoft’s inspection guidance treats inspections as a separate template → work-order → technician response → dispatcher review workflow. It supports a future asset-inspection system only if templates, responses, attachment policy, revisioning, and offline synchronization are deliberately designed; TrueAxis’s current asset-to-job link is not an inspection workflow.[13]
 
+Current field-service documentation and comparable product guidance treat equipment-to-work association as a distinct service-history capability with further product, quantity, condition, installation, warranty, and maintenance boundaries. This supports TrueAxis’s explicit, single-asset private job context while ruling out any claim of multi-asset service history or inventory lifecycle coverage.[14]
+
+A local 375px public-surface review rendered the landing page, sign-in, password recovery, and unavailable-booking state without a newly confirmed blocking layout defect. This is limited evidence for public responsive presentation only; it does not validate protected owner, staff, or client workflows, provider delivery, or real-device behavior.[15]
+
 ## Product decision
 
 TrueAxis HQ currently provides owner-only private site mapping, scheduled-order route preview with optimization disabled, capacity signals, and session-limited Field Mode draft recovery. It must not claim live GPS, traffic-aware optimization, automatic client messages, offline editing, or ETA guarantees until those individual systems, consent controls, failure states, and end-to-end behavior are implemented and validated.
@@ -45,3 +49,5 @@ TrueAxis HQ currently provides owner-only private site mapping, scheduled-order 
 [11]: https://learn.microsoft.com/en-us/dynamics365/field-service/assets "Microsoft Field Service customer assets"
 [12]: https://learn.microsoft.com/en-us/dynamics365/field-service/service-history "Microsoft Field Service asset service history"
 [13]: https://learn.microsoft.com/en-us/dynamics365/field-service/inspections-overview "Microsoft Field Service inspections overview"
+[14]: https://learn.microsoft.com/en-us/dynamics365/field-service/assets "Microsoft Field Service customer assets"
+[15]: https://www.w3.org/WAI/standards-guidelines/mobile/ "W3C mobile accessibility standards and guidance"
