@@ -76,7 +76,7 @@
 
 /// <reference types="@types/google.maps" />
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePersistFn } from "@/hooks/usePersistFn";
 import { cn } from "@/lib/utils";
 
@@ -92,18 +92,24 @@ const FORGE_BASE_URL =
   "https://forge.butterfly-effect.dev";
 const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
 
-function loadMapScript() {
+function loadMapScript(): Promise<boolean> {
   return new Promise(resolve => {
+    if (window.google?.maps) {
+      resolve(true);
+      return;
+    }
     const script = document.createElement("script");
     script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry,routes`;
     script.async = true;
     script.crossOrigin = "anonymous";
     script.onload = () => {
-      resolve(null);
+      resolve(Boolean(window.google?.maps));
       script.remove(); // Clean up immediately
     };
     script.onerror = () => {
       console.error("Failed to load Google Maps script");
+      script.remove();
+      resolve(false);
     };
     document.head.appendChild(script);
   });
@@ -114,6 +120,7 @@ interface MapViewProps {
   initialCenter?: google.maps.LatLngLiteral;
   initialZoom?: number;
   onMapReady?: (map: google.maps.Map) => void;
+  onMapLoadError?: () => void;
 }
 
 export function MapView({
@@ -121,12 +128,19 @@ export function MapView({
   initialCenter = { lat: 37.7749, lng: -122.4194 },
   initialZoom = 12,
   onMapReady,
+  onMapLoadError,
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const init = usePersistFn(async () => {
-    await loadMapScript();
+    const loaded = await loadMapScript();
+    if (!loaded || !window.google?.maps) {
+      setLoadFailed(true);
+      onMapLoadError?.();
+      return;
+    }
     if (!mapContainer.current) {
       console.error("Map container not found");
       return;
@@ -148,6 +162,12 @@ export function MapView({
   useEffect(() => {
     init();
   }, [init]);
+
+  if (loadFailed) return (
+    <div role="status" className={cn("flex min-h-48 items-center justify-center rounded-xl bg-slate-50 p-5 text-center text-sm text-slate-700", className)}>
+      Map preview is unavailable right now. Your dispatch schedule and visit data have not changed.
+    </div>
+  );
 
   return (
     <div ref={mapContainer} className={cn("w-full h-[500px]", className)} />

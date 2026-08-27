@@ -2047,3 +2047,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add an owner-triggered route preview for currently resolvable active service-visit sites without implying optimized order, live traffic, staff tracking, or client-facing ETA.
 - [x] Add accessible route-preview loading, unavailable, and reset states that preserve the owner-only location boundary.
 - [x] Add focused regression coverage and validate the dispatch-route release artifact.
+
+### Selected credential-free milestone: map-provider load recovery
+- [x] Make the shared map component resolve an explicit loading failure rather than leaving private dispatch maps indefinitely pending when the provider script cannot load.
+- [x] Show an accessible, owner-safe map unavailability state without removing the Dispatch Board’s operational controls.
+- [x] Add focused recovery regression coverage and validate the mapped-workflow artifact.
