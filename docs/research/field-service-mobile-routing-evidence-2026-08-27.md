@@ -8,6 +8,8 @@ Its detailed mobile FAQ further states that only previously opened job informati
 
 Independent Jobber reviews on Capterra highlight useful counterweights to feature checklists: reviewers describe fragmented reporting, limited customization in reporting and schedules, approval-stage quote rigidity, integrations needing workarounds, and at least one report of confusing map behavior. These are individual reports rather than product-wide findings, but they support prioritizing clear operator workflows, controllable reporting, and failure/recovery states over unsupported “feature parity” claims.[4]
 
+Microsoft’s Field Service offline guidance likewise describes offline support as a defined profile with selected local data rather than a generic browser fallback. This further supports treating full offline editing as a separate, security-sensitive synchronization system that requires a minimized data profile, encryption, retention controls, and explicit recovery testing.[5]
+
 ## Product decision
 
 TrueAxis HQ currently provides owner-only private site mapping, scheduled-order route preview with optimization disabled, capacity signals, and session-limited Field Mode draft recovery. It must not claim live GPS, traffic-aware optimization, automatic client messages, offline editing, or ETA guarantees until those individual systems, consent controls, failure states, and end-to-end behavior are implemented and validated.
@@ -18,3 +20,4 @@ TrueAxis HQ currently provides owner-only private site mapping, scheduled-order 
 [2]: https://www.housecallpro.com/features/route-optimization-software/ "Housecall Pro Route Optimization Software"
 [3]: https://help.housecallpro.com/en/articles/4747652-housecall-pro-mobile-faq "Housecall Pro Mobile FAQ"
 [4]: https://www.capterra.com/p/127994/Jobber/reviews/ "Jobber Reviews — Capterra"
+[5]: https://learn.microsoft.com/en-us/dynamics365/field-service/mobile/best-practices-limitations-offline-profile "Microsoft Field Service mobile offline profile best practices"
