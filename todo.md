@@ -2072,6 +2072,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Replace raw persisted Google Calendar OAuth access and refresh tokens with encrypted at-rest storage, without claiming active calendar synchronization beyond validated behavior.
 - [x] Add owner-scope and token-storage regression coverage; validate any migration and release only after provider-safe review.
 
+### Selected credential-free milestone: Google Calendar connection removal
+- [x] Verify the existing owner-scoped control removes the locally stored Google Calendar connection record without representing local removal as remote provider revocation.
+- [x] Verify the existing connection-status and recovery messaging distinguishes disconnected, setup-required, and provider-error states.
+- [x] Verify existing owner-scope and token-deletion regression coverage; retain the validated behavior rather than duplicate it.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
