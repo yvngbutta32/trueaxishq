@@ -2057,3 +2057,12 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Distinguish owner-defined assignment load from current-week scheduled visit time in the owner capacity contract.
 - [x] Surface current-week scheduled time in private team and dispatch planning without treating it as attendance, GPS, or payroll evidence.
 - [x] Add focused calculation and private-projection regression coverage; validate and document the milestone.
+
+### Selected credential-free milestone: Field Mode draft privacy
+- [x] Limit recoverable Field Mode client-update drafts to the active browser session rather than persistent shared-device browser storage.
+- [x] Clearly disclose the session-recovery boundary and preserve safe offline/retry messaging.
+- [x] Add focused draft-storage and recovery-boundary regression coverage; validate and document the milestone.
+
+### Evidence-led competitive decision standard — Requested Aug 2026
+- [ ] Cross-examine relevant official documentation, independent review themes, security/privacy implications, and product evidence before making future competitive-readiness decisions.
+- [ ] Document feature-specific capability boundaries and validation evidence without claiming perfection, universal replacement, market leadership, or provider behavior that has not been demonstrated.

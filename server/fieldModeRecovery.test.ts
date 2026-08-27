@@ -3,7 +3,7 @@ import { fieldModeDraftKey, getFieldModeConnectivityMessage, isRetryableFieldErr
 
 describe("Field Mode recovery policy", () => {
   it("uses a user-device-safe draft key per job", () => {
-    expect(fieldModeDraftKey(42)).toBe("trueaxis-field-draft:42");
+    expect(fieldModeDraftKey(42)).toBe("trueaxis-field-session-draft:42");
     expect(fieldModeDraftKey(43)).not.toBe(fieldModeDraftKey(42));
   });
 
