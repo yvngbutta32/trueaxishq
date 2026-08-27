@@ -30,6 +30,11 @@ const defaultAvailabilityForm = () => {
 };
 const label = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, character => character.toUpperCase());
 const dateTime = (value: Date | string) => new Date(value).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+const localDateKey = (value: Date | string) => {
+  const date = new Date(value);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
+const planningDayLabel = (value: string) => new Date(`${value}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 
 export default function DispatchBoard() {
   const utils = trpc.useUtils();
@@ -47,13 +52,19 @@ export default function DispatchBoard() {
   const [mapUnavailable, setMapUnavailable] = useState(false);
   const [routeState, setRouteState] = useState<"idle" | "loading" | "ready" | "unavailable" | "error">("idle");
   const [routeOrder, setRouteOrder] = useState<number[]>([]);
+  const [routePlanningDay, setRoutePlanningDay] = useState("");
   const dispatchMapRef = useRef<google.maps.Map | null>(null);
   const routeRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
   const resolvedStopsRef = useRef(new Map<number, google.maps.LatLng>());
 
   const dispatchableAssignments = useMemo(() => assignments.filter(assignment => ["assigned", "acknowledged"].includes(assignment.status) && !["completed", "cancelled"].includes(assignment.jobStatus)), [assignments]);
   const activeVisits = useMemo(() => visits.filter(visit => !["completed", "cancelled"].includes(visit.status)), [visits]);
-  const mappableVisits = useMemo(() => activeVisits.filter(visit => Boolean(visit.siteLabel?.trim())).sort((left, right) => new Date(left.scheduledStart).getTime() - new Date(right.scheduledStart).getTime()).slice(0, 12), [activeVisits]);
+  const mappableVisitsByDay = useMemo(() => activeVisits.filter(visit => Boolean(visit.siteLabel?.trim())).sort((left, right) => new Date(left.scheduledStart).getTime() - new Date(right.scheduledStart).getTime()), [activeVisits]);
+  const routePlanningDays = useMemo(() => Array.from(new Set(mappableVisitsByDay.map(visit => localDateKey(visit.scheduledStart)))), [mappableVisitsByDay]);
+  useEffect(() => {
+    setRoutePlanningDay(current => routePlanningDays.includes(current) ? current : (routePlanningDays[0] ?? ""));
+  }, [routePlanningDays]);
+  const mappableVisits = useMemo(() => mappableVisitsByDay.filter(visit => localDateKey(visit.scheduledStart) === routePlanningDay).slice(0, 12), [mappableVisitsByDay, routePlanningDay]);
   useEffect(() => {
     const activeStopIds = mappableVisits.map(visit => visit.id);
     setRouteOrder(current => {
@@ -185,6 +196,12 @@ export default function DispatchBoard() {
         <MapPin className="h-5 w-5 text-[#D4922A]" />
       </div>
       {mappableVisits.length === 0 ? <p className="mt-4 rounded-xl bg-[#F7F6F3] p-4 text-sm text-[rgba(26,26,26,0.62)]">Add a site label to an active service visit to preview its location privately.</p> : <>
+        <label className="mt-4 block max-w-xs text-sm font-semibold text-[#1A1A1A]">Planning day
+          <select value={routePlanningDay} onChange={event => { setRoutePlanningDay(event.target.value); clearRoute(); }} className="mt-1.5 block w-full rounded-lg border border-[#D4922A]/35 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-[#D4922A]/35" aria-label="Select private route planning day">
+            {routePlanningDays.map(day => <option key={day} value={day}>{planningDayLabel(day)}</option>)}
+          </select>
+          <span className="mt-1 block text-xs font-normal text-[rgba(26,26,26,0.62)]">The selected day, stop order, and site labels stay in this browser session.</span>
+        </label>
         <div className="mt-4 rounded-xl border border-[#D4922A]/25 bg-[#FFF9EE] p-3">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"><div><h3 className="text-sm font-bold text-[#1A1A1A]">Private stop order</h3><p className="mt-0.5 text-xs text-[rgba(26,26,26,0.62)]">Use the arrow controls to arrange this browser-only sequence. It does not change visit timing, assignments, client updates, or stored records.</p></div><span className="self-start rounded-full bg-white px-2 py-1 text-[10px] font-bold text-[#8A5A0B]">Session only</span></div>
           <ol className="mt-3 space-y-2" aria-label="Private route stop order">

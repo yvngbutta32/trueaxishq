@@ -2054,6 +2054,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Keep route order and address context private to Dispatch Board; do not expose it in client portals or client-facing ETA/status flows.
 - [x] Add focused owner-scope, bounded-order, inactive-visit, and portal-exclusion coverage; validate and document the milestone.
 
+### Selected field-operations refinement: private route-planning day
+- [x] Add an owner-only planning-day selector so private manual stop order and route preview are scoped to a single day’s active service visits.
+- [x] Keep the selected day, stop order, and site labels session-only and Dispatch Board-private; do not add automated route, GPS, traffic, ETA, or portal behavior.
+- [x] Add focused day-scoping and private route-preview coverage; validate and document the refinement.
+
 ### Selected credential-free milestone: map-provider load recovery
 - [x] Make the shared map component resolve an explicit loading failure rather than leaving private dispatch maps indefinitely pending when the provider script cannot load.
 - [x] Show an accessible, owner-safe map unavailability state without removing the Dispatch Board’s operational controls.
