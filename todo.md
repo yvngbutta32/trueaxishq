@@ -2106,6 +2106,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add private job inspection responses with explicit attachment and revision boundaries.
 - [x] Do not claim offline inspection, automated maintenance, client delivery, or regulatory compliance until separately designed and validated.
 
+### Selected private inspection refinement: response-detail review
+- [x] Verify the existing owner-only Job Workspace history already renders saved inspection response snapshots and answers, avoiding a duplicate implementation.
+- [x] Verify response detail remains private to the protected owner workspace with no client portal, attachment, offline, maintenance, or compliance projection.
+- [x] Preserve focused private-review and portal-exclusion coverage already added with the response milestone; no duplicate release required.
+
 ### Selected private foundation: revision-safe inspection templates
 - [x] Add an owner-only template revision flow that creates a new immutable version while preserving existing private response field snapshots.
 - [x] Keep superseded templates lifecycle-controlled, private to the owner workspace, and excluded from all client portal projections.
@@ -2148,6 +2153,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ### Selected field-operations correction: weekly scheduled-capacity boundaries
 - [x] Count only active service-visit time that overlaps the current UTC week in private capacity context.
 - [x] Add focused UTC-boundary calculation coverage; validate and document the correction without changing client-facing data or availability claims.
+
+### Selected public quality refinement: conversion-surface visual audit
+- [x] Independently review core public conversion surfaces at desktop and 375px before changing presentation, accessibility, or copy.
+- [x] Implement only confirmed public visual or accessibility corrections without unsupported trust, delivery, outcome, or market claims.
+- [x] Add focused regression coverage and evidence documentation for any confirmed correction; preserve authenticated-session validation boundaries.
 
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.

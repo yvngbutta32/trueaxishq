@@ -20,6 +20,11 @@ export default function PWAInstallBanner() {
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
 
+  const showOnlyOutsideEntryContexts = () => {
+    const hasEntryControl = Boolean(document.querySelector("form, input, textarea, select, [contenteditable='true']"));
+    if (!hasEntryControl) setShowBanner(true);
+  };
+
   useEffect(() => {
     // Check if already installed (standalone mode)
     const isStandalone =
@@ -46,7 +51,7 @@ export default function PWAInstallBanner() {
 
     if (ios) {
       // Show iOS banner after a short delay
-      const timer = setTimeout(() => setShowBanner(true), 3000);
+      const timer = setTimeout(showOnlyOutsideEntryContexts, 3000);
       return () => clearTimeout(timer);
     }
 
@@ -55,7 +60,7 @@ export default function PWAInstallBanner() {
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      bannerTimer = setTimeout(() => setShowBanner(true), 3000);
+      bannerTimer = setTimeout(showOnlyOutsideEntryContexts, 3000);
     };
     window.addEventListener("beforeinstallprompt", handler);
     return () => {
