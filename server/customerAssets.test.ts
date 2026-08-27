@@ -23,9 +23,13 @@ describe("customer asset foundation", () => {
     expect(assetRouter).toContain("eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id)");
     expect(assetRouter).toContain("eq(customerAssets.userId, ctx.user.id)");
     expect(assetRouter).toContain("db.insert(customerAssets).values({ userId: ctx.user.id");
+    expect(assetRouter).toContain("setActive: protectedProcedure");
+    expect(assetRouter).toContain("eq(customerAssets.id, input.id), eq(customerAssets.userId, ctx.user.id)");
     expect(portalRouter).not.toContain("customerAssets");
     expect(workspace).toContain("trpc.customerAssets.list.useQuery");
     expect(workspace).toContain("trpc.customerAssets.create.useMutation");
+    expect(workspace).toContain("trpc.customerAssets.setActive.useMutation");
+    expect(workspace).toContain("Deactivate");
     expect(workspace).toContain("Private customer asset added");
     expect(workspace).toContain("Asset details and locations do not appear in the client portal.");
   });

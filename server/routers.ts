@@ -877,6 +877,15 @@ export const appRouter = router({
         const result = await db.insert(customerAssets).values({ userId: ctx.user.id, clientId: input.clientId, name: input.name, assetTag: input.assetTag || null, functionalLocation: input.functionalLocation || null, notes: input.notes || null });
         return { id: Number((result as any).insertId), success: true };
       }),
+    setActive: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), active: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const result = await db.update(customerAssets).set({ active: input.active, updatedAt: new Date() })
+          .where(and(eq(customerAssets.id, input.id), eq(customerAssets.userId, ctx.user.id)));
+        if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Customer asset not found." });
+        return { success: true };
+      }),
   }),
 
   // ── Invoices ──────────────────────────────────────────────────────────────
