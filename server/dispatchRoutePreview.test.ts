@@ -26,6 +26,17 @@ describe("Dispatch Board private route preview", () => {
     expect(dispatchSource).toContain("At least two resolved private site labels are needed");
   });
 
+  it("keeps a provider order suggestion private, explicitly requested, and manually reviewable", () => {
+    expect(dispatchSource).toContain('const [routeSuggestionState, setRouteSuggestionState] = useState<"idle" | "loading" | "suggested" | "unavailable" | "error">("idle");');
+    expect(dispatchSource).toContain("const suggestRouteOrder = () =>");
+    expect(dispatchSource).toContain("optimizeWaypoints: true");
+    expect(dispatchSource).toContain("result?.routes[0]?.waypoint_order");
+    expect(dispatchSource).toContain("const validOrder = waypointOrder.length === intermediateVisits.length");
+    expect(dispatchSource).toContain("Suggest private order");
+    expect(dispatchSource).toContain("Review or adjust the arrows before using it");
+    expect(dispatchSource).toContain("Your current manual order is unchanged");
+  });
+
   it("provides owner-side route recovery without changing client data or work status", () => {
     expect(dispatchSource).toContain("Clear route");
     expect(dispatchSource).toContain("no client data or status was changed");

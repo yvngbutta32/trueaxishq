@@ -51,6 +51,7 @@ export default function DispatchBoard() {
   const [mapResult, setMapResult] = useState<{ resolved: number; unresolved: number } | null>(null);
   const [mapUnavailable, setMapUnavailable] = useState(false);
   const [routeState, setRouteState] = useState<"idle" | "loading" | "ready" | "unavailable" | "error">("idle");
+  const [routeSuggestionState, setRouteSuggestionState] = useState<"idle" | "loading" | "suggested" | "unavailable" | "error">("idle");
   const [routeOrder, setRouteOrder] = useState<number[]>([]);
   const [routePlanningDay, setRoutePlanningDay] = useState("");
   const dispatchMapRef = useRef<google.maps.Map | null>(null);
@@ -125,6 +126,32 @@ export default function DispatchBoard() {
     setRouteState("idle");
   };
 
+  const suggestRouteOrder = () => {
+    const map = dispatchMapRef.current;
+    const resolvedVisits = orderedMappableVisits.filter(visit => resolvedStopsRef.current.has(visit.id));
+    if (!map || !window.google?.maps || resolvedVisits.length < 3 || resolvedVisits.length !== orderedMappableVisits.length) {
+      setRouteSuggestionState("unavailable");
+      return;
+    }
+    setRouteSuggestionState("loading");
+    new window.google.maps.DirectionsService().route({
+      origin: resolvedStopsRef.current.get(resolvedVisits[0].id)!,
+      destination: resolvedStopsRef.current.get(resolvedVisits[resolvedVisits.length - 1].id)!,
+      waypoints: resolvedVisits.slice(1, -1).map(visit => ({ location: resolvedStopsRef.current.get(visit.id)!, stopover: true })),
+      optimizeWaypoints: true,
+      travelMode: window.google.maps.TravelMode.DRIVING,
+    }, (result, status) => {
+      const waypointOrder = result?.routes[0]?.waypoint_order ?? [];
+      const intermediateVisits = resolvedVisits.slice(1, -1);
+      const validOrder = waypointOrder.length === intermediateVisits.length && new Set(waypointOrder).size === waypointOrder.length && waypointOrder.every(index => Number.isInteger(index) && index >= 0 && index < intermediateVisits.length);
+      if (status !== "OK" || !validOrder) { setRouteSuggestionState("error"); return; }
+      setRouteOrder([resolvedVisits[0].id, ...waypointOrder.map(index => intermediateVisits[index].id), resolvedVisits[resolvedVisits.length - 1].id]);
+      clearRoute();
+      setRouteSuggestionState("suggested");
+      toast.success("Private map suggestion applied. Review the stop order before use.");
+    });
+  };
+
   const moveRouteStop = (id: number, direction: -1 | 1) => {
     setRouteOrder(current => {
       const index = current.indexOf(id);
@@ -135,6 +162,7 @@ export default function DispatchBoard() {
       return next;
     });
     clearRoute();
+    setRouteSuggestionState("idle");
   };
 
   const submitVisit = () => {
@@ -209,7 +237,8 @@ export default function DispatchBoard() {
           </ol>
         </div>
         <div className="mt-4 overflow-hidden rounded-xl border border-[rgba(26,26,26,0.1)]"><MapView initialZoom={10} className="h-[320px]" onMapLoadError={() => { setMapUnavailable(true); setMapResult(null); clearRoute(); }} onMapReady={map => { if (!window.google?.maps) return; setMapUnavailable(false); dispatchMapRef.current = map; resolvedStopsRef.current = new Map(); setMapResult(null); setRouteState("idle"); const geocoder = new window.google.maps.Geocoder(); const bounds = new window.google.maps.LatLngBounds(); let resolved = 0; let unresolved = 0; orderedMappableVisits.forEach(visit => { const siteLabel = visit.siteLabel?.trim(); if (!siteLabel) return; geocoder.geocode({ address: siteLabel }, (results, status) => { if (status === "OK" && results?.[0]) { const position = results[0].geometry.location; resolvedStopsRef.current.set(visit.id, position); new window.google!.maps.marker.AdvancedMarkerElement({ map, position, title: visit.title }); bounds.extend(position); resolved += 1; if (resolved === 1) map.setCenter(position); else map.fitBounds(bounds, 48); } else unresolved += 1; if (resolved + unresolved === orderedMappableVisits.length) setMapResult({ resolved, unresolved }); }); }); }} /></div>
-        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p role="status" className="text-xs text-[rgba(26,26,26,0.62)]">{mapUnavailable ? "Map provider unavailable. Dispatch scheduling and private visit data remain unchanged." : mapResult ? mapResult.resolved ? `${mapResult.resolved} private site ${mapResult.resolved === 1 ? "location was" : "locations were"} resolved.${mapResult.unresolved ? ` ${mapResult.unresolved} label${mapResult.unresolved === 1 ? " could" : "s could"} not be resolved.` : ""}` : "No site labels could be resolved for a route preview." : "Resolving private site labels…"}</p><div className="flex shrink-0 gap-2"><Button type="button" size="sm" variant="outline" onClick={previewRoute} disabled={mapUnavailable || !mapResult || mapResult.resolved < 2 || routeState === "loading"} className="border-[#D4922A]/40 text-[#8A5A0B]">{routeState === "loading" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Route className="mr-1 h-3.5 w-3.5" />} Preview stop order</Button>{routeState === "ready" && <Button type="button" size="sm" variant="outline" onClick={clearRoute} className="border-slate-300 text-slate-700">Clear route</Button>}</div></div>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p role="status" className="text-xs text-[rgba(26,26,26,0.62)]">{mapUnavailable ? "Map provider unavailable. Dispatch scheduling and private visit data remain unchanged." : mapResult ? mapResult.resolved ? `${mapResult.resolved} private site ${mapResult.resolved === 1 ? "location was" : "locations were"} resolved.${mapResult.unresolved ? ` ${mapResult.unresolved} label${mapResult.unresolved === 1 ? " could" : "s could"} not be resolved.` : ""}` : "No site labels could be resolved for a route preview." : "Resolving private site labels…"}</p><div className="flex shrink-0 flex-wrap gap-2"><Button type="button" size="sm" variant="outline" onClick={suggestRouteOrder} disabled={mapUnavailable || !mapResult || mapResult.resolved < 3 || mapResult.unresolved > 0 || routeSuggestionState === "loading"} className="border-teal-300 text-teal-800 hover:bg-teal-50">{routeSuggestionState === "loading" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Route className="mr-1 h-3.5 w-3.5" />} Suggest private order</Button><Button type="button" size="sm" variant="outline" onClick={previewRoute} disabled={mapUnavailable || !mapResult || mapResult.resolved < 2 || routeState === "loading"} className="border-[#D4922A]/40 text-[#8A5A0B]">{routeState === "loading" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Route className="mr-1 h-3.5 w-3.5" />} Preview stop order</Button>{routeState === "ready" && <Button type="button" size="sm" variant="outline" onClick={clearRoute} className="border-slate-300 text-slate-700">Clear route</Button>}</div></div>
+        {routeSuggestionState === "suggested" && <p role="status" className="mt-2 rounded-lg bg-teal-50 px-3 py-2 text-xs text-teal-950">A private map order suggestion was applied to this session. Review or adjust the arrows before using it; it does not dispatch work or change any stored visit.</p>}{routeSuggestionState === "unavailable" && <p role="status" className="mt-2 text-xs text-amber-800">Resolve every displayed private site label and keep at least three stops before requesting an order suggestion.</p>}{routeSuggestionState === "error" && <p role="status" className="mt-2 text-xs text-rose-700">A private map order suggestion could not be created. Your current manual order is unchanged; review the site labels and try again.</p>}
         {routeState === "unavailable" && <p role="status" className="mt-2 text-xs text-amber-800">At least two resolved private site labels are needed before a route can be previewed.</p>}{routeState === "error" && <p role="status" className="mt-2 text-xs text-rose-700">The route preview could not be created. Review the site labels and try again; no client data or status was changed.</p>}
       </>}</section>
 

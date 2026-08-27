@@ -2059,6 +2059,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Keep the selected day, stop order, and site labels session-only and Dispatch Board-private; do not add automated route, GPS, traffic, ETA, or portal behavior.
 - [x] Add focused day-scoping and private route-preview coverage; validate and document the refinement.
 
+### Selected field-operations refinement: private route-order suggestion
+- [x] Add an owner-triggered private map route-order suggestion that requires manual review before changing the session-only stop sequence.
+- [x] Keep suggestion inputs, returned ordering, and map context within Dispatch Board; do not add GPS, tracking, traffic, ETA, automatic dispatching, persistence, or client visibility.
+- [x] Add focused suggestion, recovery, manual-review, and private-projection coverage; validate and document the milestone.
+
 ### Selected credential-free milestone: map-provider load recovery
 - [x] Make the shared map component resolve an explicit loading failure rather than leaving private dispatch maps indefinitely pending when the provider script cannot load.
 - [x] Show an accessible, owner-safe map unavailability state without removing the Dispatch Board’s operational controls.
