@@ -40,7 +40,7 @@ export function hasDispatchConflict(existingVisits: VisitWindow[], candidate: Vi
 
 export type OperationsException = {
   key: string;
-  kind: "over_capacity" | "unassigned_job" | "dispatch_overlap";
+  kind: "over_capacity" | "unassigned_job" | "dispatch_overlap" | "availability_overlap";
   severity: "warning" | "critical";
   title: string;
   detail: string;
@@ -49,7 +49,7 @@ export type OperationsException = {
 type CapacitySignal = { id: number; name: string; active: boolean; weeklyCapacityMinutes: number; plannedMinutes: number };
 type JobSignal = { id: number; jobNumber: string; title: string; status: string };
 type AssignmentSignal = { jobId: number; status: string };
-type DispatchSignal = { id: number; teamMemberId: number | null; teamMemberName: string | null; title: string; scheduledStart: Date; scheduledEnd: Date; status: string };
+type DispatchSignal = { id: number; teamMemberId: number | null; teamMemberName: string | null; title: string; scheduledStart: Date; scheduledEnd: Date; status: string; availabilityConflict?: boolean };
 
 export function buildOperationsExceptions(input: { capacity: CapacitySignal[]; jobs: JobSignal[]; assignments: AssignmentSignal[]; visits: DispatchSignal[] }): OperationsException[] {
   const exceptions: OperationsException[] = [];
@@ -83,6 +83,11 @@ export function buildOperationsExceptions(input: { capacity: CapacitySignal[]; j
         }
       }
     }
+  }
+  for (const visit of input.visits) {
+    if (!visit.availabilityConflict || visit.status === "cancelled") continue;
+    const name = visit.teamMemberName ?? (visit.teamMemberId ? `Team member ${visit.teamMemberId}` : "A team member");
+    exceptions.push({ key: `availability-${visit.id}`, kind: "availability_overlap", severity: "warning", title: `${name} has a private availability overlap`, detail: `${visit.title} overlaps an owner-managed private availability block.` });
   }
   return exceptions;
 }

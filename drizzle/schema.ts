@@ -1071,6 +1071,23 @@ export const teamMembers = mysqlTable("teamMembers", {
 }, (t) => [index("teamMembers_userId_idx").on(t.userId), index("teamMembers_user_active_idx").on(t.userId, t.active)]);
 export type TeamMember = typeof teamMembers.$inferSelect;
 
+// Owner-managed scheduling exceptions. These are private planning aids, not
+// attendance, payroll, location, recurring-hours, or client-facing records.
+export const staffAvailabilityBlocks = mysqlTable("staffAvailabilityBlocks", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  teamMemberId: int("teamMemberId").notNull(),
+  startsAt: timestamp("startsAt").notNull(),
+  endsAt: timestamp("endsAt").notNull(),
+  reason: varchar("reason", { length: 500 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("staffAvailabilityBlocks_owner_member_start_idx").on(t.userId, t.teamMemberId, t.startsAt),
+  index("staffAvailabilityBlocks_owner_start_idx").on(t.userId, t.startsAt),
+]);
+export type StaffAvailabilityBlock = typeof staffAvailabilityBlocks.$inferSelect;
+
 // Authenticated staff access is a separate, opt-in layer over the owner roster.
 // A roster email alone never grants workspace access.
 export const workspaceStaffInvites = mysqlTable("workspaceStaffInvites", {

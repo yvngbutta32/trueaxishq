@@ -16,7 +16,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -7020,7 +7020,8 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
   dispatch: router({
     listVisits: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
-      return db.select({
+      const [visits, availabilityBlocks] = await Promise.all([
+        db.select({
         id: serviceVisits.id,
         jobId: serviceVisits.jobId,
         jobNumber: jobs.jobNumber,
@@ -7043,8 +7044,55 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         .innerJoin(clients, and(eq(jobs.clientId, clients.id), eq(clients.userId, ctx.user.id)))
         .leftJoin(teamMembers, and(eq(serviceVisits.teamMemberId, teamMembers.id), eq(teamMembers.userId, ctx.user.id)))
         .where(eq(serviceVisits.userId, ctx.user.id))
-        .orderBy(serviceVisits.scheduledStart);
+        .orderBy(serviceVisits.scheduledStart),
+        db.select({ teamMemberId: staffAvailabilityBlocks.teamMemberId, startsAt: staffAvailabilityBlocks.startsAt, endsAt: staffAvailabilityBlocks.endsAt })
+          .from(staffAvailabilityBlocks).where(eq(staffAvailabilityBlocks.userId, ctx.user.id)),
+      ]);
+      return visits.map(visit => ({
+        ...visit,
+        availabilityConflict: visit.teamMemberId !== null && availabilityBlocks.some(block => block.teamMemberId === visit.teamMemberId && block.startsAt < visit.scheduledEnd && block.endsAt > visit.scheduledStart),
+      }));
     }),
+
+    listAvailabilityBlocks: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select({
+        id: staffAvailabilityBlocks.id,
+        teamMemberId: staffAvailabilityBlocks.teamMemberId,
+        teamMemberName: teamMembers.name,
+        teamMemberColor: teamMembers.color,
+        startsAt: staffAvailabilityBlocks.startsAt,
+        endsAt: staffAvailabilityBlocks.endsAt,
+        reason: staffAvailabilityBlocks.reason,
+      }).from(staffAvailabilityBlocks)
+        .innerJoin(teamMembers, and(eq(staffAvailabilityBlocks.teamMemberId, teamMembers.id), eq(teamMembers.userId, ctx.user.id)))
+        .where(eq(staffAvailabilityBlocks.userId, ctx.user.id))
+        .orderBy(staffAvailabilityBlocks.startsAt);
+    }),
+
+    createAvailabilityBlock: protectedProcedure
+      .input(z.object({ teamMemberId: z.number().int().positive(), startsAt: z.date(), endsAt: z.date(), reason: safeOptionalString(500) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        if (input.endsAt <= input.startsAt) throw new TRPCError({ code: "BAD_REQUEST", message: "Availability must end after it starts." });
+        const [member] = await db.select({ id: teamMembers.id, active: teamMembers.active }).from(teamMembers)
+          .where(and(eq(teamMembers.id, input.teamMemberId), eq(teamMembers.userId, ctx.user.id))).limit(1);
+        if (!member?.active) throw new TRPCError({ code: "NOT_FOUND", message: "Active team member not found." });
+        const [overlap] = await db.select({ id: staffAvailabilityBlocks.id }).from(staffAvailabilityBlocks)
+          .where(and(eq(staffAvailabilityBlocks.userId, ctx.user.id), eq(staffAvailabilityBlocks.teamMemberId, input.teamMemberId), lt(staffAvailabilityBlocks.startsAt, input.endsAt), gt(staffAvailabilityBlocks.endsAt, input.startsAt))).limit(1);
+        if (overlap) throw new TRPCError({ code: "CONFLICT", message: "This overlaps an existing private availability block for the selected team member." });
+        const result = await db.insert(staffAvailabilityBlocks).values({ userId: ctx.user.id, teamMemberId: input.teamMemberId, startsAt: input.startsAt, endsAt: input.endsAt, reason: input.reason || null });
+        return { id: Number((result as any).insertId), success: true };
+      }),
+
+    deleteAvailabilityBlock: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const result = await db.delete(staffAvailabilityBlocks).where(and(eq(staffAvailabilityBlocks.id, input.id), eq(staffAvailabilityBlocks.userId, ctx.user.id)));
+        if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Private availability block not found." });
+        return { success: true };
+      }),
 
     createVisit: protectedProcedure
       .input(z.object({
@@ -7062,7 +7110,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         if (input.scheduledEnd <= input.scheduledStart) throw new TRPCError({ code: "BAD_REQUEST", message: "A service visit must end after it starts." });
-        const [[job], [member], [assignment], existingVisits] = await Promise.all([
+        const [[job], [member], [assignment], existingVisits, availabilityBlocks] = await Promise.all([
           db.select({ id: jobs.id, title: jobs.title }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1),
           db.select({ id: teamMembers.id, name: teamMembers.name, active: teamMembers.active }).from(teamMembers).where(and(eq(teamMembers.id, input.teamMemberId), eq(teamMembers.userId, ctx.user.id))).limit(1),
           db.select({ id: jobAssignments.id }).from(jobAssignments).where(and(
@@ -7073,16 +7121,20 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           )).limit(1),
           db.select({ id: serviceVisits.id, scheduledStart: serviceVisits.scheduledStart, scheduledEnd: serviceVisits.scheduledEnd, status: serviceVisits.status })
             .from(serviceVisits).where(and(eq(serviceVisits.userId, ctx.user.id), eq(serviceVisits.teamMemberId, input.teamMemberId))),
+          db.select({ startsAt: staffAvailabilityBlocks.startsAt, endsAt: staffAvailabilityBlocks.endsAt }).from(staffAvailabilityBlocks)
+            .where(and(eq(staffAvailabilityBlocks.userId, ctx.user.id), eq(staffAvailabilityBlocks.teamMemberId, input.teamMemberId))),
         ]);
         if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
         if (!member?.active) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose an active team member." });
         if (!assignment) throw new TRPCError({ code: "BAD_REQUEST", message: "Assign this team member to the job before dispatching a visit." });
-        const conflict = hasDispatchConflict(existingVisits.map(visit => ({ id: visit.id, start: visit.scheduledStart, end: visit.scheduledEnd, status: visit.status })), {
+        const visitConflict = hasDispatchConflict(existingVisits.map(visit => ({ id: visit.id, start: visit.scheduledStart, end: visit.scheduledEnd, status: visit.status })), {
           start: input.scheduledStart,
           end: input.scheduledEnd,
           status: "scheduled",
         });
-        if (conflict && !input.allowConflict) throw new TRPCError({ code: "CONFLICT", message: "This visit overlaps another active visit for the selected team member. Confirm the exception to schedule it." });
+        const availabilityConflict = availabilityBlocks.some(block => block.startsAt < input.scheduledEnd && block.endsAt > input.scheduledStart);
+        const conflict = visitConflict || availabilityConflict;
+        if (conflict && !input.allowConflict) throw new TRPCError({ code: "CONFLICT", message: availabilityConflict ? "This visit overlaps a private availability block for the selected team member. Confirm the exception to schedule it." : "This visit overlaps another active visit for the selected team member. Confirm the exception to schedule it." });
         const [result] = await db.insert(serviceVisits).values({
           userId: ctx.user.id,
           jobId: input.jobId,
@@ -7101,7 +7153,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           actor: "owner",
           eventType: "service_visit_scheduled",
           message: `${member.name} scheduled for ${input.title}.`,
-          metadata: JSON.stringify({ visitId: Number(result.insertId), teamMemberId: member.id, scheduledStart: input.scheduledStart.toISOString(), conflictAcknowledged: conflict }),
+          metadata: JSON.stringify({ visitId: Number(result.insertId), teamMemberId: member.id, scheduledStart: input.scheduledStart.toISOString(), conflictAcknowledged: conflict, availabilityConflictAcknowledged: availabilityConflict }),
         });
         await deliverWorkflowWebhookEvent(db, ctx.user.id, "service_visit.scheduled", { visitId: Number(result.insertId), jobId: input.jobId, teamMemberId: member.id, title: input.title, scheduledStart: input.scheduledStart.toISOString(), scheduledEnd: input.scheduledEnd.toISOString() });
         return { id: Number(result.insertId), conflictAcknowledged: conflict };
@@ -7128,16 +7180,22 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const scheduledEnd = input.scheduledEnd ?? visit.scheduledEnd;
         const status = input.status ?? visit.status;
         if (scheduledEnd <= scheduledStart) throw new TRPCError({ code: "BAD_REQUEST", message: "A service visit must end after it starts." });
-        if (visit.teamMemberId && (input.scheduledStart || input.scheduledEnd) && status !== "cancelled") {
-          const existingVisits = await db.select({ id: serviceVisits.id, scheduledStart: serviceVisits.scheduledStart, scheduledEnd: serviceVisits.scheduledEnd, status: serviceVisits.status })
-            .from(serviceVisits).where(and(eq(serviceVisits.userId, ctx.user.id), eq(serviceVisits.teamMemberId, visit.teamMemberId)));
-          const conflict = hasDispatchConflict(existingVisits.map(item => ({ id: item.id, start: item.scheduledStart, end: item.scheduledEnd, status: item.status })), {
+        if (visit.teamMemberId && (input.scheduledStart || input.scheduledEnd || (input.status && input.status !== "cancelled")) && status !== "cancelled") {
+          const [existingVisits, availabilityBlocks] = await Promise.all([
+            db.select({ id: serviceVisits.id, scheduledStart: serviceVisits.scheduledStart, scheduledEnd: serviceVisits.scheduledEnd, status: serviceVisits.status })
+              .from(serviceVisits).where(and(eq(serviceVisits.userId, ctx.user.id), eq(serviceVisits.teamMemberId, visit.teamMemberId))),
+            db.select({ startsAt: staffAvailabilityBlocks.startsAt, endsAt: staffAvailabilityBlocks.endsAt }).from(staffAvailabilityBlocks)
+              .where(and(eq(staffAvailabilityBlocks.userId, ctx.user.id), eq(staffAvailabilityBlocks.teamMemberId, visit.teamMemberId))),
+          ]);
+          const visitConflict = hasDispatchConflict(existingVisits.map(item => ({ id: item.id, start: item.scheduledStart, end: item.scheduledEnd, status: item.status })), {
             id: visit.id,
             start: scheduledStart,
             end: scheduledEnd,
             status,
           });
-          if (conflict && !input.allowConflict) throw new TRPCError({ code: "CONFLICT", message: "This visit overlaps another active visit for the selected team member. Confirm the exception to save it." });
+          const availabilityConflict = availabilityBlocks.some(block => block.startsAt < scheduledEnd && block.endsAt > scheduledStart);
+          const conflict = visitConflict || availabilityConflict;
+          if (conflict && !input.allowConflict) throw new TRPCError({ code: "CONFLICT", message: availabilityConflict ? "This visit overlaps a private availability block for the selected team member. Confirm the exception to save it." : "This visit overlaps another active visit for the selected team member. Confirm the exception to save it." });
         }
         const { id, allowConflict: _allowConflict, clientVisible: clientVisibleInput, clientUpdate: clientUpdateInput, ...rest } = input;
         const clientVisible = clientVisibleInput ?? visit.clientVisible;

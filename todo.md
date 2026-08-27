@@ -2126,6 +2126,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Keep filters accessible, mobile-safe, and restricted to the protected owner worklist with no client-portal projection.
 - [x] Add focused worklist filtering and private-scope coverage; validate and document the milestone.
 
+### Selected field-operations foundation: private staff availability
+- [x] Add owner-managed private staff availability blocks that clarify scheduled service-visit conflicts without treating them as attendance or payroll records.
+- [x] Surface accessible owner-only conflict signals in team and dispatch planning while excluding availability details from client portals, maps, GPS, and route claims.
+- [x] Add focused owner-scope, member-scope, overlap, conflict-minimization, and portal-exclusion coverage; validate and document the milestone.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.

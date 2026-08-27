@@ -400,6 +400,13 @@
       "when": 1787813909062,
       "tag": "0056_melted_baron_strucker",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "5",
+      "when": 1787815499542,
+      "tag": "0057_fancy_zodiak",
+      "breakpoints": true
     }
   ]
 }
