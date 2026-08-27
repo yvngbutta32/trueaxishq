@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   BriefcaseBusiness, Plus, CheckCircle2, Circle, Clock3, CalendarDays,
   DollarSign, Camera, Link2, MessageSquare, Target, Loader2, ArrowRight,
-  ClipboardCheck, AlertTriangle, Receipt, Timer, X, Download, BarChart3,
+  ClipboardCheck, AlertTriangle, Receipt, Timer, X, Download, BarChart3, Search, RotateCcw,
 } from "lucide-react";
 
 const JOB_STATUSES = ["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"] as const;
@@ -58,6 +58,8 @@ export default function JobWorkspace() {
   const { data: bookings = [] } = trpc.bookings.list.useQuery({ status: "all" });
   const { data: checklistTemplates = [] } = trpc.jobs.listChecklistTemplates.useQuery();
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+  const [worklistSearch, setWorklistSearch] = useState("");
+  const [worklistStatus, setWorklistStatus] = useState<"all" | typeof JOB_STATUSES[number]>("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState<CreateForm>(emptyForm);
   const [taskTitle, setTaskTitle] = useState("");
@@ -147,6 +149,14 @@ export default function JobWorkspace() {
   const activeInspectionTemplates = useMemo(() => (inspectionTemplates.data ?? []).filter(template => template.active), [inspectionTemplates.data]);
   const selectedInspectionTemplate = useMemo(() => activeInspectionTemplates.find(template => template.id === Number(inspectionResponseTemplateId)), [activeInspectionTemplates, inspectionResponseTemplateId]);
   const selectedInspectionFields = useMemo(() => selectedInspectionTemplate ? parseInspectionFields(selectedInspectionTemplate.fields) : [], [selectedInspectionTemplate]);
+  const filteredJobs = useMemo(() => {
+    const search = worklistSearch.trim().toLocaleLowerCase();
+    return jobs.filter(job => {
+      const matchesStatus = worklistStatus === "all" || job.status === worklistStatus;
+      const matchesSearch = !search || [job.jobNumber, job.title, job.clientName].some(value => value?.toLocaleLowerCase().includes(search));
+      return matchesStatus && matchesSearch;
+    });
+  }, [jobs, worklistSearch, worklistStatus]);
   const completion = useMemo(() => {
     if (!detail?.tasks.length) return 0;
     return Math.round((detail.tasks.filter(task => task.status === "done").length / detail.tasks.length) * 100);
@@ -250,9 +260,10 @@ export default function JobWorkspace() {
       ) : (
         <div className="grid gap-5 xl:grid-cols-[300px_minmax(0,1fr)]">
           <aside className="rounded-2xl border border-[rgba(26,26,26,0.1)] bg-white p-3 h-fit xl:sticky xl:top-4">
-            <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-[rgba(26,26,26,0.45)]">Active work · {jobs.length}</div>
+            <div className="mb-3 flex items-center justify-between gap-2 px-2"><p className="text-xs font-semibold uppercase tracking-wide text-[rgba(26,26,26,0.55)]">Active work · {filteredJobs.length}/{jobs.length}</p>{(worklistSearch || worklistStatus !== "all") && <Button type="button" size="sm" variant="ghost" onClick={() => { setWorklistSearch(""); setWorklistStatus("all"); }} className="h-8 gap-1 px-2 text-xs text-[#1B2D4F] hover:bg-slate-100"><RotateCcw className="h-3.5 w-3.5" /> Reset</Button>}</div>
+            <div className="mb-3 space-y-2 px-1"><label className="sr-only" htmlFor="job-worklist-search">Search private jobs</label><div className="relative"><Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[rgba(26,26,26,0.45)]" /><input id="job-worklist-search" value={worklistSearch} onChange={event => setWorklistSearch(event.target.value)} maxLength={255} placeholder="Search jobs or clients" className="block w-full rounded-lg border border-[rgba(26,26,26,0.16)] bg-white py-2 pl-9 pr-3 text-sm text-[#1A1A1A] outline-none placeholder:text-[rgba(26,26,26,0.42)] focus:ring-2 focus:ring-[#D4922A]/35" /></div><label className="block text-xs font-semibold text-[rgba(26,26,26,0.62)]">Status<select value={worklistStatus} onChange={event => setWorklistStatus(event.target.value as "all" | typeof JOB_STATUSES[number])} className="mt-1 block w-full rounded-lg border border-[rgba(26,26,26,0.16)] bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-[#D4922A]/35"><option value="all">All statuses</option>{JOB_STATUSES.map(status => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label></div>
             <div className="max-h-[600px] space-y-1 overflow-y-auto pr-1">
-              {jobs.map(job => <button key={job.id} onClick={() => setSelectedJobId(job.id)} className={`w-full rounded-xl p-3 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4922A] ${selectedJobId === job.id ? "bg-[#1C2333] text-white shadow-sm" : "hover:bg-[#F7F6F3] text-[#1A1A1A]"}`}>
+              {filteredJobs.length === 0 ? <div className="rounded-xl border border-dashed border-[rgba(26,26,26,0.17)] bg-[#F7F6F3] px-3 py-5 text-center"><p className="text-sm font-semibold text-[#1A1A1A]">No private jobs match</p><p className="mt-1 text-xs leading-relaxed text-[rgba(26,26,26,0.62)]">Adjust the search or status filter to return to your worklist.</p></div> : filteredJobs.map(job => <button key={job.id} onClick={() => setSelectedJobId(job.id)} className={`w-full rounded-xl p-3 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4922A] ${selectedJobId === job.id ? "bg-[#1C2333] text-white shadow-sm" : "hover:bg-[#F7F6F3] text-[#1A1A1A]"}`}>
                 <div className="flex items-start justify-between gap-2"><span className={`text-[10px] font-bold tracking-wide ${selectedJobId === job.id ? "text-white/65" : "text-[rgba(26,26,26,0.43)]"}`}>{job.jobNumber}</span><span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${selectedJobId === job.id ? "bg-white/15 text-white" : statusStyle[job.status] ?? "bg-slate-100 text-slate-600"}`}>{statusLabel(job.status)}</span></div>
                 <p className="mt-1 truncate text-sm font-semibold">{job.title}</p><p className={`mt-0.5 truncate text-xs ${selectedJobId === job.id ? "text-white/65" : "text-[rgba(26,26,26,0.55)]"}`}>{job.clientName}</p>
                 {job.targetDate && <p className={`mt-2 flex items-center gap-1 text-[11px] ${selectedJobId === job.id ? "text-white/65" : "text-[rgba(26,26,26,0.45)]"}`}><CalendarDays className="h-3 w-3" /> {dateLabel(job.targetDate)}</p>}

@@ -2116,6 +2116,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Keep the history observational and clearly exclude maintenance schedules, inventory, warranties, IoT, automated notifications, attachments, and compliance claims.
 - [x] Add focused owner/client isolation, private projection, and Job Workspace coverage; validate and document the milestone.
 
+### Selected owner-efficiency milestone: Job Workspace worklist controls
+- [x] Add private local Job Workspace search and status filters that improve owner navigation without mutating or widening job records.
+- [x] Keep filters accessible, mobile-safe, and restricted to the protected owner worklist with no client-portal projection.
+- [x] Add focused worklist filtering and private-scope coverage; validate and document the milestone.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
