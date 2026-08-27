@@ -16,6 +16,8 @@ Stripe documents separate automatic and manual webhook retry behavior, including
 
 Stripe also documents manual recovery of undelivered events and requires applications to prevent duplicate processing when manual recovery overlaps with automatic retries. This validates the existing durable event-ID boundary while showing why the process-local retry queue is insufficient evidence for restart-safe payment-event recovery.[8]
 
+Google’s Calendar API defines incremental synchronization as a persisted full-sync token followed by repeat delta requests. It requires stable query parameters, pagination until a next sync token is returned, deletion handling, and a complete resynchronization when a token expires or access-control changes trigger HTTP 410. This confirms that a future TrueAxis native calendar-sync feature needs durable sync state and an explicit conflict/deletion policy, not just provider authorization.[9]
+
 ## Product decision
 
 TrueAxis HQ currently provides owner-only private site mapping, scheduled-order route preview with optimization disabled, capacity signals, and session-limited Field Mode draft recovery. It must not claim live GPS, traffic-aware optimization, automatic client messages, offline editing, or ETA guarantees until those individual systems, consent controls, failure states, and end-to-end behavior are implemented and validated.
@@ -30,3 +32,4 @@ TrueAxis HQ currently provides owner-only private site mapping, scheduled-order 
 [6]: https://learn.microsoft.com/en-us/dynamics365/field-service/outlook-integration "Microsoft Field Service Outlook integration"
 [7]: https://docs.stripe.com/webhooks "Stripe webhook delivery and retry documentation"
 [8]: https://docs.stripe.com/webhooks/process-undelivered-events "Stripe undelivered webhook event processing"
+[9]: https://developers.google.com/workspace/calendar/api/guides/sync "Google Calendar incremental synchronization guide"
