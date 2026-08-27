@@ -649,6 +649,9 @@ export type BookingCancelToken = typeof bookingCancelTokens.$inferSelect;
 export type InsertBookingCancelToken = typeof bookingCancelTokens.$inferInsert;
 
 // ─── Google Calendar Tokens ───────────────────────────────────────────────────
+// OAuth token ciphertext is stored using authenticated encryption with the server
+// secret-derived key. Column names remain stable for backwards-compatible schema
+// access; raw provider bearer tokens must never be persisted in these fields.
 export const googleCalendarTokens = mysqlTable("googleCalendarTokens", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().unique(),

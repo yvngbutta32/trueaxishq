@@ -163,14 +163,17 @@ async function startServer() {
       const { getDb } = await import("../db");
       const { googleCalendarTokens } = await import("../../drizzle/schema");
       const { eq } = await import("drizzle-orm");
+      const { encryptWebhookSecret } = await import("../workflowWebhookDelivery");
       const db = await getDb();
       if (db) {
+        const encryptedAccessToken = encryptWebhookSecret(tokenData.access_token);
+        const encryptedRefreshToken = tokenData.refresh_token ? encryptWebhookSecret(tokenData.refresh_token) : null;
         const existing = await db.select({ id: googleCalendarTokens.id })
           .from(googleCalendarTokens).where(eq(googleCalendarTokens.userId, userId)).limit(1);
         if (existing.length > 0) {
           await db.update(googleCalendarTokens).set({
-            accessToken: tokenData.access_token,
-            refreshToken: tokenData.refresh_token || null,
+            accessToken: encryptedAccessToken,
+            refreshToken: encryptedRefreshToken,
             expiresAt: new Date(Date.now() + (tokenData.expires_in || 3600) * 1000),
             calendarId,
             syncEnabled: true,
@@ -178,8 +181,8 @@ async function startServer() {
         } else {
           await db.insert(googleCalendarTokens).values({
             userId,
-            accessToken: tokenData.access_token,
-            refreshToken: tokenData.refresh_token || null,
+            accessToken: encryptedAccessToken,
+            refreshToken: encryptedRefreshToken,
             expiresAt: new Date(Date.now() + (tokenData.expires_in || 3600) * 1000),
             calendarId,
             syncEnabled: true,

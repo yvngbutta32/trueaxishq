@@ -2067,6 +2067,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [ ] Cross-examine relevant official documentation, independent review themes, security/privacy implications, and product evidence before making future competitive-readiness decisions.
 - [ ] Document feature-specific capability boundaries and validation evidence without claiming perfection, universal replacement, market leadership, or provider behavior that has not been demonstrated.
 
+### Identified integration-security hardening: Google Calendar token storage
+- [x] Replace raw persisted Google Calendar OAuth access and refresh tokens with encrypted at-rest storage, without claiming active calendar synchronization beyond validated behavior.
+- [x] Add owner-scope and token-storage regression coverage; validate any migration and release only after provider-safe review.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
