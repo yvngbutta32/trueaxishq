@@ -157,8 +157,8 @@ export default function ForgotPassword() {
       {/* Back link */}
       <button
         onClick={() => navigate("/")}
-        className="mt-6 flex items-center gap-1.5 text-sm transition-colors hover:opacity-70"
-        style={{ color: "rgba(26,26,26,0.30)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+        className="mt-6 flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors hover:bg-[#1A1A1A]/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] focus-visible:ring-offset-2"
+        style={{ color: "rgba(26,26,26,0.72)", background: "none", border: "none", cursor: "pointer" }}
       >
         <ArrowLeft size={14} />
         Back to homepage

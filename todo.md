@@ -2033,3 +2033,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add a controlled Field Mode job-status transition for starting and completing on-site work, with owner scope and clear client-update separation.
 - [x] Add accessible mobile status controls with loading, recovery, and no-automatic-client-notification boundaries.
 - [x] Add focused owner-scope, status-transition, and client-privacy regression coverage; validate and document the milestone.
+
+### Selected credential-free milestone: mobile account-recovery accessibility
+- [x] Correct the visible mobile password-recovery escape action so it meets the established contrast and focus treatment.
+- [x] Add focused responsive-auth recovery regression coverage and validate the public mobile artifact.
