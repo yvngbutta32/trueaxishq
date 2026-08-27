@@ -2004,16 +2004,16 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Keep generated recurring visits owner-planned and unassigned until dispatch explicitly selects a team member, with no implied staff availability or routing claim
 
 ## State-of-the-Art Quality Gate
-- [ ] Apply an evidence-led quality gate to every future capability: real workflow value, accessible owner/client UX, explicit privacy/security boundaries, backward compatibility, focused tests, release validation, and truthful market claims
+- [x] Apply an evidence-led quality gate to every future capability: real workflow value, accessible owner/client UX, explicit privacy/security boundaries, backward compatibility, focused tests, release validation, and truthful market claims
 
 ## Private Calendar Feed Hardening
-- [ ] Audit the existing calendar feed for public identifier exposure and implement a rotated owner-scoped feed credential with explicit revocation, no client PII, and focused regression coverage if the assessment confirms the gap
+- [x] Audit the existing calendar feed for public identifier exposure and implement a rotated owner-scoped feed credential with explicit revocation, no client PII, and focused regression coverage if the assessment confirms the gap
 - [x] Repair the confirmed client-portal calendar feed overexposure by limiting portal-token access to that client’s safe appointments and excluding all client PII/internal notes
 
 ## Revocable Owner Calendar Feed Credential
-- [ ] Replace owner calendar export URLs that expose a workspace identifier with a random owner-scoped feed credential that can be rotated or revoked without affecting client portal calendars
-- [ ] Add owner controls to create, copy, rotate, and revoke the private feed while preserving authenticated owner export behavior and no client PII in token-based output
-- [ ] Add focused credential-scope, rotation, revocation, and calendar-output privacy contracts; validate and document the release
+- [x] Replace owner calendar export URLs that expose a workspace identifier with a random owner-scoped feed credential that can be rotated or revoked without affecting client portal calendars
+- [x] Add owner controls to create, copy, rotate, and revoke the private feed while preserving authenticated owner export behavior and no client PII in token-based output
+- [x] Add focused credential-scope, rotation, revocation, and calendar-output privacy contracts; validate and document the release
 
 ## High-9 Competitive Readiness Program — Requested Aug 2026
 - [ ] Complete authenticated responsive accessibility and performance review across owner, staff, client, and public workflows at desktop and 375px mobile widths.
