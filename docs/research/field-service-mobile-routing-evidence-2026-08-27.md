@@ -10,6 +10,8 @@ Independent Jobber reviews on Capterra highlight useful counterweights to featur
 
 Microsoft’s Field Service offline guidance likewise describes offline support as a defined profile with selected local data rather than a generic browser fallback. This further supports treating full offline editing as a separate, security-sensitive synchronization system that requires a minimized data profile, encryption, retention controls, and explicit recovery testing.[5]
 
+Microsoft’s Field Service Outlook documentation illustrates that calendar synchronization needs an explicit directionality, data-window, deletion, and duplicate/conflict policy. Its documented booking feed is one-way, uses a bounded time window, and does not delete already synchronized records when disabled. TrueAxis HQ must not describe its current subscription feed or Google authorization record as bidirectional synchronization until it implements and tests those separate policies.[6]
+
 ## Product decision
 
 TrueAxis HQ currently provides owner-only private site mapping, scheduled-order route preview with optimization disabled, capacity signals, and session-limited Field Mode draft recovery. It must not claim live GPS, traffic-aware optimization, automatic client messages, offline editing, or ETA guarantees until those individual systems, consent controls, failure states, and end-to-end behavior are implemented and validated.
@@ -21,3 +23,4 @@ TrueAxis HQ currently provides owner-only private site mapping, scheduled-order 
 [3]: https://help.housecallpro.com/en/articles/4747652-housecall-pro-mobile-faq "Housecall Pro Mobile FAQ"
 [4]: https://www.capterra.com/p/127994/Jobber/reviews/ "Jobber Reviews — Capterra"
 [5]: https://learn.microsoft.com/en-us/dynamics365/field-service/mobile/best-practices-limitations-offline-profile "Microsoft Field Service mobile offline profile best practices"
+[6]: https://learn.microsoft.com/en-us/dynamics365/field-service/outlook-integration "Microsoft Field Service Outlook integration"
