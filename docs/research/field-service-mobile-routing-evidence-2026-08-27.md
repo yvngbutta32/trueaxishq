@@ -34,6 +34,8 @@ A corresponding local desktop review rendered the same public landing, sign-in, 
 
 Any future client-portal expansion should apply data minimization and least-privilege design: expose only the information necessary to complete the client-facing purpose, retain it only for the necessary period, and avoid reusing private operational asset or dispatch context by default.[16]
 
+Google’s incremental Calendar API synchronization model requires durable sync state, pagination completion, and full resynchronization when a sync token is invalidated. This remains an acceptance criterion for a future native-sync system, not evidence that the current encrypted authorization record performs synchronization.[18]
+
 ## Product decision
 
 TrueAxis HQ currently provides owner-only private site mapping, scheduled-order route preview with optimization disabled, capacity signals, and session-limited Field Mode draft recovery. It must not claim live GPS, traffic-aware optimization, automatic client messages, offline editing, or ETA guarantees until those individual systems, consent controls, failure states, and end-to-end behavior are implemented and validated.
@@ -57,3 +59,4 @@ TrueAxis HQ currently provides owner-only private site mapping, scheduled-order 
 [15]: https://www.w3.org/WAI/standards-guidelines/mobile/ "W3C mobile accessibility standards and guidance"
 [16]: https://www.ftc.gov/business-guidance/resources/protecting-personal-information-guide-business "FTC Protecting Personal Information: A Guide for Business"
 [17]: https://www.w3.org/WAI/standards-guidelines/mobile/ "W3C mobile accessibility standards and guidance"
+[18]: https://developers.google.com/workspace/calendar/api/guides/sync "Google Calendar API synchronization guide"
