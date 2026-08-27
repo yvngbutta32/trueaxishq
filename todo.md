@@ -2042,3 +2042,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add an owner-only map preview for scheduled service-visit site labels without exposing locations in the client portal.
 - [x] Add transparent geocoding error and empty-location states; do not claim routing, GPS tracking, or ETA optimization.
 - [x] Add focused regression coverage and validate the dispatch-map release artifact.
+
+### Selected credential-free milestone: private dispatch route preview
+- [x] Add an owner-triggered route preview for currently resolvable active service-visit sites without implying optimized order, live traffic, staff tracking, or client-facing ETA.
+- [x] Add accessible route-preview loading, unavailable, and reset states that preserve the owner-only location boundary.
+- [x] Add focused regression coverage and validate the dispatch-route release artifact.
