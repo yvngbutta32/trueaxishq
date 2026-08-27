@@ -30,6 +30,8 @@ Current field-service documentation and comparable product guidance treat equipm
 
 A local 375px public-surface review rendered the landing page, sign-in, password recovery, and unavailable-booking state without a newly confirmed blocking layout defect. This is limited evidence for public responsive presentation only; it does not validate protected owner, staff, or client workflows, provider delivery, or real-device behavior.[15]
 
+A corresponding local desktop review rendered the same public landing, sign-in, password recovery, and unavailable-booking surfaces without a newly confirmed blocking layout defect. The result remains confined to anonymous public rendering; it does not establish protected-session behavior, externally delivered email, or real provider operations.[17]
+
 Any future client-portal expansion should apply data minimization and least-privilege design: expose only the information necessary to complete the client-facing purpose, retain it only for the necessary period, and avoid reusing private operational asset or dispatch context by default.[16]
 
 ## Product decision
@@ -54,3 +56,4 @@ TrueAxis HQ currently provides owner-only private site mapping, scheduled-order 
 [14]: https://learn.microsoft.com/en-us/dynamics365/field-service/assets "Microsoft Field Service customer assets"
 [15]: https://www.w3.org/WAI/standards-guidelines/mobile/ "W3C mobile accessibility standards and guidance"
 [16]: https://www.ftc.gov/business-guidance/resources/protecting-personal-information-guide-business "FTC Protecting Personal Information: A Guide for Business"
+[17]: https://www.w3.org/WAI/standards-guidelines/mobile/ "W3C mobile accessibility standards and guidance"
