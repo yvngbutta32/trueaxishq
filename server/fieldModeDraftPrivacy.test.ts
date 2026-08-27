@@ -17,6 +17,8 @@ describe("Field Mode draft privacy", () => {
     expect(fieldModeSource).toContain("Draft saved for this browser session.");
     expect(fieldModeSource).toContain("Draft recovery is limited to this browser session.");
     expect(fieldModeSource).toContain("Posting remains a separate intentional client-portal action.");
+    expect(fieldModeSource).toContain("Clear draft");
+    expect(fieldModeSource).toContain("Draft removed from this browser session. No client update was posted.");
     expect(recoverySource).toContain("saved for this browser session");
   });
 });

@@ -2068,5 +2068,5 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [ ] Document feature-specific capability boundaries and validation evidence without claiming perfection, universal replacement, market leadership, or provider behavior that has not been demonstrated.
 
 ### Selected credential-free milestone: Field Mode draft removal
-- [ ] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
-- [ ] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
+- [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
+- [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
