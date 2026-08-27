@@ -37,6 +37,13 @@ describe("Dispatch Board private route preview", () => {
     expect(dispatchSource).toContain("Your current manual order is unchanged");
   });
 
+  it("lets the owner restore the scheduled sequence in the current private browser session", () => {
+    expect(dispatchSource).toContain("const resetRouteOrder = () =>");
+    expect(dispatchSource).toContain("setRouteOrder(mappableVisits.map(visit => visit.id));");
+    expect(dispatchSource).toContain("Private stop order restored to the scheduled sequence.");
+    expect(dispatchSource).toContain("Use scheduled order");
+  });
+
   it("provides owner-side route recovery without changing client data or work status", () => {
     expect(dispatchSource).toContain("Clear route");
     expect(dispatchSource).toContain("no client data or status was changed");
