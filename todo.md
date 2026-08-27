@@ -2116,6 +2116,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Keep the history observational and clearly exclude maintenance schedules, inventory, warranties, IoT, automated notifications, attachments, and compliance claims.
 - [x] Add focused owner/client isolation, private projection, and Job Workspace coverage; validate and document the milestone.
 
+### Selected private foundation: customer-asset record correction
+- [x] Add a bounded owner-only edit flow for private customer-asset identity, tag, functional location, and notes without changing client association or historical job/response records.
+- [x] Keep asset corrections accessible, mobile-safe, and excluded from all client portal projections.
+- [x] Add focused asset-edit owner-scope, immutable-association, service-history, and portal-exclusion coverage; validate and document the milestone.
+
 ### Selected owner-efficiency milestone: Job Workspace worklist controls
 - [x] Add private local Job Workspace search and status filters that improve owner navigation without mutating or widening job records.
 - [x] Keep filters accessible, mobile-safe, and restricted to the protected owner worklist with no client-portal projection.
