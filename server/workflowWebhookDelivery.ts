@@ -2,7 +2,7 @@ import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes }
 import { lookup } from "node:dns/promises";
 import https from "node:https";
 import net from "node:net";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, lt, lte, or } from "drizzle-orm";
 import { getDb } from "./db";
 import { workflowWebhookDeliveries, workflowWebhooks } from "../drizzle/schema";
 import { type WorkflowWebhookEvent } from "../shared/workflowWebhooks";
@@ -11,6 +11,10 @@ type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 
 const DELIVERY_TIMEOUT_MS = 8_000;
 const MAX_SUMMARY_LENGTH = 1_000;
+const MAX_EVENT_BYTES = 120_000;
+const MAX_DELIVERY_ATTEMPTS = 5;
+const RETRY_DELAYS_MS = [60_000, 300_000, 1_800_000, 7_200_000];
+const PROCESSING_LEASE_MS = 10 * 60_000;
 
 function getEncryptionKey(): Buffer {
   const secret = process.env.JWT_SECRET;
@@ -88,6 +92,17 @@ function truncate(value: string | null | undefined): string | null {
   return value.replace(/[\r\n]+/g, " ").slice(0, MAX_SUMMARY_LENGTH);
 }
 
+function nextRetryAt(attemptCount: number): Date | null {
+  const delay = RETRY_DELAYS_MS[Math.max(0, attemptCount - 1)];
+  return delay === undefined ? null : new Date(Date.now() + delay);
+}
+
+function serializeDeliveryPayload(eventId: string, eventType: WorkflowWebhookEvent, data: Record<string, unknown>): string {
+  const payload = JSON.stringify({ id: eventId, type: eventType, occurredAt: new Date().toISOString(), data });
+  if (Buffer.byteLength(payload, "utf8") > MAX_EVENT_BYTES) throw new Error("Workflow webhook event exceeds the bounded recovery envelope limit.");
+  return payload;
+}
+
 async function postSignedWebhook(endpoint: string, headers: Record<string, string>, payload: string): Promise<{ status: number; summary: string | null }> {
   const url = new URL(endpoint);
   const addresses = await lookup(url.hostname, { all: true, verbatim: true });
@@ -122,49 +137,125 @@ async function postSignedWebhook(endpoint: string, headers: Record<string, strin
   });
 }
 
+type WorkflowDeliveryOutcome = "delivered" | "skipped" | "retryable" | "terminal";
+
+async function attemptWorkflowWebhookDelivery(db: Database, userId: number, deliveryId: number): Promise<WorkflowDeliveryOutcome> {
+  const [delivery] = await db.select().from(workflowWebhookDeliveries).where(and(
+    eq(workflowWebhookDeliveries.id, deliveryId),
+    eq(workflowWebhookDeliveries.userId, userId),
+  )).limit(1);
+  if (!delivery || delivery.status === "delivered" || delivery.status === "failed" || delivery.status === "terminal" || !delivery.payloadCiphertext || !delivery.endpointUrl) return "skipped";
+  const staleBefore = new Date(Date.now() - PROCESSING_LEASE_MS);
+  const staleLease = delivery.status === "processing" && Boolean(delivery.processingStartedAt && delivery.processingStartedAt < staleBefore);
+  if (delivery.status === "processing" && !staleLease) return "skipped";
+
+  const [subscription] = await db.select().from(workflowWebhooks).where(and(
+    eq(workflowWebhooks.id, delivery.webhookId),
+    eq(workflowWebhooks.userId, userId),
+  )).limit(1);
+  if (!subscription) {
+    await db.update(workflowWebhookDeliveries).set({
+      status: "terminal", terminalAt: new Date(), payloadCiphertext: null, processingStartedAt: null,
+      errorMessage: "Endpoint was removed before this delivery could be retried.",
+    }).where(and(eq(workflowWebhookDeliveries.id, deliveryId), eq(workflowWebhookDeliveries.userId, userId)));
+    return "terminal";
+  }
+  if (!subscription.active) return "skipped";
+
+  const claim = await db.update(workflowWebhookDeliveries).set({ status: "processing", processingStartedAt: new Date(), lastAttemptAt: new Date() })
+    .where(and(
+      eq(workflowWebhookDeliveries.id, deliveryId),
+      eq(workflowWebhookDeliveries.userId, userId),
+      or(
+        inArray(workflowWebhookDeliveries.status, ["pending", "retryable"]),
+        and(eq(workflowWebhookDeliveries.status, "processing"), lt(workflowWebhookDeliveries.processingStartedAt, staleBefore)),
+      ),
+    ));
+  if (!claim[0].affectedRows) return "skipped";
+
+  try {
+    const payload = decryptWebhookSecret(delivery.payloadCiphertext);
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const secret = decryptWebhookSecret(subscription.encryptedSecret);
+    const response = await postSignedWebhook(delivery.endpointUrl, {
+      "X-TrueAxis-Event": delivery.eventType,
+      "X-TrueAxis-Event-Id": delivery.eventId,
+      "X-TrueAxis-Timestamp": timestamp,
+      "X-TrueAxis-Signature": createWebhookSignature(secret, timestamp, payload),
+    }, payload);
+    const delivered = response.status >= 200 && response.status < 300;
+    const attemptCount = delivery.attemptCount + 1;
+    const terminal = !delivered && attemptCount >= MAX_DELIVERY_ATTEMPTS;
+    const errorMessage = delivered ? null : `Endpoint returned HTTP ${response.status}.`;
+    await db.update(workflowWebhookDeliveries).set({
+      status: delivered ? "delivered" : terminal ? "terminal" : "retryable",
+      attemptCount,
+      responseStatus: response.status || null,
+      responseSummary: response.summary,
+      errorMessage,
+      deliveredAt: delivered ? new Date() : null,
+      terminalAt: terminal ? new Date() : null,
+      nextAttemptAt: delivered || terminal ? null : nextRetryAt(attemptCount),
+      processingStartedAt: null,
+      payloadCiphertext: delivered || terminal ? null : delivery.payloadCiphertext,
+    }).where(and(eq(workflowWebhookDeliveries.id, deliveryId), eq(workflowWebhookDeliveries.userId, userId), eq(workflowWebhookDeliveries.status, "processing")));
+    await db.update(workflowWebhooks).set({
+      failureCount: delivered ? 0 : subscription.failureCount + 1,
+      lastDeliveredAt: delivered ? new Date() : subscription.lastDeliveredAt,
+      lastError: delivered ? null : errorMessage,
+      updatedAt: new Date(),
+    }).where(and(eq(workflowWebhooks.id, subscription.id), eq(workflowWebhooks.userId, userId)));
+    return delivered ? "delivered" : terminal ? "terminal" : "retryable";
+  } catch (error) {
+    const attemptCount = delivery.attemptCount + 1;
+    const terminal = attemptCount >= MAX_DELIVERY_ATTEMPTS;
+    const message = truncate(error instanceof Error ? error.message : "Webhook delivery failed.");
+    await db.update(workflowWebhookDeliveries).set({
+      status: terminal ? "terminal" : "retryable", attemptCount, errorMessage: message,
+      terminalAt: terminal ? new Date() : null, nextAttemptAt: terminal ? null : nextRetryAt(attemptCount),
+      processingStartedAt: null, payloadCiphertext: terminal ? null : delivery.payloadCiphertext,
+    }).where(and(eq(workflowWebhookDeliveries.id, deliveryId), eq(workflowWebhookDeliveries.userId, userId), eq(workflowWebhookDeliveries.status, "processing")));
+    await db.update(workflowWebhooks).set({ failureCount: subscription.failureCount + 1, lastError: message, updatedAt: new Date() })
+      .where(and(eq(workflowWebhooks.id, subscription.id), eq(workflowWebhooks.userId, userId)));
+    return terminal ? "terminal" : "retryable";
+  }
+}
+
+export async function processDueWorkflowWebhookDeliveries(db: Database, userId: number, limit = 10): Promise<Record<WorkflowDeliveryOutcome, number>> {
+  const staleBefore = new Date(Date.now() - PROCESSING_LEASE_MS);
+  const deliveries = await db.select({ id: workflowWebhookDeliveries.id }).from(workflowWebhookDeliveries).where(and(
+    eq(workflowWebhookDeliveries.userId, userId),
+    or(
+      eq(workflowWebhookDeliveries.status, "pending"),
+      and(eq(workflowWebhookDeliveries.status, "retryable"), lte(workflowWebhookDeliveries.nextAttemptAt, new Date())),
+      and(eq(workflowWebhookDeliveries.status, "processing"), lt(workflowWebhookDeliveries.processingStartedAt, staleBefore)),
+    ),
+  )).limit(Math.min(Math.max(limit, 1), 25));
+  const summary: Record<WorkflowDeliveryOutcome, number> = { delivered: 0, skipped: 0, retryable: 0, terminal: 0 };
+  for (const delivery of deliveries) summary[await attemptWorkflowWebhookDelivery(db, userId, delivery.id)]++;
+  return summary;
+}
+
 export async function deliverWorkflowWebhookEvent(db: Database, userId: number, eventType: WorkflowWebhookEvent, data: Record<string, unknown>): Promise<void> {
   try {
-  const subscriptions = await db.select().from(workflowWebhooks).where(and(
-    eq(workflowWebhooks.userId, userId),
-    eq(workflowWebhooks.active, true),
-  ));
-  const eventId = randomBytes(16).toString("hex");
-  const occurredAt = new Date().toISOString();
-  const payload = JSON.stringify({ id: eventId, type: eventType, occurredAt, data });
-  await Promise.all(subscriptions.filter(subscription => {
-    try { return JSON.parse(subscription.events).includes(eventType); } catch { return false; }
-  }).map(async subscription => {
-    const [insert] = await db.insert(workflowWebhookDeliveries).values({ userId, webhookId: subscription.id, eventId, eventType, status: "pending" });
-    const deliveryId = Number(insert.insertId);
-    const timestamp = String(Math.floor(Date.now() / 1000));
-    try {
-      const secret = decryptWebhookSecret(subscription.encryptedSecret);
-      const response = await postSignedWebhook(subscription.endpointUrl, {
-        "X-TrueAxis-Event": eventType,
-        "X-TrueAxis-Event-Id": eventId,
-        "X-TrueAxis-Timestamp": timestamp,
-        "X-TrueAxis-Signature": createWebhookSignature(secret, timestamp, payload),
-      }, payload);
-      const delivered = response.status >= 200 && response.status < 300;
-      await db.update(workflowWebhookDeliveries).set({
-        status: delivered ? "delivered" : "failed",
-        responseStatus: response.status || null,
-        responseSummary: response.summary,
-        errorMessage: delivered ? null : `Endpoint returned HTTP ${response.status}.`,
-        deliveredAt: delivered ? new Date() : null,
-      }).where(and(eq(workflowWebhookDeliveries.id, deliveryId), eq(workflowWebhookDeliveries.userId, userId)));
-      await db.update(workflowWebhooks).set({
-        failureCount: delivered ? 0 : subscription.failureCount + 1,
-        lastDeliveredAt: delivered ? new Date() : subscription.lastDeliveredAt,
-        lastError: delivered ? null : `Endpoint returned HTTP ${response.status}.`,
-        updatedAt: new Date(),
-      }).where(and(eq(workflowWebhooks.id, subscription.id), eq(workflowWebhooks.userId, userId)));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Webhook delivery failed.";
-      await db.update(workflowWebhookDeliveries).set({ status: "failed", errorMessage: truncate(message) }).where(and(eq(workflowWebhookDeliveries.id, deliveryId), eq(workflowWebhookDeliveries.userId, userId)));
-      await db.update(workflowWebhooks).set({ failureCount: subscription.failureCount + 1, lastError: truncate(message), updatedAt: new Date() }).where(and(eq(workflowWebhooks.id, subscription.id), eq(workflowWebhooks.userId, userId)));
+    const subscriptions = await db.select().from(workflowWebhooks).where(and(
+      eq(workflowWebhooks.userId, userId),
+      eq(workflowWebhooks.active, true),
+    ));
+    const eventId = randomBytes(16).toString("hex");
+    const payloadCiphertext = encryptWebhookSecret(serializeDeliveryPayload(eventId, eventType, data));
+    for (const subscription of subscriptions) {
+      try {
+        if (!JSON.parse(subscription.events).includes(eventType)) continue;
+      } catch {
+        continue;
+      }
+      const [insert] = await db.insert(workflowWebhookDeliveries).values({
+        userId, webhookId: subscription.id, eventId, eventType, status: "pending",
+        endpointUrl: subscription.endpointUrl, payloadCiphertext, attemptCount: 0,
+      });
+      await attemptWorkflowWebhookDelivery(db, userId, Number(insert.insertId));
     }
-  }));
   } catch (error) {
     console.error("[Workflow Webhook] Delivery dispatch could not start", error instanceof Error ? error.message : error);
   }

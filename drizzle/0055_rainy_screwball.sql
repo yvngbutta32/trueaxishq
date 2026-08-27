@@ -1,0 +1,2 @@
+ALTER TABLE `workflowWebhookDeliveries` MODIFY COLUMN `status` enum('pending','processing','delivered','failed','retryable','terminal') NOT NULL DEFAULT 'pending';--> statement-breakpoint
+ALTER TABLE `workflowWebhookDeliveries` ADD `processingStartedAt` timestamp;

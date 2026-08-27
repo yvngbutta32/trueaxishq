@@ -29,7 +29,7 @@ import { processDueStripeEvents } from "./stripeWebhook";
 import { hasDispatchConflict } from "../shared/operationsPlanning";
 import { INTEGRATION_PROVIDERS, integrationCatalog, type IntegrationProvider } from "../shared/integrationCatalog";
 import { WORKFLOW_WEBHOOK_EVENTS, parseWebhookEvents } from "../shared/workflowWebhooks";
-import { createWebhookSigningSecret, deliverWorkflowWebhookEvent, encryptWebhookSecret, validateWebhookEndpoint } from "./workflowWebhookDelivery";
+import { createWebhookSigningSecret, deliverWorkflowWebhookEvent, encryptWebhookSecret, processDueWorkflowWebhookDeliveries, validateWebhookEndpoint } from "./workflowWebhookDelivery";
 import { getTrustedPaymentReturnOrigin } from "./paymentReturnOrigin";
 import { buildClientCsv } from "./clientCsvExport";
 import { buildJobCostCsv, type ExportableJobCostRow } from "./jobCostCsvExport";
@@ -7252,6 +7252,10 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         responseStatus: workflowWebhookDeliveries.responseStatus,
         responseSummary: workflowWebhookDeliveries.responseSummary,
         errorMessage: workflowWebhookDeliveries.errorMessage,
+        attemptCount: workflowWebhookDeliveries.attemptCount,
+        nextAttemptAt: workflowWebhookDeliveries.nextAttemptAt,
+        lastAttemptAt: workflowWebhookDeliveries.lastAttemptAt,
+        terminalAt: workflowWebhookDeliveries.terminalAt,
         deliveredAt: workflowWebhookDeliveries.deliveredAt,
         createdAt: workflowWebhookDeliveries.createdAt,
       }).from(workflowWebhookDeliveries)
@@ -7260,6 +7264,10 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         .orderBy(desc(workflowWebhookDeliveries.createdAt))
         .limit(100);
     }),
+
+    processDue: protectedProcedure
+      .input(z.object({ limit: z.number().int().min(1).max(25).default(10) }).optional())
+      .mutation(async ({ ctx, input }) => processDueWorkflowWebhookDeliveries(await requireDb(), ctx.user.id, input?.limit ?? 10)),
 
     create: protectedProcedure
       .input(z.object({

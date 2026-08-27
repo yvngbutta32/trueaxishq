@@ -2078,8 +2078,9 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Verify existing owner-scope and token-deletion regression coverage; retain the validated behavior rather than duplicate it.
 
 ### Identified delivery-reliability gap: outbound webhook retries
-- [ ] Design a bounded, idempotent, owner-scoped retry model that preserves a safe event payload for failed deliveries without falsely guaranteeing receiver-side processing.
+- [x] Design a bounded, idempotent, owner-scoped retry model that preserves a safe event payload for failed deliveries without falsely guaranteeing receiver-side processing.
 - [ ] Add retry scheduling, delivery-attempt observability, and explicit terminal-failure handling only after a privacy and migration review.
+- [x] Add owner-only manual due-delivery processing, delivery-attempt evidence, and terminal-failure status after the reviewed privacy and additive-migration work.
 
 ### Identified payment-reliability gap: durable Stripe retry processing
 - [x] Replace the process-local Stripe transient-failure retry queue with a durable, replay-safe design before claiming restart-safe payment-event recovery.
