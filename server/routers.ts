@@ -7290,6 +7290,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         nextVisitAt: recurringServicePlans.nextVisitAt,
         planningNote: recurringServicePlans.planningNote,
         active: recurringServicePlans.active,
+        customerAssetActive: customerAssets.active,
       }).from(recurringServicePlans)
         .innerJoin(jobs, and(eq(recurringServicePlans.jobId, jobs.id), eq(jobs.userId, ctx.user.id)))
         .leftJoin(customerAssets, and(eq(recurringServicePlans.customerAssetId, customerAssets.id), eq(customerAssets.userId, ctx.user.id)))
@@ -7349,8 +7350,17 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       const db = await requireDb();
       const [plan] = await db.select().from(recurringServicePlans).where(and(eq(recurringServicePlans.id, input.id), eq(recurringServicePlans.userId, ctx.user.id), eq(recurringServicePlans.active, true))).limit(1);
       if (!plan?.nextVisitAt) throw new TRPCError({ code: "NOT_FOUND", message: "Active recurring plan not found." });
-      const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, plan.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+      const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs).where(and(eq(jobs.id, plan.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
       if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+      if (plan.customerAssetId) {
+        const [asset] = await db.select({ id: customerAssets.id }).from(customerAssets).where(and(
+          eq(customerAssets.id, plan.customerAssetId),
+          eq(customerAssets.userId, ctx.user.id),
+          eq(customerAssets.clientId, job.clientId),
+          eq(customerAssets.active, true),
+        )).limit(1);
+        if (!asset) throw new TRPCError({ code: "CONFLICT", message: "Linked asset is inactive or no longer belongs to this job's client. Reactivate the asset before generating a visit." });
+      }
       const start = plan.nextVisitAt;
       const end = new Date(start.getTime() + plan.durationMinutes * 60_000);
       const [existing] = await db.select({ id: serviceVisits.id }).from(serviceVisits).where(and(eq(serviceVisits.userId, ctx.user.id), eq(serviceVisits.recurringServicePlanId, plan.id), eq(serviceVisits.scheduledStart, start))).limit(1);

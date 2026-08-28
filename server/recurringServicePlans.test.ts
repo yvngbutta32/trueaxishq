@@ -36,6 +36,14 @@ describe("recurring service plan workflow contracts", () => {
     expect(routerSource).toContain("created: false");
   });
 
+  it("rechecks a linked asset's owner, client, and active state before generating future work", () => {
+    expect(routerSource).toContain("if (plan.customerAssetId)");
+    expect(routerSource).toContain("eq(customerAssets.id, plan.customerAssetId)");
+    expect(routerSource).toContain("eq(customerAssets.userId, ctx.user.id)");
+    expect(routerSource).toContain("eq(customerAssets.clientId, job.clientId)");
+    expect(routerSource).toContain("Linked asset is inactive or no longer belongs to this job's client.");
+  });
+
   it("keeps generated visits owner-planned and exposes generation only in dispatch, not the client portal", () => {
     expect(routerSource).toContain("clientVisible: false");
     expect(dispatchSource).toContain("generateNextVisit.useMutation");
@@ -59,5 +67,11 @@ describe("recurring service plan workflow contracts", () => {
     expect(dispatchSource).toContain("Paused plans retain history and do not generate a new visit.");
     expect(portalSource).not.toContain("Pause plan");
     expect(portalSource).not.toContain("Resume plan");
+  });
+
+  it("keeps inactive asset guidance and generation blocking in the private dispatch surface", () => {
+    expect(dispatchSource).toContain("Linked asset is inactive. Reactivate it before generating a future visit.");
+    expect(dispatchSource).toContain("plan.customerAssetActive === false");
+    expect(portalSource).not.toContain("Linked asset is inactive.");
   });
 });
