@@ -36,6 +36,13 @@ describe("recurring service plan workflow contracts", () => {
     expect(routerSource).toContain("created: false");
   });
 
+  it("stores a validated UTC plan start time and uses it for initial and later generated visits", () => {
+    expect(routerSource).toContain('startTime: z.string().regex(/^([01]\\d|2[0-3]):[0-5]\\d$/).default("09:00")');
+    expect(routerSource).toContain("startTime: input.startTime");
+    expect(routerSource).toContain("T${input.startTime}:00.000Z");
+    expect(routerSource).toContain("T${plan.startTime}:00.000Z");
+  });
+
   it("rechecks a linked asset's owner, client, and active state before generating future work", () => {
     expect(routerSource).toContain("if (plan.customerAssetId)");
     expect(routerSource).toContain("eq(customerAssets.id, plan.customerAssetId)");
@@ -73,5 +80,12 @@ describe("recurring service plan workflow contracts", () => {
     expect(dispatchSource).toContain("Linked asset is inactive. Reactivate it before generating a future visit.");
     expect(dispatchSource).toContain("plan.customerAssetActive === false");
     expect(portalSource).not.toContain("Linked asset is inactive.");
+  });
+
+  it("keeps UTC time selection and display in protected recurring planning without portal projection", () => {
+    expect(dispatchSource).toContain('startTime: "09:00"');
+    expect(dispatchSource).toContain("Start time (UTC)");
+    expect(dispatchSource).toContain("Times are saved in UTC and shown in your local time");
+    expect(portalSource).not.toContain("Start time (UTC)");
   });
 });

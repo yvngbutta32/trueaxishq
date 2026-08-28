@@ -2161,6 +2161,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Provide clear owner-only Dispatch Board guidance and preserve client-portal, maintenance, inventory, warranty, IoT, notification, and automatic-generation exclusions.
 - [x] Add focused inactive-asset generation, owner-scope, history-retention, and portal-exclusion coverage; validate and document the correction.
 
+### Selected private planning refinement: recurring service-plan time precision
+- [x] Add a validated owner-selected UTC start time for future internally generated recurring visits instead of a fixed default time.
+- [x] Keep time selection private, explicit, and independent of calendar synchronization, automatic dispatch, provider delivery, client visibility, or timezone-policy claims.
+- [x] Add focused persistence, generated-visit precision, default compatibility, and portal-exclusion coverage; validate and document the refinement.
+
 ### Selected private foundation: customer-asset record correction
 - [x] Add a bounded owner-only edit flow for private customer-asset identity, tag, functional location, and notes without changing client association or historical job/response records.
 - [x] Keep asset corrections accessible, mobile-safe, and excluded from all client portal projections.

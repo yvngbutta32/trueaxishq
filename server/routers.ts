@@ -7286,6 +7286,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         dayOfMonth: recurringServicePlans.dayOfMonth,
         startDate: recurringServicePlans.startDate,
         endDate: recurringServicePlans.endDate,
+        startTime: recurringServicePlans.startTime,
         durationMinutes: recurringServicePlans.durationMinutes,
         nextVisitAt: recurringServicePlans.nextVisitAt,
         planningNote: recurringServicePlans.planningNote,
@@ -7308,6 +7309,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       dayOfMonth: z.number().int().min(1).max(28).nullable().optional(),
       startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+      startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).default("09:00"),
       durationMinutes: z.number().int().min(15).max(480).default(60),
       planningNote: safeOptionalString(1000),
     })).mutation(async ({ ctx, input }) => {
@@ -7331,7 +7333,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         userId: ctx.user.id, jobId: input.jobId, customerAssetId, name: input.name, serviceName: input.serviceName,
         frequency: input.frequency, weekday: input.weekday ?? null, dayOfMonth: input.dayOfMonth ?? null,
         startDate: input.startDate, endDate: input.endDate ?? null, durationMinutes: input.durationMinutes,
-        nextVisitAt: firstDate ? new Date(`${firstDate}T09:00:00.000Z`) : null, planningNote: input.planningNote ?? null,
+        startTime: input.startTime, nextVisitAt: firstDate ? new Date(`${firstDate}T${input.startTime}:00.000Z`) : null, planningNote: input.planningNote ?? null,
       });
       return { id: Number(result.insertId) };
     }),
@@ -7378,7 +7380,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       const recurrenceInput = { frequency: plan.frequency, weekday: plan.weekday, dayOfMonth: plan.dayOfMonth, startDate: plan.startDate, endDate: plan.endDate } as const;
       const nextDate = nextRecurringServiceDate(recurrenceInput, start.toISOString().slice(0, 10));
       const nextAfterGenerated = nextDate === start.toISOString().slice(0, 10) ? nextRecurringServiceDate(recurrenceInput, new Date(start.getTime() + 86_400_000).toISOString().slice(0, 10)) : nextDate;
-      await db.update(recurringServicePlans).set({ nextVisitAt: nextAfterGenerated ? new Date(`${nextAfterGenerated}T09:00:00.000Z`) : null }).where(and(eq(recurringServicePlans.id, plan.id), eq(recurringServicePlans.userId, ctx.user.id)));
+      await db.update(recurringServicePlans).set({ nextVisitAt: nextAfterGenerated ? new Date(`${nextAfterGenerated}T${plan.startTime}:00.000Z`) : null }).where(and(eq(recurringServicePlans.id, plan.id), eq(recurringServicePlans.userId, ctx.user.id)));
       return { id: Number(result.insertId), created: true };
     }),
   }),

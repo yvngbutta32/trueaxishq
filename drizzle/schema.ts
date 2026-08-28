@@ -1194,6 +1194,7 @@ export const recurringServicePlans = mysqlTable("recurringServicePlans", {
   dayOfMonth: int("dayOfMonth"),
   startDate: varchar("startDate", { length: 10 }).notNull(),
   endDate: varchar("endDate", { length: 10 }),
+  startTime: varchar("startTime", { length: 5 }).notNull().default("09:00"),
   durationMinutes: int("durationMinutes").notNull().default(60),
   nextVisitAt: timestamp("nextVisitAt"),
   planningNote: varchar("planningNote", { length: 1000 }),

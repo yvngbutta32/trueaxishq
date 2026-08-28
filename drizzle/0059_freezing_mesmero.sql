@@ -1,0 +1,1 @@
+ALTER TABLE `recurringServicePlans` ADD `startTime` varchar(5) DEFAULT '09:00' NOT NULL;
