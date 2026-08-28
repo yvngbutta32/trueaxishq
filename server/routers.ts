@@ -7274,8 +7274,11 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       return db.select({
         id: recurringServicePlans.id,
         jobId: recurringServicePlans.jobId,
+        customerAssetId: recurringServicePlans.customerAssetId,
         jobNumber: jobs.jobNumber,
         jobTitle: jobs.title,
+        customerAssetName: customerAssets.name,
+        customerAssetTag: customerAssets.assetTag,
         name: recurringServicePlans.name,
         serviceName: recurringServicePlans.serviceName,
         frequency: recurringServicePlans.frequency,
@@ -7289,12 +7292,14 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         active: recurringServicePlans.active,
       }).from(recurringServicePlans)
         .innerJoin(jobs, and(eq(recurringServicePlans.jobId, jobs.id), eq(jobs.userId, ctx.user.id)))
+        .leftJoin(customerAssets, and(eq(recurringServicePlans.customerAssetId, customerAssets.id), eq(customerAssets.userId, ctx.user.id)))
         .where(eq(recurringServicePlans.userId, ctx.user.id))
         .orderBy(desc(recurringServicePlans.createdAt));
     }),
 
     create: protectedProcedure.input(z.object({
       jobId: z.number().int().positive(),
+      customerAssetId: z.number().int().positive().nullable().optional(),
       name: safeString(255),
       serviceName: safeString(255),
       frequency: z.enum(["weekly", "monthly"]),
@@ -7308,11 +7313,21 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       const db = await requireDb();
       const recurrenceInput = { frequency: input.frequency, weekday: input.weekday ?? null, dayOfMonth: input.dayOfMonth ?? null, startDate: input.startDate, endDate: input.endDate ?? null };
       if (!isValidRecurringServicePlanInput(recurrenceInput)) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a valid recurrence schedule." });
-      const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+      const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
       if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+      const customerAssetId = input.customerAssetId ?? null;
+      if (customerAssetId) {
+        const [asset] = await db.select({ id: customerAssets.id }).from(customerAssets).where(and(
+          eq(customerAssets.id, customerAssetId),
+          eq(customerAssets.userId, ctx.user.id),
+          eq(customerAssets.clientId, job.clientId),
+          eq(customerAssets.active, true),
+        )).limit(1);
+        if (!asset) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose an active asset belonging to this job's client." });
+      }
       const firstDate = nextRecurringServiceDate(recurrenceInput, input.startDate);
       const [result] = await db.insert(recurringServicePlans).values({
-        userId: ctx.user.id, jobId: input.jobId, name: input.name, serviceName: input.serviceName,
+        userId: ctx.user.id, jobId: input.jobId, customerAssetId, name: input.name, serviceName: input.serviceName,
         frequency: input.frequency, weekday: input.weekday ?? null, dayOfMonth: input.dayOfMonth ?? null,
         startDate: input.startDate, endDate: input.endDate ?? null, durationMinutes: input.durationMinutes,
         nextVisitAt: firstDate ? new Date(`${firstDate}T09:00:00.000Z`) : null, planningNote: input.planningNote ?? null,

@@ -13,6 +13,15 @@ describe("recurring service plan workflow contracts", () => {
     expect(routerSource).toContain("isValidRecurringServicePlanInput(recurrenceInput)");
   });
 
+  it("allows an optional private asset only after final owner, same-client, and active-state validation", () => {
+    expect(routerSource).toContain("customerAssetId: z.number().int().positive().nullable().optional()");
+    expect(routerSource).toContain("eq(customerAssets.userId, ctx.user.id)");
+    expect(routerSource).toContain("eq(customerAssets.clientId, job.clientId)");
+    expect(routerSource).toContain("eq(customerAssets.active, true)");
+    expect(routerSource).toContain("Choose an active asset belonging to this job's client.");
+    expect(routerSource).toContain("customerAssetId, name: input.name");
+  });
+
   it("generates only internal linked service visits and deduplicates the scheduled start", () => {
     expect(routerSource).toContain("recurringServicePlanId: plan.id");
     expect(routerSource).toContain("eq(serviceVisits.recurringServicePlanId, plan.id)");
@@ -25,5 +34,14 @@ describe("recurring service plan workflow contracts", () => {
     expect(dispatchSource).toContain("generateNextVisit.useMutation");
     expect(dispatchSource).toContain("Generate unassigned visit");
     expect(portalSource).not.toContain("recurringServicePlans");
+  });
+
+  it("keeps linked asset context in the protected recurring planning surface", () => {
+    expect(dispatchSource).toContain("recurringServicePlans.create.useMutation");
+    expect(dispatchSource).toContain("Private customer asset");
+    expect(dispatchSource).toContain("Only active assets belonging to this job’s client are available.");
+    expect(dispatchSource).toContain("Private asset context:");
+    expect(portalSource).not.toContain("Private customer asset");
+    expect(portalSource).not.toContain("Private asset context:");
   });
 });

@@ -1186,6 +1186,7 @@ export const recurringServicePlans = mysqlTable("recurringServicePlans", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   jobId: int("jobId").notNull(),
+  customerAssetId: int("customerAssetId"), // Private same-client asset context; intentionally no foreign key.
   name: varchar("name", { length: 255 }).notNull(),
   serviceName: varchar("serviceName", { length: 255 }).notNull(),
   frequency: mysqlEnum("frequency", ["weekly", "monthly"]).notNull(),
@@ -1202,6 +1203,7 @@ export const recurringServicePlans = mysqlTable("recurringServicePlans", {
 }, (t) => [
   index("recurringServicePlans_userId_idx").on(t.userId),
   index("recurringServicePlans_jobId_idx").on(t.jobId),
+  index("recurringServicePlans_owner_asset_idx").on(t.userId, t.customerAssetId),
   index("recurringServicePlans_owner_active_idx").on(t.userId, t.active),
 ]);
 export type RecurringServicePlan = typeof recurringServicePlans.$inferSelect;

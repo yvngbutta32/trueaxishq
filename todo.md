@@ -2141,6 +2141,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Keep the history observational and clearly exclude maintenance schedules, inventory, warranties, IoT, automated notifications, attachments, and compliance claims.
 - [x] Add focused owner/client isolation, private projection, and Job Workspace coverage; validate and document the milestone.
 
+### Selected private foundation: asset-linked recurring service planning
+- [x] Add an owner-only recurring service-plan asset link with final same-owner and same-client checks.
+- [x] Show private asset context in recurring planning and owner-generated internal service visits without maintenance automation, inventory, warranty, IoT, notification, or portal claims.
+- [x] Add focused asset-plan ownership, client matching, inactive-asset handling, generated-visit context, and portal-exclusion coverage; validate and document the milestone.
+
 ### Selected private foundation: customer-asset record correction
 - [x] Add a bounded owner-only edit flow for private customer-asset identity, tag, functional location, and notes without changing client association or historical job/response records.
 - [x] Keep asset corrections accessible, mobile-safe, and excluded from all client portal projections.
