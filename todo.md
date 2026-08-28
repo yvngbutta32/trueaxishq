@@ -2362,3 +2362,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Prevent the background-job log from representing a monthly report as sent when the email helper uses console fallback or reports SMTP failure.
 - [x] Preserve report generation and owner scope without adding delivery, retry, scheduler, provider, analytics-accuracy, or business-outcome claims.
 - [x] Add focused outcome and integration coverage for configured SMTP acceptance, console fallback, and SMTP failure; validate and document only observed results and unresolved provider/scheduler limits.
+
+### Observed password-reset security correction: active-session invalidation
+- [x] Invalidate active sessions for only the reset token’s final user after the reset token has been atomically consumed and the password hash has been updated.
+- [x] Preserve token single-use and expiry predicates, avoid exposing session metadata, and record a private security event without claiming compromised-account prevention or provider-authentication behavior.
+- [x] Add focused token-order, self-scope, session invalidation, and account-boundary coverage; validate and document only observed results and authentication limits.

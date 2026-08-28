@@ -563,6 +563,15 @@ export const appRouter = router({
 
         const newHash = await hashPassword(input.newPassword);
         await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, resetRecord.userId));
+        await db.update(userSessions)
+          .set({ isActive: false, invalidatedAt: new Date(), invalidationReason: "password_reset" })
+          .where(and(eq(userSessions.userId, resetRecord.userId), eq(userSessions.isActive, true)));
+        logSecurityEvent({
+          eventType: "password_reset",
+          severity: "medium",
+          userId: resetRecord.userId,
+          details: "Password reset completed; active sessions invalidated",
+        });
 
         // Password reset completed
         return { success: true };

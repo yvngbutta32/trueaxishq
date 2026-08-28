@@ -15,4 +15,17 @@ describe("password reset token consumption", () => {
     expect(resetSection).toContain("if (!consumeResult[0].affectedRows)");
     expect(resetSection.indexOf("const consumeResult")).toBeLessThan(resetSection.indexOf("const newHash = await hashPassword"));
   });
+
+  it("invalidates only the reset token owner’s active sessions after changing the password", () => {
+    const resetStart = routerSource.indexOf("resetPassword: publicProcedure");
+    const changeStart = routerSource.indexOf("changePassword: protectedProcedure", resetStart);
+    const resetSection = routerSource.slice(resetStart, changeStart);
+
+    expect(resetSection).toContain("await db.update(userSessions)");
+    expect(resetSection).toContain('invalidationReason: "password_reset"');
+    expect(resetSection).toContain("eq(userSessions.userId, resetRecord.userId)");
+    expect(resetSection).toContain("eq(userSessions.isActive, true)");
+    expect(resetSection).toContain('eventType: "password_reset"');
+    expect(resetSection.indexOf("await db.update(userSessions)")).toBeGreaterThan(resetSection.indexOf("const newHash = await hashPassword"));
+  });
 });
