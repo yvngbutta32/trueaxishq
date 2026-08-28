@@ -2329,3 +2329,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add a protected self-service action that revokes active sessions only for the current user and clears that user’s current session cookie.
 - [x] Record the deliberate account-security action without exposing session identifiers, IP addresses, user agents, or any other account’s data.
 - [x] Add an accessible owner account control with deliberate confirmation and clear local sign-out guidance; validate and document the feature without claiming compromised-account prevention or provider-authentication behavior.
+
+### Observed sign-in accessibility repair: password visibility control
+- [x] Restore standard keyboard focus to the Admin sign-in password-visibility button while retaining its accessible label and explicit button semantics.
+- [x] Add focused accessibility coverage, recheck the public 375px sign-in artifact, and document only observed keyboard-reachability evidence and authentication limits.
