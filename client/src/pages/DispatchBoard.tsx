@@ -60,6 +60,16 @@ type VisitReassignmentEdit = {
   allowConflict: boolean;
 };
 
+type VisitTimeCorrectionEdit = {
+  id: number;
+  title: string;
+  teamMemberId: number | null;
+  teamMemberName: string | null;
+  start: string;
+  end: string;
+  allowConflict: boolean;
+};
+
 export default function DispatchBoard() {
   const utils = trpc.useUtils();
   const { data: visits = [], isLoading } = trpc.dispatch.listVisits.useQuery();
@@ -72,6 +82,7 @@ export default function DispatchBoard() {
   const [recurringPlanOpen, setRecurringPlanOpen] = useState(false);
   const [form, setForm] = useState(defaultVisitForm);
   const [reassignmentEdit, setReassignmentEdit] = useState<VisitReassignmentEdit | null>(null);
+  const [timeCorrectionEdit, setTimeCorrectionEdit] = useState<VisitTimeCorrectionEdit | null>(null);
   const candidateCapacityInput = useMemo(() => {
     const weekStart = utcMondayStart(form.start);
     return weekStart ? { weekStart } : undefined;
@@ -82,6 +93,11 @@ export default function DispatchBoard() {
     return weekStart ? { weekStart } : undefined;
   }, [reassignmentEdit]);
   const { data: reassignmentCapacity = [] } = trpc.team.capacity.useQuery(reassignmentCapacityInput, { enabled: Boolean(reassignmentEdit) });
+  const timeCorrectionCapacityInput = useMemo(() => {
+    const weekStart = timeCorrectionEdit ? utcMondayStart(timeCorrectionEdit.start) : undefined;
+    return weekStart ? { weekStart } : undefined;
+  }, [timeCorrectionEdit]);
+  const { data: timeCorrectionCapacity = [] } = trpc.team.capacity.useQuery(timeCorrectionCapacityInput, { enabled: Boolean(timeCorrectionEdit) });
   const [availabilityForm, setAvailabilityForm] = useState(defaultAvailabilityForm);
   const [recurringPlanForm, setRecurringPlanForm] = useState(defaultRecurringPlanForm);
   const [recurringPlanAssetEdit, setRecurringPlanAssetEdit] = useState({ planId: "", customerAssetId: "" });
@@ -123,6 +139,7 @@ export default function DispatchBoard() {
   const reassignmentCandidates = useMemo(() => reassignmentEdit ? assignments.filter(assignment => assignment.jobId === reassignmentEdit.jobId && ["assigned", "acknowledged"].includes(assignment.status) && !["completed", "cancelled"].includes(assignment.jobStatus)) : [], [assignments, reassignmentEdit]);
   const selectedReassignment = useMemo(() => reassignmentCandidates.find(assignment => String(assignment.teamMemberId) === reassignmentEdit?.teamMemberId), [reassignmentCandidates, reassignmentEdit?.teamMemberId]);
   const selectedReassignmentCapacity = useMemo(() => selectedReassignment ? reassignmentCapacity.find(member => member.id === selectedReassignment.teamMemberId) : undefined, [reassignmentCapacity, selectedReassignment]);
+  const selectedTimeCorrectionCapacity = useMemo(() => timeCorrectionEdit?.teamMemberId ? timeCorrectionCapacity.find(member => member.id === timeCorrectionEdit.teamMemberId) : undefined, [timeCorrectionCapacity, timeCorrectionEdit?.teamMemberId]);
   const candidateDurationMinutes = useMemo(() => {
     const start = new Date(form.start).getTime();
     const end = new Date(form.end).getTime();
@@ -163,6 +180,13 @@ export default function DispatchBoard() {
     onSuccess: () => { invalidate(); setReassignmentEdit(null); toast.success("Private service visit assignment updated."); },
     onError: error => {
       if (error.data?.code === "CONFLICT") toast.error("The selected member has a conflicting private visit or availability block. Confirm the exception only if it is intentional.");
+      else toast.error(error.message);
+    },
+  });
+  const correctVisitTime = trpc.dispatch.updateVisit.useMutation({
+    onSuccess: () => { invalidate(); setTimeCorrectionEdit(null); toast.success("Private service visit timing updated."); },
+    onError: error => {
+      if (error.data?.code === "CONFLICT") toast.error("The proposed time overlaps a private visit or availability block. Confirm the exception only if it is intentional.");
       else toast.error(error.message);
     },
   });
@@ -272,6 +296,14 @@ export default function DispatchBoard() {
     reassignVisit.mutate({ id: reassignmentEdit.id, teamMemberId: selectedReassignment.teamMemberId, allowConflict: reassignmentEdit.allowConflict });
   };
 
+  const submitTimeCorrection = () => {
+    if (!timeCorrectionEdit) return;
+    const scheduledStart = new Date(timeCorrectionEdit.start);
+    const scheduledEnd = new Date(timeCorrectionEdit.end);
+    if (Number.isNaN(scheduledStart.getTime()) || Number.isNaN(scheduledEnd.getTime()) || scheduledEnd <= scheduledStart) return toast.error("Choose a valid private visit window.");
+    correctVisitTime.mutate({ id: timeCorrectionEdit.id, scheduledStart, scheduledEnd, allowConflict: timeCorrectionEdit.allowConflict });
+  };
+
   const submitAvailabilityBlock = () => {
     const teamMemberId = Number(availabilityForm.teamMemberId);
     const startsAt = new Date(availabilityForm.start);
@@ -330,6 +362,8 @@ export default function DispatchBoard() {
     <section className="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-bold text-indigo-950">Correct next private visit date</h2><p className="mt-1 max-w-2xl text-xs leading-relaxed text-indigo-900/75">Choose a future date that already matches the plan’s weekly or monthly schedule. The stored UTC time, plan job, asset context, and generated visits remain unchanged.</p></div><Button type="button" size="sm" variant="outline" onClick={() => { const plan = recurringPlans[0]; setRecurringPlanDateEdit(plan ? { planId: String(plan.id), nextVisitDate: plan.nextVisitAt ? new Date(plan.nextVisitAt).toISOString().slice(0, 10) : "" } : { planId: "", nextVisitDate: "" }); }} disabled={!recurringPlans.length} className="border-indigo-200 bg-white text-indigo-800 hover:bg-indigo-50">Correct next date</Button></div></section>
 
     <section className="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-5"><div><h2 className="font-bold text-indigo-950">Correct visit assignment</h2><p className="mt-1 max-w-2xl text-xs leading-relaxed text-indigo-900/75">Move an active private service visit to another active member already assigned to the same job. This correction does not notify, dispatch, reschedule, or change client-facing fields automatically.</p></div>{activeVisits.length === 0 ? <p className="mt-4 rounded-xl border border-dashed border-indigo-200 bg-white/70 px-4 py-3 text-sm text-indigo-950/75">There are no active service visits available for reassignment.</p> : <div className="mt-4 space-y-3"><label className="block max-w-xl text-sm font-semibold text-[#1A1A1A]">Service visit to correct<select value={reassignmentEdit?.id ?? ""} onChange={event => { const visit = activeVisits.find(item => item.id === Number(event.target.value)); setReassignmentEdit(visit ? { id: visit.id, jobId: visit.jobId, title: visit.title, currentTeamMemberId: visit.teamMemberId, currentTeamMemberName: visit.teamMemberName, scheduledStart: new Date(visit.scheduledStart), scheduledEnd: new Date(visit.scheduledEnd), teamMemberId: "", allowConflict: false } : null); }} className="mt-1.5 block w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-indigo-300"><option value="">Choose an active private visit…</option>{activeVisits.map(visit => <option key={visit.id} value={visit.id}>{visit.title} · {dateTime(visit.scheduledStart)} · {visit.teamMemberName ?? "Unassigned"}</option>)}</select></label>{reassignmentEdit && <div className="max-w-xl space-y-3 rounded-xl border border-indigo-200 bg-white p-4"><p className="text-xs text-[rgba(26,26,26,0.68)]"><span className="font-semibold text-[#1A1A1A]">Current assignment:</span> {reassignmentEdit.currentTeamMemberName ?? "Unassigned"} · {dateTime(reassignmentEdit.scheduledStart)} – {new Date(reassignmentEdit.scheduledEnd).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</p><label className="block text-sm font-semibold text-[#1A1A1A]">Replacement job assignment<select value={reassignmentEdit.teamMemberId} onChange={event => setReassignmentEdit(current => current ? { ...current, teamMemberId: event.target.value, allowConflict: false } : current)} className="mt-1.5 block w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-indigo-300"><option value="">Choose an active assigned member…</option>{reassignmentCandidates.filter(assignment => assignment.teamMemberId !== reassignmentEdit.currentTeamMemberId).map(assignment => <option key={assignment.id} value={assignment.teamMemberId}>{assignment.teamMemberName} · {assignment.assignmentRole}</option>)}</select></label>{selectedReassignmentCapacity && <p className={`rounded-lg border p-3 text-xs leading-relaxed ${selectedReassignmentCapacity.overCapacity || selectedReassignmentCapacity.scheduledOverCapacity ? "border-rose-200 bg-rose-50 text-rose-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}><span className="font-semibold">Private candidate-week context:</span> {hoursFromMinutes(selectedReassignmentCapacity.scheduledMinutes)}h already scheduled; this visit adds {hoursFromMinutes(Math.round((reassignmentEdit.scheduledEnd.getTime() - reassignmentEdit.scheduledStart.getTime()) / 60_000))}h if saved. {selectedReassignmentCapacity.overCapacity || selectedReassignmentCapacity.scheduledOverCapacity ? "Review the load and confirm any intentional overlap." : "This is planning context only."}</p>}<label className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"><input type="checkbox" checked={reassignmentEdit.allowConflict} onChange={event => setReassignmentEdit(current => current ? { ...current, allowConflict: event.target.checked } : current)} className="mt-0.5 h-4 w-4 accent-[#D4922A]" /><span><strong>Allow an intentional overlap.</strong> Keep this unchecked unless you knowingly accept a conflicting private visit or availability block for the replacement member.</span></label><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => setReassignmentEdit(null)}>Cancel correction</Button><Button type="button" onClick={submitReassignment} disabled={!selectedReassignment || reassignVisit.isPending} className="bg-indigo-700 text-white hover:bg-indigo-800">{reassignVisit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save private reassignment"}</Button></div></div>}</div>}</section>
+
+    <section className="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-5"><div><h2 className="font-bold text-indigo-950">Correct visit time</h2><p className="mt-1 max-w-2xl text-xs leading-relaxed text-indigo-900/75">Correct an active private service-visit window while preserving its job, assignment, status, internal note, and client-facing fields. This correction does not notify, dispatch, or change client-facing fields automatically.</p></div>{activeVisits.length === 0 ? <p className="mt-4 rounded-xl border border-dashed border-indigo-200 bg-white/70 px-4 py-3 text-sm text-indigo-950/75">There are no active service visits available for a time correction.</p> : <div className="mt-4 space-y-3"><label className="block max-w-xl text-sm font-semibold text-[#1A1A1A]">Service visit to correct<select value={timeCorrectionEdit?.id ?? ""} onChange={event => { const visit = activeVisits.find(item => item.id === Number(event.target.value)); setTimeCorrectionEdit(visit ? { id: visit.id, title: visit.title, teamMemberId: visit.teamMemberId, teamMemberName: visit.teamMemberName, start: toDateTimeLocal(new Date(visit.scheduledStart)), end: toDateTimeLocal(new Date(visit.scheduledEnd)), allowConflict: false } : null); }} className="mt-1.5 block w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-indigo-300"><option value="">Choose an active private visit…</option>{activeVisits.map(visit => <option key={visit.id} value={visit.id}>{visit.title} · {dateTime(visit.scheduledStart)} · {visit.teamMemberName ?? "Unassigned"}</option>)}</select></label>{timeCorrectionEdit && <div className="max-w-xl space-y-3 rounded-xl border border-indigo-200 bg-white p-4"><div className="grid gap-3 sm:grid-cols-2"><DateField label="Corrected start" value={timeCorrectionEdit.start} onChange={value => setTimeCorrectionEdit(current => current ? { ...current, start: value, allowConflict: false } : current)} /><DateField label="Corrected end" value={timeCorrectionEdit.end} onChange={value => setTimeCorrectionEdit(current => current ? { ...current, end: value, allowConflict: false } : current)} /></div>{selectedTimeCorrectionCapacity ? <p className={`rounded-lg border p-3 text-xs leading-relaxed ${selectedTimeCorrectionCapacity.overCapacity || selectedTimeCorrectionCapacity.scheduledOverCapacity ? "border-rose-200 bg-rose-50 text-rose-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}><span className="font-semibold">Private candidate-week context:</span> {timeCorrectionEdit.teamMemberName ?? "Assigned member"} has {hoursFromMinutes(selectedTimeCorrectionCapacity.scheduledMinutes)}h scheduled in the selected UTC week. The corrected visit window is {hoursFromMinutes(Math.round((new Date(timeCorrectionEdit.end).getTime() - new Date(timeCorrectionEdit.start).getTime()) / 60_000))}h. This is an owner-planning signal, not attendance, payroll, GPS, routing, availability, or client-visible information.</p> : <p className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-700">No assigned member capacity context is available for this legacy visit. The owner can still correct its private time window; the server remains the final conflict check.</p>}<label className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"><input type="checkbox" checked={timeCorrectionEdit.allowConflict} onChange={event => setTimeCorrectionEdit(current => current ? { ...current, allowConflict: event.target.checked } : current)} className="mt-0.5 h-4 w-4 accent-[#D4922A]" /><span><strong>Allow an intentional overlap.</strong> Keep this unchecked unless you knowingly accept a conflicting private visit or availability block for the assigned member.</span></label><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => setTimeCorrectionEdit(null)}>Cancel correction</Button><Button type="button" onClick={submitTimeCorrection} disabled={correctVisitTime.isPending} className="bg-indigo-700 text-white hover:bg-indigo-800">{correctVisitTime.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save private time correction"}</Button></div></div>}</div>}</section>
 
     <section className="rounded-2xl border border-[rgba(26,26,26,0.1)] bg-white p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

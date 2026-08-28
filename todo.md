@@ -2285,3 +2285,9 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Reapply final owner, active-member, job-assignment, visit-overlap, and private-availability checks against the newly selected member; require explicit acknowledgement for an intentional conflict.
 - [x] Keep reassignment, capacity signals, and internal dispatch detail private; do not notify, dispatch, reschedule, expose a staff identity in client content, or change any client-facing field automatically.
 - [x] Add accessible Dispatch Board correction controls and focused owner-scope, eligibility, conflict, history, and client-projection regression coverage; validate and document the release.
+
+### Selected dispatch correction: owner-only service-visit time update
+- [x] Allow an owner to correct the timing of an active private service visit while preserving its job, assignment, internal note, status, and client-facing fields.
+- [x] Reapply final owner, active-visit, visit-overlap, and private-availability checks to the proposed window; require explicit acknowledgement for an intentional conflict.
+- [x] Show only private candidate-week capacity context and keep the correction free of automatic notifications, dispatch actions, client-facing updates, routing, GPS, payroll, attendance, and provider claims.
+- [x] Add accessible Dispatch Board timing-correction controls and focused active-state, ownership, conflict, retained-field, and portal-projection regression coverage; validate and document the release.

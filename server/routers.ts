@@ -7225,6 +7225,9 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const status = input.status ?? visit.status;
         const teamMemberId = input.teamMemberId ?? visit.teamMemberId;
         if (scheduledEnd <= scheduledStart) throw new TRPCError({ code: "BAD_REQUEST", message: "A service visit must end after it starts." });
+        if ((input.scheduledStart || input.scheduledEnd) && (["completed", "cancelled"].includes(visit.status) || ["completed", "cancelled"].includes(status))) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Only active service visits can have their time corrected." });
+        }
         let reassignedMemberName: string | null = null;
         if (input.teamMemberId !== undefined && input.teamMemberId !== visit.teamMemberId) {
           if (["completed", "cancelled"].includes(visit.status) || ["completed", "cancelled"].includes(status)) {
@@ -7266,6 +7269,16 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const clientVisible = clientVisibleInput ?? visit.clientVisible;
         const clientUpdate = clientVisible ? (clientUpdateInput === undefined ? visit.clientUpdate : clientUpdateInput) : null;
         await db.update(serviceVisits).set({ ...rest, clientVisible, clientUpdate, updatedAt: new Date() }).where(and(eq(serviceVisits.id, id), eq(serviceVisits.userId, ctx.user.id)));
+        if (input.scheduledStart || input.scheduledEnd) {
+          await db.insert(jobActivities).values({
+            userId: ctx.user.id,
+            jobId: visit.jobId,
+            actor: "owner",
+            eventType: "service_visit_time_corrected",
+            message: "Service visit timing corrected.",
+            metadata: JSON.stringify({ visitId: visit.id, scheduledStart: scheduledStart.toISOString(), scheduledEnd: scheduledEnd.toISOString() }),
+          });
+        }
         if (reassignedMemberName) {
           await db.insert(jobActivities).values({
             userId: ctx.user.id,
