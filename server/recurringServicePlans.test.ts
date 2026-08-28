@@ -22,6 +22,13 @@ describe("recurring service plan workflow contracts", () => {
     expect(routerSource).toContain("customerAssetId, name: input.name");
   });
 
+  it("allows only the owner to pause or resume a plan while generation continues to require an active record", () => {
+    expect(routerSource).toContain("setActive: protectedProcedure");
+    expect(routerSource).toContain("eq(recurringServicePlans.id, input.id), eq(recurringServicePlans.userId, ctx.user.id)");
+    expect(routerSource).toContain("Recurring service plan not found.");
+    expect(routerSource).toContain("eq(recurringServicePlans.active, true)");
+  });
+
   it("generates only internal linked service visits and deduplicates the scheduled start", () => {
     expect(routerSource).toContain("recurringServicePlanId: plan.id");
     expect(routerSource).toContain("eq(serviceVisits.recurringServicePlanId, plan.id)");
@@ -43,5 +50,14 @@ describe("recurring service plan workflow contracts", () => {
     expect(dispatchSource).toContain("Private asset context:");
     expect(portalSource).not.toContain("Private customer asset");
     expect(portalSource).not.toContain("Private asset context:");
+  });
+
+  it("exposes private lifecycle controls without deleting plan history or client-facing projections", () => {
+    expect(dispatchSource).toContain("recurringServicePlans.setActive.useMutation");
+    expect(dispatchSource).toContain("Pause plan");
+    expect(dispatchSource).toContain("Resume plan");
+    expect(dispatchSource).toContain("Paused plans retain history and do not generate a new visit.");
+    expect(portalSource).not.toContain("Pause plan");
+    expect(portalSource).not.toContain("Resume plan");
   });
 });

@@ -7335,6 +7335,16 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       return { id: Number(result.insertId) };
     }),
 
+    setActive: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), active: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const result = await db.update(recurringServicePlans).set({ active: input.active, updatedAt: new Date() })
+          .where(and(eq(recurringServicePlans.id, input.id), eq(recurringServicePlans.userId, ctx.user.id)));
+        if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Recurring service plan not found." });
+        return { success: true, active: input.active };
+      }),
+
     generateNextVisit: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
       const db = await requireDb();
       const [plan] = await db.select().from(recurringServicePlans).where(and(eq(recurringServicePlans.id, input.id), eq(recurringServicePlans.userId, ctx.user.id), eq(recurringServicePlans.active, true))).limit(1);

@@ -2146,6 +2146,16 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Show private asset context in recurring planning and owner-generated internal service visits without maintenance automation, inventory, warranty, IoT, notification, or portal claims.
 - [x] Add focused asset-plan ownership, client matching, inactive-asset handling, generated-visit context, and portal-exclusion coverage; validate and document the milestone.
 
+### Selected private planning refinement: recurring service-plan lifecycle
+- [x] Add owner-only pause and resume controls for existing recurring plans without deleting records or changing historical generated visits.
+- [x] Keep plan lifecycle private to owner operations and explicitly exclude automated generation, billing, notification, maintenance, and client-portal effects.
+- [x] Add focused owner-scope, inactive-plan generation, retained-history, and portal-exclusion coverage; validate and document the refinement.
+
+### Selected private planning refinement: recurring service-plan lifecycle
+- [x] Confirm this duplicate lifecycle entry is covered by the validated pause and resume implementation documented immediately above.
+- [x] Confirm the same private owner scope and explicit automation, billing, notification, maintenance, and portal exclusions remain in force.
+- [x] Confirm focused owner-scope, inactive-plan generation, retained-history, and portal-exclusion coverage is included in the validated lifecycle refinement above.
+
 ### Selected private foundation: customer-asset record correction
 - [x] Add a bounded owner-only edit flow for private customer-asset identity, tag, functional location, and notes without changing client association or historical job/response records.
 - [x] Keep asset corrections accessible, mobile-safe, and excluded from all client portal projections.
