@@ -2099,7 +2099,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ### Identified delivery-reliability gap: outbound webhook retries
 - [x] Design a bounded, idempotent, owner-scoped retry model that preserves a safe event payload for failed deliveries without falsely guaranteeing receiver-side processing.
-- [ ] Add retry scheduling, delivery-attempt observability, and explicit terminal-failure handling only after a privacy and migration review.
+- [ ] Add retry scheduling, delivery-attempt observability, and explicit terminal-failure handling only after a privacy and migration review, a verified managed-callback authentication model, and a controlled scheduled-run result.
 - [x] Add owner-only manual due-delivery processing, delivery-attempt evidence, and terminal-failure status after the reviewed privacy and additive-migration work.
 
 ### Identified payment-reliability gap: durable Stripe retry processing
@@ -2279,3 +2279,9 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ### Observed route-recovery defect: Admin conditional hook order
 - [x] Repair the observed `/admin/dispatch` hook-order failure without weakening owner access checks, dashboard navigation, or protected section behavior.
 - [x] Add focused regression coverage for consistent Admin hook order across initial loading and non-admin route states; validate the rendered recovery boundary.
+
+### Selected dispatch correction: owner-only service-visit reassignment
+- [x] Allow an owner to deliberately reassign a private service visit only to an active member with an active assignment on the same owned job.
+- [x] Reapply final owner, active-member, job-assignment, visit-overlap, and private-availability checks against the newly selected member; require explicit acknowledgement for an intentional conflict.
+- [x] Keep reassignment, capacity signals, and internal dispatch detail private; do not notify, dispatch, reschedule, expose a staff identity in client content, or change any client-facing field automatically.
+- [x] Add accessible Dispatch Board correction controls and focused owner-scope, eligibility, conflict, history, and client-projection regression coverage; validate and document the release.

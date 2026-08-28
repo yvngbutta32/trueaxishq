@@ -7205,6 +7205,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
     updateVisit: protectedProcedure
       .input(z.object({
         id: z.number().int().positive(),
+        teamMemberId: z.number().int().positive().optional(),
         title: safeOptionalString(255),
         scheduledStart: z.date().optional(),
         scheduledEnd: z.date().optional(),
@@ -7222,13 +7223,34 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const scheduledStart = input.scheduledStart ?? visit.scheduledStart;
         const scheduledEnd = input.scheduledEnd ?? visit.scheduledEnd;
         const status = input.status ?? visit.status;
+        const teamMemberId = input.teamMemberId ?? visit.teamMemberId;
         if (scheduledEnd <= scheduledStart) throw new TRPCError({ code: "BAD_REQUEST", message: "A service visit must end after it starts." });
-        if (visit.teamMemberId && (input.scheduledStart || input.scheduledEnd || (input.status && input.status !== "cancelled")) && status !== "cancelled") {
+        let reassignedMemberName: string | null = null;
+        if (input.teamMemberId !== undefined && input.teamMemberId !== visit.teamMemberId) {
+          if (["completed", "cancelled"].includes(visit.status) || ["completed", "cancelled"].includes(status)) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Only active service visits can be reassigned." });
+          }
+          const [[member], [assignment]] = await Promise.all([
+            db.select({ id: teamMembers.id, name: teamMembers.name, active: teamMembers.active }).from(teamMembers)
+              .where(and(eq(teamMembers.id, input.teamMemberId), eq(teamMembers.userId, ctx.user.id))).limit(1),
+            db.select({ id: jobAssignments.id }).from(jobAssignments).where(and(
+              eq(jobAssignments.userId, ctx.user.id),
+              eq(jobAssignments.jobId, visit.jobId),
+              eq(jobAssignments.teamMemberId, input.teamMemberId),
+              inArray(jobAssignments.status, ["assigned", "acknowledged"]),
+            )).limit(1),
+          ]);
+          if (!member?.active || !assignment) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Choose an active team member assigned to this job." });
+          }
+          reassignedMemberName = member.name;
+        }
+        if (teamMemberId && (input.teamMemberId !== undefined || input.scheduledStart || input.scheduledEnd || (input.status && input.status !== "cancelled")) && status !== "cancelled") {
           const [existingVisits, availabilityBlocks] = await Promise.all([
             db.select({ id: serviceVisits.id, scheduledStart: serviceVisits.scheduledStart, scheduledEnd: serviceVisits.scheduledEnd, status: serviceVisits.status })
-              .from(serviceVisits).where(and(eq(serviceVisits.userId, ctx.user.id), eq(serviceVisits.teamMemberId, visit.teamMemberId))),
+              .from(serviceVisits).where(and(eq(serviceVisits.userId, ctx.user.id), eq(serviceVisits.teamMemberId, teamMemberId))),
             db.select({ startsAt: staffAvailabilityBlocks.startsAt, endsAt: staffAvailabilityBlocks.endsAt }).from(staffAvailabilityBlocks)
-              .where(and(eq(staffAvailabilityBlocks.userId, ctx.user.id), eq(staffAvailabilityBlocks.teamMemberId, visit.teamMemberId))),
+              .where(and(eq(staffAvailabilityBlocks.userId, ctx.user.id), eq(staffAvailabilityBlocks.teamMemberId, teamMemberId))),
           ]);
           const visitConflict = hasDispatchConflict(existingVisits.map(item => ({ id: item.id, start: item.scheduledStart, end: item.scheduledEnd, status: item.status })), {
             id: visit.id,
@@ -7244,6 +7266,16 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const clientVisible = clientVisibleInput ?? visit.clientVisible;
         const clientUpdate = clientVisible ? (clientUpdateInput === undefined ? visit.clientUpdate : clientUpdateInput) : null;
         await db.update(serviceVisits).set({ ...rest, clientVisible, clientUpdate, updatedAt: new Date() }).where(and(eq(serviceVisits.id, id), eq(serviceVisits.userId, ctx.user.id)));
+        if (reassignedMemberName) {
+          await db.insert(jobActivities).values({
+            userId: ctx.user.id,
+            jobId: visit.jobId,
+            actor: "owner",
+            eventType: "service_visit_reassigned",
+            message: `Service visit reassigned to ${reassignedMemberName}.`,
+            metadata: JSON.stringify({ visitId: visit.id, teamMemberId }),
+          });
+        }
         if (input.status && input.status !== visit.status) {
           await db.insert(jobActivities).values({
             userId: ctx.user.id,

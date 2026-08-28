@@ -48,6 +48,18 @@ const utcMondayStart = (value: string) => {
   return start.toISOString();
 };
 
+type VisitReassignmentEdit = {
+  id: number;
+  jobId: number;
+  title: string;
+  currentTeamMemberId: number | null;
+  currentTeamMemberName: string | null;
+  scheduledStart: Date;
+  scheduledEnd: Date;
+  teamMemberId: string;
+  allowConflict: boolean;
+};
+
 export default function DispatchBoard() {
   const utils = trpc.useUtils();
   const { data: visits = [], isLoading } = trpc.dispatch.listVisits.useQuery();
@@ -59,11 +71,17 @@ export default function DispatchBoard() {
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
   const [recurringPlanOpen, setRecurringPlanOpen] = useState(false);
   const [form, setForm] = useState(defaultVisitForm);
+  const [reassignmentEdit, setReassignmentEdit] = useState<VisitReassignmentEdit | null>(null);
   const candidateCapacityInput = useMemo(() => {
     const weekStart = utcMondayStart(form.start);
     return weekStart ? { weekStart } : undefined;
   }, [form.start]);
   const { data: capacity = [] } = trpc.team.capacity.useQuery(candidateCapacityInput);
+  const reassignmentCapacityInput = useMemo(() => {
+    const weekStart = reassignmentEdit ? utcMondayStart(reassignmentEdit.scheduledStart.toISOString()) : undefined;
+    return weekStart ? { weekStart } : undefined;
+  }, [reassignmentEdit]);
+  const { data: reassignmentCapacity = [] } = trpc.team.capacity.useQuery(reassignmentCapacityInput, { enabled: Boolean(reassignmentEdit) });
   const [availabilityForm, setAvailabilityForm] = useState(defaultAvailabilityForm);
   const [recurringPlanForm, setRecurringPlanForm] = useState(defaultRecurringPlanForm);
   const [recurringPlanAssetEdit, setRecurringPlanAssetEdit] = useState({ planId: "", customerAssetId: "" });
@@ -102,6 +120,9 @@ export default function DispatchBoard() {
   }, [mappableVisits, routeOrder]);
   const selectedAssignment = useMemo(() => assignments.find(assignment => String(assignment.id) === form.assignmentId), [assignments, form.assignmentId]);
   const selectedCapacity = useMemo(() => selectedAssignment ? capacity.find(member => member.id === selectedAssignment.teamMemberId) : undefined, [capacity, selectedAssignment]);
+  const reassignmentCandidates = useMemo(() => reassignmentEdit ? assignments.filter(assignment => assignment.jobId === reassignmentEdit.jobId && ["assigned", "acknowledged"].includes(assignment.status) && !["completed", "cancelled"].includes(assignment.jobStatus)) : [], [assignments, reassignmentEdit]);
+  const selectedReassignment = useMemo(() => reassignmentCandidates.find(assignment => String(assignment.teamMemberId) === reassignmentEdit?.teamMemberId), [reassignmentCandidates, reassignmentEdit?.teamMemberId]);
+  const selectedReassignmentCapacity = useMemo(() => selectedReassignment ? reassignmentCapacity.find(member => member.id === selectedReassignment.teamMemberId) : undefined, [reassignmentCapacity, selectedReassignment]);
   const candidateDurationMinutes = useMemo(() => {
     const start = new Date(form.start).getTime();
     const end = new Date(form.end).getTime();
@@ -129,7 +150,7 @@ export default function DispatchBoard() {
     return groups;
   }, {}), [visits]);
 
-  const invalidate = () => { void utils.dispatch.listVisits.invalidate(); void utils.dispatch.listAvailabilityBlocks.invalidate(); void utils.jobs.get.invalidate(); void utils.recurringServicePlans.list.invalidate(); };
+  const invalidate = () => { void utils.dispatch.listVisits.invalidate(); void utils.dispatch.listAvailabilityBlocks.invalidate(); void utils.jobs.get.invalidate(); void utils.recurringServicePlans.list.invalidate(); void utils.team.capacity.invalidate(); };
   const createVisit = trpc.dispatch.createVisit.useMutation({
     onSuccess: result => { invalidate(); setCreateOpen(false); setForm(defaultVisitForm()); toast.success(result.conflictAcknowledged ? "Visit scheduled with the acknowledged overlap." : "Service visit scheduled."); },
     onError: error => {
@@ -138,6 +159,13 @@ export default function DispatchBoard() {
     },
   });
   const updateVisit = trpc.dispatch.updateVisit.useMutation({ onSuccess: invalidate, onError: error => toast.error(error.message) });
+  const reassignVisit = trpc.dispatch.updateVisit.useMutation({
+    onSuccess: () => { invalidate(); setReassignmentEdit(null); toast.success("Private service visit assignment updated."); },
+    onError: error => {
+      if (error.data?.code === "CONFLICT") toast.error("The selected member has a conflicting private visit or availability block. Confirm the exception only if it is intentional.");
+      else toast.error(error.message);
+    },
+  });
   const cancelVisit = trpc.dispatch.cancelVisit.useMutation({ onSuccess: () => { invalidate(); toast.success("Service visit cancelled."); }, onError: error => toast.error(error.message) });
   const createAvailabilityBlock = trpc.dispatch.createAvailabilityBlock.useMutation({ onSuccess: () => { invalidate(); setAvailabilityOpen(false); setAvailabilityForm(defaultAvailabilityForm()); toast.success("Private availability block added."); }, onError: error => toast.error(error.message) });
   const updateAvailabilityBlock = trpc.dispatch.updateAvailabilityBlock.useMutation({ onSuccess: () => { invalidate(); setAvailabilityEditForm(null); toast.success("Private availability block updated."); }, onError: error => toast.error(error.message) });
@@ -238,6 +266,12 @@ export default function DispatchBoard() {
     });
   };
 
+  const submitReassignment = () => {
+    if (!reassignmentEdit || !selectedReassignment) return toast.error("Choose an active job assignment.");
+    if (selectedReassignment.teamMemberId === reassignmentEdit.currentTeamMemberId) return toast.error("Choose a different assigned team member.");
+    reassignVisit.mutate({ id: reassignmentEdit.id, teamMemberId: selectedReassignment.teamMemberId, allowConflict: reassignmentEdit.allowConflict });
+  };
+
   const submitAvailabilityBlock = () => {
     const teamMemberId = Number(availabilityForm.teamMemberId);
     const startsAt = new Date(availabilityForm.start);
@@ -294,6 +328,8 @@ export default function DispatchBoard() {
     <section className="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-bold text-indigo-950">Correct recurring plan asset context</h2><p className="mt-1 max-w-2xl text-xs leading-relaxed text-indigo-900/75">Replace or remove a plan’s private asset context without changing its job, schedule, or generated-visit history. Only active assets for the plan job’s client can be selected.</p></div><Button type="button" size="sm" variant="outline" onClick={() => setRecurringPlanAssetEdit({ planId: recurringPlans[0] ? String(recurringPlans[0].id) : "", customerAssetId: recurringPlans[0]?.customerAssetId ? String(recurringPlans[0].customerAssetId) : "" })} disabled={!recurringPlans.length} className="border-indigo-200 bg-white text-indigo-800 hover:bg-indigo-50">Correct plan asset</Button></div></section>
 
     <section className="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-bold text-indigo-950">Correct next private visit date</h2><p className="mt-1 max-w-2xl text-xs leading-relaxed text-indigo-900/75">Choose a future date that already matches the plan’s weekly or monthly schedule. The stored UTC time, plan job, asset context, and generated visits remain unchanged.</p></div><Button type="button" size="sm" variant="outline" onClick={() => { const plan = recurringPlans[0]; setRecurringPlanDateEdit(plan ? { planId: String(plan.id), nextVisitDate: plan.nextVisitAt ? new Date(plan.nextVisitAt).toISOString().slice(0, 10) : "" } : { planId: "", nextVisitDate: "" }); }} disabled={!recurringPlans.length} className="border-indigo-200 bg-white text-indigo-800 hover:bg-indigo-50">Correct next date</Button></div></section>
+
+    <section className="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-5"><div><h2 className="font-bold text-indigo-950">Correct visit assignment</h2><p className="mt-1 max-w-2xl text-xs leading-relaxed text-indigo-900/75">Move an active private service visit to another active member already assigned to the same job. This correction does not notify, dispatch, reschedule, or change client-facing fields automatically.</p></div>{activeVisits.length === 0 ? <p className="mt-4 rounded-xl border border-dashed border-indigo-200 bg-white/70 px-4 py-3 text-sm text-indigo-950/75">There are no active service visits available for reassignment.</p> : <div className="mt-4 space-y-3"><label className="block max-w-xl text-sm font-semibold text-[#1A1A1A]">Service visit to correct<select value={reassignmentEdit?.id ?? ""} onChange={event => { const visit = activeVisits.find(item => item.id === Number(event.target.value)); setReassignmentEdit(visit ? { id: visit.id, jobId: visit.jobId, title: visit.title, currentTeamMemberId: visit.teamMemberId, currentTeamMemberName: visit.teamMemberName, scheduledStart: new Date(visit.scheduledStart), scheduledEnd: new Date(visit.scheduledEnd), teamMemberId: "", allowConflict: false } : null); }} className="mt-1.5 block w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-indigo-300"><option value="">Choose an active private visit…</option>{activeVisits.map(visit => <option key={visit.id} value={visit.id}>{visit.title} · {dateTime(visit.scheduledStart)} · {visit.teamMemberName ?? "Unassigned"}</option>)}</select></label>{reassignmentEdit && <div className="max-w-xl space-y-3 rounded-xl border border-indigo-200 bg-white p-4"><p className="text-xs text-[rgba(26,26,26,0.68)]"><span className="font-semibold text-[#1A1A1A]">Current assignment:</span> {reassignmentEdit.currentTeamMemberName ?? "Unassigned"} · {dateTime(reassignmentEdit.scheduledStart)} – {new Date(reassignmentEdit.scheduledEnd).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</p><label className="block text-sm font-semibold text-[#1A1A1A]">Replacement job assignment<select value={reassignmentEdit.teamMemberId} onChange={event => setReassignmentEdit(current => current ? { ...current, teamMemberId: event.target.value, allowConflict: false } : current)} className="mt-1.5 block w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-indigo-300"><option value="">Choose an active assigned member…</option>{reassignmentCandidates.filter(assignment => assignment.teamMemberId !== reassignmentEdit.currentTeamMemberId).map(assignment => <option key={assignment.id} value={assignment.teamMemberId}>{assignment.teamMemberName} · {assignment.assignmentRole}</option>)}</select></label>{selectedReassignmentCapacity && <p className={`rounded-lg border p-3 text-xs leading-relaxed ${selectedReassignmentCapacity.overCapacity || selectedReassignmentCapacity.scheduledOverCapacity ? "border-rose-200 bg-rose-50 text-rose-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}><span className="font-semibold">Private candidate-week context:</span> {hoursFromMinutes(selectedReassignmentCapacity.scheduledMinutes)}h already scheduled; this visit adds {hoursFromMinutes(Math.round((reassignmentEdit.scheduledEnd.getTime() - reassignmentEdit.scheduledStart.getTime()) / 60_000))}h if saved. {selectedReassignmentCapacity.overCapacity || selectedReassignmentCapacity.scheduledOverCapacity ? "Review the load and confirm any intentional overlap." : "This is planning context only."}</p>}<label className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"><input type="checkbox" checked={reassignmentEdit.allowConflict} onChange={event => setReassignmentEdit(current => current ? { ...current, allowConflict: event.target.checked } : current)} className="mt-0.5 h-4 w-4 accent-[#D4922A]" /><span><strong>Allow an intentional overlap.</strong> Keep this unchecked unless you knowingly accept a conflicting private visit or availability block for the replacement member.</span></label><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => setReassignmentEdit(null)}>Cancel correction</Button><Button type="button" onClick={submitReassignment} disabled={!selectedReassignment || reassignVisit.isPending} className="bg-indigo-700 text-white hover:bg-indigo-800">{reassignVisit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save private reassignment"}</Button></div></div>}</div>}</section>
 
     <section className="rounded-2xl border border-[rgba(26,26,26,0.1)] bg-white p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
