@@ -6861,10 +6861,13 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         return { success: true, revokedInviteCount: inviteResult[0].affectedRows, revokedMembershipCount: membershipResult[0].affectedRows };
       }),
 
-    capacity: protectedProcedure.query(async ({ ctx }) => {
+    capacity: protectedProcedure.input(z.object({ weekStart: z.string().datetime().optional() }).optional()).query(async ({ ctx, input }) => {
       const db = await requireDb();
       const now = new Date();
-      const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - ((now.getUTCDay() + 6) % 7)));
+      const requestedWeekStart = input?.weekStart ? new Date(input.weekStart) : now;
+      if (Number.isNaN(requestedWeekStart.getTime())) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a valid UTC planning week." });
+      const weekStart = new Date(Date.UTC(requestedWeekStart.getUTCFullYear(), requestedWeekStart.getUTCMonth(), requestedWeekStart.getUTCDate() - ((requestedWeekStart.getUTCDay() + 6) % 7)));
+      if (input?.weekStart && requestedWeekStart.getTime() !== weekStart.getTime()) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a Monday at 00:00 UTC for the planning week." });
       const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
       const [members, assignments, scheduledVisits, availabilityBlocks] = await Promise.all([
         db.select().from(teamMembers).where(eq(teamMembers.userId, ctx.user.id)).orderBy(teamMembers.active, teamMembers.name),
