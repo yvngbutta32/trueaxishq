@@ -51,6 +51,15 @@ describe("recurring service plan workflow contracts", () => {
     expect(routerSource).toContain("Linked asset is inactive or no longer belongs to this job's client.");
   });
 
+  it("allows only the owner to replace or remove private plan asset context after final same-client active-asset checks", () => {
+    expect(routerSource).toContain("setCustomerAsset: protectedProcedure");
+    expect(routerSource).toContain("customerAssetId: z.number().int().positive().nullable()");
+    expect(routerSource).toContain("eq(recurringServicePlans.id, input.id), eq(recurringServicePlans.userId, ctx.user.id)");
+    expect(routerSource).toContain("eq(customerAssets.clientId, plan.clientId)");
+    expect(routerSource).toContain("Choose an active asset belonging to this plan's job client.");
+    expect(routerSource).toContain("set({ customerAssetId: input.customerAssetId");
+  });
+
   it("keeps generated visits owner-planned and exposes generation only in dispatch, not the client portal", () => {
     expect(routerSource).toContain("clientVisible: false");
     expect(dispatchSource).toContain("generateNextVisit.useMutation");
@@ -87,5 +96,13 @@ describe("recurring service plan workflow contracts", () => {
     expect(dispatchSource).toContain("Start time (UTC)");
     expect(dispatchSource).toContain("Times are saved in UTC and shown in your local time");
     expect(portalSource).not.toContain("Start time (UTC)");
+  });
+
+  it("keeps private plan asset correction controls out of the client portal", () => {
+    expect(dispatchSource).toContain("recurringServicePlans.setCustomerAsset.useMutation");
+    expect(dispatchSource).toContain("Correct plan asset");
+    expect(dispatchSource).toContain("Remove private asset context");
+    expect(portalSource).not.toContain("Correct plan asset");
+    expect(portalSource).not.toContain("Remove private asset context");
   });
 });

@@ -2166,6 +2166,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Keep time selection private, explicit, and independent of calendar synchronization, automatic dispatch, provider delivery, client visibility, or timezone-policy claims.
 - [x] Add focused persistence, generated-visit precision, default compatibility, and portal-exclusion coverage; validate and document the refinement.
 
+### Selected private planning refinement: recurring-plan asset correction
+- [x] Add owner-only replacement or removal of an existing recurring plan's private asset context while preserving its job, schedule, and generated-visit history.
+- [x] Enforce final same-owner, same-job-client, active-asset checks and keep the correction exclusive to protected planning controls.
+- [x] Add focused replacement, removal, inactive-asset, owner/client-scope, retained-history, and portal-exclusion coverage; validate and document the refinement.
+
 ### Selected private foundation: customer-asset record correction
 - [x] Add a bounded owner-only edit flow for private customer-asset identity, tag, functional location, and notes without changing client association or historical job/response records.
 - [x] Keep asset corrections accessible, mobile-safe, and excluded from all client portal projections.

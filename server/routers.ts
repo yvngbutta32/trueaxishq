@@ -7348,6 +7348,29 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         return { success: true, active: input.active };
       }),
 
+    setCustomerAsset: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), customerAssetId: z.number().int().positive().nullable() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [plan] = await db.select({ id: recurringServicePlans.id, clientId: jobs.clientId }).from(recurringServicePlans)
+          .innerJoin(jobs, and(eq(recurringServicePlans.jobId, jobs.id), eq(jobs.userId, ctx.user.id)))
+          .where(and(eq(recurringServicePlans.id, input.id), eq(recurringServicePlans.userId, ctx.user.id))).limit(1);
+        if (!plan) throw new TRPCError({ code: "NOT_FOUND", message: "Recurring service plan not found." });
+        if (input.customerAssetId) {
+          const [asset] = await db.select({ id: customerAssets.id }).from(customerAssets).where(and(
+            eq(customerAssets.id, input.customerAssetId),
+            eq(customerAssets.userId, ctx.user.id),
+            eq(customerAssets.clientId, plan.clientId),
+            eq(customerAssets.active, true),
+          )).limit(1);
+          if (!asset) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose an active asset belonging to this plan's job client." });
+        }
+        const result = await db.update(recurringServicePlans).set({ customerAssetId: input.customerAssetId, updatedAt: new Date() })
+          .where(and(eq(recurringServicePlans.id, plan.id), eq(recurringServicePlans.userId, ctx.user.id)));
+        if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Recurring service plan not found." });
+        return { success: true, customerAssetId: input.customerAssetId };
+      }),
+
     generateNextVisit: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
       const db = await requireDb();
       const [plan] = await db.select().from(recurringServicePlans).where(and(eq(recurringServicePlans.id, input.id), eq(recurringServicePlans.userId, ctx.user.id), eq(recurringServicePlans.active, true))).limit(1);
