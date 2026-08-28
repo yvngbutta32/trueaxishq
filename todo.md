@@ -2347,3 +2347,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Prevent an automatically drafted follow-up record from being marked sent when the email helper uses console fallback or reports an SMTP failure.
 - [x] Preserve the existing owner-configured rule, private draft history, duplicate guard, and last-run progression without adding a delivery, retry, or scheduler-reliability claim.
 - [x] Add focused behavioral and integration coverage for SMTP acceptance, console fallback, and SMTP failure; validate and document only observed results and unresolved provider/scheduler limits.
+
+### Observed booking-message correction: delivery-marker accuracy
+- [x] Prevent booking reminder and post-session check-in timestamps from being set when the email helper uses console fallback or reports an SMTP failure.
+- [x] Preserve existing booking scope and selection windows without adding a delivery, retry, scheduling, attendance, or provider-reliability claim.
+- [x] Add focused behavioral and integration coverage for configured SMTP acceptance, console fallback, and SMTP failure; validate and document only observed results and unresolved provider/scheduler limits.

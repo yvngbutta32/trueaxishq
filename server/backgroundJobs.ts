@@ -510,7 +510,7 @@ async function runBookingReminders() {
           const siteOrigin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
           const bookingUrl = booking.bookingUsername ? `${siteOrigin}/book/${booking.bookingUsername}` : siteOrigin;
 
-          await sendEmail({
+          const emailResult = await sendEmail({
             to: booking.clientEmail,
             subject: `Reminder: Your session is tomorrow — ${booking.service || "Appointment"}`,
             html: bookingReminderEmail({
@@ -522,12 +522,13 @@ async function runBookingReminders() {
             }),
           });
 
-          // Mark reminder sent
-          await db.update(bookings)
-            .set({ reminderSentAt: new Date() })
-            .where(eq(bookings.id, booking.id));
+          if (wasAcceptedByConfiguredSmtp(emailResult)) {
+            await db.update(bookings)
+              .set({ reminderSentAt: new Date() })
+              .where(eq(bookings.id, booking.id));
+          }
 
-          console.log(`[Jobs] Booking reminder sent for booking ${booking.id}`);
+          console.log(`[Jobs] Booking reminder ${wasAcceptedByConfiguredSmtp(emailResult) ? "accepted by configured SMTP" : "not marked sent without SMTP acceptance"} for booking ${booking.id}`);
         } catch (err) {
           console.error(`[Jobs] Failed to send reminder for booking ${booking.id}:`, err);
         }
@@ -582,7 +583,7 @@ async function runPostSessionCheckIns() {
             ? `${siteOrigin}/book/${booking.bookingUsername}`
             : siteOrigin;
 
-          await sendEmail({
+          const emailResult = await sendEmail({
             to: booking.clientEmail,
             subject: `How did your session go? — ${booking.service || "Your recent session"}`,
             html: postSessionCheckInEmail({
@@ -593,12 +594,13 @@ async function runPostSessionCheckIns() {
             }),
           });
 
-          // Mark check-in sent
-          await db.update(bookings)
-            .set({ checkInSentAt: new Date() })
-            .where(eq(bookings.id, booking.id));
+          if (wasAcceptedByConfiguredSmtp(emailResult)) {
+            await db.update(bookings)
+              .set({ checkInSentAt: new Date() })
+              .where(eq(bookings.id, booking.id));
+          }
 
-          console.log(`[Jobs] Post-session check-in sent for booking ${booking.id}`);
+          console.log(`[Jobs] Post-session check-in ${wasAcceptedByConfiguredSmtp(emailResult) ? "accepted by configured SMTP" : "not marked sent without SMTP acceptance"} for booking ${booking.id}`);
         } catch (err) {
           console.error(`[Jobs] Failed to send check-in for booking ${booking.id}:`, err);
         }
