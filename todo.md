@@ -2176,6 +2176,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Provide clear protected Dispatch Board guidance and preserve client-portal, maintenance, billing, notification, provider, and automatic-generation exclusions.
 - [x] Add focused inactive-job generation, owner-scope, history-retention, and portal-exclusion coverage; validate and document the correction.
 
+### Selected private planning refinement: recurring-plan next-visit correction
+- [ ] Add an owner-only correction for a plan’s next eligible future visit date without changing recurrence, stored UTC time, job, asset, or generated-visit history.
+- [ ] Validate the selected date against the plan recurrence and date boundaries, and keep it in protected Dispatch Board planning context only.
+- [ ] Add focused schedule, owner-scope, retained-history, and portal-exclusion coverage; validate and document the refinement.
+
 ### Selected private foundation: customer-asset record correction
 - [x] Add a bounded owner-only edit flow for private customer-asset identity, tag, functional location, and notes without changing client association or historical job/response records.
 - [x] Keep asset corrections accessible, mobile-safe, and excluded from all client portal projections.
@@ -2223,6 +2228,16 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Inventory core TrueAxis HQ functions, public and owner-facing copy, and automated coverage to target confirmed defects or ambiguity.
 - [x] Run bounded static and visual audits, repair verified issues, and add focused regression coverage without weakening isolation or provider boundaries.
 - [x] Validate and document the quality-sweep findings, including explicit limits on live-provider and authenticated-session testing.
+
+### Requested ongoing upgrade: research-backed high-impact operations improvements
+- [ ] Reassess current competitor evidence and the TrueAxis HQ gap register to select the next buildable, high-impact workflow improvement.
+- [ ] Implement only improvements supported by a clear operational rationale, explicit data-isolation review, accessible UX, and focused regression coverage.
+- [ ] Preserve truthful boundaries around revenue, market position, providers, authenticated sessions, field mobility, and external delivery evidence.
+
+### Selected communication-quality correction: automation readiness guidance
+- [x] Replace automation copy that implies unconditional firing, email delivery, or timing guarantees with configured-rule and verified-outcome guidance.
+- [x] Preserve private owner workflow context and clearly distinguish local preview, owner notification behavior, durable schedule limits, and external delivery evidence.
+- [x] Add focused user-facing copy-boundary coverage; validate and document the correction.
 
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.

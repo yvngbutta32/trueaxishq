@@ -23,7 +23,7 @@ const TRIGGERS = [
 ];
 
 const ACTIONS = [
-  { value: "send_email", label: "Send Email", desc: "Send an automated email to the matching client" },
+  { value: "send_email", label: "Send Email", desc: "Queue a client email action when configured delivery is available" },
   { value: "create_followup", label: "Create Follow-Up", desc: "Create a reviewable follow-up draft for the matching client" },
   { value: "notify_owner", label: "Notify Me", desc: "Send yourself an owner notification" },
 ] as const;
@@ -149,7 +149,7 @@ export default function Automations() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[rgba(26,26,26,0.95)]">Workflow Automation</h1>
-          <p className="text-sm text-[rgba(26,26,26,0.55)] mt-0.5">Set triggers and actions that run automatically — so you never miss a follow-up or invoice</p>
+          <p className="text-sm text-[rgba(26,26,26,0.55)] mt-0.5">Configure triggers and actions, review readiness, and inspect recorded outcomes.</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => seedMut.mutate()} disabled={seedMut.isPending} variant="outline" className="border-[rgba(139,92,246,0.3)] text-[#A78BFA] hover:bg-[rgba(139,92,246,0.1)] gap-2 hidden sm:flex">
@@ -183,7 +183,7 @@ export default function Automations() {
             {[
               { step: "1", title: "Choose a Trigger", desc: "Something happens in your business (booking, payment, etc.)" },
               { step: "2", title: "Define Actions", desc: "What should happen automatically (email, follow-up, notification)" },
-              { step: "3", title: "Runs Automatically", desc: "The workflow fires every time the trigger condition is met" },
+              { step: "3", title: "Review Outcomes", desc: "Matching events are processed when the configured rule and dependencies are available" },
             ].map(s => (
               <div key={s.step} className="space-y-1">
                 <div className="w-8 h-8 rounded-full bg-[rgba(139,92,246,0.2)] text-[#A78BFA] font-bold text-sm flex items-center justify-center mx-auto">{s.step}</div>
@@ -371,7 +371,7 @@ export default function Automations() {
                 <Input type="number" min={0} max={720} value={form.triggerDelayHours} onChange={e => setForm(p => ({ ...p, triggerDelayHours: Math.min(720, Math.max(0, Number(e.target.value) || 0)) }))} className="w-28 bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
                 <span className="text-sm text-[rgba(26,26,26,0.55)]">hours after the trigger</span>
               </div>
-              <p className="text-xs text-[rgba(26,26,26,0.45)] mt-1">Use this for a timed follow-up. The run history records the final outcome.</p>
+              <p className="text-xs text-[rgba(26,26,26,0.45)] mt-1">Use this for a timed follow-up. Review run history for recorded processing outcomes; provider delivery requires its own configured evidence.</p>
             </div>
 
             {/* Actions */}
