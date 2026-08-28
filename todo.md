@@ -2269,3 +2269,13 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ### Selected credential-free milestone: installable-app metadata accuracy
 - [x] Update installable-app metadata to accurately describe the current service-business and field-service scope without unsupported capability claims.
 - [x] Add focused manifest regression coverage and validate the public progressive-web-app artifact.
+
+### Selected scheduling refinement: candidate-week assignment capacity context
+- [x] Align the Dispatch Board’s private staffing-capacity signal with the UTC week containing the candidate service visit, rather than always using the current week.
+- [x] Keep the signal owner-only and observational; do not expose staffing, availability, capacity, dispatch notes, routes, GPS, payroll, or attendance data to clients or staff.
+- [x] Clearly distinguish existing scheduled load from the candidate visit’s local duration estimate, without assigning, rescheduling, dispatching, notifying, or altering records automatically.
+- [x] Add focused source-contract coverage for selected-week query input, candidate-duration context, private boundaries, and accessible scheduling guidance; validate and document the refinement.
+
+### Observed route-recovery defect: Admin conditional hook order
+- [x] Repair the observed `/admin/dispatch` hook-order failure without weakening owner access checks, dashboard navigation, or protected section behavior.
+- [x] Add focused regression coverage for consistent Admin hook order across initial loading and non-admin route states; validate the rendered recovery boundary.

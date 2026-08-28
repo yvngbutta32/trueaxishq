@@ -33,4 +33,15 @@ describe("scheduled capacity accuracy", () => {
     expect(dispatchSource).toContain("These are private owner-planning signals");
     expect(dispatchSource).toContain("not GPS, staff availability, attendance, payroll, or client-visible promises");
   });
+
+  it("uses the candidate visit's normalized UTC week for owner-only scheduling capacity context", () => {
+    expect(dispatchSource).toContain("const utcMondayStart = (value: string)");
+    expect(dispatchSource).toContain("const candidateCapacityInput = useMemo");
+    expect(dispatchSource).toContain("trpc.team.capacity.useQuery(candidateCapacityInput)");
+    expect(dispatchSource).toContain("Candidate visit week (UTC)");
+    expect(dispatchSource).toContain("Existing scheduled time:");
+    expect(dispatchSource).toContain("Candidate duration:");
+    expect(dispatchSource).toContain("Projected scheduled time if saved:");
+    expect(dispatchSource).toContain("does not assign, reschedule, dispatch, notify, or change records automatically");
+  });
 });

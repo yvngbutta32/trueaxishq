@@ -6,13 +6,16 @@ const source = readFileSync(resolve(process.cwd(), "client/src/pages/DispatchBoa
 
 describe("Dispatch Board capacity preflight", () => {
   it("loads the owner-scoped capacity view and matches it to the selected job assignment", () => {
-    expect(source).toContain("trpc.team.capacity.useQuery()");
+    expect(source).toContain("trpc.team.capacity.useQuery(candidateCapacityInput)");
+    expect(source).toContain("const candidateCapacityInput = useMemo");
     expect(source).toContain("capacity.find(member => member.id === selectedAssignment.teamMemberId)");
   });
 
   it("makes capacity pressure visible before a visit is created without exposing it to clients", () => {
     expect(source).toContain("assignment plan:");
-    expect(source).toContain("Scheduled this UTC week:");
+    expect(source).toContain("Candidate visit week (UTC):");
+    expect(source).toContain("Existing scheduled time:");
+    expect(source).toContain("Projected scheduled time if saved:");
     expect(source).toContain("Review the load and confirm any exception intentionally.");
     expect(source).toContain("private owner-planning signals");
     expect(source).toContain("not GPS, staff availability, attendance, payroll, or client-visible promises");

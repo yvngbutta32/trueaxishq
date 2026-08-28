@@ -248,6 +248,14 @@ export default function Admin() {
     setSettingsDirty(true);
   };
 
+  // Redirect to admin login if not authenticated or not owner.
+  // The hook must run before any early return so render paths keep a stable hook order.
+  useEffect(() => {
+    if (!loading && (!isAuthenticated || !isOwner)) {
+      navigate("/admin-login");
+    }
+  }, [loading, isAuthenticated, isOwner, navigate]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#1C2333]">
@@ -258,14 +266,6 @@ export default function Admin() {
       </div>
     );
   }
-
-  // Redirect to admin login if not authenticated or not owner
-  // Must be in useEffect — calling navigate() during render is a React anti-pattern
-  useEffect(() => {
-    if (!loading && (!isAuthenticated || !isOwner)) {
-      navigate("/admin-login");
-    }
-  }, [loading, isAuthenticated, isOwner, navigate]);
 
   if (!loading && (!isAuthenticated || !isOwner)) return null;
 
