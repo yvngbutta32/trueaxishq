@@ -43,7 +43,7 @@ const CHANGELOG = [
     icon: Zap,
     color: "#D4922A",
     title: "Pay Now on Invoices",
-    desc: "Clients can pay invoices instantly via Stripe Checkout — invoices auto-mark paid.",
+    desc: "Configured invoice payments can use Stripe Checkout; payment status is recorded after verified provider processing.",
   },
 ];
 

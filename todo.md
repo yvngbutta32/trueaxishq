@@ -2184,9 +2184,19 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Cross-examine current official competitor information and credible product evidence for comparable service-business workflow dimensions.
 - [x] Publish a transparent 10-point scorecard, methodology, and prioritized roadmap without claiming market leadership, parity, or unvalidated provider behavior.
 
+### Requested quality sweep: core workflows and user-facing copy
+- [x] Inventory core TrueAxis HQ functions, public and owner-facing copy, and automated coverage to target confirmed defects or ambiguity.
+- [x] Run bounded static and visual audits, repair verified issues, and add focused regression coverage without weakening isolation or provider boundaries.
+- [x] Validate and document the quality-sweep findings, including explicit limits on live-provider and authenticated-session testing.
+
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
 - [x] Add focused client-communication and session-draft removal regression coverage; validate and document the milestone.
+
+### Selected field-execution refinement: bounded Field Mode connectivity recovery
+- [x] Verify existing browser connection awareness and session-draft protection for unsent Field Mode client updates, avoiding duplicate behavior or an unsupported offline claim.
+- [x] Verify recovery is accessible and explicit that reconnect plus deliberate resend is required; client visibility and owner data boundaries remain unchanged.
+- [x] Preserve focused connection-loss and session-draft coverage already included with the Field Mode recovery milestone; no duplicate release required.
 
 ### Selected credential-free milestone: installable-app metadata accuracy
 - [x] Update installable-app metadata to accurately describe the current service-business and field-service scope without unsupported capability claims.

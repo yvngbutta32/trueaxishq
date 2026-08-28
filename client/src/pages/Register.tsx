@@ -11,7 +11,7 @@ const perks = [
   { icon: Star, text: "Create your workspace with an invitation code" },
   { icon: Users, text: "Bring clients, bookings, and jobs into one workspace" },
   { icon: CheckCircle, text: "Configure the workflows that fit your service business" },
-  { icon: Lock, text: "Your data is yours. We never sell it." },
+  { icon: Lock, text: "Review how TrueAxis HQ handles account data in the Privacy Notice" },
 ];
 
 export default function Register() {

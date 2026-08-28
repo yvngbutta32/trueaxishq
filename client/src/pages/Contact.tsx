@@ -38,9 +38,9 @@ export default function Contact() {
         message: form.message.trim(),
       });
       setSubmitted(true);
-      toast.success("Message sent! We'll be in touch within 4 hours.");
+      toast.success("Message received. Follow-up depends on configured support delivery.");
     } catch {
-      toast.error("Something went wrong. Please email us directly at support@trueaxishq.com");
+      toast.error("Something went wrong. Please try again later.");
     }
   };
 
@@ -104,14 +104,14 @@ export default function Contact() {
               We'd love to<br /><span className="text-[#D4922A]">hear from you.</span>
             </h1>
             <p className="text-[#3D3D3D] leading-relaxed mb-10">
-              Whether you have a question about features, pricing, need a demo, or just want to say hello — our team is here for you.
+              For product, pricing, or account questions, send a message for review in TrueAxis HQ.
             </p>
 
             <div className="space-y-5">
               {[
-                { icon: Mail, title: "Email Support", value: "support@trueaxishq.com", sub: "For general questions and account help" },
-                { icon: Mail, title: "Billing", value: "billing@trueaxishq.com", sub: "For payment and subscription questions" },
-                { icon: Clock, title: "Support Availability", value: "Business-hours support", sub: "Contact us for account and billing questions" },
+                { icon: Mail, title: "Support contact", value: "support@trueaxishq.com", sub: "General questions and account help" },
+                { icon: Mail, title: "Billing contact", value: "billing@trueaxishq.com", sub: "Payment and subscription questions" },
+                { icon: Clock, title: "Follow-up timing", value: "Configured during launch", sub: "Response timing requires verified support delivery" },
               ].map(({ icon: Icon, title, value, sub }) => (
                 <div key={title} className="flex items-start gap-4 bg-white border border-[#DDDBD7] rounded-xl p-4">
                   <div className="w-9 h-9 rounded-xl bg-[#D4922A]/15 flex items-center justify-center flex-shrink-0">
@@ -135,7 +135,7 @@ export default function Contact() {
                   <CheckCircle className="w-8 h-8 text-[#D4922A]" />
                 </div>
                 <h2 className="text-xl font-bold mb-2">Message Received!</h2>
-                <p className="text-[#3D3D3D] text-sm mb-6">Thank you for reaching out. We received your message and will reply to <strong className="text-[#1A1A1A]">{form.email}</strong> as soon as we can.</p>
+                <p className="text-[#3D3D3D] text-sm mb-6">Thank you for reaching out. Your message was received in TrueAxis HQ. Follow-up to <strong className="text-[#1A1A1A]">{form.email}</strong> depends on configured support delivery.</p>
                 <Button onClick={() => navigate("/")} className="bg-[#D4922A] hover:bg-[#D4911A] text-white border-0 px-6 py-2.5 rounded-xl text-sm">
                   Back to Home
                 </Button>
