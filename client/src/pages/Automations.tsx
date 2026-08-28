@@ -36,8 +36,27 @@ type AutomationForm = {
   trigger: TriggerType;
   triggerDelayHours: number;
   actions: { type: ActionType; config: Record<string, string> }[];
+  active: boolean;
 };
-const EMPTY_FORM: AutomationForm = { name: "", description: "", trigger: "booking_confirmed", triggerDelayHours: 0, actions: [{ type: "notify_owner", config: { message: "" } }] };
+const EMPTY_FORM: AutomationForm = { name: "", description: "", trigger: "booking_confirmed", triggerDelayHours: 0, actions: [{ type: "notify_owner", config: { message: "" } }], active: true };
+
+const AUTOMATION_STARTERS: { title: string; description: string; draft: AutomationForm }[] = [
+  {
+    title: "Review new bookings",
+    description: "Prepare an owner notification when a booking is processed.",
+    draft: { name: "Review new booking", description: "Review a newly processed booking before any follow-up.", trigger: "booking_confirmed", triggerDelayHours: 0, actions: [{ type: "notify_owner", config: { title: "New booking to review", message: "A booking was processed. Review the details and choose the next step." } }], active: false },
+  },
+  {
+    title: "Prepare invoice follow-up",
+    description: "Draft a reviewable follow-up after an overdue invoice event.",
+    draft: { name: "Prepare overdue invoice follow-up", description: "Create a reviewable draft for an overdue invoice event.", trigger: "invoice_overdue", triggerDelayHours: 168, actions: [{ type: "create_followup", config: { subject: "Following up on your invoice", message: "Hi, just following up on the outstanding invoice. Please let me know if you have any questions." } }], active: false },
+  },
+  {
+    title: "Prepare client welcome",
+    description: "Review a welcome email action before enabling configured delivery.",
+    draft: { name: "Prepare client welcome", description: "Review a welcome email action for a new client.", trigger: "client_added", triggerDelayHours: 0, actions: [{ type: "send_email", config: { subject: "Welcome", message: "Thanks for connecting with us. We look forward to working with you." } }], active: false },
+  },
+];
 
 export default function Automations() {
   const utils = trpc.useUtils();
@@ -110,6 +129,7 @@ export default function Automations() {
       trigger: form.trigger,
       triggerDelayHours: form.triggerDelayHours,
       actions: form.actions,
+      active: form.active,
     };
     if (editingId !== null) updateDetailsMut.mutate({ id: editingId, ...payload });
     else createMut.mutate(payload);
@@ -137,6 +157,7 @@ export default function Automations() {
       trigger: automation.trigger as TriggerType,
       triggerDelayHours: automation.triggerDelayHours ?? 0,
       actions: parsedActions.length ? parsedActions : [{ type: "notify_owner", config: { message: "" } }],
+      active: automation.active,
     });
     setOpen(true);
   }
@@ -193,6 +214,24 @@ export default function Automations() {
             ))}
           </div>
         </div>
+      )}
+
+      {!isLoading && (
+        <section className="rounded-xl border border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.05)] p-5" aria-labelledby="automation-starters-heading">
+          <h2 id="automation-starters-heading" className="text-sm font-semibold text-[#6D28D9]">Start with a reviewable workflow</h2>
+          <p className="mt-1 text-xs text-[rgba(26,26,26,0.6)]">Choose a starting point, review every field, then save it as a paused draft. Nothing sends or activates from this chooser.</p>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {AUTOMATION_STARTERS.map((starter) => (
+              <div key={starter.title} className="rounded-lg border border-[rgba(139,92,246,0.16)] bg-white p-4">
+                <h3 className="text-sm font-semibold text-[rgba(26,26,26,0.9)]">{starter.title}</h3>
+                <p className="mt-1 min-h-10 text-xs leading-5 text-[rgba(26,26,26,0.58)]">{starter.description}</p>
+                <Button size="sm" variant="outline" className="mt-3 border-[rgba(139,92,246,0.32)] text-[#6D28D9] hover:bg-[rgba(139,92,246,0.1)]" onClick={() => { setEditingId(null); setForm(starter.draft); setOpen(true); toast.message("Starter loaded as a paused draft. Review it before saving."); }}>
+                  Use starter
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* List */}
@@ -411,7 +450,7 @@ export default function Automations() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)} className="text-[rgba(26,26,26,0.6)]">Cancel</Button>
             <Button onClick={handleSubmit} disabled={createMut.isPending || updateDetailsMut.isPending} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold">
-              {editingId !== null ? "Save Changes" : "Create Automation"}
+              {editingId !== null ? "Save Changes" : form.active ? "Create Automation" : "Save Paused Draft"}
             </Button>
           </DialogFooter>
         </DialogContent>

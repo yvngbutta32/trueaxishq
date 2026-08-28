@@ -2234,10 +2234,20 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [ ] Implement only improvements supported by a clear operational rationale, explicit data-isolation review, accessible UX, and focused regression coverage.
 - [ ] Preserve truthful boundaries around revenue, market position, providers, authenticated sessions, field mobility, and external delivery evidence.
 
+### Requested category-improvement program: competitive depth and differentiated workflows
+- [ ] Refresh comparable competitor capabilities and identify an implementation-ready, privacy-preserving workflow gap rather than claim blanket feature parity.
+- [ ] Build a differentiated workflow only after a data-isolation, accessibility, and truthful-provider-boundary review.
+- [ ] Validate, document, and score each completed improvement against clear evidence without representing revenue outcomes or market leadership as guaranteed.
+
 ### Selected communication-quality correction: automation readiness guidance
 - [x] Replace automation copy that implies unconditional firing, email delivery, or timing guarantees with configured-rule and verified-outcome guidance.
 - [x] Preserve private owner workflow context and clearly distinguish local preview, owner notification behavior, durable schedule limits, and external delivery evidence.
 - [x] Add focused user-facing copy-boundary coverage; validate and document the correction.
+
+### Selected owner-efficiency refinement: automation starter chooser
+- [x] Add an owner-only guided automation starter chooser that opens a reviewable draft rather than automatically activating or sending a workflow.
+- [x] Keep starter selection and drafts within the protected automation workspace and preserve explicit configured-delivery, scheduler, notification, and client-portal boundaries.
+- [x] Add focused guided-setup and provider-boundary coverage; validate and document the refinement.
 
 ### Selected credential-free milestone: Field Mode draft removal
 - [x] Add a deliberate, accessible owner control to immediately remove the current Field Mode session draft without posting it to a client.
