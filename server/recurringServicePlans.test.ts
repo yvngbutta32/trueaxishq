@@ -51,6 +51,13 @@ describe("recurring service plan workflow contracts", () => {
     expect(routerSource).toContain("Linked asset is inactive or no longer belongs to this job's client.");
   });
 
+  it("retains plan history but blocks future generation for a completed or cancelled owned job", () => {
+    expect(routerSource).toContain("status: jobs.status");
+    expect(routerSource).toContain('["completed", "cancelled"].includes(job.status)');
+    expect(routerSource).toContain("This job is completed or cancelled. Resume active work before generating a future visit.");
+    expect(portalSource).not.toContain("Resume active work before generating a future visit.");
+  });
+
   it("allows only the owner to replace or remove private plan asset context after final same-client active-asset checks", () => {
     expect(routerSource).toContain("setCustomerAsset: protectedProcedure");
     expect(routerSource).toContain("customerAssetId: z.number().int().positive().nullable()");

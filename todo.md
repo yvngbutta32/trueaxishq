@@ -2171,6 +2171,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Enforce final same-owner, same-job-client, active-asset checks and keep the correction exclusive to protected planning controls.
 - [x] Add focused replacement, removal, inactive-asset, owner/client-scope, retained-history, and portal-exclusion coverage; validate and document the refinement.
 
+### Selected private planning correction: inactive-job generation protection
+- [x] Prevent a recurring plan for a completed or cancelled owned job from generating a future internal service visit while retaining all history.
+- [x] Provide clear protected Dispatch Board guidance and preserve client-portal, maintenance, billing, notification, provider, and automatic-generation exclusions.
+- [x] Add focused inactive-job generation, owner-scope, history-retention, and portal-exclusion coverage; validate and document the correction.
+
 ### Selected private foundation: customer-asset record correction
 - [x] Add a bounded owner-only edit flow for private customer-asset identity, tag, functional location, and notes without changing client association or historical job/response records.
 - [x] Keep asset corrections accessible, mobile-safe, and excluded from all client portal projections.

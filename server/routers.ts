@@ -7375,8 +7375,9 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       const db = await requireDb();
       const [plan] = await db.select().from(recurringServicePlans).where(and(eq(recurringServicePlans.id, input.id), eq(recurringServicePlans.userId, ctx.user.id), eq(recurringServicePlans.active, true))).limit(1);
       if (!plan?.nextVisitAt) throw new TRPCError({ code: "NOT_FOUND", message: "Active recurring plan not found." });
-      const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs).where(and(eq(jobs.id, plan.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+      const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId, status: jobs.status }).from(jobs).where(and(eq(jobs.id, plan.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
       if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+      if (["completed", "cancelled"].includes(job.status)) throw new TRPCError({ code: "CONFLICT", message: "This job is completed or cancelled. Resume active work before generating a future visit." });
       if (plan.customerAssetId) {
         const [asset] = await db.select({ id: customerAssets.id }).from(customerAssets).where(and(
           eq(customerAssets.id, plan.customerAssetId),
