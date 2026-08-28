@@ -2342,3 +2342,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Prevent a recurring invoice from being recorded or announced as sent when there is no client email, the email helper uses console fallback, or an SMTP attempt fails.
 - [x] Preserve recurring-invoice due-date advancement and invoice creation without creating an automatic provider-delivery or retry claim.
 - [x] Add focused source and behavioral coverage for SMTP success, console fallback, missing recipient, and failed delivery; validate and document only observed outcomes and unresolved scheduler/provider limits.
+
+### Observed follow-up-rule correction: delivery-state accuracy
+- [x] Prevent an automatically drafted follow-up record from being marked sent when the email helper uses console fallback or reports an SMTP failure.
+- [x] Preserve the existing owner-configured rule, private draft history, duplicate guard, and last-run progression without adding a delivery, retry, or scheduler-reliability claim.
+- [x] Add focused behavioral and integration coverage for SMTP acceptance, console fallback, and SMTP failure; validate and document only observed results and unresolved provider/scheduler limits.

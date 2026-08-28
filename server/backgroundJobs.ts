@@ -20,7 +20,7 @@ import {
   bookings,
   jobRunGuards,
 } from "../drizzle/schema";
-import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, bookingReminderEmail, postSessionCheckInEmail } from "./_core/email";
+import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, bookingReminderEmail, postSessionCheckInEmail, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { getRecurringInvoiceDeliveryOutcome } from "./recurringInvoiceDeliveryOutcome";
 import { processDueAutomations } from "./automationEngine";
 import { randomBytes } from "node:crypto";
@@ -306,8 +306,7 @@ async function runFollowUpRules() {
               const fuId = (fuInsertResult as any)?.insertId
                 ?? (Array.isArray(fuInsertResult) ? (fuInsertResult[0] as any)?.insertId : null);
 
-              // Send the actual email
-              await sendEmail({
+              const emailResult = await sendEmail({
                 to: client.email,
                 subject: rule.emailSubject,
                 html: followUpEmail({
@@ -317,13 +316,13 @@ async function runFollowUpRules() {
                 }),
               });
 
-              // Mark sent only after email delivery succeeded
-              if (fuId) {
+              // A console fallback or SMTP failure leaves the owner-created draft unchanged.
+              if (fuId && wasAcceptedByConfiguredSmtp(emailResult)) {
                 await db.update(followUps).set({ status: "sent", sentAt: new Date() })
                   .where(eq(followUps.id, fuId));
               }
 
-              console.log('[Jobs] Auto follow-up rule sent for user ' + rule.userId);
+              console.log(`[Jobs] Auto follow-up rule ${wasAcceptedByConfiguredSmtp(emailResult) ? "accepted by configured SMTP" : "retained as draft without SMTP acceptance"} for user ${rule.userId}`);
             } catch (err) {
               console.error(`[Jobs] Failed to send follow-up rule to client ${client.id}:`, err);
             }

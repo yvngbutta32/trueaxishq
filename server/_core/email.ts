@@ -43,6 +43,10 @@ export interface EmailResult {
   mode: "smtp" | "console";
 }
 
+export function wasAcceptedByConfiguredSmtp(result: EmailResult): boolean {
+  return result.success && result.mode === "smtp";
+}
+
 let _transporter: nodemailer.Transporter | null = null;
 let _transporterChecked = false;
 
