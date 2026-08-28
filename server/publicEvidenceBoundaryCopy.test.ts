@@ -14,6 +14,15 @@ describe("public evidence-boundary copy", () => {
     expect(login).not.toContain("Automated invoicing with overdue alerts");
   });
 
+  it("does not represent the homepage preview or subscription feed as real-time synchronization", () => {
+    const home = source("client/src/pages/Home.tsx");
+
+    expect(home).toContain("Workspace preview");
+    expect(home).toContain("subscription calendar feed with compatible calendar apps");
+    expect(home).not.toContain("Live view");
+    expect(home).not.toContain("live iCal feed");
+  });
+
   it("does not make unverified security, retention, notification, or support-response commitments", () => {
     const privacy = source("client/src/pages/Privacy.tsx");
 

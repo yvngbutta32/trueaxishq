@@ -2305,3 +2305,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ### Observed public audit correction: mobile install-prompt overlap
 - [x] Prevent the temporary install prompt from covering legal, pricing, or other readable public content at 375px while retaining an accessible dismiss and explicit install action.
 - [x] Add focused prompt-placement/accessibility coverage and recheck the affected public mobile artifacts without claiming installation or browser support outcomes.
+
+### Observed public audit correction: real-time preview and calendar-feed wording
+- [x] Replace the observed public “Live view” and “live iCal feed” language with factual preview and subscription-calendar wording; do not imply real-time synchronization.
+- [x] Add focused copy-boundary coverage, recheck the homepage artifact, and document only observed results and remaining calendar/provider limits.

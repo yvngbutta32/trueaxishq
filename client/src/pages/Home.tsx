@@ -497,7 +497,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                       <div className="text-xs" style={{ color: "rgba(26,26,26,0.55)" }}>Revenue overview</div>
                       <div className="font-bold text-base" style={{ color: "#1A1A1A", letterSpacing: "-0.02em" }}>Your data</div>
                     </div>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#4ADE80" }}>Live view</span>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#4ADE80" }}>Workspace preview</span>
                   </div>
                   {/* SVG sparkline */}
                   <svg viewBox="0 0 160 36" className="w-full" style={{ height: 36 }} aria-hidden="true">
@@ -1352,7 +1352,7 @@ export default function Home() {
                 { emoji: "🔁", title: "Recurring Invoices", desc: "Set weekly, monthly, or custom billing schedules — invoices generate automatically." },
                 { emoji: "📄", title: "Contracts & Proposals", desc: "Write, send, and convert proposals to invoices with one click." },
                 { emoji: "🌐", title: "Client Portal", desc: "Clients can view their invoices and bookings via a secure token link." },
-                { emoji: "📅", title: "iCal Export", desc: "Share your booking calendar with any calendar app via a live iCal feed." },
+                { emoji: "📅", title: "iCal Export", desc: "Share a subscription calendar feed with compatible calendar apps." },
                 { emoji: "💳", title: "Stripe Pay Now", desc: "Clients can pay invoices instantly — webhooks auto-mark them paid." },
                 { emoji: "🤖", title: "Background Automation", desc: "Overdue detection and recurring invoice generation run every 5 minutes, hands-free." },
               ] as { emoji: string; title: string; desc: string }[]).map(item => (
