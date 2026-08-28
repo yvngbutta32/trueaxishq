@@ -2357,3 +2357,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Prevent a configured `send_email` automation action from increasing the externally completed-action count when the helper uses console fallback or reports SMTP failure.
 - [x] Preserve owner-configured draft workflow behavior and report a clear execution issue without adding delivery, retry, scheduler, or provider-reliability claims.
 - [x] Add focused behavioral and integration coverage for configured SMTP acceptance, console fallback, and SMTP failure; validate and document only observed results and unresolved provider/scheduler limits.
+
+### Observed monthly-report correction: delivery-log accuracy
+- [x] Prevent the background-job log from representing a monthly report as sent when the email helper uses console fallback or reports SMTP failure.
+- [x] Preserve report generation and owner scope without adding delivery, retry, scheduler, provider, analytics-accuracy, or business-outcome claims.
+- [x] Add focused outcome and integration coverage for configured SMTP acceptance, console fallback, and SMTP failure; validate and document only observed results and unresolved provider/scheduler limits.

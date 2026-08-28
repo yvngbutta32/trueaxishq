@@ -441,7 +441,7 @@ async function runMonthlyReport() {
 
           const displayName = user.businessName || user.name || "there";
 
-          await sendEmail({
+          const emailResult = await sendEmail({
             to: user.email,
             subject: `Your ${monthLabel} Business Report — TrueAxis HQ`,
             html: monthlyReportEmail({
@@ -456,7 +456,7 @@ async function runMonthlyReport() {
             }),
           });
 
-          console.log('[Jobs] Monthly report sent for ' + monthLabel);
+          console.log(`[Jobs] Monthly report ${wasAcceptedByConfiguredSmtp(emailResult) ? "accepted by configured SMTP" : "not marked sent without SMTP acceptance"} for ${monthLabel}`);
         } catch (err) {
           console.error(`[Jobs] Failed to send monthly report to user ${user.id}:`, err);
         }
