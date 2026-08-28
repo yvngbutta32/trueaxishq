@@ -59,9 +59,9 @@ export default function About() {
       <section className="py-12 px-4" style={{ background: "#F2F0EC" }}>
         <div className="container max-w-5xl mx-auto grid md:grid-cols-3 gap-5">
           {[
-            { icon: Target, title: "Our Mission", body: "To give every independent professional the operational backbone of a full agency — AI-powered automation, smart client management, and real-time business intelligence — in a single, focused platform." },
-            { icon: Heart, title: "Our Values", body: "Clarity over complexity. Speed over ceremony. We build every feature with one question in mind: does this give our users more time to do the work they actually love?" },
-            { icon: Shield, title: "Our Promise", body: "Your data is yours — full stop. We will never sell it, share it, or hold it hostage. TrueAxis HQ is the engine under your business. You own the business." },
+            { icon: Target, title: "Our Mission", body: "To provide independent professionals with a focused workspace for client management, owner-reviewed workflows, and decision-support context." },
+            { icon: Heart, title: "Our Values", body: "Clarity over complexity. We design features to reduce avoidable administrative friction while keeping owner decisions visible." },
+            { icon: Shield, title: "Our Product Boundary", body: "Available workflows use workspace-scoped access and owner-controlled sharing. Data practices remain subject to the reviewed public privacy policy before launch." },
           ].map(({ icon: Icon, title, body }) => (
             <div key={title} className="retro-card p-6">
               <div className="w-10 h-10 rounded flex items-center justify-center mb-4" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.18)" }}>
@@ -82,9 +82,9 @@ export default function About() {
             Why TrueAxis HQ exists
           </h2>
           <div className="space-y-5 text-base leading-relaxed" style={{ color: "rgba(26,26,26,0.85)" }}>
-            <p>Most freelancers and independent professionals are running their business on a stack of disconnected tools — a scheduling app here, an invoicing tool there, a CRM they barely use, and a spreadsheet holding everything together with duct tape. They're paying for five platforms that don't talk to each other, and spending 15 to 20 hours a week on admin work that should take minutes.</p>
-            <p>TrueAxis HQ was built to end that. The name says it all: a <em>true axis</em> is the fixed center point everything else rotates around. That's what your business needs — one intelligent hub where clients, bookings, invoices, follow-ups, and analytics all live and work together automatically.</p>
-            <p>We built the platform around three convictions. First, that AI should do the grunt work — drafting follow-up emails, flagging at-risk clients, detecting overdue invoices — so you never have to think about it. Second, that your business data should give you real insight, not just raw numbers. And third, that the best software feels invisible: it runs in the background, keeps everything moving, and only surfaces when you need it.</p>
+            <p>Independent professionals can encounter fragmented workflows across scheduling, invoicing, client records, follow-ups, and spreadsheets. TrueAxis HQ is designed to bring relevant workflow context into one workspace.</p>
+            <p>The name reflects the product’s intent: a <em>true axis</em> is a reference point. TrueAxis HQ provides an owner-controlled place to review clients, bookings, invoices, job progress, and follow-up drafts without representing that those tools act on their own.</p>
+            <p>The product is built around three principles. AI-assisted tools can help draft and summarize where enabled; owner-visible signals can support review; and operational records should remain understandable rather than hidden behind automation. Owners remain responsible for decisions and should verify outcomes in their own workspace.</p>
             <p>TrueAxis HQ is designed for coaches, consultants, designers, developers, fitness professionals, and other independent service businesses that want a clearer way to manage client work. The product brings workflow information into one workspace so owners can make decisions from their own data.</p>
           </div>
         </div>
@@ -117,11 +117,11 @@ export default function About() {
           </h2>
           <ul className="space-y-3">
             {[
-              "Independent professionals deserve the same operational leverage as a 10-person agency — at a price that makes sense for a solo business.",
-              "AI should handle the repetitive work. You should handle the relationships and the craft.",
-              "Your data belongs to you. We are the engine, not the owner.",
-              "A great platform should make your business feel calm and in control — not like another thing to manage.",
-              "Clarity is a feature. Every number, every alert, every suggestion in TrueAxis HQ exists to help you make a better decision faster.",
+              "Independent professionals can use focused workflows to review client, job, and billing context in one workspace.",
+              "AI-assisted tools can help draft and organize where enabled; owners remain responsible for reviewing decisions and outcomes.",
+              "Workspace records are designed to be owner-scoped. Data practices and ownership terms require reviewed public policies before launch.",
+              "A clear workspace can make operational context easier to review without promising a particular business outcome.",
+              "Clarity is a feature. Available numbers, alerts, and suggestions are intended to help owners review their own information.",
             ].map(belief => (
               <li key={belief} className="retro-card flex items-start gap-3 p-4">
                 <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#D4922A" }} />

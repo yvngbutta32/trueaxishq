@@ -2309,3 +2309,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ### Observed public audit correction: real-time preview and calendar-feed wording
 - [x] Replace the observed public “Live view” and “live iCal feed” language with factual preview and subscription-calendar wording; do not imply real-time synchronization.
 - [x] Add focused copy-boundary coverage, recheck the homepage artifact, and document only observed results and remaining calendar/provider limits.
+
+### Observed public audit correction: About-page quantified and automatic narrative
+- [x] Replace the observed unsupported 15-to-20-hour, automatic-operation, and real-time-intelligence statements in the public TrueAxis HQ origin narrative with factual workflow language.
+- [x] Add focused public-copy coverage, recheck the public About artifact, and document only observed results and excluded outcome claims.
+- [x] Replace the additional observed 10-person-agency comparison, AI-autonomy, absolute data-ownership, and universal decision-quality statements in the public About principles with factual product language.

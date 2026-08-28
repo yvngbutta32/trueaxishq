@@ -23,6 +23,22 @@ describe("public evidence-boundary copy", () => {
     expect(home).not.toContain("live iCal feed");
   });
 
+  it("does not use unsupported quantified, autonomous, real-time, or absolute data-practice language in the About narrative", () => {
+    const about = source("client/src/pages/About.tsx");
+
+    expect(about).not.toContain("15 to 20 hours a week");
+    expect(about).not.toContain("real-time business intelligence");
+    expect(about).not.toContain("all live and work together automatically");
+    expect(about).not.toContain("We will never sell it, share it");
+    expect(about).not.toContain("same operational leverage as a 10-person agency");
+    expect(about).not.toContain("AI should handle the repetitive work");
+    expect(about).not.toContain("Your data belongs to you. We are the engine");
+    expect(about).not.toContain("make a better decision faster");
+    expect(about).toContain("owner-controlled place to review");
+    expect(about).toContain("should verify outcomes in their own workspace");
+    expect(about).toContain("owners remain responsible for reviewing decisions and outcomes");
+  });
+
   it("does not make unverified security, retention, notification, or support-response commitments", () => {
     const privacy = source("client/src/pages/Privacy.tsx");
 
