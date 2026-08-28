@@ -2333,3 +2333,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ### Observed sign-in accessibility repair: password visibility control
 - [x] Restore standard keyboard focus to the Admin sign-in password-visibility button while retaining its accessible label and explicit button semantics.
 - [x] Add focused accessibility coverage, recheck the public 375px sign-in artifact, and document only observed keyboard-reachability evidence and authentication limits.
+
+### Build-tooling maintenance: browser-baseline data refresh
+- [x] Refresh the build-reported outdated browser-baseline development data without changing product behavior or making browser-compatibility claims.
+- [x] Run the dependency audit and standard validation gates, then document only observed dependency, audit, and build results.
