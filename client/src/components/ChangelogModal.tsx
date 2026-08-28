@@ -30,14 +30,14 @@ const CHANGELOG = [
   {
     icon: Bell,
     color: "#FF6B6B",
-    title: "Live Notifications",
-    desc: "In-app notification center with real-time alerts for invoices, bookings, and follow-ups.",
+    title: "In-app Notifications",
+    desc: "An in-app notification center for invoice, booking, and follow-up activity.",
   },
   {
     icon: Shield,
     color: "#8B5CF6",
     title: "Client Portal",
-    desc: "Share a secure portal link with clients so they can view invoices and pay online.",
+    desc: "Share a portal link with clients so they can review invoices and, in configured environments, use online checkout.",
   },
   {
     icon: Zap,

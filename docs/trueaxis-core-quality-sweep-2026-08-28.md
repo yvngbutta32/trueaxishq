@@ -13,6 +13,7 @@ The sweep inventoried routed public and authenticated surfaces, scanned user-fac
 |---|---|---|
 | Registration | The value statement made an absolute data-sales claim not established by the available evidence. | Replaced it with a direct reference to the Privacy Notice. |
 | Change log | Stripe Checkout was described as instant and automatically complete. | Reframed it as configured payment use with status recorded after verified provider processing. |
+| Change log | Notification and client-portal language implied real-time delivery, a blanket security conclusion, and unconditional online payment availability. | Reframed notifications as in-app activity, portal access as a link, and online checkout as configured-environment behavior. |
 | Contact | The page promised a four-hour response, direct email fallback, and unconditional follow-up before support delivery has been externally validated. | Reframed it around local form receipt and explicit configured/verified delivery dependencies. |
 | Mobile public pages | Contact, pricing, registration, Help Center, and home were visually reviewed at 375px. | Confirmed readable containment and unobstructed entry controls after prior install-prompt protections. |
 
