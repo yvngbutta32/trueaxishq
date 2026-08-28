@@ -15,7 +15,7 @@ import { COOKIE_NAME } from "@shared/const";
 export const icalRouter = Router();
 
 function escapeIcal(str: string): string {
-  return str.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+  return str.replace(/\r\n?/g, "\n").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 }
 
 function formatIcalDate(d: Date): string {

@@ -5,6 +5,11 @@ import { resolve } from "node:path";
 const source = readFileSync(resolve(process.cwd(), "server/icalExport.ts"), "utf8");
 
 describe("portal calendar export privacy", () => {
+  it("normalizes CRLF and lone CR controls before escaping calendar text", () => {
+    expect(source).toContain('str.replace(/\\r\\n?/g, "\\n")');
+    expect(source).toContain('.replace(/\\n/g, "\\\\n")');
+  });
+
   it("requires a non-revoked portal token and scopes portal rows to its client", () => {
     expect(source).toContain("eq(clientPortalTokens.revoked, false)");
     expect(source).toContain("portalClientId = portalRecord.clientId");

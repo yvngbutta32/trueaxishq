@@ -2314,3 +2314,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Replace the observed unsupported 15-to-20-hour, automatic-operation, and real-time-intelligence statements in the public TrueAxis HQ origin narrative with factual workflow language.
 - [x] Add focused public-copy coverage, recheck the public About artifact, and document only observed results and excluded outcome claims.
 - [x] Replace the additional observed 10-person-agency comparison, AI-autonomy, absolute data-ownership, and universal decision-quality statements in the public About principles with factual product language.
+
+### Observed calendar-export hardening: control-character normalization
+- [x] Normalize CRLF and lone CR input before emitting iCalendar text fields so calendar-service, client, and business strings cannot create unintended content lines.
+- [x] Preserve the existing private owner-feed credential boundary and token-scoped client-feed projection; do not claim native synchronization, refresh timing, calendar-provider behavior, or universal compatibility.
+- [x] Add focused escape, owner-feed, and client-projection regression coverage; validate and document the hardening release.
