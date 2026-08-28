@@ -14,7 +14,7 @@ import { COOKIE_NAME } from "@shared/const";
 
 export const icalRouter = Router();
 
-function escapeIcal(str: string): string {
+export function escapeIcalText(str: string): string {
   return str.replace(/\r\n?/g, "\n").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 }
 
@@ -64,7 +64,7 @@ icalRouter.get("/calendar/feed/:credentialIcs", async (req, res) => {
       "PRODID:-//TrueAxis HQ//Private Calendar Feed//EN",
       "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH",
-      `X-WR-CALNAME:${escapeIcal(user?.businessName || user?.name || "TrueAxis HQ Calendar")}`,
+      `X-WR-CALNAME:${escapeIcalText(user?.businessName || user?.name || "TrueAxis HQ Calendar")}`,
       "X-WR-TIMEZONE:UTC",
       "X-WR-CALDESC:Private service schedule from TrueAxis HQ",
     ];
@@ -79,7 +79,7 @@ icalRouter.get("/calendar/feed/:credentialIcs", async (req, res) => {
       lines.push(`DTSTAMP:${now}`);
       lines.push(`DTSTART:${formatIcalDate(startDate)}`);
       lines.push(`DTEND:${formatIcalDate(endDate)}`);
-      lines.push(`SUMMARY:${escapeIcal(booking.service || "Appointment")}`);
+      lines.push(`SUMMARY:${escapeIcalText(booking.service || "Appointment")}`);
       lines.push(`STATUS:${booking.status === "completed" ? "COMPLETED" : "CONFIRMED"}`);
       lines.push("END:VEVENT");
     }
@@ -157,7 +157,7 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
       `PRODID:-//TrueAxis HQ//Calendar//EN`,
       "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH",
-      `X-WR-CALNAME:${escapeIcal(calName)}`,
+      `X-WR-CALNAME:${escapeIcalText(calName)}`,
       "X-WR-TIMEZONE:UTC",
       "X-WR-CALDESC:Bookings from TrueAxis HQ",
     ];
@@ -182,9 +182,9 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
         : b.service || "Appointment";
       const description = portalClientId === null
         ? [
-            b.clientName ? `Client: ${escapeIcal(b.clientName)}` : "",
-            b.clientEmail ? `Email: ${escapeIcal(b.clientEmail)}` : "",
-            b.notes ? `Notes: ${escapeIcal(b.notes)}` : "",
+            b.clientName ? `Client: ${escapeIcalText(b.clientName)}` : "",
+            b.clientEmail ? `Email: ${escapeIcalText(b.clientEmail)}` : "",
+            b.notes ? `Notes: ${escapeIcalText(b.notes)}` : "",
           ].filter(Boolean).join("\\n")
         : "";
 
@@ -193,8 +193,8 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
       lines.push(`DTSTAMP:${now}`);
       lines.push(`DTSTART:${formatIcalDate(startDate)}`);
       lines.push(`DTEND:${formatIcalDate(endDate)}`);
-      lines.push(`SUMMARY:${escapeIcal(summary)}`);
-      if (description) lines.push(`DESCRIPTION:${escapeIcal(description)}`);
+      lines.push(`SUMMARY:${escapeIcalText(summary)}`);
+      if (description) lines.push(`DESCRIPTION:${escapeIcalText(description)}`);
       lines.push(`STATUS:${b.status === "completed" ? "COMPLETED" : "CONFIRMED"}`);
       lines.push("END:VEVENT");
     }

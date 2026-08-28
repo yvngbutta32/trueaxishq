@@ -2319,3 +2319,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Normalize CRLF and lone CR input before emitting iCalendar text fields so calendar-service, client, and business strings cannot create unintended content lines.
 - [x] Preserve the existing private owner-feed credential boundary and token-scoped client-feed projection; do not claim native synchronization, refresh timing, calendar-provider behavior, or universal compatibility.
 - [x] Add focused escape, owner-feed, and client-projection regression coverage; validate and document the hardening release.
+
+### Calendar-export quality strengthening: behavioral escaping coverage
+- [x] Replace source-string-only CRLF assertions with executable escaping tests that verify the emitted text contains no raw line controls while preserving literal iCalendar escapes.
+- [x] Keep the test helper’s export narrowly scoped and preserve all calendar route, token, ownership, client-projection, and provider-behavior boundaries.
+- [x] Validate and document the test-strengthening release without representing a provider feed request, subscription, or synchronization result.

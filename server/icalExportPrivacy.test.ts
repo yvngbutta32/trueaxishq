@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { escapeIcalText } from "./icalExport";
 
 const source = readFileSync(resolve(process.cwd(), "server/icalExport.ts"), "utf8");
 
 describe("portal calendar export privacy", () => {
   it("normalizes CRLF and lone CR controls before escaping calendar text", () => {
-    expect(source).toContain('str.replace(/\\r\\n?/g, "\\n")');
-    expect(source).toContain('.replace(/\\n/g, "\\\\n")');
+    const escaped = escapeIcalText("Service\r\nX-ATTENDEE;A,B\\C\rEnd\nLast");
+
+    expect(escaped).toBe("Service\\nX-ATTENDEE\\;A\\,B\\\\C\\nEnd\\nLast");
+    expect(escaped).not.toMatch(/[\r\n]/);
   });
 
   it("requires a non-revoked portal token and scopes portal rows to its client", () => {
@@ -34,9 +37,9 @@ describe("private owner calendar-feed credential", () => {
 
   it("rejects revoked owner credentials and produces a service-only schedule", () => {
     expect(source).toContain("eq(calendarFeedTokens.revoked, false)");
-    expect(source).toContain('SUMMARY:${escapeIcal(booking.service || "Appointment")}');
-    expect(source).not.toContain("Client: ${escapeIcal(booking.clientName)}");
-    expect(source).not.toContain("Notes: ${escapeIcal(booking.notes)}");
+    expect(source).toContain('SUMMARY:${escapeIcalText(booking.service || "Appointment")}');
+    expect(source).not.toContain("Client: ${escapeIcalText(booking.clientName)}");
+    expect(source).not.toContain("Notes: ${escapeIcalText(booking.notes)}");
   });
 
   it("updates owner-feed access telemetry without making delivery depend on it", () => {
