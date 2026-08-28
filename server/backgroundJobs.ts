@@ -21,6 +21,7 @@ import {
   jobRunGuards,
 } from "../drizzle/schema";
 import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, bookingReminderEmail, postSessionCheckInEmail } from "./_core/email";
+import { getRecurringInvoiceDeliveryOutcome } from "./recurringInvoiceDeliveryOutcome";
 import { processDueAutomations } from "./automationEngine";
 import { randomBytes } from "node:crypto";
 
@@ -90,7 +91,7 @@ async function runRecurringInvoices() {
             clientEmail: rec.clientEmail ?? null,
             service: rec.description ?? "Recurring Service",
             amount: rec.amount,
-            status: "sent",
+            status: "draft",
             dueDate: dueDateStr,
             notes: `Auto-generated recurring invoice (${rec.frequency})`,
           });
@@ -102,16 +103,9 @@ async function runRecurringInvoices() {
             .set({ nextDueAt: newNextDue, lastInvoiceId: invoiceId })
             .where(eq(recurringInvoices.id, rec.id));
 
-          await db.insert(notifications).values({
-            userId: rec.userId,
-            title: "Recurring Invoice Generated",
-            body: `Invoice ${invoiceNumber} for ${rec.clientName} ($${rec.amount}) has been automatically created and sent.`,
-            type: "success",
-            link: "/dashboard",
-          });
-
+          let emailResult = null;
           if (rec.clientEmail) {
-            await sendEmail({
+            emailResult = await sendEmail({
               to: rec.clientEmail,
               subject: `Invoice ${invoiceNumber} from TrueAxis HQ`,
               html: invoiceReminderEmail({
@@ -122,6 +116,20 @@ async function runRecurringInvoices() {
               }),
             });
           }
+
+          const deliveryOutcome = getRecurringInvoiceDeliveryOutcome({ hasClientEmail: Boolean(rec.clientEmail), emailResult });
+          if (deliveryOutcome.invoiceStatus === "sent") {
+            await db.update(invoices)
+              .set({ status: "sent" })
+              .where(and(eq(invoices.id, Number(invoiceId)), eq(invoices.userId, rec.userId)));
+          }
+          await db.insert(notifications).values({
+            userId: rec.userId,
+            title: "Recurring Invoice Generated",
+            body: `Invoice ${invoiceNumber} for ${rec.clientName} ($${rec.amount}) ${deliveryOutcome.ownerNotice}`,
+            type: emailResult?.success && emailResult.mode === "smtp" ? "success" : "info",
+            link: "/dashboard",
+          });
 
           // Recurring invoice generated successfully
         } catch (err) {

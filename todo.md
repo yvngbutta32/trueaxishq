@@ -2337,3 +2337,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 ### Build-tooling maintenance: browser-baseline data refresh
 - [x] Refresh the build-reported outdated browser-baseline development data without changing product behavior or making browser-compatibility claims.
 - [x] Run the dependency audit and standard validation gates, then document only observed dependency, audit, and build results.
+
+### Observed recurring-invoice correction: delivery-state accuracy
+- [x] Prevent a recurring invoice from being recorded or announced as sent when there is no client email, the email helper uses console fallback, or an SMTP attempt fails.
+- [x] Preserve recurring-invoice due-date advancement and invoice creation without creating an automatic provider-delivery or retry claim.
+- [x] Add focused source and behavioral coverage for SMTP success, console fallback, missing recipient, and failed delivery; validate and document only observed outcomes and unresolved scheduler/provider limits.
