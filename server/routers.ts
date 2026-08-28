@@ -7371,6 +7371,37 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         return { success: true, customerAssetId: input.customerAssetId };
       }),
 
+    setNextVisitDate: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), nextVisitDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [plan] = await db.select({
+          id: recurringServicePlans.id,
+          frequency: recurringServicePlans.frequency,
+          weekday: recurringServicePlans.weekday,
+          dayOfMonth: recurringServicePlans.dayOfMonth,
+          startDate: recurringServicePlans.startDate,
+          endDate: recurringServicePlans.endDate,
+          startTime: recurringServicePlans.startTime,
+        }).from(recurringServicePlans)
+          .where(and(eq(recurringServicePlans.id, input.id), eq(recurringServicePlans.userId, ctx.user.id))).limit(1);
+        if (!plan) throw new TRPCError({ code: "NOT_FOUND", message: "Recurring service plan not found." });
+        const recurrenceInput = { frequency: plan.frequency, weekday: plan.weekday, dayOfMonth: plan.dayOfMonth, startDate: plan.startDate, endDate: plan.endDate } as const;
+        const eligibleDate = nextRecurringServiceDate(recurrenceInput, input.nextVisitDate);
+        if (eligibleDate !== input.nextVisitDate) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a date that matches this plan's recurrence and date range." });
+        const nextVisitAt = new Date(`${input.nextVisitDate}T${plan.startTime}:00.000Z`);
+        if (nextVisitAt.getTime() <= Date.now()) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a future eligible visit date." });
+        const [existing] = await db.select({ id: serviceVisits.id }).from(serviceVisits).where(and(
+          eq(serviceVisits.userId, ctx.user.id),
+          eq(serviceVisits.recurringServicePlanId, plan.id),
+          eq(serviceVisits.scheduledStart, nextVisitAt),
+        )).limit(1);
+        if (existing) throw new TRPCError({ code: "CONFLICT", message: "A visit already exists for that plan date." });
+        await db.update(recurringServicePlans).set({ nextVisitAt, updatedAt: new Date() })
+          .where(and(eq(recurringServicePlans.id, plan.id), eq(recurringServicePlans.userId, ctx.user.id)));
+        return { success: true, nextVisitAt };
+      }),
+
     generateNextVisit: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
       const db = await requireDb();
       const [plan] = await db.select().from(recurringServicePlans).where(and(eq(recurringServicePlans.id, input.id), eq(recurringServicePlans.userId, ctx.user.id), eq(recurringServicePlans.active, true))).limit(1);

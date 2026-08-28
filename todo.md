@@ -2177,9 +2177,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add focused inactive-job generation, owner-scope, history-retention, and portal-exclusion coverage; validate and document the correction.
 
 ### Selected private planning refinement: recurring-plan next-visit correction
-- [ ] Add an owner-only correction for a plan’s next eligible future visit date without changing recurrence, stored UTC time, job, asset, or generated-visit history.
-- [ ] Validate the selected date against the plan recurrence and date boundaries, and keep it in protected Dispatch Board planning context only.
-- [ ] Add focused schedule, owner-scope, retained-history, and portal-exclusion coverage; validate and document the refinement.
+- [x] Add an owner-only correction for a plan’s next eligible future visit date without changing recurrence, stored UTC time, job, asset, or generated-visit history.
+- [x] Validate the selected date against the plan recurrence and date boundaries, and keep it in protected Dispatch Board planning context only.
+- [x] Add focused schedule, owner-scope, retained-history, and portal-exclusion coverage; validate and document the refinement.
+- [x] Review the correction’s control labels, explanatory copy, focus behavior, and private-data boundary before release.
 
 ### Selected private foundation: customer-asset record correction
 - [x] Add a bounded owner-only edit flow for private customer-asset identity, tag, functional location, and notes without changing client association or historical job/response records.

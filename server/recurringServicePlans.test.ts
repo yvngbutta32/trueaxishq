@@ -112,4 +112,23 @@ describe("recurring service plan workflow contracts", () => {
     expect(portalSource).not.toContain("Correct plan asset");
     expect(portalSource).not.toContain("Remove private asset context");
   });
+
+  it("allows only the owner to correct a future eligible next-visit date without changing private plan history", () => {
+    expect(routerSource).toContain("setNextVisitDate: protectedProcedure");
+    expect(routerSource).toContain("eq(recurringServicePlans.id, input.id), eq(recurringServicePlans.userId, ctx.user.id)");
+    expect(routerSource).toContain("nextRecurringServiceDate(recurrenceInput, input.nextVisitDate)");
+    expect(routerSource).toContain("Choose a date that matches this plan's recurrence and date range.");
+    expect(routerSource).toContain("Choose a future eligible visit date.");
+    expect(routerSource).toContain("A visit already exists for that plan date.");
+    expect(routerSource).toContain("set({ nextVisitAt, updatedAt: new Date() })");
+  });
+
+  it("keeps next-visit correction in protected Dispatch Board planning controls", () => {
+    expect(dispatchSource).toContain("recurringServicePlans.setNextVisitDate.useMutation");
+    expect(dispatchSource).toContain("Correct next private visit date");
+    expect(dispatchSource).toContain("Choose a future date that already matches the plan’s weekly or monthly schedule.");
+    expect(dispatchSource).toContain("The stored UTC time, plan job, asset context, and generated visits remain unchanged.");
+    expect(portalSource).not.toContain("Correct next private visit date");
+    expect(portalSource).not.toContain("Save next date");
+  });
 });
