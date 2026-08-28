@@ -2291,3 +2291,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Reapply final owner, active-visit, visit-overlap, and private-availability checks to the proposed window; require explicit acknowledgement for an intentional conflict.
 - [x] Show only private candidate-week capacity context and keep the correction free of automatic notifications, dispatch actions, client-facing updates, routing, GPS, payroll, attendance, and provider claims.
 - [x] Add accessible Dispatch Board timing-correction controls and focused active-state, ownership, conflict, retained-field, and portal-projection regression coverage; validate and document the release.
+
+### Selected client-coordination correction: owner-curated visit update
+- [x] Allow an owner to deliberately revise the existing client-visible update for an active service visit without exposing private dispatch notes, staff identity, capacity, availability, routes, GPS, or internal history.
+- [x] Preserve the final owner predicate and the existing explicit client-visible opt-in; do not create email, SMS, push, calendar, automatic delivery, or acknowledgment claims.
+- [x] Add accessible update-correction controls, client-safe preview guidance, and focused owner-scope, client projection, private-field exclusion, and no-delivery-claim coverage; validate and document the release.

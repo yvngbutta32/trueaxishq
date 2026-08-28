@@ -7228,6 +7228,9 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         if ((input.scheduledStart || input.scheduledEnd) && (["completed", "cancelled"].includes(visit.status) || ["completed", "cancelled"].includes(status))) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Only active service visits can have their time corrected." });
         }
+        if (input.clientUpdate !== undefined && ["completed", "cancelled"].includes(visit.status)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Only active service visits can have client updates corrected." });
+        }
         let reassignedMemberName: string | null = null;
         if (input.teamMemberId !== undefined && input.teamMemberId !== visit.teamMemberId) {
           if (["completed", "cancelled"].includes(visit.status) || ["completed", "cancelled"].includes(status)) {
