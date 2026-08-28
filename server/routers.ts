@@ -444,6 +444,25 @@ export const appRouter = router({
       return { success: true } as const;
     }),
 
+    revokeAllSessions: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await requireDb();
+      const [result] = await db.update(userSessions)
+        .set({ isActive: false, invalidatedAt: new Date(), invalidationReason: "owner_requested" })
+        .where(and(eq(userSessions.userId, ctx.user.id), eq(userSessions.isActive, true)));
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      logSecurityEvent({
+        eventType: "sessions_revoked",
+        severity: "medium",
+        userId: ctx.user.id,
+        email: ctx.user.email ?? undefined,
+        ip: getClientIp(ctx.req),
+        userAgent: ctx.req.headers["user-agent"],
+        details: "Account owner requested sign-out of active sessions",
+      });
+      return { success: true, revokedSessionCount: result.affectedRows } as const;
+    }),
+
     forgotPassword: publicProcedure
       .input(z.object({ email: safeEmail, origin: z.string().url().optional() }))
       .mutation(async ({ input, ctx }) => {

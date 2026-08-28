@@ -2324,3 +2324,8 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Replace source-string-only CRLF assertions with executable escaping tests that verify the emitted text contains no raw line controls while preserving literal iCalendar escapes.
 - [x] Keep the test helper’s export narrowly scoped and preserve all calendar route, token, ownership, client-projection, and provider-behavior boundaries.
 - [x] Validate and document the test-strengthening release without representing a provider feed request, subscription, or synchronization result.
+
+### Account-security refinement: sign out of all devices
+- [x] Add a protected self-service action that revokes active sessions only for the current user and clears that user’s current session cookie.
+- [x] Record the deliberate account-security action without exposing session identifiers, IP addresses, user agents, or any other account’s data.
+- [x] Add an accessible owner account control with deliberate confirmation and clear local sign-out guidance; validate and document the feature without claiming compromised-account prevention or provider-authentication behavior.

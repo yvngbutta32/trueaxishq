@@ -235,12 +235,24 @@ export default function Admin() {
     },
     onError: (e) => toast.error(e.message),
   });
+  const revokeAllSessionsMutation = trpc.auth.revokeAllSessions.useMutation({
+    onSuccess: () => {
+      toast.success("Active sessions were signed out. Sign in again to continue.");
+      window.setTimeout(() => { window.location.href = "/admin-login"; }, 800);
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   const handleChangePassword = () => {
     if (!cpCurrent || !cpNew || !cpConfirm) return toast.error("All password fields are required.");
     if (cpNew.length < 8) return toast.error("New password must be at least 8 characters.");
     if (cpNew !== cpConfirm) return toast.error("New passwords do not match.");
     changePasswordMutation.mutate({ currentPassword: cpCurrent, newPassword: cpNew });
+  };
+
+  const handleRevokeAllSessions = () => {
+    if (!window.confirm("This signs out every active session for this account, including this device. Continue?")) return;
+    revokeAllSessionsMutation.mutate();
   };
 
   const updateField = (key: string, value: unknown) => {
@@ -895,6 +907,23 @@ export default function Admin() {
                     </Button>
                     <p className="text-xs text-[rgba(245,239,227,0.50)]">You will be redirected to log in again after changing your password.</p>
                   </div>
+                </div>
+
+                <div className="bg-[#161B22] rounded-xl p-6 border border-red-400/20 shadow-sm">
+                  <h3 className="text-base font-bold text-[#F5EFE3] flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-red-300" />
+                    Account session control
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[rgba(245,239,227,0.60)]">This signs out every active session for this account, including this device. It does not change your password or notify anyone.</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleRevokeAllSessions}
+                    disabled={revokeAllSessionsMutation.isPending}
+                    className="mt-4 min-h-11 border-red-300/40 bg-red-500/10 text-red-100 hover:bg-red-500/20"
+                  >
+                    {revokeAllSessionsMutation.isPending ? <><div className="mr-2 w-4 h-4 border-2 border-red-100/40 border-t-red-100 rounded-full animate-spin" />Signing out…</> : <><Shield className="mr-2 w-4 h-4" />Sign out of all devices</>}
+                  </Button>
                 </div>
 
                 {/* Save button at bottom */}
