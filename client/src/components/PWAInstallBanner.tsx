@@ -7,6 +7,15 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+const publicReadingRoutes = new Set([
+  "/about",
+  "/contact",
+  "/help",
+  "/pricing",
+  "/privacy",
+  "/terms",
+]);
+
 /**
  * PWAInstallBanner
  * Shows a subtle install-to-home-screen banner on supported browsers.
@@ -22,7 +31,8 @@ export default function PWAInstallBanner() {
 
   const showOnlyOutsideEntryContexts = () => {
     const hasEntryControl = Boolean(document.querySelector("form, input, textarea, select, [contenteditable='true']"));
-    if (!hasEntryControl) setShowBanner(true);
+    const isPublicReadingRoute = publicReadingRoutes.has(window.location.pathname);
+    if (!hasEntryControl && !isPublicReadingRoute) setShowBanner(true);
   };
 
   useEffect(() => {

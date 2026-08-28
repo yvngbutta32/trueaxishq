@@ -9,7 +9,12 @@ describe("public install prompt accessibility", () => {
     expect(component).toContain('document.addEventListener("focusin", hideForFormEntry)');
     expect(component).toContain("showOnlyOutsideEntryContexts");
     expect(component).toContain("form, input, textarea, select, [contenteditable='true']");
-    expect(component).toContain("if (!hasEntryControl) setShowBanner(true)");
+    expect(component).toContain("const publicReadingRoutes = new Set");
+    expect(component).toContain('"/privacy"');
+    expect(component).toContain('"/terms"');
+    expect(component).toContain('"/pricing"');
+    expect(component).toContain("const isPublicReadingRoute = publicReadingRoutes.has(window.location.pathname)");
+    expect(component).toContain("if (!hasEntryControl && !isPublicReadingRoute) setShowBanner(true)");
     expect(component).toContain("target instanceof HTMLInputElement");
     expect(component).toContain("target instanceof HTMLTextAreaElement");
     expect(component).toContain("target instanceof HTMLSelectElement");

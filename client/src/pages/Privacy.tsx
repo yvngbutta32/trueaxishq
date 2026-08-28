@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Zap, Shield } from "lucide-react";
 
-const LAST_UPDATED = "March 14, 2026";
+const REVIEW_STATUS = "Draft reviewed: August 28, 2026";
 
 const sections = [
   {
@@ -12,100 +12,71 @@ const sections = [
 
 **Account Information:** When you register, we collect your name, email address, and securely hashed authentication credentials needed to operate your account.
 
-**Business Data:** We collect the data you enter into TrueAxis HQ, including client names and contact information, invoice details, booking records, follow-up messages, and business settings. This data belongs to you and is stored securely on our servers.
+**Business Data:** We collect the data you enter into TrueAxis HQ, including client names and contact information, invoice details, booking records, follow-up messages, and business settings, to provide workspace functionality.
 
-**Payment Information:** When you subscribe to a paid plan, payment is processed by Stripe. We do not store your full credit card number, CVV, or expiration date. We store only your Stripe Customer ID and subscription status to manage your account.
+**Payment Information:** Payment functionality may involve a configured payment provider. Provider processing and payment-data handling must be reviewed against the applicable provider terms before public launch.
 
-**Usage Data:** We automatically collect information about how you interact with our platform, including pages visited, features used, session duration, and error logs. This data is used to improve the product and diagnose issues.
+**Usage Data:** Platform operation may produce technical logs or analytics events. Their collection, retention, and use require operational review before public launch.
 
-**Device and Technical Data:** We collect your IP address, browser type, operating system, and referring URLs for security monitoring and fraud prevention.`,
+**Device and Technical Data:** Requests can include technical information such as an IP address and browser characteristics. Any collection and retention policy requires operational review before public launch.`,
   },
   {
     title: "2. How We Use Your Information",
     content: `We use the information we collect to:
 
 - Provide, operate, and maintain the TrueAxis HQ platform
-- Process transactions and send related billing information
-- Send you technical notices, updates, and security alerts
-- Respond to your comments and questions and provide customer support
-- Monitor and analyze usage patterns to improve our services
-- Detect, investigate, and prevent fraudulent transactions and other illegal activities
-- Comply with legal obligations
+- Provide and maintain the workspace features you choose to use
+- Support configured account, billing, and communication workflows where they are available
+- Investigate operational and security reports where appropriate
+- Meet validated legal and operational obligations
 
-We do not sell, rent, or share your personal information with third parties for their marketing purposes.`,
+This draft does not establish a final data-sharing policy, legal basis, provider list, or notice process. Obtain qualified privacy review before relying on it.`,
   },
   {
     title: "3. Data Storage and Security",
-    content: `Your data is stored on secure servers hosted in the United States. We implement industry-standard security measures including:
+    content: `TrueAxis HQ includes application-level controls such as authentication, input validation, workspace ownership checks, and rate-limiting logic. These implementation details are not a security certification, guarantee, or independent assurance result.
 
-- TLS/SSL encryption for all data in transit
-- AES-256 encryption for sensitive data at rest
-- Regular security audits and penetration testing
-- Role-based access controls limiting employee access to your data
-- Automated threat detection and IP-based rate limiting
-
-While we take these measures seriously, no method of transmission over the internet is 100% secure. We encourage you to use a strong, unique password for your account and to enable any available two-factor authentication.`,
+Hosting, encryption, access-management, incident-response, logging, backup, and security-testing practices require an independent technical and legal review before public launch. Use a strong, unique password and enable any available account security option.`,
   },
   {
     title: "4. Data Retention",
-    content: `We retain your account data for as long as your account is active or as needed to provide you services. If you delete your account, we will delete or anonymize your personal data within 30 days, except where we are required to retain it for legal, tax, or fraud prevention purposes.
+    content: `Retention, deletion, recovery, export, and backup practices have not been finalized for public launch. Do not rely on a particular retention or deletion timeline from this draft.
 
-Business data you have entered (clients, invoices, bookings) will be permanently deleted within 30 days of account deletion. We recommend exporting your data before deleting your account.`,
+Before launch, publish reviewed retention and deletion procedures and provide an appropriate data-export path.`,
   },
   {
     title: "5. Sharing Your Information",
-    content: `We share your information only in the following circumstances:
+    content: `Third-party processors, integrations, disclosures, and provider responsibilities must be identified and reviewed before public launch.
 
-**Service Providers:** We share data with third-party vendors who help us operate our platform, including Stripe (payment processing), AWS (cloud infrastructure), and analytics providers. These vendors are contractually obligated to protect your data.
-
-**Legal Requirements:** We may disclose your information if required by law, subpoena, or other legal process, or if we believe disclosure is necessary to protect our rights, your safety, or the safety of others.
-
-**Business Transfers:** If TrueAxis HQ is acquired or merges with another company, your data may be transferred as part of that transaction. We will notify you before your data is transferred and becomes subject to a different privacy policy.
-
-We do not sell your personal data to data brokers, advertisers, or any third party.`,
+This draft does not make a final commitment about sharing, legal disclosure, business transfers, advertising, or notice practices.`,
   },
   {
     title: "6. Your Rights and Choices",
-    content: `You have the following rights regarding your personal data:
+    content: `Some workspace records can be viewed or exported through available product controls. Availability varies by feature and account state.
 
-**Access:** You can access and download your data at any time from your account settings.
-
-**Correction:** You can update your profile information and business settings at any time within the platform.
-
-**Deletion:** You can request deletion of your account and all associated data by contacting us at privacy@trueaxishq.com.
-
-**Portability:** You can export your client list, invoices, and booking history in standard formats from your dashboard.
-
-**Opt-Out:** You can opt out of non-essential communications by updating your notification preferences in your account settings.
-
-If you are located in the European Economic Area, you have additional rights under GDPR, including the right to lodge a complaint with your local data protection authority.`,
+Data-subject rights, account-deletion requests, portability processes, marketing preferences, and jurisdiction-specific obligations require qualified legal and privacy review before launch.`,
   },
   {
     title: "7. Cookies and Tracking",
-    content: `We use cookies and similar tracking technologies to operate our platform. Specifically:
+    content: `Session cookies may be used for account access. Analytics, consent, preference, and third-party tracking practices require a reviewed public policy before launch.
 
-**Essential Cookies:** Required for authentication and session management. These cannot be disabled without breaking the platform.
-
-**Analytics Cookies:** Used to understand how users interact with our platform. You can opt out of analytics tracking in your account settings.
-
-We do not use third-party advertising cookies or sell data to advertising networks.`,
+This draft does not establish cookie-consent, advertising, or opt-out commitments.`,
   },
   {
     title: "8. Children's Privacy",
-    content: `TrueAxis HQ is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately at privacy@trueaxishq.com and we will delete it promptly.`,
+    content: `Age, children’s privacy, and parental-consent requirements require qualified legal review before launch.`,
   },
   {
     title: "9. Changes to This Policy",
-    content: `We may update this Privacy Policy from time to time. We will notify you of material changes by email or by posting a prominent notice on our platform at least 30 days before the changes take effect. Your continued use of TrueAxis HQ after the effective date constitutes your acceptance of the updated policy.`,
+    content: `Policy versioning and any notice process will be established after legal and operational review. Do not rely on a particular email, timing, or acceptance mechanism from this draft.`,
   },
   {
     title: "10. Contact Us",
     content: `If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
 
 **Email:** privacy@trueaxishq.com
-**Mailing Address:** TrueAxis HQ, Privacy Team, 100 Innovation Drive, Suite 400, Austin, TX 78701
 
-We will respond to all privacy-related inquiries within 5 business days.`,
+This contact channel is provided for policy questions. No response-time commitment is represented here.`,
   },
 ];
 
@@ -136,10 +107,10 @@ export default function Privacy() {
           <span className="text-xs font-semibold text-[#D4922A] uppercase tracking-wider">Legal</span>
         </div>
         <h1 className="text-4xl sm:text-5xl font-extrabold mb-3 text-[#1A1A1A]">Privacy Policy</h1>
-        <p className="text-sm text-[rgba(26,26,26,0.55)] mb-12">Last updated: {LAST_UPDATED}</p>
+        <p className="text-sm text-[rgba(26,26,26,0.55)] mb-12">{REVIEW_STATUS}</p>
 
         <p className="text-[rgba(26,26,26,0.80)] leading-relaxed mb-10 text-base">
-          TrueAxis HQ ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform. Please read this policy carefully. If you disagree with its terms, please discontinue use of the platform.
+          This pre-launch Privacy Policy draft describes intended data-practice boundaries and current product patterns. It is not a final privacy notice, compliance statement, or substitute for qualified legal and privacy review. Do not rely on it for a particular jurisdiction or use case.
         </p>
 
         <div className="space-y-10">

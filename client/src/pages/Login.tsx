@@ -9,9 +9,9 @@ import { Eye, EyeOff, Loader2, CheckCircle, Zap, Shield, TrendingUp } from "luci
 
 const features = [
   { icon: Zap, text: "AI-powered client management & follow-ups" },
-  { icon: TrendingUp, text: "Live analytics: MRR, ARR, booking trends" },
-  { icon: Shield, text: "Client Pulse AI™ — detect churn before it happens" },
-  { icon: CheckCircle, text: "Automated invoicing with overdue alerts" },
+  { icon: TrendingUp, text: "Analytics workspace for revenue and booking context" },
+  { icon: Shield, text: "Client Pulse AI™ — owner-reviewed relationship signals" },
+  { icon: CheckCircle, text: "Invoice and overdue-status workspace" },
 ];
 
 export default function Login() {
@@ -71,7 +71,7 @@ export default function Login() {
               style={{ color: "#1A1A1A" }}
             >
               Your business,<br />
-              <span style={{ color: "#D4922A" }}>running itself.</span>
+              <span style={{ color: "#D4922A" }}>moving with clarity.</span>
             </h2>
             <p className="text-base leading-relaxed" style={{ color: "rgba(26,26,26,0.75)" }}>
               Bring client intake, scheduling, billing, job progress, and follow-ups into one focused workspace.

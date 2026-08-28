@@ -3,20 +3,20 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Zap, FileText } from "lucide-react";
 
-const LAST_UPDATED = "March 14, 2026";
+const REVIEW_STATUS = "Draft reviewed: August 28, 2026";
 
 const sections = [
   {
     title: "1. Acceptance of Terms",
-    content: `By accessing or using TrueAxis HQ ("the Platform"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Platform. These Terms apply to all users, including visitors, registered users, and subscribers.
+    content: `This is a product-policy draft for TrueAxis HQ. It is not presented as legally complete, enforceable, or suitable for every jurisdiction or use case.
 
-We reserve the right to update these Terms at any time. We will notify you of material changes by email or by posting a notice on the Platform. Your continued use after changes take effect constitutes acceptance of the updated Terms.`,
+Access, acceptance, versioning, notice, and effective-date terms require qualified legal review before public launch.`,
   },
   {
     title: "2. Description of Service",
-    content: `TrueAxis HQ is a cloud-based business management platform designed for freelancers and solo service providers. The Platform provides tools for client relationship management, scheduling, invoicing, AI-powered follow-up automation, analytics, and business settings management.
+    content: `TrueAxis HQ is a service-business workspace with client, scheduling, invoice, job, and owner-reviewed workflow tools. Available functionality can depend on account configuration and release status.
 
-We offer three subscription tiers: Starter, Pro, and Agency. Features available to you depend on your subscription plan. We reserve the right to modify, suspend, or discontinue any feature at any time with reasonable notice.`,
+Public subscription, availability, suspension, and change-management terms require commercial and legal review before launch.`,
   },
   {
     title: "3. Account Registration and Security",
@@ -32,17 +32,9 @@ You must be at least 18 years old to create an account. By registering, you repr
   },
   {
     title: "4. Subscriptions and Billing",
-    content: `**Free Trial:** New accounts receive a 14-day free trial with full access to Pro features. No credit card is required to start a trial.
+    content: `Pricing displays product-plan information for review. It does not establish an active trial, payment method, checkout, renewal, cancellation, refund, tax, or price-change policy.
 
-**Subscription Plans:** After the trial period, continued use of paid features requires a subscription. Plans are billed monthly or annually as selected at checkout.
-
-**Payment:** All payments are processed by Stripe. By subscribing, you authorize us to charge your payment method on a recurring basis until you cancel.
-
-**Cancellation:** You may cancel your subscription at any time from your Billing settings. Cancellation takes effect at the end of the current billing period. We do not provide refunds for partial billing periods.
-
-**Price Changes:** We may change subscription prices with 30 days' notice. Continued use after the effective date constitutes acceptance of the new price.
-
-**Taxes:** You are responsible for all applicable taxes. We will collect taxes where required by law.`,
+Payment-provider configuration, commercial terms, and customer notices require controlled provider testing and qualified legal review before public launch.`,
   },
   {
     title: "5. Acceptable Use",
@@ -61,13 +53,9 @@ We reserve the right to suspend or terminate accounts that violate these terms w
   },
   {
     title: "6. Your Data and Content",
-    content: `**Ownership:** You retain full ownership of all data and content you upload or create on the Platform, including client information, invoices, and business data.
+    content: `The platform is designed to associate workspace records with their owner. Ownership, licensing, acceptable content, export, recovery, retention, and backup terms require qualified legal and operational review before launch.
 
-**License to Us:** By using the Platform, you grant us a limited, non-exclusive license to store, process, and display your data solely for the purpose of providing the service to you. We do not claim ownership of your content.
-
-**Responsibility:** You are solely responsible for the accuracy and legality of the data you enter into the Platform. You represent that you have the right to upload and use all data you provide.
-
-**Backup:** While we maintain regular backups, you are responsible for maintaining your own backups of critical business data. We recommend exporting your data regularly.`,
+Maintain your own copies of critical business records until reviewed export and recovery procedures are published.`,
   },
   {
     title: "7. Intellectual Property",
@@ -77,36 +65,31 @@ The TrueAxis HQ name, logo, and all related marks are trademarks of TrueAxis HQ.
   },
   {
     title: "8. Third-Party Services",
-    content: `The Platform integrates with third-party services including Stripe for payment processing. Your use of these services is subject to their respective terms and privacy policies. We are not responsible for the practices or content of third-party services.
+    content: `Some platform workflows may be configured with third-party services. Their availability, scopes, terms, data handling, and error behavior require provider-specific review and controlled testing.
 
-Links to external websites are provided for convenience. We do not endorse or assume responsibility for any third-party sites or services.`,
+This draft does not establish an active integration, provider performance, or responsibility allocation.`,
   },
   {
     title: "9. Disclaimers and Limitation of Liability",
-    content: `**Disclaimer:** The Platform is provided "as is" and "as available" without warranties of any kind, express or implied. We do not warrant that the Platform will be uninterrupted, error-free, or free of harmful components.
+    content: `TrueAxis HQ does not represent uninterrupted, error-free, secure, provider-backed, or outcome-guaranteed operation in this product-policy draft.
 
-**Limitation of Liability:** To the maximum extent permitted by law, TrueAxis HQ shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, data, or business opportunities, arising from your use of or inability to use the Platform.
-
-Our total liability to you for any claim arising from these Terms or your use of the Platform shall not exceed the amount you paid us in the 12 months preceding the claim.`,
+Any disclaimer, limitation, remedy, or allocation of liability requires qualified legal review before publication.`,
   },
   {
     title: "10. Termination",
-    content: `Either party may terminate this agreement at any time. You may terminate by canceling your subscription and deleting your account. We may terminate your account if you violate these Terms, with or without notice depending on the severity of the violation.
-
-Upon termination, your right to use the Platform ceases immediately. We will delete your data within 30 days of account deletion, except where retention is required by law.`,
+    content: `Account closure, suspension, termination, access, retention, deletion, and notice procedures require qualified legal and operational review before public launch. No particular deletion or access timeline is represented here.`,
   },
   {
     title: "11. Governing Law and Disputes",
-    content: `These Terms are governed by the laws of the State of Texas, United States, without regard to conflict of law principles. Any disputes arising from these Terms or your use of the Platform shall be resolved through binding arbitration in Austin, Texas, except that either party may seek injunctive relief in a court of competent jurisdiction.
-
-You waive any right to participate in a class action lawsuit or class-wide arbitration.`,
+    content: `Governing law, venue, dispute resolution, arbitration, waiver, and class-action terms require qualified legal review for the applicable jurisdiction before publication.`,
   },
   {
     title: "12. Contact",
     content: `For questions about these Terms, please contact us at:
 
 **Email:** legal@trueaxishq.com
-**Address:** TrueAxis HQ, Legal Department, 100 Innovation Drive, Suite 400, Austin, TX 78701`,
+
+This contact channel does not represent legal advice or a response-time commitment.`,
   },
 ];
 
@@ -137,7 +120,7 @@ export default function Terms() {
           <span className="text-xs font-semibold text-[#D4922A] uppercase tracking-wider">Legal</span>
         </div>
         <h1 className="text-4xl sm:text-5xl font-extrabold mb-3 text-[#1A1A1A]">Terms of Service</h1>
-        <p className="text-sm text-[rgba(26,26,26,0.55)] mb-12">Last updated: {LAST_UPDATED}</p>
+        <p className="text-sm text-[rgba(26,26,26,0.55)] mb-12">{REVIEW_STATUS}</p>
 
         <p className="text-[rgba(26,26,26,0.80)] leading-relaxed mb-10 text-base">
           Please read these Terms of Service carefully before using the TrueAxis HQ platform. They describe the platform policies intended to govern access and use. The owner should obtain qualified legal review before relying on any terms for a particular jurisdiction or use case.

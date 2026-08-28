@@ -2296,3 +2296,12 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Allow an owner to deliberately revise the existing client-visible update for an active service visit without exposing private dispatch notes, staff identity, capacity, availability, routes, GPS, or internal history.
 - [x] Preserve the final owner predicate and the existing explicit client-visible opt-in; do not create email, SMS, push, calendar, automatic delivery, or acknowledgment claims.
 - [x] Add accessible update-correction controls, client-safe preview guidance, and focused owner-scope, client projection, private-field exclusion, and no-delivery-claim coverage; validate and document the release.
+
+### Observed public audit correction: unsupported operational and policy language
+- [x] Replace the observed public autonomous, real-time, and unconditional automation wording with factual workflow language.
+- [x] Correct only the observed Privacy and Terms statements that assert unverified security, provider, retention, legal, trial, refund, or delivery behavior; preserve clear attorney and provider-account boundaries.
+- [x] Add focused public-copy regression coverage, recheck public desktop and 375px artifacts, and document only observed validation results.
+
+### Observed public audit correction: mobile install-prompt overlap
+- [x] Prevent the temporary install prompt from covering legal, pricing, or other readable public content at 375px while retaining an accessible dismiss and explicit install action.
+- [x] Add focused prompt-placement/accessibility coverage and recheck the affected public mobile artifacts without claiming installation or browser support outcomes.
