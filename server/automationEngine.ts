@@ -9,7 +9,7 @@ import {
   proposals,
 } from "../drizzle/schema";
 import { getDb } from "./db";
-import { followUpEmail, sendEmail } from "./_core/email";
+import { followUpEmail, sendEmail, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { notifyOwner } from "./_core/notification";
 
 export const SUPPORTED_AUTOMATION_ACTIONS = ["send_email", "create_followup", "notify_owner"] as const;
@@ -90,7 +90,12 @@ async function executeActions(name: string, actions: AutomationAction[], target:
           subject,
           html: followUpEmail({ clientName: target.clientName, subject, body: message }),
         });
-        if (!result.success) throw new Error(result.error || "Email delivery failed");
+        if (!wasAcceptedByConfiguredSmtp(result)) {
+          issues.push(result.mode === "console"
+            ? "Email not sent: no configured SMTP delivery was attempted."
+            : result.error || "Email was not accepted by the configured SMTP provider.");
+          continue;
+        }
         actionsExecuted++;
       }
 
