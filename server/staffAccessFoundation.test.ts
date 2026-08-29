@@ -8,6 +8,7 @@ describe("staff identity and role-based access foundation", () => {
   const schema = projectFile("drizzle/schema.ts");
   const router = projectFile("server/routers.ts");
   const staffAccessPage = projectFile("client/src/pages/StaffAccess.tsx");
+  const staffWorkspacePage = projectFile("client/src/pages/StaffWorkspace.tsx");
 
   it("keeps authenticated staff membership separate from the owner-managed roster", () => {
     expect(schema).toContain('export const workspaceStaffInvites = mysqlTable("workspaceStaffInvites"');
@@ -70,5 +71,13 @@ describe("staff identity and role-based access foundation", () => {
     expect(staffAccessPage).toContain("const utils = trpc.useUtils()");
     expect(cacheWrite).toBeGreaterThan(-1);
     expect(navigation).toBeGreaterThan(cacheWrite);
+  });
+
+  it("offers staff an explicit session-clearing recovery path back to sign-in", () => {
+    expect(staffWorkspacePage).toContain("const { user, loading, logout } = useAuth()");
+    expect(staffWorkspacePage).toContain("await logout()");
+    expect(staffWorkspacePage).toContain('navigate("/login")');
+    expect(staffWorkspacePage).toContain("Sign out");
+    expect(staffWorkspacePage).toContain('type="button"');
   });
 });

@@ -2427,7 +2427,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ### Observed staff registration recovery: immediate session continuity
 - [x] Populate the authenticated-account query cache from the accepted staff registration result before navigating to the limited staff workspace, so a successful local registration does not transiently fall back to the general sign-in page.
-- [ ] Add focused registration-success cache and staff-route continuity coverage; recheck the disposable local registration path without retaining any credentials, raw invitation token, or delivery claim.
+- [x] Add focused registration-success cache and staff-route continuity coverage; recheck the disposable local registration path without retaining any credentials, raw invitation token, or delivery claim.
+
+### Observed staff session recovery: explicit sign-out
+- [x] Add a visible, keyboard-accessible staff-workspace sign-out action that invokes the existing session-clearing operation and returns to the local sign-in boundary without exposing owner data.
+- [x] Add focused staff-session recovery coverage and use the control to complete the disposable registration-to-workspace browser recheck without retaining credentials, raw invitation tokens, or delivery claims.
 
 ### Observed portal-minimization correction: reviewed job summary
 - [x] Stop returning an owner-authored job scope note implicitly through the token-scoped client portal.
