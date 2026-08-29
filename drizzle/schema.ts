@@ -955,6 +955,7 @@ export const jobPhotos = mysqlTable("jobPhotos", {
   photoKey: varchar("photoKey", { length: 512 }).notNull(),
   // Optional metadata
   caption: varchar("caption", { length: 512 }),
+  clientVisible: boolean("clientVisible").notNull().default(false),
   // Receipt calculator fields (only used when photoType = 'receipt')
   lineItemLabel: varchar("lineItemLabel", { length: 255 }),
   lineItemAmount: decimal("lineItemAmount", { precision: 10, scale: 2 }),
@@ -968,6 +969,7 @@ export const jobPhotos = mysqlTable("jobPhotos", {
   index("jobPhotos_clientId_idx").on(t.clientId),
   index("jobPhotos_jobId_idx").on(t.jobId),
   index("jobPhotos_photoType_idx").on(t.photoType),
+  index("jobPhotos_user_job_clientVisible_idx").on(t.userId, t.jobId, t.clientVisible),
 ]
 );
 export type JobPhoto = typeof jobPhotos.$inferSelect;

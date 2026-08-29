@@ -3529,6 +3529,7 @@ Only include actions when you have actually generated a complete draft. For gene
           .where(and(
             eq(jobPhotos.userId, portalRecord.userId),
             eq(jobPhotos.clientId, portalRecord.clientId),
+            eq(jobPhotos.clientVisible, true),
             // Only show estimate, wip, finished — never expose receipt/calculator photos
             inArray(jobPhotos.photoType, ["estimate", "wip", "finished"])
           ))
@@ -3577,7 +3578,7 @@ Only include actions when you have actually generated a complete draft. For gene
           db.select({ id: jobActivities.id, jobId: jobActivities.jobId, actor: jobActivities.actor, eventType: jobActivities.eventType, message: jobActivities.message, createdAt: jobActivities.createdAt })
             .from(jobActivities).where(and(eq(jobActivities.userId, portalRecord.userId), inArray(jobActivities.jobId, jobIds))).orderBy(desc(jobActivities.createdAt)),
           db.select({ id: jobPhotos.id, jobId: jobPhotos.jobId, photoType: jobPhotos.photoType, photoUrl: jobPhotos.photoUrl, caption: jobPhotos.caption, createdAt: jobPhotos.createdAt })
-            .from(jobPhotos).where(and(eq(jobPhotos.userId, portalRecord.userId), inArray(jobPhotos.jobId, jobIds), inArray(jobPhotos.photoType, ["estimate", "wip", "finished"]))).orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt)),
+            .from(jobPhotos).where(and(eq(jobPhotos.userId, portalRecord.userId), inArray(jobPhotos.jobId, jobIds), eq(jobPhotos.clientVisible, true), inArray(jobPhotos.photoType, ["estimate", "wip", "finished"]))).orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt)),
           proposalIds.length ? db.select({ id: proposals.id, title: proposals.title, status: proposals.status, token: proposals.token, validUntil: proposals.validUntil })
             .from(proposals).where(and(eq(proposals.userId, portalRecord.userId), eq(proposals.clientId, portalRecord.clientId), inArray(proposals.id, proposalIds))) : Promise.resolve([]),
           db.select({ id: serviceVisits.id, jobId: serviceVisits.jobId, title: serviceVisits.title, scheduledStart: serviceVisits.scheduledStart, scheduledEnd: serviceVisits.scheduledEnd, status: serviceVisits.status, siteLabel: serviceVisits.siteLabel, clientUpdate: serviceVisits.clientUpdate })
@@ -7980,14 +7981,33 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         return { success: true };
       }),
 
+    setPhotoClientVisibility: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive(), photoId: z.number().int().positive(), clientVisible: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs)
+          .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        const [photo] = await db.select({ id: jobPhotos.id, jobId: jobPhotos.jobId, clientId: jobPhotos.clientId, photoType: jobPhotos.photoType, clientVisible: jobPhotos.clientVisible }).from(jobPhotos)
+          .where(and(eq(jobPhotos.id, input.photoId), eq(jobPhotos.userId, ctx.user.id))).limit(1);
+        if (!job || !photo || photo.jobId !== job.id || photo.clientId !== job.clientId) throw new TRPCError({ code: "NOT_FOUND", message: "Job photo not found." });
+        if (photo.photoType === "receipt") throw new TRPCError({ code: "BAD_REQUEST", message: "Receipt photos remain private to the workspace." });
+        const [update] = await db.update(jobPhotos).set({ clientVisible: input.clientVisible })
+          .where(and(eq(jobPhotos.id, photo.id), eq(jobPhotos.userId, ctx.user.id), eq(jobPhotos.jobId, job.id), eq(jobPhotos.clientId, job.clientId)));
+        if (!update.affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Job photo not found." });
+        if (photo.clientVisible !== input.clientVisible) {
+          await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: job.id, actor: "owner", eventType: "photo_visibility_changed", message: `Proof photo is now ${input.clientVisible ? "shared with the client" : "private to the workspace"}.` });
+        }
+        return { success: true, clientVisible: input.clientVisible };
+      }),
+
     attachPhoto: protectedProcedure
       .input(z.object({ jobId: z.number().int().positive(), photoId: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
-        const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
-        const [photo] = await db.select({ id: jobPhotos.id, photoType: jobPhotos.photoType }).from(jobPhotos).where(and(eq(jobPhotos.id, input.photoId), eq(jobPhotos.userId, ctx.user.id))).limit(1);
-        if (!job || !photo) throw new TRPCError({ code: "NOT_FOUND" });
-        await db.update(jobPhotos).set({ jobId: job.id }).where(and(eq(jobPhotos.id, photo.id), eq(jobPhotos.userId, ctx.user.id)));
+        const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        const [photo] = await db.select({ id: jobPhotos.id, photoType: jobPhotos.photoType, clientId: jobPhotos.clientId }).from(jobPhotos).where(and(eq(jobPhotos.id, input.photoId), eq(jobPhotos.userId, ctx.user.id))).limit(1);
+        if (!job || !photo || photo.clientId !== job.clientId) throw new TRPCError({ code: "NOT_FOUND" });
+        await db.update(jobPhotos).set({ jobId: job.id, clientVisible: false }).where(and(eq(jobPhotos.id, photo.id), eq(jobPhotos.userId, ctx.user.id), eq(jobPhotos.clientId, job.clientId)));
         await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: job.id, actor: "owner", eventType: "photo_linked", message: `Linked a ${photo.photoType === "wip" ? "work-in-progress" : photo.photoType} photo.` });
         return { success: true };
       }),

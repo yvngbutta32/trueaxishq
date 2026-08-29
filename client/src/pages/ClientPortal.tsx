@@ -590,7 +590,7 @@ export default function ClientPortal() {
               {/* Header */}
               <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
                 <Camera className="w-4 h-4 text-[#D4922A]" />
-                <h2 className="font-semibold text-gray-900">Job Photos</h2>
+                <div><h2 className="font-semibold text-gray-900">Job Photos</h2><p className="mt-0.5 text-[11px] leading-4 text-gray-500">Only proof photos your provider has chosen to share appear here.</p></div>
                 <span className="ml-auto text-xs text-gray-500 hidden sm:inline">{allPhotos.length} photo{allPhotos.length !== 1 ? "s" : ""}</span>
                 <input
                   ref={portalPhotoInputRef}

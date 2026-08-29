@@ -2389,3 +2389,9 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Return only explicitly client-visible task fields through the token-scoped client portal; continue to exclude task descriptions, owner notes, assignment, staff availability, inspection data, costs, routes, and internal history.
 - [x] Add focused schema/migration, owner mutation, portal token, same-client, private-field exclusion, and client-safe display coverage; validate and document one consolidated release without claiming authenticated client behavior.
 - [x] Deliver this related schema, owner-control, portal-projection, and regression work as one cohesive release without duplicating existing client updates, documents, photos, or visit-sharing controls.
+
+### Consolidated portal-minimization refinement: reviewed proof photos
+- [x] Add an additive default-private client-visibility field to job photos, preserving existing owner and client photo-upload records, including receipt-photo exclusion.
+- [x] Allow owners to deliberately reveal or hide an owned non-receipt photo that is linked to an owned job, with final photo, job, and same-client scope validation.
+- [x] Return only explicitly client-visible estimate, WIP, and finished photo fields through the token-scoped portal; continue to exclude receipt photos, photo keys, internal categories, staff data, assets, costs, routes, and internal history.
+- [x] Add focused schema/migration, owner mutation, portal token, same-client, private-field exclusion, and client-safe display coverage; validate and document one consolidated release without claiming authenticated client behavior.
