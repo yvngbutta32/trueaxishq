@@ -2459,6 +2459,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Synchronize the accessible toggle with that owner-scoped status and successful saves without altering report scheduling or delivery behavior.
 - [x] Add focused owner-scope and state-recovery coverage, recheck the owner Settings presentation, and retain scheduler, SMTP, recipient, inbox, and production limits.
 
+### Requested fresh full-app scope and competitor scorecard
+- [x] Inventory implemented owner, client, staff, public, security, reliability, mobile/accessibility, performance, integration, finance, and field-operation capabilities against current source, tests, releases, and controlled local evidence.
+- [x] Research current official capabilities and attributable customer-friction evidence for relevant freelancer-service and field-service competitors.
+- [x] Publish an explicit evidence-weighted out-of-10 scorecard, prioritized gaps, and validation confidence boundaries without claiming market leadership, provider behavior, or production outcomes.
+
 ### Observed portal-minimization correction: reviewed job summary
 - [x] Stop returning an owner-authored job scope note implicitly through the token-scoped client portal.
 - [x] Add an additive default-private client summary field and an owner-only reviewed visibility control that are distinct from the private job scope and existing client updates.
