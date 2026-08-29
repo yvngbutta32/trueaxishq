@@ -2374,7 +2374,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add focused behavioral and integration coverage for configured SMTP acceptance, console fallback, and SMTP failure; validate and document only observed results and unresolved provider limits.
 
 ### Delivery approach: cohesive evidence-led milestones
-- [ ] Group future credential-free work into cohesive multi-path reliability or privacy milestones, each with one scoped validation run and evidence record rather than repeated audit-only releases.
+- [x] Group future credential-free work into cohesive multi-path reliability or privacy milestones, each with one scoped validation run and evidence record rather than repeated audit-only releases.
 
 ### Consolidated manual client-email correction: outcome accuracy
 - [x] Ensure invoice reminders and paid-invoice receipts report configured SMTP acceptance rather than treating console fallback or SMTP failure as a sent client email.
@@ -2382,3 +2382,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Keep a proposal in draft when there is no recipient, console fallback, or SMTP failure; preserve the owner-scoped secure review link without treating link generation as email delivery.
 - [x] Align owner-interface success and recovery language with these returned delivery outcomes; do not add retry, read receipt, inbox, payment, scheduler, or provider-reliability claims.
 - [x] Add focused multi-workflow regression coverage for configured SMTP acceptance, console fallback, missing recipient, SMTP failure, owner scope, and retained draft state; validate and document one consolidated release.
+
+### Consolidated portal-minimization refinement: reviewed job tasks
+- [x] Add an additive default-private client-visibility field to job tasks, preserving existing owner task behavior and historic records.
+- [x] Allow owners to deliberately reveal or hide only an owned task within an owned job, with final task, job, and client scope validation.
+- [x] Return only explicitly client-visible task fields through the token-scoped client portal; continue to exclude task descriptions, owner notes, assignment, staff availability, inspection data, costs, routes, and internal history.
+- [x] Add focused schema/migration, owner mutation, portal token, same-client, private-field exclusion, and client-safe display coverage; validate and document one consolidated release without claiming authenticated client behavior.
+- [x] Deliver this related schema, owner-control, portal-projection, and regression work as one cohesive release without duplicating existing client updates, documents, photos, or visit-sharing controls.

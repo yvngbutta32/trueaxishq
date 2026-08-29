@@ -1009,13 +1009,14 @@ export const jobTasks = mysqlTable("jobTasks", {
   jobId: int("jobId").notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
+  clientVisible: boolean("clientVisible").notNull().default(false),
   status: mysqlEnum("status", ["todo", "in_progress", "done"]).notNull().default("todo"),
   dueDate: varchar("dueDate", { length: 32 }),
   sortOrder: int("sortOrder").notNull().default(0),
   completedAt: timestamp("completedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (t) => [index("jobTasks_userId_idx").on(t.userId), index("jobTasks_jobId_idx").on(t.jobId)]);
+}, (t) => [index("jobTasks_userId_idx").on(t.userId), index("jobTasks_jobId_idx").on(t.jobId), index("jobTasks_user_job_clientVisible_idx").on(t.userId, t.jobId, t.clientVisible)]);
 export type JobTask = typeof jobTasks.$inferSelect;
 
 export const jobActivities = mysqlTable("jobActivities", {

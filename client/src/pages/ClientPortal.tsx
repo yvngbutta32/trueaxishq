@@ -551,7 +551,7 @@ export default function ClientPortal() {
                     </div>
                     <div className="mt-5 grid gap-4 lg:grid-cols-2">
                       <div className="rounded-lg bg-[#faf8f2] p-4">
-                        <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><ClipboardCheck className="h-3.5 w-3.5 text-[#D4922A]" /> Milestones</span><span className="text-xs font-semibold text-[#8a5a0b]">{progress}% complete</span></div>
+                        <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><ClipboardCheck className="h-3.5 w-3.5 text-[#D4922A]" /> Milestones</span><span className="text-xs font-semibold text-[#8a5a0b]">{progress}% complete</span></div><p className="mt-1 text-[11px] leading-4 text-gray-500">Only items your provider has chosen to share appear here.</p>
                         <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#e9e5db]"><div className="h-full rounded-full bg-[#D4922A] transition-all" style={{ width: `${progress}%` }} /></div>
                         {job.tasks.length ? <ul className="mt-3 space-y-2">{job.tasks.slice(0, 4).map(task => <li key={task.id} className="flex items-center gap-2 text-xs text-gray-700"><CheckCircle className={`h-3.5 w-3.5 shrink-0 ${task.status === "done" ? "text-emerald-600" : "text-gray-500"}`} /><span className={task.status === "done" ? "line-through text-gray-500" : ""}>{task.title}</span></li>)}</ul> : <p className="mt-3 text-xs text-gray-500">Your provider will add milestones as work is planned.</p>}
                       </div>

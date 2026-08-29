@@ -3572,8 +3572,8 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!jobIds.length) return { jobs: [] };
         const proposalIds = clientJobs.flatMap(job => job.proposalId ? [job.proposalId] : []);
         const [tasks, activities, photos, jobProposals, clientVisits, approvals] = await Promise.all([
-          db.select({ id: jobTasks.id, jobId: jobTasks.jobId, title: jobTasks.title, status: jobTasks.status, dueDate: jobTasks.dueDate, completedAt: jobTasks.completedAt, sortOrder: jobTasks.sortOrder })
-            .from(jobTasks).where(and(eq(jobTasks.userId, portalRecord.userId), inArray(jobTasks.jobId, jobIds))).orderBy(jobTasks.sortOrder, desc(jobTasks.createdAt)),
+          db.select({ id: jobTasks.id, jobId: jobTasks.jobId, title: jobTasks.title, status: jobTasks.status, dueDate: jobTasks.dueDate, completedAt: jobTasks.completedAt, sortOrder: jobTasks.sortOrder, clientVisible: jobTasks.clientVisible })
+            .from(jobTasks).where(and(eq(jobTasks.userId, portalRecord.userId), inArray(jobTasks.jobId, jobIds), eq(jobTasks.clientVisible, true))).orderBy(jobTasks.sortOrder, desc(jobTasks.createdAt)),
           db.select({ id: jobActivities.id, jobId: jobActivities.jobId, actor: jobActivities.actor, eventType: jobActivities.eventType, message: jobActivities.message, createdAt: jobActivities.createdAt })
             .from(jobActivities).where(and(eq(jobActivities.userId, portalRecord.userId), inArray(jobActivities.jobId, jobIds))).orderBy(desc(jobActivities.createdAt)),
           db.select({ id: jobPhotos.id, jobId: jobPhotos.jobId, photoType: jobPhotos.photoType, photoUrl: jobPhotos.photoUrl, caption: jobPhotos.caption, createdAt: jobPhotos.createdAt })
@@ -7923,7 +7923,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       }),
 
     updateTask: protectedProcedure
-      .input(z.object({ id: z.number().int().positive(), status: z.enum(["todo", "in_progress", "done"]).optional(), title: safeOptionalString(255), dueDate: safeOptionalString(32) }))
+      .input(z.object({ id: z.number().int().positive(), status: z.enum(["todo", "in_progress", "done"]).optional(), title: safeOptionalString(255), dueDate: safeOptionalString(32), clientVisible: z.boolean().optional() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const [task] = await db.select().from(jobTasks).where(and(eq(jobTasks.id, input.id), eq(jobTasks.userId, ctx.user.id))).limit(1);
@@ -7932,6 +7932,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const updates: Record<string, unknown> = { ...inputUpdates };
         if (input.status === "done" && task.status !== "done") updates.completedAt = new Date();
         if (input.status && input.status !== task.status) await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: task.jobId, actor: "owner", eventType: "task_status_changed", message: `Checklist item “${task.title}” marked ${input.status.replaceAll("_", " ")}.` });
+        if (input.clientVisible !== undefined && input.clientVisible !== task.clientVisible) await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: task.jobId, actor: "owner", eventType: "task_visibility_changed", message: `Checklist item “${task.title}” is now ${input.clientVisible ? "shared with the client" : "private to the workspace"}.` });
         await db.update(jobTasks).set(updates).where(and(eq(jobTasks.id, id), eq(jobTasks.userId, ctx.user.id)));
         return { success: true };
       }),
