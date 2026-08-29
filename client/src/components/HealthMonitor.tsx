@@ -32,7 +32,7 @@ export function HealthMonitor() {
   }[status];
 
   const label = {
-    healthy: "All systems operational",
+    healthy: "Latest configured checks passed",
     degraded: "Some systems degraded",
     error: "System check failed",
     checking: "Checking systems...",
@@ -56,7 +56,7 @@ export function HealthMonitor() {
       >
         <span className={`w-2 h-2 rounded-full ${dotColor} ${status === "healthy" ? "animate-pulse" : ""}`} />
         {icon}
-        <span className="hidden sm:inline">{status === "healthy" ? "Operational" : status === "checking" ? "Checking..." : "Degraded"}</span>
+        <span className="hidden sm:inline">{status === "healthy" ? "Checks passed" : status === "checking" ? "Checking..." : "Degraded"}</span>
       </button>
 
       {showTooltip && (
@@ -65,13 +65,13 @@ export function HealthMonitor() {
           role="tooltip"
         >
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold text-[#1A1A1A]">System Status</p>
+            <p className="text-xs font-bold text-[#1A1A1A]">Latest check results</p>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
               status === "healthy" ? "bg-emerald-400/20 text-emerald-800" :
               status === "degraded" ? "bg-yellow-400/20 text-yellow-900" :
               "bg-red-400/20 text-red-800"
             }`}>
-              {status === "healthy" ? "All Systems Go" : status === "degraded" ? "Degraded" : "Error"}
+              {status === "healthy" ? "Checks passed" : status === "degraded" ? "Degraded" : "Error"}
             </span>
           </div>
 

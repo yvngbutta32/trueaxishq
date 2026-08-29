@@ -522,7 +522,7 @@ export default function ClientPortal() {
               <BriefcaseBusiness className="w-4 h-4 text-[#D4922A]" />
               <div>
                 <h2 id="job-progress-heading" className="font-semibold text-gray-900">Your Work Progress</h2>
-                <p className="mt-0.5 text-xs text-gray-600">Milestones, provider updates, and proof of work in one place.</p>
+                <p className="mt-0.5 text-xs text-gray-600">Provider-chosen summaries, milestones, updates, and proof of work in one place.</p>
               </div>
               <span className="ml-auto text-xs text-gray-500">{jobData?.jobs.length} active</span>
             </div>
@@ -538,7 +538,7 @@ export default function ClientPortal() {
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-gray-900">{job.title}</p>{statusBadge(job.status)}</div>
                         <p className="mt-1 text-xs font-medium tracking-wide text-[#a46c10]">{job.jobNumber}</p>
-                        {job.description && <p className="mt-2 text-sm text-gray-600">{job.description}</p>}
+                        {job.clientSummary && <p className="mt-2 text-sm text-gray-600">{job.clientSummary}</p>}
                       </div>
                       <div className="text-left sm:text-right shrink-0">
                         <p className="text-xs text-gray-500">Target completion</p>

@@ -62,6 +62,8 @@ export default function JobWorkspace() {
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
   const [worklistSearch, setWorklistSearch] = useState("");
   const [worklistStatus, setWorklistStatus] = useState<"all" | typeof JOB_STATUSES[number]>("all");
+  const [clientSummaryDraft, setClientSummaryDraft] = useState("");
+  const [clientSummaryVisibleDraft, setClientSummaryVisibleDraft] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState<CreateForm>(emptyForm);
   const [taskTitle, setTaskTitle] = useState("");
@@ -151,6 +153,10 @@ export default function JobWorkspace() {
   const removeJobExpense = trpc.expenses.delete.useMutation({ onSuccess: () => { invalidateJobs(); toast.success("Private job cost removed"); }, onError: error => toast.error(error.message) });
 
   const detail = selectedJob.data;
+  useEffect(() => {
+    setClientSummaryDraft(detail?.job.clientSummary ?? "");
+    setClientSummaryVisibleDraft(Boolean(detail?.job.clientSummaryVisible));
+  }, [detail?.job.id]);
   const linkedInspectionAsset = useMemo(() => customerAssets.data?.find(asset => asset.id === detail?.job.customerAssetId), [customerAssets.data, detail?.job.customerAssetId]);
   const activeInspectionTemplates = useMemo(() => (inspectionTemplates.data ?? []).filter(template => template.active), [inspectionTemplates.data]);
   const selectedInspectionTemplate = useMemo(() => activeInspectionTemplates.find(template => template.id === Number(inspectionResponseTemplateId)), [activeInspectionTemplates, inspectionResponseTemplateId]);
@@ -289,6 +295,11 @@ export default function JobWorkspace() {
                 <Metric icon={<Receipt className="h-4 w-4" />} label="Tracked costs" value={money(detail.financials.totalCost)} detail={`${money(detail.financials.expenseCost)} expenses · ${money(detail.financials.laborCost)} time`} />
                 <Metric icon={<DollarSign className="h-4 w-4" />} label="Projected profit" value={money(detail.financials.profit)} detail={detail.financials.marginPercent === null ? "Set revenue to calculate margin" : `${detail.financials.marginPercent}% margin`} accent={detail.financials.profit < 0 ? "text-rose-600" : "text-emerald-600"} />
               </div>
+              <section className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><h3 className="text-sm font-bold text-emerald-950">Client job summary</h3><p className="mt-1 text-xs leading-relaxed text-emerald-900/75">Optional provider-reviewed context for this client’s portal. Your private scope note stays in this workspace.</p></div><span className={`w-fit rounded-full px-2.5 py-1 text-xs font-semibold ${detail.job.clientSummaryVisible && detail.job.clientSummary ? "bg-emerald-100 text-emerald-800" : "bg-white text-emerald-900 ring-1 ring-emerald-200"}`}>{detail.job.clientSummaryVisible && detail.job.clientSummary ? "Shared with client" : "Private to your workspace"}</span></div>
+                <label className="mt-3 block text-xs font-semibold text-emerald-950">Reviewed summary <span className="font-normal">(optional)</span><textarea value={clientSummaryDraft} onChange={event => setClientSummaryDraft(event.target.value)} maxLength={2000} rows={3} placeholder="A short client-ready summary of this job" className="mt-1 block w-full resize-y rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-emerald-300" /></label>
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><label className="flex items-start gap-2 text-xs font-semibold text-emerald-950"><input type="checkbox" checked={clientSummaryVisibleDraft && Boolean(clientSummaryDraft.trim())} onChange={event => setClientSummaryVisibleDraft(event.target.checked)} disabled={!clientSummaryDraft.trim()} className="mt-0.5 h-4 w-4 rounded border-emerald-300 text-emerald-700 focus:ring-emerald-300 disabled:cursor-not-allowed" />Share this reviewed summary in the client portal</label><Button type="button" size="sm" onClick={() => updateMutation.mutate({ id: detail.job.id, clientSummary: clientSummaryDraft.trim() || null, clientSummaryVisible: Boolean(clientSummaryDraft.trim()) && clientSummaryVisibleDraft })} disabled={updateMutation.isPending} className="bg-emerald-700 text-white hover:bg-emerald-800">{updateMutation.isPending ? "Saving…" : "Save client summary"}</Button></div>
+              </section>
             </div>
 
             <div className="grid gap-5 2xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">

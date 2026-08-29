@@ -988,6 +988,9 @@ export const jobs = mysqlTable("jobs", {
   jobNumber: varchar("jobNumber", { length: 64 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
+  // Private operational scope remains separate from the explicit, owner-reviewed portal summary.
+  clientSummary: text("clientSummary"),
+  clientSummaryVisible: boolean("clientSummaryVisible").notNull().default(false),
   status: mysqlEnum("status", ["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]).notNull().default("lead"),
   priority: mysqlEnum("priority", ["low", "normal", "high", "urgent"]).notNull().default("normal"),
   startDate: varchar("startDate", { length: 32 }),
@@ -999,6 +1002,7 @@ export const jobs = mysqlTable("jobs", {
 }, (t) => [
   index("jobs_userId_idx").on(t.userId),
   index("jobs_clientId_idx").on(t.clientId),
+  index("jobs_user_clientSummaryVisible_idx").on(t.userId, t.clientId, t.clientSummaryVisible),
   index("jobs_customerAssetId_idx").on(t.customerAssetId),
   index("jobs_bookingId_idx").on(t.bookingId),
   uniqueIndex("jobs_userId_jobNumber_unique_idx").on(t.userId, t.jobNumber),

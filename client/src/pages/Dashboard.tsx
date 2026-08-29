@@ -481,14 +481,14 @@ function ChangelogModal() {
         </div>
         <div className="p-5 space-y-4">
           {([
-            { emoji: "🔔", title: "Live Notifications", desc: "Real-time bell with unread badge — never miss an important event." },
+            { emoji: "🔔", title: "Notification center", desc: "Review available app notifications from the bell menu." },
             { emoji: "⏱", title: "Time Tracking", desc: "Start/stop timer, log billable hours, and see summary stats per client." },
-            { emoji: "🔁", title: "Recurring Invoices", desc: "Set weekly, monthly, or custom billing schedules — invoices generate automatically." },
-            { emoji: "📄", title: "Contracts & Proposals", desc: "Write, send, and convert proposals to invoices with one click." },
-            { emoji: "🌐", title: "Client Portal", desc: "Clients can view their invoices and bookings via a secure token link." },
-            { emoji: "📅", title: "iCal Export", desc: "Share your booking calendar with any calendar app via a live iCal feed." },
-            { emoji: "💳", title: "Stripe Pay Now", desc: "Clients can pay invoices instantly — webhooks auto-mark them paid." },
-            { emoji: "🤖", title: "Background Automation", desc: "Overdue detection and recurring invoice generation run every 5 minutes, hands-free." },
+            { emoji: "🔁", title: "Recurring Invoices", desc: "Configure weekly, monthly, or custom invoice plans and review related records in Billing." },
+            { emoji: "📄", title: "Contracts & Proposals", desc: "Write and manage proposals and invoices in one workspace." },
+            { emoji: "🌐", title: "Client Portal", desc: "Clients can view owner-curated invoices and booking information through a token-scoped link." },
+            { emoji: "📅", title: "iCal Export", desc: "Export a subscription calendar feed for compatible calendar apps." },
+            { emoji: "💳", title: "Payment links", desc: "Create payment links for eligible invoices. Provider checkout and signed webhook handling require separate validation." },
+            { emoji: "🤖", title: "Automation readiness", desc: "Configured rule drafts and maintenance routines are available for review; delivery and managed scheduling require separate validation." },
           ] as { emoji: string; title: string; desc: string }[]).map(item => (
             <div key={item.title} className="flex items-start gap-3">
               <span className="text-xl flex-shrink-0">{item.emoji}</span>

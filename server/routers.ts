@@ -3565,7 +3565,8 @@ Only include actions when you have actually generated a complete draft. For gene
           throw new TRPCError({ code: "FORBIDDEN", message: "Portal link has expired." });
         }
         const clientJobs = await db.select({
-          id: jobs.id, jobNumber: jobs.jobNumber, title: jobs.title, description: jobs.description,
+          id: jobs.id, jobNumber: jobs.jobNumber, title: jobs.title,
+          clientSummary: sql<string | null>`case when ${jobs.clientSummaryVisible} then ${jobs.clientSummary} else null end`.as("clientSummary"),
           status: jobs.status, priority: jobs.priority, startDate: jobs.startDate, targetDate: jobs.targetDate,
           completedAt: jobs.completedAt, updatedAt: jobs.updatedAt, bookingId: jobs.bookingId, invoiceId: jobs.invoiceId, proposalId: jobs.proposalId,
         }).from(jobs).where(and(eq(jobs.userId, portalRecord.userId), eq(jobs.clientId, portalRecord.clientId))).orderBy(desc(jobs.updatedAt));
@@ -7891,6 +7892,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
     update: protectedProcedure
       .input(z.object({
         id: z.number().int().positive(), title: safeOptionalString(255), description: safeOptionalString(5000),
+        clientSummary: safeOptionalString(2000).nullable().optional(), clientSummaryVisible: z.boolean().optional(),
         status: z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]).optional(),
         priority: z.enum(["low", "normal", "high", "urgent"]).optional(), startDate: safeOptionalString(32), targetDate: safeOptionalString(32), budgetAmount: z.number().min(0).max(99_999_999).nullable().optional(), invoiceId: z.number().int().positive().nullable().optional(),
       }))
@@ -7905,7 +7907,10 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         if (input.status && input.status !== current.status) {
           await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: id, actor: "owner", eventType: "status_changed", message: `Status changed from ${current.status.replaceAll("_", " ")} to ${input.status.replaceAll("_", " ")}.` });
         }
-        await db.update(jobs).set(updates).where(and(eq(jobs.id, id), eq(jobs.userId, ctx.user.id)));
+        if (input.clientSummary !== undefined || input.clientSummaryVisible !== undefined) {
+          await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: id, actor: "owner", eventType: "client_summary_updated", message: "Updated the reviewed client job summary." });
+        }
+        await db.update(jobs).set(updates).where(and(eq(jobs.id, id), eq(jobs.userId, ctx.user.id), eq(jobs.clientId, current.clientId)));
         if (input.status && input.status !== current.status) {
           await deliverWorkflowWebhookEvent(db, ctx.user.id, "job.status_changed", { jobId: id, jobNumber: current.jobNumber, previousStatus: current.status, status: input.status });
         }

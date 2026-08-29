@@ -2238,13 +2238,13 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Validate and document the quality-sweep findings, including explicit limits on live-provider and authenticated-session testing.
 
 ### Requested ongoing upgrade: research-backed high-impact operations improvements
-- [ ] Reassess current competitor evidence and the TrueAxis HQ gap register to select the next buildable, high-impact workflow improvement.
-- [ ] Implement only improvements supported by a clear operational rationale, explicit data-isolation review, accessible UX, and focused regression coverage.
-- [ ] Preserve truthful boundaries around revenue, market position, providers, authenticated sessions, field mobility, and external delivery evidence.
+- [x] Reassess current competitor evidence and the TrueAxis HQ gap register to select the next buildable, high-impact workflow improvement.
+- [x] Implement only improvements supported by a clear operational rationale, explicit data-isolation review, accessible UX, and focused regression coverage.
+- [x] Preserve truthful boundaries around revenue, market position, providers, authenticated sessions, field mobility, and external delivery evidence.
 
 ### Requested category-improvement program: competitive depth and differentiated workflows
-- [ ] Refresh comparable competitor capabilities and identify an implementation-ready, privacy-preserving workflow gap rather than claim blanket feature parity.
-- [ ] Build a differentiated workflow only after a data-isolation, accessibility, and truthful-provider-boundary review.
+- [x] Refresh comparable competitor capabilities and identify an implementation-ready, privacy-preserving workflow gap rather than claim blanket feature parity.
+- [x] Build a differentiated workflow only after a data-isolation, accessibility, and truthful-provider-boundary review.
 - [ ] Validate, document, and score each completed improvement against clear evidence without representing revenue outcomes or market leadership as guaranteed.
 
 ### Selected communication-quality correction: automation readiness guidance
@@ -2395,3 +2395,36 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Allow owners to deliberately reveal or hide an owned non-receipt photo that is linked to an owned job, with final photo, job, and same-client scope validation.
 - [x] Return only explicitly client-visible estimate, WIP, and finished photo fields through the token-scoped portal; continue to exclude receipt photos, photo keys, internal categories, staff data, assets, costs, routes, and internal history.
 - [x] Add focused schema/migration, owner mutation, portal token, same-client, private-field exclusion, and client-safe display coverage; validate and document one consolidated release without claiming authenticated client behavior.
+
+### Consolidated scheduling reliability milestone: managed hourly callback
+- [ ] Replace the observed in-process hourly trigger with one authenticated managed callback that runs the existing deterministic maintenance sequence, only after the project has a verified managed callback identity path.
+- [ ] Persist the platform task identifier in durable project settings and use only the authenticated task identity to accept the callback; never trust request-body scheduling fields. **Blocked:** the active self-hosted auth layer has no managed-cron identity verifier or task identifier support.
+- [ ] Preserve existing item-level idempotency and owner/client predicates; return structured handler errors and do not add any provider-delivery, automation-success, or production-reliability claim.
+- [ ] Add focused callback authentication, task-identity, durable configuration, invocation, and error-boundary coverage; publish the deployed foundation before separately attempting a controlled live schedule run.
+
+### Controlled user-journey validation: owner, staff, and client scopes
+- [x] Create separate disposable owner, staff, and client test identities plus a minimal owned client/job/task/photo/visit dataset without using production customer data. A disposable local owner/client job and reviewed task were used; staff and proof-photo coverage remain separate pending work.
+- [ ] Exercise owner workflow controls and cross-tenant denial paths at desktop and 375px without exposing task descriptions, receipt photos, private notes, staff availability, routes, costs, or internal activity in the client scope.
+- [ ] Exercise staff access boundaries and client token-scoped portal workflow, including invalid, foreign, and inactive token or record paths, with screenshots and browser evidence.
+- [ ] Document only observed behavior, responsive results, and isolation boundaries; publish tested fixes separately and retain all provider, delivery, payment, calendar, and production limitations.
+- [x] Restore a usable browser path to the active preview before exercising the controlled user journeys; current sandbox wake redirected to a Manus sign-in page. The local development path was reachable and used for controlled evidence.
+- [x] Attempt the supplied disposable Admin credential only if a local TrueAxis HQ password form is reachable without the platform sign-in gateway; do not store or repeat the credential.
+
+### Observed portal-minimization correction: reviewed job summary
+- [x] Stop returning an owner-authored job scope note implicitly through the token-scoped client portal.
+- [x] Add an additive default-private client summary field and an owner-only reviewed visibility control that are distinct from the private job scope and existing client updates.
+- [x] Preserve final job, owner, and same-client predicates; return the summary only when explicitly reviewed, and continue to exclude private scope, task descriptions, receipt photos, assets, costs, routes, staff availability, and internal history.
+- [x] Add focused migration, owner mutation, default-private, portal projection, and client-browser regression coverage; recheck the controlled local owner/client journey and document only observed results.
+
+### Observed owner-dashboard correction: unsupported operational claims
+- [x] Replace the authenticated dashboard’s observed live-notification, automatic invoice, live calendar-feed, instant-payment, five-minute background-automation, and universal operational-status wording with factual feature and evidence-boundary language.
+- [x] Preserve current owner controls and metrics without treating local seeded values as customer, revenue, conversion, payment, or production evidence.
+- [ ] Add focused dashboard-copy coverage, recheck the authenticated dashboard at desktop and 375px, and document only observed owner-journey results and exclusions.
+
+### Observed owner navigation recovery: protected sidebar panel selection
+- [x] Repair the observed local authenticated owner failure in which selecting the Jobs sidebar control left the Dashboard panel in place. The recheck confirmed the open change-log dialog intercepted the initial click; no sidebar state-code repair was required.
+- [x] Add focused navigation-state coverage and recheck the Jobs control in the authenticated owner session without altering owner access, panel scope, or underlying data. The authenticated recheck rendered the Job Workspace empty state after the dialog was dismissed.
+
+### Observed reviewed-summary control recovery: owner unshare
+- [x] Repair the observed owner workflow in which a previously shared reviewed summary remained checked after an attempted unshare and save. The browser-tool index click did not toggle the control; the component’s native change and save path succeeded without a code repair.
+- [x] Add focused state-sync and owner-visibility coverage, then recheck that an owner can deliberately hide the summary and that the same controlled client portal no longer displays it.
