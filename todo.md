@@ -2425,6 +2425,16 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Repair the observed local authenticated owner failure in which selecting the Jobs sidebar control left the Dashboard panel in place. The recheck confirmed the open change-log dialog intercepted the initial click; no sidebar state-code repair was required.
 - [x] Add focused navigation-state coverage and recheck the Jobs control in the authenticated owner session without altering owner access, panel scope, or underlying data. The authenticated recheck rendered the Job Workspace empty state after the dialog was dismissed.
 
+### Observed owner navigation repair: Job Photos sidebar route
+- [ ] Repair the reproducible authenticated owner routing defect where the Job Photos sidebar control opens Admin instead of the Job Photos panel.
+- [ ] Add focused adjacent-sidebar mapping coverage and recheck the repaired Job Photos control in the authenticated owner session before resuming proof-photo sharing validation.
+
 ### Observed reviewed-summary control recovery: owner unshare
 - [x] Repair the observed owner workflow in which a previously shared reviewed summary remained checked after an attempted unshare and save. The browser-tool index click did not toggle the control; the component’s native change and save path succeeded without a code repair.
 - [x] Add focused state-sync and owner-visibility coverage, then recheck that an owner can deliberately hide the summary and that the same controlled client portal no longer displays it.
+
+### Observed proof-photo workflow repair: owner upload client association
+- [x] Allow an owner to associate an unlinked manually uploaded proof photo through final attachment to a target owned job, so it inherits only that job’s client context instead of requiring pre-upload client selection.
+- [x] Preserve default-private visibility and reject cross-client, receipt-photo, unowned, or already-linked attachment attempts with final server predicates.
+- [x] Add focused owner upload, client association, job attachment, explicit share/unshare, and minimized portal projection coverage; recheck the disposable owner/client browser journey without claiming provider, mobile, or production behavior.
+- [x] Replace the observed client-filtered empty attachment picker with a protected target-job-scoped candidate query that returns only unlinked non-receipt owner photos belonging to the target client or no client, never another client’s photo.

@@ -58,3 +58,45 @@ The first index-based browser click did not change the selected checkbox state. 
 The owner then saved the unchecked summary control. The Job Workspace showed **Private to your workspace**, and reopening the same controlled Test Client portal no longer displayed the reviewed summary. The private job scope note was also absent; the portal displayed the shared task title only. This confirms the explicit share-and-unshare path for this disposable local owner/client dataset. It does not test a separate staff session, a foreign valid client token, inactive token, uploaded proof photo, or a mobile authenticated session.
 
 The controlled local owner/client test also confirmed the valid portal showed the reviewed summary while sharing was enabled and removed it after the owner disabled sharing and saved. The invalid-token route continued to render the inactive-link screen. The local browser remained at a desktop-sized viewport; the available browser viewport resize attempt did not produce an authenticated 375px rendering.
+
+When returning to the authenticated local Dashboard, an index-based browser click labelled **Job Photos** opened the Admin panel instead. No Admin data was changed. This is recorded as a browser automation navigation discrepancy; the owner photo workflow has not yet been exercised.
+
+A second current-index click labelled **Job Photos** again opened the Admin panel instead of the Job Photos workspace. No administrative control was invoked. Subsequent sidebar navigation for this controlled browser run will use the currently visible target position and recheck the resulting page title rather than rely on the mislabeled index.
+
+The visible-coordinate attempt to reach Job Photos instead opened Billing. No invoice action was invoked. Index and coordinate selection have both been inconsistent for late-sidebar items in this browser session, so the remaining user-journey evidence will avoid interpreting those navigation mismatches as application defects without a reproducible component-state failure.
+
+After returning to Dashboard, the AI Assistant sidebar control correctly opened its corresponding panel. The adjacent current-index Job Photos control again opened the Admin panel. This repeated sequence is now treated as an observed authenticated owner sidebar routing defect, not merely a coordinate discrepancy. No administrative mutation was performed.
+
+Source inspection confirms the Job Photos navigation item maps to the `photos` active panel, while the Admin control is a separate footer navigation action. A direct native click on the rendered Job Photos button found the intended element; its immediate synchronous title was unchanged, so the asynchronous panel transition is being rechecked separately. No navigation-code change has been made.
+
+The direct rendered Job Photos button completed its asynchronous transition to the owner Job Photos panel. A non-customer TrueAxis HQ logo image was saved outside the project directory solely as disposable upload input. No customer image or project static asset was used.
+
+The browser file-upload action could not locate the Job Photos panel’s hidden file input even though the rendered DOM reported one `image/*` multiple-file input. No upload was attempted against the application handler. The proof-photo share path remains untested through the browser until a controlled alternative can invoke the same owner upload input.
+
+A controlled native change event on that rendered input invoked the normal application upload path with the disposable non-customer image. The owner Job Photos panel showed a **1 photo uploaded** confirmation and rendered the uploaded photo. This establishes local owner upload handling for one disposable estimate-type photo; it does not attach or share that photo with a job or client portal.
+
+The owner Job Workspace then rendered its existing **Link photo** action for the disposable job and its private proof-of-work section. The uploaded image has not yet been linked or shared; no client portal photo projection has been asserted.
+
+After the owner photo-attachment procedure was updated, the local authenticated Dashboard reloaded successfully. The disposable local owner session remained available. The proof photo has not yet been attached, shared, or checked in the client portal after that server-side correction.
+
+The owner Job Photos panel was reached through direct activation of its rendered sidebar button. The panel displayed the disposable non-customer estimate photo that had been uploaded in the earlier owner session. The owner upload is still unlinked at this point; the repaired job-attachment and explicit photo-sharing path has not yet been exercised.
+
+The owner Job Workspace then reloaded and displayed the disposable job, its reviewed client summary control, the reviewed checklist item, and the **Link photo** control. The job had no attached proof photo before the repaired attachment recheck.
+
+The existing open attachment dialog retained its earlier empty-state text after the owner candidate-query change was hot-reloaded. The dialog must be closed and reopened before it can be treated as evidence of the repaired query; no result is inferred from the stale open dialog.
+
+After the dialog was closed and reopened, its browser-rendered copy still reflected the preceding version even though the current source contained the new target-job candidate wording. The local owner workspace needs a full page reload before the repaired picker can be used as browser evidence.
+
+After a full local dashboard reload, the authenticated owner session remained active and the Dashboard rendered normally. The owner Job Workspace must now be reopened before the repaired candidate picker can be evaluated.
+
+After the owner reopened Job Workspace and then the attachment dialog, the repaired picker displayed the disposable unlinked non-receipt proof image with the updated target-job wording. This is observed owner-side evidence that the protected candidate query returns an eligible unlinked owner upload. The image has not yet been attached or shared.
+
+The owner selected the disposable estimate proof image. The owner workspace displayed **Photo added to this job**, a private proof card, and a private job timeline entry. The image remained marked **Private to your workspace**; it has not yet been shared or evaluated in the portal.
+
+After closing the attachment dialog, the owner selected the visible **Private to your workspace** proof-photo control. The workspace displayed **Proof photo shared with client**, changed the card label to **Shared with client**, and added the corresponding private owner timeline entry. The controlled client portal has not yet been rechecked.
+
+The same authorized local Test Client portal then displayed one estimate proof photo in the job progress and Job Photos areas. It continued to show the reviewed task title and omitted the private job scope note. This is controlled local evidence of the explicit proof-photo sharing path; the photo has not yet been unshared or tested with a foreign or inactive token.
+
+The owner then selected **Shared with client** on the attached disposable proof card. The control changed to **Private to your workspace**, and reopening the same controlled client portal displayed zero proof photos and only the job-status event. This confirms the explicit share-and-unshare flow for the disposable owner/client dataset; it does not test a separate staff session, a foreign valid token, inactive-token revocation, authenticated mobile rendering, provider behavior, or production data.
+
+The owner then returned to the local Dashboard and reopened Job Workspace. The attached estimate photo remained marked **Shared with client**, providing the starting state for the controlled unshare check.

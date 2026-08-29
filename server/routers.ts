@@ -6340,10 +6340,28 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        let verifiedClientId: number | null = null;
+        if (input.clientId) {
+          const [client] = await db.select({ id: clients.id })
+            .from(clients)
+            .where(and(
+              eq(clients.id, input.clientId),
+              eq(clients.userId, ctx.user.id),
+              eq(clients.status, "active"),
+            ))
+            .limit(1);
+          if (!client) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Only active clients in your workspace can be selected for an owner photo.",
+            });
+          }
+          verifiedClientId = client.id;
+        }
         const [result] = await db.insert(jobPhotos).values({
           userId: ctx.user.id,
           bookingId: input.bookingId ?? null,
-          clientId: input.clientId ?? null,
+          clientId: verifiedClientId,
           photoType: input.photoType,
           uploadedBy: "owner",
           photoUrl: input.photoUrl,
@@ -6422,6 +6440,27 @@ Only include actions when you have actually generated a complete draft. For gene
         return db.select().from(jobPhotos)
           .where(and(...conditions))
           .orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt));
+      }),
+
+    listAttachableForJob: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs)
+          .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        return db.select({
+          id: jobPhotos.id,
+          photoUrl: jobPhotos.photoUrl,
+          photoType: jobPhotos.photoType,
+          caption: jobPhotos.caption,
+          createdAt: jobPhotos.createdAt,
+        }).from(jobPhotos).where(and(
+          eq(jobPhotos.userId, ctx.user.id),
+          isNull(jobPhotos.jobId),
+          ne(jobPhotos.photoType, "receipt"),
+          or(isNull(jobPhotos.clientId), eq(jobPhotos.clientId, job.clientId)),
+        )).orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt));
       }),
 
     // Update caption or line item details
@@ -8010,9 +8049,18 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const [job] = await db.select({ id: jobs.id, clientId: jobs.clientId }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
-        const [photo] = await db.select({ id: jobPhotos.id, photoType: jobPhotos.photoType, clientId: jobPhotos.clientId }).from(jobPhotos).where(and(eq(jobPhotos.id, input.photoId), eq(jobPhotos.userId, ctx.user.id))).limit(1);
-        if (!job || !photo || photo.clientId !== job.clientId) throw new TRPCError({ code: "NOT_FOUND" });
-        await db.update(jobPhotos).set({ jobId: job.id, clientVisible: false }).where(and(eq(jobPhotos.id, photo.id), eq(jobPhotos.userId, ctx.user.id), eq(jobPhotos.clientId, job.clientId)));
+        const [photo] = await db.select({ id: jobPhotos.id, photoType: jobPhotos.photoType, clientId: jobPhotos.clientId, jobId: jobPhotos.jobId }).from(jobPhotos).where(and(eq(jobPhotos.id, input.photoId), eq(jobPhotos.userId, ctx.user.id))).limit(1);
+        if (!job || !photo || photo.jobId !== null || photo.photoType === "receipt" || (photo.clientId !== null && photo.clientId !== job.clientId)) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "An unlinked non-receipt proof photo for this client is required." });
+        }
+        const [update] = await db.update(jobPhotos).set({ jobId: job.id, clientId: job.clientId, clientVisible: false })
+          .where(and(
+            eq(jobPhotos.id, photo.id),
+            eq(jobPhotos.userId, ctx.user.id),
+            isNull(jobPhotos.jobId),
+            or(isNull(jobPhotos.clientId), eq(jobPhotos.clientId, job.clientId)),
+          ));
+        if (!update.affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Proof photo is no longer available to attach." });
         await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: job.id, actor: "owner", eventType: "photo_linked", message: `Linked a ${photo.photoType === "wip" ? "work-in-progress" : photo.photoType} photo.` });
         return { success: true };
       }),
