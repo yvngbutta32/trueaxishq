@@ -37,4 +37,14 @@ describe("client-safe job activity timeline", () => {
     expect(timeline.some(item => item.detail.includes("Work has started"))).toBe(true);
     expect(timeline.some(item => item.detail.includes("team assignment"))).toBe(false);
   });
+
+  it("keeps owner job updates private unless the owner deliberately supplies client visibility", () => {
+    const updateStart = routerSource.indexOf("addUpdate: protectedProcedure");
+    const updateEnd = routerSource.indexOf("    jobs: router", updateStart);
+    const updateSection = routerSource.slice(updateStart, updateEnd);
+
+    expect(updateSection).toContain("visibleToClient: z.boolean().default(false)");
+    expect(updateSection).toContain('eventType: input.visibleToClient ? "client_update" : "internal_note"');
+    expect(updateSection).toContain("eq(jobs.userId, ctx.user.id)");
+  });
 });

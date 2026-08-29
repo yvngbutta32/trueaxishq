@@ -8052,7 +8052,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       }),
 
     addUpdate: protectedProcedure
-      .input(z.object({ jobId: z.number().int().positive(), message: safeString(5000), visibleToClient: z.boolean().default(true) }))
+      .input(z.object({ jobId: z.number().int().positive(), message: safeString(5000), visibleToClient: z.boolean().default(false) }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);

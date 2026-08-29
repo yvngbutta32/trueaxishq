@@ -154,3 +154,15 @@ The same review identified two further state-integrity refinements. Owner Calend
 The same controlled owner Settings view previously labeled the monthly report “Auto-sent on the 1st.” The revised guidance states that an enabled report is prepared on the first and marked sent only after configured SMTP acceptance. The rendered owner interface showed that updated wording. This was a copy and evidence-boundary correction only: no scheduled execution, SMTP configuration, recipient, inbox, provider response, or production delivery was tested.
 
 The monthly-report toggle was also changed to load the authenticated owner’s stored preference rather than assuming an initial enabled state. In the controlled owner Settings view, the resolved switch exposed `aria-checked="true"` and was interactive after its protected status query loaded. The setting was not toggled during this check, so no changed preference, scheduled execution, SMTP action, recipient, inbox, provider response, or production delivery outcome is claimed.
+
+## Public mobile capture recheck
+
+A fresh full-page local capture of the public TrueAxis HQ entry route at a 375 by 812 viewport completed successfully. The capture showed the public page’s stacked content and install prompt treatment. It was not authenticated and therefore does not establish owner Dashboard, staff Field workspace, or token-scoped client portal behavior at mobile width. No business data or account state was changed for this capture.
+
+## Job-update privacy-default recheck
+
+The authenticated local owner reopened the existing disposable Job Workspace after the owner job-update default was restored in the current source. The local development service-worker registration was cleared before the recheck so the browser loaded the current bundle rather than stale client code. The rendered timeline control read **Share with client**, and direct inspection of its corresponding currently rendered checkbox found `checked: false`. No message was entered, no update was posted, and no client portal was reopened. This is local owner-interface evidence for the private starting state only; it does not establish a newly shared update, foreign-token behavior, authenticated mobile rendering, delivery, provider behavior, or production behavior.
+
+## Job-update privacy-default recheck
+
+The authenticated local owner reopened the existing disposable Job Workspace after the owner job-update default was changed. The rendered timeline control was labeled **Share with client**, and direct inspection of its corresponding currently rendered checkbox found `checked: false`. No message was entered, no update was posted, and no client portal was reopened for this recheck. This is local owner-interface evidence for the new private starting state only; focused tests cover the protected default and client-safe event selection. It does not establish a new client update, foreign-token behavior, authenticated mobile rendering, delivery, provider, or production behavior.
