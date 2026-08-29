@@ -155,6 +155,10 @@ The same controlled owner Settings view previously labeled the monthly report �
 
 The monthly-report toggle was also changed to load the authenticated owner’s stored preference rather than assuming an initial enabled state. In the controlled owner Settings view, the resolved switch exposed `aria-checked="true"` and was interactive after its protected status query loaded. The setting was not toggled during this check, so no changed preference, scheduled execution, SMTP action, recipient, inbox, provider response, or production delivery outcome is claimed.
 
+## Job-update privacy-default recheck
+
+The authenticated local owner reopened the existing disposable Job Workspace after the owner job-update default was restored in the current source. The local development service-worker registration was cleared before the recheck so the browser loaded the current bundle rather than stale client code. The rendered timeline control read **Share with client**, and direct inspection of its corresponding currently rendered checkbox found `checked: false`. No message was entered, no update was posted, and no client portal was reopened. This is local owner-interface evidence for the private starting state only; it does not establish a newly shared update, foreign-token behavior, authenticated mobile rendering, delivery, provider behavior, or production behavior.
+
 ## Public mobile capture recheck
 
 A fresh full-page local capture of the public TrueAxis HQ entry route at a 375 by 812 viewport completed successfully. The capture showed the public page’s stacked content and install prompt treatment. It was not authenticated and therefore does not establish owner Dashboard, staff Field workspace, or token-scoped client portal behavior at mobile width. No business data or account state was changed for this capture.

@@ -2494,3 +2494,7 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Preserve default-private visibility and reject cross-client, receipt-photo, unowned, or already-linked attachment attempts with final server predicates.
 - [x] Add focused owner upload, client association, job attachment, explicit share/unshare, and minimized portal projection coverage; recheck the disposable owner/client browser journey without claiming provider, mobile, or production behavior.
 - [x] Replace the observed client-filtered empty attachment picker with a protected target-job-scoped candidate query that returns only unlinked non-receipt owner photos belonging to the target client or no client, never another client’s photo.
+
+### Requested TrueAxis HQ repository synchronization
+- [ ] Verify the configured GitHub remotes and upstream branch target the intended TrueAxis HQ repository; correct a confirmed mismatch without overwriting user changes.
+- [ ] Publish the current validated TrueAxis HQ change set to the verified repository and record the exact synchronization result.
