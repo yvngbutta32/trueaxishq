@@ -2410,6 +2410,21 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Restore a usable browser path to the active preview before exercising the controlled user journeys; current sandbox wake redirected to a Manus sign-in page. The local development path was reachable and used for controlled evidence.
 - [x] Attempt the supplied disposable Admin credential only if a local TrueAxis HQ password form is reachable without the platform sign-in gateway; do not store or repeat the credential.
 
+### Controlled staff-journey validation: existing invite and membership path
+- [x] Create a separate disposable staff identity and accept an owner-created local staff invite through the existing route without claiming email delivery.
+- [x] Exercise the resulting staff-authorized route and owner-admin denial path with disposable local data, then record only observed access and privacy boundaries.
+
+### Observed staff-invite identity repair: normalized invited email
+- [x] Reject staff invite acceptance when the authenticated account email, after safe trim-and-lowercase normalization, differs from the invite email; do not create a membership or consume the invite on mismatch.
+- [x] Apply the same final identity predicate to both existing-account acceptance and registration-and-accept paths while retaining expiry, revocation, accepted, active-roster-member, owner, and unique-membership safeguards.
+- [x] Make the private access interface show a clear unavailable state for a mismatched signed-in email without relying on the client interface for enforcement; preserve direct-link and no-automatic-email wording.
+- [x] Add behavioral regression coverage for mismatch denial and non-consumption, exact and safely normalized acceptance, invalid invite lifecycle states, invited-account membership binding, and limited staff versus owner-only route scope; recheck the authorized disposable local journey and publish only observed outcomes.
+
+### Observed staff route-scope correction: accepted account entry
+- [x] Prevent an account with active staff membership from entering the general owner dashboard after staff acceptance or ordinary sign-in; route it to the limited staff workspace without changing the owner’s separate tenant data.
+- [x] Deny direct owner dashboard and owner-only panel entry for active staff accounts at the server boundary as well as the route interface, while retaining the existing assigned-work procedures and explicit active-membership predicates.
+- [x] Add focused behavioral coverage for active staff workspace discovery, owner-dashboard denial, no active staff membership fallback, and the existing limited staff work projection; recheck the disposable staff browser journey without creating owner records.
+
 ### Observed portal-minimization correction: reviewed job summary
 - [x] Stop returning an owner-authored job scope note implicitly through the token-scoped client portal.
 - [x] Add an additive default-private client summary field and an owner-only reviewed visibility control that are distinct from the private job scope and existing client updates.

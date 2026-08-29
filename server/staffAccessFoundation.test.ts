@@ -28,16 +28,18 @@ describe("staff identity and role-based access foundation", () => {
     expect(team).toContain("It does not send email automatically.");
   });
 
-  it("requires a final unused, unrevoked, email-bound invite predicate before staff access activates", () => {
+  it("requires final unused, unrevoked, normalized-email, and active-roster predicates before staff access activates", () => {
     const start = router.indexOf("staffAccess: router({");
     const end = router.indexOf("// ── Team Operations", start);
     const staff = router.slice(start, end);
     expect(staff).toContain("register: publicProcedure");
-    expect(staff).toContain("accept: protectedProcedure");
+    expect(staff).toContain("accept: staffProcedure");
     expect(staff).toContain("isNull(workspaceStaffInvites.acceptedAt)");
     expect(staff).toContain("eq(workspaceStaffInvites.revoked, false)");
     expect(staff).toContain("gt(workspaceStaffInvites.expiresAt, now)");
-    expect(staff).toContain("eq(workspaceStaffInvites.email, email)");
+    expect(staff).toContain("normalizedStaffInviteEmailPredicate(email)");
+    expect(staff).toContain("activeStaffInviteRosterPredicate(invite)");
+    expect(staff).toContain("isStaffInviteEmailMatch(invite.email, email)");
     expect(staff).toContain("await db.transaction");
   });
 
@@ -45,10 +47,10 @@ describe("staff identity and role-based access foundation", () => {
     const start = router.indexOf("staffAccess: router({");
     const end = router.indexOf("// ── Team Operations", start);
     const staff = router.slice(start, end);
-    expect(staff).toContain("assignments: protectedProcedure");
+    expect(staff).toContain("assignments: staffProcedure");
     expect(staff).toContain("requireActiveStaffMembership");
     expect(staff).toContain("eq(jobAssignments.teamMemberId, membership.teamMemberId)");
-    expect(staff).toContain("updateAssignmentStatus: protectedProcedure");
+    expect(staff).toContain("updateAssignmentStatus: staffProcedure");
     expect(staff).toContain('actor: "staff"');
     expect(staff).not.toContain("expenses:");
     expect(staff).not.toContain("financials:");

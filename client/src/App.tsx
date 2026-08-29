@@ -5,6 +5,7 @@ import { Redirect, Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import OfflineBanner from "./components/OfflineBanner";
 import PWAInstallBanner from "./components/PWAInstallBanner";
+import { OwnerWorkspaceRoute } from "./components/OwnerWorkspaceRoute";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AppProvider } from "./contexts/AppContext";
 import { lazy, Suspense } from "react";
@@ -81,10 +82,10 @@ function Router() {
         <Route path="/staff-access" component={StaffAccess} />
 
         {/* Authenticated user routes */}
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/dashboard/:section" component={Dashboard} />
+        <Route path="/dashboard"><OwnerWorkspaceRoute><Dashboard /></OwnerWorkspaceRoute></Route>
+        <Route path="/dashboard/:section"><OwnerWorkspaceRoute><Dashboard /></OwnerWorkspaceRoute></Route>
         <Route path="/field-mode"><Redirect to="/dashboard/field" /></Route>
-        <Route path="/billing" component={Billing} />
+        <Route path="/billing"><OwnerWorkspaceRoute><Billing /></OwnerWorkspaceRoute></Route>
         <Route path="/staff" component={StaffWorkspace} />
 
         {/* Owner admin routes */}

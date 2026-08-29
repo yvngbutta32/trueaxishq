@@ -6,7 +6,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, adminProcedure, ownerProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, staffProcedure, adminProcedure, ownerProcedure, router } from "./_core/trpc";
 import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
@@ -90,6 +90,26 @@ const safeOptionalString = (max = 255) => z.string().trim().max(max).optional();
 const safeEmail = z.string().trim().email("Invalid email address").max(320);
 const safeOptionalEmail = z.string().trim().email("Invalid email address").max(320).optional().or(z.literal(""));
 const safeUrl = z.string().url("Invalid URL").max(2048);
+export function normalizeStaffInviteEmail(email: string | null | undefined) {
+  const normalized = email?.trim().toLowerCase() ?? "";
+  return normalized || null;
+}
+function isStaffInviteEmailMatch(invitedEmail: string | null | undefined, candidateEmail: string | null | undefined) {
+  const normalizedInviteEmail = normalizeStaffInviteEmail(invitedEmail);
+  const normalizedCandidateEmail = normalizeStaffInviteEmail(candidateEmail);
+  return Boolean(normalizedInviteEmail && normalizedCandidateEmail && normalizedInviteEmail === normalizedCandidateEmail);
+}
+function normalizedStaffInviteEmailPredicate(email: string) {
+  return sql`lower(trim(${workspaceStaffInvites.email})) = ${email}`;
+}
+function activeStaffInviteRosterPredicate(invite: Pick<typeof workspaceStaffInvites.$inferSelect, "ownerUserId" | "teamMemberId">) {
+  return sql`exists (
+    select 1 from ${teamMembers}
+    where ${teamMembers.id} = ${invite.teamMemberId}
+      and ${teamMembers.userId} = ${invite.ownerUserId}
+      and ${teamMembers.active} = ${true}
+  )`;
+}
 const jobWorkspaceStatusSchema = z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]);
 type JobWorkspaceStatus = z.infer<typeof jobWorkspaceStatusSchema>;
 const staffWorkspaceRoleSchema = z.enum(["field_member", "operations_manager"]);
@@ -6649,22 +6669,29 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
   staffAccess: router({
     getInvite: publicProcedure
       .input(z.object({ token: z.string().trim().length(64) }))
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
         const db = await requireDb();
         const now = new Date();
         const [invite] = await db.select({
           teamMemberName: teamMembers.name,
+          email: workspaceStaffInvites.email,
           role: workspaceStaffInvites.role,
           expiresAt: workspaceStaffInvites.expiresAt,
           acceptedAt: workspaceStaffInvites.acceptedAt,
           revoked: workspaceStaffInvites.revoked,
+          teamMemberActive: teamMembers.active,
         }).from(workspaceStaffInvites)
           .innerJoin(teamMembers, and(eq(workspaceStaffInvites.teamMemberId, teamMembers.id), eq(workspaceStaffInvites.ownerUserId, teamMembers.userId)))
           .where(eq(workspaceStaffInvites.token, input.token)).limit(1);
-        if (!invite || invite.revoked || invite.acceptedAt || invite.expiresAt <= now) {
+        if (!invite || !invite.teamMemberActive || invite.revoked || invite.acceptedAt || invite.expiresAt <= now) {
           throw new TRPCError({ code: "NOT_FOUND", message: "This staff access link is unavailable or expired." });
         }
-        return { teamMemberName: invite.teamMemberName, role: invite.role, expiresAt: invite.expiresAt };
+        return {
+          teamMemberName: invite.teamMemberName,
+          role: invite.role,
+          expiresAt: invite.expiresAt,
+          canAcceptWithSignedInEmail: ctx.user ? isStaffInviteEmailMatch(invite.email, ctx.user.email) : null,
+        };
       }),
 
     register: publicProcedure
@@ -6676,10 +6703,23 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
-        const email = input.email.trim().toLowerCase();
+        const email = normalizeStaffInviteEmail(input.email);
+        if (!email) throw new TRPCError({ code: "BAD_REQUEST", message: "This staff access link is unavailable or does not match this email address." });
         const now = new Date();
-        const [invite] = await db.select().from(workspaceStaffInvites).where(eq(workspaceStaffInvites.token, input.token)).limit(1);
-        if (!invite || invite.revoked || invite.acceptedAt || invite.expiresAt <= now || invite.email !== email) {
+        const [invite] = await db.select({
+          id: workspaceStaffInvites.id,
+          ownerUserId: workspaceStaffInvites.ownerUserId,
+          teamMemberId: workspaceStaffInvites.teamMemberId,
+          email: workspaceStaffInvites.email,
+          role: workspaceStaffInvites.role,
+          expiresAt: workspaceStaffInvites.expiresAt,
+          acceptedAt: workspaceStaffInvites.acceptedAt,
+          revoked: workspaceStaffInvites.revoked,
+          teamMemberActive: teamMembers.active,
+        }).from(workspaceStaffInvites)
+          .innerJoin(teamMembers, and(eq(workspaceStaffInvites.teamMemberId, teamMembers.id), eq(workspaceStaffInvites.ownerUserId, teamMembers.userId)))
+          .where(eq(workspaceStaffInvites.token, input.token)).limit(1);
+        if (!invite || !invite.teamMemberActive || invite.revoked || invite.acceptedAt || invite.expiresAt <= now || !isStaffInviteEmailMatch(invite.email, email)) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "This staff access link is unavailable or does not match this email address." });
         }
         const [existingUser] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
@@ -6689,7 +6729,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         try {
           await db.transaction(async (tx) => {
             const claim = await tx.update(workspaceStaffInvites).set({ acceptedAt: now })
-              .where(and(eq(workspaceStaffInvites.id, invite.id), eq(workspaceStaffInvites.revoked, false), isNull(workspaceStaffInvites.acceptedAt), gt(workspaceStaffInvites.expiresAt, now), eq(workspaceStaffInvites.email, email)));
+              .where(and(eq(workspaceStaffInvites.id, invite.id), eq(workspaceStaffInvites.revoked, false), isNull(workspaceStaffInvites.acceptedAt), gt(workspaceStaffInvites.expiresAt, now), normalizedStaffInviteEmailPredicate(email), activeStaffInviteRosterPredicate(invite)));
             if (!claim[0].affectedRows) throw new TRPCError({ code: "BAD_REQUEST", message: "This staff access link is no longer available." });
             const [userResult] = await tx.insert(users).values({ openId: `email:${email}`, name: input.name, email, loginMethod: "email", passwordHash, lastSignedIn: now });
             userId = Number(userResult.insertId);
@@ -6706,20 +6746,32 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         return { success: true, user: { id: userId, name: input.name, email, role: "staff" } };
       }),
 
-    accept: protectedProcedure
+    accept: staffProcedure
       .input(z.object({ token: z.string().trim().length(64) }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const now = new Date();
-        const [invite] = await db.select().from(workspaceStaffInvites).where(eq(workspaceStaffInvites.token, input.token)).limit(1);
-        const email = ctx.user.email?.trim().toLowerCase();
-        if (!invite || !email || invite.revoked || invite.acceptedAt || invite.expiresAt <= now || invite.email !== email) {
+        const [invite] = await db.select({
+          id: workspaceStaffInvites.id,
+          ownerUserId: workspaceStaffInvites.ownerUserId,
+          teamMemberId: workspaceStaffInvites.teamMemberId,
+          email: workspaceStaffInvites.email,
+          role: workspaceStaffInvites.role,
+          expiresAt: workspaceStaffInvites.expiresAt,
+          acceptedAt: workspaceStaffInvites.acceptedAt,
+          revoked: workspaceStaffInvites.revoked,
+          teamMemberActive: teamMembers.active,
+        }).from(workspaceStaffInvites)
+          .innerJoin(teamMembers, and(eq(workspaceStaffInvites.teamMemberId, teamMembers.id), eq(workspaceStaffInvites.ownerUserId, teamMembers.userId)))
+          .where(eq(workspaceStaffInvites.token, input.token)).limit(1);
+        const email = normalizeStaffInviteEmail(ctx.user.email);
+        if (!invite || !email || !invite.teamMemberActive || invite.revoked || invite.acceptedAt || invite.expiresAt <= now || !isStaffInviteEmailMatch(invite.email, email)) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "This staff access link is unavailable or does not match your signed-in email." });
         }
         try {
           await db.transaction(async (tx) => {
             const claim = await tx.update(workspaceStaffInvites).set({ acceptedAt: now, acceptedUserId: ctx.user.id })
-              .where(and(eq(workspaceStaffInvites.id, invite.id), eq(workspaceStaffInvites.revoked, false), isNull(workspaceStaffInvites.acceptedAt), gt(workspaceStaffInvites.expiresAt, now), eq(workspaceStaffInvites.email, email)));
+              .where(and(eq(workspaceStaffInvites.id, invite.id), eq(workspaceStaffInvites.revoked, false), isNull(workspaceStaffInvites.acceptedAt), gt(workspaceStaffInvites.expiresAt, now), normalizedStaffInviteEmailPredicate(email), activeStaffInviteRosterPredicate(invite)));
             if (!claim[0].affectedRows) throw new TRPCError({ code: "BAD_REQUEST", message: "This staff access link is no longer available." });
             const [existingByUser] = await tx.select({ id: workspaceStaffMemberships.id, teamMemberId: workspaceStaffMemberships.teamMemberId, active: workspaceStaffMemberships.active })
               .from(workspaceStaffMemberships).where(and(eq(workspaceStaffMemberships.ownerUserId, invite.ownerUserId), eq(workspaceStaffMemberships.memberUserId, ctx.user.id))).limit(1);
@@ -6737,7 +6789,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         return { success: true };
       }),
 
-    workspaces: protectedProcedure.query(async ({ ctx }) => {
+    workspaces: staffProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
       return db.select({
         ownerUserId: workspaceStaffMemberships.ownerUserId,
@@ -6751,7 +6803,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         .where(and(eq(workspaceStaffMemberships.memberUserId, ctx.user.id), eq(workspaceStaffMemberships.active, true), eq(teamMembers.active, true)));
     }),
 
-    assignments: protectedProcedure
+    assignments: staffProcedure
       .input(z.object({ ownerUserId: z.number().int().positive() }))
       .query(async ({ ctx, input }) => {
         const db = await requireDb();
@@ -6790,7 +6842,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         return { membership, assignments, visits };
       }),
 
-    updateAssignmentStatus: protectedProcedure
+    updateAssignmentStatus: staffProcedure
       .input(z.object({ ownerUserId: z.number().int().positive(), assignmentId: z.number().int().positive(), status: z.enum(["acknowledged", "declined", "completed"]) }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
@@ -6911,7 +6963,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const [member] = await db.select({ id: teamMembers.id, email: teamMembers.email, name: teamMembers.name, active: teamMembers.active })
           .from(teamMembers).where(and(eq(teamMembers.id, input.teamMemberId), eq(teamMembers.userId, ctx.user.id))).limit(1);
         if (!member?.active) throw new TRPCError({ code: "NOT_FOUND", message: "Choose an active team member." });
-        const email = member.email?.trim().toLowerCase();
+        const email = normalizeStaffInviteEmail(member.email);
         if (!email) throw new TRPCError({ code: "BAD_REQUEST", message: "Add an email address to this team member before creating access." });
         const [existingMembership] = await db.select({ id: workspaceStaffMemberships.id, active: workspaceStaffMemberships.active })
           .from(workspaceStaffMemberships).where(and(eq(workspaceStaffMemberships.ownerUserId, ctx.user.id), eq(workspaceStaffMemberships.teamMemberId, member.id))).limit(1);
