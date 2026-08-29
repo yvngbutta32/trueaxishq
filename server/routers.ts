@@ -460,7 +460,7 @@ export const appRouter = router({
       const token = ctx.req.headers.cookie?.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]+)`))?.[1];
       await revokeSession(token, "logout");
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      ctx.res.clearCookie(COOKIE_NAME, cookieOptions);
       return { success: true } as const;
     }),
 
@@ -470,7 +470,7 @@ export const appRouter = router({
         .set({ isActive: false, invalidatedAt: new Date(), invalidationReason: "owner_requested" })
         .where(and(eq(userSessions.userId, ctx.user.id), eq(userSessions.isActive, true)));
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      ctx.res.clearCookie(COOKIE_NAME, cookieOptions);
       logSecurityEvent({
         eventType: "sessions_revoked",
         severity: "medium",
