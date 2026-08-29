@@ -1974,7 +1974,7 @@ function InvoicesPanel() {
     onError: (e) => toast.error(e.message),
   });
   const sendReminder = trpc.invoices.sendReminder.useMutation({
-    onSuccess: (data) => { utils.followUps.list.invalidate(); toast.success(data.emailSent ? `Reminder sent to client & saved to Follow-Ups.` : `Reminder draft saved to Follow-Ups: "${data.subject}"`); },
+    onSuccess: (data) => { utils.followUps.list.invalidate(); data.emailSent ? toast.success("Reminder email was accepted by configured SMTP and saved to Follow-Ups.") : toast.info(`Reminder draft saved to Follow-Ups: "${data.subject}". No configured SMTP acceptance was recorded.`); },
     onError: (e) => toast.error(e.message),
   });
   const payNow = trpc.invoices.payNow.useMutation({
@@ -1986,7 +1986,7 @@ function InvoicesPanel() {
     onError: (e) => toast.error(e.message),
   });
   const sendReceipt = trpc.invoices.sendReceipt.useMutation({
-    onSuccess: (data) => toast.success(data.emailSent ? "Receipt sent to client!" : "Receipt prepared (email not configured)."),
+    onSuccess: (data) => data.emailSent ? toast.success("Receipt email was accepted by configured SMTP.") : toast.info("Receipt remains available. No configured SMTP acceptance was recorded."),
     onError: (e) => toast.error(e.message),
   });
   const generatePayLink = trpc.invoices.generatePayLink.useMutation({
@@ -2709,7 +2709,7 @@ function FollowUpsPanel() {
     onError: (e) => toast.error(e.message),
   });
   const sendEmailMut = trpc.followUps.sendEmail.useMutation({
-    onSuccess: () => { utils.followUps.list.invalidate(); setPreviewFollowUp(null); toast.success("Email sent successfully!"); },
+    onSuccess: (data) => { utils.followUps.list.invalidate(); setPreviewFollowUp(null); data.emailSent ? toast.success("Follow-up email was accepted by configured SMTP.") : toast.info("Follow-up retained as a draft; no configured SMTP acceptance was recorded."); },
     onError: (e) => toast.error(e.message),
   });
 

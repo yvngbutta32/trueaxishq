@@ -56,7 +56,7 @@ export default function Proposals() {
   const sendMut = trpc.proposals.send.useMutation({
     onSuccess: (data) => {
       utils.proposals.list.invalidate();
-      toast.success("Proposal sent!");
+      data.emailAccepted ? toast.success("Proposal email was accepted by configured SMTP.") : toast.info("Proposal remains draft; no configured SMTP acceptance was recorded.");
       if (data.link) { navigator.clipboard.writeText(data.link).catch(() => {}); toast.info("Link copied to clipboard"); }
     },
     onError: e => toast.error(e.message),

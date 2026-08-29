@@ -1308,7 +1308,7 @@ export const appRouter = router({
               dueDate: inv.dueDate || "As soon as possible",
             }),
           });
-          emailSent = result.success;
+          emailSent = wasAcceptedByConfiguredSmtp(result);
         }
         return { success: true, subject, emailSent };
       }),
@@ -1422,7 +1422,7 @@ export const appRouter = router({
         if (inv.status !== "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "Only paid invoices can have receipts sent." });
         if (!inv.clientEmail) throw new TRPCError({ code: "BAD_REQUEST", message: "No client email on this invoice." });
         const { sendEmail } = await import("./_core/email");
-        const emailSent = await sendEmail({
+        const emailResult = await sendEmail({
           to: inv.clientEmail,
           subject: `Receipt for Invoice ${inv.invoiceNumber}`,
           html: `<div style="font-family:sans-serif;max-width:520px;margin:auto">
@@ -1437,7 +1437,7 @@ export const appRouter = router({
             <p style="color:#888;font-size:12px">This is an automated receipt. Please keep it for your records.</p>
           </div>`,
         });
-        return { success: true, emailSent };
+        return { success: true, emailSent: wasAcceptedByConfiguredSmtp(emailResult) };
       }),
     generatePayLink: protectedProcedure
       .input(z.object({ id: z.number() }))
@@ -1706,14 +1706,17 @@ export const appRouter = router({
         const [user] = await db.select({ name: users.name, businessName: users.businessName })
           .from(users).where(eq(users.id, ctx.user.id)).limit(1);
         const senderName = user?.businessName || user?.name || "Your Service Provider";
-        const emailSent = await sendEmail({
+        const emailResult = await sendEmail({
           to: fu.clientEmail as string,
           subject: fu.subject ?? "",
           html: followUpEmail({ clientName: fu.clientName, subject: fu.subject ?? "", body: fu.body ?? "" }),
         });
-        await db.update(followUps).set({ status: "sent", sentAt: new Date() })
-          .where(eq(followUps.id, fu.id));
-        return { success: true, emailSent };
+        const emailAccepted = wasAcceptedByConfiguredSmtp(emailResult);
+        if (emailAccepted) {
+          await db.update(followUps).set({ status: "sent", sentAt: new Date() })
+            .where(and(eq(followUps.id, fu.id), eq(followUps.userId, ctx.user.id)));
+        }
+        return { success: true, emailSent: emailAccepted };
       }),
   }),
 
@@ -5436,8 +5439,9 @@ Only include actions when you have actually generated a complete draft. For gene
         const origin = getTrustedPaymentReturnOrigin(requestedOrigin);
         if (!origin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use an official TrueAxis HQ origin to send a proposal." });
         const link = `${origin}/proposal/${row.token}`;
+        let emailAccepted = false;
         if (row.clientEmail) {
-          await sendEmail({
+          const emailResult = await sendEmail({
             to: row.clientEmail,
             subject: `Proposal: ${row.title}`,
             html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">
@@ -5447,10 +5451,16 @@ Only include actions when you have actually generated a complete draft. For gene
               <a href="${link}" style="display:inline-block;background:#00C9A7;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:16px 0">View &amp; Sign Proposal</a>
               <p style="color:#666;font-size:14px">This link will take you to a secure page where you can review and sign the proposal electronically.</p>
             </div>`,
-          }).catch(e => console.error("[Proposals] Email failed:", e));
+          }).catch(e => {
+            console.error("[Proposals] Email failed:", e);
+            return { success: false, mode: "smtp" as const };
+          });
+          emailAccepted = wasAcceptedByConfiguredSmtp(emailResult);
         }
-        await db.update(proposals).set({ status: "sent", sentAt: new Date() }).where(and(eq(proposals.id, input.id), eq(proposals.userId, ctx.user.id)));
-        return { success: true, link };
+        if (emailAccepted) {
+          await db.update(proposals).set({ status: "sent", sentAt: new Date() }).where(and(eq(proposals.id, input.id), eq(proposals.userId, ctx.user.id)));
+        }
+        return { success: true, link, emailAccepted };
       }),
 
     sign: publicProcedure

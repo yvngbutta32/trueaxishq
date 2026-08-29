@@ -2375,3 +2375,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 
 ### Delivery approach: cohesive evidence-led milestones
 - [ ] Group future credential-free work into cohesive multi-path reliability or privacy milestones, each with one scoped validation run and evidence record rather than repeated audit-only releases.
+
+### Consolidated manual client-email correction: outcome accuracy
+- [x] Ensure invoice reminders and paid-invoice receipts report configured SMTP acceptance rather than treating console fallback or SMTP failure as a sent client email.
+- [x] Keep a manual follow-up record in draft unless configured SMTP acceptance occurs; preserve final owner predicates and retain the owner-authored content without exposing another tenant’s record.
+- [x] Keep a proposal in draft when there is no recipient, console fallback, or SMTP failure; preserve the owner-scoped secure review link without treating link generation as email delivery.
+- [x] Align owner-interface success and recovery language with these returned delivery outcomes; do not add retry, read receipt, inbox, payment, scheduler, or provider-reliability claims.
+- [x] Add focused multi-workflow regression coverage for configured SMTP acceptance, console fallback, missing recipient, SMTP failure, owner scope, and retained draft state; validate and document one consolidated release.
