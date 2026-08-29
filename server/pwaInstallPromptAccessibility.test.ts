@@ -24,4 +24,15 @@ describe("public install prompt accessibility", () => {
     expect(component).not.toContain("offline use");
     expect(component).toContain('aria-label="Dismiss install banner"');
   });
+
+  it("keeps production service-worker registration while clearing stale local development registrations", () => {
+    const document = readFileSync(resolve(process.cwd(), "client/index.html"), "utf8");
+
+    expect(document).toContain("var isDevelopment = '%MODE%' === 'development';");
+    expect(document).toContain("'serviceWorker' in navigator && isDevelopment");
+    expect(document).toContain("navigator.serviceWorker.getRegistrations()");
+    expect(document).toContain("registration.unregister()");
+    expect(document).toContain("else if ('serviceWorker' in navigator)");
+    expect(document).toContain("navigator.serviceWorker.register('/sw.js', { scope: '/' })");
+  });
 });
