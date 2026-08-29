@@ -4094,7 +4094,9 @@ function IntegrationsSection() {
             <p className="text-sm font-semibold text-[#1A1A1A]">Google Calendar</p>
             <p className="text-xs text-[#6B6B6B]">
               {calStatus?.connected
-                ? "Connected · Google Calendar sync is enabled"
+                ? calStatus.syncEnabled
+                  ? "Connected · Google Calendar synchronization is enabled"
+                  : "Connected · Google Calendar synchronization is paused"
                 : calendarSetupRequired
                   ? "Owner setup is required before Google authorization can begin."
                   : "Connect booking events to your Google Calendar"}

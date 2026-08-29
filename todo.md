@@ -2442,6 +2442,14 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Preserve protected owner scope and do not represent setup-required, disconnected, or provider-error status as connected or synchronized.
 - [x] Add focused recovery coverage, recheck the owner interface without provider credentials, and document only observed local behavior and external-provider limits.
 
+### Observed Google Calendar connection-state wording
+- [x] Distinguish an authorization record with enabled synchronization from one with synchronization paused in owner-facing Calendar status copy.
+- [x] Add focused state-message coverage and preserve the setup-required, provider-authorization, and synchronization evidence boundaries.
+
+### Observed Google Calendar sync-state mutation integrity
+- [x] Require an existing owner-scoped Calendar authorization record before accepting a synchronization toggle; reject missing authorization without claiming remote provider state.
+- [x] Add focused missing-record and owner-scope mutation coverage, then validate the unchanged setup-required and paused-status recovery states without provider credentials.
+
 ### Observed portal-minimization correction: reviewed job summary
 - [x] Stop returning an owner-authored job scope note implicitly through the token-scoped client portal.
 - [x] Add an additive default-private client summary field and an owner-only reviewed visibility control that are distinct from the private job scope and existing client updates.

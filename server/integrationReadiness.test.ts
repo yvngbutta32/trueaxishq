@@ -39,4 +39,22 @@ describe("integration readiness trust boundary", () => {
     expect(dashboard).toContain("Owner setup is required before Google authorization can begin.");
     expect(dashboard).toContain("Setup required");
   });
+
+  it("distinguishes connected Calendar authorization from enabled synchronization", () => {
+    const dashboard = readFileSync(resolve(process.cwd(), "client/src/pages/Dashboard.tsx"), "utf8");
+
+    expect(dashboard).toContain("calStatus.syncEnabled");
+    expect(dashboard).toContain("Connected · Google Calendar synchronization is enabled");
+    expect(dashboard).toContain("Connected · Google Calendar synchronization is paused");
+  });
+
+  it("requires the owner’s existing Calendar authorization record before changing synchronization state", () => {
+    const source = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
+    const googleCalendar = source.slice(source.indexOf("googleCal: router({"), source.indexOf("// ── Onboarding Status"));
+
+    expect(googleCalendar).toContain("toggleSync: protectedProcedure");
+    expect(googleCalendar).toContain("eq(googleCalendarTokens.userId, ctx.user.id)");
+    expect(googleCalendar).toContain("result.affectedRows !== 1");
+    expect(googleCalendar).toContain("Google Calendar authorization is not connected.");
+  });
 });

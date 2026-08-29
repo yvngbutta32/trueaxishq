@@ -4923,8 +4923,11 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ enabled: z.boolean() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
-        await db.update(googleCalendarTokens).set({ syncEnabled: input.enabled })
+        const [result] = await db.update(googleCalendarTokens).set({ syncEnabled: input.enabled })
           .where(eq(googleCalendarTokens.userId, ctx.user.id));
+        if (result.affectedRows !== 1) {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Google Calendar authorization is not connected." });
+        }
         return { ok: true };
       }),
   }),
