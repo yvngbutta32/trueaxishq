@@ -330,6 +330,7 @@ const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; ba
   { icon: Users,           label: "Clients",    panel: "clients"    },
   { icon: Calendar,        label: "Scheduling", panel: "scheduling" },
   { icon: Package,         label: "Jobs",       panel: "jobs"       },
+  { icon: Camera,          label: "Job Photos", panel: "photos"     },
   { icon: UsersRound,      label: "Team",       panel: "team"       },
   { icon: MapPin,          label: "Dispatch",   panel: "dispatch"   },
   { icon: Smartphone,      label: "Field Mode", panel: "field"      },
@@ -341,7 +342,6 @@ const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; ba
   { icon: BarChart3,       label: "Insights",   panel: "insights"   },
   { icon: Settings,        label: "Settings",   panel: "settings"   },
   { icon: Bot,             label: "AI Assistant", panel: "ai"       },
-  { icon: Camera,          label: "Job Photos",  panel: "photos"   },
 ];
 
 function Sidebar({ active, setActive, collapsed, setCollapsed }: {

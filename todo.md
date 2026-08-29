@@ -2453,8 +2453,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Add focused navigation-state coverage and recheck the Jobs control in the authenticated owner session without altering owner access, panel scope, or underlying data. The authenticated recheck rendered the Job Workspace empty state after the dialog was dismissed.
 
 ### Observed owner navigation repair: Job Photos sidebar route
-- [ ] Repair the reproducible authenticated owner routing defect where the Job Photos sidebar control opens Admin instead of the Job Photos panel.
-- [ ] Add focused adjacent-sidebar mapping coverage and recheck the repaired Job Photos control in the authenticated owner session before resuming proof-photo sharing validation.
+- [x] Re-inspect the reported authenticated owner routing defect: the current sidebar maps Job Photos directly to the `photos` panel and the panel switch renders `JobPhotosPanel`; no source repair was required from this review.
+- [x] Add focused adjacent-sidebar mapping coverage and recheck the repaired Job Photos control in the authenticated owner session before resuming proof-photo sharing validation.
+- [x] Repair the subsequently reproduced live click-target defect where selecting the visibly labeled Job Photos sidebar control opens the owner Admin route; preserve all other sidebar panel mappings and owner access boundaries.
+- [x] Add a focused rendered-navigation regression and recheck direct Job Photos selection plus adjacent Settings and Admin controls in the authenticated owner browser without mutating business data.
 
 ### Observed reviewed-summary control recovery: owner unshare
 - [x] Repair the observed owner workflow in which a previously shared reviewed summary remained checked after an attempted unshare and save. The browser-tool index click did not toggle the control; the component’s native change and save path succeeded without a code repair.
