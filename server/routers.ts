@@ -4890,7 +4890,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ origin: z.string().url() }))
       .query(async ({ ctx, input }) => {
         const clientId = process.env.GOOGLE_CLIENT_ID;
-        if (!clientId) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Google Calendar integration requires GOOGLE_CLIENT_ID to be configured in Settings → Secrets." });
+        if (!clientId) return { url: null, status: "setup_required" as const };
         const stateSecret = process.env.JWT_SECRET;
         if (!stateSecret) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Google Calendar integration state is not configured." });
         let state: string;
@@ -4908,7 +4908,7 @@ Only include actions when you have actually generated a complete draft. For gene
           prompt: "consent",
           state,
         });
-        return { url: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}` };
+        return { url: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`, status: "ready" as const };
       }),
 
     // Disconnect

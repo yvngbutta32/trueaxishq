@@ -4067,6 +4067,7 @@ function IntegrationsSection() {
     { origin: window.location.origin },
     { enabled: !calStatus?.connected }
   );
+  const calendarSetupRequired = !calStatus?.connected && calAuthData?.status === "setup_required";
   const disconnectCal = trpc.googleCal.disconnect.useMutation({
     onSuccess: () => { utils.googleCal.status.invalidate(); toast.success("Google Calendar disconnected."); },
     onError: (e: { message: string }) => toast.error(e.message),
@@ -4092,7 +4093,11 @@ function IntegrationsSection() {
           <div>
             <p className="text-sm font-semibold text-[#1A1A1A]">Google Calendar</p>
             <p className="text-xs text-[#6B6B6B]">
-              {calStatus?.connected ? `Connected · Google Calendar synced` : "Sync bookings to your Google Calendar"}
+              {calStatus?.connected
+                ? "Connected · Google Calendar sync is enabled"
+                : calendarSetupRequired
+                  ? "Owner setup is required before Google authorization can begin."
+                  : "Connect booking events to your Google Calendar"}
             </p>
           </div>
         </div>
@@ -4101,8 +4106,8 @@ function IntegrationsSection() {
             {disconnectCal.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Disconnect"}
           </Button>
         ) : (
-          <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90" onClick={() => { if (calAuthData?.url) window.open(calAuthData.url, "_blank"); }} disabled={!calAuthData?.url}>
-            Connect
+          <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90" onClick={() => { if (calAuthData?.url) window.open(calAuthData.url, "_blank"); }} disabled={!calAuthData?.url} title={calendarSetupRequired ? "Google Calendar setup is required before authorization." : undefined}>
+            {calendarSetupRequired ? "Setup required" : "Connect"}
           </Button>
         )}
       </div>

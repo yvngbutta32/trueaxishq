@@ -26,4 +26,17 @@ describe("integration readiness trust boundary", () => {
     expect(hub).toContain("never accepts a manual “connected” claim");
     expect(hub).toContain("Provider authorization is still required.");
   });
+
+  it("reports missing Google Calendar configuration as a protected setup state instead of a global client query failure", () => {
+    const source = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
+    const dashboard = readFileSync(resolve(process.cwd(), "client/src/pages/Dashboard.tsx"), "utf8");
+    const googleCalendar = source.slice(source.indexOf("googleCal: router({"), source.indexOf("// ── Onboarding Status"));
+
+    expect(googleCalendar).toContain('return { url: null, status: "setup_required" as const }');
+    expect(googleCalendar).toContain('status: "ready" as const');
+    expect(googleCalendar).not.toContain("GOOGLE_CLIENT_ID to be configured in Settings → Secrets");
+    expect(dashboard).toContain('calAuthData?.status === "setup_required"');
+    expect(dashboard).toContain("Owner setup is required before Google authorization can begin.");
+    expect(dashboard).toContain("Setup required");
+  });
 });

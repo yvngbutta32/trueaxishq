@@ -2437,6 +2437,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Remove the observed deprecated `maxAge` option from session-cookie clearing while retaining the cookie’s security attributes and explicit local logout behavior.
 - [x] Add focused session-clearing compatibility coverage, recheck owner/staff local sign-out, and document only observed development and validation outcomes.
 
+### Observed Google Calendar configuration recovery
+- [x] Replace the owner-facing missing-calendar-configuration query failure with an explicit setup-required status that does not trigger a global client query error.
+- [x] Preserve protected owner scope and do not represent setup-required, disconnected, or provider-error status as connected or synchronized.
+- [x] Add focused recovery coverage, recheck the owner interface without provider credentials, and document only observed local behavior and external-provider limits.
+
 ### Observed portal-minimization correction: reviewed job summary
 - [x] Stop returning an owner-authored job scope note implicitly through the token-scoped client portal.
 - [x] Add an additive default-private client summary field and an owner-only reviewed visibility control that are distinct from the private job scope and existing client updates.
