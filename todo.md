@@ -2454,6 +2454,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Replace the observed “Auto-sent on the 1st” Settings wording with configured-schedule and delivery-acceptance guidance that does not promise email delivery.
 - [x] Add focused copy-boundary coverage, recheck the owner Settings presentation, and retain SMTP, scheduler, recipient, inbox, and production limits.
 
+### Observed monthly-report preference-state integrity
+- [x] Return the authenticated owner’s stored monthly-report preference through a protected status query instead of assuming the toggle is initially enabled in the Settings interface.
+- [x] Synchronize the accessible toggle with that owner-scoped status and successful saves without altering report scheduling or delivery behavior.
+- [x] Add focused owner-scope and state-recovery coverage, recheck the owner Settings presentation, and retain scheduler, SMTP, recipient, inbox, and production limits.
+
 ### Observed portal-minimization correction: reviewed job summary
 - [x] Stop returning an owner-authored job scope note implicitly through the token-scoped client portal.
 - [x] Add an additive default-private client summary field and an owner-only reviewed visibility control that are distinct from the private job scope and existing client updates.

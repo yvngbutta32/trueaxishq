@@ -4866,12 +4866,18 @@ Only include actions when you have actually generated a complete draft. For gene
 
   // ── Monthly Report Settings ───────────────────────────────────────────────────
   reportSettings: router({
+    status: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [preference] = await db.select({ enabled: users.monthlyReportEnabled })
+        .from(users).where(eq(users.id, ctx.user.id)).limit(1);
+      return { enabled: preference?.enabled ?? false };
+    }),
     toggle: protectedProcedure
       .input(z.object({ enabled: z.boolean() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         await db.update(users).set({ monthlyReportEnabled: input.enabled }).where(eq(users.id, ctx.user.id));
-        return { ok: true };
+        return { ok: true, enabled: input.enabled };
       }),
   }),
 

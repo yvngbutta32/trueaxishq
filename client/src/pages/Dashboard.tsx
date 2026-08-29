@@ -4072,9 +4072,13 @@ function IntegrationsSection() {
     onSuccess: () => { utils.googleCal.status.invalidate(); toast.success("Google Calendar disconnected."); },
     onError: (e: { message: string }) => toast.error(e.message),
   });
-  const [monthlyEnabled, setMonthlyEnabled] = useState(true);
+  const { data: monthlyStatus, isLoading: monthlyStatusLoading } = trpc.reportSettings.status.useQuery();
+  const monthlyEnabled = monthlyStatus?.enabled ?? false;
   const toggleMonthly = trpc.reportSettings.toggle.useMutation({
-    onSuccess: () => toast.success("Preferences saved!"),
+    onSuccess: (result) => {
+      utils.reportSettings.status.setData(undefined, { enabled: result.enabled });
+      toast.success("Preferences saved!");
+    },
     onError: (e: { message: string }) => toast.error(e.message),
   });
 
@@ -4126,7 +4130,7 @@ function IntegrationsSection() {
           </div>
         </div>
         <button
-          onClick={() => { const next = !monthlyEnabled; setMonthlyEnabled(next); toggleMonthly.mutate({ enabled: next }); }}
+          onClick={() => toggleMonthly.mutate({ enabled: !monthlyEnabled })}
           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] ${
             monthlyEnabled ? "bg-[#D4922A]" : "bg-gray-200"
           }`}
@@ -4134,6 +4138,7 @@ function IntegrationsSection() {
           aria-checked={monthlyEnabled}
           aria-label="Toggle monthly business report email"
           type="button"
+          disabled={monthlyStatusLoading || toggleMonthly.isPending}
         >
           <span aria-hidden="true" className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
             monthlyEnabled ? "translate-x-5" : "translate-x-0"
