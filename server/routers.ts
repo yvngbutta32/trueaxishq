@@ -22,7 +22,7 @@ import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
-import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail, getEmailDeliveryStatus } from "./_core/email";
+import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail, getEmailDeliveryStatus, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { createPublicUploadToken, hashPublicUploadToken, isOwnerPhotoKeyForType, PUBLIC_UPLOAD_MAX_FILES, PUBLIC_UPLOAD_TTL_MS } from "./photoUploadSecurity";
 import { createGoogleOAuthState } from "./googleOAuthState";
 import { processDueStripeEvents } from "./stripeWebhook";
@@ -507,8 +507,7 @@ export const appRouter = router({
           const requestedOrigin = input.origin || ctx.req.headers.origin || "https://trueaxishq.com";
           const origin = getTrustedPaymentReturnOrigin(requestedOrigin) ?? "https://trueaxishq.com";
           const resetUrl = `${origin}/reset-password?token=${token}`;
-          // Send real email to the user
-          await sendEmail({
+          const resetEmailResult = await sendEmail({
             to: user.email!,
             subject: "Reset Your TrueAxis HQ Password",
             html: forgotPasswordEmail({ name: user.name || "there", resetUrl }),
@@ -516,10 +515,10 @@ export const appRouter = router({
           // Also notify owner for audit purposes
           notifyOwner({
             title: "Password Reset Requested",
-            content: `A password reset was requested for ${user.email}. Reset link sent to user.`,
+            content: `A password reset was requested for ${user.email}. ${wasAcceptedByConfiguredSmtp(resetEmailResult) ? "The reset email was accepted by configured SMTP." : "No configured SMTP acceptance was recorded for the reset email."}`,
           }).catch(() => {});
 
-          // Password reset email sent
+          // Public response remains generic to prevent account enumeration.
         } catch (err) {
           console.error("[Auth] forgotPassword error:", err);
           // Still return success to prevent enumeration

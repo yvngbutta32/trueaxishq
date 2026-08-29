@@ -2367,3 +2367,11 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Invalidate active sessions for only the reset token’s final user after the reset token has been atomically consumed and the password hash has been updated.
 - [x] Preserve token single-use and expiry predicates, avoid exposing session metadata, and record a private security event without claiming compromised-account prevention or provider-authentication behavior.
 - [x] Add focused token-order, self-scope, session invalidation, and account-boundary coverage; validate and document only observed results and authentication limits.
+
+### Observed password-reset notification correction: provider-acceptance accuracy
+- [x] Prevent the owner notification for a password-reset request from claiming a reset link was sent when the email helper uses console fallback or reports SMTP failure.
+- [x] Preserve generic public reset responses, token storage, origin restrictions, and account-enumeration protection without exposing reset tokens or asserting delivery, inbox, or provider behavior.
+- [x] Add focused behavioral and integration coverage for configured SMTP acceptance, console fallback, and SMTP failure; validate and document only observed results and unresolved provider limits.
+
+### Delivery approach: cohesive evidence-led milestones
+- [ ] Group future credential-free work into cohesive multi-path reliability or privacy milestones, each with one scoped validation run and evidence record rather than repeated audit-only releases.
