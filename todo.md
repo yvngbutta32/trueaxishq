@@ -2425,6 +2425,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Deny direct owner dashboard and owner-only panel entry for active staff accounts at the server boundary as well as the route interface, while retaining the existing assigned-work procedures and explicit active-membership predicates.
 - [x] Add focused behavioral coverage for active staff workspace discovery, owner-dashboard denial, no active staff membership fallback, and the existing limited staff work projection; recheck the disposable staff browser journey without creating owner records.
 
+### Observed staff registration recovery: immediate session continuity
+- [x] Populate the authenticated-account query cache from the accepted staff registration result before navigating to the limited staff workspace, so a successful local registration does not transiently fall back to the general sign-in page.
+- [ ] Add focused registration-success cache and staff-route continuity coverage; recheck the disposable local registration path without retaining any credentials, raw invitation token, or delivery claim.
+
 ### Observed portal-minimization correction: reviewed job summary
 - [x] Stop returning an owner-authored job scope note implicitly through the token-scoped client portal.
 - [x] Add an additive default-private client summary field and an owner-only reviewed visibility control that are distinct from the private job scope and existing client updates.

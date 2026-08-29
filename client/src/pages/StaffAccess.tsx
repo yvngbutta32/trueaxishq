@@ -16,9 +16,14 @@ export default function StaffAccess() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const utils = trpc.useUtils();
   const inviteQuery = trpc.staffAccess.getInvite.useQuery({ token }, { enabled: token.length === 64, retry: false });
   const register = trpc.staffAccess.register.useMutation({
-    onSuccess: () => { toast.success("Staff access activated."); navigate("/staff"); },
+    onSuccess: data => {
+      utils.auth.me.setData(undefined, data.user as any);
+      toast.success("Staff access activated.");
+      navigate("/staff");
+    },
     onError: error => toast.error(error.message),
   });
   const accept = trpc.staffAccess.accept.useMutation({

@@ -7,6 +7,7 @@ const projectFile = (path: string) => readFileSync(resolve(process.cwd(), path),
 describe("staff identity and role-based access foundation", () => {
   const schema = projectFile("drizzle/schema.ts");
   const router = projectFile("server/routers.ts");
+  const staffAccessPage = projectFile("client/src/pages/StaffAccess.tsx");
 
   it("keeps authenticated staff membership separate from the owner-managed roster", () => {
     expect(schema).toContain('export const workspaceStaffInvites = mysqlTable("workspaceStaffInvites"');
@@ -56,5 +57,18 @@ describe("staff identity and role-based access foundation", () => {
     expect(staff).not.toContain("financials:");
     expect(staff).not.toContain("dispatchNote");
     expect(staff).not.toContain("clientEmail");
+  });
+
+  it("hydrates the authenticated staff account cache before routing a successful registration to assigned work", () => {
+    const registrationSuccess = staffAccessPage.slice(
+      staffAccessPage.indexOf("const register = trpc.staffAccess.register.useMutation"),
+      staffAccessPage.indexOf("const accept = trpc.staffAccess.accept.useMutation"),
+    );
+    const cacheWrite = registrationSuccess.indexOf("utils.auth.me.setData(undefined, data.user as any)");
+    const navigation = registrationSuccess.indexOf('navigate("/staff")');
+
+    expect(staffAccessPage).toContain("const utils = trpc.useUtils()");
+    expect(cacheWrite).toBeGreaterThan(-1);
+    expect(navigation).toBeGreaterThan(cacheWrite);
   });
 });
