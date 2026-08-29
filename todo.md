@@ -2450,6 +2450,10 @@ Next candidate milestone: owner-scoped Client Experience Preflight with no live 
 - [x] Require an existing owner-scoped Calendar authorization record before accepting a synchronization toggle; reject missing authorization without claiming remote provider state.
 - [x] Add focused missing-record and owner-scope mutation coverage, then validate the unchanged setup-required and paused-status recovery states without provider credentials.
 
+### Observed monthly-report owner-copy accuracy
+- [x] Replace the observed “Auto-sent on the 1st” Settings wording with configured-schedule and delivery-acceptance guidance that does not promise email delivery.
+- [x] Add focused copy-boundary coverage, recheck the owner Settings presentation, and retain SMTP, scheduler, recipient, inbox, and production limits.
+
 ### Observed portal-minimization correction: reviewed job summary
 - [x] Stop returning an owner-authored job scope note implicitly through the token-scoped client portal.
 - [x] Add an additive default-private client summary field and an owner-only reviewed visibility control that are distinct from the private job scope and existing client updates.

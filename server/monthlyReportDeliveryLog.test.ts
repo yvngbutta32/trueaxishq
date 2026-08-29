@@ -20,4 +20,12 @@ describe("monthly report delivery log", () => {
     expect(section).toContain("not marked sent without SMTP acceptance");
     expect(section).not.toContain("Monthly report sent for");
   });
+
+  it("keeps owner Settings delivery guidance conditional on configured SMTP acceptance", () => {
+    const dashboard = readFileSync(resolve(process.cwd(), "client/src/pages/Dashboard.tsx"), "utf8");
+
+    expect(dashboard).toContain("When enabled, this prepares a report on the 1st.");
+    expect(dashboard).toContain("marked sent only after configured SMTP acceptance.");
+    expect(dashboard).not.toContain("Auto-sent on the 1st");
+  });
 });

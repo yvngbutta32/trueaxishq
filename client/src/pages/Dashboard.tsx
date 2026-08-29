@@ -4122,7 +4122,7 @@ function IntegrationsSection() {
           </div>
           <div>
             <p className="text-sm font-semibold text-[#1A1A1A]">Monthly Business Report</p>
-            <p className="text-xs text-[#6B6B6B]">Auto-sent on the 1st: MRR, new clients, top insights</p>
+            <p className="text-xs text-[#6B6B6B]">When enabled, this prepares a report on the 1st. It is marked sent only after configured SMTP acceptance.</p>
           </div>
         </div>
         <button
