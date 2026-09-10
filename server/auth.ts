@@ -1,7 +1,7 @@
 /**
  * TrueAxis HQ — Self-Contained Email/Password Authentication
  *
- * Completely independent of Manus OAuth. Uses:
+ * Self-hosted email/password authentication. Uses:
  * - bcryptjs for password hashing
  * - jose (already installed) for JWT session tokens
  * - Same cookie infrastructure as before
@@ -121,7 +121,7 @@ export async function registerUser(data: {
 
   const passwordHash = await hashPassword(data.password);
 
-  // Use email as openId for self-hosted accounts (prefixed to avoid collision with Manus openIds)
+  // Use email as openId for self-hosted accounts.
   const openId = `email:${email}`;
 
   await db.insert(users).values({

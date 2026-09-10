@@ -24,6 +24,7 @@ import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, boo
 import { getRecurringInvoiceDeliveryOutcome } from "./recurringInvoiceDeliveryOutcome";
 import { processDueAutomations } from "./automationEngine";
 import { randomBytes } from "node:crypto";
+import { ENV } from "./_core/env";
 
 // ─── Invoice number generator ─────────────────────────────────────────────────
 function generateInvoiceNumber(): string {
@@ -452,7 +453,7 @@ async function runMonthlyReport() {
               invoicesPaid,
               invoicesOutstanding,
               aiInsight: `You completed ${totalBookings} booking${totalBookings !== 1 ? "s" : ""} this month.`,
-              dashboardUrl: process.env.VITE_FRONTEND_FORGE_API_URL?.replace("/api", "") || "https://trueaxishq.com",
+              dashboardUrl: ENV.siteOrigin,
             }),
           });
 

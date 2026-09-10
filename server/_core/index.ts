@@ -16,6 +16,7 @@ import { icalRouter } from "../icalExport";
 import { startBackgroundJobs } from "../backgroundJobs";
 import { invoicePdfRouter } from "../invoicePdf";
 import { verifyGoogleOAuthState } from "../googleOAuthState";
+import { getUploadPath } from "../storage";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -41,7 +42,7 @@ async function startServer() {
   const server = createServer(app);
 
   // ── Trust proxy: required for correct req.secure and req.protocol behind
-  //    reverse proxies (Nginx, Cloudflare, Manus hosting layer, etc.) ───────
+  //    reverse proxies such as Nginx or Cloudflare. ─────────────────────────
   app.set("trust proxy", 1);
 
   // ── Gzip/Brotli compression for all responses ────────────────────────────
@@ -64,6 +65,19 @@ async function startServer() {
   // but only count rate limits for /api/ paths to prevent static assets
   // from consuming the per-IP quota and causing 429 on page load
   app.use(securityMiddleware);
+
+  app.use("/uploads", (req, res, next) => {
+    try {
+      const relativePath = decodeURIComponent(req.path).replace(/^\/+/, "");
+      const filePath = getUploadPath(relativePath);
+      res.sendFile(filePath, { dotfiles: "deny" }, (error) => {
+        const status = error && "status" in error ? Number(error.status) : undefined;
+        if (error) next(status === 404 ? undefined : error);
+      });
+    } catch {
+      res.status(400).json({ error: "Invalid upload path." });
+    }
+  });
 
   // ── Cache-Control for API responses (no caching) ─────────────────────────
   // Must be registered before every API route so sensitive JSON, documents,

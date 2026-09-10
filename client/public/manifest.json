@@ -39,7 +39,7 @@
       "url": "/dashboard",
       "icons": [
         {
-          "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png",
+          "src": "/icon-192.png",
           "sizes": "96x96"
         }
       ]
@@ -51,7 +51,7 @@
       "url": "/dashboard?panel=billing",
       "icons": [
         {
-          "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png",
+          "src": "/icon-192.png",
           "sizes": "96x96"
         }
       ]
@@ -63,7 +63,7 @@
       "url": "/dashboard?panel=scheduling",
       "icons": [
         {
-          "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png",
+          "src": "/icon-192.png",
           "sizes": "96x96"
         }
       ]
@@ -75,7 +75,7 @@
       "url": "/dashboard?panel=clients",
       "icons": [
         {
-          "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png",
+          "src": "/icon-192.png",
           "sizes": "96x96"
         }
       ]

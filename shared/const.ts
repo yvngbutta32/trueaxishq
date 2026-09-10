@@ -1,8 +1,6 @@
 // ─── Brand assets ────────────────────────────────────────────────────────────
-/** TrueAxis HQ primary logo (full-color, dark background). CDN-hosted, never expires.
- *  ALWAYS import this constant instead of hardcoding the URL anywhere in the codebase. */
-export const TRUEAXIS_LOGO_URL =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663405218930/gipzWtYeMsnYWyzsuU8sxR/logo-r1_d9d437c8.png";
+/** TrueAxis HQ primary logo served from the local public assets. */
+export const TRUEAXIS_LOGO_URL = "/icon-192.png";
 
 // ─── Auth / session ───────────────────────────────────────────────────────────
 export const COOKIE_NAME = "app_session_id";

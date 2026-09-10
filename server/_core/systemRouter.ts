@@ -26,7 +26,7 @@ export const systemRouter = router({
         checks.database = { status: "error" };
       }
       checks.stripe = { status: process.env.STRIPE_SECRET_KEY ? "configured" : "not_configured" };
-      checks.llm = { status: process.env.BUILT_IN_FORGE_API_KEY ? "configured" : "not_configured" };
+      checks.llm = { status: process.env.OPENAI_API_KEY ? "configured" : "not_configured" };
       const status = checks.database.status === "ok" ? "healthy" : "degraded";
       return {
         status,

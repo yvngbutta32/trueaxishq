@@ -1,9 +1,3 @@
-/**
- * Quick example (matches curl usage):
- *   await callDataApi("Youtube/search", {
- *     query: { gl: "US", hl: "en", q: "manus" },
- *   })
- */
 import { ENV } from "./env";
 
 export type DataApiCallOptions = {
@@ -13,52 +7,28 @@ export type DataApiCallOptions = {
   formData?: Record<string, unknown>;
 };
 
-export async function callDataApi(
-  apiId: string,
-  options: DataApiCallOptions = {}
-): Promise<unknown> {
-  if (!ENV.forgeApiUrl) {
-    throw new Error("BUILT_IN_FORGE_API_URL is not configured");
-  }
-  if (!ENV.forgeApiKey) {
-    throw new Error("BUILT_IN_FORGE_API_KEY is not configured");
-  }
-
-  // Build the full URL by appending the service path to the base URL
-  const baseUrl = ENV.forgeApiUrl.endsWith("/") ? ENV.forgeApiUrl : `${ENV.forgeApiUrl}/`;
-  const fullUrl = new URL("webdevtoken.v1.WebDevService/CallApi", baseUrl).toString();
-
-  const response = await fetch(fullUrl, {
-    method: "POST",
+/** Call an explicitly configured external data API without a platform proxy. */
+export async function callDataApi(apiId: string, options: DataApiCallOptions = {}): Promise<unknown> {
+  if (!ENV.dataApiBaseUrl) throw new Error("DATA_API_BASE_URL is not configured");
+  const url = new URL(apiId, `${ENV.dataApiBaseUrl.replace(/\/+$/, "")}/`);
+  Object.entries(options.query ?? {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
+  });
+  const response = await fetch(url, {
+    method: options.body || options.formData ? "POST" : "GET",
     headers: {
       accept: "application/json",
       "content-type": "application/json",
-      "connect-protocol-version": "1",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
+      ...(ENV.dataApiKey ? { authorization: `Bearer ${ENV.dataApiKey}` } : {}),
     },
-    body: JSON.stringify({
-      apiId,
-      query: options.query,
-      body: options.body,
-      path_params: options.pathParams,
-      multipart_form_data: options.formData,
-    }),
+    body: options.body || options.formData
+      ? JSON.stringify({ ...options.body, ...options.formData, pathParams: options.pathParams })
+      : undefined,
   });
-
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new Error(
-      `Data API request failed (${response.status} ${response.statusText})${detail ? `: ${detail}` : ""}`
-    );
-  }
-
+  if (!response.ok) throw new Error(`Data API request failed (${response.status} ${response.statusText})`);
   const payload = await response.json().catch(() => ({}));
   if (payload && typeof payload === "object" && "jsonData" in payload) {
-    try {
-      return JSON.parse((payload as Record<string, string>).jsonData ?? "{}");
-    } catch {
-      return (payload as Record<string, unknown>).jsonData;
-    }
+    try { return JSON.parse((payload as Record<string, string>).jsonData ?? "{}"); } catch { return payload.jsonData; }
   }
   return payload;
 }

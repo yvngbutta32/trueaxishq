@@ -51,12 +51,11 @@ avatarUploadRouter.post(
         return;
       }
 
-      // Build a unique S3 key
+      // Build a unique local storage key
       const ext = path.extname(req.file.originalname).toLowerCase() || ".jpg";
       const suffix = crypto.randomBytes(8).toString("hex");
       const key = `avatars/${user.id}-${suffix}${ext}`;
 
-      // Upload to S3
       const { url } = await storagePut(key, req.file.buffer, req.file.mimetype);
 
       // Persist URL to DB

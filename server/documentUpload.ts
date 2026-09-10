@@ -1,7 +1,7 @@
 /**
  * Document Upload Route
  * POST /api/upload/document  — multipart/form-data, field "file" (any, max 20 MB)
- * Saves file to S3 and returns { fileKey, fileUrl, fileName, mimeType, sizeBytes }
+ * Saves file to local storage and returns { fileKey, fileUrl, fileName, mimeType, sizeBytes }
  */
 import { Router, Request, Response } from "express";
 import multer from "multer";

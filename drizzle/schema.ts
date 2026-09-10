@@ -20,7 +20,7 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
-  // Password auth (self-hosted, no Manus OAuth dependency)
+  // Password auth for self-hosted accounts.
   passwordHash: varchar("passwordHash", { length: 255 }),
   // Stripe identifiers
   stripeCustomerId: varchar("stripeCustomerId", { length: 64 }),

@@ -17,6 +17,15 @@ import { Request, Response, NextFunction } from "express";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
 import { securityEvents } from "../drizzle/schema";
+import { ENV } from "./_core/env";
+
+const openAiOrigin = (() => {
+  try {
+    return new URL(ENV.openAiBaseUrl).origin;
+  } catch {
+    return "";
+  }
+})();
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const RATE_LIMIT_WINDOW_MS     = 60_000;   // 1-minute window
@@ -278,9 +287,9 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://api.stripe.com https://fonts.googleapis.com https://d2xsxph8kpxj0f.cloudfront.net https://api.manus.im https://*.manus.space https://*.manus.computer wss: ws: https:",
+      `connect-src 'self' https://api.stripe.com https://fonts.googleapis.com https://maps.googleapis.com${openAiOrigin ? ` ${openAiOrigin}` : ""}`,
       "frame-src https://js.stripe.com https://hooks.stripe.com",
-      "frame-ancestors 'self' https://*.manus.space https://*.manus.computer https://*.trueaxishq.com https://trueaxishq.com https://www.trueaxishq.com https://*.trueaxishq.com",
+      "frame-ancestors 'self' https://*.trueaxishq.com https://trueaxishq.com https://www.trueaxishq.com",
       "base-uri 'self'",
       "form-action 'self'",
       "upgrade-insecure-requests",

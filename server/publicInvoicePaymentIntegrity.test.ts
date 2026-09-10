@@ -8,8 +8,8 @@ const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf
 describe("public invoice payment integrity", () => {
   it("permits only application, preview, or local origins for checkout returns", () => {
     expect(getTrustedPaymentReturnOrigin("https://trueaxishq.com")).toBe("https://trueaxishq.com");
-    expect(getTrustedPaymentReturnOrigin("https://trueaxishq.manus.space")).toBe("https://trueaxishq.manus.space");
-    expect(getTrustedPaymentReturnOrigin("https://3000-example.manus.computer")).toBe("https://3000-example.manus.computer");
+    expect(getTrustedPaymentReturnOrigin("https://legacy-host.invalid")).toBeNull();
+    expect(getTrustedPaymentReturnOrigin("https://preview.invalid")).toBeNull();
     expect(getTrustedPaymentReturnOrigin("http://localhost:3000")).toBe("http://localhost:3000");
     expect(getTrustedPaymentReturnOrigin("https://attacker.example")).toBeNull();
     expect(getTrustedPaymentReturnOrigin("https://trueaxishq.com/pay/anything")).toBeNull();

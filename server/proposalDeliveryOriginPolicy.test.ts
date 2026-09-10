@@ -13,6 +13,6 @@ describe("proposal delivery origin policy", () => {
     expect(section).toContain("const origin = getTrustedPaymentReturnOrigin(requestedOrigin)");
     expect(section).toContain("Use an official TrueAxis HQ origin to send a proposal.");
     expect(section).toContain("const link = `${origin}/proposal/${row.token}`");
-    expect(section).not.toContain('const origin = input.origin || ctx.req.headers.origin || "https://trueaxis-hq.manus.space"');
+    expect(section).not.toContain('const origin = input.origin || ctx.req.headers.origin || "https://legacy-host.invalid"');
   });
 });

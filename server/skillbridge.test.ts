@@ -23,7 +23,7 @@ function makeAuthCtx(role: "user" | "admin" = "user"): TrpcContext {
       openId: "test-open-id",
       name: "Test User",
       email: "test@example.com",
-      loginMethod: "manus",
+      loginMethod: "email",
       role,
       createdAt: new Date(),
       updatedAt: new Date(),
