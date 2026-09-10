@@ -24,7 +24,7 @@ COPY --from=build /app/drizzle ./drizzle
 COPY --from=build /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=build /app/scripts ./scripts
 
-RUN mkdir -p /app/uploads && chown -R node:node /app
+RUN mkdir -p /app/uploads && chown -R node:node /app/dist /app/drizzle /app/scripts /app/uploads
 USER node
 
 EXPOSE 3000
