@@ -17,6 +17,7 @@ import { startBackgroundJobs } from "../backgroundJobs";
 import { invoicePdfRouter } from "../invoicePdf";
 import { verifyGoogleOAuthState } from "../googleOAuthState";
 import { getUploadPath } from "../storage";
+import { assertProductionConfiguration } from "./env";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,7 +38,18 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
+async function resolvePort(preferredPort: number): Promise<number> {
+  if (process.env.NODE_ENV !== "production") {
+    return findAvailablePort(preferredPort);
+  }
+  if (!(await isPortAvailable(preferredPort))) {
+    throw new Error(`Port ${preferredPort} is already in use`);
+  }
+  return preferredPort;
+}
+
 async function startServer() {
+  assertProductionConfiguration();
   const app = express();
   const server = createServer(app);
 
@@ -242,7 +254,7 @@ async function startServer() {
   });
 
   const preferredPort = parseInt(process.env.PORT || "3000", 10);
-  const port = await findAvailablePort(preferredPort);
+  const port = await resolvePort(preferredPort);
 
   if (port !== preferredPort) {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
@@ -272,4 +284,7 @@ process.on("uncaughtException", (err: any) => {
   process.exit(1);
 });
 
-startServer().catch(console.error);
+startServer().catch(error => {
+  console.error("[Server] Failed to start:", error);
+  process.exitCode = 1;
+});

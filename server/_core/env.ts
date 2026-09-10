@@ -12,3 +12,22 @@ export const ENV = {
   dataApiBaseUrl: process.env.DATA_API_BASE_URL ?? "",
   dataApiKey: process.env.DATA_API_KEY ?? "",
 };
+
+export function assertProductionConfiguration(): void {
+  if (!ENV.isProduction) return;
+
+  const missing = [
+    ["DATABASE_URL", ENV.databaseUrl],
+    ["JWT_SECRET", ENV.cookieSecret],
+    ["SITE_ORIGIN", ENV.siteOrigin],
+  ].filter(([, value]) => !value);
+
+  if (ENV.cookieSecret.length < 32) {
+    missing.push(["JWT_SECRET", "too short"]);
+  }
+
+  if (missing.length > 0) {
+    const names = Array.from(new Set(missing.map(([name]) => name))).join(", ");
+    throw new Error(`Production configuration is incomplete. Set: ${names}`);
+  }
+}
