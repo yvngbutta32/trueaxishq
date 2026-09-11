@@ -11,7 +11,7 @@ describe("public intake form projection", () => {
     const section = routerSource.slice(start, end);
     expect(section).toContain("userId: intakeForms.userId");
     expect(section).toContain("from(users).where(eq(users.id, form.userId))");
-    expect(section).toContain("return {\n          id: form.id,");
+    expect(section).toContain("id: form.id,");
     expect(section).not.toContain("return { ...form");
     expect(section).not.toContain("userId: form.userId,");
     expect(section).not.toContain("active: form.active,");

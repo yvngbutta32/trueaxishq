@@ -41,7 +41,7 @@ describe("manual client email delivery outcomes", () => {
   });
 
   it("keeps a proposal draft without configured SMTP acceptance while retaining the owner-scoped review link", () => {
-    const proposal = section("send: protectedProcedure\n      .input(z.object({ id: z.number().int(), origin:", "sign: publicProcedure");
+    const proposal = section("    send: protectedProcedure", "    sign: publicProcedure");
 
     expect(proposal).toContain("let emailAccepted = false;");
     expect(proposal).toContain("emailAccepted = wasAcceptedByConfiguredSmtp(emailResult)");

@@ -31,7 +31,7 @@ describe("owner-only job-cost portfolio report", () => {
     expect(workspaceSource).toContain("trpc.jobs.exportCostReport.useQuery");
     expect(workspaceSource).toContain("Private job-cost report");
     const portalStart = routerSource.indexOf("getJobs: publicProcedure");
-    const portalEnd = routerSource.indexOf("  }),\n  // ── Contracts", portalStart);
+    const portalEnd = routerSource.indexOf("// ── Contracts & Proposals", portalStart);
     expect(routerSource.slice(portalStart, portalEnd)).not.toContain("costReport");
   });
 });

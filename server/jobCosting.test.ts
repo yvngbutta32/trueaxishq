@@ -40,7 +40,7 @@ describe("private job costing", () => {
 
   it("keeps expense and margin records outside the token-scoped client job surface", () => {
     const portalStart = routerSource.indexOf("getJobs: publicProcedure");
-    const portalEnd = routerSource.indexOf("  }),\n  // ── Contracts", portalStart);
+    const portalEnd = routerSource.indexOf("// ── Contracts & Proposals", portalStart);
     const portalJobs = routerSource.slice(portalStart, portalEnd);
     expect(portalJobs).not.toContain("expenses");
     expect(portalJobs).not.toContain("marginPercent");

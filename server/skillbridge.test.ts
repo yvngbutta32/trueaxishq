@@ -1,6 +1,26 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
+
+const mocks = vi.hoisted(() => ({
+  getDb: vi.fn(),
+}));
+
+vi.mock("./db", () => ({ getDb: mocks.getDb }));
+
+function emptyDb() {
+  return {
+    select: () => ({
+      from: () => ({
+        where: () => ({
+          limit: async () => [],
+        }),
+      }),
+    }),
+  };
+}
+
+mocks.getDb.mockResolvedValue(emptyDb());
 
 // ─── Shared mock context helpers ─────────────────────────────────────────────
 
