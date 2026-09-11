@@ -22,5 +22,8 @@ describe("owner booking conflict protection", () => {
     expect(source).toContain("function isValidBookingTime");
     expect(section).toContain("Choose a real calendar date.");
     expect(section).toContain("This booking has an invalid time");
+    expect(source).toContain('rescheduleBooking: publicProcedure');
+    expect(source).toContain('Time must use HH:MM format');
+    expect(source).toContain("That appointment time overlaps another appointment");
   });
 });

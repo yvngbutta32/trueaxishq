@@ -3562,7 +3562,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
 
     rescheduleBooking: publicProcedure
-      .input(z.object({ token: z.string().min(1).max(128), bookingId: z.number().int().positive(), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), time: z.string().trim().min(1).max(32) }))
+      .input(z.object({ token: z.string().min(1).max(128), bookingId: z.number().int().positive(), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Time must use HH:MM format") }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
         const [portalRecord] = await db.select().from(clientPortalTokens)
@@ -3571,7 +3571,26 @@ Only include actions when you have actually generated a complete draft. For gene
         const [booking] = await db.select().from(bookings).where(and(eq(bookings.id, input.bookingId), eq(bookings.userId, portalRecord.userId), eq(bookings.clientId, portalRecord.clientId))).limit(1);
         if (!booking || booking.status !== "scheduled") throw new TRPCError({ code: "BAD_REQUEST", message: "This appointment can no longer be rescheduled." });
         if (booking.date === input.date && booking.time === input.time) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a different appointment time." });
+        if (!isValidBookingDate(input.date)) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a real calendar date." });
         if (input.date < new Date().toISOString().slice(0, 10)) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a future appointment date." });
+        const [ownerSettings] = await db.select({ bookingAvailability: users.bookingAvailability })
+          .from(users).where(eq(users.id, portalRecord.userId)).limit(1);
+        const bookingBufferMinutes = getPublishedBookingSchedule(ownerSettings?.bookingAvailability).bufferMinutes;
+        const scheduledBookings = await db.select({ id: bookings.id, time: bookings.time, duration: bookings.duration })
+          .from(bookings).where(and(
+            eq(bookings.userId, portalRecord.userId),
+            eq(bookings.date, input.date),
+            eq(bookings.status, "scheduled"),
+            sql`${bookings.id} != ${booking.id}`,
+          ));
+        if (scheduledBookings.some(other => doPublicBookingIntervalsOverlap(
+          input.time,
+          (booking.duration ?? 60) + bookingBufferMinutes,
+          other.time,
+          (other.duration ?? 60) + bookingBufferMinutes,
+        ))) {
+          throw new TRPCError({ code: "CONFLICT", message: "That appointment time overlaps another appointment. Please choose another." });
+        }
         const nextSlotKey = `${portalRecord.userId}|${input.date}|${input.time}`;
         try {
           const rescheduleResult = await db.update(bookings).set({ date: input.date, time: input.time, slotKey: nextSlotKey, reminderSentAt: null, updatedAt: new Date() })
@@ -4823,7 +4842,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({
         token: z.string().min(1).max(128),
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-        time: z.string().trim().min(1).max(32),
+        time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Time must use HH:MM format"),
       }))
       .mutation(async ({ input }) => {
         const db = await requireDb();
@@ -4842,8 +4861,27 @@ Only include actions when you have actually generated a complete draft. For gene
         if (booking.date === input.date && booking.time === input.time) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Please choose a different appointment time." });
         }
+        if (!isValidBookingDate(input.date)) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a real calendar date." });
         if (input.date < new Date().toISOString().slice(0, 10)) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Please choose a future appointment date." });
+        }
+        const [ownerSettings] = await db.select({ bookingAvailability: users.bookingAvailability })
+          .from(users).where(eq(users.id, tokenRow.userId)).limit(1);
+        const bookingBufferMinutes = getPublishedBookingSchedule(ownerSettings?.bookingAvailability).bufferMinutes;
+        const scheduledBookings = await db.select({ id: bookings.id, time: bookings.time, duration: bookings.duration })
+          .from(bookings).where(and(
+            eq(bookings.userId, tokenRow.userId),
+            eq(bookings.date, input.date),
+            eq(bookings.status, "scheduled"),
+            sql`${bookings.id} != ${booking.id}`,
+          ));
+        if (scheduledBookings.some(other => doPublicBookingIntervalsOverlap(
+          input.time,
+          (booking.duration ?? 60) + bookingBufferMinutes,
+          other.time,
+          (other.duration ?? 60) + bookingBufferMinutes,
+        ))) {
+          throw new TRPCError({ code: "CONFLICT", message: "That appointment time overlaps another appointment. Please choose another." });
         }
 
         const nextSlotKey = `${tokenRow.userId}|${input.date}|${input.time}`;
