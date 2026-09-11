@@ -8,6 +8,18 @@ import { getDb } from "./db";
 import { bookings, invoices, followUps, users } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { notifyOwner } from "./_core/notification";
+import { ENV } from "./_core/env";
+
+export function overdueDays(dueDate: string | null | undefined, today = new Date()): number {
+  if (!dueDate) return 0;
+  const due = new Date(`${dueDate.slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(due.getTime())) return 0;
+  return Math.max(0, Math.floor((Date.UTC(
+    today.getUTCFullYear(),
+    today.getUTCMonth(),
+    today.getUTCDate(),
+  ) - due.getTime()) / (1000 * 60 * 60 * 24)));
+}
 
 function isAuthorizedDigestRequest(req: Request): boolean {
   const expected = process.env.DIGEST_CRON_SECRET;
@@ -30,12 +42,19 @@ export async function dailyDigestHandler(req: Request, res: Response) {
     // On a multi-user deployment, queries without a userId filter would mix
     // data from all users — this scopes every query to the owner only.
     let ownerUserId: number | null = null;
+    const [configuredOwner] = ENV.ownerEmail
+      ? await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, ENV.ownerEmail.toLowerCase()))
+        .limit(1)
+      : [];
     const [adminRow] = await db
       .select({ id: users.id })
       .from(users)
       .where(eq(users.role, "admin"))
       .limit(1);
-    ownerUserId = adminRow?.id ?? null;
+    ownerUserId = configuredOwner?.id ?? adminRow?.id ?? null;
     if (!ownerUserId) {
       console.warn("[dailyDigest] Could not resolve owner userId — digest will be empty");
     }
@@ -63,7 +82,6 @@ export async function dailyDigestHandler(req: Request, res: Response) {
       : [];
 
     // Get overdue invoices — scoped to owner
-    const nowMs = now.getTime();
     const overdueInvoices = ownerUserId
       ? await db
           .select()
@@ -85,7 +103,7 @@ export async function dailyDigestHandler(req: Request, res: Response) {
             and(
               eq(invoices.userId, ownerUserId),
               eq(invoices.status, "sent"),
-              sql`${invoices.dueDate} < ${nowMs}`
+              sql`${invoices.dueDate} < ${todayStr}`
             )
           )
       : [];
@@ -127,9 +145,7 @@ export async function dailyDigestHandler(req: Request, res: Response) {
       const totalOwed = allOverdue.reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0);
       lines.push(`🔴 **Overdue Invoices (${allOverdue.length}) — $${totalOwed.toFixed(2)} owed:**`);
       for (const inv of allOverdue.slice(0, 5)) {
-        const daysOverdue = inv.dueDate
-          ? Math.floor((nowMs - Number(inv.dueDate)) / (1000 * 60 * 60 * 24))
-          : 0;
+        const daysOverdue = overdueDays(inv.dueDate, now);
         lines.push(`  • Invoice #${inv.invoiceNumber || inv.id} — $${Number(inv.amount || 0).toFixed(2)} (${daysOverdue}d overdue)`);
       }
       if (allOverdue.length > 5) lines.push(`  • ...and ${allOverdue.length - 5} more`);
