@@ -13,6 +13,10 @@ interface HealthData {
     database?: { status: string; latencyMs?: number };
     stripe?: { status: string };
     llm?: { status: string };
+    smtp?: { status: string };
+    maps?: { status: string };
+    googleCalendar?: { status: string };
+    dailyDigest?: { status: string };
   };
 }
 
@@ -90,6 +94,22 @@ export function HealthMonitor() {
                 <StatusRow
                   label="AI Engine"
                   status={data.checks.llm?.status === "configured" ? "ok" : "not_configured"}
+                />
+                <StatusRow
+                  label="Email (SMTP)"
+                  status={data.checks.smtp?.status === "configured" ? "ok" : "not_configured"}
+                />
+                <StatusRow
+                  label="Maps"
+                  status={data.checks.maps?.status === "configured" ? "ok" : "not_configured"}
+                />
+                <StatusRow
+                  label="Google Calendar"
+                  status={data.checks.googleCalendar?.status === "configured" ? "ok" : "not_configured"}
+                />
+                <StatusRow
+                  label="Daily digest"
+                  status={data.checks.dailyDigest?.status === "configured" ? "ok" : "not_configured"}
                 />
                 <div className="pt-2 border-t border-[#DDDBD7] mt-2">
                   <p className="text-xs text-gray-500">
