@@ -323,25 +323,25 @@ const LineItemRow = memo(function LineItemRow({
 });
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
-const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; badge?: string }[] = [
-  { icon: LayoutDashboard, label: "Dashboard",  panel: "overview"   },
-  { icon: Activity,        label: "Operations", panel: "executive"  },
-  { icon: Rocket,          label: "Launch",     panel: "launch"     },
-  { icon: Users,           label: "Clients",    panel: "clients"    },
-  { icon: Calendar,        label: "Scheduling", panel: "scheduling" },
-  { icon: Package,         label: "Jobs",       panel: "jobs"       },
-  { icon: Camera,          label: "Job Photos", panel: "photos"     },
-  { icon: UsersRound,      label: "Team",       panel: "team"       },
-  { icon: MapPin,          label: "Dispatch",   panel: "dispatch"   },
-  { icon: Smartphone,      label: "Field Mode", panel: "field"      },
-  { icon: PlugZap,         label: "Integrations", panel: "integrations" },
-  { icon: Webhook,         label: "Webhooks", panel: "webhooks" },
-  { icon: FileText,        label: "Billing",    panel: "billing"    },
-  { icon: Mail,            label: "Outreach",   panel: "outreach"   },
-  { icon: FileSignature,   label: "Deals",      panel: "deals"      },
-  { icon: BarChart3,       label: "Insights",   panel: "insights"   },
-  { icon: Settings,        label: "Settings",   panel: "settings"   },
-  { icon: Bot,             label: "AI Assistant", panel: "ai"       },
+const navItems: { icon: React.ElementType; label: string; panel: ActivePanel; group: string; badge?: string }[] = [
+  { icon: LayoutDashboard, label: "Dashboard",  panel: "overview", group: "Workspace" },
+  { icon: Activity,        label: "Operations", panel: "executive", group: "Workspace" },
+  { icon: Rocket,          label: "Launch",     panel: "launch", group: "Workspace" },
+  { icon: Users,           label: "Clients",    panel: "clients", group: "Deliver" },
+  { icon: Calendar,        label: "Scheduling", panel: "scheduling", group: "Deliver" },
+  { icon: Package,         label: "Jobs",       panel: "jobs", group: "Deliver" },
+  { icon: Camera,          label: "Job Photos", panel: "photos", group: "Deliver" },
+  { icon: UsersRound,      label: "Team",       panel: "team", group: "Deliver" },
+  { icon: MapPin,          label: "Dispatch",   panel: "dispatch", group: "Deliver" },
+  { icon: Smartphone,      label: "Field Mode", panel: "field", group: "Deliver" },
+  { icon: FileText,        label: "Billing",    panel: "billing", group: "Grow" },
+  { icon: Mail,            label: "Outreach",   panel: "outreach", group: "Grow" },
+  { icon: FileSignature,   label: "Deals",      panel: "deals", group: "Grow" },
+  { icon: BarChart3,       label: "Insights",   panel: "insights", group: "Grow" },
+  { icon: PlugZap,         label: "Integrations", panel: "integrations", group: "Connect" },
+  { icon: Webhook,         label: "Webhooks", panel: "webhooks", group: "Connect" },
+  { icon: Bot,             label: "AI Assistant", panel: "ai", group: "Connect" },
+  { icon: Settings,        label: "Settings",   panel: "settings", group: "Connect" },
 ];
 
 function Sidebar({ active, setActive, collapsed, setCollapsed }: {
@@ -386,25 +386,31 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
 
       {/* Nav — scrollable, footer stays pinned */}
       <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto min-h-0 scroll-smooth sidebar-scrollbar" aria-label="Dashboard sections">
-        {navItems.map((item) => (
-          <button
-            key={item.panel}
-            onClick={() => setActive(item.panel)}
-            aria-current={active === item.panel ? "page" : undefined}
-            aria-label={item.label}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative ${
-              active === item.panel
-                ? "bg-[#D4922A]/20 text-white border-l-2 border-[#D4922A] pl-[10px] font-semibold"
-                : "text-white/65 hover:bg-white/10 hover:text-white border-l-2 border-transparent pl-[10px]"
-            }`}
-          >
-            <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-            {!collapsed && <span>{item.label}</span>}
-            {!collapsed && item.badge && active !== item.panel && (
-              <span className="ml-auto text-[9px] font-bold bg-[#D4922A]/25 text-[#E8A020] px-1.5 py-0.5 rounded-full">{item.badge}</span>
+        {navItems.map((item, index) => (
+          <div key={item.panel}>
+            {!collapsed && (index === 0 || navItems[index - 1].group !== item.group) && (
+              <p className="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white/45 first:pt-0">
+                {item.group}
+              </p>
             )}
-            {!collapsed && active === item.panel && <ChevronRight className="w-3 h-3 ml-auto" aria-hidden="true" />}
-          </button>
+            <button
+              onClick={() => setActive(item.panel)}
+              aria-current={active === item.panel ? "page" : undefined}
+              aria-label={item.label}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative ${
+                active === item.panel
+                  ? "bg-[#D4922A]/20 text-white border-l-2 border-[#D4922A] pl-[10px] font-semibold"
+                  : "text-white/65 hover:bg-white/10 hover:text-white border-l-2 border-transparent pl-[10px]"
+              }`}
+            >
+              <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+              {!collapsed && <span>{item.label}</span>}
+              {!collapsed && item.badge && active !== item.panel && (
+                <span className="ml-auto text-[9px] font-bold bg-[#D4922A]/25 text-[#E8A020] px-1.5 py-0.5 rounded-full">{item.badge}</span>
+              )}
+              {!collapsed && active === item.panel && <ChevronRight className="w-3 h-3 ml-auto" aria-hidden="true" />}
+            </button>
+          </div>
         ))}
       </nav>
 
