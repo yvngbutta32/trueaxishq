@@ -19,7 +19,7 @@ export function assertProductionConfiguration(): void {
   const missing = [
     ["DATABASE_URL", ENV.databaseUrl],
     ["JWT_SECRET", ENV.cookieSecret],
-    ["SITE_ORIGIN", ENV.siteOrigin],
+    ["SITE_ORIGIN", process.env.SITE_ORIGIN ?? ""],
   ].filter(([, value]) => !value);
 
   if (ENV.cookieSecret.length < 32) {
