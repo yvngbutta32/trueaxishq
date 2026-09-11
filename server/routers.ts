@@ -1604,9 +1604,43 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
-        const [booking] = await db.select({ date: bookings.date, time: bookings.time })
+        const [booking] = await db.select({
+          id: bookings.id,
+          date: bookings.date,
+          time: bookings.time,
+          duration: bookings.duration,
+          status: bookings.status,
+        })
           .from(bookings).where(and(eq(bookings.id, input.id), eq(bookings.userId, ctx.user.id))).limit(1);
         if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
+        if (input.status === "scheduled" && booking.status !== "scheduled") {
+          const [ownerSettings] = await db.select({ bookingAvailability: users.bookingAvailability })
+            .from(users)
+            .where(eq(users.id, ctx.user.id))
+            .limit(1);
+          const bookingBufferMinutes = getPublishedBookingSchedule(ownerSettings?.bookingAvailability).bufferMinutes;
+          const scheduledBookings = await db.select({
+            id: bookings.id,
+            time: bookings.time,
+            duration: bookings.duration,
+          }).from(bookings).where(and(
+            eq(bookings.userId, ctx.user.id),
+            eq(bookings.date, booking.date),
+            eq(bookings.status, "scheduled"),
+          ));
+          const conflict = scheduledBookings.find(other =>
+            other.id !== booking.id &&
+            doPublicBookingIntervalsOverlap(
+              booking.time,
+              (booking.duration ?? 60) + bookingBufferMinutes,
+              other.time,
+              (other.duration ?? 60) + bookingBufferMinutes,
+            )
+          );
+          if (conflict) {
+            throw new TRPCError({ code: "CONFLICT", message: `Restoring this booking would overlap an existing appointment on ${booking.date}.` });
+          }
+        }
         await db.update(bookings).set({
           status: input.status,
           slotKey: input.status === "scheduled" ? `${ctx.user.id}|${booking.date}|${booking.time}` : null,

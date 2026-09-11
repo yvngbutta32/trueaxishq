@@ -12,5 +12,6 @@ describe("owner booking conflict protection", () => {
     expect(section).toContain("getPublishedBookingSchedule(ownerSettings?.bookingAvailability)");
     expect(section).toContain('eq(bookings.status, "scheduled")');
     expect(section).toContain("overlaps an existing appointment");
+    expect(section).toContain("Restoring this booking would overlap");
   });
 });
