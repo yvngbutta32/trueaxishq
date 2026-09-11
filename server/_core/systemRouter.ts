@@ -2,6 +2,7 @@ import { z } from "zod";
 import { notifyOwner } from "./notification";
 import { getDb } from "../db";
 import { adminProcedure, protectedProcedure, router } from "./trpc";
+import { getBackgroundJobStatus } from "../backgroundJobs";
 
 export function configurationStatus(configured: boolean): "configured" | "not_configured" {
   return configured ? "configured" : "not_configured";
@@ -48,12 +49,14 @@ export const systemRouter = router({
       checks.dailyDigest = {
         status: configurationStatus(Boolean(process.env.DIGEST_CRON_SECRET)),
       };
+      const backgroundJobs = getBackgroundJobStatus();
       const status = checks.database.status === "ok" ? "healthy" : "degraded";
       return {
         status,
         uptime: Math.floor(process.uptime()),
         totalLatencyMs: Date.now() - start,
         checks,
+        backgroundJobs,
         timestamp: new Date().toISOString(),
       };
     }),

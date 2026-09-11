@@ -622,6 +622,17 @@ async function runPostSessionCheckIns() {
 
 let schedulerStarted = false;
 let schedulerRunning = false;
+let schedulerLastRunAt: Date | null = null;
+let schedulerLastError: string | null = null;
+
+export function getBackgroundJobStatus() {
+  return {
+    started: schedulerStarted,
+    running: schedulerRunning,
+    lastRunAt: schedulerLastRunAt?.toISOString() ?? null,
+    lastError: schedulerLastError,
+  };
+}
 
 export function startBackgroundJobs() {
   if (schedulerStarted) {
@@ -636,6 +647,7 @@ export function startBackgroundJobs() {
       return;
     }
     schedulerRunning = true;
+    schedulerLastError = null;
     const jobs: Array<[string, () => Promise<void>]> = [
       ["overdue detection", runOverdueDetection],
       ["recurring invoices", runRecurringInvoices],
@@ -651,8 +663,10 @@ export function startBackgroundJobs() {
         await job();
       } catch (error) {
         console.error(`[Jobs] ${name} failed without stopping the remaining schedule:`, error);
+        schedulerLastError = `${name}: ${error instanceof Error ? error.message : String(error)}`;
       }
     }
+    schedulerLastRunAt = new Date();
     schedulerRunning = false;
   };
   // Initial run after 10 seconds (let server fully start)

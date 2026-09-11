@@ -9,6 +9,12 @@ interface HealthData {
   uptime: number;
   totalLatencyMs: number;
   timestamp: string;
+  backgroundJobs?: {
+    started: boolean;
+    running: boolean;
+    lastRunAt: string | null;
+    lastError: string | null;
+  };
   checks: {
     database?: { status: string; latencyMs?: number };
     stripe?: { status: string };
@@ -111,6 +117,16 @@ export function HealthMonitor() {
                   label="Daily digest"
                   status={data.checks.dailyDigest?.status === "configured" ? "ok" : "not_configured"}
                 />
+                <StatusRow
+                  label="Background jobs"
+                  status={data.backgroundJobs?.lastError ? "error" : data.backgroundJobs?.started ? "ok" : "not_started"}
+                  detail={data.backgroundJobs?.running ? "running" : data.backgroundJobs?.lastRunAt ? `last ${new Date(data.backgroundJobs.lastRunAt).toLocaleTimeString()}` : undefined}
+                />
+                {data.backgroundJobs?.lastError && (
+                  <p className="text-xs text-red-700" role="alert">
+                    Latest job cycle: {data.backgroundJobs.lastError}
+                  </p>
+                )}
                 <div className="pt-2 border-t border-[#DDDBD7] mt-2">
                   <p className="text-xs text-gray-500">
                     Uptime: {Math.floor(data.uptime / 3600)}h {Math.floor((data.uptime % 3600) / 60)}m
