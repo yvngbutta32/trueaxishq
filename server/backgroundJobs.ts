@@ -18,6 +18,7 @@ import {
   users,
   clients,
   bookings,
+  invoicePayments,
   jobRunGuards,
   backgroundJobRuns,
 } from "../drizzle/schema";
@@ -406,9 +407,13 @@ async function runMonthlyReport() {
 
       for (const user of userRows) {
         try {
-          // Revenue from paid invoices last month
+          // Revenue is collected cash, not invoice face value. This keeps
+          // monthly reports consistent with the payment-ledger analytics.
           const revenueResult = await db.execute(
-            sql`SELECT COALESCE(SUM(CAST(amount AS DECIMAL(10,2))), 0) as total FROM invoices WHERE userId = ${user.id} AND status = 'paid' AND paidAt BETWEEN ${lastMonthStartStr} AND ${lastMonthEndStr}`
+            sql`SELECT COALESCE(SUM(CAST(p.amount AS DECIMAL(10,2))), 0) as total
+                FROM invoicePayments p
+                INNER JOIN invoices i ON i.id = p.invoiceId AND i.userId = p.userId
+                WHERE p.userId = ${user.id} AND p.paidAt BETWEEN ${lastMonthStartStr} AND ${lastMonthEndStr}`
           ) as any;
           const revenueRows = Array.isArray(revenueResult) ? revenueResult[0] ?? [] : revenueResult?.rows ?? [];
           const totalRevenue = parseFloat(String(revenueRows[0]?.total ?? 0)).toFixed(2);
