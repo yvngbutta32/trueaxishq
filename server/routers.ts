@@ -57,6 +57,18 @@ function hoursUntilBooking(date: string, time: string): number | null {
   return Number.isNaN(start.getTime()) ? null : (start.getTime() - Date.now()) / 3_600_000;
 }
 
+function isValidBookingDate(date: string): boolean {
+  const match = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.getUTCFullYear() === year
+    && parsed.getUTCMonth() === month - 1
+    && parsed.getUTCDate() === day;
+}
+
 function isDuplicateBookingSlotError(error: unknown): boolean {
   const candidate = error as { code?: unknown; message?: unknown };
   return candidate.code === "ER_DUP_ENTRY" || (typeof candidate.message === "string" && candidate.message.includes("bookings_live_slot_unique_idx"));
@@ -1560,6 +1572,9 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        if (!isValidBookingDate(input.date)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a real calendar date." });
+        }
         const [ownerSettings] = await db.select({ bookingAvailability: users.bookingAvailability })
           .from(users)
           .where(eq(users.id, ctx.user.id))
@@ -1628,6 +1643,9 @@ export const appRouter = router({
           .from(bookings).where(and(eq(bookings.id, input.id), eq(bookings.userId, ctx.user.id))).limit(1);
         if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
         if (input.status === "scheduled" && booking.status !== "scheduled") {
+          if (!isValidBookingDate(booking.date)) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "This booking has an invalid calendar date and cannot be restored." });
+          }
           const [ownerSettings] = await db.select({ bookingAvailability: users.bookingAvailability })
             .from(users)
             .where(eq(users.id, ctx.user.id))
