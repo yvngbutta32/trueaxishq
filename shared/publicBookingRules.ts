@@ -102,7 +102,10 @@ export function isPublishedPublicBookingSlot(date: string, time: string, schedul
 
 /** Converts a published display time into minutes after midnight for deterministic interval checks. */
 export function publicBookingTimeToMinutes(time: string): number | null {
-  const match = time.match(/^(1[0-2]|[1-9]):([0-5]\d) (AM|PM)$/);
+  const twelveHourMatch = time.match(/^(1[0-2]|[1-9]):([0-5]\d) (AM|PM)$/);
+  const twentyFourHourMatch = time.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+  if (twentyFourHourMatch) return Number(twentyFourHourMatch[1]) * 60 + Number(twentyFourHourMatch[2]);
+  const match = twelveHourMatch;
   if (!match) return null;
   const hour = Number(match[1]);
   const minutes = Number(match[2]);

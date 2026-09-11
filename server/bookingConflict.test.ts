@@ -16,5 +16,7 @@ describe("owner booking conflict protection", () => {
     expect(source).toContain("isDuplicateBookingSlotError");
     expect(source).toContain("ER_DUP_ENTRY");
     expect(section).toContain("was just taken");
+    expect(section).toContain('Date must use YYYY-MM-DD format');
+    expect(section).toContain('Time must use HH:MM format');
   });
 });

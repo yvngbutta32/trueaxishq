@@ -26,5 +26,7 @@ describe("public booking service catalog", () => {
     expect(doPublicBookingIntervalsOverlap("9:00 AM", 60, "10:00 AM", 30)).toBe(false);
     expect(doPublicBookingIntervalsOverlap("9:00 AM", 90, "10:00 AM", 60)).toBe(true);
     expect(doPublicBookingIntervalsOverlap("not a slot", 60, "10:00 AM", 60)).toBe(true);
+    expect(doPublicBookingIntervalsOverlap("14:00", 60, "15:00", 30)).toBe(false);
+    expect(doPublicBookingIntervalsOverlap("14:00", 90, "15:00", 30)).toBe(true);
   });
 });

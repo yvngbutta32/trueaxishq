@@ -1553,8 +1553,8 @@ export const appRouter = router({
         clientEmail: safeOptionalEmail,
         clientId: z.number().int().positive().optional(),
         service: safeOptionalString(255),
-        date: safeString(32),
-        time: safeString(32),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must use YYYY-MM-DD format"),
+        time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Time must use HH:MM format"),
         duration: z.number().int().min(15).max(480).default(60),
         notes: safeOptionalString(2000),
       }))
