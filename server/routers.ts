@@ -1554,6 +1554,11 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        const [ownerSettings] = await db.select({ bookingAvailability: users.bookingAvailability })
+          .from(users)
+          .where(eq(users.id, ctx.user.id))
+          .limit(1);
+        const bookingBufferMinutes = getPublishedBookingSchedule(ownerSettings?.bookingAvailability).bufferMinutes;
         // Reject any overlapping active interval, not only an identical start time.
         const scheduledBookings = await db.select({
           id: bookings.id,
@@ -1566,8 +1571,13 @@ export const appRouter = router({
             eq(bookings.status, "scheduled"),
           ));
         const conflict = scheduledBookings.find(booking =>
-          doPublicBookingIntervalsOverlap(input.time, input.duration, booking.time, booking.duration ?? 60)
-        );
+            doPublicBookingIntervalsOverlap(
+              input.time,
+              input.duration + bookingBufferMinutes,
+              booking.time,
+              (booking.duration ?? 60) + bookingBufferMinutes,
+            )
+          );
         if (conflict) {
           throw new TRPCError({ code: "CONFLICT", message: `The booking on ${input.date} at ${input.time} overlaps an existing appointment. Please choose a different time slot.` });
         }
