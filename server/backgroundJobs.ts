@@ -620,9 +620,22 @@ async function runPostSessionCheckIns() {
   }
 }
 
+let schedulerStarted = false;
+let schedulerRunning = false;
+
 export function startBackgroundJobs() {
+  if (schedulerStarted) {
+    console.warn("[Jobs] Background job scheduler already started; skipping duplicate startup.");
+    return;
+  }
+  schedulerStarted = true;
   console.log("[Jobs] Background job scheduler starting...");
   const runAll = async () => {
+    if (schedulerRunning) {
+      console.warn("[Jobs] Previous scheduled run is still in progress; skipping this interval.");
+      return;
+    }
+    schedulerRunning = true;
     const jobs: Array<[string, () => Promise<void>]> = [
       ["overdue detection", runOverdueDetection],
       ["recurring invoices", runRecurringInvoices],
@@ -640,10 +653,21 @@ export function startBackgroundJobs() {
         console.error(`[Jobs] ${name} failed without stopping the remaining schedule:`, error);
       }
     }
+    schedulerRunning = false;
   };
   // Initial run after 10 seconds (let server fully start)
-  setTimeout(runAll, 10_000);
+  setTimeout(() => {
+    void runAll().catch(error => {
+      schedulerRunning = false;
+      console.error("[Jobs] Initial scheduled run failed:", error);
+    });
+  }, 10_000);
   // Then every hour
-  setInterval(runAll, 60 * 60 * 1000);
+  setInterval(() => {
+    void runAll().catch(error => {
+      schedulerRunning = false;
+      console.error("[Jobs] Scheduled run failed:", error);
+    });
+  }, 60 * 60 * 1000);
   console.log("[Jobs] Background jobs scheduled (every 1 hour, 8 jobs)");
 }
