@@ -13,5 +13,8 @@ describe("owner booking conflict protection", () => {
     expect(section).toContain('eq(bookings.status, "scheduled")');
     expect(section).toContain("overlaps an existing appointment");
     expect(section).toContain("Restoring this booking would overlap");
+    expect(source).toContain("isDuplicateBookingSlotError");
+    expect(source).toContain("ER_DUP_ENTRY");
+    expect(section).toContain("was just taken");
   });
 });

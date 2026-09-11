@@ -52,8 +52,14 @@ function hoursUntilBooking(date: string, time: string): number | null {
     if (match[3].toUpperCase() === "AM" && hour === 12) hour = 0;
     normalizedTime = `${String(hour).padStart(2, "0")}:${minute}`;
   }
+
   const start = new Date(`${date}T${normalizedTime}:00`);
   return Number.isNaN(start.getTime()) ? null : (start.getTime() - Date.now()) / 3_600_000;
+}
+
+function isDuplicateBookingSlotError(error: unknown): boolean {
+  const candidate = error as { code?: unknown; message?: unknown };
+  return candidate.code === "ER_DUP_ENTRY" || (typeof candidate.message === "string" && candidate.message.includes("bookings_live_slot_unique_idx"));
 }
 
 function enforceBookingChangeWindow(date: string, time: string) {
@@ -1581,19 +1587,27 @@ export const appRouter = router({
         if (conflict) {
           throw new TRPCError({ code: "CONFLICT", message: `The booking on ${input.date} at ${input.time} overlaps an existing appointment. Please choose a different time slot.` });
         }
-        const result = await db.insert(bookings).values({
-          userId: ctx.user.id,
-          clientId: input.clientId || null,
-          clientName: input.clientName,
-          clientEmail: input.clientEmail || null,
-          service: input.service || null,
-          date: input.date,
-          time: input.time,
-          duration: input.duration,
-          notes: input.notes || null,
-          isPublicBooking: false,
-          slotKey: `${ctx.user.id}|${input.date}|${input.time}`,
-        });
+        let result;
+        try {
+          result = await db.insert(bookings).values({
+            userId: ctx.user.id,
+            clientId: input.clientId || null,
+            clientName: input.clientName,
+            clientEmail: input.clientEmail || null,
+            service: input.service || null,
+            date: input.date,
+            time: input.time,
+            duration: input.duration,
+            notes: input.notes || null,
+            isPublicBooking: false,
+            slotKey: `${ctx.user.id}|${input.date}|${input.time}`,
+          });
+        } catch (error) {
+          if (isDuplicateBookingSlotError(error)) {
+            throw new TRPCError({ code: "CONFLICT", message: `The booking on ${input.date} at ${input.time} was just taken. Please choose a different time slot.` });
+          }
+          throw error;
+        }
         return { id: Number((result as any).insertId), success: true };
       }),
 
@@ -1641,14 +1655,21 @@ export const appRouter = router({
             throw new TRPCError({ code: "CONFLICT", message: `Restoring this booking would overlap an existing appointment on ${booking.date}.` });
           }
         }
-        await db.update(bookings).set({
-          status: input.status,
-          slotKey: input.status === "scheduled" ? `${ctx.user.id}|${booking.date}|${booking.time}` : null,
-          reminderSentAt: input.status === "scheduled" ? null : undefined,
-          checkInSentAt: input.status === "scheduled" ? null : undefined,
-          updatedAt: new Date(),
-        })
-          .where(and(eq(bookings.id, input.id), eq(bookings.userId, ctx.user.id)));
+        try {
+          await db.update(bookings).set({
+            status: input.status,
+            slotKey: input.status === "scheduled" ? `${ctx.user.id}|${booking.date}|${booking.time}` : null,
+            reminderSentAt: input.status === "scheduled" ? null : undefined,
+            checkInSentAt: input.status === "scheduled" ? null : undefined,
+            updatedAt: new Date(),
+          })
+            .where(and(eq(bookings.id, input.id), eq(bookings.userId, ctx.user.id)));
+        } catch (error) {
+          if (isDuplicateBookingSlotError(error)) {
+            throw new TRPCError({ code: "CONFLICT", message: `Restoring this booking would overlap an existing appointment on ${booking.date}.` });
+          }
+          throw error;
+        }
         return { success: true };
       }),
 
