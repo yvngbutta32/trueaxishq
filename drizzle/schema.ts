@@ -196,6 +196,27 @@ export const invoices = mysqlTable("invoices", {
 export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = typeof invoices.$inferInsert;
 
+// ─── Invoice Payments ───────────────────────────────────────────────────────
+// Payments are append-only ledger entries so deposits and installments remain
+// auditable instead of being overwritten on the invoice.
+export const invoicePayments = mysqlTable("invoicePayments", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  invoiceId: int("invoiceId").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  method: mysqlEnum("method", ["cash", "check", "bank_transfer", "card", "other"]).notNull(),
+  reference: varchar("reference", { length: 128 }),
+  notes: text("notes"),
+  paidAt: timestamp("paidAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("invoicePayments_owner_invoice_idx").on(t.userId, t.invoiceId),
+  index("invoicePayments_paidAt_idx").on(t.paidAt),
+]);
+
+export type InvoicePayment = typeof invoicePayments.$inferSelect;
+export type InsertInvoicePayment = typeof invoicePayments.$inferInsert;
+
 // ─── Bookings / Appointments ──────────────────────────────────────────────────
 
 export const bookings = mysqlTable("bookings", {

@@ -1977,6 +1977,18 @@ function InvoicesPanel() {
     onSuccess: () => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); toast.success("Invoice marked as paid!"); },
     onError: (e) => toast.error(e.message),
   });
+  const [recordPaymentInvoice, setRecordPaymentInvoice] = useState<any>(null);
+  const [paymentForm, setPaymentForm] = useState({ amount: "", method: "bank_transfer" as "cash" | "check" | "bank_transfer" | "card" | "other", reference: "", notes: "" });
+  const recordPayment = trpc.invoices.recordPayment.useMutation({
+    onSuccess: (data) => {
+      utils.invoices.list.invalidate();
+      utils.invoices.stats.invalidate();
+      toast.success(data.paidInFull ? "Payment recorded and invoice paid in full." : `Payment recorded. Remaining balance: ${formatCurrency(data.remainingAmount)}`);
+      setRecordPaymentInvoice(null);
+      setPaymentForm({ amount: "", method: "bank_transfer", reference: "", notes: "" });
+    },
+    onError: (e) => toast.error(e.message),
+  });
   const deleteInvoice = trpc.invoices.delete.useMutation({
     onSuccess: () => { utils.invoices.list.invalidate(); utils.invoices.stats.invalidate(); toast.success("Invoice deleted."); },
     onError: (e) => toast.error(e.message),
@@ -2331,14 +2343,22 @@ function InvoicesPanel() {
                 </div>
               </div>
             </div>
-            <p className="hidden sm:block text-sm font-bold text-[#1A1A1A]">{formatCurrency(inv.amount)}</p>
+            <div className="hidden sm:block">
+              <p className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(inv.amount)}</p>
+              {Number(inv.paidAmount || 0) > 0 && inv.status !== "paid" && <p className="text-[11px] text-emerald-700">{formatCurrency(inv.paidAmount)} paid · {formatCurrency(inv.remainingAmount)} due</p>}
+            </div>
             <p className="hidden sm:block text-sm text-[#6B6B6B]">{inv.dueDate || "—"}</p>
             <div className="flex items-center gap-1.5 flex-wrap min-w-0">
               <Badge className={`text-xs border-0 flex-shrink-0 ${statusColor[inv.status] || "bg-[#EEECEA] text-[#6B6B6B]"}`}>{inv.status}</Badge>
               {inv.status !== "paid" && (
-                <button onClick={() => markPaid.mutate({ id: inv.id })} className="text-xs text-[#D4922A] hover:underline font-medium" disabled={markPaid.isPending}>
-                  Mark Paid
-                </button>
+                <>
+                  <button onClick={() => { setRecordPaymentInvoice(inv); setPaymentForm(p => ({ ...p, amount: String(inv.remainingAmount || inv.amount) })); }} className="text-xs text-emerald-700 hover:underline font-medium" disabled={recordPayment.isPending}>
+                    Record payment
+                  </button>
+                  <button onClick={() => markPaid.mutate({ id: inv.id })} className="text-xs text-[#D4922A] hover:underline font-medium" disabled={markPaid.isPending}>
+                    Mark paid
+                  </button>
+                </>
               )}
               {inv.status === "paid" && inv.clientEmail && (
                 <button
@@ -2550,6 +2570,34 @@ function InvoicesPanel() {
               disabled={updateInvoice.isPending || (editUseLineItems && editLineItems.length === 0)}
             >
               {updateInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Changes"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Record a manual deposit or installment without overwriting payment history. */}
+      <Modal open={!!recordPaymentInvoice} onClose={() => setRecordPaymentInvoice(null)} title={`Record Payment ${recordPaymentInvoice?.invoiceNumber || ""}`}>
+        <div className="space-y-4">
+          <div className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900">
+            Remaining balance: <strong>{formatCurrency(recordPaymentInvoice?.remainingAmount ?? recordPaymentInvoice?.amount ?? 0)}</strong>
+          </div>
+          <Field label="Payment amount ($) *" value={paymentForm.amount} onChange={value => setPaymentForm(p => ({ ...p, amount: value }))} type="number" placeholder="0.00" required />
+          <div>
+            <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Method *</label>
+            <select value={paymentForm.method} onChange={e => setPaymentForm(p => ({ ...p, method: e.target.value as typeof p.method }))} className="form-input-light">
+              <option value="bank_transfer">Bank transfer</option>
+              <option value="cash">Cash</option>
+              <option value="check">Check</option>
+              <option value="card">Card</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <Field label="Reference" value={paymentForm.reference} onChange={value => setPaymentForm(p => ({ ...p, reference: value }))} placeholder="Receipt or transaction number" />
+          <Field label="Notes" value={paymentForm.notes} onChange={value => setPaymentForm(p => ({ ...p, notes: value }))} placeholder="Optional payment notes" textarea />
+          <div className="flex gap-3 pt-2">
+            <Button variant="outline" className="flex-1" onClick={() => setRecordPaymentInvoice(null)}>Cancel</Button>
+            <Button className="flex-1 gradient-amber text-white border-0 hover:opacity-90" onClick={() => recordPayment.mutate({ invoiceId: recordPaymentInvoice.id, amount: Number(paymentForm.amount), method: paymentForm.method, reference: paymentForm.reference || undefined, notes: paymentForm.notes || undefined })} disabled={recordPayment.isPending || !(Number(paymentForm.amount) > 0)}>
+              {recordPayment.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Record payment"}
             </Button>
           </div>
         </div>

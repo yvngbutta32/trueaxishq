@@ -16,7 +16,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, invoicePayments, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -179,6 +179,15 @@ async function requireActiveStaffMembership(
     .limit(1);
   if (!membership) throw new TRPCError({ code: "FORBIDDEN", message: "You do not have active staff access to this workspace." });
   return membership;
+}
+
+function requireStaffRole<T extends { role: StaffWorkspaceRole }>(
+  membership: T,
+  role: StaffWorkspaceRole,
+) {
+  if (membership.role !== role) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "This staff workspace action requires an operations manager role." });
+  }
 }
 
 async function getOwnerJobCostReport(
@@ -1164,8 +1173,26 @@ export const appRouter = router({
         const all = await db.select().from(invoices)
           .where(eq(invoices.userId, ctx.user.id))
           .orderBy(desc(invoices.createdAt));
-        if (input?.status && input.status !== "all") return all.filter(i => i.status === input.status);
-        return all;
+        const paymentRows = all.length > 0
+          ? await db.select().from(invoicePayments)
+            .where(and(eq(invoicePayments.userId, ctx.user.id), inArray(invoicePayments.invoiceId, all.map(i => i.id))))
+          : [];
+        const paidByInvoice = new Map<number, number>();
+        for (const payment of paymentRows) {
+          paidByInvoice.set(payment.invoiceId, (paidByInvoice.get(payment.invoiceId) ?? 0) + Number(payment.amount));
+        }
+        const withBalances = all.map(invoice => {
+          const total = Number(invoice.amount);
+          const paidAmount = invoice.status === "paid" ? total : Math.min(total, paidByInvoice.get(invoice.id) ?? 0);
+          return {
+            ...invoice,
+            paidAmount: paidAmount.toFixed(2),
+            remainingAmount: Math.max(0, total - paidAmount).toFixed(2),
+            paymentCount: paymentRows.filter(payment => payment.invoiceId === invoice.id).length,
+          };
+        });
+        if (input?.status && input.status !== "all") return withBalances.filter(i => i.status === input.status);
+        return withBalances;
       }),
 
     create: protectedProcedure
@@ -1248,9 +1275,25 @@ export const appRouter = router({
           .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id))).limit(1);
         if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
         const paidAt = new Date();
-        await db.update(invoices)
-          .set({ status: "paid", paidAt, updatedAt: new Date() })
-          .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id)));
+        await db.transaction(async (tx) => {
+          const [existingPayments] = await tx.select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)` })
+            .from(invoicePayments)
+            .where(and(eq(invoicePayments.invoiceId, inv.id), eq(invoicePayments.userId, ctx.user.id)));
+          const remaining = Math.max(0, Number(inv.amount) - Number(existingPayments?.total ?? 0));
+          if (remaining > 0) {
+            await tx.insert(invoicePayments).values({
+              userId: ctx.user.id,
+              invoiceId: inv.id,
+              amount: remaining.toFixed(2),
+              method: "other",
+              reference: "owner-marked-paid",
+              paidAt,
+            });
+          }
+          await tx.update(invoices)
+            .set({ status: "paid", paidAt, updatedAt: new Date() })
+            .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id)));
+        });
         // Send invoice paid confirmation email to client
         if (inv.clientEmail) {
           const [user] = await db.select({ name: users.name, businessName: users.businessName })
@@ -1296,6 +1339,53 @@ export const appRouter = router({
           }
         }
         return { success: true };
+      }),
+
+    recordPayment: protectedProcedure
+      .input(z.object({
+        invoiceId: z.number().int().positive(),
+        amount: z.number().finite().positive().max(999999),
+        method: z.enum(["cash", "check", "bank_transfer", "card", "other"]),
+        reference: safeOptionalString(128),
+        notes: safeOptionalString(2000),
+        paidAt: z.string().datetime().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        return db.transaction(async (tx) => {
+          const [invoice] = await tx.select().from(invoices)
+            .where(and(eq(invoices.id, input.invoiceId), eq(invoices.userId, ctx.user.id))).limit(1);
+          if (!invoice) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
+          if (invoice.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice is already paid." });
+          const [existingPayments] = await tx.select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)` })
+            .from(invoicePayments)
+            .where(and(eq(invoicePayments.invoiceId, invoice.id), eq(invoicePayments.userId, ctx.user.id)));
+          const remaining = Math.max(0, Number(invoice.amount) - Number(existingPayments?.total ?? 0));
+          if (input.amount > remaining + 0.005) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: `Payment cannot exceed the remaining balance of $${remaining.toFixed(2)}.` });
+          }
+          const paidAt = input.paidAt ? new Date(input.paidAt) : new Date();
+          if (Number.isNaN(paidAt.getTime())) throw new TRPCError({ code: "BAD_REQUEST", message: "Payment date is invalid." });
+          const result = await tx.insert(invoicePayments).values({
+            userId: ctx.user.id,
+            invoiceId: invoice.id,
+            amount: input.amount.toFixed(2),
+            method: input.method,
+            reference: input.reference || null,
+            notes: input.notes || null,
+            paidAt,
+          });
+          const newRemaining = remaining - input.amount;
+          if (newRemaining <= 0.005) {
+            await tx.update(invoices).set({ status: "paid", paidAt, updatedAt: new Date() })
+              .where(and(eq(invoices.id, invoice.id), eq(invoices.userId, ctx.user.id)));
+          }
+          return {
+            id: Number((result as any).insertId),
+            paidInFull: newRemaining <= 0.005,
+            remainingAmount: Math.max(0, newRemaining).toFixed(2),
+          };
+        });
       }),
 
     delete: protectedProcedure
@@ -1358,6 +1448,14 @@ export const appRouter = router({
     stats: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
       const all = await db.select().from(invoices).where(eq(invoices.userId, ctx.user.id));
+      const paymentRows = all.length > 0
+        ? await db.select().from(invoicePayments)
+          .where(and(eq(invoicePayments.userId, ctx.user.id), inArray(invoicePayments.invoiceId, all.map(i => i.id))))
+        : [];
+      const paidByInvoice = new Map<number, number>();
+      for (const payment of paymentRows) {
+        paidByInvoice.set(payment.invoiceId, (paidByInvoice.get(payment.invoiceId) ?? 0) + Number(payment.amount));
+      }
       // Auto-detect overdue: mark sent invoices past their due date
       const today = new Date().toISOString().split("T")[0];
       const overdueIds = all
@@ -1370,8 +1468,10 @@ export const appRouter = router({
           .where(inArray(invoices.id, overdueIds))
           .catch(() => {});
       }
-      const totalRevenue = all.filter(i => i.status === "paid").reduce((s, i) => s + parseFloat(String(i.amount)), 0);
-      const outstanding = all.filter(i => i.status === "sent" || i.status === "overdue").reduce((s, i) => s + parseFloat(String(i.amount)), 0);
+      const totalRevenue = all.reduce((s, i) => s + (i.status === "paid" ? Number(i.amount) : Math.min(Number(i.amount), paidByInvoice.get(i.id) ?? 0)), 0);
+      const outstanding = all
+        .filter(i => i.status === "sent" || i.status === "overdue")
+        .reduce((s, i) => s + Math.max(0, Number(i.amount) - (paidByInvoice.get(i.id) ?? 0)), 0);
       return {
         totalRevenue,
         outstanding,
@@ -1397,7 +1497,12 @@ export const appRouter = router({
         const requestedOrigin = input.origin || ctx.req.headers.origin || process.env.SITE_ORIGIN || "https://trueaxishq.com";
         const origin = getTrustedPaymentReturnOrigin(requestedOrigin);
         if (!origin) throw new TRPCError({ code: "BAD_REQUEST", message: "Use an official TrueAxis HQ origin to continue to Checkout." });
-        const amountCents = Math.round(parseFloat(String(inv.amount)) * 100);
+        const [paymentTotal] = await db.select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)` })
+          .from(invoicePayments)
+          .where(and(eq(invoicePayments.invoiceId, inv.id), eq(invoicePayments.userId, ctx.user.id)));
+        const remainingAmount = Math.max(0, Number(inv.amount) - Number(paymentTotal?.total ?? 0));
+        if (remainingAmount <= 0.005) throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice has no remaining balance." });
+        const amountCents = Math.round(remainingAmount * 100);
         if (amountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
 
         const session = await stripe.checkout.sessions.create({
@@ -1502,6 +1607,8 @@ export const appRouter = router({
       .query(async ({ input }) => {
         const db = await requireDb();
         const [inv] = await db.select({
+          id: invoices.id,
+          ownerId: invoices.userId,
           invoiceNumber: invoices.invoiceNumber,
           clientName: invoices.clientName,
           service: invoices.service,
@@ -1512,8 +1619,13 @@ export const appRouter = router({
           notes: invoices.notes,
         }).from(invoices).where(eq(invoices.payLinkToken, input.token)).limit(1);
         if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Payment link not found or expired" });
-        if (inv.status === "paid") return { invoice: inv, alreadyPaid: true };
-        return { invoice: inv, alreadyPaid: false };
+        const { ownerId: _ownerId, ...publicInvoice } = inv;
+        if (inv.status === "paid") return { invoice: publicInvoice, alreadyPaid: true };
+        const [paymentTotal] = await db.select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)` })
+          .from(invoicePayments)
+          .where(and(eq(invoicePayments.invoiceId, inv.id), eq(invoicePayments.userId, inv.ownerId)));
+        const remainingAmount = Math.max(0, Number(inv.amount) - Number(paymentTotal?.total ?? 0));
+        return { invoice: { ...publicInvoice, originalAmount: inv.amount, amount: remainingAmount.toFixed(2) }, alreadyPaid: remainingAmount <= 0.005 };
       }),
     createStripePaymentForToken: publicProcedure
       .input(z.object({ token: z.string().min(1).max(128), origin: z.string().url() }))
@@ -1524,7 +1636,12 @@ export const appRouter = router({
         const [inv] = await db.select().from(invoices).where(eq(invoices.payLinkToken, input.token)).limit(1);
         if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
         if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice already paid" });
-        const amountCents = Math.round(parseFloat(String(inv.amount)) * 100);
+        const [paymentTotal] = await db.select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)` })
+          .from(invoicePayments)
+          .where(and(eq(invoicePayments.invoiceId, inv.id), eq(invoicePayments.userId, inv.userId)));
+        const remainingAmount = Math.max(0, Number(inv.amount) - Number(paymentTotal?.total ?? 0));
+        if (remainingAmount <= 0.005) throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice has no remaining balance." });
+        const amountCents = Math.round(remainingAmount * 100);
         if (amountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
         const stripe = getStripe();
         const session = await stripe.checkout.sessions.create({
@@ -2027,9 +2144,19 @@ export const appRouter = router({
         db.select().from(invoices).where(eq(invoices.userId, ctx.user.id)),
         db.select().from(bookings).where(eq(bookings.userId, ctx.user.id)),
       ]);
+      const paymentRows = allInvoices.length > 0
+        ? await db.select().from(invoicePayments)
+          .where(and(eq(invoicePayments.userId, ctx.user.id), inArray(invoicePayments.invoiceId, allInvoices.map(i => i.id))))
+        : [];
+      const paidByInvoice = new Map<number, number>();
+      for (const payment of paymentRows) {
+        paidByInvoice.set(payment.invoiceId, (paidByInvoice.get(payment.invoiceId) ?? 0) + Number(payment.amount));
+      }
 
-      const totalRevenue = allInvoices.filter(i => i.status === "paid").reduce((s, i) => s + parseFloat(String(i.amount)), 0);
-      const outstanding = allInvoices.filter(i => i.status === "sent").reduce((s, i) => s + parseFloat(String(i.amount)), 0);
+      const totalRevenue = paymentRows.reduce((sum, payment) => sum + Number(payment.amount), 0);
+      const outstanding = allInvoices
+        .filter(i => i.status === "sent" || i.status === "overdue")
+        .reduce((sum, invoice) => sum + Math.max(0, Number(invoice.amount) - (paidByInvoice.get(invoice.id) ?? 0)), 0);
       const activeClients = allClients.filter(c => c.status === "active").length;
       const completedSessions = allBookings.filter(b => b.status === "completed").length;
       const upcomingSessions = allBookings.filter(b => b.status === "scheduled").length;
@@ -2056,9 +2183,9 @@ export const appRouter = router({
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
         const label = d.toLocaleString("default", { month: "short", year: "2-digit" });
-        const revenue = allInvoices
-          .filter(inv => inv.status === "paid" && inv.paidAt && inv.paidAt.toISOString().startsWith(key))
-          .reduce((s, inv) => s + parseFloat(String(inv.amount)), 0);
+        const revenue = paymentRows
+          .filter(payment => payment.paidAt.toISOString().startsWith(key))
+          .reduce((sum, payment) => sum + Number(payment.amount), 0);
         monthlyRevenue.push({ month: label, revenue });
       }
 
@@ -2074,9 +2201,9 @@ export const appRouter = router({
 
       // Top services by revenue
       const serviceMap: Record<string, number> = {};
-      allInvoices.filter(i => i.status === "paid" && i.service).forEach(i => {
+      allInvoices.filter(i => i.service).forEach(i => {
         const svc = i.service!.split("—")[0].trim().slice(0, 30);
-        serviceMap[svc] = (serviceMap[svc] || 0) + parseFloat(String(i.amount));
+        serviceMap[svc] = (serviceMap[svc] || 0) + (paidByInvoice.get(i.id) ?? 0);
       });
       const topServices = Object.entries(serviceMap)
         .sort((a, b) => b[1] - a[1]).slice(0, 5)
@@ -2102,30 +2229,20 @@ export const appRouter = router({
 
       // LTV per client: total paid invoices grouped by client
       const ltvMap: Record<number, { name: string; ltv: number; invoiceCount: number }> = {};
-      for (const inv of allInvoices.filter(i => i.status === "paid" && i.clientId)) {
+      for (const inv of allInvoices.filter(i => i.clientId)) {
         const cid = inv.clientId!;
         if (!ltvMap[cid]) {
           const c = allClients.find(c => c.id === cid);
           ltvMap[cid] = { name: c?.name ?? inv.clientName, ltv: 0, invoiceCount: 0 };
         }
-        ltvMap[cid].ltv += parseFloat(String(inv.amount));
-        ltvMap[cid].invoiceCount++;
+        ltvMap[cid].ltv += paidByInvoice.get(inv.id) ?? 0;
+        if ((paidByInvoice.get(inv.id) ?? 0) > 0) ltvMap[cid].invoiceCount++;
       }
       const clientLTV = Object.entries(ltvMap)
         .map(([id, v]) => ({ clientId: parseInt(id, 10), ...v }))
         .sort((a, b) => b.ltv - a.ltv).slice(0, 10);
 
-      // Referral source tracking from bookings (how clients found the user)
-      const allLeads = await db.select({ source: leads.source }).from(leads).catch(() => []);
-      const sourceMap: Record<string, number> = {};
-      for (const l of allLeads) {
-        const src = l.source || "direct";
-        sourceMap[src] = (sourceMap[src] || 0) + 1;
-      }
-      const referralSources = Object.entries(sourceMap)
-        .map(([source, count]) => ({ source, count }))
-        .sort((a, b) => b.count - a.count);
-
+      const referralSources: { source: string; count: number }[] = [];
       return { totalRevenue, outstanding, activeClients, completedSessions, upcomingSessions, totalClients: allClients.length, totalInvoices: allInvoices.length, monthlyRevenue, clientGrowth, topServices, forecast, clientLTV, referralSources };
     }),
   }),
@@ -3518,8 +3635,13 @@ Only include actions when you have actually generated a complete draft. For gene
             eq(invoices.clientId, portalRecord.clientId)
           )).limit(1);
         if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
-                if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice is already paid." });
-        const portalAmountCents = Math.round(parseFloat(String(inv.amount)) * 100);
+        if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice is already paid." });
+        const [paymentTotal] = await db.select({ total: sql<string>`COALESCE(SUM(${invoicePayments.amount}), 0)` })
+          .from(invoicePayments)
+          .where(and(eq(invoicePayments.invoiceId, inv.id), eq(invoicePayments.userId, inv.userId)));
+        const remainingAmount = Math.max(0, Number(inv.amount) - Number(paymentTotal?.total ?? 0));
+        if (remainingAmount <= 0.005) throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice has no remaining balance." });
+        const portalAmountCents = Math.round(remainingAmount * 100);
         if (portalAmountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
         const stripe = getStripe();
         const session = await stripe.checkout.sessions.create({
@@ -6986,6 +7108,57 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         return { membership, assignments, visits };
       }),
 
+    teamOverview: staffProcedure
+      .input(z.object({ ownerUserId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const membership = await requireActiveStaffMembership(db, ctx.user.id, input.ownerUserId);
+        requireStaffRole(membership, "operations_manager");
+        const [members, assignments, visits] = await Promise.all([
+          db.select({
+            id: teamMembers.id,
+            name: teamMembers.name,
+            role: teamMembers.role,
+            color: teamMembers.color,
+            active: teamMembers.active,
+          }).from(teamMembers)
+            .where(and(eq(teamMembers.userId, input.ownerUserId), eq(teamMembers.active, true)))
+            .orderBy(teamMembers.name),
+          db.select({
+            id: jobAssignments.id,
+            teamMemberId: jobAssignments.teamMemberId,
+            teamMemberName: teamMembers.name,
+            jobNumber: jobs.jobNumber,
+            jobTitle: jobs.title,
+            jobStatus: jobs.status,
+            assignmentRole: jobAssignments.assignmentRole,
+            status: jobAssignments.status,
+            plannedMinutes: jobAssignments.plannedMinutes,
+          }).from(jobAssignments)
+            .innerJoin(jobs, and(eq(jobAssignments.jobId, jobs.id), eq(jobs.userId, input.ownerUserId)))
+            .innerJoin(teamMembers, and(eq(jobAssignments.teamMemberId, teamMembers.id), eq(teamMembers.userId, input.ownerUserId)))
+            .where(and(eq(jobAssignments.userId, input.ownerUserId), eq(teamMembers.active, true)))
+            .orderBy(desc(jobAssignments.createdAt)),
+          db.select({
+            id: serviceVisits.id,
+            teamMemberId: serviceVisits.teamMemberId,
+            teamMemberName: teamMembers.name,
+            jobNumber: jobs.jobNumber,
+            jobTitle: jobs.title,
+            title: serviceVisits.title,
+            scheduledStart: serviceVisits.scheduledStart,
+            scheduledEnd: serviceVisits.scheduledEnd,
+            status: serviceVisits.status,
+            siteLabel: serviceVisits.siteLabel,
+          }).from(serviceVisits)
+            .innerJoin(jobs, and(eq(serviceVisits.jobId, jobs.id), eq(jobs.userId, input.ownerUserId)))
+            .innerJoin(teamMembers, and(eq(serviceVisits.teamMemberId, teamMembers.id), eq(teamMembers.userId, input.ownerUserId)))
+            .where(and(eq(serviceVisits.userId, input.ownerUserId), eq(teamMembers.active, true)))
+            .orderBy(serviceVisits.scheduledStart),
+        ]);
+        return { membership, members, assignments, visits };
+      }),
+
     updateAssignmentStatus: staffProcedure
       .input(z.object({ ownerUserId: z.number().int().positive(), assignmentId: z.number().int().positive(), status: z.enum(["acknowledged", "declined", "completed"]) }))
       .mutation(async ({ ctx, input }) => {
@@ -8129,13 +8302,17 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         id: z.number().int().positive(), title: safeOptionalString(255), description: safeOptionalString(5000),
         clientSummary: safeOptionalString(2000).nullable().optional(), clientSummaryVisible: z.boolean().optional(),
         status: z.enum(["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"]).optional(),
+        expectedStatus: z.enum(["lead", "quoted", "approved", "scheduled", "in_progress"]).optional(),
         priority: z.enum(["low", "normal", "high", "urgent"]).optional(), startDate: safeOptionalString(32), targetDate: safeOptionalString(32), budgetAmount: z.number().min(0).max(99_999_999).nullable().optional(), invoiceId: z.number().int().positive().nullable().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const [current] = await db.select().from(jobs).where(and(eq(jobs.id, input.id), eq(jobs.userId, ctx.user.id))).limit(1);
         if (!current) throw new TRPCError({ code: "NOT_FOUND" });
-        const { id, budgetAmount, ...rest } = input;
+        if (input.expectedStatus && current.status !== input.expectedStatus) {
+          throw new TRPCError({ code: "CONFLICT", message: "This job changed while the offline update was waiting. Review the current status before retrying." });
+        }
+        const { id, budgetAmount, expectedStatus: _expectedStatus, ...rest } = input;
         const updates: Record<string, unknown> = { ...rest, updatedAt: new Date() };
         if (budgetAmount !== undefined) updates.budgetAmount = budgetAmount === null ? null : String(budgetAmount);
         if (input.status === "completed" && current.status !== "completed") updates.completedAt = new Date();

@@ -60,6 +60,18 @@ describe("staff identity and role-based access foundation", () => {
     expect(staff).not.toContain("clientEmail");
   });
 
+  it("gives operations managers read-only workload visibility without widening financial access", () => {
+    const start = router.indexOf("staffAccess: router({");
+    const end = router.indexOf("// ── Team Operations", start);
+    const staff = router.slice(start, end);
+    expect(staff).toContain("teamOverview: staffProcedure");
+    expect(staff).toContain('requireStaffRole(membership, "operations_manager")');
+    expect(staff).not.toContain("invoicePayments");
+    expect(staff).not.toContain("clientEmail");
+    expect(staffWorkspacePage).toContain("teamOverview");
+    expect(staffWorkspacePage).toContain("operations_manager");
+  });
+
   it("hydrates the authenticated staff account cache before routing a successful registration to assigned work", () => {
     const registrationSuccess = staffAccessPage.slice(
       staffAccessPage.indexOf("const register = trpc.staffAccess.register.useMutation"),
