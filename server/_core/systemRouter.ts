@@ -3,6 +3,10 @@ import { notifyOwner } from "./notification";
 import { getDb } from "../db";
 import { adminProcedure, protectedProcedure, router } from "./trpc";
 
+export function configurationStatus(configured: boolean): "configured" | "not_configured" {
+  return configured ? "configured" : "not_configured";
+}
+
 export const systemRouter = router({
   health: protectedProcedure
     .input(
@@ -27,6 +31,23 @@ export const systemRouter = router({
       }
       checks.stripe = { status: process.env.STRIPE_SECRET_KEY ? "configured" : "not_configured" };
       checks.llm = { status: process.env.OPENAI_API_KEY ? "configured" : "not_configured" };
+      checks.smtp = {
+        status: configurationStatus(Boolean(
+          process.env.SMTP_HOST &&
+          process.env.SMTP_USER &&
+          process.env.SMTP_PASS &&
+          process.env.SMTP_FROM,
+        )),
+      };
+      checks.maps = { status: configurationStatus(Boolean(process.env.GOOGLE_MAPS_API_KEY)) };
+      checks.googleCalendar = {
+        status: configurationStatus(Boolean(
+          process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET,
+        )),
+      };
+      checks.dailyDigest = {
+        status: configurationStatus(Boolean(process.env.DIGEST_CRON_SECRET)),
+      };
       const status = checks.database.status === "ok" ? "healthy" : "degraded";
       return {
         status,
