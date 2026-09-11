@@ -19,6 +19,7 @@ import {
   clients,
   bookings,
   jobRunGuards,
+  backgroundJobRuns,
 } from "../drizzle/schema";
 import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, bookingReminderEmail, postSessionCheckInEmail, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { getRecurringInvoiceDeliveryOutcome } from "./recurringInvoiceDeliveryOutcome";
@@ -625,6 +626,27 @@ let schedulerRunning = false;
 let schedulerLastRunAt: Date | null = null;
 let schedulerLastError: string | null = null;
 
+export async function getDurableBackgroundJobStatus() {
+  const db = await getDb();
+  if (!db) return { lastFailedJob: null, lastFailedAt: null };
+  const [latestFailure] = await db
+    .select({
+      jobName: backgroundJobRuns.jobName,
+      errorMessage: backgroundJobRuns.errorMessage,
+      startedAt: backgroundJobRuns.startedAt,
+    })
+    .from(backgroundJobRuns)
+    .where(eq(backgroundJobRuns.status, "failed"))
+    .orderBy(sql`${backgroundJobRuns.startedAt} DESC`)
+    .limit(1);
+  return {
+    lastFailedJob: latestFailure
+      ? `${latestFailure.jobName}: ${latestFailure.errorMessage || "Unknown error"}`
+      : null,
+    lastFailedAt: latestFailure?.startedAt?.toISOString() ?? null,
+  };
+}
+
 export function getBackgroundJobStatus() {
   return {
     started: schedulerStarted,
@@ -632,6 +654,34 @@ export function getBackgroundJobStatus() {
     lastRunAt: schedulerLastRunAt?.toISOString() ?? null,
     lastError: schedulerLastError,
   };
+}
+
+async function startDurableJobRun(name: string): Promise<{ db: Awaited<ReturnType<typeof getDb>>; runId: number | null }> {
+  const db = await getDb();
+  if (!db) return { db, runId: null };
+  try {
+    const [run] = await db.insert(backgroundJobRuns).values({ jobName: name, status: "running" });
+    return { db, runId: Number((run as { insertId?: number }).insertId) || null };
+  } catch (error) {
+    console.error(`[Jobs] Unable to record ${name} start:`, error);
+    return { db, runId: null };
+  }
+}
+
+async function finishDurableJobRun(
+  db: Awaited<ReturnType<typeof getDb>>,
+  runId: number | null,
+  status: "succeeded" | "failed",
+  errorMessage?: string,
+) {
+  if (!db || !runId) return;
+  try {
+    await db.update(backgroundJobRuns)
+      .set({ status, completedAt: new Date(), ...(errorMessage ? { errorMessage } : {}) })
+      .where(eq(backgroundJobRuns.id, runId));
+  } catch (error) {
+    console.error(`[Jobs] Unable to record job completion (${runId}):`, error);
+  }
 }
 
 export function startBackgroundJobs() {
@@ -659,11 +709,14 @@ export function startBackgroundJobs() {
       ["workflow automations", processDueAutomations],
     ];
     for (const [name, job] of jobs) {
+      const { db, runId } = await startDurableJobRun(name);
       try {
         await job();
+        await finishDurableJobRun(db, runId, "succeeded");
       } catch (error) {
         console.error(`[Jobs] ${name} failed without stopping the remaining schedule:`, error);
         schedulerLastError = `${name}: ${error instanceof Error ? error.message : String(error)}`;
+        await finishDurableJobRun(db, runId, "failed", schedulerLastError);
       }
     }
     schedulerLastRunAt = new Date();

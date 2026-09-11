@@ -1293,6 +1293,21 @@ export const jobRunGuards = mysqlTable("jobRunGuards", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+// ─── Background Job Runs ────────────────────────────────────────────────────
+// Durable execution history lets health checks show failures after a restart.
+export const backgroundJobRuns = mysqlTable("backgroundJobRuns", {
+  id: int("id").autoincrement().primaryKey(),
+  jobName: varchar("jobName", { length: 100 }).notNull(),
+  status: mysqlEnum("status", ["running", "succeeded", "failed"]).notNull(),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+  errorMessage: varchar("errorMessage", { length: 1000 }),
+}, (t) => [
+  index("backgroundJobRuns_jobName_startedAt_idx").on(t.jobName, t.startedAt),
+  index("backgroundJobRuns_status_startedAt_idx").on(t.status, t.startedAt),
+]);
+export type BackgroundJobRun = typeof backgroundJobRuns.$inferSelect;
+
 // ─── Public Photo Upload Sessions ────────────────────────────────────────────
 // A short-lived, hashed authorization record for a public booking or intake upload.
 // Upload objects are registered separately so only objects created by that session

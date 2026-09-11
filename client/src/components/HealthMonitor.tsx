@@ -14,6 +14,8 @@ interface HealthData {
     running: boolean;
     lastRunAt: string | null;
     lastError: string | null;
+    lastFailedJob?: string | null;
+    lastFailedAt?: string | null;
   };
   checks: {
     database?: { status: string; latencyMs?: number };
@@ -119,12 +121,12 @@ export function HealthMonitor() {
                 />
                 <StatusRow
                   label="Background jobs"
-                  status={data.backgroundJobs?.lastError ? "error" : data.backgroundJobs?.started ? "ok" : "not_started"}
+                  status={data.backgroundJobs?.lastError || data.backgroundJobs?.lastFailedJob ? "error" : data.backgroundJobs?.started ? "ok" : "not_started"}
                   detail={data.backgroundJobs?.running ? "running" : data.backgroundJobs?.lastRunAt ? `last ${new Date(data.backgroundJobs.lastRunAt).toLocaleTimeString()}` : undefined}
                 />
-                {data.backgroundJobs?.lastError && (
+                {(data.backgroundJobs?.lastError || data.backgroundJobs?.lastFailedJob) && (
                   <p className="text-xs text-red-700" role="alert">
-                    Latest job cycle: {data.backgroundJobs.lastError}
+                    Latest job failure: {data.backgroundJobs.lastError || data.backgroundJobs.lastFailedJob}
                   </p>
                 )}
                 <div className="pt-2 border-t border-[#DDDBD7] mt-2">
