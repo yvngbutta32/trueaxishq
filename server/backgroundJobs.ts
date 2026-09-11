@@ -625,6 +625,30 @@ let schedulerStarted = false;
 let schedulerRunning = false;
 let schedulerLastRunAt: Date | null = null;
 let schedulerLastError: string | null = null;
+let schedulerConsecutiveFailures = 0;
+
+const JOB_RETRY_DELAYS_MS = [500, 2_000, 5_000] as const;
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+async function runWithRetries(name: string, job: () => Promise<void>): Promise<void> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= JOB_RETRY_DELAYS_MS.length + 1; attempt++) {
+    try {
+      await job();
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt > JOB_RETRY_DELAYS_MS.length) break;
+      const delay = JOB_RETRY_DELAYS_MS[attempt - 1];
+      console.warn(`[Jobs] ${name} failed (attempt ${attempt}); retrying in ${delay}ms:`, errorMessage(error));
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  throw new Error(`${name} failed after ${JOB_RETRY_DELAYS_MS.length + 1} attempts: ${errorMessage(lastError)}`);
+}
 
 export async function getDurableBackgroundJobStatus() {
   const db = await getDb();
@@ -653,11 +677,18 @@ export function getBackgroundJobStatus() {
     running: schedulerRunning,
     lastRunAt: schedulerLastRunAt?.toISOString() ?? null,
     lastError: schedulerLastError,
+    consecutiveFailures: schedulerConsecutiveFailures,
   };
 }
 
 async function startDurableJobRun(name: string): Promise<{ db: Awaited<ReturnType<typeof getDb>>; runId: number | null }> {
-  const db = await getDb();
+  let db: Awaited<ReturnType<typeof getDb>>;
+  try {
+    db = await getDb();
+  } catch (error) {
+    console.error(`[Jobs] Unable to connect while recording ${name} start:`, errorMessage(error));
+    return { db: null, runId: null };
+  }
   if (!db) return { db, runId: null };
   try {
     const [run] = await db.insert(backgroundJobRuns).values({ jobName: name, status: "running" });
@@ -698,6 +729,7 @@ export function startBackgroundJobs() {
     }
     schedulerRunning = true;
     schedulerLastError = null;
+    let cycleFailures = 0;
     const jobs: Array<[string, () => Promise<void>]> = [
       ["overdue detection", runOverdueDetection],
       ["recurring invoices", runRecurringInvoices],
@@ -708,19 +740,28 @@ export function startBackgroundJobs() {
       ["post-session check-ins", runPostSessionCheckIns],
       ["workflow automations", processDueAutomations],
     ];
-    for (const [name, job] of jobs) {
-      const { db, runId } = await startDurableJobRun(name);
-      try {
-        await job();
-        await finishDurableJobRun(db, runId, "succeeded");
-      } catch (error) {
-        console.error(`[Jobs] ${name} failed without stopping the remaining schedule:`, error);
-        schedulerLastError = `${name}: ${error instanceof Error ? error.message : String(error)}`;
-        await finishDurableJobRun(db, runId, "failed", schedulerLastError);
+    try {
+      for (const [name, job] of jobs) {
+        const { db, runId } = await startDurableJobRun(name);
+        try {
+          await runWithRetries(name, job);
+          await finishDurableJobRun(db, runId, "succeeded");
+        } catch (error) {
+          console.error(`[Jobs] ${name} failed after retries; continuing remaining schedule:`, error);
+          schedulerLastError = `${name}: ${errorMessage(error)}`;
+          cycleFailures++;
+          await finishDurableJobRun(db, runId, "failed", schedulerLastError);
+        }
       }
+    } catch (error) {
+      schedulerLastError = `scheduler: ${errorMessage(error)}`;
+      cycleFailures++;
+      console.error("[Jobs] Scheduler cycle failed unexpectedly; the next cycle remains scheduled:", error);
+    } finally {
+      schedulerLastRunAt = new Date();
+      schedulerConsecutiveFailures = cycleFailures > 0 ? schedulerConsecutiveFailures + 1 : 0;
+      schedulerRunning = false;
     }
-    schedulerLastRunAt = new Date();
-    schedulerRunning = false;
   };
   // Initial run after 10 seconds (let server fully start)
   setTimeout(() => {

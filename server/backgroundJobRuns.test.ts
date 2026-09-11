@@ -9,6 +9,9 @@ describe("durable background job runs", () => {
     const health = readFileSync(resolve(process.cwd(), "server/_core/systemRouter.ts"), "utf8");
     expect(schema).toContain('export const backgroundJobRuns = mysqlTable("backgroundJobRuns"');
     expect(jobs).toContain("getDurableBackgroundJobStatus");
+    expect(jobs).toContain("runWithRetries");
+    expect(jobs).toContain("JOB_RETRY_DELAYS_MS");
+    expect(jobs).toContain("consecutiveFailures");
     expect(jobs).toContain('status: "running"');
     expect(jobs).toContain('"succeeded" | "failed"');
     expect(jobs).toContain('finishDurableJobRun(db, runId, "failed"');

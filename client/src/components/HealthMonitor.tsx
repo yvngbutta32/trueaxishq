@@ -16,6 +16,7 @@ interface HealthData {
     lastError: string | null;
     lastFailedJob?: string | null;
     lastFailedAt?: string | null;
+    consecutiveFailures?: number;
   };
   checks: {
     database?: { status: string; latencyMs?: number };
@@ -127,6 +128,11 @@ export function HealthMonitor() {
                 {(data.backgroundJobs?.lastError || data.backgroundJobs?.lastFailedJob) && (
                   <p className="text-xs text-red-700" role="alert">
                     Latest job failure: {data.backgroundJobs.lastError || data.backgroundJobs.lastFailedJob}
+                  </p>
+                )}
+                {!!data.backgroundJobs?.consecutiveFailures && (
+                  <p className="text-xs text-yellow-800">
+                    Automatic retries exhausted in {data.backgroundJobs.consecutiveFailures} recent cycle{data.backgroundJobs.consecutiveFailures === 1 ? "" : "s"}.
                   </p>
                 )}
                 <div className="pt-2 border-t border-[#DDDBD7] mt-2">
