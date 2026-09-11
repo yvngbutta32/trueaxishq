@@ -7,8 +7,11 @@ describe("smart guidance preference", () => {
     const schema = readFileSync(resolve(process.cwd(), "drizzle/schema.ts"), "utf8");
     const router = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
     const checklist = readFileSync(resolve(process.cwd(), "client/src/components/OnboardingChecklist.tsx"), "utf8");
+    const dashboard = readFileSync(resolve(process.cwd(), "client/src/pages/Dashboard.tsx"), "utf8");
     expect(schema).toContain('smartGuidanceEnabled: boolean("smartGuidanceEnabled").default(true)');
     expect(router).toContain("smartGuidanceEnabled: z.boolean().optional()");
     expect(checklist).toContain("settings?.smartGuidanceEnabled === false");
+    expect(dashboard).toContain("enabled: guidanceEnabled");
+    expect(dashboard).toContain("guidanceEnabled && pulseData");
   });
 });

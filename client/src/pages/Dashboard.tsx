@@ -524,7 +524,9 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
   const { data: recentClients } = trpc.clients.list.useQuery({ search: "", status: "all" });
   const { data: recentBookings } = trpc.bookings.list.useQuery({ status: "scheduled" });
   const { data: overdueInvoices } = trpc.invoices.list.useQuery({ status: "overdue" }, { retry: 1 });
-  const { data: pulseData } = trpc.pulse.getAll.useQuery(undefined, { retry: 1 });
+  const { data: settings } = trpc.settings.get.useQuery(undefined, { staleTime: 30_000, retry: 1 });
+  const guidanceEnabled = settings?.smartGuidanceEnabled !== false;
+  const { data: pulseData } = trpc.pulse.getAll.useQuery(undefined, { retry: 1, enabled: guidanceEnabled });
   const { data: pnlData } = trpc.expenses.pnl.useQuery({}, { retry: 1 });
   const todayStr = new Date().toISOString().split("T")[0];
   const todayHuman = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -731,7 +733,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       </div>
 
       {/* Client Pulse Summary Widget */}
-      {pulseData && pulseData.length > 0 && (() => {
+      {guidanceEnabled && pulseData && pulseData.length > 0 && (() => {
         const withPulse = pulseData.filter(d => d.pulse !== null);
         const churnRisk = withPulse.filter(d => d.pulse?.churnRisk === true).length;
         const upsellReady = withPulse.filter(d => d.pulse?.upsellReady === true).length;
