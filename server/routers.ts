@@ -69,6 +69,10 @@ function isValidBookingDate(date: string): boolean {
     && parsed.getUTCDate() === day;
 }
 
+function isValidBookingTime(time: string): boolean {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
+}
+
 function isDuplicateBookingSlotError(error: unknown): boolean {
   const candidate = error as { code?: unknown; message?: unknown };
   return candidate.code === "ER_DUP_ENTRY" || (typeof candidate.message === "string" && candidate.message.includes("bookings_live_slot_unique_idx"));
@@ -1645,6 +1649,9 @@ export const appRouter = router({
         if (input.status === "scheduled" && booking.status !== "scheduled") {
           if (!isValidBookingDate(booking.date)) {
             throw new TRPCError({ code: "BAD_REQUEST", message: "This booking has an invalid calendar date and cannot be restored." });
+          }
+          if (!isValidBookingTime(booking.time)) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "This booking has an invalid time and cannot be restored." });
           }
           const [ownerSettings] = await db.select({ bookingAvailability: users.bookingAvailability })
             .from(users)

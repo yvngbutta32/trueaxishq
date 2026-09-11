@@ -19,6 +19,8 @@ describe("owner booking conflict protection", () => {
     expect(section).toContain('Date must use YYYY-MM-DD format');
     expect(section).toContain('Time must use HH:MM format');
     expect(source).toContain("function isValidBookingDate");
+    expect(source).toContain("function isValidBookingTime");
     expect(section).toContain("Choose a real calendar date.");
+    expect(section).toContain("This booking has an invalid time");
   });
 });
