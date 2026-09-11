@@ -42,6 +42,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
   });
 
   const { data: status, isLoading } = useOnboardingStatus();
+  const { data: settings } = trpc.settings.get.useQuery(undefined, { staleTime: 30_000, retry: 1 });
   const { data: kits = [] } = trpc.onboarding.fastStartKits.useQuery();
   const applyKit = trpc.onboarding.applyFastStartKit.useMutation({
     onSuccess: result => {
@@ -55,7 +56,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
     setDismissed(true);
   };
 
-  if (dismissed) return null;
+  if (dismissed || settings?.smartGuidanceEnabled === false) return null;
 
   const completed = new Set(
     status

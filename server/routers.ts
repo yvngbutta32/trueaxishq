@@ -1913,6 +1913,7 @@ export const appRouter = router({
         notifyNewBooking: z.boolean().optional(),
         notifyInvoicePaid: z.boolean().optional(),
         notifyNewLead: z.boolean().optional(),
+        smartGuidanceEnabled: z.boolean().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();

@@ -442,6 +442,13 @@
       "when": 1787977387358,
       "tag": "0062_lucky_purifiers",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "5",
+      "when": 1788000000000,
+      "tag": "0063_guided_workspace",
+      "breakpoints": true
     }
   ]
 }

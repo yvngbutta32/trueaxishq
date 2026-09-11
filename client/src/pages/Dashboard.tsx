@@ -3630,7 +3630,7 @@ function SettingsPanel() {
   const setBookingPageField = useFormFields(setBookingPage);
   const setBookingUsername = setBookingPageField("bookingUsername");
   const setBookingBio      = setBookingPageField("bookingBio");
-  const [notifications, setNotifications] = useState({ notifyNewBooking: true, notifyInvoicePaid: true, notifyNewLead: true });
+  const [notifications, setNotifications] = useState({ notifyNewBooking: true, notifyInvoicePaid: true, notifyNewLead: true, smartGuidanceEnabled: true });
   const [newService, setNewService] = useState("");
   const [showPresetServices, setShowPresetServices] = useState(false);
   const PRESET_SERVICES = [
@@ -3713,7 +3713,12 @@ function SettingsPanel() {
         bookingServices: getPublishedBookingServiceCatalog(JSON.stringify(settings.bookingServices || ["Coaching Session", "Strategy Call", "Consultation"])),
         bookingAvailability: settings.bookingAvailability || { weekdays: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.weekdays], timeSlots: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.timeSlots], bufferMinutes: DEFAULT_PUBLIC_BOOKING_SCHEDULE.bufferMinutes },
       });
-      setNotifications({ notifyNewBooking: settings.notifyNewBooking ?? true, notifyInvoicePaid: settings.notifyInvoicePaid ?? true, notifyNewLead: settings.notifyNewLead ?? true });
+      setNotifications({
+        notifyNewBooking: settings.notifyNewBooking ?? true,
+        notifyInvoicePaid: settings.notifyInvoicePaid ?? true,
+        notifyNewLead: settings.notifyNewLead ?? true,
+        smartGuidanceEnabled: settings.smartGuidanceEnabled ?? true,
+      });
     }
   }, [settings]);
 
@@ -4021,6 +4026,7 @@ function SettingsPanel() {
           { key: "notifyNewBooking" as const, label: "New Booking", desc: "Get notified when a client books a session" },
           { key: "notifyInvoicePaid" as const, label: "Invoice Paid", desc: "Get notified when an invoice is marked as paid" },
           { key: "notifyNewLead" as const, label: "New Lead", desc: "Get notified when someone joins the waitlist" },
+          { key: "smartGuidanceEnabled" as const, label: "Helpful guidance", desc: "Show setup steps and context-aware recommendations in your workspace" },
         ].map(n => (
           <div key={n.key} className="flex items-center justify-between">
             <div>

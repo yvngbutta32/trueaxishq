@@ -46,6 +46,7 @@ export const users = mysqlTable("users", {
   notifyInvoicePaid: boolean("notifyInvoicePaid").default(true),
   notifyNewLead: boolean("notifyNewLead").default(true),
   monthlyReportEnabled: boolean("monthlyReportEnabled").default(true),
+  smartGuidanceEnabled: boolean("smartGuidanceEnabled").default(true),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
