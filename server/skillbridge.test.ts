@@ -1,8 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+const { getDbMock } = vi.hoisted(() => ({
+  getDbMock: vi.fn(),
+}));
+
+vi.mock("./db", async () => {
+  const actual = await vi.importActual<typeof import("./db")>("./db");
+  return { ...actual, getDb: getDbMock };
+});
+
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
 // ─── Shared mock context helpers ─────────────────────────────────────────────
+
+function makeEmptyDb() {
+  const limit = vi.fn().mockResolvedValue([]);
+  const where = vi.fn(() => ({ limit }));
+  const from = vi.fn(() => ({ where }));
+  return { select: vi.fn(() => ({ from })) };
+}
+
+getDbMock.mockResolvedValue(makeEmptyDb());
 
 function makeCtx(overrides: Partial<TrpcContext> = {}): TrpcContext {
   return {
