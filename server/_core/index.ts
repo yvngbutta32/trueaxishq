@@ -16,6 +16,7 @@ import { icalRouter } from "../icalExport";
 import { startBackgroundJobs } from "../backgroundJobs";
 import { invoicePdfRouter } from "../invoicePdf";
 import { verifyGoogleOAuthState } from "../googleOAuthState";
+import { assertSessionSecretConfigured } from "../auth";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,6 +38,7 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  assertSessionSecretConfigured();
   const app = express();
   const server = createServer(app);
 

@@ -29,12 +29,30 @@ const DUMMY_HASH = "$2a$12$dummyhashfortimingnormalizationXXXXXXXXXXXXXXXXXXXXXX
 
 // ─── Session token helpers ────────────────────────────────────────────────────
 
+/**
+ * Production startup guard: refuses to run with a fallback session secret.
+ * Throws only in production; development keeps its documented fallback with a warning.
+ */
+export function assertSessionSecretConfigured(): void {
+  if (ENV.isProduction && !ENV.cookieSecret) {
+    throw new Error(
+      "[Auth] JWT_SECRET is not configured. Refusing to start in production — " +
+      "session tokens would be forgeable with a known fallback secret."
+    );
+  }
+}
+
 function getSessionSecret() {
   const secret = ENV.cookieSecret;
-  if (!secret && process.env.NODE_ENV !== "production") {
+  if (!secret) {
+    if (ENV.isProduction) {
+      // Defense-in-depth: even if the startup guard is bypassed, never sign with the fallback in production.
+      throw new Error("[Auth] JWT_SECRET is not configured — refusing to sign session tokens in production.");
+    }
     console.warn("[Auth] WARNING: JWT_SECRET not set — using insecure fallback. Set JWT_SECRET in production.");
+    return new TextEncoder().encode("fallback-dev-secret-change-in-prod");
   }
-  return new TextEncoder().encode(secret || "fallback-dev-secret-change-in-prod");
+  return new TextEncoder().encode(secret);
 }
 
 export async function createSessionToken(userId: number, email: string): Promise<string> {
