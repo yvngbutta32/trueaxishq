@@ -1,5 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { eq, desc, and, sql, inArray, or, like, isNull, gt, gte, lt, ne } from "drizzle-orm";
+import { eq, desc, and, sql, inArray, or, like, isNull, gt, gte, lt, lte, ne } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
 import { createHash, randomBytes } from "node:crypto";
@@ -33,6 +33,7 @@ import { WORKFLOW_WEBHOOK_EVENTS, parseWebhookEvents } from "../shared/workflowW
 import { createWebhookSigningSecret, deliverWorkflowWebhookEvent, encryptWebhookSecret, processDueWorkflowWebhookDeliveries, validateWebhookEndpoint } from "./workflowWebhookDelivery";
 import { getTrustedPaymentReturnOrigin } from "./paymentReturnOrigin";
 import { buildClientCsv } from "./clientCsvExport";
+import { buildQuickBooksInvoiceCsv, buildPaymentsCsv, buildMonthlySummaryCsv, summarizeAccounting } from "./accountingExport";
 import { buildJobCostCsv, type ExportableJobCostRow } from "./jobCostCsvExport";
 import { getProposalPackageSubtotal, normalizeProposalLineItems, parseProposalPackages, type ProposalPackage } from "../shared/proposalPackages";
 import { daysUntilProposalExpiry, isProposalExpired } from "../shared/proposalValidity";
@@ -1148,6 +1149,35 @@ export const appRouter = router({
           .orderBy(desc(invoices.createdAt));
         if (input?.status && input.status !== "all") return all.filter(i => i.status === input.status);
         return all;
+      }),
+
+    /**
+     * Accountant-ready financial export: QuickBooks-format invoices CSV,
+     * payments-received ledger, and a monthly accrual vs. cash summary.
+     * Owner-scoped, date-ranged, hard-capped at 10k rows.
+     */
+    accountingExport: protectedProcedure
+      .input(z.object({
+        from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "from must be YYYY-MM-DD").optional(),
+        to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "to must be YYYY-MM-DD").optional(),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const conditions = [eq(invoices.userId, ctx.user.id)];
+        if (input?.from) conditions.push(gte(invoices.createdAt, new Date(`${input.from}T00:00:00.000Z`)));
+        if (input?.to) conditions.push(lte(invoices.createdAt, new Date(`${input.to}T23:59:59.999Z`)));
+        const rows = await db.select().from(invoices)
+          .where(and(...conditions))
+          .orderBy(desc(invoices.createdAt))
+          .limit(10_000);
+        const stamp = new Date().toISOString().slice(0, 10);
+        return {
+          fileName: `trueaxis-accounting-${stamp}.csv`,
+          quickBooksInvoicesCsv: buildQuickBooksInvoiceCsv(rows),
+          paymentsCsv: buildPaymentsCsv(rows),
+          monthlySummaryCsv: buildMonthlySummaryCsv(rows),
+          summary: summarizeAccounting(rows),
+        } as const;
       }),
 
     create: protectedProcedure

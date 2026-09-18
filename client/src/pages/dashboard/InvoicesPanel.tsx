@@ -32,7 +32,7 @@ import {
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
   Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload,
   Home, Crown, ArrowRight, Shield, Inbox, MessageSquare, Tag, ThumbsUp, CalendarX, Link2, Wifi, WifiOff,
-  Package, Receipt, Smartphone, Rocket, UsersRound, MapPin, PlugZap, Webhook
+  Package, Receipt, Smartphone, Rocket, UsersRound, MapPin, PlugZap, Webhook, BookOpen
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -182,6 +182,28 @@ function InvoicesPanel() {
     return inv.status === invFilter;
   });
 
+  // ── Accounting export (QuickBooks-format invoices, payments, monthly summary) ─
+  const [showAccountingExport, setShowAccountingExport] = useState(false);
+  const [accountingFrom, setAccountingFrom] = useState("");
+  const [accountingTo, setAccountingTo] = useState("");
+  const accountingExport = trpc.invoices.accountingExport.useQuery(
+    { from: accountingFrom || undefined, to: accountingTo || undefined },
+    { enabled: false },
+  );
+
+  async function downloadAccountingFile(kind: "quickBooksInvoicesCsv" | "paymentsCsv" | "monthlySummaryCsv", label: string) {
+    const result = await accountingExport.refetch();
+    if (!result.data) { toast.error("Accounting export could not be prepared."); return; }
+    if (result.data.summary.invoiceCount === 0) { toast.info("No invoices in that date range."); return; }
+    const blob = new Blob([`\ufeff${result.data[kind]}`], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const baseName = result.data.fileName.replace(/\.csv$/, "");
+    const suffix = kind === "quickBooksInvoicesCsv" ? "quickbooks-invoices" : kind === "paymentsCsv" ? "payments" : "monthly-summary";
+    const anchor = document.createElement("a"); anchor.href = url; anchor.download = `${baseName}-${suffix}.csv`; anchor.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${label} downloaded.`);
+  }
+
   function exportInvoicesCSV() {
     if (!invoiceList || invoiceList.length === 0) { toast.info("No invoices to export."); return; }
     const headers = ["Invoice #", "Client", "Email", "Service", "Amount", "Due Date", "Status", "Notes"];
@@ -271,6 +293,9 @@ function InvoicesPanel() {
             <>
               <Button size="sm" variant="outline" className="gap-1.5 text-[#6B6B6B] border-[#DDDBD7]" onClick={exportInvoicesCSV} title="Export all invoices as CSV">
                 <Download className="w-3.5 h-3.5" />Export CSV
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1.5 text-[#8A5A0B] border-[#D4922A]/40 hover:bg-[#D4922A]/10" onClick={() => setShowAccountingExport(true)} title="Accountant-ready export: QuickBooks invoices, payments, monthly summary">
+                <BookOpen className="w-3.5 h-3.5" />Accounting export
               </Button>
               <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
                 <Plus className="w-3.5 h-3.5" />New Invoice
@@ -903,9 +928,56 @@ function InvoicesPanel() {
         confirmLabel="Delete"
         variant="destructive"
       />
+
+
+  {/* Accounting export modal */}
+  <Modal
+    open={showAccountingExport}
+    onClose={() => setShowAccountingExport(false)}
+    title="Accounting export"  >
+    <div className="space-y-4">
+      <p className="text-sm text-[#6B6B6B]">
+        Date-ranged exports in the formats bookkeepers use: QuickBooks Online invoice import columns, a payments-received ledger, and a monthly accrual vs. cash summary for tax prep. Leave dates blank to include everything.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block text-xs font-semibold text-[#6B6B6B]">From
+          <input type="date" value={accountingFrom} onChange={(e) => setAccountingFrom(e.target.value)} className="mt-1 w-full rounded-lg border border-[#DDDBD7] px-3 py-2 text-sm text-[#1A1A1A] bg-white" />
+        </label>
+        <label className="block text-xs font-semibold text-[#6B6B6B]">To
+          <input type="date" value={accountingTo} onChange={(e) => setAccountingTo(e.target.value)} className="mt-1 w-full rounded-lg border border-[#DDDBD7] px-3 py-2 text-sm text-[#1A1A1A] bg-white" />
+        </label>
+      </div>
+      {accountingExport.data && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" aria-live="polite">
+          <div className="rounded-xl bg-[#F7F6F3] border border-[#DDDBD7] p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6B6B6B]">Invoices</p>
+            <p className="text-lg font-bold text-[#1A1A1A]">{accountingExport.data.summary.invoiceCount}</p>
+          </div>
+          <div className="rounded-xl bg-[#F7F6F3] border border-[#DDDBD7] p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6B6B6B]">Invoiced</p>
+            <p className="text-lg font-bold text-[#1A1A1A]">{formatCurrency(accountingExport.data.summary.invoicedTotal)}</p>
+          </div>
+          <div className="rounded-xl bg-[#F7F6F3] border border-[#DDDBD7] p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6B6B6B]">Paid</p>
+            <p className="text-lg font-bold text-emerald-600">{formatCurrency(accountingExport.data.summary.paidTotal)}</p>
+          </div>
+          <div className="rounded-xl bg-[#F7F6F3] border border-[#DDDBD7] p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6B6B6B]">Outstanding</p>
+            <p className="text-lg font-bold text-[#D4922A]">{formatCurrency(accountingExport.data.summary.outstandingTotal)}</p>
+          </div>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center gap-2 pt-1">
+        <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90" onClick={() => void downloadAccountingFile("quickBooksInvoicesCsv", "QuickBooks invoices CSV")} disabled={accountingExport.isFetching}>
+          {accountingExport.isFetching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Download invoices (QuickBooks format)"}
+        </Button>
+        <Button size="sm" variant="outline" className="border-[#DDDBD7] text-[#6B6B6B]" onClick={() => void downloadAccountingFile("paymentsCsv", "Payments ledger")} disabled={accountingExport.isFetching}>Payments ledger</Button>
+        <Button size="sm" variant="outline" className="border-[#DDDBD7] text-[#6B6B6B]" onClick={() => void downloadAccountingFile("monthlySummaryCsv", "Monthly summary")} disabled={accountingExport.isFetching}>Monthly summary</Button>
+      </div>
+    </div>
+  </Modal>
     </div>
   );
 }
-
 
 export { InvoicesPanel };
