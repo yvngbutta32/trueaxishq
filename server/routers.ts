@@ -35,7 +35,7 @@ import { getTrustedPaymentReturnOrigin } from "./paymentReturnOrigin";
 import { buildClientCsv } from "./clientCsvExport";
 import { buildJobCostCsv, type ExportableJobCostRow } from "./jobCostCsvExport";
 import { getProposalPackageSubtotal, normalizeProposalLineItems, parseProposalPackages, type ProposalPackage } from "../shared/proposalPackages";
-import { isProposalExpired } from "../shared/proposalValidity";
+import { daysUntilProposalExpiry, isProposalExpired } from "../shared/proposalValidity";
 import { isClientSafeJobActivityEvent } from "../shared/clientSafeJobActivity";
 import { doPublicBookingIntervalsOverlap, getPublishedBookingSchedule, getPublishedBookingServiceCatalog, getPublishedBookingServices, isPublishedPublicBookingSlot, PUBLIC_BOOKING_TIME_SLOTS } from "../shared/publicBookingRules";
 import { isValidRecurringServicePlanInput, nextRecurringServiceDate } from "../shared/recurringServicePlans";
@@ -259,6 +259,9 @@ async function withInvoiceNumberRetry<T>(operation: (invoiceNumber: string) => P
 }
 
 // ─── App Router ───────────────────────────────────────────────────────────────
+/** Panels an action card can deep-link the owner into (mirrors the client's ActivePanel values). */
+type ActivePanelTarget = "billing" | "proposals" | "jobs" | "scheduling";
+
 export const appRouter = router({
   system: systemRouter,
 
@@ -8176,6 +8179,144 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: job.id, actor: "owner", eventType: "photo_linked", message: `Linked a ${photo.photoType === "wip" ? "work-in-progress" : photo.photoType} photo.` });
         return { success: true };
       }),
+  }),
+
+  // ── Owner action cards (next-best-actions surfaced from live data) ─────────
+  dashboard: router({
+    actionCards: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const todayKey = new Date().toISOString().slice(0, 10);
+
+      const [actionableInvoices, awaitingSignature, awaitingClientJobs, pendingApprovals, todaysBookings] = await Promise.all([
+        db.select({ id: invoices.id, clientName: invoices.clientName, amount: invoices.amount, status: invoices.status })
+          .from(invoices)
+          .where(and(eq(invoices.userId, ctx.user.id), inArray(invoices.status, ["overdue", "draft"])))
+          .orderBy(desc(invoices.amount))
+          .limit(100),
+        db.select({ id: proposals.id, title: proposals.title, clientName: proposals.clientName, validUntil: proposals.validUntil, total: proposals.total, sentAt: proposals.sentAt })
+          .from(proposals)
+          .where(and(eq(proposals.userId, ctx.user.id), inArray(proposals.status, ["sent", "viewed"])))
+          .orderBy(desc(proposals.sentAt))
+          .limit(50),
+        db.select({ id: jobs.id, title: jobs.title, client: clients.name })
+          .from(jobs)
+          .leftJoin(clients, eq(jobs.clientId, clients.id))
+          .where(and(eq(jobs.userId, ctx.user.id), eq(jobs.status, "awaiting_client")))
+          .orderBy(desc(jobs.updatedAt))
+          .limit(20),
+        db.select({ id: clientApprovalRequests.id, title: clientApprovalRequests.title })
+          .from(clientApprovalRequests)
+          .where(and(eq(clientApprovalRequests.userId, ctx.user.id), eq(clientApprovalRequests.status, "pending")))
+          .orderBy(desc(clientApprovalRequests.createdAt))
+          .limit(20),
+        db.select({ id: bookings.id, clientName: bookings.clientName, service: bookings.service, time: bookings.time })
+          .from(bookings)
+          .where(and(eq(bookings.userId, ctx.user.id), eq(bookings.status, "scheduled"), or(eq(bookings.date, todayKey), eq(bookings.date, new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })))))
+          .orderBy(bookings.time)
+          .limit(20),
+      ]);
+
+      type ActionCard = {
+        id: string;
+        priority: number;
+        title: string;
+        detail: string;
+        count: number;
+        target: ActivePanelTarget;
+      };
+      const cards: ActionCard[] = [];
+      const overdueInvoices = actionableInvoices.filter(inv => inv.status === "overdue");
+      const draftInvoices = actionableInvoices.filter(inv => inv.status === "draft");
+
+      if (overdueInvoices.length) {
+        const total = overdueInvoices.reduce((sum, inv) => sum + parseFloat(String(inv.amount ?? 0)), 0);
+        cards.push({
+          id: "overdue_invoices",
+          priority: 1,
+          title: `Collect ${overdueInvoices.length} overdue ${overdueInvoices.length === 1 ? "invoice" : "invoices"}`,
+          detail: `$${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} outstanding — top: ${overdueInvoices[0].clientName}`,
+          count: overdueInvoices.length,
+          target: "billing",
+        });
+      }
+
+      const expiring = awaitingSignature
+        .map(p => ({ proposal: p, daysLeft: daysUntilProposalExpiry(p.validUntil) }))
+        .filter(p => p.daysLeft !== null && p.daysLeft >= 0 && p.daysLeft <= 3)
+        .sort((a, b) => (a.daysLeft ?? 0) - (b.daysLeft ?? 0));
+
+      if (expiring.length) {
+        const soonest = expiring[0];
+        cards.push({
+          id: "quotes_expiring",
+          priority: 0,
+          title: `${expiring.length} ${expiring.length === 1 ? "quote expires" : "quotes expire"} within 3 days`,
+          detail: soonest.daysLeft === 0
+            ? `"${soonest.proposal.title}" for ${soonest.proposal.clientName} expires today`
+            : `"${soonest.proposal.title}" expires in ${soonest.daysLeft} ${soonest.daysLeft === 1 ? "day" : "days"}`,
+          count: expiring.length,
+          target: "proposals",
+        });
+      }
+
+      if (awaitingSignature.length) {
+        cards.push({
+          id: "awaiting_signature",
+          priority: 2,
+          title: `${awaitingSignature.length} ${awaitingSignature.length === 1 ? "proposal is" : "proposals are"} awaiting signature`,
+          detail: `Top: "${awaitingSignature[0].title}" for ${awaitingSignature[0].clientName}`,
+          count: awaitingSignature.length,
+          target: "proposals",
+        });
+      }
+
+      if (awaitingClientJobs.length) {
+        cards.push({
+          id: "jobs_awaiting_client",
+          priority: 3,
+          title: `${awaitingClientJobs.length} ${awaitingClientJobs.length === 1 ? "job" : "jobs"} waiting on client`,
+          detail: `Top: "${awaitingClientJobs[0].title}"${awaitingClientJobs[0].client ? ` — ${awaitingClientJobs[0].client}` : ""}`,
+          count: awaitingClientJobs.length,
+          target: "jobs",
+        });
+      }
+
+      if (pendingApprovals.length) {
+        cards.push({
+          id: "pending_approvals",
+          priority: 4,
+          title: `${pendingApprovals.length} pending client ${pendingApprovals.length === 1 ? "approval" : "approvals"}`,
+          detail: `Top: "${pendingApprovals[0].title}"`,
+          count: pendingApprovals.length,
+          target: "jobs",
+        });
+      }
+
+      if (draftInvoices.length) {
+        cards.push({
+          id: "draft_invoices",
+          priority: 5,
+          title: `Send ${draftInvoices.length} draft ${draftInvoices.length === 1 ? "invoice" : "invoices"}`,
+          detail: `Top: ${draftInvoices[0].clientName}`,
+          count: draftInvoices.length,
+          target: "billing",
+        });
+      }
+
+      if (todaysBookings.length) {
+        cards.push({
+          id: "todays_bookings",
+          priority: 6,
+          title: `${todaysBookings.length} ${todaysBookings.length === 1 ? "job" : "jobs"} on today's schedule`,
+          detail: `First: ${todaysBookings[0].time} — ${todaysBookings[0].clientName}`,
+          count: todaysBookings.length,
+          target: "scheduling",
+        });
+      }
+
+      cards.sort((a, b) => a.priority - b.priority);
+      return { cards: cards.slice(0, 6), generatedAt: new Date().toISOString() };
+    }),
   }),
 });
 export type AppRouter = typeof appRouter;

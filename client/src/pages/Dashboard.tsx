@@ -9,6 +9,7 @@ import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMem
 import { useFormFields } from "@/hooks/useFormFields";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
+import { ActionCards } from "@/components/ActionCards";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -558,6 +559,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
         <p className="text-sm text-[#6B6B6B] mt-1">Here's what's happening with your business today.</p>
       </div>
       <OnboardingChecklist onNavigate={(panel) => setActivePanel(panel as ActivePanel)} />
+      <ActionCards onNavigate={(panel) => setActivePanel(panel as ActivePanel)} />
 
       {/* ⚠️ Overdue Invoice Alert Banner */}
       {overdueInvoices && overdueInvoices.length > 0 && (
