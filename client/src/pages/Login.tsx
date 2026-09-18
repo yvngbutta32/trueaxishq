@@ -20,6 +20,8 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [needsTwoFactor, setNeedsTwoFactor] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
   const utils = trpc.useUtils();
 
   const loginMutation = trpc.auth.login.useMutation({
@@ -33,6 +35,11 @@ export default function Login() {
       navigate("/dashboard");
     },
     onError: (err) => {
+      if (err.message === "TWO_FACTOR_CODE_REQUIRED") {
+        setNeedsTwoFactor(true);
+        toast.info("Enter the 6-digit code from your authenticator app.");
+        return;
+      }
       toast.error(err.message || "Login failed. Please check your credentials.");
     },
   });
@@ -40,7 +47,12 @@ export default function Login() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password) return;
-    loginMutation.mutate({ email: email.trim(), password });
+    if (needsTwoFactor && !twoFactorCode.trim()) return;
+    loginMutation.mutate({
+      email: email.trim(),
+      password,
+      twoFactorCode: needsTwoFactor ? twoFactorCode.trim() : undefined,
+    });
   };
 
   return (
@@ -213,6 +225,33 @@ export default function Login() {
               </div>
             </div>
 
+            {/* Two-factor code (shown only after the server asks for it) */}
+            {needsTwoFactor && (
+              <div>
+                <label
+                  htmlFor="twoFactorCode"
+                  className="text-sm font-semibold block mb-1.5"
+                  style={{ color: "rgba(26,26,26,0.85)" }}
+                >
+                  Authenticator code
+                </label>
+                <input
+                  id="twoFactorCode"
+                  type="text"
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value.toUpperCase())}
+                  placeholder="123456 or backup code"
+                  maxLength={14}
+                  autoFocus
+                  autoComplete="one-time-code"
+                  className="form-input tracking-[0.15em] text-center"
+                />
+                <p className="text-xs mt-1.5" style={{ color: "rgba(26,26,26,0.55)" }}>
+                  Lost your phone? Enter one of your saved backup codes instead (letters and dashes).
+                </p>
+              </div>
+            )}
+
             {/* Submit */}
             <button
               type="submit"
@@ -227,6 +266,8 @@ export default function Login() {
             >
               {loginMutation.isPending ? (
                 <><Loader2 size={16} className="animate-spin" /> Signing in…</>
+              ) : needsTwoFactor ? (
+                "Verify & Sign In →"
               ) : (
                 "Sign In →"
               )}

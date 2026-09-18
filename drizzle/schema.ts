@@ -46,12 +46,30 @@ export const users = mysqlTable("users", {
   notifyInvoicePaid: boolean("notifyInvoicePaid").default(true),
   notifyNewLead: boolean("notifyNewLead").default(true),
   monthlyReportEnabled: boolean("monthlyReportEnabled").default(true),
+  // Two-factor authentication (TOTP, RFC 6238)
+  twoFactorSecret: varchar("twoFactorSecret", { length: 64 }),
+  twoFactorEnabled: boolean("twoFactorEnabled").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 },
 (t) => [uniqueIndex("users_email_idx").on(t.email)]
 );
+
+// ─── Two-Factor Backup Codes ────────────────────────────────────────────────────
+
+export const twoFactorBackupCodes = mysqlTable("twoFactorBackupCodes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  codeHash: varchar("codeHash", { length: 128 }).notNull(), // SHA-256 hex
+  usedAt: timestamp("usedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+},
+(t) => [
+  index("twoFactorBackupCodes_userId_idx").on(t.userId),
+]);
+
+export type TwoFactorBackupCode = typeof twoFactorBackupCodes.$inferSelect;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;

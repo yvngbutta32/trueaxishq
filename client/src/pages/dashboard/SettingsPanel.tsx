@@ -26,7 +26,7 @@ import {
   BarChart3, Settings, Zap, Plus, TrendingUp,
   DollarSign, Clock, CheckCircle, ArrowUpRight,
   ChevronRight, LogOut, X, Edit2, Trash2, Send,
-  Download, Phone, AlertCircle, RefreshCw, User,
+  Download, Phone, AlertCircle, RefreshCw, User, ShieldCheck,
   Building, Save, Bot, CreditCard,
   ExternalLink, Bell, Search, ChevronDown, Loader2, Link,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
@@ -321,6 +321,126 @@ function CopyBookingLinkButton({ url }: { url: string }) {
         <><Copy className="w-4 h-4" />Copy Booking Link</>
       )}
     </button>
+  );
+}
+
+// ─── Two-Factor Authentication Section ─────────────────────────────────────────
+function TwoFactorSection() {
+  const utils = trpc.useUtils();
+  const { data: status } = trpc.twoFactor.status.useQuery(undefined, { retry: 1 });
+  const enabled = status?.enabled === true;
+
+  const [step, setStep] = useState<"idle" | "setup" | "confirm" | "backup">("idle");
+  const [setup, setSetup] = useState<{ secret: string; qrDataUrl: string } | null>(null);
+  const [confirmCode, setConfirmCode] = useState("");
+  const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
+  const [disablePassword, setDisablePassword] = useState("");
+
+  const setupStart = trpc.twoFactor.setupStart.useMutation({
+    onSuccess: (data) => { setSetup({ secret: data.secret, qrDataUrl: data.qrDataUrl }); setStep("setup"); },
+    onError: (e) => toast.error(e.message || "Could not start two-factor setup."),
+  });
+  const setupConfirm = trpc.twoFactor.setupConfirm.useMutation({
+    onSuccess: (data) => {
+      setBackupCodes(data.backupCodes);
+      setStep("backup");
+      void utils.twoFactor.status.invalidate();
+      toast.success("Two-factor authentication enabled.");
+    },
+    onError: (e) => toast.error(e.message || "Could not verify the code."),
+  });
+  const disable = trpc.twoFactor.disable.useMutation({
+    onSuccess: () => {
+      setDisablePassword("");
+      setStep("idle");
+      setSetup(null); setBackupCodes(null); setConfirmCode("");
+      void utils.twoFactor.status.invalidate();
+      toast.success("Two-factor authentication disabled.");
+    },
+    onError: (e) => toast.error(e.message || "Could not disable two-factor authentication."),
+  });
+
+  function downloadBackupCodes() {
+    if (!backupCodes) return;
+    const blob = new Blob([`TrueAxis HQ two-factor backup codes\n\n${backupCodes.join("\n")}\n\nEach code works once. Store them somewhere safe (not on this device).\n`], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "trueaxis-2fa-backup-codes.txt"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2">
+        <ShieldCheck className="w-4 h-4 text-[#D4922A]" />Two-Factor Authentication
+        <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${enabled ? "bg-emerald-100 text-emerald-700" : "bg-[#F2F0EC] text-[#6B6B6B]"}`}>
+          {enabled ? "Enabled" : "Off"}
+        </span>
+      </h3>
+      <p className="text-xs text-[#6B6B6B]">
+        Require a 6-digit code from your authenticator app (Google Authenticator, Authy, 1Password) at sign-in. Even if your password leaks, nobody can get in without your phone.
+      </p>
+
+      {step === "idle" && !enabled && (
+        <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90" onClick={() => setupStart.mutate()} disabled={setupStart.isPending}>
+          {setupStart.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><ShieldCheck className="w-4 h-4" />Enable two-factor</>}
+        </Button>
+      )}
+
+      {step === "setup" && setup && (
+        <div className="space-y-4 rounded-xl bg-[#F7F6F3] border border-[#DDDBD7] p-4">
+          <p className="text-xs text-[#6B6B6B]">1. Scan this QR code with your authenticator app…</p>
+          <div className="flex justify-center"><img src={setup.qrDataUrl} alt="Two-factor QR code" width={200} height={200} className="rounded-lg border border-[#DDDBD7] bg-white" /></div>
+          <p className="text-xs text-[#6B6B6B]">…or enter this key manually: <code className="block mt-1 font-mono text-[11px] bg-white border border-[#DDDBD7] rounded px-2 py-1 break-all">{setup.secret}</code></p>
+          <p className="text-xs text-[#6B6B6B]">2. Enter the 6-digit code the app shows to finish:</p>
+          <div className="flex items-center gap-2">
+            <input
+              value={confirmCode}
+              onChange={(e) => setConfirmCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="123456"
+              inputMode="numeric"
+              className="w-32 rounded-lg border border-[#DDDBD7] px-3 py-2 text-sm text-center tracking-[0.3em] bg-white"
+              aria-label="Six-digit authenticator code"
+            />
+            <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90" onClick={() => setupConfirm.mutate({ code: confirmCode })} disabled={setupConfirm.isPending || confirmCode.length !== 6}>
+              {setupConfirm.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify & enable"}
+            </Button>
+            <Button size="sm" variant="outline" className="border-[#DDDBD7] text-[#6B6B6B]" onClick={() => { setStep("idle"); setSetup(null); setConfirmCode(""); }}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      {step === "backup" && backupCodes && (
+        <div className="space-y-4 rounded-xl bg-[#F7F6F3] border border-[#DDDBD7] p-4">
+          <p className="text-xs font-semibold text-[#8A5A0B]">Save your backup codes now — they're shown only once.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {backupCodes.map(code => (
+              <code key={code} className="font-mono text-xs bg-white border border-[#DDDBD7] rounded px-2 py-1.5 text-center">{code}</code>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="border-[#DDDBD7] text-[#6B6B6B]" onClick={downloadBackupCodes}><Download className="w-3.5 h-3.5" />Download</Button>
+            <Button size="sm" variant="outline" className="border-[#DDDBD7] text-[#6B6B6B]" onClick={() => setStep("idle")}>Done — I saved them</Button>
+          </div>
+        </div>
+      )}
+
+      {enabled && step === "idle" && (
+        <div className="flex items-center gap-2">
+          <input
+            type="password"
+            value={disablePassword}
+            onChange={(e) => setDisablePassword(e.target.value)}
+            placeholder="Password to disable"
+            autoComplete="current-password"
+            className="w-56 rounded-lg border border-[#DDDBD7] px-3 py-2 text-sm bg-white"
+            aria-label="Password to disable two-factor"
+          />
+          <Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50" onClick={() => disable.mutate({ password: disablePassword })} disabled={disable.isPending || !disablePassword}>
+            {disable.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Disable 2FA"}
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -888,6 +1008,9 @@ function SettingsPanel() {
 
       {/* Change Password */}
       <ChangePasswordSection />
+
+      {/* Two-Factor Authentication */}
+      <TwoFactorSection />
 
       {/* Billing & Subscription — inline */}
       <BillingSection />

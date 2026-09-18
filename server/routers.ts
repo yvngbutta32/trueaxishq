@@ -6,6 +6,9 @@ import { createHash, randomBytes } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
+import bcrypt from "bcryptjs";
+import { generateTotpSecret, verifyTotp, buildOtpAuthUrl, generateBackupCodes, hashBackupCode } from "./totp";
+import QRCode from "qrcode";
 import { publicProcedure, protectedProcedure, staffProcedure, adminProcedure, ownerProcedure, router } from "./_core/trpc";
 import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
@@ -16,7 +19,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -263,8 +266,91 @@ async function withInvoiceNumberRetry<T>(operation: (invoiceNumber: string) => P
 /** Panels an action card can deep-link the owner into (mirrors the client's ActivePanel values). */
 type ActivePanelTarget = "billing" | "proposals" | "jobs" | "scheduling";
 
+/**
+ * Verify a login two-factor code: TOTP first, then unused backup codes.
+ * A matched backup code is consumed (single use). Returns false on any mismatch.
+ */
+async function verifyTwoFactor(db: Awaited<ReturnType<typeof requireDb>>, userId: number, secret: string | null, code: string): Promise<boolean> {
+  const normalized = code.trim();
+  if (secret && verifyTotp(secret, normalized)) return true;
+
+  // Backup code path: hash is dash-insensitive so "AB12-CD34" == "ab12cd34".
+  const codeHash = hashBackupCode(normalized);
+  const candidates = await db.select().from(twoFactorBackupCodes)
+    .where(and(eq(twoFactorBackupCodes.userId, userId), isNull(twoFactorBackupCodes.usedAt)));
+  const match = candidates.find(c => c.codeHash === codeHash);
+  if (!match) return false;
+  await db.update(twoFactorBackupCodes).set({ usedAt: new Date() }).where(eq(twoFactorBackupCodes.id, match.id));
+  return true;
+}
+
 export const appRouter = router({
   system: systemRouter,
+
+  // ── Two-factor authentication (TOTP) ────────────────────────────────────────
+  twoFactor: router({
+    status: protectedProcedure.query(async ({ ctx }) => {
+      return { enabled: ctx.user.twoFactorEnabled === true } as const;
+    }),
+
+    /** Begin setup: generates a new secret (inactive until confirmed) and returns the provisioning URI + QR. */
+    setupStart: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await requireDb();
+      const [user] = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "Account not found." });
+      if (user.twoFactorEnabled) throw new TRPCError({ code: "BAD_REQUEST", message: "Two-factor authentication is already enabled." });
+
+      const secret = generateTotpSecret();
+      await db.update(users).set({ twoFactorSecret: secret, twoFactorEnabled: false, updatedAt: new Date() })
+        .where(eq(users.id, user.id));
+      logSecurityEvent({ eventType: "two_factor_setup_started", severity: "medium", userId: user.id, ip: getClientIp(ctx.req), email: user.email ?? undefined, userAgent: ctx.req.headers["user-agent"] });
+
+      const accountLabel = user.email ?? `user-${user.id}`;
+      const otpauthUrl = buildOtpAuthUrl({ secret, accountLabel });
+      const qrDataUrl = await QRCode.toDataURL(otpauthUrl, { width: 240, margin: 1 });
+      return { secret, otpauthUrl, qrDataUrl } as const;
+    }),
+
+    /** Confirm setup with a valid code: enables 2FA and returns single-use backup codes (shown once). */
+    setupConfirm: protectedProcedure
+      .input(z.object({ code: z.string().regex(/^\d{6}$/) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [user] = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        if (!user?.twoFactorSecret) throw new TRPCError({ code: "BAD_REQUEST", message: "Start two-factor setup first." });
+        if (user.twoFactorEnabled) throw new TRPCError({ code: "BAD_REQUEST", message: "Two-factor authentication is already enabled." });
+        if (!verifyTotp(user.twoFactorSecret, input.code)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "That code didn't match. Check your authenticator app and try again." });
+        }
+
+        await db.update(users).set({ twoFactorEnabled: true, updatedAt: new Date() }).where(eq(users.id, user.id));
+        // Fresh backup codes on every (re)enable; single-use hashes only, never the codes.
+        await db.delete(twoFactorBackupCodes).where(eq(twoFactorBackupCodes.userId, user.id));
+        const backupCodes = generateBackupCodes(8);
+        await db.insert(twoFactorBackupCodes).values(backupCodes.map(code => ({ userId: user.id, codeHash: hashBackupCode(code) })));
+        logSecurityEvent({ eventType: "two_factor_enabled", severity: "high", userId: user.id, ip: getClientIp(ctx.req), email: user.email ?? undefined, userAgent: ctx.req.headers["user-agent"] });
+        return { enabled: true, backupCodes } as const;
+      }),
+
+    /** Disable 2FA — requires the account password as re-authentication. */
+    disable: protectedProcedure
+      .input(z.object({ password: z.string().min(1).max(128) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [user] = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "Account not found." });
+        if (!user.twoFactorEnabled) throw new TRPCError({ code: "BAD_REQUEST", message: "Two-factor authentication is not enabled." });
+
+        // Re-authenticate with the password before turning off a security factor.
+        const passwordOk = user.passwordHash ? await bcrypt.compare(input.password, user.passwordHash) : false;
+        if (!passwordOk) throw new TRPCError({ code: "UNAUTHORIZED", message: "Incorrect password." });
+
+        await db.update(users).set({ twoFactorSecret: null, twoFactorEnabled: false, updatedAt: new Date() }).where(eq(users.id, user.id));
+        await db.delete(twoFactorBackupCodes).where(eq(twoFactorBackupCodes.userId, user.id));
+        logSecurityEvent({ eventType: "two_factor_disabled", severity: "high", userId: user.id, ip: getClientIp(ctx.req), email: user.email ?? undefined, userAgent: ctx.req.headers["user-agent"] });
+        return { enabled: false } as const;
+      }),
+  }),
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   auth: router({
@@ -364,6 +450,7 @@ export const appRouter = router({
       .input(z.object({
         email: safeEmail,
         password: z.string().min(1).max(128),
+        twoFactorCode: z.string().regex(/^[A-Za-z0-9-]{6,14}$/).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const ip = getClientIp(ctx.req);
@@ -378,12 +465,23 @@ export const appRouter = router({
             email: input.email,
             password: input.password,
           });
+          const db = await requireDb();
+          // Two-factor gate — enforced after the password so we never reveal
+          // whether an account has 2FA before credentials are proven.
+          if (user.twoFactorEnabled) {
+            if (!input.twoFactorCode) throw new TRPCError({ code: "UNAUTHORIZED", message: "TWO_FACTOR_CODE_REQUIRED" });
+            const ok = await verifyTwoFactor(db, user.id, user.twoFactorSecret ?? null, input.twoFactorCode);
+            if (!ok) {
+              recordFailedLogin(input.email, ip, ctx.req);
+              logSecurityEvent({ eventType: "two_factor_failed", severity: "high", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"] });
+              throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid two-factor code." });
+            }
+          }
           // Successful login — clear failed login counter
           clearFailedLogins(input.email);
-          logSecurityEvent({ eventType: "login_success", severity: "low", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"] });
+          logSecurityEvent({ eventType: "login_success", severity: "low", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"], details: user.twoFactorEnabled ? "Login with 2FA" : undefined });
           // Update lastSignedIn timestamp
-          const dbConn = await requireDb();
-          await dbConn.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
+          await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
           const token = await createSessionToken(user.id, user.email ?? input.email);
           await recordSession(user.id, token, ctx.req);
           const cookieOptions = getSessionCookieOptions(ctx.req);
@@ -403,6 +501,7 @@ export const appRouter = router({
       .input(z.object({
         email: safeEmail,
         password: z.string().min(1).max(128),
+        twoFactorCode: z.string().regex(/^[A-Za-z0-9-]{6,14}$/).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const ip = getClientIp(ctx.req);
@@ -415,6 +514,17 @@ export const appRouter = router({
         try {
           const user = await loginUser({ email: input.email, password: input.password });
           const db = await requireDb();
+
+          // Two-factor gate — same enforcement as the standard login path.
+          if (user.twoFactorEnabled) {
+            if (!input.twoFactorCode) throw new TRPCError({ code: "UNAUTHORIZED", message: "TWO_FACTOR_CODE_REQUIRED" });
+            const ok = await verifyTwoFactor(db, user.id, user.twoFactorSecret ?? null, input.twoFactorCode);
+            if (!ok) {
+              recordFailedLogin(input.email, ip, ctx.req);
+              logSecurityEvent({ eventType: "two_factor_failed", severity: "high", ip, email: input.email, userId: user.id, userAgent: ctx.req.headers["user-agent"], details: "Admin login 2FA failure" });
+              throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid two-factor code." });
+            }
+          }
 
           // Administrators are managed entirely through the local database role.
           // On an empty installation, the first successful admin login bootstraps the role.
