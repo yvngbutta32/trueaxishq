@@ -917,6 +917,17 @@ function IntegrationsSection() {
     onSuccess: () => { utils.googleCal.status.invalidate(); toast.success("Google Calendar disconnected."); },
     onError: (e: { message: string }) => toast.error(e.message),
   });
+  const [connectionResult, setConnectionResult] = useState<ConnectionTestResult | null>(null);
+  const testConnections = trpc.system.testConnections.useMutation({
+    onSuccess: (result) => {
+      setConnectionResult(result);
+      const smtpOk = !result.smtp.configured || result.smtp.verified;
+      const stripeOk = !result.stripe.configured || result.stripe.verified;
+      if (smtpOk && stripeOk) toast.success("Connection test complete — all configured providers are live.");
+      else toast.error("Connection test found problems. See details below.");
+    },
+    onError: (e: { message: string }) => toast.error(e.message),
+  });
   const { data: monthlyStatus, isLoading: monthlyStatusLoading } = trpc.reportSettings.status.useQuery();
   const monthlyEnabled = monthlyStatus?.enabled ?? false;
   const toggleMonthly = trpc.reportSettings.toggle.useMutation({
@@ -990,6 +1001,92 @@ function IntegrationsSection() {
           }`} />
         </button>
       </div>
+
+      {/* Live provider connection test (SMTP + Stripe) */}
+      <div className="pt-3 border-t border-[#DDDBD7] space-y-3">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+              <Webhook className="w-5 h-5 text-amber-500" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#1A1A1A]">Email &amp; Payments check</p>
+              <p className="text-xs text-[#6B6B6B]">Runs a live SMTP handshake and Stripe account ping so you can validate credentials in one click.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {connectionResult?.smtp.verified === true && connectionResult.smtp.testEmailSent !== true && (
+              <Button size="sm" variant="outline" onClick={() => testConnections.mutate({ sendTestEmail: true })} disabled={testConnections.isPending}>
+                Send test email
+              </Button>
+            )}
+            <Button size="sm" onClick={() => testConnections.mutate({ sendTestEmail: false })} disabled={testConnections.isPending}>
+              {testConnections.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Run connection test"}
+            </Button>
+          </div>
+        </div>
+        {connectionResult && (
+          <div className="rounded-xl border border-[#DDDBD7] bg-[#F7F6F3] p-4 space-y-2" aria-live="polite">
+            <p className="text-xs font-bold uppercase tracking-wide text-[#6B6B6B]">Last check results</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <ConnectionCheckCard label="Email (SMTP)" entry={connectionResult.smtp} />
+              <ConnectionCheckCard label="Payments (Stripe)" entry={connectionResult.stripe} />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface ConnectionCheckCardEntry {
+  configured: boolean;
+  verified: boolean;
+  latencyMs?: number | null;
+  errorKind?: string | null;
+  errorDetail?: string | null;
+  issues?: string[];
+  testEmailSent?: boolean;
+}
+
+interface ConnectionTestResult {
+  smtp: ConnectionCheckCardEntry & { issues: string[]; testEmailSent: boolean };
+  stripe: ConnectionCheckCardEntry;
+}
+
+const CONNECTION_ERROR_HINTS: Record<string, string> = {
+  auth: "Credentials rejected — double-check the username and password/app key.",
+  connectivity: "Could not reach the server — check the host and port.",
+  tls: "TLS negotiation failed — verify the port (587 vs 465) and certificates.",
+  timeout: "No response in time — the provider may be down or blocking this server.",
+  unknown: "The provider rejected the request.",
+};
+
+function ConnectionCheckCard({ label, entry }: { label: string; entry: ConnectionCheckCardEntry }) {
+  const status = !entry.configured
+    ? { text: "Not configured", tone: "text-[#6B6B6B] bg-[#EEECEA]" }
+    : entry.verified
+      ? { text: "Live", tone: "text-green-600 bg-green-500/10" }
+      : { text: "Failed", tone: "text-red-500 bg-red-500/10" };
+  return (
+    <div className="rounded-lg bg-white border border-[#DDDBD7] p-3">
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-xs font-semibold text-[#1A1A1A]">{label}</p>
+        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${status.tone}`}>{status.text}</span>
+      </div>
+      {entry.configured && (
+        <p className="text-[11px] text-[#6B6B6B]">
+          {entry.verified
+            ? `Authenticated${entry.latencyMs != null ? ` in ${entry.latencyMs}ms` : ""}${entry.testEmailSent ? " · test email sent to your inbox" : ""}`
+            : CONNECTION_ERROR_HINTS[entry.errorKind ?? "unknown"] ?? CONNECTION_ERROR_HINTS.unknown}
+        </p>
+      )}
+      {!entry.configured && entry.issues && entry.issues.length > 0 && (
+        <p className="text-[11px] text-[#6B6B6B]">Add {entry.issues.length > 1 ? "the missing settings" : "the missing setting"} to enable live delivery.</p>
+      )}
+      {entry.verified !== true && entry.errorDetail && (
+        <p className="text-[11px] text-[#6B6B6B] mt-1 break-words">{entry.errorDetail}</p>
+      )}
     </div>
   );
 }
