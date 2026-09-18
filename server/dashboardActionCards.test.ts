@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { readFileSync } from "node:fs";
+import { readDashboardBundle } from "./dashboardBundle";
 import { resolve } from "node:path";
 import { invoices, proposals, jobs, clientApprovalRequests, bookings, clients } from "../drizzle/schema";
 import { daysUntilProposalExpiry } from "../shared/proposalValidity";
@@ -18,7 +19,7 @@ import type { TrpcContext } from "./_core/context";
 
 const dashboardSource = readFileSync(resolve(import.meta.dirname, "routers.ts"), "utf8");
 const panelSource = readFileSync(resolve(import.meta.dirname, "../client/src/components/ActionCards.tsx"), "utf8");
-const dashboardPageSource = readFileSync(resolve(import.meta.dirname, "../client/src/pages/Dashboard.tsx"), "utf8");
+const dashboardPageSource = readDashboardBundle();
 
 // ─── Mock database ────────────────────────────────────────────────────────────
 

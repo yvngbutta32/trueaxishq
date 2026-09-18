@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { readDashboardBundle } from "./dashboardBundle";
 import { resolve } from "node:path";
 import { wasAcceptedByConfiguredSmtp } from "./_core/email";
 
 const routerSource = readFileSync(resolve(import.meta.dirname, "routers.ts"), "utf8");
-const dashboardSource = readFileSync(resolve(import.meta.dirname, "../client/src/pages/Dashboard.tsx"), "utf8");
+const dashboardSource = readDashboardBundle();
 const proposalsSource = readFileSync(resolve(import.meta.dirname, "../client/src/pages/Proposals.tsx"), "utf8");
 
 function section(startMarker: string, endMarker: string) {

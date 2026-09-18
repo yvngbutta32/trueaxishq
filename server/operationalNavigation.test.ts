@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { readDashboardBundle } from "./dashboardBundle";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -14,11 +15,14 @@ describe("operational command navigation", () => {
   });
 
   it("keeps the Job Photos sidebar destination mapped to its owner panel rather than the admin route", () => {
-    const dashboard = readFileSync(resolve(process.cwd(), "client/src/pages/Dashboard.tsx"), "utf8");
-    const sidebar = dashboard.slice(dashboard.indexOf("const navItems:"), dashboard.indexOf("function Sidebar"));
+    const dashboard = readDashboardBundle();
+    const sidebar = dashboard.slice(dashboard.indexOf("const navGroups:"), dashboard.indexOf("function Sidebar"));
     const panelSwitch = dashboard.slice(dashboard.indexOf("switch (active)"), dashboard.indexOf("default: return null"));
 
     expect(sidebar).toContain('label: "Job Photos", panel: "photos"');
+    expect(sidebar).toContain('label: "Clients & Jobs"');
+    // Grouped rendering (section headers per group) lives in the Sidebar render.
+    expect(dashboard).toContain('role="group" aria-label={group.label}');
     expect(panelSwitch).toContain('case "photos": return (');
     expect(panelSwitch).toContain("<JobPhotosPanel />");
     expect(sidebar).not.toContain('label: "Job Photos",  panel: "admin"');

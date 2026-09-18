@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { readDashboardBundle } from "./dashboardBundle";
 import { resolve } from "node:path";
 import { getPublishedBookingServiceCatalog } from "../shared/publicBookingRules";
 
 const routersSource = readFileSync(resolve(import.meta.dirname, "./routers.ts"), "utf8");
 const webhookSource = readFileSync(resolve(import.meta.dirname, "./stripeWebhook.ts"), "utf8");
 const bookingPageSource = readFileSync(resolve(import.meta.dirname, "../client/src/pages/BookingPage.tsx"), "utf8");
-const dashboardSource = readFileSync(resolve(import.meta.dirname, "../client/src/pages/Dashboard.tsx"), "utf8");
+const dashboardSource = readDashboardBundle();
 const schemaSource = readFileSync(resolve(import.meta.dirname, "../drizzle/schema.ts"), "utf8");
 
 describe("booking deposit catalog parsing", () => {

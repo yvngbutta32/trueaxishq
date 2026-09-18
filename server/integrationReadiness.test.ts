@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { readDashboardBundle } from "./dashboardBundle";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { INTEGRATION_PROVIDERS, INTEGRATION_READINESS_STATUSES, integrationCatalog } from "../shared/integrationCatalog";
@@ -29,7 +30,7 @@ describe("integration readiness trust boundary", () => {
 
   it("reports missing Google Calendar configuration as a protected setup state instead of a global client query failure", () => {
     const source = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
-    const dashboard = readFileSync(resolve(process.cwd(), "client/src/pages/Dashboard.tsx"), "utf8");
+    const dashboard = readDashboardBundle();
     const googleCalendar = source.slice(source.indexOf("googleCal: router({"), source.indexOf("// ── Onboarding Status"));
 
     expect(googleCalendar).toContain('return { url: null, status: "setup_required" as const }');
@@ -41,7 +42,7 @@ describe("integration readiness trust boundary", () => {
   });
 
   it("distinguishes connected Calendar authorization from enabled synchronization", () => {
-    const dashboard = readFileSync(resolve(process.cwd(), "client/src/pages/Dashboard.tsx"), "utf8");
+    const dashboard = readDashboardBundle();
 
     expect(dashboard).toContain("calStatus.syncEnabled");
     expect(dashboard).toContain("Connected · Google Calendar synchronization is enabled");

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { readDashboardBundle } from "./dashboardBundle";
 import { resolve } from "node:path";
 import { wasAcceptedByConfiguredSmtp } from "./_core/email";
 
@@ -22,7 +23,7 @@ describe("monthly report delivery log", () => {
   });
 
   it("keeps owner Settings delivery guidance conditional on configured SMTP acceptance", () => {
-    const dashboard = readFileSync(resolve(process.cwd(), "client/src/pages/Dashboard.tsx"), "utf8");
+    const dashboard = readDashboardBundle();
 
     expect(dashboard).toContain("When enabled, this prepares a report on the 1st.");
     expect(dashboard).toContain("marked sent only after configured SMTP acceptance.");
@@ -31,7 +32,7 @@ describe("monthly report delivery log", () => {
 
   it("loads the monthly-report toggle from the protected owner preference and synchronizes successful saves", () => {
     const router = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
-    const dashboard = readFileSync(resolve(process.cwd(), "client/src/pages/Dashboard.tsx"), "utf8");
+    const dashboard = readDashboardBundle();
     const reportSettings = router.slice(router.indexOf("reportSettings: router({"), router.indexOf("// ── Google Calendar"));
 
     expect(reportSettings).toContain("status: protectedProcedure");

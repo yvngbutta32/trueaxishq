@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { readDashboardBundle } from "./dashboardBundle";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -17,7 +18,7 @@ describe("private client custom fields", () => {
   });
 
   it("keeps the owner UI explicit about private-only profile fields", () => {
-    const dashboard = source("client/src/pages/Dashboard.tsx");
+    const dashboard = readDashboardBundle();
     expect(dashboard).toContain("Private client fields");
     expect(dashboard).toContain("These fields are never shown in the client portal.");
     expect(dashboard).toContain("Add private field");

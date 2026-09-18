@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { readDashboardBundle } from "./dashboardBundle";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -29,7 +30,7 @@ describe("client document portal sharing", () => {
   });
 
   it("keeps visibility in owner control and explains the private-by-default portal boundary", () => {
-    const dashboard = source("client/src/pages/Dashboard.tsx");
+    const dashboard = readDashboardBundle();
     const portal = source("client/src/pages/ClientPortal.tsx");
 
     expect(dashboard).toContain("setDocumentVisibility");

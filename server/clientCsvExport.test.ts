@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { readDashboardBundle } from "./dashboardBundle";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildClientCsv, csvCell } from "./clientCsvExport";
@@ -21,7 +22,7 @@ describe("client CSV export", () => {
 
   it("uses an authenticated owner filter in the export procedure and a server-backed dashboard download", () => {
     const router = source("server/routers.ts");
-    const dashboard = source("client/src/pages/Dashboard.tsx");
+    const dashboard = readDashboardBundle();
     const clientRouter = router.slice(router.indexOf("clients: router({"), router.indexOf("// ── Invoices"));
 
     expect(clientRouter).toContain("exportCsv: protectedProcedure");

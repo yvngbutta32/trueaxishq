@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { readDashboardBundle } from "./dashboardBundle";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -7,7 +8,7 @@ const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf
 describe("invoice checkout return integrity", () => {
   it("uses a non-authoritative refresh marker and never lets a return URL mark an invoice paid", () => {
     const router = source("server/routers.ts");
-    const dashboard = source("client/src/pages/Dashboard.tsx");
+    const dashboard = readDashboardBundle();
 
     expect(router).toContain("?panel=invoices&payment_returned=1");
     expect(router).not.toContain("?panel=billing&paid=${inv.id}");

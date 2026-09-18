@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { readDashboardBundle } from "./dashboardBundle";
 import { resolve } from "node:path";
 
 const routerSource = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
-const dashboardSource = readFileSync(resolve(process.cwd(), "client/src/pages/Dashboard.tsx"), "utf8");
+const dashboardSource = readDashboardBundle();
 
 describe("launch readiness contract", () => {
   it("reports setup signals without returning SMTP credentials", () => {

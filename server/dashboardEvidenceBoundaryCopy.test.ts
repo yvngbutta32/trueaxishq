@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { readDashboardBundle } from "./dashboardBundle";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -6,7 +7,7 @@ const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf
 
 describe("authenticated dashboard evidence-boundary copy", () => {
   it("does not describe notifications, recurring invoices, calendar feeds, payments, or background work as verified live or automatic outcomes", () => {
-    const dashboard = source("client/src/pages/Dashboard.tsx");
+    const dashboard = readDashboardBundle();
 
     expect(dashboard).not.toContain("Real-time bell with unread badge — never miss an important event.");
     expect(dashboard).not.toContain("invoices generate automatically.");
