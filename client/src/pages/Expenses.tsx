@@ -210,8 +210,8 @@ export default function Expenses() {
               </div>
               <span className="font-bold text-[#FF6B6B] text-base">${parseFloat(String(e.amount)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => openEdit(e)} className="p-1.5 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-                <button onClick={() => setDeleteConfirm(e.id)} className="p-1.5 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                <button onClick={() => openEdit(e)} aria-label={`Edit expense ${e.id}`} className="p-1.5 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                <button onClick={() => setDeleteConfirm(e.id)} aria-label={`Delete expense ${e.id}`} className="p-1.5 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
               </div>
             </div>
           ))}

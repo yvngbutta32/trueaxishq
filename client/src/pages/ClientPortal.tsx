@@ -685,6 +685,7 @@ export default function ClientPortal() {
                   onClick={() => setLightboxIndex(null)}
                 >
                   <button
+                    aria-label="Close photo viewer"
                     className="absolute top-4 right-4 text-white/80 hover:text-white"
                     onClick={() => setLightboxIndex(null)}
                   >
@@ -692,6 +693,7 @@ export default function ClientPortal() {
                   </button>
                   {lightboxIndex > 0 && (
                     <button
+                      aria-label="Previous photo"
                       className="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white"
                       onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => (i ?? 1) - 1); }}
                     >
@@ -700,6 +702,7 @@ export default function ClientPortal() {
                   )}
                   {lightboxIndex < lightboxPhotos.length - 1 && (
                     <button
+                      aria-label="Next photo"
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white"
                       onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => (i ?? 0) + 1); }}
                     >

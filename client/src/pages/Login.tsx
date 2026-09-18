@@ -255,6 +255,7 @@ export default function Login() {
             {/* Submit */}
             <button
               type="submit"
+              aria-label={loginMutation.isPending ? "Signing in" : "Sign in"}
               disabled={loginMutation.isPending}
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               style={{

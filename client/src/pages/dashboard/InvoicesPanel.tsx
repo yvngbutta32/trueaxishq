@@ -242,7 +242,7 @@ function InvoicesPanel() {
     onError: (e) => toast.error(e.message),
   });
   const payNow = trpc.invoices.payNow.useMutation({
-    onSuccess: (data) => { window.open(data.url, "_blank"); toast.success("Opening secure payment page..."); },
+    onSuccess: (data) => { window.open(data.url, "_blank", "noopener"); toast.success("Opening secure payment page..."); },
     onError: (e) => toast.error(e.message),
   });
   const duplicateInvoice = trpc.invoices.duplicate.useMutation({
@@ -687,6 +687,9 @@ function InvoicesPanel() {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              role="switch"
+              aria-checked={useLineItems}
+              aria-label="Use itemized line items"
               onClick={() => setUseLineItems(p => !p)}
               className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${useLineItems ? 'bg-[#D4922A]' : 'bg-gray-300'}`}
             >
@@ -758,6 +761,9 @@ function InvoicesPanel() {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              role="switch"
+              aria-checked={editUseLineItems}
+              aria-label="Use itemized line items"
               onClick={() => setEditUseLineItems(p => !p)}
               className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${editUseLineItems ? 'bg-[#D4922A]' : 'bg-gray-300'}`}
             >

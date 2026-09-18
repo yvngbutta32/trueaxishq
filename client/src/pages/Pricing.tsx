@@ -155,6 +155,7 @@ export default function Pricing() {
               onClick={() => setAnnual(!annual)}
               role="switch"
               aria-checked={annual}
+              aria-label="Annual billing"
               className="relative w-12 h-6 rounded-full transition-colors focus:outline-none"
               style={{ background: annual ? "#D4922A" : "rgba(26,26,26,0.12)", border: "1px solid rgba(26,26,26,0.12)" }}
             >

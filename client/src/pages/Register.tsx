@@ -285,6 +285,7 @@ export default function Register() {
             {/* Submit */}
             <button
               type="submit"
+              aria-label="Create account"
               disabled={isSubmitDisabled}
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-2"
               style={{

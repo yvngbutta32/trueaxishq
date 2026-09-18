@@ -427,7 +427,7 @@ export default function Automations() {
                         {ACTIONS.map(a => <option key={a.value} value={a.value} className="bg-white">{a.label}</option>)}
                       </select>
                       {form.actions.length > 1 && (
-                        <button onClick={() => removeAction(idx)} className="p-1.5 rounded hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.4)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => removeAction(idx)} aria-label={`Remove action ${idx + 1}`} className="p-1.5 rounded hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.4)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                       )}
                     </div>
                     {(action.type === "send_email" || action.type === "create_followup") && (

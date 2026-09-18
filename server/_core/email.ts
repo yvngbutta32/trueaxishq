@@ -26,7 +26,7 @@
  * in-app notifications and are logged to the server console.
  */
 
-import nodemailer from "nodemailer";
+import { createTransport as nodemailerCreateTransport, type Transporter as NodemailerTransporter } from "nodemailer";
 
 export interface EmailPayload {
   to: string;
@@ -47,7 +47,7 @@ export function wasAcceptedByConfiguredSmtp(result: EmailResult): boolean {
   return result.success && result.mode === "smtp";
 }
 
-let _transporter: nodemailer.Transporter | null = null;
+let _transporter: NodemailerTransporter | null = null;
 let _transporterChecked = false;
 
 export function getEmailDeliveryStatus() {
@@ -82,7 +82,7 @@ export function resetEmailTransportCache() {
   _transporterChecked = false;
 }
 
-function getTransporter(): nodemailer.Transporter | null {
+function getTransporter(): NodemailerTransporter | null {
   if (_transporterChecked) return _transporter;
   _transporterChecked = true;
 
@@ -97,7 +97,7 @@ function getTransporter(): nodemailer.Transporter | null {
     return null;
   }
 
-  _transporter = nodemailer.createTransport({
+  _transporter = nodemailerCreateTransport({
     host,
     port,
     secure: port === 465,

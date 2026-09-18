@@ -296,6 +296,7 @@ function PhotoGalleryTab({
       <Dialog open={!!zoomUrl} onOpenChange={() => setZoomUrl(null)}>
         <DialogContent className="max-w-4xl bg-[#0F1E35] border-[#243A5E] p-2">
           <button
+            aria-label="Close photo"
             onClick={() => setZoomUrl(null)}
             className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80"
           >
@@ -667,6 +668,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
                   ${(item.qty * item.unitPrice).toFixed(2)}
                 </span>
                 <button
+                  aria-label={`Remove item ${idx + 1}`}
                   onClick={() => removeItem(idx)}
                   className="w-7 h-7 rounded-lg bg-red-600/20 flex items-center justify-center text-red-400 hover:bg-red-600/40 flex-shrink-0"
                 >
@@ -796,7 +798,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
       {/* Lightbox */}
       <Dialog open={!!zoomUrl} onOpenChange={() => setZoomUrl(null)}>
         <DialogContent className="max-w-4xl bg-[#0F1E35] border-[#243A5E] p-2">
-          <button onClick={() => setZoomUrl(null)} className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80">
+          <button onClick={() => setZoomUrl(null)} aria-label="Close photo" className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80">
             <X className="w-4 h-4" />
           </button>
           {zoomUrl && <img src={zoomUrl} alt="Full size receipt" className="w-full h-auto max-h-[80vh] object-contain rounded-lg" />}

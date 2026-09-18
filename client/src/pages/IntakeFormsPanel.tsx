@@ -175,7 +175,7 @@ export default function IntakeFormsPanel() {
         <div className="bg-white border border-[#DDDBD7] rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-[#1A1A1A]">{editingId ? "Edit Form" : "New Intake Form"}</h3>
-            <button onClick={resetBuilder} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors">
+            <button onClick={resetBuilder} aria-label="Close form builder" className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -239,7 +239,7 @@ export default function IntakeFormsPanel() {
                     />
                     Required
                   </label>
-                  <button onClick={() => removeField(field.id)} className="text-[rgba(26,26,26,0.3)] hover:text-red-400 transition-colors flex-shrink-0">
+                  <button onClick={() => removeField(field.id)} aria-label={`Remove field ${field.label}`} className="text-[rgba(26,26,26,0.3)] hover:text-red-400 transition-colors flex-shrink-0">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>

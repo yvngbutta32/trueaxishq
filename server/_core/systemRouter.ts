@@ -1,5 +1,5 @@
 import { z } from "zod";
-import nodemailer from "nodemailer";
+import { createTransport as nodemailerCreateTransport, type Transporter as NodemailerTransporter } from "nodemailer";
 import Stripe from "stripe";
 import { notifyOwner } from "./notification";
 import { getDb } from "../db";
@@ -89,7 +89,7 @@ export const systemRouter = router({
       if (emailStatus.configured && emailStatus.host && emailStatus.port) {
         // Fresh transporter: SMTP credentials may have changed since boot, and
         // the cached one could predate them.
-        const transporter = nodemailer.createTransport({
+        const transporter = nodemailerCreateTransport({
           host: emailStatus.host,
           port: emailStatus.port,
           secure: emailStatus.secure,

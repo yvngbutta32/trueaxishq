@@ -280,7 +280,7 @@ export default function IntakeFormPage() {
                 {estimatePhotos.map(photo => (
                   <div key={photo.key} className="relative group aspect-square rounded-xl overflow-hidden border border-[#DDDBD7]">
                     <img src={photo.previewUrl} alt={photo.name} className="w-full h-full object-cover" />
-                    <button type="button" onClick={() => setEstimatePhotos(prev => prev.filter(p => p.key !== photo.key))}
+                    <button type="button" aria-label={`Remove photo ${photo.name}`} onClick={() => setEstimatePhotos(prev => prev.filter(p => p.key !== photo.key))}
                       className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <X className="w-3 h-3 text-white" />
                     </button>

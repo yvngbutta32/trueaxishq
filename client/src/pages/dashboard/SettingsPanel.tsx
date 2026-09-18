@@ -53,11 +53,11 @@ function BillingSection() {
   const subscriptionQuery = trpc.billing.getSubscription.useQuery(undefined, { enabled: isAuthenticated });
   const plansQuery = trpc.billing.getPlans.useQuery(undefined, { retry: 1 });
   const checkoutMutation = trpc.billing.createCheckout.useMutation({
-    onSuccess: (data) => { if (data.url) { toast.info("Redirecting to checkout…"); window.open(data.url, "_blank"); } },
+    onSuccess: (data) => { if (data.url) { toast.info("Redirecting to checkout…"); window.open(data.url, "_blank", "noopener"); } },
     onError: (e) => toast.error("Checkout error: " + e.message),
   });
   const portalMutation = trpc.billing.createPortal.useMutation({
-    onSuccess: (data) => { if (data.url) { toast.info("Opening billing portal…"); window.open(data.url, "_blank"); } },
+    onSuccess: (data) => { if (data.url) { toast.info("Opening billing portal…"); window.open(data.url, "_blank", "noopener"); } },
     onError: (e) => toast.error("Portal error: " + e.message),
   });
 
@@ -1156,7 +1156,7 @@ function IntegrationsSection() {
             {disconnectCal.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Disconnect"}
           </Button>
         ) : (
-          <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90" onClick={() => { if (calAuthData?.url) window.open(calAuthData.url, "_blank"); }} disabled={!calAuthData?.url} title={calendarSetupRequired ? "Google Calendar setup is required before authorization." : undefined}>
+          <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90" onClick={() => { if (calAuthData?.url) window.open(calAuthData.url, "_blank", "noopener"); }} disabled={!calAuthData?.url} title={calendarSetupRequired ? "Google Calendar setup is required before authorization." : undefined}>
             {calendarSetupRequired ? "Setup required" : "Connect"}
           </Button>
         )}

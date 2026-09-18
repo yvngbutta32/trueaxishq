@@ -403,7 +403,7 @@ export default function Proposals() {
                 </button>
               </div>
               <div className="space-y-2">
-                {form.lineItems.map((li) => (
+                {form.lineItems.map((li, idx) => (
                   <div key={li.id} className="grid grid-cols-12 gap-2 items-center">
                     <div className="col-span-5">
                       <Input value={li.name} onChange={e => updateLineItem(li.id, "name", e.target.value)} placeholder="Item name" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
@@ -420,7 +420,7 @@ export default function Proposals() {
                     <div className="col-span-1 text-right text-sm font-semibold text-[rgba(26,26,26,0.7)]">${li.total.toFixed(0)}</div>
                     <div className="col-span-1 flex justify-end">
                       {form.lineItems.length > 1 && (
-                        <button onClick={() => setForm(p => ({...p, lineItems: p.lineItems.filter(l => l.id !== li.id)}))} className="p-1 rounded hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.3)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setForm(p => ({...p, lineItems: p.lineItems.filter(l => l.id !== li.id)}))} aria-label={`Remove line item ${idx + 1}: ${li.name || "unnamed"}`} className="p-1 rounded hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.3)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                       )}
                     </div>
                   </div>
@@ -535,7 +535,7 @@ export default function Proposals() {
                   <Button size="sm" onClick={() => { const url = `${window.location.origin}/proposal/${previewProposal.token}`; navigator.clipboard.writeText(url); toast.success("Link copied"); }} className="gap-2 bg-white hover:bg-[rgba(255,255,255,0.12)] text-[rgba(26,26,26,0.8)]">
                     <Copy className="w-3.5 h-3.5" /> Copy Link
                   </Button>
-                  <Button size="sm" onClick={() => window.open(`/proposal/${previewProposal.token}`, "_blank")} className="gap-2 bg-white hover:bg-[rgba(255,255,255,0.12)] text-[rgba(26,26,26,0.8)]">
+                  <Button size="sm" onClick={() => window.open(`/proposal/${previewProposal.token}`, "_blank", "noopener")} className="gap-2 bg-white hover:bg-[rgba(255,255,255,0.12)] text-[rgba(26,26,26,0.8)]">
                     <ExternalLink className="w-3.5 h-3.5" /> Open
                   </Button>
                 </div>

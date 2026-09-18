@@ -139,6 +139,7 @@ export default function AdminLogin() {
           {/* Submit */}
           <button
             type="submit"
+            aria-label={adminLogin.isPending ? "Signing in" : "Sign in"}
             disabled={adminLogin.isPending || !email.trim() || !password}
             className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             style={{ background: "linear-gradient(135deg, #D4922A 0%, #d4901a 100%)" }}

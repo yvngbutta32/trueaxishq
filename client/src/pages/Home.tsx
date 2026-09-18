@@ -22,21 +22,27 @@ function AnimatedCounter({ end, suffix = "", duration = 2000 }: { end: number; s
   const started = useRef(false);
 
   useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | undefined;
+    // Reduced motion: respect the OS setting and land on the final value immediately.
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      setCount(end);
+      return;
+    }
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !started.current) {
         started.current = true;
         const startTime = Date.now();
-        const timer = setInterval(() => {
+        timer = setInterval(() => {
           const elapsed = Date.now() - startTime;
           const progress = Math.min(elapsed / duration, 1);
           const eased = 1 - Math.pow(1 - progress, 3);
           setCount(Math.floor(eased * end));
-          if (progress >= 1) { setCount(end); clearInterval(timer); }
+          if (progress >= 1) { setCount(end); if (timer) clearInterval(timer); }
         }, 16);
       }
     }, { threshold: 0.3 });
     if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
+    return () => { if (timer) clearInterval(timer); observer.disconnect(); };
   }, [end, duration]);
 
   return <span ref={ref} aria-label={`${end.toLocaleString()}${suffix}`}>{count.toLocaleString()}{suffix}</span>;
