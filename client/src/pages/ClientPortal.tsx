@@ -4,6 +4,7 @@ import { getClientNextStep } from "@shared/clientPortalClarity";
 import { buildClientProofTimeline } from "@shared/clientProofTimeline";
 export { getClientNextStep } from "@shared/clientPortalClarity";
 import { useState, useEffect, useRef } from "react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { FileText, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, CreditCard, User, Mail, Phone, Building2, Camera, X, ChevronLeft, ChevronRight, ImageOff, MessageCircle, Send, Upload, Loader2, BriefcaseBusiness, ClipboardCheck, Target, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
@@ -93,6 +94,7 @@ export default function ClientPortal() {
   const [payingId, setPayingId] = useState<number | null>(null);
   const [photoTab, setPhotoTab] = useState<PhotoType>("estimate");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [cancelConfirm, setCancelConfirm] = useState<{ bookingId: number } | null>(null);
   const [messageDraft, setMessageDraft] = useState("");
   const [portalPhotoUploading, setPortalPhotoUploading] = useState(false);
   const [manageBookingId, setManageBookingId] = useState<number | null>(null);
@@ -495,7 +497,7 @@ export default function ClientPortal() {
                           </label>
                           <div className="sm:col-span-2 flex flex-wrap gap-2 pt-1">
                             <button type="button" disabled={!rescheduleDate || !rescheduleTime || reschedulePortalBooking.isPending} onClick={() => reschedulePortalBooking.mutate({ token, bookingId: b.id, date: rescheduleDate, time: rescheduleTime })} className="rounded-lg bg-[#D4922A] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#b97812] disabled:cursor-not-allowed disabled:opacity-60">{reschedulePortalBooking.isPending ? "Saving…" : "Confirm new time"}</button>
-                            <button type="button" disabled={cancelPortalBooking.isPending} onClick={() => { if (window.confirm("Cancel this appointment? This cannot be undone.")) cancelPortalBooking.mutate({ token, bookingId: b.id }); }} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:opacity-60">{cancelPortalBooking.isPending ? "Cancelling…" : "Cancel appointment"}</button>
+                            <button type="button" disabled={cancelPortalBooking.isPending} onClick={() => setCancelConfirm({ bookingId: b.id })} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:opacity-60">{cancelPortalBooking.isPending ? "Cancelling…" : "Cancel appointment"}</button>
                           </div>
                         </div>
                       ) : <div className="mt-4 flex items-center gap-2 text-xs text-gray-600"><Loader2 className="h-4 w-4 animate-spin" /> Loading available times…</div>}
@@ -821,6 +823,14 @@ export default function ClientPortal() {
           Powered by <span className="font-semibold text-gray-600">TrueAxis HQ</span>
         </p>
       </main>
+      <ConfirmDialog
+        open={cancelConfirm !== null}
+        onOpenChange={(open) => { if (!open) setCancelConfirm(null); }}
+        title="Cancel this appointment?"
+        description="This cannot be undone."
+        confirmLabel="Cancel appointment"
+        onConfirm={() => { const id = cancelConfirm?.bookingId; setCancelConfirm(null); if (id != null) cancelPortalBooking.mutate({ token, bookingId: id }); }}
+      />
     </div>
   );
 }

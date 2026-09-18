@@ -641,6 +641,9 @@ async function runGoogleCalendarSyncJob() {
   }
 }
 
+let startTimer: ReturnType<typeof setTimeout> | null = null;
+let interval: ReturnType<typeof setInterval> | null = null;
+
 export function startBackgroundJobs() {
   console.log("[Jobs] Background job scheduler starting...");
   const runAll = async () => {
@@ -664,8 +667,15 @@ export function startBackgroundJobs() {
     }
   };
   // Initial run after 10 seconds (let server fully start)
-  setTimeout(runAll, 10_000);
+  startTimer = setTimeout(runAll, 10_000);
   // Then every hour
-  setInterval(runAll, 60 * 60 * 1000);
+  interval = setInterval(runAll, 60 * 60 * 1000);
   console.log("[Jobs] Background jobs scheduled (every 1 hour, 9 jobs)");
+}
+
+/** Stop the scheduler cleanly (called during graceful shutdown). */
+export function stopBackgroundJobs() {
+  if (startTimer) { clearTimeout(startTimer); startTimer = null; }
+  if (interval) { clearInterval(interval); interval = null; }
+  console.log("[Jobs] Background job scheduler stopped.");
 }

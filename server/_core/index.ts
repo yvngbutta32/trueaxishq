@@ -13,7 +13,7 @@ import { avatarUploadRouter } from "../avatarUpload";
 import { documentUploadRouter } from "../documentUpload";
 import { photoUploadRouter } from "../photoUpload";
 import { icalRouter } from "../icalExport";
-import { startBackgroundJobs } from "../backgroundJobs";
+import { startBackgroundJobs, stopBackgroundJobs } from "../backgroundJobs";
 import { invoicePdfRouter } from "../invoicePdf";
 import { verifyGoogleOAuthState } from "../googleOAuthState";
 import { assertSessionSecretConfigured } from "../auth";
@@ -230,7 +230,11 @@ async function startServer() {
   });
 
   const preferredPort = parseInt(process.env.PORT || "3000", 10);
-  const port = await findAvailablePort(preferredPort);
+  // Production: bind the exact port the platform assigns. Port-scanning is a
+  // development convenience only — a production process that silently binds a
+  // different port fails health checks and receives no traffic.
+  const isProduction = process.env.NODE_ENV === "production";
+  const port = isProduction ? preferredPort : await findAvailablePort(preferredPort);
 
   if (port !== preferredPort) {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
@@ -240,6 +244,26 @@ async function startServer() {
     console.log(`Server running on http://localhost:${port}/`);
     startBackgroundJobs();
   });
+
+  // ── Graceful shutdown ─────────────────────────────────────────────────────
+  let shuttingDown = false;
+  const shutdown = (signal: string) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`[Server] ${signal} received — shutting down gracefully…`);
+    stopBackgroundJobs();
+    server.close(() => {
+      console.log("[Server] HTTP server closed.");
+      process.exit(0);
+    });
+    // Force-exit if connections refuse to drain (platforms cap grace periods anyway)
+    setTimeout(() => {
+      console.warn("[Server] Graceful shutdown timed out — forcing exit.");
+      process.exit(1);
+    }, 10_000).unref();
+  };
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 }
 
 // ── Process-level error guards ───────────────────────────────────────────────

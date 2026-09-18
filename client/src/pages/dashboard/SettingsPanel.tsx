@@ -587,6 +587,7 @@ function AuditLogSection() {
 }
 
 function SettingsPanel() {
+  const [feedConfirm, setFeedConfirm] = useState<"rotate" | "revoke" | null>(null);
   const utils = trpc.useUtils();
   const [, navigate] = useLocation();
   const { user } = useAuth();
@@ -1004,10 +1005,10 @@ function SettingsPanel() {
             </Button>
           ) : (
             <>
-              <Button type="button" size="sm" variant="outline" onClick={() => { if (window.confirm("Rotating invalidates the previous subscription URL. Continue?")) rotateCalendarFeed.mutate({ origin: window.location.origin }); }} disabled={rotateCalendarFeed.isPending}>
+              <Button type="button" size="sm" variant="outline" onClick={() => setFeedConfirm("rotate")} disabled={rotateCalendarFeed.isPending}>
                 {rotateCalendarFeed.isPending ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : null}Rotate URL
               </Button>
-              <Button type="button" size="sm" variant="outline" className="border-red-200 text-red-700 hover:bg-red-50" onClick={() => { if (window.confirm("Revoking stops every app using this subscription URL. Continue?")) revokeCalendarFeed.mutate(); }} disabled={revokeCalendarFeed.isPending}>
+              <Button type="button" size="sm" variant="outline" className="border-red-200 text-red-700 hover:bg-red-50" onClick={() => setFeedConfirm("revoke")} disabled={revokeCalendarFeed.isPending}>
                 {revokeCalendarFeed.isPending ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : null}Revoke feed
               </Button>
             </>
@@ -1088,6 +1089,15 @@ function SettingsPanel() {
 
       {/* Integrations */}
       <IntegrationsSection />
+
+      <ConfirmDialog
+        open={feedConfirm !== null}
+        onOpenChange={(open) => { if (!open) setFeedConfirm(null); }}
+        title={feedConfirm === "rotate" ? "Rotate feed URL?" : "Revoke this feed?"}
+        description={feedConfirm === "rotate" ? "Rotating invalidates the previous subscription URL." : "Revoking stops every app using this subscription URL."}
+        confirmLabel={feedConfirm === "rotate" ? "Rotate URL" : "Revoke feed"}
+        onConfirm={() => { const action = feedConfirm; setFeedConfirm(null); if (action === "rotate") rotateCalendarFeed.mutate({ origin: window.location.origin }); else if (action === "revoke") revokeCalendarFeed.mutate(); }}
+      />
     </div>
   );
 }

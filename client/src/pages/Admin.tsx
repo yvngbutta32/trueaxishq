@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   Users, DollarSign, TrendingUp, Crown, Shield, Search,
   Bell, BarChart3, ChevronRight, AlertCircle, RefreshCw,
@@ -99,6 +100,8 @@ export default function Admin() {
 
   // Settings state
   const [settingsDirty, setSettingsDirty] = useState(false);
+  const [confirmState, setConfirmState] = useState<{ open: boolean; title: string; description: string; onConfirm: () => void }>({ open: false, title: "", description: "", onConfirm: () => {} });
+  const askConfirm = (title: string, description: string, onConfirm: () => void) => setConfirmState({ open: true, title, description, onConfirm });
   const [settingsForm, setSettingsForm] = useState<Record<string, any>>({});
 
   // Queries
@@ -251,8 +254,7 @@ export default function Admin() {
   };
 
   const handleRevokeAllSessions = () => {
-    if (!window.confirm("This signs out every active session for this account, including this device. Continue?")) return;
-    revokeAllSessionsMutation.mutate();
+    askConfirm("Sign out all sessions?", "This signs out every active session for this account, including this device.", () => revokeAllSessionsMutation.mutate());
   };
 
   const updateField = (key: string, value: unknown) => {
@@ -526,21 +528,17 @@ export default function Admin() {
                           <td className="px-5 py-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               {u.role !== "admin" ? (
-                                <Button variant="outline" size="sm" onClick={() => { if (confirm(`Promote ${u.name ?? "this user"} to admin?`)) setRoleMutation.mutate({ userId: u.id, role: "admin" }); }} className="text-xs">
+                                <Button variant="outline" size="sm" onClick={() => askConfirm("Promote to admin?", `Give ${u.name ?? "this user"} full administrative access?`, () => setRoleMutation.mutate({ userId: u.id, role: "admin" }))} className="text-xs">
                                   Make Admin
                                 </Button>
                               ) : (
-                                <Button variant="outline" size="sm" onClick={() => { if (confirm(`Remove admin from ${u.name ?? "this user"}?`)) setRoleMutation.mutate({ userId: u.id, role: "user" }); }} className="text-xs text-red-600 hover:text-red-700">
+                                <Button variant="outline" size="sm" onClick={() => askConfirm("Remove admin?", `Remove administrative access from ${u.name ?? "this user"}?`, () => setRoleMutation.mutate({ userId: u.id, role: "user" }))} className="text-xs text-red-600 hover:text-red-700">
                                   Remove Admin
                                 </Button>
                               )}
                               {u.id !== user?.id && (
                                 <button
-                                  onClick={() => {
-                                    if (confirm(`Permanently delete "${u.name ?? "this user"}" and ALL their data? This cannot be undone.`)) {
-                                      deleteUserMutation.mutate({ userId: u.id });
-                                    }
-                                  }}
+                                  onClick={() => askConfirm(`Delete ${u.name ?? "this user"}?`, "This permanently deletes the account and ALL their data. This cannot be undone.", () => deleteUserMutation.mutate({ userId: u.id }))}
                                   disabled={deleteUserMutation.isPending}
                                   className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                   title="Delete user and all data"
@@ -1460,6 +1458,14 @@ export default function Admin() {
           </section>
         )}
       </main>
+      <ConfirmDialog
+        open={confirmState.open}
+        onOpenChange={(open) => setConfirmState((prev) => ({ ...prev, open }))}
+        title={confirmState.title}
+        description={confirmState.description}
+        confirmLabel="Continue"
+        onConfirm={() => { confirmState.onConfirm(); setConfirmState((prev) => ({ ...prev, open: false })); }}
+      />
     </div>
   );
 }
