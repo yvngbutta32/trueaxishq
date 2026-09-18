@@ -1,3 +1,4 @@
+import { PublicShell } from "@/components/PublicShell";
 import { useMemo, useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -63,8 +64,8 @@ export default function BookingCancel() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+      <PublicShell>
+        <div className="p-8 text-center">
           <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{isReschedule ? "Booking Rescheduled" : "Booking Cancelled"}</h1>
           <p className="text-gray-600 mb-6">
@@ -76,13 +77,13 @@ export default function BookingCancel() {
             </Button>
           )}
         </div>
-      </div>
+      </PublicShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden max-w-md w-full">
+    <PublicShell>
+      <div className="overflow-hidden text-left">
         <div className="bg-gradient-to-r from-[#1C2333] to-[#2A2A2C] p-6 text-white">
           <h1 className="text-xl font-bold">{isReschedule ? "Reschedule Booking" : "Cancel Booking"}</h1>
           <p className="text-white/70 text-sm mt-1">with {freelancerName}</p>
@@ -152,6 +153,6 @@ export default function BookingCancel() {
           )}
         </div>
       </div>
-    </div>
+    </PublicShell>
   );
 }

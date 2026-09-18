@@ -1483,7 +1483,9 @@ export const appRouter = router({
       .input(z.object({ token: z.string().min(1).max(128) }))
       .query(async ({ input }) => {
         const db = await requireDb();
-        const [inv] = await db.select({
+        // Journey continuation: one joined query brings the owner's public booking
+        // username along; the internal owner id is never selected or returned.
+        const [row] = await db.select({
           invoiceNumber: invoices.invoiceNumber,
           clientName: invoices.clientName,
           service: invoices.service,
@@ -1492,10 +1494,15 @@ export const appRouter = router({
           status: invoices.status,
           dueDate: invoices.dueDate,
           notes: invoices.notes,
-        }).from(invoices).where(eq(invoices.payLinkToken, input.token)).limit(1);
-        if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Payment link not found or expired" });
-        if (inv.status === "paid") return { invoice: inv, alreadyPaid: true };
-        return { invoice: inv, alreadyPaid: false };
+          bookingUsername: users.bookingUsername,
+        }).from(invoices)
+          .leftJoin(users, eq(users.id, invoices.userId))
+          .where(eq(invoices.payLinkToken, input.token)).limit(1);
+        if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Payment link not found or expired" });
+        const { bookingUsername, ...publicInvoice } = row;
+        const bookingUrl = bookingUsername ? `/book/${bookingUsername}` : null;
+        if (row.status === "paid") return { invoice: publicInvoice, alreadyPaid: true, bookingUrl };
+        return { invoice: publicInvoice, alreadyPaid: false, bookingUrl };
       }),
     createStripePaymentForToken: publicProcedure
       .input(z.object({ token: z.string().min(1).max(128), origin: z.string().url() }))
@@ -5354,7 +5361,24 @@ Only include actions when you have actually generated a complete draft. For gene
           ));
         }
         const { declineReason: _declineReason, ...publicProposal } = row;
-        return publicProposal;
+
+        // Journey continuation for a signed proposal the client revisits: surface
+        // the linked invoice's pay link and the owner's self-booking page so the
+        // client can always reach the next step, not just at signing time.
+        let continuation: { payUrl: string | null; paid: boolean; invoiceNumber: string | null; bookingUrl: string | null } | null = null;
+        if (row.status === "signed" && row.linkedInvoiceId) {
+          const [linkedInvoice] = await db.select({
+            payLinkToken: invoices.payLinkToken,
+            status: invoices.status,
+            invoiceNumber: invoices.invoiceNumber,
+          }).from(invoices).where(eq(invoices.id, row.linkedInvoiceId)).limit(1);
+          const [owner] = await db.select({ bookingUsername: users.bookingUsername }).from(users).where(eq(users.id, row.userId)).limit(1);
+          const payUrl = linkedInvoice?.payLinkToken ? `/pay/${linkedInvoice.payLinkToken}` : null;
+          const paid = linkedInvoice?.status === "paid";
+          const bookingUrl = owner?.bookingUsername ? `/book/${owner.bookingUsername}` : null;
+          if (payUrl || bookingUrl) continuation = { payUrl, paid, invoiceNumber: linkedInvoice?.invoiceNumber ?? null, bookingUrl };
+        }
+        return { ...publicProposal, continuation };
       }),
 
     create: protectedProcedure

@@ -20,7 +20,7 @@ describe("token-scoped proposal decline capture", () => {
 
   it("redacts the decline note from public proposal reads while retaining owner-only workspace access", () => {
     expect(routerSource).toContain("const { declineReason: _declineReason, ...publicProposal } = row;");
-    expect(routerSource).toContain("return publicProposal;");
+    expect(routerSource).toContain("return { ...publicProposal, continuation };");
     expect(ownerSource).toContain('p.status === "declined" && p.declineReason');
     expect(publicSource).toContain("trpc.proposals.decline.useMutation");
     expect(publicSource).toContain("optional note is shared only with the proposal owner");

@@ -184,9 +184,12 @@ describe("proposal sign quote-to-cash continuation", () => {
   it("surfaces the payment and booking continuations on the signed screen", () => {
     expect(publicSource).toContain("data?.payUrl");
     expect(publicSource).toContain("data?.bookingUrl");
-    expect(publicSource).toContain("Pay your invoice");
-    expect(publicSource).toContain("Schedule your service");
-    expect(publicSource).toContain("nextSteps.payUrl");
-    expect(publicSource).toContain("nextSteps.bookingUrl");
+    // First signature and signed-proposal revisits share one next-steps component.
+    expect(publicSource).toContain("<PublicNextSteps");
+    expect(publicSource).toContain("proposal.continuation");
+    expect(publicSource).toContain("PublicShell");
+    const nextStepsSource = readFileSync(resolve(import.meta.dirname, "../client/src/components/PublicNextSteps.tsx"), "utf8");
+    expect(nextStepsSource).toContain("Pay your invoice");
+    expect(nextStepsSource).toContain("Schedule your service");
   });
 });

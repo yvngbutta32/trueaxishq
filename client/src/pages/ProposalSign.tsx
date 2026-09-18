@@ -8,6 +8,8 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { PublicRecoveryState } from "@/components/PublicRecoveryState";
+import { PublicNextSteps } from "@/components/PublicNextSteps";
+import { PublicShell } from "@/components/PublicShell";
 import { getProposalPackageSubtotal, parseProposalPackages } from "@shared/proposalPackages";
 import {
   CheckCircle, FileText, AlertCircle, Loader2,
@@ -108,9 +110,16 @@ export default function ProposalSign() {
 
   // ── Already Signed ─────────────────────────────────────────────────────────
   if (signed || proposal.status === "signed") {
+    // First signature returns the continuation from the sign mutation; a revisit
+    // rebuilds it from getPublic so the client can still pay or self-schedule.
+    const continuation = signed
+      ? nextSteps
+      : proposal.continuation
+        ? { payUrl: proposal.continuation.paid ? null : proposal.continuation.payUrl, invoiceNumber: proposal.continuation.invoiceNumber, bookingUrl: proposal.continuation.bookingUrl }
+        : { payUrl: null, invoiceNumber: null, bookingUrl: null };
     return (
-      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center space-y-5">
+      <PublicShell>
+        <div className="p-8 space-y-5">
           <div className="w-20 h-20 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto">
             <ThumbsUp className="w-10 h-10 text-green-400" />
           </div>
@@ -134,36 +143,25 @@ export default function ProposalSign() {
               {proposal.currency} {parseFloat(String(proposal.total)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </p>
           </div>
-          {(nextSteps.payUrl || nextSteps.bookingUrl) && (
-            <div className="space-y-2 text-left">
-              <p className="text-xs text-[rgba(26,26,26,0.40)] font-semibold uppercase tracking-wider">Next steps</p>
-              {nextSteps.payUrl && (
-                <a href={nextSteps.payUrl} className="flex items-center justify-between rounded-xl border border-[#D4922A]/30 bg-white px-4 py-3 transition hover:border-[#D4922A]/60">
-                  <span className="text-sm font-semibold text-[#1A1A1A]">{nextSteps.invoiceNumber ? `Pay invoice ${nextSteps.invoiceNumber}` : "Pay your invoice"}</span>
-                  <span className="text-sm font-bold text-[#D4922A]">Pay now →</span>
-                </a>
-              )}
-              {nextSteps.bookingUrl && (
-                <a href={nextSteps.bookingUrl} className="flex items-center justify-between rounded-xl border border-[#DDDBD7] bg-white px-4 py-3 transition hover:border-[#D4922A]/60">
-                  <span className="text-sm font-semibold text-[#1A1A1A]">Schedule your service</span>
-                  <span className="text-sm font-bold text-[#D4922A]">Book a time →</span>
-                </a>
-              )}
-            </div>
-          )}
+          <PublicNextSteps
+            payUrl={continuation.payUrl}
+            paid={signed ? false : proposal.continuation?.paid}
+            invoiceNumber={continuation.invoiceNumber}
+            bookingUrl={continuation.bookingUrl}
+          />
           <p className="text-[rgba(26,26,26,0.35)] text-xs">
             The sender has been notified. They will be in touch shortly.
           </p>
         </div>
-      </div>
+      </PublicShell>
     );
   }
 
   // ── Declined ───────────────────────────────────────────────────────────────
   if (declined || proposal.status === "declined") {
     return (
-      <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center space-y-4">
+      <PublicShell>
+        <div className="p-8 text-center space-y-4">
           <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
             <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
@@ -172,7 +170,7 @@ export default function ProposalSign() {
             This proposal has been declined. Please contact the sender if you believe this is an error.
           </p>
         </div>
-      </div>
+      </PublicShell>
     );
   }
 
