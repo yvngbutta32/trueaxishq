@@ -1893,6 +1893,7 @@ export const appRouter = router({
             durationMinutes: z.number().int().min(15).max(480),
             active: z.boolean(),
             priceGuidance: z.string().trim().max(120).nullable(),
+            depositAmountCents: z.number().int().min(50).max(500_000).nullable(),
           }),
         ])).max(20).optional(),
         bookingAvailability: z.object({
@@ -2689,7 +2690,7 @@ Only include actions when you have actually generated a complete draft. For gene
         return {
           ...host,
           bookingServices: serviceCatalog.map(service => service.name),
-          bookingServiceCatalog: serviceCatalog.map(service => ({ name: service.name, durationMinutes: service.durationMinutes, priceGuidance: service.priceGuidance })),
+          bookingServiceCatalog: serviceCatalog.map(service => ({ name: service.name, durationMinutes: service.durationMinutes, priceGuidance: service.priceGuidance, depositAmountCents: service.depositAmountCents })),
           bookingAvailability: getPublishedBookingSchedule(host.bookingAvailability),
           bookedSlots,
         };
@@ -2792,6 +2793,8 @@ Only include actions when you have actually generated a complete draft. For gene
               notes: input.message || null,
               isPublicBooking: true,
               status: "scheduled",
+              depositAmountCents: selectedService.depositAmountCents ?? null,
+              depositStatus: selectedService.depositAmountCents ? "required" : null,
             });
             newBookingId = Number((bookingResult as any).insertId);
 
@@ -2905,7 +2908,40 @@ Only include actions when you have actually generated a complete draft. For gene
             }),
           }).catch(() => {});
         }
-        return { success: true, isNewClient };
+        // ── Deposit collection: when the chosen service requires a booking deposit,
+        // start a Stripe checkout immediately so the client pays before leaving the
+        // flow. The webhook (never this return value) marks the deposit paid; if
+        // Stripe is not configured the booking still stands and the owner collects
+        // the deposit manually.
+        let depositCheckoutUrl: string | null = null;
+        if (selectedService.depositAmountCents && newBookingId) {
+          try {
+            const stripe = getStripe();
+            const session = await stripe.checkout.sessions.create({
+              payment_method_types: ["card"],
+              line_items: [{
+                price_data: {
+                  currency: "usd",
+                  product_data: { name: `Booking deposit — ${input.service} on ${input.preferredDate}` },
+                  unit_amount: selectedService.depositAmountCents,
+                },
+                quantity: 1,
+              }],
+              mode: "payment",
+              success_url: `${siteOrigin}/book/${host[0].bookingUsername || ""}?deposit_returned=1`,
+              cancel_url: `${siteOrigin}/book/${host[0].bookingUsername || ""}`,
+              metadata: {
+                booking_id: String(newBookingId),
+                deposit_amount_cents: String(selectedService.depositAmountCents),
+                client_name: input.clientName,
+              },
+            });
+            depositCheckoutUrl = session.url ?? null;
+          } catch (error) {
+            console.error("[Booking deposit] Stripe checkout unavailable:", error instanceof Error ? error.message : error);
+          }
+        }
+        return { success: true, isNewClient, depositCheckoutUrl };
       }),
   }),
 

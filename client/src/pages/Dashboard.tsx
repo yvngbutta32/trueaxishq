@@ -1682,6 +1682,12 @@ function SchedulingPanel() {
             <div className="sm:col-span-2">
               <p className="text-sm font-semibold text-[#1A1A1A]">{b.clientName}</p>
               <p className="text-xs text-[#6B6B6B]">{b.service || "General Session"}</p>
+              {b.depositStatus ? (
+                <span className={`inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${b.depositStatus === "paid" ? "bg-green-500/10 text-green-600" : "bg-amber-100 text-amber-700"}`}>
+                  {b.depositStatus === "paid" ? "Deposit paid" : "Deposit due"}
+                  {b.depositAmountCents ? ` $${(b.depositAmountCents / 100).toFixed(b.depositAmountCents % 100 === 0 ? 0 : 2)}` : ""}
+                </span>
+              ) : null}
               {/* Mobile-only: show date/time inline */}
               <div className="flex items-center gap-2 mt-0.5 sm:hidden">
                 <span className="text-xs text-[#6B6B6B]">{formatBookingDate(b.date)} · {formatBookingTime(b.time)}</span>
@@ -3620,7 +3626,7 @@ function SettingsPanel() {
   const [bookingPage, setBookingPage] = useState({
     bookingUsername: "",
     bookingBio: "",
-    bookingServices: ["Coaching Session", "Strategy Call", "Consultation"].map(name => ({ name, durationMinutes: 60, active: true, priceGuidance: null })) as PublicBookingService[],
+    bookingServices: ["Coaching Session", "Strategy Call", "Consultation"].map(name => ({ name, durationMinutes: 60, active: true, priceGuidance: null, depositAmountCents: null })) as PublicBookingService[],
     bookingAvailability: { weekdays: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.weekdays], timeSlots: [...DEFAULT_PUBLIC_BOOKING_SCHEDULE.timeSlots], bufferMinutes: DEFAULT_PUBLIC_BOOKING_SCHEDULE.bufferMinutes },
   });
   const setBookingPageField = useFormFields(setBookingPage);
@@ -3849,6 +3855,20 @@ function SettingsPanel() {
                   {[30, 45, 60, 90, 120, 180, 240].map(minutes => <option key={minutes} value={minutes}>{minutes} min</option>)}
                 </select>
                 <input value={s.priceGuidance ?? ""} onChange={e => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.map((service, j) => j === i ? { ...service, priceGuidance: e.target.value.trim() || null } : service) }))} className="form-input-light w-28 text-xs" placeholder="Price note" maxLength={120} aria-label={`${s.name} price guidance`} />
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={s.depositAmountCents ? s.depositAmountCents / 100 : ""}
+                  onChange={e => {
+                    const dollars = Number(e.target.value);
+                    const cents = Number.isFinite(dollars) && dollars > 0 ? Math.round(dollars * 100) : null;
+                    setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.map((service, j) => j === i ? { ...service, depositAmountCents: cents && cents >= 50 ? cents : null } : service) }));
+                  }}
+                  className="form-input-light w-24 text-xs"
+                  placeholder="Deposit $"
+                  aria-label={`${s.name} booking deposit in dollars`}
+                />
                 <button type="button" onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.map((service, j) => j === i ? { ...service, active: !service.active } : service) }))} className="text-xs font-semibold text-[#D4922A]" aria-pressed={s.active}>{s.active ? "Live" : "Hidden"}</button>
                 <button onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.filter((_, j) => j !== i) }))} className="text-[#6B6B6B] hover:text-red-500 transition-colors" aria-label={`Remove ${s.name}`}>
                   <X className="w-3.5 h-3.5" />
@@ -3857,8 +3877,8 @@ function SettingsPanel() {
             ))}
           </div>
           <div className="flex gap-2 mb-2">
-            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Type a custom service..." className="form-input-light" autoComplete="off" enterKeyHint="done" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, { name: newService.trim(), durationMinutes: 60, active: true, priceGuidance: null }] })); setNewService(""); } }} />
-            <Button size="sm" variant="outline" onClick={() => { if (newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, { name: newService.trim(), durationMinutes: 60, active: true, priceGuidance: null }] })); setNewService(""); } }}>
+            <input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Type a custom service..." className="form-input-light" autoComplete="off" enterKeyHint="done" onKeyDown={e => { if (e.key === "Enter" && newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, { name: newService.trim(), durationMinutes: 60, active: true, priceGuidance: null, depositAmountCents: null }] })); setNewService(""); } }} />
+            <Button size="sm" variant="outline" onClick={() => { if (newService.trim()) { setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, { name: newService.trim(), durationMinutes: 60, active: true, priceGuidance: null, depositAmountCents: null }] })); setNewService(""); } }}>
               <Plus className="w-4 h-4" />
             </Button>
           </div>
@@ -3876,7 +3896,7 @@ function SettingsPanel() {
                 <button
                   key={s}
                   type="button"
-                  onClick={() => setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, { name: s, durationMinutes: 60, active: true, priceGuidance: null }] }))}
+                  onClick={() => setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, { name: s, durationMinutes: 60, active: true, priceGuidance: null, depositAmountCents: null }] }))}
                   className="text-xs bg-white border border-[#DDDBD7] hover:border-[#D4922A] hover:text-[#D4922A] text-[#6B6B6B] rounded-full px-2.5 py-1 transition-colors"
                 >
                   + {s}

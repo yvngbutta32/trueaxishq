@@ -1,13 +1,12 @@
 import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { useState, useEffect } from "react";
-import { useParams } from "wouter";
+import { useSearch, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import {
   Calendar, Clock, User, Mail, MessageSquare, Briefcase,
   CheckCircle, Zap, ArrowLeft, Loader2, Download, ExternalLink,
-  CalendarDays, Sparkles, Camera, Upload, X
-} from "lucide-react";
+  CalendarDays, Sparkles, Camera, Upload, X, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PublicRecoveryState } from "@/components/PublicRecoveryState";
 import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, DEFAULT_PUBLIC_BOOKING_SERVICES, PUBLIC_BOOKING_TIME_SLOTS } from "@shared/publicBookingRules";
@@ -153,6 +152,7 @@ export default function BookingPage() {
   useEffect(() => { document.title = username ? `Book with @${username} — TrueAxis HQ` : "Book a Session — TrueAxis HQ"; }, [username]);
 
   const [step, setStep] = useState<"details" | "datetime" | "confirm" | "success">("details");
+  const [depositCheckoutUrl, setDepositCheckoutUrl] = useState<string | null>(null);
   const [estimatePhotos, setEstimatePhotos] = useState<{ file: File; previewUrl: string }[]>([]);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [form, setForm] = useState({
@@ -196,7 +196,7 @@ export default function BookingPage() {
       }
       setPhotoUploading(false);
     }
-    await submitMutation.mutateAsync({
+    const result = await submitMutation.mutateAsync({
       hostUsername: username,
       clientName: form.clientName,
       clientEmail: form.clientEmail,
@@ -206,7 +206,17 @@ export default function BookingPage() {
       preferredTime: form.preferredTime,
       photoUploadToken,
     });
+    setDepositCheckoutUrl(result.depositCheckoutUrl ?? null);
   };
+
+  // Returning from Stripe deposit checkout: the webhook is authoritative, so
+  // keep the copy honest — payment submitted, confirmation follows.
+  const search = useSearch();
+  useEffect(() => {
+    if (new URLSearchParams(search).get("deposit_returned") === "1") {
+      toast.success("Deposit payment submitted. We'll confirm your booking deposit shortly.");
+    }
+  }, [search]);
 
   // Loading state
   if (pageQuery.isLoading) {
@@ -311,6 +321,30 @@ export default function BookingPage() {
               </div>
             </div>
           </div>
+
+          {/* Deposit collection */}
+          {depositCheckoutUrl && (() => {
+            const catalogEntry = host.bookingServiceCatalog?.find(entry => entry.name === form.service);
+            const deposit = catalogEntry?.depositAmountCents;
+            return (
+              <div className="bg-[#1C2333] border border-[#2B3446] rounded-xl p-5 mb-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <CreditCard className="w-4 h-4 text-[#D4922A]" />
+                  <span className="text-xs font-bold text-[#D4922A] uppercase tracking-wider">Secure Your Booking</span>
+                </div>
+                <p className="text-xs text-white/75 mb-4">
+                  This service requires a {deposit ? `$${(deposit / 100).toFixed(deposit % 100 === 0 ? 0 : 2)}` : ""} booking deposit to hold your slot. Pay securely now with card.
+                </p>
+                <button
+                  onClick={() => { window.location.assign(depositCheckoutUrl); }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#D4922A] hover:bg-[#b87814] transition-colors text-sm font-bold text-white"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Pay booking deposit{deposit ? ` ($${(deposit / 100).toFixed(deposit % 100 === 0 ? 0 : 2)})` : ""}
+                </button>
+              </div>
+            );
+          })()}
 
           {/* Calendar add section */}
           <div className="bg-[#F7F6F3] border border-[#DDDBD7] rounded-xl p-5 mb-5">
@@ -520,7 +554,11 @@ export default function BookingPage() {
                     {(host.bookingServices && host.bookingServices.length > 0
                       ? host.bookingServices
                       : DEFAULT_PUBLIC_BOOKING_SERVICES
-                    ).map((s: string) => <option key={s} value={s}>{s}</option>)}
+                    ).map((s: string) => {
+                      const catalogEntry = host.bookingServiceCatalog?.find(entry => entry.name === s);
+                      const deposit = catalogEntry?.depositAmountCents;
+                      return <option key={s} value={s}>{deposit ? `${s} — $${(deposit / 100).toFixed(deposit % 100 === 0 ? 0 : 2)} deposit` : s}</option>;
+                    })}
                   </select>
                 </div>
               </div>

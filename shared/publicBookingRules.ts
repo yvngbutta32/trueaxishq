@@ -9,6 +9,7 @@ export type PublicBookingService = {
   durationMinutes: number;
   active: boolean;
   priceGuidance: string | null;
+  depositAmountCents: number | null;
 };
 
 const DEFAULT_SERVICE_DURATION_MINUTES = 60;
@@ -44,7 +45,7 @@ export function getPublishedBookingServices(serialized: string | null | undefine
 
 /** Parses legacy string arrays and bounded structured catalog records without failing open. */
 export function getPublishedBookingServiceCatalog(serialized: string | null | undefined): PublicBookingService[] {
-  const defaults = () => DEFAULT_PUBLIC_BOOKING_SERVICES.map(name => ({ name, durationMinutes: DEFAULT_SERVICE_DURATION_MINUTES, active: true, priceGuidance: null }));
+  const defaults = () => DEFAULT_PUBLIC_BOOKING_SERVICES.map(name => ({ name, durationMinutes: DEFAULT_SERVICE_DURATION_MINUTES, active: true, priceGuidance: null, depositAmountCents: null }));
   if (!serialized) return defaults();
   try {
     const parsed = JSON.parse(serialized);
@@ -58,7 +59,8 @@ export function getPublishedBookingServiceCatalog(serialized: string | null | un
       const durationMinutes = typeof record?.durationMinutes === "number" && Number.isInteger(record.durationMinutes) && record.durationMinutes >= 15 && record.durationMinutes <= 480 ? record.durationMinutes : DEFAULT_SERVICE_DURATION_MINUTES;
       const active = typeof record?.active === "boolean" ? record.active : true;
       const priceGuidance = typeof record?.priceGuidance === "string" && record.priceGuidance.trim().length > 0 && record.priceGuidance.trim().length <= 120 ? record.priceGuidance.trim() : null;
-      deduped.set(name.toLowerCase(), { name, durationMinutes, active, priceGuidance });
+      const depositAmountCents = typeof record?.depositAmountCents === "number" && Number.isInteger(record.depositAmountCents) && record.depositAmountCents >= 50 && record.depositAmountCents <= 500_000 ? record.depositAmountCents : null;
+      deduped.set(name.toLowerCase(), { name, durationMinutes, active, priceGuidance, depositAmountCents });
     }
     const services = Array.from(deduped.values());
     return services.length > 0 ? services : defaults();

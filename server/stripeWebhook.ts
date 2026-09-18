@@ -126,6 +126,32 @@ async function processEvent(eventType: string, data: Stripe.Event["data"]["objec
       const customerId = session.customer as string;
       const subscriptionId = session.subscription as string;
       const invoiceIdMeta = session.metadata?.invoice_id;
+      const bookingIdMeta = session.metadata?.booking_id;
+
+      // ── Booking deposit: mark the deposit paid on this booking only ──────
+      if (bookingIdMeta && !subscriptionId) {
+        const bookingIdNum = parseInt(bookingIdMeta, 10);
+        if (!isNaN(bookingIdNum)) {
+          const { bookings } = await import("../drizzle/schema");
+          const [existingBooking] = await db.select({ id: bookings.id, depositStatus: bookings.depositStatus })
+            .from(bookings).where(eq(bookings.id, bookingIdNum)).limit(1);
+          if (!existingBooking || existingBooking.depositStatus === "paid") {
+            console.log(`[Webhook] Booking ${bookingIdNum} deposit already paid or not found — skipping`);
+            break;
+          }
+          await db.update(bookings).set({
+            depositStatus: "paid",
+            depositPaidAt: new Date(),
+            updatedAt: new Date(),
+          }).where(eq(bookings.id, bookingIdNum));
+          notifyOwner({
+            title: `💰 Booking Deposit Paid — ${session.metadata?.client_name ?? "Client"}`,
+            content: `The $${(Number(session.metadata?.deposit_amount_cents ?? 0) / 100).toFixed(2)} booking deposit was paid via Stripe Checkout.`,
+          }).catch(() => {});
+          console.log(`[Webhook] Booking ${bookingIdMeta} deposit marked paid.`);
+          break;
+        }
+      }
 
       // ── Invoice Pay Now: auto-mark the invoice as paid ────────────────────
       if (invoiceIdMeta && !subscriptionId) {
