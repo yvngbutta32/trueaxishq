@@ -67,7 +67,7 @@ export async function createSessionToken(userId: number, email: string): Promise
     .sign(secretKey);
 }
 
-function hashSessionToken(token: string): string {
+export function hashSessionToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 

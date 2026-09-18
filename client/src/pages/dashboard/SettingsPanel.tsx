@@ -26,7 +26,7 @@ import {
   BarChart3, Settings, Zap, Plus, TrendingUp,
   DollarSign, Clock, CheckCircle, ArrowUpRight,
   ChevronRight, LogOut, X, Edit2, Trash2, Send,
-  Download, Phone, AlertCircle, RefreshCw, User, ShieldCheck,
+  Download, Phone, AlertCircle, RefreshCw, User, ShieldCheck, Monitor,
   Building, Save, Bot, CreditCard,
   ExternalLink, Bell, Search, ChevronDown, Loader2, Link,
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
@@ -439,6 +439,68 @@ function TwoFactorSection() {
             {disable.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Disable 2FA"}
           </Button>
         </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Active Sessions Section ───────────────────────────────────────────────────
+function SessionsSection() {
+  const utils = trpc.useUtils();
+  const { data: sessions, isLoading } = trpc.sessions.list.useQuery(undefined, { retry: 1 });
+  const revokeOthers = trpc.sessions.revokeOthers.useMutation({
+    onSuccess: (data) => {
+      void utils.sessions.list.invalidate();
+      toast.success(data.revoked === 0 ? "No other devices were signed in." : `Signed out ${data.revoked} other device${data.revoked !== 1 ? "s" : ""}.`);
+    },
+    onError: (e) => toast.error(e.message || "Could not revoke sessions."),
+  });
+
+  const iconFor = (t: string) => t === "mobile" || t === "tablet" ? <Smartphone className="w-4 h-4" /> : <Monitor className="w-4 h-4" />;
+
+  return (
+    <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2">
+        <Monitor className="w-4 h-4 text-[#D4922A]" />Active Sessions
+      </h3>
+      <p className="text-xs text-[#6B6B6B]">
+        Devices currently signed in to your account. Revoking signs them out immediately — useful if you lost a phone or used a shared computer.
+      </p>
+
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-xs text-[#6B6B6B]"><Loader2 className="w-3.5 h-3.5 animate-spin" />Loading sessions…</div>
+      ) : !sessions?.length ? (
+        <p className="text-xs text-[#6B6B6B]">No active sessions found.</p>
+      ) : (
+        <>
+          <ul className="divide-y divide-[#EDEBE7] border border-[#DDDBD7] rounded-xl overflow-hidden">
+            {sessions.map((session) => (
+              <li key={session.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-[#6B6B6B] shrink-0">{iconFor(session.deviceType)}</span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-[#1A1A1A] truncate">
+                      {session.browser} on {session.os}
+                      {session.isCurrent && (
+                        <span className="ml-2 text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">This device</span>
+                      )}
+                    </p>
+                    <p className="text-[11px] text-[#6B6B6B] truncate">
+                      {session.deviceType === "mobile" || session.deviceType === "tablet" ? session.deviceType : "desktop"}
+                      {" · IP "}{session.ip ?? "unknown"}
+                      {" · since "}{new Date(session.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                    </p>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {sessions.length > 1 && (
+            <Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50" onClick={() => revokeOthers.mutate()} disabled={revokeOthers.isPending}>
+              {revokeOthers.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign out all other devices"}
+            </Button>
+          )}
+        </>
       )}
     </div>
   );
@@ -1011,6 +1073,9 @@ function SettingsPanel() {
 
       {/* Two-Factor Authentication */}
       <TwoFactorSection />
+
+      {/* Active Sessions */}
+      <SessionsSection />
 
       {/* Billing & Subscription — inline */}
       <BillingSection />

@@ -8,6 +8,8 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import bcrypt from "bcryptjs";
 import { generateTotpSecret, verifyTotp, buildOtpAuthUrl, generateBackupCodes, hashBackupCode } from "./totp";
+import { parseUserAgent } from "./deviceInfo";
+import { hashSessionToken } from "./auth";
 import QRCode from "qrcode";
 import { publicProcedure, protectedProcedure, staffProcedure, adminProcedure, ownerProcedure, router } from "./_core/trpc";
 import { ENV } from "./_core/env";
@@ -350,6 +352,61 @@ export const appRouter = router({
         logSecurityEvent({ eventType: "two_factor_disabled", severity: "high", userId: user.id, ip: getClientIp(ctx.req), email: user.email ?? undefined, userAgent: ctx.req.headers["user-agent"] });
         return { enabled: false } as const;
       }),
+  }),
+
+  // ── Active sessions (device management) ─────────────────────────────────────
+  sessions: router({
+    /** All active, unexpired sessions for the account; the current one is flagged. */
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const rows = await db.select().from(userSessions)
+        .where(and(
+          eq(userSessions.userId, ctx.user.id),
+          eq(userSessions.isActive, true),
+          gt(userSessions.expiresAt, new Date()),
+        ))
+        .orderBy(desc(userSessions.createdAt))
+        .limit(50);
+
+      const cookieHeader = (ctx.req as any).headers?.["cookie"] ?? "";
+      const cookieMatch = String(cookieHeader).match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]+)`));
+      const currentHash = cookieMatch ? hashSessionToken(decodeURIComponent(cookieMatch[1])) : null;
+
+      return rows.map(row => {
+        const info = parseUserAgent(row.userAgent);
+        return {
+          id: row.id,
+          ip: row.ip,
+          browser: info.browser,
+          os: info.os,
+          deviceType: info.deviceType,
+          isApp: info.isApp,
+          createdAt: row.createdAt,
+          expiresAt: row.expiresAt,
+          isCurrent: currentHash !== null && row.tokenHash === currentHash,
+        };
+      });
+    }),
+
+    /** Revoke every OTHER active session (keeps this device signed in). */
+    revokeOthers: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await requireDb();
+      const cookieHeader = (ctx.req as any).headers?.["cookie"] ?? "";
+      const cookieMatch = String(cookieHeader).match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]+)`));
+      const currentHash = cookieMatch ? hashSessionToken(decodeURIComponent(cookieMatch[1])) : null;
+
+      const result = await db.update(userSessions)
+        .set({ isActive: false, invalidatedAt: new Date(), invalidationReason: "owner_revoke" })
+        .where(and(
+          eq(userSessions.userId, ctx.user.id),
+          eq(userSessions.isActive, true),
+          currentHash ? ne(userSessions.tokenHash, currentHash) : sql`1 = 1`,
+        ));
+
+      const count = result[0]?.affectedRows ?? 0;
+      logSecurityEvent({ eventType: "sessions_revoked", severity: "high", userId: ctx.user.id, ip: getClientIp(ctx.req), email: ctx.user.email ?? undefined, details: `Revoked ${count} other session(s)` });
+      return { revoked: count } as const;
+    }),
   }),
 
   // ── Auth ──────────────────────────────────────────────────────────────────
