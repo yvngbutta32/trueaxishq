@@ -18,6 +18,7 @@ import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
 import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
+import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
@@ -4886,9 +4887,9 @@ Only include actions when you have actually generated a complete draft. For gene
     // Get connection status
     status: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
-      const [token] = await db.select({ syncEnabled: googleCalendarTokens.syncEnabled, calendarId: googleCalendarTokens.calendarId, createdAt: googleCalendarTokens.createdAt })
+      const [token] = await db.select({ syncEnabled: googleCalendarTokens.syncEnabled, calendarId: googleCalendarTokens.calendarId, createdAt: googleCalendarTokens.createdAt, lastSyncedAt: googleCalendarTokens.lastSyncedAt, lastError: googleCalendarTokens.lastError, lastErrorKind: googleCalendarTokens.lastErrorKind, lastErrorAt: googleCalendarTokens.lastErrorAt })
         .from(googleCalendarTokens).where(eq(googleCalendarTokens.userId, ctx.user.id)).limit(1);
-      return { connected: !!token, syncEnabled: token?.syncEnabled ?? false, calendarId: token?.calendarId ?? null, connectedAt: token?.createdAt ?? null };
+      return { connected: !!token, syncEnabled: token?.syncEnabled ?? false, calendarId: token?.calendarId ?? null, connectedAt: token?.createdAt ?? null, lastSyncedAt: token?.lastSyncedAt ?? null, lastError: token?.lastError ?? null, lastErrorKind: token?.lastErrorKind ?? null, lastErrorAt: token?.lastErrorAt ?? null };
     }),
 
     // Get OAuth URL
@@ -4922,6 +4923,19 @@ Only include actions when you have actually generated a complete draft. For gene
       const db = await requireDb();
       await db.delete(googleCalendarTokens).where(eq(googleCalendarTokens.userId, ctx.user.id));
       return { ok: true };
+    }),
+
+    // Trigger an immediate sync for the signed-in owner; surfaces provider errors verbatim.
+    syncNow: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await requireDb();
+      const outcome = await runGoogleCalendarSyncForUser({ userId: ctx.user.id, db });
+      if (outcome.status === "synced") {
+        return { ok: true, status: "synced" as const, created: outcome.created, updated: outcome.updated, deleted: outcome.deleted };
+      }
+      if (outcome.status === "not_connected") {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Google Calendar authorization is not connected." });
+      }
+      return { ok: false, status: outcome.status, message: outcome.message };
     }),
 
       // Toggle sync

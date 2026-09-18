@@ -726,6 +726,10 @@ export const googleCalendarTokens = mysqlTable("googleCalendarTokens", {
   expiresAt: timestamp("expiresAt"),
   calendarId: varchar("calendarId", { length: 255 }).default("primary"),
   syncEnabled: boolean("syncEnabled").default(true).notNull(),
+  lastSyncedAt: timestamp("lastSyncedAt"),
+  lastError: varchar("lastError", { length: 512 }),
+  lastErrorKind: varchar("lastErrorKind", { length: 32 }),
+  lastErrorAt: timestamp("lastErrorAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

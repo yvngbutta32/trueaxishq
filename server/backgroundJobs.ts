@@ -23,6 +23,7 @@ import {
 import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, bookingReminderEmail, postSessionCheckInEmail, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { getRecurringInvoiceDeliveryOutcome } from "./recurringInvoiceDeliveryOutcome";
 import { processDueAutomations } from "./automationEngine";
+import { runAllGoogleCalendarSyncs } from "./googleCalendarSync";
 import { randomBytes } from "node:crypto";
 
 // ─── Invoice number generator ─────────────────────────────────────────────────
@@ -619,6 +620,27 @@ async function runPostSessionCheckIns() {
   }
 }
 
+/** Native Google Calendar sync: hourly, idempotent, and failure-isolated per connection. */
+async function runGoogleCalendarSyncJob() {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const db = await getDb();
+      if (!db) return;
+      await runAllGoogleCalendarSyncs({ db });
+      return;
+    } catch (err: any) {
+      const isTransient = err?.code === "ECONNRESET" || err?.code === "ETIMEDOUT" || err?.code === "ECONNREFUSED";
+      console.error(`[Jobs] runGoogleCalendarSyncJob error (attempt ${attempt}/2):`, { code: err?.code, message: err?.message });
+      if (isTransient && attempt < 2) {
+        resetDbConnection();
+        await new Promise((r) => setTimeout(r, 500));
+      } else {
+        return;
+      }
+    }
+  }
+}
+
 export function startBackgroundJobs() {
   console.log("[Jobs] Background job scheduler starting...");
   const runAll = async () => {
@@ -631,6 +653,7 @@ export function startBackgroundJobs() {
       ["booking reminders", runBookingReminders],
       ["post-session check-ins", runPostSessionCheckIns],
       ["workflow automations", processDueAutomations],
+      ["google calendar sync", runGoogleCalendarSyncJob],
     ];
     for (const [name, job] of jobs) {
       try {
@@ -644,5 +667,5 @@ export function startBackgroundJobs() {
   setTimeout(runAll, 10_000);
   // Then every hour
   setInterval(runAll, 60 * 60 * 1000);
-  console.log("[Jobs] Background jobs scheduled (every 1 hour, 8 jobs)");
+  console.log("[Jobs] Background jobs scheduled (every 1 hour, 9 jobs)");
 }
