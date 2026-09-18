@@ -5528,7 +5528,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const selectedLineItems = selectedPackage ? normalizeProposalLineItems(selectedPackage.lineItems) : null;
         const selectedSubtotal = selectedPackage ? getProposalPackageSubtotal(selectedPackage) : null;
         const selectedTotal = selectedSubtotal === null ? null : Math.round(selectedSubtotal * (1 + Number(row.taxRate ?? 0) / 100) * 100) / 100;
-        await db.update(proposals).set({
+        const [signatureClaim] = await db.update(proposals).set({
           status: "signed",
           signedAt: new Date(),
           signatureName: input.signatureName,
@@ -5540,12 +5540,49 @@ Only include actions when you have actually generated a complete draft. For gene
             total: String(selectedTotal),
           } : {}),
         }).where(and(eq(proposals.id, row.id), eq(proposals.token, input.token), eq(proposals.status, row.status)));
+        // Atomic claim: a concurrent signature or replay must never create a second invoice.
+        if (!signatureClaim || signatureClaim.affectedRows !== 1) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This proposal has already been signed." });
+        }
+
+        // ── Quote-to-cash continuation ──────────────────────────────────────
+        // The signature claim owns this proposal: create the linked invoice once
+        // (with a payment token) so the client can pay immediately, and surface
+        // the owner's booking link when self-scheduling is configured.
+        let invoiceNumber: string | null = null;
+        let payUrl: string | null = null;
+        if (!row.linkedInvoiceId) {
+          const nextInvoiceNumber = generateInvoiceNumber();
+          const payToken = randomBytes(32).toString("hex");
+          const [createdInvoice] = await db.insert(invoices).values({
+            userId: row.userId,
+            clientId: row.clientId ?? null,
+            invoiceNumber: nextInvoiceNumber,
+            clientName: row.clientName,
+            clientEmail: row.clientEmail || null,
+            service: row.title,
+            amount: String(selectedTotal ?? row.total),
+            status: "draft",
+            lineItems: row.lineItems,
+            payLinkToken: payToken,
+            notes: row.notes,
+          });
+          const invoiceId = Number(createdInvoice.insertId);
+          await db.update(proposals).set({ linkedInvoiceId: invoiceId }).where(eq(proposals.id, row.id));
+          invoiceNumber = nextInvoiceNumber;
+          payUrl = `/pay/${payToken}`;
+        }
+
+        let bookingUrl: string | null = null;
+        const [owner] = await db.select({ bookingUsername: users.bookingUsername }).from(users).where(eq(users.id, row.userId)).limit(1);
+        if (owner?.bookingUsername) bookingUrl = `/book/${owner.bookingUsername}`;
+
         // Notify the owner
         notifyOwner({
           title: `Proposal Signed: ${row.title}`,
-          content: `${row.clientName} signed your proposal "${row.title}"${selectedPackage ? ` after selecting ${selectedPackage.name}` : ""} for $${(selectedTotal ?? parseFloat(String(row.total))).toLocaleString()}.`,
+          content: `${row.clientName} signed your proposal "${row.title}"${selectedPackage ? ` after selecting ${selectedPackage.name}` : ""} for $${(selectedTotal ?? parseFloat(String(row.total))).toLocaleString()}.${invoiceNumber ? ` Draft invoice ${invoiceNumber} is ready in Billing.` : ""}`,
         }).catch(() => {});
-        return { success: true, selectedPackageId: selectedPackage?.id ?? null, total: selectedTotal ?? Number(row.total) };
+        return { success: true, selectedPackageId: selectedPackage?.id ?? null, total: selectedTotal ?? Number(row.total), invoiceNumber, payUrl, bookingUrl };
       }),
 
     decline: publicProcedure

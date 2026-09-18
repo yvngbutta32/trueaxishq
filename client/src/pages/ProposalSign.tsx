@@ -40,6 +40,7 @@ export default function ProposalSign() {
   const token = params.token ?? "";
   const [signatureName, setSignatureName] = useState("");
   const [signed, setSigned] = useState(false);
+  const [nextSteps, setNextSteps] = useState<{ payUrl: string | null; bookingUrl: string | null; invoiceNumber: string | null }>({ payUrl: null, bookingUrl: null, invoiceNumber: null });
   const [agreementChecked, setAgreementChecked] = useState(false);
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [declineOpen, setDeclineOpen] = useState(false);
@@ -52,7 +53,8 @@ export default function ProposalSign() {
   );
 
   const signMutation = trpc.proposals.sign.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setNextSteps({ payUrl: data?.payUrl ?? null, bookingUrl: data?.bookingUrl ?? null, invoiceNumber: data?.invoiceNumber ?? null });
       setSigned(true);
       toast.success("Proposal signed successfully!");
     },
@@ -132,6 +134,23 @@ export default function ProposalSign() {
               {proposal.currency} {parseFloat(String(proposal.total)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </p>
           </div>
+          {(nextSteps.payUrl || nextSteps.bookingUrl) && (
+            <div className="space-y-2 text-left">
+              <p className="text-xs text-[rgba(26,26,26,0.40)] font-semibold uppercase tracking-wider">Next steps</p>
+              {nextSteps.payUrl && (
+                <a href={nextSteps.payUrl} className="flex items-center justify-between rounded-xl border border-[#D4922A]/30 bg-white px-4 py-3 transition hover:border-[#D4922A]/60">
+                  <span className="text-sm font-semibold text-[#1A1A1A]">{nextSteps.invoiceNumber ? `Pay invoice ${nextSteps.invoiceNumber}` : "Pay your invoice"}</span>
+                  <span className="text-sm font-bold text-[#D4922A]">Pay now →</span>
+                </a>
+              )}
+              {nextSteps.bookingUrl && (
+                <a href={nextSteps.bookingUrl} className="flex items-center justify-between rounded-xl border border-[#DDDBD7] bg-white px-4 py-3 transition hover:border-[#D4922A]/60">
+                  <span className="text-sm font-semibold text-[#1A1A1A]">Schedule your service</span>
+                  <span className="text-sm font-bold text-[#D4922A]">Book a time →</span>
+                </a>
+              )}
+            </div>
+          )}
           <p className="text-[rgba(26,26,26,0.35)] text-xs">
             The sender has been notified. They will be in touch shortly.
           </p>
