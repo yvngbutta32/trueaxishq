@@ -25,7 +25,7 @@ import {
   LayoutDashboard, Users, Calendar, FileText, Mail,
   BarChart3, Settings, Zap, Plus, TrendingUp,
   DollarSign, Clock, CheckCircle, ArrowUpRight,
-  ChevronRight, LogOut, X, Edit2, Trash2, Send,
+  ChevronRight, LogOut, X, Edit2, Trash2, Send, BookOpen,
   Download, Phone, AlertCircle, RefreshCw, User, ShieldCheck, Monitor,
   Building, Save, Bot, CreditCard,
   ExternalLink, Bell, Search, ChevronDown, Loader2, Link,
@@ -555,6 +555,45 @@ function ApiKeysSection() {
           {createKey.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Generate"}
         </Button>
       </div>
+      <ApiReference />
+    </div>
+  );
+}
+
+// ─── REST API reference (item 13: public API + Zapier) ──────────────────────
+const API_ENDPOINTS = [
+  { method: "GET", path: "/api/v1/me", description: "Verify a key and its scope." },
+  { method: "GET", path: "/api/v1/clients?search=&limit=&offset=", description: "List clients (max limit 200)." },
+  { method: "POST", path: "/api/v1/clients", description: "Create a client: { name, email?, phone?, service? }." },
+  { method: "GET", path: "/api/v1/jobs?status=&limit=&offset=", description: "List jobs, optionally filtered by status." },
+  { method: "GET", path: "/api/v1/jobs/:id", description: "Fetch a single job." },
+  { method: "PATCH", path: "/api/v1/jobs/:id", description: "Update a job: { status?, title?, targetDate? }." },
+  { method: "GET", path: "/api/v1/invoices?status=&limit=&offset=", description: "List invoices." },
+  { method: "POST", path: "/api/v1/invoices", description: "Create a draft invoice: { clientName, amount, clientEmail?, service?, dueDate? }." },
+  { method: "GET", path: "/api/v1/proposals?status=&limit=&offset=", description: "List proposals." },
+];
+
+function ApiReference() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-t border-[#EFEEE9] pt-4 space-y-3">
+      <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between text-left" aria-expanded={open}>
+        <span className="text-xs font-bold text-[#1A1A1A] flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5 text-[#D4922A]" />REST API reference {open ? "—" : "+"}</span>
+      </button>
+      {open && (
+        <>
+          <p className="text-xs text-[#6B6B6B]">Send <code className="font-mono bg-[#F7F6F3] px-1 rounded">Authorization: Bearer sk_live_…</code> with every request. Success returns <code className="font-mono bg-[#F7F6F3] px-1 rounded">{'{ data }'}</code>; errors return <code className="font-mono bg-[#F7F6F3] px-1 rounded">{'{ error: { code, message } }'}</code>. Rate limit: 600 requests/minute per key (X-RateLimit headers included).</p>
+          <div className="rounded-lg border border-[#EFEEE9] divide-y divide-[#EFEEE9]">
+            {API_ENDPOINTS.map(endpoint => (
+              <div key={`${endpoint.method} ${endpoint.path}`} className="p-2.5">
+                <p className="text-xs font-mono"><span className={endpoint.method === "GET" ? "text-emerald-700" : endpoint.method === "POST" ? "text-[#D4922A]" : "text-blue-700"}>{endpoint.method}</span> <span className="text-[#1A1A1A]">{endpoint.path}</span></p>
+                <p className="text-[11px] text-[#6B6B6B] mt-0.5">{endpoint.description}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-[#6B6B6B] rounded-lg bg-[#F7F6F3] p-2.5"><strong className="text-[#1A1A1A]">Connect Zapier or Make:</strong> create a key above, then use it in a "Webhooks by Zapier" step (or Make's HTTP module) with the Bearer header. Example: PATCH <code className="font-mono">/api/v1/jobs/:id</code> to move a job along your pipeline whenever a trigger fires.</p>
+        </>
+      )}
     </div>
   );
 }
