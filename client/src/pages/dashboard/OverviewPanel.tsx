@@ -40,6 +40,7 @@ import {
   PieChart, Pie, Cell
 } from "recharts";
 
+import OnboardingFirstHour from "./OnboardingFirstHour";
 import { ChangelogModal } from "./ChangelogModal";
 import { type ActivePanel, type ConfirmState, type LineItem, Field, FREQUENCY_LABELS, FREQUENCY_COLORS, defaultConfirm, LEGACY_PANEL_REDIRECTS, getGreeting, formatCurrency, formatDate, formatBookingDate, formatBookingTime, Skeleton, Modal, useFormField, LineItemRow } from "./shared";
 
@@ -81,6 +82,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
 
   return (
     <div className="space-y-6">
+      <OnboardingFirstHour setActivePanel={setActivePanel} />
       <ChangelogModal />
       <div>
         <h1 className="text-2xl font-extrabold text-[#1A1A1A]">

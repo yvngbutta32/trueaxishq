@@ -13,7 +13,7 @@ import {
   Zap, Calendar, FileText, Mail, BarChart3, Users,
   ArrowRight, CheckCircle, Star, Menu, X, Sparkles,
   TrendingUp, Brain, Activity, Target, Briefcase, Shield
-} from "lucide-react";
+, Timer} from "lucide-react";
 
 // ─── Animated Counter ────────────────────────────────────────────────────────
 function AnimatedCounter({ end, suffix = "", duration = 2000 }: { end: number; suffix?: string; duration?: number }) {
@@ -470,6 +470,17 @@ function Hero({ onCTA }: { onCTA: () => void }) {
               <div>
                 <p className="text-xs font-bold" style={{ color: "#1A1A1A" }}>One operational record</p>
                 <p className="text-[10px]" style={{ color: "#4A4A4A" }}>Clients · Jobs · Proof · Billing · Follow-ups</p>
+              </div>
+            </div>
+
+            {/* One-hour onboarding guarantee — backed by the in-app first-hour checklist */}
+            <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ background: "rgba(212,146,42,0.07)", border: "1px solid rgba(212,146,42,0.22)" }}>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "rgba(212,146,42,0.14)", color: "#8A5A0B" }}>
+                <Timer className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold" style={{ color: "#1A1A1A" }}>Operational in under an hour</p>
+                <p className="text-[10px]" style={{ color: "#4A4A4A" }}>A guided first-hour checklist walks you from signup to your first invoice — no consultants, no implementation calls.</p>
               </div>
             </div>
 

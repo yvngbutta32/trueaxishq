@@ -2151,6 +2151,39 @@ export const appRouter = router({
       });
     }),
 
+    /** First-hour onboarding progress — powers the 'operational in under an hour' guarantee. */
+    firstHourProgress: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [user] = await db.select({
+        businessName: users.businessName,
+        bookingUsername: users.bookingUsername,
+        bookingServices: users.bookingServices,
+        createdAt: users.createdAt,
+      }).from(users).where(eq(users.id, ctx.user.id)).limit(1);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
+      const [clientCount] = await db.select({ count: sql<number>`COUNT(*)` }).from(clients).where(eq(clients.userId, ctx.user.id));
+      const [jobCount] = await db.select({ count: sql<number>`COUNT(*)` }).from(jobs).where(eq(jobs.userId, ctx.user.id));
+      const [invoiceCount] = await db.select({ count: sql<number>`COUNT(*)` }).from(invoices).where(eq(invoices.userId, ctx.user.id));
+      const services = Array.isArray(user.bookingServices) ? user.bookingServices : (() => { try { return JSON.parse(user.bookingServices || "[]"); } catch { return []; } })();
+      const steps = [
+        { id: "profile", label: "Add your business name", detail: "Clients see it on invoices, proposals, and the booking page.", minutes: 2, done: Boolean(user.businessName), panel: "settings" },
+        { id: "services", label: "Add a service you offer", detail: "These become bookable on your public booking page.", minutes: 3, done: Array.isArray(services) && services.length > 0, panel: "scheduling" },
+        { id: "booking", label: "Set your booking handle", detail: user.bookingUsername ? `Live at /book/${user.bookingUsername}` : "Pick the /book/your-handle link you'll share with clients.", minutes: 2, done: Boolean(user.bookingUsername), panel: "scheduling" },
+        { id: "client", label: "Add your first client", detail: "One contact is all it takes to start the pipeline.", minutes: 3, done: Number(clientCount.count) > 0, panel: "clients" },
+        { id: "job", label: "Schedule your first job", detail: "A day-ticket or a multi-phase project — both work.", minutes: 5, done: Number(jobCount.count) > 0, panel: "scheduling" },
+        { id: "invoice", label: "Send your first invoice", detail: "Paid online or on-site — your money keeps moving.", minutes: 5, done: Number(invoiceCount.count) > 0, panel: "billing" },
+      ];
+      const doneCount = steps.filter(step => step.done).length;
+      const remainingMinutes = steps.filter(step => !step.done).reduce((sum, step) => sum + step.minutes, 0);
+      // Show the checklist only while it can genuinely help: fresh account, not yet operational.
+      const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
+      const freshAccount = user.createdAt ? Date.now() - new Date(user.createdAt).getTime() < fourteenDaysMs : true;
+      return {
+        steps, doneCount, totalSteps: steps.length, remainingMinutes,
+        showChecklist: freshAccount && doneCount < steps.length,
+      };
+    }),
+
     launchReadiness: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
       const [user] = await db.select({
