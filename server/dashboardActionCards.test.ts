@@ -67,6 +67,9 @@ async function fetchCards(rows: Partial<Results>) {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
+const soonDate = () => new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+const farDate = () => new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
+
 describe("dashboard action cards (owner next-best-actions)", () => {
   beforeEach(() => {
     getDbMock.mockReset();
@@ -88,7 +91,7 @@ describe("dashboard action cards (owner next-best-actions)", () => {
         { id: 3, clientName: "Quiet Co", amount: "80.00", status: "draft" },
       ],
       proposals: [
-        { id: 5, title: "Patio Revival", clientName: "Dana", validUntil: "2026-09-18", total: "900", sentAt: new Date() },
+        { id: 5, title: "Patio Revival", clientName: "Dana", validUntil: soonDate(), total: "900", sentAt: new Date() },
       ],
       jobs: [{ id: 7, title: "Deck restoration", client: "Villa Owners" }],
       clientApprovalRequests: [{ id: 9, title: "Approve plan change" }],
@@ -131,7 +134,7 @@ describe("dashboard action cards (owner next-best-actions)", () => {
   it("omits a quotes-expiring card when nothing expires within three days", async () => {
     const cards = await fetchCards({
       proposals: [
-        { id: 5, title: "Leisurely quote", clientName: "Dana", validUntil: "2026-10-01", total: "900", sentAt: new Date() },
+        { id: 5, title: "Leisurely quote", clientName: "Dana", validUntil: farDate(), total: "900", sentAt: new Date() },
       ],
     });
     expect(cards.map(c => c.id)).not.toContain("quotes_expiring");

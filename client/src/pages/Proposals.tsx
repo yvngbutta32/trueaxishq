@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { BookOpen, Search } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,13 +26,16 @@ const STATUS_ICONS: Record<string, any> = {
 };
 
 type LineItem = { id: string; name: string; description: string; qty: number; unitPrice: number; total: number };
-type PackageOption = { id: string; name: string; description: string; lineItems: LineItem[] };
+type PackageOption = { id: string; name: string; description: string; recommended?: boolean; lineItems: LineItem[] };
 type ProposalForm = {
   clientName: string; clientEmail: string; title: string; scope: string;
   lineItems: LineItem[]; packageOptions: PackageOption[]; taxRate: string; currency: string; validUntil: string; notes: string;
 };
 
 const newLineItem = (): LineItem => ({ id: crypto.randomUUID(), name: "", description: "", qty: 1, unitPrice: 0, total: 0 });
+type PriceBookUnit = "job" | "hour" | "day" | "sq_ft" | "linear_ft" | "each" | "month" | "visit";
+const PRICE_BOOK_UNITS: PriceBookUnit[] = ["job", "hour", "day", "sq_ft", "linear_ft", "each", "month", "visit"];
+
 const newPackageOption = (name = ""): PackageOption => ({ id: crypto.randomUUID(), name, description: "", lineItems: [newLineItem()] });
 const EMPTY_FORM: ProposalForm = {
   clientName: "", clientEmail: "", title: "", scope: "", lineItems: [newLineItem()], packageOptions: [],
@@ -41,6 +45,18 @@ const EMPTY_FORM: ProposalForm = {
 export default function Proposals() {
   const utils = trpc.useUtils();
   const { data: proposalList = [], isLoading } = trpc.proposals.list.useQuery();
+  const [priceBookOpen, setPriceBookOpen] = useState(false);
+  const [priceBookSearch, setPriceBookSearch] = useState("");
+  const [newPriceItem, setNewPriceItem] = useState<{ name: string; category: string; unit: PriceBookUnit; unitPrice: string }>({ name: "", category: "service", unit: "job", unitPrice: "" });
+  const { data: priceBookItems = [], refetch: refetchPriceBook } = trpc.priceBook.list.useQuery(undefined, { enabled: priceBookOpen });
+  const priceBookCreateMut = trpc.priceBook.create.useMutation({
+    onSuccess: () => { setNewPriceItem({ name: "", category: "service", unit: "job", unitPrice: "" }); refetchPriceBook(); toast.success("Price book item saved."); },
+    onError: (error: any) => toast.error(error?.shape?.message ?? "Could not save the item."),
+  });
+  const priceBookRemoveMut = trpc.priceBook.remove.useMutation({
+    onSuccess: () => refetchPriceBook(),
+    onError: (error: any) => toast.error(error?.shape?.message ?? "Could not remove the item."),
+  });
   const createMut = trpc.proposals.create.useMutation({
     onSuccess: () => { utils.proposals.list.invalidate(); toast.success("Proposal created"); setOpen(false); setEditingId(null); setForm(EMPTY_FORM); },
     onError: e => toast.error(e.message),
@@ -124,6 +140,12 @@ export default function Proposals() {
   const taxAmt = subtotal * (parseFloat(form.taxRate || "0") / 100);
   const total = subtotal + taxAmt;
 
+  const insertFromPriceBook = useCallback((item: { name: string; description?: string | null; unitPrice: string }) => {
+    const price = parseFloat(String(item.unitPrice)) || 0;
+    setForm(p => ({ ...p, lineItems: [...p.lineItems, { id: crypto.randomUUID(), name: item.name, description: item.description ?? "", qty: 1, unitPrice: price, total: price }] }));
+    toast.success(`Added "${item.name}" to the proposal.`);
+  }, []);
+
   function updateLineItem(id: string, field: keyof LineItem, value: string | number) {
     setForm(p => ({
       ...p,
@@ -192,7 +214,7 @@ export default function Proposals() {
     } catch { /* use the fresh line item fallback */ }
     try {
       const parsed = JSON.parse(proposal.packageOptions || "[]");
-      if (Array.isArray(parsed)) packageOptions = parsed.map((option: Partial<PackageOption>) => ({ id: option.id || crypto.randomUUID(), name: option.name || "", description: option.description || "", lineItems: Array.isArray(option.lineItems) ? option.lineItems.map((item: Partial<LineItem>) => ({ id: item.id || crypto.randomUUID(), name: item.name || "", description: item.description || "", qty: item.qty ?? 1, unitPrice: item.unitPrice ?? 0, total: item.total ?? 0 })) : [newLineItem()] }));
+      if (Array.isArray(parsed)) packageOptions = parsed.map((option: Partial<PackageOption>) => ({ id: option.id || crypto.randomUUID(), name: option.name || "", description: option.description || "", recommended: option.recommended === true ? true : undefined, lineItems: Array.isArray(option.lineItems) ? option.lineItems.map((item: Partial<LineItem>) => ({ id: item.id || crypto.randomUUID(), name: item.name || "", description: item.description || "", qty: item.qty ?? 1, unitPrice: item.unitPrice ?? 0, total: item.total ?? 0 })) : [newLineItem()] }));
     } catch { /* no package options to edit */ }
     setForm({ clientName: proposal.clientName || "", clientEmail: proposal.clientEmail || "", title: proposal.title, scope: proposal.scope || "", lineItems, packageOptions, taxRate: String(proposal.taxRate || "0"), currency: proposal.currency || "USD", validUntil: proposal.validUntil || "", notes: proposal.notes || "" });
     setEditingId(proposal.id);
@@ -360,6 +382,50 @@ export default function Proposals() {
         </DialogContent>
       </Dialog>
 
+      {/* Price Book Dialog */}
+      <Dialog open={priceBookOpen} onOpenChange={setPriceBookOpen}>
+        <DialogContent className="bg-white border-[rgba(26,26,26,0.1)] text-[rgba(26,26,26,0.95)] max-w-xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><BookOpen className="h-4 w-4 text-[#3B82F6]" /> Price book</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs leading-5 text-[rgba(26,26,26,0.6)]">Reusable services and materials for fast, consistent quoting. Tap an item to add it to this proposal.</p>
+          <div className="relative mt-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[rgba(26,26,26,0.35)]" />
+            <Input aria-label="Search price book items" value={priceBookSearch} onChange={event => setPriceBookSearch(event.target.value)} placeholder="Search items or categories…" className="pl-9 border-[rgba(26,26,26,0.12)] text-sm" />
+          </div>
+          <div className="mt-3 space-y-2">
+            {priceBookItems
+              .filter(item => !priceBookSearch.trim() || `${item.name} ${item.category} ${item.description ?? ""}`.toLowerCase().includes(priceBookSearch.trim().toLowerCase()))
+              .map(item => (
+                <div key={item.id} className="flex items-center gap-3 rounded-xl border border-[rgba(26,26,26,0.1)] p-3">
+                  <button type="button" onClick={() => { insertFromPriceBook(item); setPriceBookOpen(false); }} className="min-w-0 flex-1 text-left" aria-label={`Add ${item.name} to the proposal`}>
+                    <p className="truncate text-sm font-semibold text-[#1A1A1A]">{item.name}</p>
+                    <p className="mt-0.5 truncate text-xs text-[rgba(26,26,26,0.55)]">{item.category} · {item.unit.replaceAll("_", " ")}{item.description ? ` · ${item.description}` : ""}</p>
+                  </button>
+                  <span className="shrink-0 text-sm font-bold text-[#1A1A1A]">${parseFloat(String(item.unitPrice)).toFixed(2)}</span>
+                  <button type="button" aria-label={`Remove ${item.name} from the price book`} onClick={() => priceBookRemoveMut.mutate({ id: item.id })} className="shrink-0 rounded p-1 text-[rgba(26,26,26,0.35)] hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+                </div>
+              ))}
+            {!priceBookItems.length && <p className="rounded-xl bg-[#F7F6F3] p-4 text-center text-sm text-[rgba(26,26,26,0.55)]">No items yet. Add your first reusable service or material below.</p>}
+          </div>
+          <div className="mt-4 rounded-xl border border-dashed border-[rgba(26,26,26,0.18)] p-3">
+            <p className="text-xs font-semibold text-[rgba(26,26,26,0.6)]">Add a new price book item</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <Input aria-label="New price book item name" value={newPriceItem.name} onChange={event => setNewPriceItem(p => ({ ...p, name: event.target.value }))} placeholder="Item name" className="border-[rgba(26,26,26,0.12)] text-sm" />
+              <Input aria-label="New price book item category" value={newPriceItem.category} onChange={event => setNewPriceItem(p => ({ ...p, category: event.target.value }))} placeholder="Category" className="border-[rgba(26,26,26,0.12)] text-sm" />
+              <div className="relative">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[rgba(26,26,26,0.4)] text-xs">$</span>
+                <Input aria-label="New price book item price" value={newPriceItem.unitPrice} onChange={event => setNewPriceItem(p => ({ ...p, unitPrice: event.target.value }))} type="number" min="0" placeholder="Price" className="pl-5 border-[rgba(26,26,26,0.12)] text-sm" />
+              </div>
+              <select aria-label="New price book item unit" value={newPriceItem.unit} onChange={event => setNewPriceItem(p => ({ ...p, unit: event.target.value as typeof newPriceItem.unit }))} className="rounded-lg border border-[rgba(26,26,26,0.12)] bg-white px-3 text-sm text-[#1A1A1A]">
+                {PRICE_BOOK_UNITS.map(unit => <option key={unit} value={unit}>{unit.replaceAll("_", " ")}</option>)}
+              </select>
+            </div>
+            <Button type="button" size="sm" disabled={!newPriceItem.name.trim() || !newPriceItem.unitPrice} onClick={() => priceBookCreateMut.mutate({ name: newPriceItem.name.trim(), category: newPriceItem.category.trim() || "service", unit: newPriceItem.unit, unitPrice: parseFloat(newPriceItem.unitPrice) || 0 })} className="mt-2 bg-[#3B82F6] text-white hover:bg-[#2563EB]">Save item</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Create Dialog */}
       <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) { setForm(EMPTY_FORM); setEditingId(null); setAiOpen(false); setAiBrief(""); } }}>
         <DialogContent className="bg-white border-[rgba(26,26,26,0.1)] text-[rgba(26,26,26,0.95)] max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -398,9 +464,14 @@ export default function Proposals() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)]">Line Items</label>
-                <button onClick={() => setForm(p => ({...p, lineItems: [...p.lineItems, newLineItem()]}))} className="text-xs text-[#3B82F6] hover:text-[#60A5FA] flex items-center gap-1 transition-colors">
-                  <Plus className="w-3 h-3" /> Add Line
-                </button>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setForm(p => ({...p, lineItems: [...p.lineItems, newLineItem()]}))} className="text-xs text-[#3B82F6] hover:text-[#60A5FA] flex items-center gap-1 transition-colors">
+                    <Plus className="w-3 h-3" /> Add Line
+                  </button>
+                  <button type="button" onClick={() => setPriceBookOpen(true)} className="text-xs text-[#3B82F6] hover:text-[#60A5FA] flex items-center gap-1 transition-colors">
+                    <BookOpen className="w-3 h-3" /> Price book
+                  </button>
+                </div>
               </div>
               <div className="space-y-2">
                 {form.lineItems.map((li, idx) => (
@@ -464,7 +535,7 @@ export default function Proposals() {
                       <Input value={option.name} onChange={event => setForm(p => ({ ...p, packageOptions: p.packageOptions.map(item => item.id === option.id ? { ...item, name: event.target.value } : item) }))} placeholder={`Option ${optionIndex + 1} name`} className="border-violet-200 text-[#1A1A1A]" />
                       <div className="flex items-center gap-2"><span className="text-sm font-semibold text-violet-950">${optionTotal.toFixed(2)}</span>{form.packageOptions.length > 2 && <button type="button" aria-label={`Remove ${option.name || `option ${optionIndex + 1}`}`} onClick={() => setForm(p => ({ ...p, packageOptions: p.packageOptions.filter(item => item.id !== option.id) }))} className="rounded p-1 text-violet-500 hover:bg-violet-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>}</div>
                     </div>
-                    <Input value={option.description} onChange={event => setForm(p => ({ ...p, packageOptions: p.packageOptions.map(item => item.id === option.id ? { ...item, description: event.target.value } : item) }))} placeholder="What makes this option distinct? (optional)" className="mt-2 border-violet-100 text-sm text-[#1A1A1A]" />
+                    <Input value={option.description} onChange={event => setForm(p => ({ ...p, packageOptions: p.packageOptions.map(item => item.id === option.id ? { ...item, description: event.target.value } : item) }))} placeholder="What makes this option distinct? (optional)" className="mt-2 border-violet-100 text-sm text-[#1A1A1A]" /><label className="mt-2 flex items-center gap-2 text-xs font-semibold text-violet-800"><input type="checkbox" checked={option.recommended === true} onChange={event => setForm(p => ({ ...p, packageOptions: p.packageOptions.map(item => item.id === option.id ? { ...item, recommended: event.target.checked || undefined } : item).map(item => event.target.checked && item.id !== option.id ? { ...item, recommended: undefined } : item) }))} className="h-4 w-4 rounded border-violet-300 text-violet-600 focus:ring-violet-400" />Mark as recommended for the client</label>
                     {option.lineItems.map(item => <div key={item.id} className="mt-2 grid grid-cols-[minmax(0,1fr)_72px_96px_auto] items-center gap-2"><Input value={item.name} onChange={event => updatePackageLineItem(option.id, item.id, "name", event.target.value)} placeholder="Included item" className="border-violet-100 text-sm text-[#1A1A1A]" /><Input type="number" min="0" value={item.qty} onChange={event => updatePackageLineItem(option.id, item.id, "qty", Number(event.target.value) || 0)} className="border-violet-100 text-sm text-[#1A1A1A]" /><Input type="number" min="0" value={item.unitPrice} onChange={event => updatePackageLineItem(option.id, item.id, "unitPrice", Number(event.target.value) || 0)} className="border-violet-100 text-sm text-[#1A1A1A]" /><span className="text-right text-xs font-semibold text-violet-900">${item.total.toFixed(2)}</span></div>)}
                     <button type="button" onClick={() => setForm(p => ({ ...p, packageOptions: p.packageOptions.map(item => item.id === option.id ? { ...item, lineItems: [...item.lineItems, newLineItem()] } : item) }))} className="mt-2 text-xs font-semibold text-violet-700 hover:text-violet-900">+ Add package item</button>
                   </div>;

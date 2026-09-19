@@ -777,6 +777,22 @@ export type Service = typeof services.$inferSelect;
 export type InsertService = typeof services.$inferInsert;
 
 // ─── Expenses ─────────────────────────────────────────────────────────────────
+export const priceBookItems = mysqlTable("priceBookItems", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: varchar("description", { length: 1024 }),
+  category: varchar("category", { length: 64 }).notNull().default("service"),
+  unit: varchar("unit", { length: 32 }).notNull().default("job"),
+  unitPrice: decimal("unitPrice", { precision: 10, scale: 2 }).notNull(),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+},
+(t) => [index("priceBookItems_userId_idx").on(t.userId)]
+);
+export type PriceBookItem = typeof priceBookItems.$inferSelect;
+
 export const expenses = mysqlTable("expenses", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),

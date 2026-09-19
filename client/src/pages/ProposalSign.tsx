@@ -2,7 +2,7 @@
  * Route: /proposal/:token
  * No auth required — accessible by the client via a secure token link
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,7 @@ export default function ProposalSign() {
   const [nextSteps, setNextSteps] = useState<{ payUrl: string | null; bookingUrl: string | null; invoiceNumber: string | null }>({ payUrl: null, bookingUrl: null, invoiceNumber: null });
   const [agreementChecked, setAgreementChecked] = useState(false);
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
+  const [recommendedPackageId, setRecommendedPackageId] = useState<string | null>(null);
   const [declineOpen, setDeclineOpen] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
   const [declined, setDeclined] = useState(false);
@@ -178,6 +179,12 @@ export default function ProposalSign() {
   let lineItems: { id: string; name: string; description?: string; qty: number; unitPrice: number; total: number }[] = [];
   try { lineItems = JSON.parse(proposal.lineItems || "[]"); } catch { lineItems = []; }
   const proposalPackages = parseProposalPackages(proposal.packageOptions);
+  useEffect(() => {
+    const recommended = proposalPackages.find(option => option.recommended === true);
+    if (!recommended) return;
+    setRecommendedPackageId(recommended.id);
+    setSelectedPackageId(current => current ?? recommended.id);
+  }, [proposal.packageOptions]);
 
   const subtotal = parseFloat(String(proposal.subtotal || "0"));
   const taxRate = parseFloat(String(proposal.taxRate || "0"));
@@ -250,7 +257,7 @@ export default function ProposalSign() {
         {proposalPackages.length > 0 && (
           <section className="rounded-2xl border border-violet-200 bg-violet-50/55 p-5">
             <div className="flex items-start gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-violet-200 bg-violet-100"><FileText className="h-4 w-4 text-violet-700" /></div><div><h2 className="text-sm font-bold uppercase tracking-wider text-violet-950">Choose your proposal option</h2><p className="mt-1 text-sm text-violet-950/70">Select one option to review and sign. Selection is recorded with your signature.</p></div></div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{proposalPackages.map(option => { const optionSubtotal = getProposalPackageSubtotal(option); const optionTax = optionSubtotal * (taxRate / 100); const optionTotal = optionSubtotal + optionTax; const selected = selectedPackageId === option.id; return <button key={option.id} type="button" onClick={() => setSelectedPackageId(option.id)} aria-pressed={selected} className={`rounded-xl border p-4 text-left transition focus:outline-none focus:ring-2 focus:ring-violet-400 ${selected ? "border-violet-500 bg-white shadow-sm" : "border-violet-200 bg-white/70 hover:border-violet-300"}`}><div className="flex items-start justify-between gap-3"><p className="font-semibold text-[#1A1A1A]">{option.name}</p><span className={`mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 ${selected ? "border-violet-600 bg-violet-600 shadow-[inset_0_0_0_2px_white]" : "border-violet-300"}`} aria-hidden="true" /></div>{option.description && <p className="mt-2 text-xs leading-5 text-[rgba(26,26,26,0.62)]">{option.description}</p>}<ul className="mt-3 space-y-1.5 border-t border-violet-100 pt-3">{option.lineItems.map(item => <li key={item.id} className="flex justify-between gap-3 text-xs text-[rgba(26,26,26,0.72)]"><span>{item.name}{item.qty > 1 ? ` × ${item.qty}` : ""}</span><span>{proposal.currency} {item.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></li>)}</ul><div className="mt-3 flex justify-between border-t border-violet-100 pt-3 text-sm font-bold text-violet-950"><span>Total{taxRate > 0 ? ` incl. ${taxRate}% tax` : ""}</span><span>{proposal.currency} {optionTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div></button>; })}</div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[...proposalPackages].map(option => ({ ...option, computedSubtotal: getProposalPackageSubtotal(option) })).sort((a, b) => a.computedSubtotal - b.computedSubtotal).map((option, index, sorted) => { const optionSubtotal = option.computedSubtotal; const optionTax = optionSubtotal * (taxRate / 100); const optionTotal = optionSubtotal + optionTax; const selected = selectedPackageId === option.id; const recommended = option.recommended === true; const tierLabel = sorted.length >= 2 ? (index === 0 ? "Good" : index === sorted.length - 1 ? "Best" : "Better") : null; return <button key={option.id} type="button" onClick={() => setSelectedPackageId(option.id)} aria-pressed={selected} aria-label={`${option.name}${tierLabel ? `, ${tierLabel} option` : ""}${recommended ? ", recommended" : ""}`} className={`relative rounded-xl border p-4 text-left transition focus:outline-none focus:ring-2 focus:ring-violet-400 ${selected ? "border-violet-500 bg-white shadow-md" : recommended ? "border-violet-300 bg-white/80 hover:border-violet-400" : "border-violet-200 bg-white/70 hover:border-violet-300"}`}><div className="flex items-center gap-2">{tierLabel && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-700">{tierLabel}</span>}{recommended && <span className="rounded-full bg-[#D4922A] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Recommended</span>}</div><div className="mt-2 flex items-start justify-between gap-3"><p className="font-semibold text-[#1A1A1A]">{option.name}</p><span className={`mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 ${selected ? "border-violet-600 bg-violet-600 shadow-[inset_0_0_0_2px_white]" : "border-violet-300"}`} aria-hidden="true" /></div>{option.description && <p className="mt-2 text-xs leading-5 text-[rgba(26,26,26,0.62)]">{option.description}</p>}<ul className="mt-3 space-y-1.5 border-t border-violet-100 pt-3">{option.lineItems.map(item => <li key={item.id} className="flex justify-between gap-3 text-xs text-[rgba(26,26,26,0.72)]"><span>{item.name}{item.qty > 1 ? ` × ${item.qty}` : ""}</span><span>{proposal.currency} {item.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></li>)}</ul><div className="mt-3 flex justify-between border-t border-violet-100 pt-3 text-sm font-bold text-violet-950"><span>Total{taxRate > 0 ? ` incl. ${taxRate}% tax` : ""}</span><span>{proposal.currency} {optionTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div></button>; })}</div>
           </section>
         )}
 

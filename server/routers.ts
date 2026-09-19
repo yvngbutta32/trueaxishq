@@ -21,7 +21,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -133,6 +133,7 @@ const proposalPackageSchema = z.object({
   id: z.string().min(1).max(64),
   name: safeString(255),
   description: safeOptionalString(1000),
+  recommended: z.boolean().optional(),
   lineItems: z.array(proposalLineItemSchema).min(1).max(25),
 });
 
@@ -4762,6 +4763,72 @@ Only include actions when you have actually generated a complete draft. For gene
   }),
 
   // ── Client Tags ───────────────────────────────────────────────────────────────
+  priceBook: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(priceBookItems)
+        .where(eq(priceBookItems.userId, ctx.user.id))
+        .orderBy(priceBookItems.category, priceBookItems.name);
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().trim().min(1).max(255),
+        description: z.string().trim().max(1024).optional(),
+        category: z.string().trim().min(1).max(64).default("service"),
+        unit: z.enum(["job", "hour", "day", "sq_ft", "linear_ft", "each", "month", "visit"]).default("job"),
+        unitPrice: z.number().min(0).max(10_000_000),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [row] = await db.insert(priceBookItems).values({
+          userId: ctx.user.id,
+          name: input.name,
+          description: input.description,
+          category: input.category,
+          unit: input.unit,
+          unitPrice: input.unitPrice.toFixed(2),
+        });
+        return { id: row.insertId };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        name: z.string().trim().min(1).max(255).optional(),
+        description: z.string().trim().max(1024).nullable(),
+        category: z.string().trim().min(1).max(64).optional(),
+        unit: z.enum(["job", "hour", "day", "sq_ft", "linear_ft", "each", "month", "visit"]).optional(),
+        unitPrice: z.number().min(0).max(10_000_000).optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const updates: Record<string, unknown> = {};
+        if (input.name !== undefined) updates.name = input.name;
+        if (input.description !== undefined) updates.description = input.description ?? null;
+        if (input.category !== undefined) updates.category = input.category;
+        if (input.unit !== undefined) updates.unit = input.unit;
+        if (input.unitPrice !== undefined) updates.unitPrice = input.unitPrice.toFixed(2);
+        if (input.active !== undefined) updates.active = input.active;
+        if (!Object.keys(updates).length) throw new TRPCError({ code: "BAD_REQUEST", message: "No changes provided." });
+        const result = await db.update(priceBookItems).set(updates)
+          .where(and(eq(priceBookItems.id, input.id), eq(priceBookItems.userId, ctx.user.id)));
+        if (!result[0]?.affectedRows) throw new TRPCError({ code: "NOT_FOUND" });
+        return { ok: true };
+      }),
+
+    remove: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const result = await db.delete(priceBookItems)
+          .where(and(eq(priceBookItems.id, input.id), eq(priceBookItems.userId, ctx.user.id)));
+        if (!result[0]?.affectedRows) throw new TRPCError({ code: "NOT_FOUND" });
+        return { ok: true };
+      }),
+  }),
+
   tags: router({
     listForClient: protectedProcedure
       .input(z.object({ clientId: z.number().int().positive() }))

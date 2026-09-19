@@ -11,6 +11,7 @@ export type ProposalPackage = {
   id: string;
   name: string;
   description?: string;
+  recommended?: boolean;
   lineItems: ProposalPackageLineItem[];
 };
 
@@ -39,7 +40,7 @@ export function parseProposalPackages(value: string | null | undefined): Proposa
         return [{ id: line.id, name: line.name, description: typeof line.description === "string" ? line.description : undefined, qty: line.qty, unitPrice: line.unitPrice, total: 0 }];
       });
       if (lineItems.length !== candidate.lineItems.length) return [];
-      return [{ id: candidate.id, name: candidate.name, description: typeof candidate.description === "string" ? candidate.description : undefined, lineItems: normalizeProposalLineItems(lineItems) }];
+      return [{ id: candidate.id, name: candidate.name, description: typeof candidate.description === "string" ? candidate.description : undefined, recommended: candidate.recommended === true ? true : undefined, lineItems: normalizeProposalLineItems(lineItems) }];
     });
   } catch {
     return [];
