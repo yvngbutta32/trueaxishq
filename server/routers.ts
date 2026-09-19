@@ -412,7 +412,7 @@ const reportConfigSchema = z.object({
 
 import {
   parseCsv, detectSource, buildAutoMapping,
-  extractClientRow, extractServiceRow, validateClientRow, validateServiceRow,
+  extractClientRow, extractServiceRow, analyzeRows,
   normalizeEmail, normalizePhoneDigits,
   type FieldMapping, type ImportTarget, type ExtractedClientRow, type ExtractedServiceRow,
 } from "./csvImport";
@@ -462,42 +462,6 @@ function clientInsertValues(userId: number, record: ExtractedClientRow): typeof 
     pipelineStage: "inquiry",
     avatarInitials: initials || record.name.slice(0, 2).toUpperCase(),
   };
-}
-
-interface ImportAnalysis {
-  issues: { row: number; errors: string[] }[];
-  valid: { row: number; record: ExtractedClientRow | ExtractedServiceRow }[];
-}
-
-function analyzeRows(dataRows: string[][], target: ImportTarget, mapping: FieldMapping): ImportAnalysis {
-  const issues: { row: number; errors: string[] }[] = [];
-  const valid: { row: number; record: ExtractedClientRow | ExtractedServiceRow }[] = [];
-  const seen = new Set<string>();
-  for (let i = 0; i < dataRows.length; i++) {
-    const cells = dataRows[i].map(c => c.trim());
-    if (target === "clients") {
-      const record = extractClientRow(cells, mapping);
-      const errors = validateClientRow(record);
-      const key = record.email || normalizePhoneDigits(record.phone);
-      if (errors.length === 0 && key) {
-        if (seen.has(key)) errors.push("Duplicate of an earlier row in this file (same email or phone).");
-        else seen.add(key);
-      }
-      if (errors.length) issues.push({ row: i + 1, errors });
-      else valid.push({ row: i + 1, record });
-    } else {
-      const record = extractServiceRow(cells, mapping);
-      const errors = validateServiceRow(record);
-      const key = record.name.toLowerCase();
-      if (errors.length === 0) {
-        if (seen.has(key)) errors.push("Duplicate of an earlier row in this file (same name).");
-        else seen.add(key);
-      }
-      if (errors.length) issues.push({ row: i + 1, errors });
-      else valid.push({ row: i + 1, record });
-    }
-  }
-  return { issues, valid };
 }
 
 export const appRouter = router({

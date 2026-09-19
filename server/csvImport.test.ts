@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  analyzeRows,
   buildAutoMapping,
   detectSource,
   extractClientRow,
@@ -129,8 +130,55 @@ describe("row extraction and validation", () => {
 describe("normalization helpers", () => {
   it("normalizes emails and phones for dedupe matching", () => {
     expect(normalizeEmail("  JANE@X.COM ")).toBe("jane@x.com");
+    expect(normalizeEmail("jane@ example.com")).toBe("jane@example.com");
     expect(normalizePhoneDigits("(512) 555-0100")).toBe("5125550100");
     expect(looksLikeEmail("jane@x.com")).toBe(true);
     expect(looksLikeEmail("jane@x")).toBe(false);
+  });
+});
+
+describe("full import pipeline (parse → detect → map → analyze)", () => {
+  it("handles a realistic Jobber export end to end, with honest row numbering", () => {
+    const csv = [
+      "First Name,Last Name,Company Name,Email,Cell Phone,Service,Notes",
+      'Jane,Ortiz,,"jane@ EXAMPLE.com ",(512) 555-0100,Mowing,Referral',
+      "Marcus,Chen,Chen & Sons Landscaping,marcus@example.com,512-555-0199,Design,Spring start",
+      "Bad,Row,,not-an-email,,,", // invalid email -> issue
+      "Jane,Ortiz,,JANE@example.com,,,", // in-batch duplicate of row 1 by email
+      "Solo Person,,,,512-555-0177,,", // valid: name, phone key only
+    ].join("\n");
+
+    const rows = parseCsv(csv);
+    const headers = rows[0].map(h => h.trim());
+    const detection = detectSource(headers);
+    expect(detection.source).toBe("jobber");
+
+    const mapping = buildAutoMapping(headers, "clients");
+    const analysis = analyzeRows(rows.slice(1), "clients", mapping);
+
+    expect(analysis.valid.map(v => (v.record as Extract<ReturnType<typeof extractClientRow>, { name: string }>).name))
+      .toEqual(["Jane Ortiz", "Marcus Chen", "Solo Person"]);
+    expect(analysis.valid[0].row).toBe(1); // 1-based against data rows
+    expect(analysis.issues.map(i => i.row)).toEqual([3, 4]);
+    expect(analysis.issues[0].errors[0]).toContain("valid email");
+    expect(analysis.issues[1].errors[0]).toContain("Duplicate of an earlier row");
+    // Row 1's email was normalized before dedupe caught row 4.
+    expect(analysis.valid[0].record.email).toBe("jane@example.com");
+  });
+
+  it("dedupes a services export by name and flags missing prices", () => {
+    const csv = [
+      "Service Name,Description,Price,Unit,Category",
+      "Weekly Mow,Front and back,$45.00,job,Lawn",
+      "Weekly Mow,,$45.00,job,Lawn", // duplicate name
+      "Cleanup,,Freeform,job,Lawn", // invalid price
+    ].join("\n");
+    const rows = parseCsv(csv);
+    const mapping = buildAutoMapping(rows[0], "services");
+    const analysis = analyzeRows(rows.slice(1), "services", mapping);
+    expect(analysis.valid).toHaveLength(1);
+    expect(analysis.valid[0].record.name).toBe("Weekly Mow");
+    expect(analysis.issues.map(i => i.row)).toEqual([2, 3]);
+    expect(analysis.issues[1].errors[0]).toContain("price");
   });
 });

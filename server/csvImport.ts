@@ -157,7 +157,8 @@ export function buildAutoMapping(headers: string[], target: ImportTarget): Field
   return mapping;
 }
 
-export const normalizeEmail = (raw: string | undefined): string => (raw ?? "").trim().toLowerCase();
+/** Emails cannot legally contain whitespace; strip artifacts from spreadsheet exports. */
+export const normalizeEmail = (raw: string | undefined): string => (raw ?? "").replace(/\s+/g, "").toLowerCase();
 export const normalizePhoneDigits = (raw: string | undefined): string => (raw ?? "").replace(/\D/g, "");
 export const looksLikeEmail = (raw: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(raw.trim());
 
@@ -167,7 +168,10 @@ export interface ExtractedServiceRow { name: string; description: string | null;
 export function extractClientRow(cells: string[], mapping: FieldMapping): ExtractedClientRow {
   const at = (idx: number | undefined) => (idx === undefined ? "" : (cells[idx] ?? "")).trim();
   const first = at(mapping.firstName), last = at(mapping.lastName);
-  const name = at(mapping.name) || at(mapping.company) || [first, last].filter(Boolean).join(" ") || first;
+  // Person-first: when a row has both a person and a company, the person is the client
+  // (their name drives personalized email, portal, and follow-ups). Company is the
+  // fallback for records that only have one.
+  const name = at(mapping.name) || [first, last].filter(Boolean).join(" ") || at(mapping.company);
   const phone = at(mapping.phone) || at(mapping.phoneAlt);
   return {
     name,
@@ -211,4 +215,47 @@ export function validateServiceRow(row: ExtractedServiceRow): string[] {
   if (row.price === "" || Number.isNaN(Number(row.price)) || Number(row.price) < 0) errors.push("Missing or invalid price.");
   if (Number(row.price) > 99_999_999.99) errors.push("Price exceeds the supported range.");
   return errors;
+}
+
+export interface ImportIssue { row: number; errors: string[] }
+export interface ImportAnalysis {
+  issues: ImportIssue[];
+  valid: { row: number; record: ExtractedClientRow | ExtractedServiceRow }[];
+}
+
+/**
+ * Full validation pipeline: extract and validate every row, dedupe within
+ * the file (clients by email-or-phone digits, services by name), and return
+ * the rows that are safe to import. Row numbers are 1-based against the
+ * data rows (excluding the header), matching what the wizard shows.
+ */
+export function analyzeRows(dataRows: string[][], target: ImportTarget, mapping: FieldMapping): ImportAnalysis {
+  const issues: ImportIssue[] = [];
+  const valid: { row: number; record: ExtractedClientRow | ExtractedServiceRow }[] = [];
+  const seen = new Set<string>();
+  for (let i = 0; i < dataRows.length; i++) {
+    const cells = dataRows[i].map(c => c.trim());
+    if (target === "clients") {
+      const record = extractClientRow(cells, mapping);
+      const errors = validateClientRow(record);
+      const key = record.email || normalizePhoneDigits(record.phone);
+      if (errors.length === 0 && key) {
+        if (seen.has(key)) errors.push("Duplicate of an earlier row in this file (same email or phone).");
+        else seen.add(key);
+      }
+      if (errors.length) issues.push({ row: i + 1, errors });
+      else valid.push({ row: i + 1, record });
+    } else {
+      const record = extractServiceRow(cells, mapping);
+      const errors = validateServiceRow(record);
+      if (errors.length === 0) {
+        const key = record.name.toLowerCase();
+        if (seen.has(key)) errors.push("Duplicate of an earlier row in this file (same name).");
+        else seen.add(key);
+      }
+      if (errors.length) issues.push({ row: i + 1, errors });
+      else valid.push({ row: i + 1, record });
+    }
+  }
+  return { issues, valid };
 }
