@@ -66,7 +66,7 @@ From cross-vendor review analysis, no platform has solved:
 2. Live customer tracking link with map + ETA ("Uber-style") on job status change.
 3. Tap-to-Pay card-present + ACH payments; consumer financing options on proposals.
 4. Native QuickBooks Online bi-directional sync (ServiceM8's most-praised integration).
-5. Good/Better/Best multi-option quoting with visual price book (HCP/ST's highest-converting sales feature).
+5. ~~Good/Better/Best multi-option quoting with visual price book~~ **SHIPPED Sept 19 2026 (9684fc9):** tier labels + Recommended badge + pre-selection on client proposals, owner recommended toggle, owner price book CRUD + searchable quick-insert in proposal builder. Quoting section score now 10.
 6. Native iOS/Android apps (app store presence, push notifications, background GPS).
 
 ### Tier 2 — Market-differentiating superiority
