@@ -7,6 +7,12 @@ import { trpc } from "@/lib/trpc";
  * mandatory dry-run before anything is written. */
 
 type Step = "target" | "paste" | "review" | "results";
+const STEP_ORDER: [Step, string][] = [
+  ["target", "What to import"],
+  ["paste", "Add your file"],
+  ["review", "Check the mapping"],
+  ["results", "Done"],
+];
 type Target = "clients" | "services";
 type DuplicateMode = "skip" | "update" | "create";
 
@@ -106,9 +112,10 @@ export default function ImportPanel() {
 
       {/* Step indicator */}
       <ol className="flex flex-wrap gap-2 text-xs font-semibold">
-        {([["target", "What to import"], ["paste", "Add your file"], ["review", "Check the mapping"], ["results", "Done"]] as [Step, string][]).map(([id, label], i) => {
-          const reached = [step].flat().indexOf(id) !== -1 || (step === "results" && id === "review");
-          const active = step === id || (step === "review" && id === "paste");
+        {STEP_ORDER.map(([id, label], i) => {
+          const stepIndex = STEP_ORDER.findIndex(([id2]) => id2 === step);
+          const reached = i <= stepIndex;
+          const active = step === id;
           return (
             <li key={id} className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 ${active ? "bg-[#D4922A] text-white" : reached ? "bg-[#EDE9E1] text-[#1A1A1A]" : "bg-slate-100 text-slate-400"}`}>
               <span className={active ? "" : reached ? "text-[#D4922A]" : ""}>{i + 1}.</span> {label}
