@@ -22,7 +22,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     description:
       "Sign in with a one-time 6-digit texted code instead of a password — offered only once your Twilio account is connected. Codes are hashed at rest, expire in 10 minutes, allow at most 5 wrong attempts, and never bypass two-factor authentication. Asking for a code on an unknown number returns the same response as a real one, so nobody can probe which phones belong to accounts.",
     tag: "Security",
-    commit: "PENDING",
+    commit: "ffb58e5",
   },
 
   {
