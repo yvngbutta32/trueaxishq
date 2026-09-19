@@ -22,7 +22,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     description:
       "Clients who opt in on your booking page now get a text when the appointment is confirmed, a reminder the day before, and a follow-up after the session — sent through Twilio, with every message gated on an explicit opt-in recorded on the client record. Until you add Twilio credentials, messages log to the server console so nothing silently fails. Test your setup from Integration Hub with one tap.",
     tag: "Integrations",
-    commit: "PENDING",
+    commit: "5c62b1e",
   },
 
   {
