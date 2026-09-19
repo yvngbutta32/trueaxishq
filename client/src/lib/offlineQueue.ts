@@ -6,6 +6,8 @@
  * The module is storage-agnostic so it can be unit-tested with a plain Map.
  */
 
+export type QueuedOperationKind = "update" | "photo";
+
 export type QueuedOperation = {
   id: string;
   /** Trpc procedure path, e.g. "jobs.addUpdate". */
@@ -13,6 +15,10 @@ export type QueuedOperation = {
   payload: unknown;
   queuedAt: number;
   attempts: number;
+  /** Coarse UI category so the sync banner can say "2 updates and 1 photo".
+   * Optional for backwards compatibility with queues persisted by older
+   * builds, which load as plain updates. */
+  kind?: QueuedOperationKind;
 };
 
 export type QueueStorage = {
@@ -71,6 +77,7 @@ export function enqueueOperation(
   proc: string,
   payload: unknown,
   now = Date.now(),
+  kind: QueuedOperationKind = "update",
 ): QueuedOperation[] {
   if (queue.length >= MAX_QUEUE_SIZE) queue = queue.slice(1);
   nextSequence += 1;
@@ -80,6 +87,7 @@ export function enqueueOperation(
     payload,
     queuedAt: now,
     attempts: 0,
+    kind,
   };
   return [...queue, operation];
 }
@@ -90,6 +98,17 @@ export type ReplayResult = {
   dropped: number;
   remaining: QueuedOperation[];
 };
+
+/** Pending counts per kind, for the visible sync-state banner. */
+export function countByKind(queue: QueuedOperation[]): { updates: number; photos: number } {
+  let updates = 0;
+  let photos = 0;
+  for (const operation of queue) {
+    if (operation.kind === "photo") photos += 1;
+    else updates += 1;
+  }
+  return { updates, photos };
+}
 
 /**
  * Replays queued operations one at a time, in order. An operation that fails is

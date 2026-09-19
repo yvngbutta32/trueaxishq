@@ -1,0 +1,2 @@
+ALTER TABLE `jobActivities` ADD `clientRequestId` varchar(64);--> statement-breakpoint
+ALTER TABLE `jobActivities` ADD CONSTRAINT `jobActivities_userId_clientRequestId_unique_idx` UNIQUE(`userId`,`clientRequestId`);

@@ -1074,8 +1074,11 @@ export const jobActivities = mysqlTable("jobActivities", {
   eventType: varchar("eventType", { length: 64 }).notNull(),
   message: text("message").notNull(),
   metadata: text("metadata"),
+  /** Client-generated replay id for offline sync: a retried addUpdate with the
+   * same id returns the original row instead of double-posting the update. */
+  clientRequestId: varchar("clientRequestId", { length: 64 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (t) => [index("jobActivities_userId_idx").on(t.userId), index("jobActivities_jobId_idx").on(t.jobId)]);
+}, (t) => [index("jobActivities_userId_idx").on(t.userId), index("jobActivities_jobId_idx").on(t.jobId), uniqueIndex("jobActivities_userId_clientRequestId_unique_idx").on(t.userId, t.clientRequestId)]);
 export type JobActivity = typeof jobActivities.$inferSelect;
 
 // ─── Client Deliverable Approvals ────────────────────────────────────────────

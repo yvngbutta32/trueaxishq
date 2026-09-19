@@ -8430,13 +8430,34 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       }),
 
     addUpdate: protectedProcedure
-      .input(z.object({ jobId: z.number().int().positive(), message: safeString(5000), visibleToClient: z.boolean().default(false) }))
+      .input(z.object({ jobId: z.number().int().positive(), message: safeString(5000), visibleToClient: z.boolean().default(false), clientRequestId: z.string().min(8).max(64).optional() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
         if (!job) throw new TRPCError({ code: "NOT_FOUND" });
-        const [result] = await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: input.jobId, actor: "owner", eventType: input.visibleToClient ? "client_update" : "internal_note", message: input.message, metadata: JSON.stringify({ visibleToClient: input.visibleToClient }) });
-        return { id: Number(result.insertId) };
+        // Idempotent replay: an offline client retrying the same queued update
+        // (e.g. the server committed but the response was lost) must never
+        // double-post. A clientRequestId matches the original row instead.
+        if (input.clientRequestId) {
+          const [existing] = await db.select({ id: jobActivities.id }).from(jobActivities)
+            .where(and(eq(jobActivities.userId, ctx.user.id), eq(jobActivities.clientRequestId, input.clientRequestId)))
+            .limit(1);
+          if (existing) return { id: Number(existing.id), replayed: true };
+        }
+        try {
+          const [result] = await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: input.jobId, actor: "owner", eventType: input.visibleToClient ? "client_update" : "internal_note", message: input.message, metadata: JSON.stringify({ visibleToClient: input.visibleToClient }), clientRequestId: input.clientRequestId ?? null });
+          return { id: Number(result.insertId), replayed: false };
+        } catch (error) {
+          // Concurrent replay raced past the SELECT: the unique index makes the
+          // second insert fail — return the winner's row so both callers succeed.
+          if (input.clientRequestId && error instanceof Error && /Duplicate entry/.test(error.message)) {
+            const [existing] = await db.select({ id: jobActivities.id }).from(jobActivities)
+              .where(and(eq(jobActivities.userId, ctx.user.id), eq(jobActivities.clientRequestId, input.clientRequestId)))
+              .limit(1);
+            if (existing) return { id: Number(existing.id), replayed: true };
+          }
+          throw error;
+        }
       }),
 
     createApprovalRequest: protectedProcedure
