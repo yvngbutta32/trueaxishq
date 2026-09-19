@@ -1156,6 +1156,23 @@ export const purchaseOrderItems = mysqlTable("purchaseOrderItems", {
 }, (t) => [index("purchaseOrderItems_userId_idx").on(t.userId), index("purchaseOrderItems_purchaseOrderId_idx").on(t.purchaseOrderId)]);
 export type PurchaseOrderItem = typeof purchaseOrderItems.$inferSelect;
 
+// ─── Custom report builder ────────────────────────────────────────────────────
+// Saved owner-defined reports: dataset + metric + grouping + filters. Runs are
+// computed live from the real tables — nothing is pre-aggregated, so a report
+// is always current the moment it's opened.
+export const customReports = mysqlTable("customReports", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  dataset: mysqlEnum("dataset", ["jobs", "invoices", "time_entries", "expenses", "proposals"]).notNull(),
+  metric: varchar("metric", { length: 32 }).notNull(),
+  groupBy: varchar("groupBy", { length: 32 }).notNull().default("none"),
+  filters: text("filters").notNull().default("{}"), // JSON: { status?, clientId?, category?, billable?, dateFrom?, dateTo? }
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [index("customReports_userId_idx").on(t.userId)]);
+export type CustomReport = typeof customReports.$inferSelect;
+
 export const jobActivities = mysqlTable("jobActivities", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),

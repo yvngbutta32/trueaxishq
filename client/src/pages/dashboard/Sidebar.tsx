@@ -32,7 +32,8 @@ import {
   Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
   Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload,
   Home, Crown, ArrowRight, Shield, Inbox, MessageSquare, Tag, ThumbsUp, CalendarX, Link2, Wifi, WifiOff,
-  Package, Receipt, Smartphone, Rocket, UsersRound, MapPin, PlugZap, Webhook
+  Package, Receipt, Smartphone, Rocket, UsersRound, MapPin, PlugZap, Webhook,
+  FileBarChart
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -69,6 +70,7 @@ const navGroups: { label: string; items: { icon: React.ElementType; label: strin
     items: [
       { icon: FileText,        label: "Billing",    panel: "billing"    },
       { icon: Package,         label: "Inventory",  panel: "inventory" },
+      { icon: FileBarChart,     label: "Reports",    panel: "reports"   },
     ],
   },
   {

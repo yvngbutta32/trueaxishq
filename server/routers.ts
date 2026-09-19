@@ -1,5 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { eq, desc, and, sql, inArray, or, like, isNull, gt, gte, lt, lte, ne } from "drizzle-orm";
+import { eq, desc, and, sql, inArray, or, like, isNull, isNotNull, gt, gte, lt, lte, ne, type SQL, type Column, type SQLWrapper } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
 import { createHash, randomBytes } from "node:crypto";
@@ -21,7 +21,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -297,6 +297,118 @@ const requireOwnedStockTargets = async (db: Awaited<ReturnType<typeof requireDb>
   if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "Inventory item not found." });
   if (!location) throw new TRPCError({ code: "NOT_FOUND", message: "Stock location not found." });
 };
+
+// ─── Custom report builder ──────────────────────────────────────────────────────
+// One shared shape for every dataset so the UI can render any report without
+// knowing the underlying tables.
+export type ReportConfig = {
+  dataset: "jobs" | "invoices" | "time_entries" | "expenses" | "proposals";
+  metric: string;      // count | value | hours
+  groupBy: string;     // none | status | client | month | category
+  filters: { status?: string; clientId?: number; category?: string; billable?: boolean; dateFrom?: string; dateTo?: string };
+};
+export type ReportResult = { keyLabel: string; metricLabel: string; rows: { key: string; value: number }[]; total: number };
+
+const REPORT_METRIC_LABELS: Record<string, string> = { count: "Count", value: "Total value", hours: "Hours" };
+
+type AnyColumn = Column | SQLWrapper;
+const sqlMonth = (column: AnyColumn) => sql<string>`DATE_FORMAT(${column}, '%Y-%m')`;
+
+function applyDateRange(filters: ReportConfig["filters"], column: AnyColumn) {
+  const conditions = [];
+  if (filters.dateFrom) conditions.push(gte(column, filters.dateFrom));
+  if (filters.dateTo) conditions.push(lte(column, `${filters.dateTo} 23:59:59`));
+  return conditions;
+}
+
+const runReportConfig = async (db: Awaited<ReturnType<typeof requireDb>>, userId: number, config: ReportConfig): Promise<ReportResult> => {
+  const { dataset, metric, groupBy, filters } = config;
+  if (metric !== "count" && metric !== "value" && metric !== "hours") throw new TRPCError({ code: "BAD_REQUEST", message: "Unknown metric." });
+  const sumExpr = (column: AnyColumn) => sql<string>`COALESCE(SUM(${column}), 0)`;
+  const conditions: SQL[] = [];
+
+  if (dataset === "jobs") {
+    const groupColumn = groupBy === "status" ? jobs.status : groupBy === "client" ? clients.name : groupBy === "month" ? sqlMonth(jobs.createdAt) : sql`'All jobs'`;
+    const valueExpr = metric === "count" ? sql<string>`COUNT(*)` : sumExpr(jobs.budgetAmount);
+    conditions.push(eq(jobs.userId, userId));
+    if (filters.status && ["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"].includes(filters.status)) conditions.push(eq(jobs.status, filters.status as never));
+    if (filters.clientId) conditions.push(eq(jobs.clientId, filters.clientId));
+    conditions.push(...applyDateRange(filters, jobs.createdAt));
+    const rows = await db.select({ key: sql<string>`${groupColumn}`, value: valueExpr })
+      .from(jobs).leftJoin(clients, and(eq(jobs.clientId, clients.id), eq(clients.userId, userId)))
+      .where(and(...conditions)).groupBy(groupColumn).orderBy(groupColumn);
+    const parsed = rows.map(row => ({ key: String(row.key ?? "Unassigned"), value: Number(row.value) }));
+    return { keyLabel: groupBy === "client" ? "Client" : groupBy === "status" ? "Status" : groupBy === "month" ? "Month" : "All jobs", metricLabel: metric === "count" ? "Jobs" : "Budgeted value", rows: parsed, total: parsed.reduce((sum, row) => sum + row.value, 0) };
+  }
+
+  if (dataset === "invoices") {
+    const groupColumn = groupBy === "status" ? invoices.status : groupBy === "client" ? invoices.clientName : groupBy === "month" ? sqlMonth(invoices.createdAt) : sql`'All invoices'`;
+    const valueExpr = metric === "count" ? sql<string>`COUNT(*)` : sumExpr(invoices.amount);
+    conditions.push(eq(invoices.userId, userId));
+    if (filters.status && ["draft", "sent", "paid", "overdue"].includes(filters.status)) conditions.push(eq(invoices.status, filters.status as never));
+    if (filters.clientId) conditions.push(eq(invoices.clientId, filters.clientId));
+    conditions.push(...applyDateRange(filters, invoices.createdAt));
+    const rows = await db.select({ key: sql<string>`${groupColumn}`, value: valueExpr })
+      .from(invoices).where(and(...conditions)).groupBy(groupColumn).orderBy(groupColumn);
+    const parsed = rows.map(row => ({ key: String(row.key ?? "Unknown"), value: Number(row.value) }));
+    return { keyLabel: groupBy === "client" ? "Client" : groupBy === "status" ? "Status" : groupBy === "month" ? "Month" : "All invoices", metricLabel: metric === "count" ? "Invoices" : "Invoiced amount", rows: parsed, total: parsed.reduce((sum, row) => sum + row.value, 0) };
+  }
+
+  if (dataset === "time_entries") {
+    if (metric !== "count" && metric !== "hours") throw new TRPCError({ code: "BAD_REQUEST", message: "Time reports use the count or hours metric." });
+    const groupColumn = groupBy === "client" ? timeEntries.clientName : groupBy === "month" ? sqlMonth(timeEntries.startedAt) : groupBy === "status" ? sql`IFNULL(${timeEntries.projectName}, 'Unassigned')` : sql`'All time'`;
+    const valueExpr = metric === "count" ? sql<string>`COUNT(*)` : sql<string>`COALESCE(SUM(${timeEntries.durationMinutes}), 0) / 60`;
+    conditions.push(eq(timeEntries.userId, userId));
+    // Only finished entries carry a duration; running timers are excluded from aggregates.
+    conditions.push(isNotNull(timeEntries.durationMinutes));
+    if (filters.clientId) conditions.push(eq(timeEntries.clientId, filters.clientId));
+    if (filters.billable !== undefined) conditions.push(eq(timeEntries.billable, filters.billable));
+    conditions.push(...applyDateRange(filters, timeEntries.startedAt));
+    const rows = await db.select({ key: sql<string>`${groupColumn}`, value: valueExpr })
+      .from(timeEntries).where(and(...conditions)).groupBy(groupColumn).orderBy(groupColumn);
+    const parsed = rows.map(row => ({ key: String(row.key ?? "Unknown"), value: Number(row.value) }));
+    return { keyLabel: groupBy === "client" ? "Client" : groupBy === "month" ? "Month" : groupBy === "status" ? "Project" : "All time", metricLabel: metric === "count" ? "Entries" : "Hours", rows: parsed, total: parsed.reduce((sum, row) => sum + row.value, 0) };
+  }
+
+  if (dataset === "expenses") {
+    const groupColumn = groupBy === "category" ? expenses.category : groupBy === "month" ? sql`DATE_FORMAT(${expenses.date}, '%Y-%m')` : sql`'All expenses'`;
+    const valueExpr = metric === "count" ? sql<string>`COUNT(*)` : sumExpr(expenses.amount);
+    conditions.push(eq(expenses.userId, userId));
+    if (filters.category) conditions.push(eq(expenses.category, filters.category));
+    if (filters.dateFrom) conditions.push(gte(expenses.date, filters.dateFrom));
+    if (filters.dateTo) conditions.push(lte(expenses.date, filters.dateTo));
+    const rows = await db.select({ key: sql<string>`${groupColumn}`, value: valueExpr })
+      .from(expenses).where(and(...conditions)).groupBy(groupColumn).orderBy(groupColumn);
+    const parsed = rows.map(row => ({ key: String(row.key ?? "Unknown"), value: Number(row.value) }));
+    return { keyLabel: groupBy === "category" ? "Category" : groupBy === "month" ? "Month" : "All expenses", metricLabel: metric === "count" ? "Expenses" : "Spent", rows: parsed, total: parsed.reduce((sum, row) => sum + row.value, 0) };
+  }
+
+  // proposals
+  const groupColumn = groupBy === "status" ? proposals.status : groupBy === "client" ? proposals.clientName : groupBy === "month" ? sqlMonth(proposals.createdAt) : sql`'All proposals'`;
+  const valueExpr = metric === "count" ? sql<string>`COUNT(*)` : sumExpr(proposals.total);
+  conditions.push(eq(proposals.userId, userId));
+  if (filters.status && ["draft", "sent", "viewed", "signed", "declined"].includes(filters.status)) conditions.push(eq(proposals.status, filters.status as never));
+  if (filters.clientId) conditions.push(eq(proposals.clientId, filters.clientId));
+  conditions.push(...applyDateRange(filters, proposals.createdAt));
+  const rows = await db.select({ key: sql<string>`${groupColumn}`, value: valueExpr })
+    .from(proposals).where(and(...conditions)).groupBy(groupColumn).orderBy(groupColumn);
+  const parsed = rows.map(row => ({ key: String(row.key ?? "Unknown"), value: Number(row.value) }));
+  return { keyLabel: groupBy === "client" ? "Client" : groupBy === "status" ? "Status" : groupBy === "month" ? "Month" : "All proposals", metricLabel: metric === "count" ? "Proposals" : "Proposed value", rows: parsed, total: parsed.reduce((sum, row) => sum + row.value, 0) };
+};
+
+const reportConfigSchema = z.object({
+  dataset: z.enum(["jobs", "invoices", "time_entries", "expenses", "proposals"]),
+  metric: z.enum(["count", "value", "hours"]),
+  groupBy: z.enum(["none", "status", "client", "month", "category"]).default("none"),
+  filters: z.object({
+    status: safeOptionalString(32),
+    clientId: z.number().int().positive().optional(),
+    category: safeOptionalString(64),
+    billable: z.boolean().optional(),
+    dateFrom: safeOptionalString(32),
+    dateTo: safeOptionalString(32),
+  }).default({}),
+});
 
 export const appRouter = router({
   system: systemRouter,
@@ -5014,6 +5126,70 @@ Only include actions when you have actually generated a complete draft. For gene
         await db.update(purchaseOrders).set({ status: "cancelled" }).where(and(eq(purchaseOrders.id, input.id), eq(purchaseOrders.userId, ctx.user.id)));
         return { success: true };
       }),
+  }),
+
+  // ── Custom report builder ───────────────────────────────────────────────────
+  reports: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(customReports).where(eq(customReports.userId, ctx.user.id)).orderBy(desc(customReports.updatedAt));
+    }),
+
+    create: protectedProcedure
+      .input(z.object({ name: safeString(120), config: reportConfigSchema }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [result] = await db.insert(customReports).values({
+          userId: ctx.user.id, name: input.name,
+          dataset: input.config.dataset, metric: input.config.metric, groupBy: input.config.groupBy,
+          filters: JSON.stringify(input.config.filters),
+        });
+        return { id: Number(result.insertId) };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), name: safeOptionalString(120), config: reportConfigSchema.optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [report] = await db.select().from(customReports).where(and(eq(customReports.id, input.id), eq(customReports.userId, ctx.user.id))).limit(1);
+        if (!report) throw new TRPCError({ code: "NOT_FOUND", message: "Report not found." });
+        const updates: Record<string, unknown> = {};
+        if (input.name !== undefined) updates.name = input.name;
+        if (input.config !== undefined) {
+          updates.dataset = input.config.dataset;
+          updates.metric = input.config.metric;
+          updates.groupBy = input.config.groupBy;
+          updates.filters = JSON.stringify(input.config.filters);
+        }
+        if (Object.keys(updates).length > 0) await db.update(customReports).set(updates).where(and(eq(customReports.id, input.id), eq(customReports.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(customReports).where(and(eq(customReports.id, input.id), eq(customReports.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    /** Runs a saved report. Reports are computed live — no stale snapshots. */
+    run: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [report] = await db.select().from(customReports).where(and(eq(customReports.id, input.id), eq(customReports.userId, ctx.user.id))).limit(1);
+        if (!report) throw new TRPCError({ code: "NOT_FOUND", message: "Report not found." });
+        let filters: Record<string, unknown> = {};
+        try { filters = JSON.parse(report.filters); } catch { filters = {}; }
+        const result = await runReportConfig(db, ctx.user.id, { dataset: report.dataset, metric: report.metric, groupBy: report.groupBy, filters: filters as ReportConfig["filters"] });
+        return { id: report.id, name: report.name, dataset: report.dataset, metric: report.metric, groupBy: report.groupBy, filters, ...result };
+      }),
+
+    /** Runs an unsaved configuration from the builder, so you see it before you save. */
+    preview: protectedProcedure
+      .input(z.object({ config: reportConfigSchema }))
+      .query(async ({ ctx, input }) => await runReportConfig(await requireDb(), ctx.user.id, input.config as ReportConfig)),
   }),
 
   priceBook: router({
