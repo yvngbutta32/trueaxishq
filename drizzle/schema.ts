@@ -1085,6 +1085,77 @@ export const jobPhases = mysqlTable("jobPhases", {
 }, (t) => [index("jobPhases_userId_idx").on(t.userId), index("jobPhases_jobId_idx").on(t.jobId), index("jobPhases_user_job_position_idx").on(t.userId, t.jobId, t.position)]);
 export type JobPhase = typeof jobPhases.$inferSelect;
 
+// ─── Inventory & Purchase Orders (truck-level tracking) ──────────────────────
+// Stock is a movement ledger (receive/consume/adjust) so every quantity change
+// is auditable; on-hand is derived, never overwritten in place.
+export const inventoryItems = mysqlTable("inventoryItems", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  sku: varchar("sku", { length: 64 }),
+  unit: varchar("unit", { length: 16 }).notNull().default("each"),
+  unitCost: decimal("unitCost", { precision: 12, scale: 2 }).notNull().default("0"),
+  unitPrice: decimal("unitPrice", { precision: 12, scale: 2 }).notNull().default("0"),
+  reorderPoint: decimal("reorderPoint", { precision: 12, scale: 2 }).notNull().default("0"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [index("inventoryItems_userId_idx").on(t.userId), uniqueIndex("inventoryItems_userId_sku_unique_idx").on(t.userId, t.sku)]);
+export type InventoryItem = typeof inventoryItems.$inferSelect;
+
+export const inventoryLocations = mysqlTable("inventoryLocations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  type: mysqlEnum("type", ["warehouse", "truck"]).notNull().default("warehouse"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [index("inventoryLocations_userId_idx").on(t.userId), uniqueIndex("inventoryLocations_userId_name_unique_idx").on(t.userId, t.name)]);
+export type InventoryLocation = typeof inventoryLocations.$inferSelect;
+
+export const inventoryMovements = mysqlTable("inventoryMovements", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  itemId: int("itemId").notNull(),
+  locationId: int("locationId").notNull(),
+  jobId: int("jobId"),
+  purchaseOrderId: int("purchaseOrderId"),
+  type: mysqlEnum("type", ["receive", "consume", "adjust"]).notNull(),
+  quantity: decimal("quantity", { precision: 12, scale: 2 }).notNull(),
+  note: varchar("note", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [index("inventoryMovements_userId_idx").on(t.userId), index("inventoryMovements_itemId_idx").on(t.itemId), index("inventoryMovements_locationId_idx").on(t.locationId), index("inventoryMovements_jobId_idx").on(t.jobId), index("inventoryMovements_purchaseOrderId_idx").on(t.purchaseOrderId)]);
+export type InventoryMovement = typeof inventoryMovements.$inferSelect;
+
+export const purchaseOrders = mysqlTable("purchaseOrders", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  poNumber: varchar("poNumber", { length: 64 }).notNull(),
+  supplierName: varchar("supplierName", { length: 255 }).notNull(),
+  locationId: int("locationId").notNull(),
+  status: mysqlEnum("status", ["draft", "ordered", "received", "cancelled"]).notNull().default("draft"),
+  expectedDate: varchar("expectedDate", { length: 32 }),
+  notes: text("notes"),
+  totalAmount: decimal("totalAmount", { precision: 12, scale: 2 }).notNull().default("0"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [index("purchaseOrders_userId_idx").on(t.userId), uniqueIndex("purchaseOrders_userId_poNumber_unique_idx").on(t.userId, t.poNumber), index("purchaseOrders_locationId_idx").on(t.locationId)]);
+export type PurchaseOrder = typeof purchaseOrders.$inferSelect;
+
+export const purchaseOrderItems = mysqlTable("purchaseOrderItems", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  purchaseOrderId: int("purchaseOrderId").notNull(),
+  inventoryItemId: int("inventoryItemId"),
+  description: varchar("description", { length: 255 }).notNull(),
+  quantity: decimal("quantity", { precision: 12, scale: 2 }).notNull(),
+  unitCost: decimal("unitCost", { precision: 12, scale: 2 }).notNull().default("0"),
+  receivedQuantity: decimal("receivedQuantity", { precision: 12, scale: 2 }).notNull().default("0"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [index("purchaseOrderItems_userId_idx").on(t.userId), index("purchaseOrderItems_purchaseOrderId_idx").on(t.purchaseOrderId)]);
+export type PurchaseOrderItem = typeof purchaseOrderItems.$inferSelect;
+
 export const jobActivities = mysqlTable("jobActivities", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),

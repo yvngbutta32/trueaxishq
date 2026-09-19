@@ -21,7 +21,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -286,6 +286,17 @@ async function verifyTwoFactor(db: Awaited<ReturnType<typeof requireDb>>, userId
   await db.update(twoFactorBackupCodes).set({ usedAt: new Date() }).where(eq(twoFactorBackupCodes.id, match.id));
   return true;
 }
+
+// Validates that a stock movement's item and location both belong to the
+// caller before any ledger entry is written.
+const requireOwnedStockTargets = async (db: Awaited<ReturnType<typeof requireDb>>, userId: number, itemId: number, locationId: number) => {
+  const [[item], [location]] = await Promise.all([
+    db.select({ id: inventoryItems.id }).from(inventoryItems).where(and(eq(inventoryItems.id, itemId), eq(inventoryItems.userId, userId))).limit(1),
+    db.select({ id: inventoryLocations.id }).from(inventoryLocations).where(and(eq(inventoryLocations.id, locationId), eq(inventoryLocations.userId, userId))).limit(1),
+  ]);
+  if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "Inventory item not found." });
+  if (!location) throw new TRPCError({ code: "NOT_FOUND", message: "Stock location not found." });
+};
 
 export const appRouter = router({
   system: systemRouter,
@@ -4762,7 +4773,249 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
   }),
 
-  // ── Client Tags ───────────────────────────────────────────────────────────────
+  // ── Inventory & Purchase Orders (truck-level tracking) ───────────────────────
+  inventory: router({
+    listItems: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [items, totals] = await Promise.all([
+        db.select().from(inventoryItems).where(eq(inventoryItems.userId, ctx.user.id)).orderBy(inventoryItems.name),
+        db.select({ itemId: inventoryMovements.itemId, total: sql<string>`COALESCE(SUM(${inventoryMovements.quantity}), 0)` })
+          .from(inventoryMovements).where(eq(inventoryMovements.userId, ctx.user.id)).groupBy(inventoryMovements.itemId),
+      ]);
+      const onHand = new Map(totals.map(row => [row.itemId, Number(row.total)]));
+      return items.map(item => ({ ...item, totalOnHand: onHand.get(item.id) ?? 0, lowStock: Number(item.reorderPoint) > 0 && (onHand.get(item.id) ?? 0) <= Number(item.reorderPoint) }));
+    }),
+
+    itemStock: protectedProcedure
+      .input(z.object({ itemId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const rows = await db.select({ locationId: inventoryMovements.locationId, onHand: sql<string>`COALESCE(SUM(${inventoryMovements.quantity}), 0)` })
+          .from(inventoryMovements).where(and(eq(inventoryMovements.userId, ctx.user.id), eq(inventoryMovements.itemId, input.itemId)))
+          .groupBy(inventoryMovements.locationId);
+        const locations = await db.select().from(inventoryLocations).where(eq(inventoryLocations.userId, ctx.user.id));
+        const locationMap = new Map(locations.map(location => [location.id, location]));
+        return rows.map(row => ({ locationId: row.locationId, locationName: locationMap.get(row.locationId)?.name ?? "Unknown", locationType: locationMap.get(row.locationId)?.type ?? "warehouse", onHand: Number(row.onHand) }))
+          .filter(row => locationMap.has(row.locationId));
+      }),
+
+    listMovements: protectedProcedure
+      .input(z.object({ itemId: z.number().int().positive().optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const filters = [eq(inventoryMovements.userId, ctx.user.id)];
+        if (input?.itemId) filters.push(eq(inventoryMovements.itemId, input.itemId));
+        return db.select({
+          id: inventoryMovements.id, type: inventoryMovements.type, quantity: inventoryMovements.quantity,
+          note: inventoryMovements.note, createdAt: inventoryMovements.createdAt,
+          itemName: inventoryItems.name, locationName: inventoryLocations.name, locationType: inventoryLocations.type,
+        }).from(inventoryMovements)
+          .innerJoin(inventoryItems, and(eq(inventoryMovements.itemId, inventoryItems.id), eq(inventoryItems.userId, ctx.user.id)))
+          .innerJoin(inventoryLocations, and(eq(inventoryMovements.locationId, inventoryLocations.id), eq(inventoryLocations.userId, ctx.user.id)))
+          .where(and(...filters)).orderBy(desc(inventoryMovements.createdAt)).limit(100);
+      }),
+
+    createItem: protectedProcedure
+      .input(z.object({ name: safeString(255), sku: safeOptionalString(64), unit: safeOptionalString(16), unitCost: z.number().min(0).max(1_000_000).default(0), unitPrice: z.number().min(0).max(1_000_000).default(0), reorderPoint: z.number().min(0).max(1_000_000).default(0) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        try {
+          const [result] = await db.insert(inventoryItems).values({ userId: ctx.user.id, name: input.name, sku: input.sku || null, unit: input.unit || "each", unitCost: String(input.unitCost), unitPrice: String(input.unitPrice), reorderPoint: String(input.reorderPoint) });
+          return { id: Number(result.insertId) };
+        } catch (error) {
+          if (error instanceof Error && /Duplicate entry/.test(error.message)) throw new TRPCError({ code: "BAD_REQUEST", message: "An item with that SKU already exists." });
+          throw error;
+        }
+      }),
+
+    updateItem: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), name: safeOptionalString(255), sku: safeOptionalString(64), unit: safeOptionalString(16), unitCost: z.number().min(0).max(1_000_000).optional(), unitPrice: z.number().min(0).max(1_000_000).optional(), reorderPoint: z.number().min(0).max(1_000_000).optional(), active: z.boolean().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const updates: Record<string, unknown> = {};
+        if (input.name !== undefined) updates.name = input.name;
+        if (input.sku !== undefined) updates.sku = input.sku || null;
+        if (input.unit !== undefined) updates.unit = input.unit || "each";
+        if (input.unitCost !== undefined) updates.unitCost = String(input.unitCost);
+        if (input.unitPrice !== undefined) updates.unitPrice = String(input.unitPrice);
+        if (input.reorderPoint !== undefined) updates.reorderPoint = String(input.reorderPoint);
+        if (input.active !== undefined) updates.active = input.active;
+        if (Object.keys(updates).length > 0) {
+          try {
+            await db.update(inventoryItems).set(updates).where(and(eq(inventoryItems.id, input.id), eq(inventoryItems.userId, ctx.user.id)));
+          } catch (error) {
+            if (error instanceof Error && /Duplicate entry/.test(error.message)) throw new TRPCError({ code: "BAD_REQUEST", message: "An item with that SKU already exists." });
+            throw error;
+          }
+        }
+        return { success: true };
+      }),
+
+    listLocations: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select().from(inventoryLocations).where(eq(inventoryLocations.userId, ctx.user.id)).orderBy(inventoryLocations.type, inventoryLocations.name);
+    }),
+
+    createLocation: protectedProcedure
+      .input(z.object({ name: safeString(100), type: z.enum(["warehouse", "truck"]).default("warehouse") }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        try {
+          const [result] = await db.insert(inventoryLocations).values({ userId: ctx.user.id, name: input.name, type: input.type });
+          return { id: Number(result.insertId) };
+        } catch (error) {
+          if (error instanceof Error && /Duplicate entry/.test(error.message)) throw new TRPCError({ code: "BAD_REQUEST", message: "A location with that name already exists." });
+          throw error;
+        }
+      }),
+
+    updateLocation: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), name: safeOptionalString(100), active: z.boolean().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const updates: Record<string, unknown> = {};
+        if (input.name !== undefined) updates.name = input.name;
+        if (input.active !== undefined) updates.active = input.active;
+        if (Object.keys(updates).length > 0) {
+          try {
+            await db.update(inventoryLocations).set(updates).where(and(eq(inventoryLocations.id, input.id), eq(inventoryLocations.userId, ctx.user.id)));
+          } catch (error) {
+            if (error instanceof Error && /Duplicate entry/.test(error.message)) throw new TRPCError({ code: "BAD_REQUEST", message: "A location with that name already exists." });
+            throw error;
+          }
+        }
+        return { success: true };
+      }),
+
+    receiveStock: protectedProcedure
+      .input(z.object({ itemId: z.number().int().positive(), locationId: z.number().int().positive(), quantity: z.number().positive().max(1_000_000), unitCost: z.number().min(0).max(1_000_000).optional(), note: safeOptionalString(255) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await requireOwnedStockTargets(db, ctx.user.id, input.itemId, input.locationId);
+        await db.insert(inventoryMovements).values({ userId: ctx.user.id, itemId: input.itemId, locationId: input.locationId, type: "receive", quantity: String(input.quantity), note: input.note || null });
+        if (input.unitCost !== undefined) await db.update(inventoryItems).set({ unitCost: String(input.unitCost) }).where(and(eq(inventoryItems.id, input.itemId), eq(inventoryItems.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    adjustStock: protectedProcedure
+      .input(z.object({ itemId: z.number().int().positive(), locationId: z.number().int().positive(), quantity: z.number().min(-1_000_000).max(1_000_000).refine(value => value !== 0, "An adjustment must change the quantity."), note: safeString(255) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await requireOwnedStockTargets(db, ctx.user.id, input.itemId, input.locationId);
+        await db.insert(inventoryMovements).values({ userId: ctx.user.id, itemId: input.itemId, locationId: input.locationId, type: "adjust", quantity: String(input.quantity), note: input.note });
+        return { success: true };
+      }),
+
+    consumeForJob: protectedProcedure
+      .input(z.object({ itemId: z.number().int().positive(), locationId: z.number().int().positive(), jobId: z.number().int().positive(), quantity: z.number().positive().max(1_000_000) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        const [item] = await db.select({ name: inventoryItems.name }).from(inventoryItems).where(and(eq(inventoryItems.id, input.itemId), eq(inventoryItems.userId, ctx.user.id))).limit(1);
+        if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "Inventory item not found." });
+        const [location] = await db.select({ id: inventoryLocations.id }).from(inventoryLocations).where(and(eq(inventoryLocations.id, input.locationId), eq(inventoryLocations.userId, ctx.user.id))).limit(1);
+        if (!location) throw new TRPCError({ code: "NOT_FOUND", message: "Stock location not found." });
+        await db.insert(inventoryMovements).values({ userId: ctx.user.id, itemId: input.itemId, locationId: input.locationId, jobId: input.jobId, type: "consume", quantity: String(-input.quantity), note: `Used on job #${input.jobId}` });
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: input.jobId, actor: "owner", eventType: "material_used", message: `Material used from stock: ${input.quantity} ${item.name}.` });
+        return { success: true };
+      }),
+
+    listPurchaseOrders: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [orders, lines, locations] = await Promise.all([
+        db.select().from(purchaseOrders).where(eq(purchaseOrders.userId, ctx.user.id)).orderBy(desc(purchaseOrders.createdAt)).limit(100),
+        db.select().from(purchaseOrderItems).where(eq(purchaseOrderItems.userId, ctx.user.id)),
+        db.select().from(inventoryLocations).where(eq(inventoryLocations.userId, ctx.user.id)),
+      ]);
+      const locationMap = new Map(locations.map(location => [location.id, location.name]));
+      return orders.map(order => ({ ...order, locationName: locationMap.get(order.locationId) ?? "Unknown", items: lines.filter(line => line.purchaseOrderId === order.id) }));
+    }),
+
+    createPurchaseOrder: protectedProcedure
+      .input(z.object({ supplierName: safeString(255), locationId: z.number().int().positive(), expectedDate: safeOptionalString(32), notes: safeOptionalString(2000), items: z.array(z.object({ inventoryItemId: z.number().int().positive().optional(), description: safeString(255), quantity: z.number().positive().max(1_000_000), unitCost: z.number().min(0).max(1_000_000).default(0) })).min(1).max(50) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [location] = await db.select({ id: inventoryLocations.id }).from(inventoryLocations).where(and(eq(inventoryLocations.id, input.locationId), eq(inventoryLocations.userId, ctx.user.id))).limit(1);
+        if (!location) throw new TRPCError({ code: "NOT_FOUND", message: "Receive-to location not found." });
+        const existing = await db.select({ id: purchaseOrders.id }).from(purchaseOrders).where(eq(purchaseOrders.userId, ctx.user.id));
+        const poNumber = `PO-${String(existing.length + 1).padStart(4, "0")}`;
+        const total = input.items.reduce((sum, line) => sum + line.quantity * line.unitCost, 0);
+        const values = { userId: ctx.user.id, supplierName: input.supplierName, locationId: input.locationId, expectedDate: input.expectedDate || null, notes: input.notes || null, totalAmount: String(total) };
+        let order: { insertId: number | bigint } | null = null;
+        let assignedNumber = poNumber;
+        for (let attempt = 0; attempt < 3 && !order; attempt++) {
+          try {
+            [order] = await db.insert(purchaseOrders).values({ ...values, poNumber: assignedNumber });
+          } catch (error) {
+            // Two drafts created at once can race on the sequential number — step forward and retry.
+            if (!(error instanceof Error) || !/Duplicate entry/.test(error.message)) throw error;
+            assignedNumber = `PO-${String(existing.length + 2 + attempt).padStart(4, "0")}`;
+          }
+        }
+        if (!order) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not assign a purchase order number. Try again." });
+        await db.insert(purchaseOrderItems).values(input.items.map(line => ({ userId: ctx.user.id, purchaseOrderId: Number(order.insertId), inventoryItemId: line.inventoryItemId ?? null, description: line.description, quantity: String(line.quantity), unitCost: String(line.unitCost) })));
+        return { id: Number(order.insertId), poNumber: assignedNumber };
+      }),
+
+    updatePurchaseOrder: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), supplierName: safeOptionalString(255), expectedDate: safeOptionalString(32), notes: safeOptionalString(2000) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [order] = await db.select().from(purchaseOrders).where(and(eq(purchaseOrders.id, input.id), eq(purchaseOrders.userId, ctx.user.id))).limit(1);
+        if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+        if (order.status !== "draft") throw new TRPCError({ code: "BAD_REQUEST", message: "Only draft purchase orders can be edited." });
+        const updates: Record<string, unknown> = {};
+        if (input.supplierName !== undefined) updates.supplierName = input.supplierName;
+        if (input.expectedDate !== undefined) updates.expectedDate = input.expectedDate || null;
+        if (input.notes !== undefined) updates.notes = input.notes || null;
+        if (Object.keys(updates).length > 0) await db.update(purchaseOrders).set(updates).where(and(eq(purchaseOrders.id, input.id), eq(purchaseOrders.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    submitPurchaseOrder: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [order] = await db.select().from(purchaseOrders).where(and(eq(purchaseOrders.id, input.id), eq(purchaseOrders.userId, ctx.user.id))).limit(1);
+        if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+        if (order.status !== "draft") throw new TRPCError({ code: "BAD_REQUEST", message: "Only draft purchase orders can be submitted." });
+        await db.update(purchaseOrders).set({ status: "ordered" }).where(and(eq(purchaseOrders.id, input.id), eq(purchaseOrders.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    receivePurchaseOrder: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [order] = await db.select().from(purchaseOrders).where(and(eq(purchaseOrders.id, input.id), eq(purchaseOrders.userId, ctx.user.id))).limit(1);
+        if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+        if (order.status !== "ordered") throw new TRPCError({ code: "BAD_REQUEST", message: "Only ordered purchase orders can be received." });
+        const lines = await db.select().from(purchaseOrderItems).where(and(eq(purchaseOrderItems.purchaseOrderId, input.id), eq(purchaseOrderItems.userId, ctx.user.id)));
+        for (const line of lines) {
+          if (!line.inventoryItemId) continue; // freeform lines carry no stock
+          await db.insert(inventoryMovements).values({ userId: ctx.user.id, itemId: line.inventoryItemId, locationId: order.locationId, purchaseOrderId: order.id, type: "receive", quantity: String(line.quantity), note: `Received on ${order.poNumber}` });
+          await db.update(purchaseOrderItems).set({ receivedQuantity: line.quantity }).where(and(eq(purchaseOrderItems.id, line.id), eq(purchaseOrderItems.userId, ctx.user.id)));
+          if (Number(line.unitCost) > 0) {
+            await db.update(inventoryItems).set({ unitCost: line.unitCost }).where(and(eq(inventoryItems.id, line.inventoryItemId), eq(inventoryItems.userId, ctx.user.id)));
+          }
+        }
+        await db.update(purchaseOrders).set({ status: "received" }).where(and(eq(purchaseOrders.id, input.id), eq(purchaseOrders.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    cancelPurchaseOrder: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [order] = await db.select().from(purchaseOrders).where(and(eq(purchaseOrders.id, input.id), eq(purchaseOrders.userId, ctx.user.id))).limit(1);
+        if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+        if (order.status === "received" || order.status === "cancelled") throw new TRPCError({ code: "BAD_REQUEST", message: "Received or cancelled purchase orders cannot change." });
+        await db.update(purchaseOrders).set({ status: "cancelled" }).where(and(eq(purchaseOrders.id, input.id), eq(purchaseOrders.userId, ctx.user.id)));
+        return { success: true };
+      }),
+  }),
+
   priceBook: router({
     list: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();

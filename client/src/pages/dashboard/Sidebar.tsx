@@ -68,6 +68,7 @@ const navGroups: { label: string; items: { icon: React.ElementType; label: strin
     label: "Money",
     items: [
       { icon: FileText,        label: "Billing",    panel: "billing"    },
+      { icon: Package,         label: "Inventory",  panel: "inventory" },
     ],
   },
   {

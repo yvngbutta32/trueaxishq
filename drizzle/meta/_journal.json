@@ -484,6 +484,13 @@
       "when": 1789799043430,
       "tag": "0068_adorable_the_order",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "5",
+      "when": 1789799310846,
+      "tag": "0069_lean_shocker",
+      "breakpoints": true
     }
   ]
 }
