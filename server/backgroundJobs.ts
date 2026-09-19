@@ -20,6 +20,7 @@ import {
   bookings,
   jobRunGuards,
 } from "../drizzle/schema";
+import { sendSms, normalizePhoneToE164 } from "./_core/sms";
 import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, bookingReminderEmail, postSessionCheckInEmail, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { getRecurringInvoiceDeliveryOutcome } from "./recurringInvoiceDeliveryOutcome";
 import { processDueAutomations } from "./automationEngine";
@@ -493,9 +494,11 @@ async function runBookingReminders() {
 
       const upcoming = await db.execute(
         sql`SELECT b.id, b.clientName, b.clientEmail, b.service, b.date, b.time, b.userId,
+                   b.clientPhone, c.phone AS clientRecordPhone, c.smsOptIn,
                    u.name as ownerName, u.businessName, u.bookingUsername
             FROM bookings b
             JOIN users u ON u.id = b.userId
+            LEFT JOIN clients c ON c.id = b.clientId
             WHERE b.status = 'scheduled'
               AND b.clientEmail IS NOT NULL AND b.clientEmail != ''
               AND b.reminderSentAt IS NULL
@@ -530,6 +533,16 @@ async function runBookingReminders() {
           }
 
           console.log(`[Jobs] Booking reminder ${wasAcceptedByConfiguredSmtp(emailResult) ? "accepted by configured SMTP" : "not marked sent without SMTP acceptance"} for booking ${booking.id}`);
+
+          // SMS reminder — only for clients with an explicit opt-in on record (TCPA).
+          const smsTarget = normalizePhoneToE164(booking.clientRecordPhone || booking.clientPhone);
+          if (booking.smsOptIn === 1 && smsTarget) {
+            const smsResult = await sendSms({
+              to: smsTarget,
+              body: `${freelancerName}: Reminder — ${booking.service || "your session"} is tomorrow, ${booking.date} at ${booking.time}. Reply STOP to opt out.`,
+            });
+            console.log(`[Jobs] Booking reminder SMS ${smsResult.success ? "sent" : `failed (${smsResult.error})`} for booking ${booking.id}`);
+          }
         } catch (err) {
           console.error(`[Jobs] Failed to send reminder for booking ${booking.id}:`, err);
         }
@@ -564,9 +577,11 @@ async function runPostSessionCheckIns() {
 
       const completed = await db.execute(
         sql`SELECT b.id, b.clientName, b.clientEmail, b.service, b.userId,
+                   b.clientPhone, c.phone AS clientRecordPhone, c.smsOptIn,
                    u.name as ownerName, u.businessName, u.bookingUsername
             FROM bookings b
             JOIN users u ON u.id = b.userId
+            LEFT JOIN clients c ON c.id = b.clientId
             WHERE b.status IN ('completed', 'scheduled')
               AND b.clientEmail IS NOT NULL AND b.clientEmail != ''
               AND b.checkInSentAt IS NULL
@@ -602,6 +617,16 @@ async function runPostSessionCheckIns() {
           }
 
           console.log(`[Jobs] Post-session check-in ${wasAcceptedByConfiguredSmtp(emailResult) ? "accepted by configured SMTP" : "not marked sent without SMTP acceptance"} for booking ${booking.id}`);
+
+          // SMS check-in — only for clients with an explicit opt-in on record (TCPA).
+          const smsTarget = normalizePhoneToE164(booking.clientRecordPhone || booking.clientPhone);
+          if (booking.smsOptIn === 1 && smsTarget) {
+            const smsResult = await sendSms({
+              to: smsTarget,
+              body: `${freelancerName}: How did your ${booking.service || "recent session"} go? Reply with any feedback${booking.bookingUsername ? ` or book again: ${bookingUrl}` : ""}. Reply STOP to opt out.`,
+            });
+            console.log(`[Jobs] Check-in SMS ${smsResult.success ? "sent" : `failed (${smsResult.error})`} for booking ${booking.id}`);
+          }
         } catch (err) {
           console.error(`[Jobs] Failed to send check-in for booking ${booking.id}:`, err);
         }

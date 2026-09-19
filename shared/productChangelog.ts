@@ -18,6 +18,15 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-09-19",
+    title: "SMS booking confirmations, reminders, and check-ins (Twilio)",
+    description:
+      "Clients who opt in on your booking page now get a text when the appointment is confirmed, a reminder the day before, and a follow-up after the session — sent through Twilio, with every message gated on an explicit opt-in recorded on the client record. Until you add Twilio credentials, messages log to the server console so nothing silently fails. Test your setup from Integration Hub with one tap.",
+    tag: "Integrations",
+    commit: "PENDING",
+  },
+
+  {
+    date: "2026-09-19",
     title: "Guided data import — switch from any competitor in an afternoon",
     description:
       "Export your client list or price book from Jobber, Housecall Pro, ServiceTitan, ServiceM8, or Buildertrend as CSV, and the import wizard detects the source, maps the columns, and shows you a full preview — including duplicates against your existing records — before a single row is written. No migration fees, no sales calls, no password for your old system.",

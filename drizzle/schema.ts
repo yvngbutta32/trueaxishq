@@ -95,6 +95,8 @@ export const clients = mysqlTable("clients", {
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 320 }),
   phone: varchar("phone", { length: 32 }),
+  /** Express opt-in for SMS (TCPA). Never infer consent — only set via booking form checkbox or explicit owner/client action. */
+  smsOptIn: boolean("smsOptIn").default(false).notNull(),
   service: varchar("service", { length: 255 }),
   status: mysqlEnum("status", ["active", "inactive", "prospect"]).default("active").notNull(),
   pipelineStage: mysqlEnum("pipelineStage", ["inquiry", "proposal_sent", "active", "completed", "lost"]).default("inquiry"),
@@ -221,6 +223,7 @@ export const bookings = mysqlTable("bookings", {
   clientId: int("clientId"),
   clientName: varchar("clientName", { length: 255 }).notNull(),
   clientEmail: varchar("clientEmail", { length: 320 }),
+  clientPhone: varchar("clientPhone", { length: 32 }),
   service: varchar("service", { length: 255 }),
   date: varchar("date", { length: 32 }).notNull(),
   time: varchar("time", { length: 32 }).notNull(),

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import {
   Calendar, Clock, User, Mail, MessageSquare, Briefcase,
   CheckCircle, Zap, ArrowLeft, Loader2, Download, ExternalLink,
-  CalendarDays, Sparkles, Camera, Upload, X, CreditCard } from "lucide-react";
+  CalendarDays, Sparkles, Camera, Upload, X, CreditCard, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PublicRecoveryState } from "@/components/PublicRecoveryState";
 import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, DEFAULT_PUBLIC_BOOKING_SERVICES, PUBLIC_BOOKING_TIME_SLOTS } from "@shared/publicBookingRules";
@@ -158,6 +158,8 @@ export default function BookingPage() {
   const [form, setForm] = useState({
     clientName: "",
     clientEmail: "",
+    clientPhone: "",
+    smsOptIn: false,
     service: "",
     message: "",
     preferredDate: "",
@@ -200,6 +202,8 @@ export default function BookingPage() {
       hostUsername: username,
       clientName: form.clientName,
       clientEmail: form.clientEmail,
+      clientPhone: form.clientPhone || undefined,
+      smsOptIn: form.smsOptIn || undefined,
       service: form.service,
       message: form.message || undefined,
       preferredDate: form.preferredDate,
@@ -404,7 +408,7 @@ export default function BookingPage() {
             <button
               onClick={() => {
                 setStep("details");
-                setForm({ clientName: "", clientEmail: "", service: "", message: "", preferredDate: "", preferredTime: "" });
+                setForm({ clientName: "", clientEmail: "", clientPhone: "", smsOptIn: false, service: "", message: "", preferredDate: "", preferredTime: "" });
               }}
               className="text-sm text-[#3D3D3D] hover:text-[#1A1A1A] underline underline-offset-2 transition-colors"
             >
@@ -534,6 +538,36 @@ export default function BookingPage() {
                     autoComplete="email"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label htmlFor="client-phone" className="form-label">
+                  Phone Number <span className="text-[#6B6B6B]">(optional)</span>
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" aria-hidden="true" />
+                  <input
+                    id="client-phone"
+                    type="tel"
+                    value={form.clientPhone}
+                    onChange={e => setForm(p => ({ ...p, clientPhone: e.target.value }))}
+                    placeholder="(512) 555-0100"
+                    className="form-input-light pl-10"
+                    autoComplete="tel"
+                  />
+                </div>
+                {form.clientPhone.trim().length > 0 && (
+                  <label htmlFor="sms-opt-in" className="mt-2 flex cursor-pointer items-start gap-2 text-sm text-[#333333]">
+                    <input
+                      id="sms-opt-in"
+                      type="checkbox"
+                      checked={form.smsOptIn}
+                      onChange={e => setForm(p => ({ ...p, smsOptIn: e.target.checked }))}
+                      className="mt-0.5 h-4 w-4 accent-[#D4922A]"
+                    />
+                    <span>Text me my booking confirmation and updates about this appointment. Message rates may apply; reply STOP to opt out.</span>
+                  </label>
+                )}
               </div>
 
               <div>

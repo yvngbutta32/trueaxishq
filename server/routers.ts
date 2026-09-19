@@ -28,6 +28,7 @@ import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
+import { sendSms, normalizePhoneToE164, getSmsDeliveryStatus } from "./_core/sms";
 import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail, getEmailDeliveryStatus, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { createPublicUploadToken, hashPublicUploadToken, isOwnerPhotoKeyForType, PUBLIC_UPLOAD_MAX_FILES, PUBLIC_UPLOAD_TTL_MS } from "./photoUploadSecurity";
 import { createGoogleOAuthState } from "./googleOAuthState";
@@ -3109,6 +3110,9 @@ Only include actions when you have actually generated a complete draft. For gene
         hostUsername: z.string().trim().min(1).max(100),
         clientName: safeString(100),
         clientEmail: safeEmail,
+        clientPhone: z.string().trim().max(32).optional(),
+        /** Express consent captured on the booking form: "Text me my confirmation and updates." */
+        smsOptIn: z.boolean().optional(),
         service: safeString(200),
         message: z.string().trim().max(1000).optional(),
         preferredDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -3193,6 +3197,7 @@ Only include actions when you have actually generated a complete draft. For gene
               clientId: null,
               clientName: input.clientName,
               clientEmail: input.clientEmail,
+              clientPhone: normalizePhoneToE164(input.clientPhone) || null,
               service: input.service,
               duration: selectedService.durationMinutes,
               date: input.preferredDate,
@@ -3219,6 +3224,8 @@ Only include actions when you have actually generated a complete draft. For gene
                 userId: hostId,
                 name: input.clientName,
                 email: input.clientEmail,
+                phone: normalizePhoneToE164(input.clientPhone) || null,
+                smsOptIn: input.smsOptIn === true,
                 service: input.service || null,
                 status: "active",
                 avatarInitials: initials || input.clientName[0]?.toUpperCase() || "?",
@@ -3229,6 +3236,11 @@ Only include actions when you have actually generated a complete draft. For gene
                   sessionsCount: sql`${clients.sessionsCount} + 1`,
                   lastContactedAt: new Date(),
                   updatedAt: new Date(),
+                  // Fill a missing phone, and honor a fresh opt-in — never silently revoke one.
+                  ...(normalizePhoneToE164(input.clientPhone)
+                    ? { phone: normalizePhoneToE164(input.clientPhone) }
+                    : {}),
+                  ...(input.smsOptIn === true ? { smsOptIn: true } : {}),
                 },
               });
               const [client] = await tx.select({ id: clients.id }).from(clients)
@@ -3304,6 +3316,16 @@ Only include actions when you have actually generated a complete draft. For gene
             rescheduleUrl,
           }),
         }).catch(() => {});
+        // ── SMS confirmation (only when the client ticked the opt-in box on the
+        // booking form AND provided a number — express consent, recorded on the
+        // client record). Degrades to console mode when Twilio is unset. ──────────
+        const smsTo = normalizePhoneToE164(input.clientPhone);
+        if (smsTo && input.smsOptIn === true) {
+          sendSms({
+            to: smsTo,
+            body: `${freelancerName}: ${input.service} confirmed for ${input.preferredDate} at ${input.preferredTime}. ${rescheduleUrl ? `Need a change? ${rescheduleUrl}` : "Reply to this message if anything changes."}`,
+          }).catch(() => {});
+        }
         // Send welcome email to new clients
         if (isNewClient) {
           sendEmail({
@@ -8691,6 +8713,46 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
   }),
 
   // ── Integration Readiness ──────────────────────────────────────────────────
+  // ── SMS (Twilio, env-gated) ──────────────────────────────────────────────────
+  sms: router({
+    /** Owner-facing delivery status: "console" (not configured) vs "twilio" (live). */
+    status: protectedProcedure.query(async () => {
+      const { configured } = getSmsDeliveryStatus();
+      return {
+        configured,
+        mode: configured ? ("twilio" as const) : ("console" as const),
+        from: configured ? ENV.twilioFromNumber : null,
+      };
+    }),
+
+    /** Sends one test message so the owner can verify their Twilio setup end to end. */
+    sendTest: protectedProcedure
+      .input(z.object({
+        to: z.string().trim().min(7).max(32),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const to = normalizePhoneToE164(input.to);
+        if (!to) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Enter a valid phone number, e.g. +1 512 555 0100." });
+        }
+        const result = await sendSms({
+          to,
+          body: `TrueAxis HQ test message — SMS is working for ${to}.`,
+        });
+        if (!result.success) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: result.error ?? "Twilio rejected the message." });
+        }
+        await db.insert(auditLogs).values({
+          userId: ctx.user.id,
+          action: "sms.test",
+          entityType: "integration",
+          details: JSON.stringify({ to, mode: result.mode, id: result.id }),
+        });
+        return { mode: result.mode, id: result.id };
+      }),
+  }),
+
   integrations: router({
     list: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();

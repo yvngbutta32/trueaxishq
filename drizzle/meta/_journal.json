@@ -498,6 +498,13 @@
       "when": 1789801950842,
       "tag": "0070_jittery_young_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "5",
+      "when": 1789806855746,
+      "tag": "0071_perfect_mongoose",
+      "breakpoints": true
     }
   ]
 }

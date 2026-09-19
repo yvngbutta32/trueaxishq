@@ -20,7 +20,7 @@ export const integrationCatalog: Record<IntegrationProvider, { name: string; cat
   gmail: { name: "Gmail", category: "communications", description: "A provider-authorized mail connection for account-specific delivery workflows.", availability: "provider_setup_required" },
   outlook: { name: "Outlook Mail", category: "communications", description: "A provider-authorized Microsoft mail connection for delivery workflows.", availability: "planned" },
   slack: { name: "Slack", category: "communications", description: "A planned internal-alert connection for operational handoffs and exceptions.", availability: "planned" },
-  twilio: { name: "Twilio", category: "communications", description: "A planned SMS connection for opt-in client messaging and field coordination.", availability: "planned" },
+  twilio: { name: "Twilio", category: "communications", description: "SMS booking confirmations for clients who opt in on the booking form. Fully built — set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_FROM_NUMBER to go live; until then messages log to the server console.", availability: "provider_setup_required" },
   zapier: { name: "No-code automation", category: "automation", description: "A planned webhook and no-code workflow bridge for an owner-authorized ecosystem.", availability: "planned" },
   stripe: { name: "Stripe", category: "payments", description: "Payment checkout and verified webhooks require a claimed provider environment and signed webhook validation.", availability: "provider_setup_required" },
 };
