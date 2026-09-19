@@ -633,7 +633,7 @@ function StatsBar() {
 function FeaturesSection() {
   const features = [
     { icon: Users, title: "Client CRM", description: "Full client profiles with notes, history, revenue tracking, and custom tags. Everything in one place.", tag: "Core", highlight: false },
-    { icon: Calendar, title: "Smart Scheduling", description: "Public booking page, calendar management, and automated reminders. Clients book themselves.", tag: "Core", highlight: false },
+    { icon: Calendar, title: "Smart Scheduling", description: "Public booking page, calendar management, automated reminders, and a subscription calendar feed with compatible calendar apps. Clients book themselves.", tag: "Core", highlight: false },
     { icon: FileText, title: "Invoicing", description: "Create, send, and track invoices. Mark paid, export PDFs, and see overdue alerts instantly.", tag: "Core", highlight: false },
     { icon: Mail, title: "AI Follow-Ups", description: "LLM-generated personalized follow-up emails for every client. Review and send in one click.", tag: "AI", highlight: false },
     { icon: BarChart3, title: "Live Analytics", description: "MRR, ARR, booking trends, and revenue forecasts. Real-time charts from your actual data.", tag: "Core", highlight: false },
@@ -1200,7 +1200,7 @@ function FAQSection() {
   );
 }
 // ─── Footer ────────────────────────────────────────────────────────────────────────────────
-function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
+function Footer() {
   const [, navigate] = useLocation();
 
   const sections = [
@@ -1210,7 +1210,8 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
         { label: "Features", action: () => document.querySelector("#features")?.scrollIntoView({ behavior: "smooth" }) },
         { label: "Pricing", action: () => navigate("/pricing") },
         { label: "Dashboard", action: () => navigate("/dashboard") },
-        { label: "Changelog", action: () => onChangelogOpen?.() },
+        { label: "Changelog", action: () => navigate("/changelog") },
+        { label: "System Status", action: () => navigate("/status") },
       ],
     },
     {
@@ -1287,7 +1288,6 @@ function Footer({ onChangelogOpen }: { onChangelogOpen?: () => void }) {
 // ─── Main Export ──────────────────────────────────────────────────────────────
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [changelogOpen, setChangelogOpen] = useState(false);
   const [, navigate] = useLocation();
 
   // If the user is already authenticated, skip the landing page and go straight to the dashboard
@@ -1336,49 +1336,8 @@ export default function Home() {
       <ProductPrinciplesSection />
       <EmailCapture onCTA={() => setModalOpen(true)} />
       <FAQSection />
-      <Footer onChangelogOpen={() => setChangelogOpen(true)} />
+      <Footer />
       <OnboardingModal open={modalOpen} onClose={() => setModalOpen(false)} />
-      {changelogOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Changelog">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setChangelogOpen(false)} aria-hidden="true" />
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" style={{ border: "1px solid rgba(232,160,32,0.20)" }}>
-            <div className="flex items-center justify-between p-5 border-b border-[#EEECEA]">
-              <div>
-                <h2 className="font-bold text-[#1A1A1A] text-base">What's New</h2>
-                <p className="text-xs text-[#6B6B6B] mt-0.5">TrueAxis HQ — Latest Updates</p>
-              </div>
-              <button onClick={() => setChangelogOpen(false)} className="p-1.5 rounded-lg hover:bg-[#F0EEE9] transition-colors" aria-label="Close">
-                <X className="w-4 h-4 text-[#6B6B6B]" />
-              </button>
-            </div>
-            <div className="p-5 space-y-4">
-              {([
-                { emoji: "🔔", title: "Live Notifications", desc: "Real-time bell with unread badge — never miss an important event." },
-                { emoji: "⏱", title: "Time Tracking", desc: "Start/stop timer, log billable hours, and see summary stats per client." },
-                { emoji: "🔁", title: "Recurring Invoices", desc: "Set weekly, monthly, or custom billing schedules — invoices generate automatically." },
-                { emoji: "📄", title: "Contracts & Proposals", desc: "Write, send, and convert proposals to invoices with one click." },
-                { emoji: "🌐", title: "Client Portal", desc: "Clients can view their invoices and bookings via a secure token link." },
-                { emoji: "📅", title: "iCal Export", desc: "Share a subscription calendar feed with compatible calendar apps." },
-                { emoji: "💳", title: "Stripe Pay Now", desc: "Clients can pay invoices instantly — webhooks auto-mark them paid." },
-                { emoji: "🤖", title: "Background Automation", desc: "Overdue detection and recurring invoice generation run every 5 minutes, hands-free." },
-              ] as { emoji: string; title: string; desc: string }[]).map(item => (
-                <div key={item.title} className="flex items-start gap-3">
-                  <span className="text-xl flex-shrink-0">{item.emoji}</span>
-                  <div>
-                    <p className="text-sm font-bold text-[#1A1A1A]">{item.title}</p>
-                    <p className="text-xs text-[#6B6B6B] mt-0.5">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="px-5 pb-5">
-              <button onClick={() => setChangelogOpen(false)} className="w-full gradient-amber text-white font-semibold py-2.5 rounded-xl text-sm hover:opacity-90 transition-opacity">
-                Got it, let's go! 🚀
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

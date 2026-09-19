@@ -24,6 +24,8 @@ const About = lazy(() => import("./pages/About"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Help = lazy(() => import("./pages/Help"));
+const Status = lazy(() => import("./pages/Status"));
+const Changelog = lazy(() => import("./pages/Changelog"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
@@ -98,6 +100,8 @@ function Router() {
         <Route path="/privacy" component={Privacy} />
         <Route path="/terms" component={Terms} />
         <Route path="/help" component={Help} />
+        <Route path="/status" component={Status} />
+        <Route path="/changelog" component={Changelog} />
         <Route path="/contact" component={Contact} />
 
         {/* Client Portal — public, token-gated */}
