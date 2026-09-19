@@ -505,6 +505,13 @@
       "when": 1789806855746,
       "tag": "0071_perfect_mongoose",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "5",
+      "when": 1789809424966,
+      "tag": "0072_safe_ultimo",
+      "breakpoints": true
     }
   ]
 }

@@ -369,6 +369,23 @@ export const passwordResetTokens = mysqlTable("passwordResetTokens", {
 (t) => [uniqueIndex("prt_token_idx").on(t.token), index("prt_userId_idx").on(t.userId)]
 );
 
+// ─── SMS magic-link login codes (one-time, hashed, short-lived) ───────────────
+export const smsLoginCodes = mysqlTable("smsLoginCodes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  codeHash: varchar("codeHash", { length: 128 }).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  used: boolean("used").default(false).notNull(),
+  attempts: int("attempts").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+},
+(t) => [index("slc_userId_idx").on(t.userId), index("slc_phone_idx").on(t.phone)]
+);
+
+export type SmsLoginCode = typeof smsLoginCodes.$inferSelect;
+export type InsertSmsLoginCode = typeof smsLoginCodes.$inferInsert;
+
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
 

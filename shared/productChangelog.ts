@@ -18,6 +18,15 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-09-19",
+    title: "SMS code sign-in (magic links without the link)",
+    description:
+      "Sign in with a one-time 6-digit texted code instead of a password — offered only once your Twilio account is connected. Codes are hashed at rest, expire in 10 minutes, allow at most 5 wrong attempts, and never bypass two-factor authentication. Asking for a code on an unknown number returns the same response as a real one, so nobody can probe which phones belong to accounts.",
+    tag: "Security",
+    commit: "PENDING",
+  },
+
+  {
+    date: "2026-09-19",
     title: "SMS booking confirmations, reminders, and check-ins (Twilio)",
     description:
       "Clients who opt in on your booking page now get a text when the appointment is confirmed, a reminder the day before, and a follow-up after the session — sent through Twilio, with every message gated on an explicit opt-in recorded on the client record. Until you add Twilio credentials, messages log to the server console so nothing silently fails. Test your setup from Integration Hub with one tap.",

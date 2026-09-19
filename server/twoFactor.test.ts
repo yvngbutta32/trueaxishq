@@ -92,10 +92,11 @@ describe("backup codes", () => {
 });
 
 describe("two-factor login enforcement (source contract)", () => {
-  it("gates both login and adminLogin behind the code after the password", () => {
+  it("gates login, adminLogin and SMS code login behind the code after the first factor", () => {
     expect(routersSource).toContain("TWO_FACTOR_CODE_REQUIRED");
-    // One gate per login path — standard login and admin login each demand the code.
-    expect((routersSource.match(/TWO_FACTOR_CODE_REQUIRED/g) ?? []).length).toBe(2);
+    // One gate per login path — password login, admin login, and SMS magic-link
+    // login each demand the code. No first factor bypasses the second.
+    expect((routersSource.match(/TWO_FACTOR_CODE_REQUIRED/g) ?? []).length).toBe(3);
     expect(routersSource).toContain("if (user.twoFactorEnabled) {");
   });
 

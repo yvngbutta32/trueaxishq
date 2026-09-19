@@ -22,7 +22,62 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [needsTwoFactor, setNeedsTwoFactor] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [mode, setMode] = useState<"password" | "sms">("password");
+  const [phone, setPhone] = useState("");
+  const [smsCodeSent, setSmsCodeSent] = useState(false);
+  const [smsCode, setSmsCode] = useState("");
+  const [smsNeedsTwoFactor, setSmsNeedsTwoFactor] = useState(false);
   const utils = trpc.useUtils();
+
+  // SMS login is only offered when Twilio is actually configured.
+  const smsStatus = trpc.sms.status.useQuery();
+  const smsAvailable = smsStatus.data?.configured === true;
+
+  const smsRequestMutation = trpc.auth.smsRequest.useMutation({
+    onSuccess: () => {
+      setSmsCodeSent(true);
+      toast.success("Code sent — check your phone.");
+    },
+    onError: (err) => {
+      if (err.message === "SMS_LOGIN_NOT_CONFIGURED") {
+        toast.error("SMS sign-in isn't active yet. Use your email and password.");
+        setMode("password");
+        return;
+      }
+      toast.error(err.message || "We couldn't send the code right now.");
+    },
+  });
+
+  const smsVerifyMutation = trpc.auth.smsVerify.useMutation({
+    onSuccess: (data) => {
+      if (data.user) utils.auth.me.setData(undefined, data.user as any);
+      toast.success("Welcome back!");
+      navigate("/dashboard");
+    },
+    onError: (err) => {
+      if (err.message === "TWO_FACTOR_CODE_REQUIRED") {
+        setSmsNeedsTwoFactor(true);
+        toast.info("Enter the 6-digit code from your authenticator app.");
+        return;
+      }
+      toast.error(err.message || "That code didn't work. Please try again.");
+    },
+  });
+
+  const handleSmsSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!smsCodeSent) {
+      if (phone.trim().length < 7) return;
+      smsRequestMutation.mutate({ phone: phone.trim() });
+      return;
+    }
+    if (!/^\d{6}$/.test(smsCode)) return;
+    smsVerifyMutation.mutate({
+      phone: phone.trim(),
+      code: smsCode,
+      twoFactorCode: smsNeedsTwoFactor && twoFactorCode.trim() ? twoFactorCode.trim() : undefined,
+    });
+  };
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: (data) => {
@@ -159,6 +214,156 @@ export default function Login() {
             </p>
           </div>
 
+          {smsAvailable && (
+            <div className="mb-6 flex rounded-xl" style={{ background: "rgba(26,26,26,0.05)" }} role="tablist" aria-label="Sign-in method">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === "password"}
+                onClick={() => setMode("password")}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style={mode === "password"
+                  ? { background: "#1A1A1A", color: "#F2F0EC", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }
+                  : { background: "none", color: "rgba(26,26,26,0.65)", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+              >
+                Password
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === "sms"}
+                onClick={() => { setMode("sms"); setSmsCodeSent(false); setSmsCode(""); setSmsNeedsTwoFactor(false); }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style={mode === "sms"
+                  ? { background: "#1A1A1A", color: "#F2F0EC", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }
+                  : { background: "none", color: "rgba(26,26,26,0.65)", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+              >
+                Text me a code
+              </button>
+            </div>
+          )}
+
+          {mode === "sms" ? (
+          <form onSubmit={handleSmsSubmit} className="space-y-5">
+            {/* Phone */}
+            <div>
+              <label
+                htmlFor="login-phone"
+                className="block text-sm font-semibold mb-1.5"
+                style={{ color: "rgba(26,26,26,0.85)" }}
+              >
+                Phone number
+              </label>
+              <input
+                id="login-phone"
+                type="tel"
+                maxLength={32}
+                value={phone}
+                onChange={(e) => { setPhone(e.target.value); setSmsCodeSent(false); }}
+                placeholder="+1 512 555 0100"
+                required
+                autoComplete="tel"
+                autoFocus
+                disabled={smsCodeSent}
+                className="form-input"
+              />
+              {smsCodeSent && (
+                <button
+                  type="button"
+                  onClick={() => { setSmsCodeSent(false); setSmsCode(""); }}
+                  className="mt-1.5 text-xs font-medium"
+                  style={{ color: "#D4922A", background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                >
+                  Use a different number
+                </button>
+              )}
+            </div>
+
+            {/* Code */}
+            {smsCodeSent && (
+              <div>
+                <label
+                  htmlFor="sms-code"
+                  className="text-sm font-semibold block mb-1.5"
+                  style={{ color: "rgba(26,26,26,0.85)" }}
+                >
+                  6-digit code
+                </label>
+                <input
+                  id="sms-code"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d{6}"
+                  value={smsCode}
+                  onChange={(e) => setSmsCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="000000"
+                  maxLength={6}
+                  autoFocus
+                  autoComplete="one-time-code"
+                  className="form-input tracking-[0.35em] text-center"
+                />
+                <p className="text-xs mt-1.5" style={{ color: "rgba(26,26,26,0.55)" }}>
+                  Expires in 10 minutes. Didn't get it?{" "}
+                  <button
+                    type="button"
+                    onClick={() => smsRequestMutation.mutate({ phone: phone.trim() })}
+                    disabled={smsRequestMutation.isPending}
+                    className="font-medium"
+                    style={{ color: "#D4922A", background: "none", border: "none", cursor: smsRequestMutation.isPending ? "not-allowed" : "pointer", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                  >
+                    Resend
+                  </button>
+                </p>
+              </div>
+            )}
+
+            {/* 2FA after SMS code (only when the server asks) */}
+            {smsNeedsTwoFactor && (
+              <div>
+                <label
+                  htmlFor="sms-twoFactorCode"
+                  className="text-sm font-semibold block mb-1.5"
+                  style={{ color: "rgba(26,26,26,0.85)" }}
+                >
+                  Authenticator code
+                </label>
+                <input
+                  id="sms-twoFactorCode"
+                  type="text"
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value.toUpperCase())}
+                  placeholder="123456 or backup code"
+                  maxLength={14}
+                  autoFocus
+                  autoComplete="one-time-code"
+                  className="form-input tracking-[0.15em] text-center"
+                />
+              </div>
+            )}
+
+            {/* Submit */}
+            <button
+              type="submit"
+              aria-label={smsCodeSent ? (smsVerifyMutation.isPending ? "Verifying" : "Verify and sign in") : (smsRequestMutation.isPending ? "Sending code" : "Send code")}
+              disabled={smsVerifyMutation.isPending || smsRequestMutation.isPending || (smsCodeSent && !/^\d{6}$/.test(smsCode))}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{
+                background: "linear-gradient(135deg, #D4922A, #F5C842)",
+                color: "#161B22", fontSize: "0.9375rem",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              {(smsRequestMutation.isPending || smsVerifyMutation.isPending) ? (
+                <><Loader2 size={16} className="animate-spin" /> {smsCodeSent ? "Verifying…" : "Sending…"}</>
+              ) : smsCodeSent ? (
+                "Verify & Sign In →"
+              ) : (
+                "Send Code →"
+              )}
+            </button>
+          </form>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>
@@ -274,6 +479,7 @@ export default function Login() {
               )}
             </button>
           </form>
+          )}
 
           <p className="mt-6 text-sm" style={{ color: "rgba(26,26,26,0.80)" }}>
             Don't have an account?{" "}

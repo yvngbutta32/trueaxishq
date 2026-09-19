@@ -21,14 +21,15 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
-import { sendSms, normalizePhoneToE164, getSmsDeliveryStatus } from "./_core/sms";
+import { sendSms, normalizePhoneToE164, getSmsDeliveryStatus, wasSmsAcceptedByConfiguredTwilio } from "./_core/sms";
+import { allowSmsLoginRequest, generateSmsLoginCode, hashSmsLoginCode, verifySmsLoginCodeHash, SMS_LOGIN_CODE_TTL_MS, SMS_LOGIN_MAX_ATTEMPTS } from "./_core/smsLogin";
 import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail, getEmailDeliveryStatus, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { createPublicUploadToken, hashPublicUploadToken, isOwnerPhotoKeyForType, PUBLIC_UPLOAD_MAX_FILES, PUBLIC_UPLOAD_TTL_MS } from "./photoUploadSecurity";
 import { createGoogleOAuthState } from "./googleOAuthState";
@@ -945,6 +946,132 @@ export const appRouter = router({
 
         // Password reset completed
         return { success: true };
+      }),
+
+    // ── SMS magic-link login (one-time 6-digit code; env-gated on Twilio) ────
+    smsRequest: publicProcedure
+      .input(z.object({ phone: z.string().trim().min(7).max(32) }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await requireDb();
+        const ip = getClientIp(ctx.req);
+        const phone = normalizePhoneToE164(input.phone);
+        // Phone-shape errors are safe to reveal before anything else happens.
+        if (!phone) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Enter a valid phone number, e.g. +1 512 555 0100." });
+        }
+        // Honest global gate: SMS login is inactive until Twilio is configured.
+        // This is product configuration, not account information, so stating it
+        // does not enable enumeration.
+        if (!getSmsDeliveryStatus().configured) {
+          throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "SMS_LOGIN_NOT_CONFIGURED" });
+        }
+        // Rate limits first, silently — a dropped request looks like a sent one.
+        if (!allowSmsLoginRequest(ip, phone)) return { success: true };
+
+        const [user] = await db.select({ id: users.id, phone: users.phone })
+          .from(users).where(eq(users.phone, phone)).limit(1);
+        if (!user) return { success: true }; // silent — don't reveal if the phone belongs to an account
+
+        // Burn any earlier live codes for this user.
+        await db.update(smsLoginCodes).set({ used: true })
+          .where(and(eq(smsLoginCodes.userId, user.id), eq(smsLoginCodes.used, false)));
+
+        const code = generateSmsLoginCode();
+        const expiresAt = new Date(Date.now() + SMS_LOGIN_CODE_TTL_MS);
+        await db.insert(smsLoginCodes).values({
+          userId: user.id,
+          phone,
+          codeHash: hashSmsLoginCode(phone, code),
+          expiresAt,
+          used: false,
+        });
+
+        const smsResult = await sendSms({
+          to: phone,
+          body: `Your TrueAxis HQ sign-in code is ${code}. It expires in 10 minutes. Never share this code.`,
+        });
+        // A code only "goes out" when Twilio accepted it — otherwise the row
+        // stays unconsumed and expires harmlessly.
+        if (!wasSmsAcceptedByConfiguredTwilio(smsResult)) {
+          logSecurityEvent({ eventType: "sms_login_send_failed", severity: "medium", userId: user.id, ip, details: smsResult.error ?? "Twilio rejected the login code" });
+          throw new TRPCError({ code: "BAD_REQUEST", message: "We couldn't send the code right now. Please try again." });
+        }
+        return { success: true };
+      }),
+
+    smsVerify: publicProcedure
+      .input(z.object({
+        phone: z.string().trim().min(7).max(32),
+        code: z.string().regex(/^\d{6}$/),
+        twoFactorCode: z.string().regex(/^[A-Za-z0-9-]{6,14}$/).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await requireDb();
+        const ip = getClientIp(ctx.req);
+        const phone = normalizePhoneToE164(input.phone);
+        if (!phone) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid phone number." });
+        }
+
+        const [record] = await db.select()
+          .from(smsLoginCodes)
+          .where(and(eq(smsLoginCodes.phone, phone), eq(smsLoginCodes.used, false)))
+          .orderBy(desc(smsLoginCodes.createdAt))
+          .limit(1);
+
+        const burnInvalid = async () => {
+          if (!record) return;
+          const attempts = (record.attempts ?? 0) + 1;
+          if (attempts >= SMS_LOGIN_MAX_ATTEMPTS) {
+            await db.update(smsLoginCodes).set({ used: true, attempts }).where(eq(smsLoginCodes.id, record.id));
+          } else {
+            await db.update(smsLoginCodes).set({ attempts }).where(eq(smsLoginCodes.id, record.id));
+          }
+        };
+
+        if (!record || new Date() > record.expiresAt) {
+          await burnInvalid();
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid or expired code. Please request a new one." });
+        }
+
+        const [user] = await db.select().from(users).where(eq(users.id, record.userId)).limit(1);
+        if (!user) {
+          await burnInvalid();
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid or expired code. Please request a new one." });
+        }
+
+        if (!verifySmsLoginCodeHash(phone, input.code, record.codeHash)) {
+          await burnInvalid();
+          logSecurityEvent({ eventType: "sms_login_code_invalid", severity: "medium", userId: user.id, ip, details: `Attempt ${(record.attempts ?? 0) + 1} of ${SMS_LOGIN_MAX_ATTEMPTS}` });
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid code. Please check the message and try again." });
+        }
+
+        // Atomically consume the code — this write is the single-use predicate.
+        const consumeResult = await db.update(smsLoginCodes).set({ used: true }).where(and(
+          eq(smsLoginCodes.id, record.id),
+          eq(smsLoginCodes.used, false),
+        ));
+        if (!consumeResult[0].affectedRows) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This code has already been used. Please request a new one." });
+        }
+
+        // TOTP gate — SMS proves the phone; 2FA still proves the second factor.
+        if (user.twoFactorEnabled) {
+          if (!input.twoFactorCode) throw new TRPCError({ code: "UNAUTHORIZED", message: "TWO_FACTOR_CODE_REQUIRED" });
+          const ok = await verifyTwoFactor(db, user.id, user.twoFactorSecret ?? null, input.twoFactorCode);
+          if (!ok) {
+            logSecurityEvent({ eventType: "two_factor_failed", severity: "high", ip, userId: user.id, userAgent: ctx.req.headers["user-agent"], details: "During SMS magic-link login" });
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid two-factor code." });
+          }
+        }
+
+        await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));
+        logSecurityEvent({ eventType: "sms_login_success", severity: "low", ip, userId: user.id, details: user.twoFactorEnabled ? "SMS login with 2FA" : "SMS login" });
+        const token = await createSessionToken(user.id, user.email ?? phone);
+        await recordSession(user.id, token, ctx.req);
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+        return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
       }),
 
     changePassword: protectedProcedure

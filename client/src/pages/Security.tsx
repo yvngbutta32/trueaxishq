@@ -14,6 +14,7 @@ const sections = [
       "Two-factor authentication (TOTP) with generated backup codes — enabled in Settings, one screen, no enterprise plan required.",
       "See every active session on your account and revoke any of them instantly.",
       "Brute-force protection: repeated failed logins lock the account and alert the owner; password reset requests are rate-limited per IP.",
+      "Optional SMS code sign-in: a one-time 6-digit code, hashed at rest, expiring in 10 minutes, never bypassing two-factor authentication.",
     ],
   },
   {
