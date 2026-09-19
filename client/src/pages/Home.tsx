@@ -1240,7 +1240,7 @@ function Footer() {
         { label: "Privacy Policy", action: () => navigate("/privacy") },
         { label: "Terms of Service", action: () => navigate("/terms") },
         { label: "Help Center", action: () => navigate("/help") },
-        { label: "Security", action: () => navigate("/privacy#security") },
+        { label: "Security", action: () => navigate("/security") },
       ],
     },
   ];

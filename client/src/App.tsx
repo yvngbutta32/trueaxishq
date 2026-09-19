@@ -24,6 +24,7 @@ const About = lazy(() => import("./pages/About"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Help = lazy(() => import("./pages/Help"));
+const Security = lazy(() => import("./pages/Security"));
 const Status = lazy(() => import("./pages/Status"));
 const Changelog = lazy(() => import("./pages/Changelog"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -100,6 +101,7 @@ function Router() {
         <Route path="/privacy" component={Privacy} />
         <Route path="/terms" component={Terms} />
         <Route path="/help" component={Help} />
+        <Route path="/security" component={Security} />
         <Route path="/status" component={Status} />
         <Route path="/changelog" component={Changelog} />
         <Route path="/contact" component={Contact} />
