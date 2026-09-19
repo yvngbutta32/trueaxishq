@@ -86,6 +86,7 @@ const navGroups: { label: string; items: { icon: React.ElementType; label: strin
     items: [
       { icon: PlugZap,         label: "Integrations", panel: "integrations" },
       { icon: Webhook,         label: "Webhooks",    panel: "webhooks"   },
+      { icon: Download,       label: "Import Data", panel: "import"   },
       { icon: Settings,        label: "Settings",   panel: "settings"   },
       { icon: Bot,             label: "AI Assistant", panel: "ai"       },
     ],

@@ -410,6 +410,96 @@ const reportConfigSchema = z.object({
   }).default({}),
 });
 
+import {
+  parseCsv, detectSource, buildAutoMapping,
+  extractClientRow, extractServiceRow, validateClientRow, validateServiceRow,
+  normalizeEmail, normalizePhoneDigits,
+  type FieldMapping, type ImportTarget, type ExtractedClientRow, type ExtractedServiceRow,
+} from "./csvImport";
+
+// ── Migration / data import helpers ─────────────────────────────────────────
+const IMPORT_MAX_ROWS = 10_000;
+const IMPORT_MAX_CSV_BYTES = 2_000_000;
+const CLIENT_IMPORT_FIELDS = ["firstName", "lastName", "company", "name", "email", "phone", "phoneAlt", "service", "notes"] as const;
+const SERVICE_IMPORT_FIELDS = ["name", "description", "price", "unit", "category"] as const;
+
+function parseImportFile(csv: string) {
+  if (Buffer.byteLength(csv, "utf8") > IMPORT_MAX_CSV_BYTES) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "The file exceeds the 2 MB import limit. Split it and import in parts." });
+  }
+  const rows = parseCsv(csv);
+  if (rows.length < 2) throw new TRPCError({ code: "BAD_REQUEST", message: "The file needs a header row and at least one data row." });
+  const headers = rows[0].map(h => h.trim());
+  const dataRows = rows.slice(1);
+  if (dataRows.length > IMPORT_MAX_ROWS) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: `Imports are capped at ${IMPORT_MAX_ROWS.toLocaleString()} rows per run. Split larger files and run the import again.` });
+  }
+  return { headers, dataRows, detection: detectSource(headers) };
+}
+
+/** Accepts the wizard's user mapping (canonical field -> header index) or falls back to auto-mapping. */
+function coerceMapping(headers: string[], target: ImportTarget, userMapping?: Record<string, number>): FieldMapping {
+  if (!userMapping) return buildAutoMapping(headers, target);
+  const allowed = target === "clients" ? CLIENT_IMPORT_FIELDS : SERVICE_IMPORT_FIELDS;
+  const mapping: FieldMapping = {};
+  for (const field of allowed) {
+    const idx = userMapping[field];
+    if (typeof idx === "number" && Number.isInteger(idx) && idx >= 0 && idx < headers.length) mapping[field] = idx;
+  }
+  return mapping;
+}
+
+function clientInsertValues(userId: number, record: ExtractedClientRow): typeof clients.$inferInsert {
+  const initials = record.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+  return {
+    userId,
+    name: record.name,
+    email: record.email || null,
+    phone: record.phone || null,
+    service: record.service ?? null,
+    notes: record.notes ?? null,
+    status: "active",
+    pipelineStage: "inquiry",
+    avatarInitials: initials || record.name.slice(0, 2).toUpperCase(),
+  };
+}
+
+interface ImportAnalysis {
+  issues: { row: number; errors: string[] }[];
+  valid: { row: number; record: ExtractedClientRow | ExtractedServiceRow }[];
+}
+
+function analyzeRows(dataRows: string[][], target: ImportTarget, mapping: FieldMapping): ImportAnalysis {
+  const issues: { row: number; errors: string[] }[] = [];
+  const valid: { row: number; record: ExtractedClientRow | ExtractedServiceRow }[] = [];
+  const seen = new Set<string>();
+  for (let i = 0; i < dataRows.length; i++) {
+    const cells = dataRows[i].map(c => c.trim());
+    if (target === "clients") {
+      const record = extractClientRow(cells, mapping);
+      const errors = validateClientRow(record);
+      const key = record.email || normalizePhoneDigits(record.phone);
+      if (errors.length === 0 && key) {
+        if (seen.has(key)) errors.push("Duplicate of an earlier row in this file (same email or phone).");
+        else seen.add(key);
+      }
+      if (errors.length) issues.push({ row: i + 1, errors });
+      else valid.push({ row: i + 1, record });
+    } else {
+      const record = extractServiceRow(cells, mapping);
+      const errors = validateServiceRow(record);
+      const key = record.name.toLowerCase();
+      if (errors.length === 0) {
+        if (seen.has(key)) errors.push("Duplicate of an earlier row in this file (same name).");
+        else seen.add(key);
+      }
+      if (errors.length) issues.push({ row: i + 1, errors });
+      else valid.push({ row: i + 1, record });
+    }
+  }
+  return { issues, valid };
+}
+
 export const appRouter = router({
   system: systemRouter,
 
@@ -4655,6 +4745,172 @@ Only include actions when you have actually generated a complete draft. For gene
           .limit(input.limit)
           .offset(input.offset);
         return rows;
+      }),
+  }),
+
+  // ── Migration / data import — the switching moat ─────────────────────────────
+  migration: router({
+    /** Dry-run: parse, detect the source system, auto-map, and validate. Nothing is written. */
+    preview: protectedProcedure
+      .input(z.object({
+        csv: z.string().min(5).max(2_000_000),
+        target: z.enum(["clients", "services"]),
+        mapping: z.record(z.string(), z.number().int().min(0).max(999)).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const { headers, dataRows, detection } = parseImportFile(input.csv);
+        const mapping = coerceMapping(headers, input.target, input.mapping);
+        const analysis = analyzeRows(dataRows, input.target, mapping);
+
+        // Duplicate check against the owner's existing records (read-only).
+        const duplicates: { row: number; existingName: string; matchedOn: "email" | "phone" | "name" }[] = [];
+        if (input.target === "clients") {
+          const existing = await db.select({ id: clients.id, name: clients.name, email: clients.email, phone: clients.phone })
+            .from(clients).where(eq(clients.userId, ctx.user.id));
+          const byEmail = new Map(existing.filter(c => c.email).map(c => [normalizeEmail(c.email!), c]));
+          const byPhone = new Map(existing.filter(c => c.phone).map(c => [normalizePhoneDigits(c.phone!), c]));
+          for (const item of analysis.valid) {
+            const record = item.record as ExtractedClientRow;
+            if (record.email && byEmail.has(record.email)) {
+              duplicates.push({ row: item.row, existingName: byEmail.get(record.email)!.name, matchedOn: "email" });
+              continue;
+            }
+            const digits = normalizePhoneDigits(record.phone);
+            if (!record.email && digits && byPhone.has(digits)) {
+              duplicates.push({ row: item.row, existingName: byPhone.get(digits)!.name, matchedOn: "phone" });
+            }
+          }
+        } else {
+          const existing = await db.select({ id: priceBookItems.id, name: priceBookItems.name })
+            .from(priceBookItems).where(eq(priceBookItems.userId, ctx.user.id));
+          const byName = new Map(existing.map(s => [s.name.toLowerCase(), s]));
+          for (const item of analysis.valid) {
+            const record = item.record as ExtractedServiceRow;
+            if (byName.has(record.name.toLowerCase())) {
+              duplicates.push({ row: item.row, existingName: byName.get(record.name.toLowerCase())!.name, matchedOn: "name" });
+            }
+          }
+        }
+
+        return {
+          source: detection.source,
+          sourceLabel: detection.label,
+          headers,
+          mapping,
+          totalRows: dataRows.length,
+          validRows: analysis.valid.length,
+          issueCount: analysis.issues.length,
+          issues: analysis.issues.slice(0, 50),
+          duplicateCount: duplicates.length,
+          duplicates: duplicates.slice(0, 50),
+          sample: analysis.valid.slice(0, 5).map(v => v.record),
+        };
+      }),
+
+    /** Commit the import. Re-parses and re-validates everything server-side — the preview is never trusted. */
+    commit: protectedProcedure
+      .input(z.object({
+        csv: z.string().min(5).max(2_000_000),
+        target: z.enum(["clients", "services"]),
+        mapping: z.record(z.string(), z.number().int().min(0).max(999)),
+        duplicateMode: z.enum(["skip", "update", "create"]).default("skip"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const { headers, dataRows, detection } = parseImportFile(input.csv);
+        const mapping = coerceMapping(headers, input.target, input.mapping);
+        const analysis = analyzeRows(dataRows, input.target, mapping);
+
+        let created = 0, updated = 0, skipped = 0;
+        const failed = analysis.issues.slice(0, 50);
+        const skippedReasons = { duplicate: 0, emailConflict: 0, nothingToUpdate: 0 };
+
+        if (input.target === "clients") {
+          const existing = await db.select({ id: clients.id, name: clients.name, email: clients.email, phone: clients.phone, service: clients.service, notes: clients.notes })
+            .from(clients).where(eq(clients.userId, ctx.user.id));
+          const byEmail = new Map(existing.filter(c => c.email).map(c => [normalizeEmail(c.email!), c]));
+          const byPhone = new Map(existing.filter(c => c.phone).map(c => [normalizePhoneDigits(c.phone!), c]));
+          const toInsert: typeof clients.$inferInsert[] = [];
+
+          for (const item of analysis.valid) {
+            const record = item.record as ExtractedClientRow;
+            const match = record.email ? byEmail.get(record.email) : byPhone.get(normalizePhoneDigits(record.phone));
+            if (match) {
+              if (input.duplicateMode === "update") {
+                const patch: Partial<typeof clients.$inferInsert> = {};
+                if (!match.email && record.email) patch.email = record.email;
+                if (!match.phone && record.phone) patch.phone = record.phone;
+                if (!match.service && record.service) patch.service = record.service;
+                if (!match.notes && record.notes) patch.notes = record.notes;
+                if (Object.keys(patch).length > 0) {
+                  await db.update(clients).set(patch).where(and(eq(clients.id, match.id), eq(clients.userId, ctx.user.id)));
+                  updated++;
+                } else { skipped++; skippedReasons.nothingToUpdate++; }
+              } else if (input.duplicateMode === "create") {
+                if (match.email) { skipped++; skippedReasons.emailConflict++; }
+                else {
+                  // Phone-only match: a separate client with the same number is allowed.
+                  toInsert.push(clientInsertValues(ctx.user.id, record));
+                }
+              } else { skipped++; skippedReasons.duplicate++; }
+            } else {
+              toInsert.push(clientInsertValues(ctx.user.id, record));
+            }
+          }
+          for (let i = 0; i < toInsert.length; i += 500) {
+            await db.insert(clients).values(toInsert.slice(i, i + 500));
+          }
+          created = toInsert.length;
+        } else {
+          const existing = await db.select({ id: priceBookItems.id, name: priceBookItems.name })
+            .from(priceBookItems).where(eq(priceBookItems.userId, ctx.user.id));
+          const byName = new Map(existing.map(s => [s.name.toLowerCase(), s]));
+          const toInsert: typeof priceBookItems.$inferInsert[] = [];
+
+          for (const item of analysis.valid) {
+            const record = item.record as ExtractedServiceRow;
+            const match = byName.get(record.name.toLowerCase());
+            if (match) {
+              if (input.duplicateMode === "update") {
+                await db.update(priceBookItems).set({
+                  unitPrice: record.price,
+                  ...(record.description ? { description: record.description } : {}),
+                  unit: record.unit,
+                  category: record.category,
+                }).where(and(eq(priceBookItems.id, match.id), eq(priceBookItems.userId, ctx.user.id)));
+                updated++;
+              } else { skipped++; skippedReasons.duplicate++; }
+            } else {
+              toInsert.push({
+                userId: ctx.user.id,
+                name: record.name,
+                description: record.description ?? null,
+                unit: record.unit,
+                unitPrice: record.price,
+                category: record.category,
+                active: true,
+              });
+            }
+          }
+          for (let i = 0; i < toInsert.length; i += 500) {
+            await db.insert(priceBookItems).values(toInsert.slice(i, i + 500));
+          }
+          created = toInsert.length;
+        }
+
+        await db.insert(auditLogs).values({
+          userId: ctx.user.id,
+          action: input.target === "clients" ? "import.clients" : "import.priceBook",
+          entityType: "import",
+          details: JSON.stringify({
+            source: detection.source,
+            created, updated, skipped, failed: analysis.issues.length,
+            duplicateMode: input.duplicateMode, skippedReasons,
+          }),
+        });
+
+        return { created, updated, skipped, failedCount: analysis.issues.length, failed, skippedReasons };
       }),
   }),
 
