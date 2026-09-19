@@ -153,7 +153,7 @@ function Modal({ open, onClose, title, children, wide }: {
     // requestAnimationFrame defers until after paint so the modal is visible.
     const raf = requestAnimationFrame(() => { ref.current?.focus(); });
     return () => { document.removeEventListener("keydown", handleKey); cancelAnimationFrame(raf); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [open]);
   if (!open) return null;
   return (

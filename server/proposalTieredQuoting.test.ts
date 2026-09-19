@@ -33,8 +33,15 @@ describe("tiered Good/Better/Best proposal quoting", () => {
     expect(publicSource).toContain("aria-label={`${option.name}");
   });
 
-  it("pre-selects the recommended option once the proposal loads", () => {
-    expect(publicSource).toContain("setSelectedPackageId(current => current ?? recommended.id)");
+  it("derives the pre-selected recommended option without a late hook, keeping sign and render on one selection source", () => {
+    expect(publicSource).toContain("const effectiveSelectedPackageId = selectedPackageId ?? recommendedPackageId;");
+    expect(publicSource).toContain("selectedPackageId: effectiveSelectedPackageId ?? undefined");
+    expect(publicSource).toContain("effectiveSelectedPackageId === option.id");
+    // Rules-of-hooks: ProposalSign early-returns on loading/error, so any
+    // useEffect below those returns crashes the public page. Derived state
+    // replaces the effect; this regression is also asserted by the eslint
+    // react-hooks gate added alongside this fix.
+    expect(publicSource).not.toContain("useEffect(");
   });
 
   it("lets the owner mark exactly one option as recommended", () => {

@@ -38,6 +38,9 @@ jobs:
       - name: Type-check
         run: pnpm check
 
+      - name: Lint hooks (react-hooks gate)
+        run: pnpm lint
+
       - name: Run tests
         run: pnpm test
 

@@ -132,7 +132,7 @@ export default function Dashboard() {
     const targetPanel = LEGACY_PANEL_REDIRECTS[active];
     if (targetPanel) setActiveWithScroll(targetPanel);
   // setActiveWithScroll intentionally performs a scroll after the state transition.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [active]);
 
   // Update document title based on active panel
@@ -358,7 +358,7 @@ export default function Dashboard() {
       );
       default: return null;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [active, user?.name]);
 
   // Loading state — placed AFTER all hooks to satisfy Rules of Hooks

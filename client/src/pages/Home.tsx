@@ -80,7 +80,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [open]);
 
   if (!open) return null;

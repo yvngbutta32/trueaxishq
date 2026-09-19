@@ -37,8 +37,8 @@ describe("token-scoped proposal package selection", () => {
     expect(ownerSource).toContain("Client-selectable packages");
     expect(ownerSource).toContain("form.packageOptions.length < 3");
     expect(publicSource).toContain("Choose your proposal option");
-    expect(publicSource).toContain("selectedPackageId: selectedPackageId ?? undefined");
-    expect(publicSource).toContain("proposalPackages.length > 0 && !selectedPackageId");
+    expect(publicSource).toContain("selectedPackageId: effectiveSelectedPackageId ?? undefined");
+    expect(publicSource).toContain("proposalPackages.length > 0 && !effectiveSelectedPackageId");
     expect(publicSource).not.toContain("trpc.invoices.create");
   });
 });
