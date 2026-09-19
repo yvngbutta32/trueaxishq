@@ -18,6 +18,15 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-09-19",
+    title: "Guided data import — switch from any competitor in an afternoon",
+    description:
+      "Export your client list or price book from Jobber, Housecall Pro, ServiceTitan, ServiceM8, or Buildertrend as CSV, and the import wizard detects the source, maps the columns, and shows you a full preview — including duplicates against your existing records — before a single row is written. No migration fees, no sales calls, no password for your old system.",
+    tag: "Clients",
+    commit: "1196df9",
+  },
+
+  {
+    date: "2026-09-19",
     title: "Public REST API v1 + Zapier/Make guide",
     description:
       "Connect TrueAxis HQ to Zapier, Make, or your own tools with owner-issued API keys. Nine endpoints cover clients, jobs, invoices, and proposals — every request scoped to your account, rate-limited at 600/min with clear error codes.",
