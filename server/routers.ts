@@ -21,7 +21,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -5072,6 +5072,76 @@ Only include actions when you have actually generated a complete draft. For gene
   }),
 
   // ── API Keys ──────────────────────────────────────────────────────────────────
+  // ── Live "on my way" tracking (opt-in, consent-first) ───────────────────────
+  tracking: router({
+    /** Owner explicitly starts a live tracking link for a single visit. Nothing is ever shared without this action. */
+    start: protectedProcedure
+      .input(z.object({ visitId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [visit] = await db.select().from(serviceVisits)
+          .where(and(eq(serviceVisits.id, input.visitId), eq(serviceVisits.userId, ctx.user.id))).limit(1);
+        if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Service visit not found." });
+        if (visit.status !== "scheduled" && visit.status !== "en_route") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: `Live tracking can only start while a visit is scheduled or en route. Current status: ${visit.status.replaceAll("_", " ")}.` });
+        }
+        const token = randomBytes(32).toString("hex");
+        const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000);
+        await db.update(serviceVisitTrackLinks).set({ active: false, revokedAt: new Date() })
+          .where(and(eq(serviceVisitTrackLinks.visitId, visit.id), eq(serviceVisitTrackLinks.active, true)));
+        await db.insert(serviceVisitTrackLinks).values({ userId: ctx.user.id, visitId: visit.id, token, active: true, expiresAt });
+        if (visit.status === "scheduled") {
+          await db.update(serviceVisits).set({ status: "en_route" })
+            .where(and(eq(serviceVisits.id, visit.id), eq(serviceVisits.userId, ctx.user.id)));
+          await db.insert(jobActivities).values({
+            userId: ctx.user.id, jobId: visit.jobId, actor: "owner", eventType: "service_visit_status_changed",
+            message: "Service visit marked en route (owner shared live tracking).",
+            metadata: JSON.stringify({ visitId: visit.id, status: "en_route", trackingShared: true }),
+          });
+          await deliverWorkflowWebhookEvent(db, ctx.user.id, "service_visit.status_changed", { visitId: visit.id, jobId: visit.jobId, previousStatus: "scheduled", status: "en_route" });
+        }
+        await db.insert(auditLogs).values({ userId: ctx.user.id, action: "tracking.link_created", entityType: "serviceVisit", entityId: visit.id, details: JSON.stringify({ expiresAt: expiresAt.toISOString() }) });
+        return { token, trackUrl: `/track/${token}`, expiresAt };
+      }),
+    /** A field device reports its position for the active, explicitly shared tracking link. */
+    ping: protectedProcedure
+      .input(z.object({ visitId: z.number().int().positive(), lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180), accuracy: z.number().min(0).max(5000).optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [visit] = await db.select().from(serviceVisits)
+          .where(and(eq(serviceVisits.id, input.visitId), eq(serviceVisits.userId, ctx.user.id))).limit(1);
+        if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Service visit not found." });
+        const [link] = await db.select().from(serviceVisitTrackLinks)
+          .where(and(eq(serviceVisitTrackLinks.visitId, visit.id), eq(serviceVisitTrackLinks.active, true))).limit(1);
+        if (!link || link.revokedAt || link.expiresAt.getTime() < Date.now()) throw new TRPCError({ code: "BAD_REQUEST", message: "No active tracking link for this visit." });
+        if (visit.status !== "en_route") throw new TRPCError({ code: "BAD_REQUEST", message: "Position reporting is only allowed while the visit is en route." });
+        await db.update(serviceVisitTrackLinks)
+          .set({ lastLat: input.lat, lastLng: input.lng, lastAccuracy: input.accuracy ?? null, lastPingAt: new Date() })
+          .where(eq(serviceVisitTrackLinks.id, link.id));
+        return { success: true };
+      }),
+    /** Immediately revoke the active tracking link for a visit. */
+    stop: protectedProcedure
+      .input(z.object({ visitId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const result = await db.update(serviceVisitTrackLinks).set({ active: false, revokedAt: new Date() })
+          .where(and(eq(serviceVisitTrackLinks.visitId, input.visitId), eq(serviceVisitTrackLinks.userId, ctx.user.id), eq(serviceVisitTrackLinks.active, true)));
+        await db.insert(auditLogs).values({ userId: ctx.user.id, action: "tracking.link_stopped", entityType: "serviceVisit", entityId: input.visitId, details: "{}" });
+        return { success: true, stopped: result[0].affectedRows > 0 };
+      }),
+    /** The current active tracking link for a visit, if one exists. */
+    active: protectedProcedure
+      .input(z.object({ visitId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [link] = await db.select().from(serviceVisitTrackLinks)
+          .where(and(eq(serviceVisitTrackLinks.visitId, input.visitId), eq(serviceVisitTrackLinks.userId, ctx.user.id), eq(serviceVisitTrackLinks.active, true))).limit(1);
+        if (!link || link.revokedAt) return null;
+        return { token: link.token, trackUrl: `/track/${link.token}`, expiresAt: link.expiresAt, lastPingAt: link.lastPingAt };
+      }),
+  }),
+
   apiKeys: router({
     list: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
@@ -8694,6 +8764,11 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
             metadata: JSON.stringify({ visitId: visit.id, status: input.status }),
           });
           await deliverWorkflowWebhookEvent(db, ctx.user.id, "service_visit.status_changed", { visitId: visit.id, jobId: visit.jobId, previousStatus: visit.status, status: input.status });
+          // Live tracking links live only while a visit is en route; leaving that state revokes them immediately.
+          if (input.status !== "en_route") {
+            await db.update(serviceVisitTrackLinks).set({ active: false, revokedAt: new Date() })
+              .where(and(eq(serviceVisitTrackLinks.visitId, visit.id), eq(serviceVisitTrackLinks.active, true)));
+          }
         }
         return { success: true };
       }),

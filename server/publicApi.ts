@@ -17,7 +17,7 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { and, desc, eq, isNull, like, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "./db";
-import { userApiKeys, clients, jobs, invoices, proposals } from "../drizzle/schema";
+import { userApiKeys, clients, jobs, invoices, proposals, serviceVisits, serviceVisitTrackLinks, users } from "../drizzle/schema";
 
 export const publicApiRouter = Router();
 
@@ -250,4 +250,54 @@ publicApiRouter.get("/proposals", async (req, res) => {
 // 404 for unknown /api/v1 paths — consistent error envelope, never the SPA fallback.
 publicApiRouter.use((_req, res) => {
   res.status(404).json({ error: { code: "not_found", message: "Unknown API route. See Settings > API Keys for the endpoint reference." } });
+});
+
+/* ── Public live-tracking endpoint (no auth, token-gated) ─────────────────────
+ * Serves the customer-facing /track/:token page. The token is a 64-hex random
+ * value minted ONLY when the owner explicitly starts tracking for a single
+ * visit. It expires after 12 hours and is revoked the moment the visit leaves
+ * "en_route". The response deliberately contains position and visit context
+ * only. Anything identifying a person is deliberately out of scope.
+ */
+export const trackApiRouter = Router();
+
+const TRACK_TOKEN_RE = /^[0-9a-f]{64}$/;
+
+trackApiRouter.get("/:token", async (req: Request, res: Response) => {
+  const db = await getDb();
+  if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Tracking temporarily unavailable." } }); return; }
+  const token = String(req.params.token ?? "");
+  if (!TRACK_TOKEN_RE.test(token)) {
+    res.status(404).json({ error: { code: "not_found", message: "This tracking link is not valid." } }); return;
+  }
+  const [link] = await db.select().from(serviceVisitTrackLinks).where(eq(serviceVisitTrackLinks.token, token)).limit(1);
+  if (!link || !link.active || link.revokedAt || link.expiresAt.getTime() <= Date.now()) {
+    res.status(404).json({ error: { code: "not_found", message: "This tracking link is no longer active." } }); return;
+  }
+  const [visit] = await db.select().from(serviceVisits).where(eq(serviceVisits.id, link.visitId)).limit(1);
+  if (!visit) {
+    res.status(404).json({ error: { code: "not_found", message: "This tracking link is no longer active." } }); return;
+  }
+  // Once the visit leaves "en_route", the link self-revokes and the page shows arrival.
+  if (visit.status !== "en_route") {
+    await db.update(serviceVisitTrackLinks).set({ active: false, revokedAt: new Date() })
+      .where(and(eq(serviceVisitTrackLinks.id, link.id), eq(serviceVisitTrackLinks.active, true)));
+    res.json({ data: { status: visit.status, position: null } });
+    return;
+  }
+  if (!link.lastViewedAt || Date.now() - link.lastViewedAt.getTime() > 60_000) {
+    await db.update(serviceVisitTrackLinks).set({ lastViewedAt: new Date() }).where(eq(serviceVisitTrackLinks.id, link.id));
+  }
+  const [owner] = await db.select({ businessName: users.businessName }).from(users).where(eq(users.id, link.userId)).limit(1);
+  res.json({
+    data: {
+      status: visit.status,
+      jobTitle: visit.title,
+      visitWindow: { start: visit.scheduledStart, end: visit.scheduledEnd },
+      businessName: owner?.businessName || null,
+      position: link.lastLat != null && link.lastLng != null
+        ? { lat: link.lastLat, lng: link.lastLng, accuracyMeters: link.lastAccuracy, at: link.lastPingAt }
+        : null,
+    },
+  });
 });

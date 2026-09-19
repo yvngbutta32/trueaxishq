@@ -16,7 +16,7 @@ import { icalRouter } from "../icalExport";
 import { startBackgroundJobs, stopBackgroundJobs } from "../backgroundJobs";
 import { invoicePdfRouter } from "../invoicePdf";
 import { verifyGoogleOAuthState } from "../googleOAuthState";
-import { publicApiRouter } from "../publicApi";
+import { publicApiRouter, trackApiRouter } from "../publicApi";
 import { assertSessionSecretConfigured } from "../auth";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -78,6 +78,7 @@ async function startServer() {
 
   // ── Public REST API v1 (Zapier, custom integrations; Bearer-key auth) ────
   app.use("/api/v1", publicApiRouter);
+  app.use("/api/track", trackApiRouter);
 
   // ── Health Check ─────────────────────────────────────────────────────────
   app.get("/api/health", async (_req, res) => {

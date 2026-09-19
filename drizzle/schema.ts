@@ -7,6 +7,7 @@ import {
   varchar,
   decimal,
   boolean,
+  double,
   index,
   uniqueIndex,
 } from "drizzle-orm/mysql-core";
@@ -1494,3 +1495,31 @@ export const publicPhotoUploads = mysqlTable("publicPhotoUploads", {
   index("publicPhotoUploads_sessionId_idx").on(t.sessionId),
 ]);
 export type PublicPhotoUpload = typeof publicPhotoUploads.$inferSelect;
+
+// ── Live "on my way" tracking links ──────────────────────────────────────────
+// Deliberately opt-in and consent-first: nothing here is ever exposed passively.
+// A link exists only because the owner explicitly started it for a single visit,
+// it expires after 12 hours, and it is revoked the moment the visit leaves
+// "en_route". The public track endpoint exposes position only — no client,
+// technician, address, or routing data.
+export const serviceVisitTrackLinks = mysqlTable("serviceVisitTrackLinks", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  visitId: int("visitId").notNull(),
+  token: varchar("token", { length: 96 }).notNull().unique(),
+  active: boolean("active").notNull().default(true),
+  techConsented: boolean("techConsented").notNull().default(false),
+  lastLat: double("lastLat"),
+  lastLng: double("lastLng"),
+  lastAccuracy: double("lastAccuracy"),
+  lastPingAt: timestamp("lastPingAt"),
+  lastViewedAt: timestamp("lastViewedAt"),
+  revokedAt: timestamp("revokedAt"),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("serviceVisitTrackLinks_userId_idx").on(t.userId),
+  index("serviceVisitTrackLinks_visitId_active_idx").on(t.visitId, t.active),
+]);
+export type ServiceVisitTrackLink = typeof serviceVisitTrackLinks.$inferSelect;
+export type InsertServiceVisitTrackLink = typeof serviceVisitTrackLinks.$inferInsert;
