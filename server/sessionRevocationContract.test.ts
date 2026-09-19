@@ -18,9 +18,10 @@ describe("database-backed local sessions", () => {
   });
 
   it("records every issued local token and revokes the active token on logout", () => {
-    // Four session issuers: password login, admin login, password reset,
-    // SMS magic-link verify — every one must be recorded in userSessions.
-    expect((router.match(/await recordSession\(user\.id, token, ctx\.req\)/g) ?? []).length).toBe(4);
+    // Five session issuers: first-run bootstrap register, password login,
+    // admin login, password reset, SMS magic-link verify — every one must
+    // be recorded in userSessions.
+    expect((router.match(/await recordSession\(user\.id, token, ctx\.req\)/g) ?? []).length).toBe(5);
     expect(router).toContain('await revokeSession(token, "logout")');
   });
 

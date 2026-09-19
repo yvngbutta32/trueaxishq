@@ -92,3 +92,18 @@ drizzle/  Schema + 70 migrations
 docs/     Audit history, research, launch checklists
 scripts/  Admin bootstrap + CI bundle-budget check
 ```
+
+## First-run setup (creating the first account)
+
+Registration is invite-only: existing owners mint invite codes from Settings.
+That leaves a chicken-and-egg problem on a brand-new install — there is no
+owner yet to mint the first code. Solve it with the bootstrap code:
+
+1. Set `BOOTSTRAP_INVITE_CODE=<your-code>` in the server environment (see `.env.example`).
+2. Open `/login` and register using that code. The first account is created
+   as the owner (admin) and the bootstrap code stops working as soon as the
+   account exists — all later signups use normal invite codes.
+3. Remove `BOOTSTRAP_INVITE_CODE` from the environment when done (optional but recommended).
+
+If you try to register on an empty install without `BOOTSTRAP_INVITE_CODE`
+set, the app tells you exactly that instead of failing silently.

@@ -14,7 +14,11 @@ describe("invite-code registration claim", () => {
     expect(registerSection).toContain("eq(inviteCodes.revoked, false)");
     expect(registerSection).toContain("gt(inviteCodes.expiresAt, claimTime)");
     expect(registerSection).toContain("if (!claimResult[0].affectedRows)");
-    expect(registerSection.indexOf("const claimResult")).toBeLessThan(registerSection.indexOf("await registerUser"));
+    // Order is asserted within the invite flow itself (the first-run bootstrap
+    // branch legitimately calls registerUser earlier while zero users exist).
+    const inviteFlowStart = registerSection.indexOf("Validate invite code first");
+    const inviteFlow = registerSection.slice(inviteFlowStart);
+    expect(inviteFlow.indexOf("const claimResult")).toBeLessThan(inviteFlow.indexOf("await registerUser"));
   });
 
   it("releases only a tentative unassigned claim when account creation fails", () => {

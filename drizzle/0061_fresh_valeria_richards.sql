@@ -1,2 +1,1 @@
-ALTER TABLE `jobPhotos` ADD `clientVisible` boolean DEFAULT false NOT NULL;--> statement-breakpoint
 CREATE INDEX `jobPhotos_user_job_clientVisible_idx` ON `jobPhotos` (`userId`,`jobId`,`clientVisible`);

@@ -595,7 +595,9 @@ export const appRouter = router({
       const user = opts.ctx.user;
       if (!user) return null;
       const isOwner = user.role === "admin";
-      return { ...user, isOwner };
+      // Never expose secret material to the client, even hashed.
+      const { passwordHash, twoFactorSecret, ...safeUser } = user;
+      return { ...safeUser, isOwner };
     }),
 
     register: publicProcedure
@@ -607,8 +609,39 @@ export const appRouter = router({
       }))
       .mutation(async ({ input, ctx }) => {
         try {
-          // Validate invite code first
           const db = await requireDb();
+
+          // ── First-run bootstrap ──────────────────────────────────────────
+          // A fresh install has no accounts and therefore no admin to mint
+          // invite codes, so the deployer-provided BOOTSTRAP_INVITE_CODE
+          // creates the first owner account instead. Single-use by
+          // construction: it only works while the users table is empty.
+          const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
+          if (Number(userCount?.count ?? 0) === 0) {
+            const bootstrapCode = (process.env.BOOTSTRAP_INVITE_CODE ?? "").trim().toUpperCase();
+            if (!bootstrapCode) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "No accounts exist yet. The person deploying TrueAxis HQ must set BOOTSTRAP_INVITE_CODE in the server environment, then register with that code to create the first owner account.",
+              });
+            }
+            if (input.inviteCode.trim().toUpperCase() !== bootstrapCode) {
+              throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid invite code. Please check and try again." });
+            }
+            const user = await registerUser({
+              name: input.name,
+              email: input.email,
+              password: input.password,
+              role: "admin",
+            });
+            const token = await createSessionToken(user.id, user.email ?? input.email);
+            await recordSession(user.id, token, ctx.req);
+            const cookieOptions = getSessionCookieOptions(ctx.req);
+            ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+            return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
+          }
+
+          // Validate invite code first
           const [invite] = await db.select().from(inviteCodes)
             .where(eq(inviteCodes.code, input.inviteCode.toUpperCase())).limit(1);
 
@@ -1267,7 +1300,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const initials = input.name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
-        const result = await db.insert(clients).values({
+        const [result] = await db.insert(clients).values({
           userId: ctx.user.id,
           name: input.name,
           email: input.email || null,
@@ -1400,7 +1433,7 @@ export const appRouter = router({
         const [client] = await db.select({ id: clients.id }).from(clients)
           .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
         if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
-        const result = await db.insert(customerAssets).values({ userId: ctx.user.id, clientId: input.clientId, name: input.name, assetTag: input.assetTag || null, functionalLocation: input.functionalLocation || null, notes: input.notes || null });
+        const [result] = await db.insert(customerAssets).values({ userId: ctx.user.id, clientId: input.clientId, name: input.name, assetTag: input.assetTag || null, functionalLocation: input.functionalLocation || null, notes: input.notes || null });
         return { id: Number((result as any).insertId), success: true };
       }),
     update: protectedProcedure
@@ -1476,7 +1509,7 @@ export const appRouter = router({
         if (new Set(input.fields.map(field => field.id)).size !== input.fields.length) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Each inspection question needs a unique field ID." });
         }
-        const result = await db.insert(assetInspectionTemplates).values({
+        const [result] = await db.insert(assetInspectionTemplates).values({
           userId: ctx.user.id,
           name: input.name,
           fields: JSON.stringify(input.fields),
@@ -1511,7 +1544,7 @@ export const appRouter = router({
           const deactivate = await tx.update(assetInspectionTemplates).set({ active: false, templateFamilyId: familyId, updatedAt: new Date() })
             .where(and(eq(assetInspectionTemplates.id, source.id), eq(assetInspectionTemplates.userId, ctx.user.id), eq(assetInspectionTemplates.active, true)));
           if (!deactivate[0].affectedRows) throw new TRPCError({ code: "CONFLICT", message: "This template was just revised. Refresh before trying again." });
-          const result = await tx.insert(assetInspectionTemplates).values({
+          const [result] = await tx.insert(assetInspectionTemplates).values({
             userId: ctx.user.id,
             templateFamilyId: familyId,
             name: input.name,
@@ -1604,7 +1637,7 @@ export const appRouter = router({
         const normalizedResponses = templateFields
           .filter(field => submittedValues.has(field.id))
           .map(field => ({ fieldId: field.id, value: submittedValues.get(field.id) ?? "" }));
-        const result = await db.insert(assetInspectionResponses).values({ userId: ctx.user.id, jobId: job.id, clientId: job.clientId, customerAssetId: asset.id, templateId: template.id, templateVersion: template.version, templateFields: JSON.stringify(templateFields), responses: JSON.stringify(normalizedResponses) });
+        const [result] = await db.insert(assetInspectionResponses).values({ userId: ctx.user.id, jobId: job.id, clientId: job.clientId, customerAssetId: asset.id, templateId: template.id, templateVersion: template.version, templateFields: JSON.stringify(templateFields), responses: JSON.stringify(normalizedResponses) });
         return { id: Number((result as any).insertId), success: true };
       }),
   }),
@@ -1676,7 +1709,7 @@ export const appRouter = router({
         if (input.lineItems && input.lineItems.length > 0) {
           totalAmount = input.lineItems.reduce((sum, item) => sum + item.qty * item.unitPrice, 0);
         }
-        const result = await db.insert(invoices).values({
+        const [result] = await db.insert(invoices).values({
           userId: ctx.user.id,
           clientId: input.clientId || null,
           invoiceNumber,
@@ -2079,7 +2112,7 @@ export const appRouter = router({
         if (conflict.length > 0) {
           throw new TRPCError({ code: "CONFLICT", message: `You already have a booking on ${input.date} at ${input.time}. Please choose a different time slot.` });
         }
-        const result = await db.insert(bookings).values({
+        const [result] = await db.insert(bookings).values({
           userId: ctx.user.id,
           clientId: input.clientId || null,
           clientName: input.clientName,
@@ -2200,7 +2233,7 @@ export const appRouter = router({
           }
         } catch (_) { /* fallback to default template */ }
 
-        const result = await db.insert(followUps).values({
+        const [result] = await db.insert(followUps).values({
           userId: ctx.user.id,
           clientId: input.clientId || null,
           clientName: input.clientName,
@@ -2270,7 +2303,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
-        const result = await db.insert(emailTemplates).values({ userId: ctx.user.id, ...input });
+        const [result] = await db.insert(emailTemplates).values({ userId: ctx.user.id, ...input });
         return { id: Number((result as any).insertId), success: true };
       }),
 
@@ -8461,7 +8494,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const [overlap] = await db.select({ id: staffAvailabilityBlocks.id }).from(staffAvailabilityBlocks)
           .where(and(eq(staffAvailabilityBlocks.userId, ctx.user.id), eq(staffAvailabilityBlocks.teamMemberId, input.teamMemberId), lt(staffAvailabilityBlocks.startsAt, input.endsAt), gt(staffAvailabilityBlocks.endsAt, input.startsAt))).limit(1);
         if (overlap) throw new TRPCError({ code: "CONFLICT", message: "This overlaps an existing private availability block for the selected team member." });
-        const result = await db.insert(staffAvailabilityBlocks).values({ userId: ctx.user.id, teamMemberId: input.teamMemberId, startsAt: input.startsAt, endsAt: input.endsAt, reason: input.reason || null });
+        const [result] = await db.insert(staffAvailabilityBlocks).values({ userId: ctx.user.id, teamMemberId: input.teamMemberId, startsAt: input.startsAt, endsAt: input.endsAt, reason: input.reason || null });
         return { id: Number((result as any).insertId), success: true };
       }),
 

@@ -124,6 +124,8 @@ export async function registerUser(data: {
   name: string;
   email: string;
   password: string;
+  /** Only used by the first-run bootstrap: the very first account becomes the owner. */
+  role?: "admin";
 }): Promise<User> {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
@@ -148,6 +150,7 @@ export async function registerUser(data: {
     email,
     loginMethod: "email",
     passwordHash,
+    role: data.role ?? "user",
     lastSignedIn: new Date(),
   });
 

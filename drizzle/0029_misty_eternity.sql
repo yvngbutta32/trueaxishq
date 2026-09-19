@@ -1,3 +1,26 @@
+CREATE TABLE `jobPhotos` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`bookingId` int,
+	`clientId` int,
+	`jobId` int,
+	`photoType` enum('estimate','wip','finished','receipt') NOT NULL DEFAULT 'estimate',
+	`uploadedBy` enum('client','owner') NOT NULL DEFAULT 'client',
+	`photoUrl` text NOT NULL,
+	`photoKey` varchar(512) NOT NULL,
+	`caption` varchar(512),
+	`clientVisible` boolean DEFAULT false NOT NULL,
+	`lineItemLabel` varchar(255),
+	`lineItemAmount` decimal(10, 2),
+	`sortOrder` int DEFAULT 0,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `jobPhotos_id` PRIMARY KEY(`id`)
+);--> statement-breakpoint
+CREATE INDEX `jobPhotos_userId_idx` ON `jobPhotos` (`userId`);--> statement-breakpoint
+CREATE INDEX `jobPhotos_bookingId_idx` ON `jobPhotos` (`bookingId`);--> statement-breakpoint
+CREATE INDEX `jobPhotos_clientId_idx` ON `jobPhotos` (`clientId`);--> statement-breakpoint
+CREATE INDEX `jobPhotos_photoType_idx` ON `jobPhotos` (`photoType`);--> statement-breakpoint
 CREATE TABLE `jobActivities` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`userId` int NOT NULL,
@@ -57,7 +80,6 @@ CREATE TABLE `jobs` (
 ALTER TABLE `bookings` ADD `slotKey` varchar(160);--> statement-breakpoint
 ALTER TABLE `clientPortalTokens` ADD `revoked` boolean DEFAULT false NOT NULL;--> statement-breakpoint
 ALTER TABLE `clientPortalTokens` ADD `revokedAt` timestamp;--> statement-breakpoint
-ALTER TABLE `jobPhotos` ADD `jobId` int;--> statement-breakpoint
 ALTER TABLE `timeEntries` ADD `jobId` int;--> statement-breakpoint
 ALTER TABLE `bookings` ADD CONSTRAINT `bookings_slotKey_unique` UNIQUE(`slotKey`);--> statement-breakpoint
 CREATE INDEX `jobActivities_userId_idx` ON `jobActivities` (`userId`);--> statement-breakpoint
@@ -67,5 +89,4 @@ CREATE INDEX `jobTasks_jobId_idx` ON `jobTasks` (`jobId`);--> statement-breakpoi
 CREATE INDEX `jobs_userId_idx` ON `jobs` (`userId`);--> statement-breakpoint
 CREATE INDEX `jobs_clientId_idx` ON `jobs` (`clientId`);--> statement-breakpoint
 CREATE INDEX `jobs_bookingId_idx` ON `jobs` (`bookingId`);--> statement-breakpoint
-CREATE INDEX `jobPhotos_jobId_idx` ON `jobPhotos` (`jobId`);--> statement-breakpoint
 CREATE INDEX `timeEntries_jobId_idx` ON `timeEntries` (`jobId`);
