@@ -1060,11 +1060,30 @@ export const jobTasks = mysqlTable("jobTasks", {
   status: mysqlEnum("status", ["todo", "in_progress", "done"]).notNull().default("todo"),
   dueDate: varchar("dueDate", { length: 32 }),
   sortOrder: int("sortOrder").notNull().default(0),
+  phaseId: int("phaseId"),
   completedAt: timestamp("completedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (t) => [index("jobTasks_userId_idx").on(t.userId), index("jobTasks_jobId_idx").on(t.jobId), index("jobTasks_user_job_clientVisible_idx").on(t.userId, t.jobId, t.clientVisible)]);
+}, (t) => [index("jobTasks_userId_idx").on(t.userId), index("jobTasks_jobId_idx").on(t.jobId), index("jobTasks_user_job_clientVisible_idx").on(t.userId, t.jobId, t.clientVisible), index("jobTasks_phaseId_idx").on(t.userId, t.phaseId)]);
 export type JobTask = typeof jobTasks.$inferSelect;
+
+// ─── Project Phases (hybrid workflows) ───────────────────────────────────────
+// A job with no phases behaves exactly like a day-ticket; adding phases turns
+// the same record into a multi-phase project — one client, one invoice chain,
+// one evidence trail, no duplicate records.
+export const jobPhases = mysqlTable("jobPhases", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  jobId: int("jobId").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  status: mysqlEnum("status", ["planned", "in_progress", "done"]).notNull().default("planned"),
+  position: int("position").notNull().default(0),
+  scheduledDate: varchar("scheduledDate", { length: 32 }),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [index("jobPhases_userId_idx").on(t.userId), index("jobPhases_jobId_idx").on(t.jobId), index("jobPhases_user_job_position_idx").on(t.userId, t.jobId, t.position)]);
+export type JobPhase = typeof jobPhases.$inferSelect;
 
 export const jobActivities = mysqlTable("jobActivities", {
   id: int("id").autoincrement().primaryKey(),

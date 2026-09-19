@@ -21,7 +21,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -8221,13 +8221,14 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const [invoice] = job.invoiceId ? await db.select().from(invoices).where(and(eq(invoices.id, job.invoiceId), eq(invoices.userId, ctx.user.id))).limit(1) : [];
         const [proposal] = job.proposalId ? await db.select().from(proposals).where(and(eq(proposals.id, job.proposalId), eq(proposals.userId, ctx.user.id))).limit(1) : [];
         const [contract] = job.contractId ? await db.select().from(contracts).where(and(eq(contracts.id, job.contractId), eq(contracts.userId, ctx.user.id))).limit(1) : [];
-        const [tasks, activities, photos, entries, approvals, jobExpenses] = await Promise.all([
+        const [tasks, activities, photos, entries, approvals, jobExpenses, phases] = await Promise.all([
           db.select().from(jobTasks).where(and(eq(jobTasks.jobId, job.id), eq(jobTasks.userId, ctx.user.id))).orderBy(jobTasks.sortOrder, desc(jobTasks.createdAt)),
           db.select().from(jobActivities).where(and(eq(jobActivities.jobId, job.id), eq(jobActivities.userId, ctx.user.id))).orderBy(desc(jobActivities.createdAt)).limit(100),
           db.select().from(jobPhotos).where(and(eq(jobPhotos.jobId, job.id), eq(jobPhotos.userId, ctx.user.id))).orderBy(jobPhotos.sortOrder, desc(jobPhotos.createdAt)),
           db.select().from(timeEntries).where(and(eq(timeEntries.jobId, job.id), eq(timeEntries.userId, ctx.user.id))).orderBy(desc(timeEntries.startedAt)),
           db.select().from(clientApprovalRequests).where(and(eq(clientApprovalRequests.jobId, job.id), eq(clientApprovalRequests.userId, ctx.user.id), eq(clientApprovalRequests.clientId, job.clientId))).orderBy(desc(clientApprovalRequests.createdAt)),
           db.select().from(expenses).where(and(eq(expenses.jobId, job.id), eq(expenses.userId, ctx.user.id))).orderBy(desc(expenses.createdAt)),
+          db.select().from(jobPhases).where(and(eq(jobPhases.jobId, job.id), eq(jobPhases.userId, ctx.user.id))).orderBy(jobPhases.position, jobPhases.id),
         ]);
         const receiptCost = photos.filter(photo => photo.photoType === "receipt").reduce((sum, photo) => sum + Number(photo.lineItemAmount ?? 0), 0);
         const laborCost = entries.reduce((sum, entry) => sum + ((entry.durationMinutes ?? 0) / 60) * Number(entry.hourlyRate ?? 0), 0);
@@ -8235,7 +8236,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const revenue = Number(invoice?.amount ?? job.budgetAmount ?? 0);
         return {
           job, client, booking: booking ?? null, invoice: invoice ?? null, proposal: proposal ?? null, contract: contract ?? null,
-          tasks, activities, photos, entries, approvals, expenses: jobExpenses,
+          tasks, activities, photos, entries, approvals, expenses: jobExpenses, phases,
           financials: calculateJobCosting({ revenue, receiptCost, laborCost, expenseCost }),
         };
       }),
@@ -8407,11 +8408,16 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       }),
 
     updateTask: protectedProcedure
-      .input(z.object({ id: z.number().int().positive(), status: z.enum(["todo", "in_progress", "done"]).optional(), title: safeOptionalString(255), dueDate: safeOptionalString(32), clientVisible: z.boolean().optional() }))
+      .input(z.object({ id: z.number().int().positive(), status: z.enum(["todo", "in_progress", "done"]).optional(), title: safeOptionalString(255), dueDate: safeOptionalString(32), clientVisible: z.boolean().optional(), phaseId: z.number().int().positive().nullable().optional() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const [task] = await db.select().from(jobTasks).where(and(eq(jobTasks.id, input.id), eq(jobTasks.userId, ctx.user.id))).limit(1);
         if (!task) throw new TRPCError({ code: "NOT_FOUND" });
+        // A phase assignment must reference a phase of the same job and owner.
+        if (input.phaseId !== undefined && input.phaseId !== null) {
+          const [phase] = await db.select({ id: jobPhases.id }).from(jobPhases).where(and(eq(jobPhases.id, input.phaseId), eq(jobPhases.userId, ctx.user.id), eq(jobPhases.jobId, task.jobId))).limit(1);
+          if (!phase) throw new TRPCError({ code: "BAD_REQUEST", message: "That phase does not belong to this job." });
+        }
         const { id, ...inputUpdates } = input;
         const updates: Record<string, unknown> = { ...inputUpdates };
         if (input.status === "done" && task.status !== "done") updates.completedAt = new Date();
@@ -8426,6 +8432,70 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         await db.delete(jobTasks).where(and(eq(jobTasks.id, input.id), eq(jobTasks.userId, ctx.user.id)));
+        return { success: true };
+      }),
+
+    // ─── Hybrid workflows: project phases ───────────────────────────────────
+    // Jobs without phases are day-tickets; adding phases turns the same job
+    // record into a multi-phase project. One client, one evidence trail.
+    addPhase: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive(), name: safeString(100), scheduledDate: safeOptionalString(32), notes: safeOptionalString(2000) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND" });
+        const existing = await db.select({ position: jobPhases.position }).from(jobPhases).where(and(eq(jobPhases.jobId, input.jobId), eq(jobPhases.userId, ctx.user.id)));
+        const position = existing.reduce((max, phase) => Math.max(max, phase.position), 0) + 1;
+        const [result] = await db.insert(jobPhases).values({ userId: ctx.user.id, jobId: input.jobId, name: input.name, position, scheduledDate: input.scheduledDate ?? null, notes: input.notes ?? null });
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: input.jobId, actor: "owner", eventType: "phase_added", message: `Added project phase: ${input.name}.` });
+        return { id: Number(result.insertId), position };
+      }),
+
+    updatePhase: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), name: safeOptionalString(100), status: z.enum(["planned", "in_progress", "done"]).optional(), scheduledDate: safeOptionalString(32), notes: safeOptionalString(2000) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [phase] = await db.select().from(jobPhases).where(and(eq(jobPhases.id, input.id), eq(jobPhases.userId, ctx.user.id))).limit(1);
+        if (!phase) throw new TRPCError({ code: "NOT_FOUND" });
+        const updates: Record<string, unknown> = {};
+        if (input.name !== undefined) updates.name = input.name;
+        if (input.status !== undefined) updates.status = input.status;
+        if (input.scheduledDate !== undefined) updates.scheduledDate = input.scheduledDate ?? null;
+        if (input.notes !== undefined) updates.notes = input.notes ?? null;
+        if (Object.keys(updates).length > 0) await db.update(jobPhases).set(updates).where(and(eq(jobPhases.id, input.id), eq(jobPhases.userId, ctx.user.id)));
+        if (input.status !== undefined && input.status !== phase.status) {
+          await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: phase.jobId, actor: "owner", eventType: "phase_status_changed", message: `Project phase “${input.name ?? phase.name}” marked ${input.status.replaceAll("_", " ")}.` });
+        }
+        return { success: true };
+      }),
+
+    deletePhase: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [phase] = await db.select({ id: jobPhases.id, jobId: jobPhases.jobId }).from(jobPhases).where(and(eq(jobPhases.id, input.id), eq(jobPhases.userId, ctx.user.id))).limit(1);
+        if (!phase) throw new TRPCError({ code: "NOT_FOUND" });
+        // Removing a phase never destroys work: its tasks are unlinked, not deleted.
+        await db.update(jobTasks).set({ phaseId: null }).where(and(eq(jobTasks.phaseId, input.id), eq(jobTasks.userId, ctx.user.id)));
+        await db.delete(jobPhases).where(and(eq(jobPhases.id, input.id), eq(jobPhases.userId, ctx.user.id)));
+        await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: phase.jobId, actor: "owner", eventType: "phase_removed", message: `Removed project phase. Its checklist items were kept and unassigned.` });
+        return { success: true };
+      }),
+
+    reorderPhases: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive(), phaseIds: z.array(z.number().int().positive()).min(1).max(50) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND" });
+        const phases = await db.select({ id: jobPhases.id }).from(jobPhases).where(and(eq(jobPhases.jobId, input.jobId), eq(jobPhases.userId, ctx.user.id)));
+        const knownIds = new Set(phases.map(phase => phase.id));
+        if (new Set(input.phaseIds).size !== input.phaseIds.length || input.phaseIds.some(id => !knownIds.has(id))) throw new TRPCError({ code: "BAD_REQUEST", message: "The phase order must list this job's phases exactly once." });
+        let position = 1;
+        for (const phaseId of input.phaseIds) {
+          await db.update(jobPhases).set({ position }).where(and(eq(jobPhases.id, phaseId), eq(jobPhases.userId, ctx.user.id)));
+          position += 1;
+        }
         return { success: true };
       }),
 
