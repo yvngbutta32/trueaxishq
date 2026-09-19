@@ -2401,7 +2401,18 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
-        await db.update(users).set({ ...input, updatedAt: new Date() }).where(eq(users.id, ctx.user.id));
+        // Store phones in E.164 so SMS code sign-in can match them exactly.
+        // An un-normalizable non-empty phone is rejected rather than silently
+        // stored in a form that can never receive sign-in codes.
+        let phone: string | null | undefined = input.phone;
+        if (input.phone !== undefined) {
+          const normalized = normalizePhoneToE164(input.phone);
+          if (input.phone !== "" && !normalized) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Enter a valid phone number, e.g. +1 512 555 0100 or +44 20 7946 0098." });
+          }
+          phone = normalized ?? null;
+        }
+        await db.update(users).set({ ...input, phone, updatedAt: new Date() }).where(eq(users.id, ctx.user.id));
         return { success: true };
       }),
 

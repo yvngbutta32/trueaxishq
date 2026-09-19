@@ -97,6 +97,13 @@ describe("SMS magic-link login evidence boundary", () => {
 });
 
 describe("SMS login UI evidence boundary", () => {
+  it("stores the profile phone in E.164 so code lookups can match exactly", () => {
+    const routers = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
+    const profile = routers.slice(routers.indexOf("updateProfile: protectedProcedure"), routers.indexOf("updateBusiness: protectedProcedure"));
+    expect(profile).toContain("normalizePhoneToE164(input.phone)");
+    expect(profile).toContain("Enter a valid phone number, e.g. +1 512 555 0100");
+  });
+
   it("offers SMS sign-in only when Twilio is configured", () => {
     const login = readFileSync(resolve(process.cwd(), "client/src/pages/Login.tsx"), "utf8");
     expect(login).toContain("smsStatus.data?.configured === true");
