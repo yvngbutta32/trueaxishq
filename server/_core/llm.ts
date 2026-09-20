@@ -209,14 +209,21 @@ const normalizeToolChoice = (
   return toolChoice;
 };
 
-const resolveApiUrl = () =>
-  ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
+/* Independence policy: there is NO default third-party LLM endpoint. AI features
+ * run against whatever endpoint the owner explicitly configures — including a
+ * fully self-hosted, OpenAI-compatible server (Ollama, vLLM, llama.cpp). When
+ * unset, calls fail fast and every caller degrades honestly. */
+const resolveApiUrl = () => {
+  const url = (ENV.forgeApiUrl ?? "").trim();
+  if (!url) {
+    throw new Error("LLM endpoint is not configured (set BUILT_IN_FORGE_API_URL to your own OpenAI-compatible server)");
+  }
+  return `${url.replace(/\/$/, "")}/v1/chat/completions`;
+};
 
 const assertApiKey = () => {
   if (!ENV.forgeApiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
+    throw new Error("LLM API key is not configured (BUILT_IN_FORGE_API_KEY)");
   }
 };
 

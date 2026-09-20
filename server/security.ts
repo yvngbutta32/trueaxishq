@@ -254,8 +254,8 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
   const ip = getClientIp(req);
   const now = Date.now();
   const scriptSource = process.env.NODE_ENV === "production"
-    ? "script-src 'self' 'unsafe-inline' https://js.stripe.com https://fonts.googleapis.com"
-    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://fonts.googleapis.com";
+    ? "script-src 'self' 'unsafe-inline' https://js.stripe.com"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com";
 
   // 1. Permanent manual blocklist
   if (blocklist.has(ip)) {
@@ -275,10 +275,10 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
     [
       "default-src 'self'",
       scriptSource,
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self'",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://api.stripe.com https://fonts.googleapis.com https://d2xsxph8kpxj0f.cloudfront.net https://api.manus.im https://*.manus.space https://*.manus.computer wss: ws: https:",
+      "connect-src 'self' https://api.stripe.com wss: ws: https:",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
       "frame-ancestors 'self' https://*.manus.space https://*.manus.computer https://*.trueaxishq.com https://trueaxishq.com https://www.trueaxishq.com https://*.trueaxishq.com",
       "base-uri 'self'",
