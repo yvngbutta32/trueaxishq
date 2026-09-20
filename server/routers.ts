@@ -8177,7 +8177,41 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
             .where(and(eq(serviceVisits.userId, input.ownerUserId), eq(serviceVisits.teamMemberId, membership.teamMemberId)))
             .orderBy(serviceVisits.scheduledStart),
         ]);
-        return { membership, assignments, visits };
+        // Owner consent boundary: a visit only accepts field positions while the owner has an active tracking link for it.
+        const activeLinks = await db.select({ visitId: serviceVisitTrackLinks.visitId })
+          .from(serviceVisitTrackLinks)
+          .where(and(eq(serviceVisitTrackLinks.userId, input.ownerUserId), eq(serviceVisitTrackLinks.active, true)));
+        const trackedVisitIds = new Set(activeLinks.map(l => l.visitId));
+        return { membership, assignments, visits: visits.map(visit => ({ ...visit, trackingActive: trackedVisitIds.has(visit.id) })) };
+      }),
+
+    /** Field device reports its position for a visit — only while the OWNER explicitly started a live tracking link for it and the visit is en route. */
+    reportVisitPosition: staffProcedure
+      .input(z.object({
+        ownerUserId: z.number().int().positive(),
+        visitId: z.number().int().positive(),
+        lat: z.number().min(-90).max(90),
+        lng: z.number().min(-180).max(180),
+        accuracy: z.number().min(0).max(5000).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const membership = await requireActiveStaffMembership(db, ctx.user.id, input.ownerUserId);
+        const [visit] = await db.select({ id: serviceVisits.id, teamMemberId: serviceVisits.teamMemberId, status: serviceVisits.status })
+          .from(serviceVisits)
+          .where(and(eq(serviceVisits.id, input.visitId), eq(serviceVisits.userId, input.ownerUserId))).limit(1);
+        if (!visit || visit.teamMemberId !== membership.teamMemberId) throw new TRPCError({ code: "NOT_FOUND", message: "Service visit not found." });
+        if (visit.status !== "en_route") throw new TRPCError({ code: "BAD_REQUEST", message: "Positions are only accepted while the visit is en route." });
+        const [link] = await db.select({ id: serviceVisitTrackLinks.id })
+          .from(serviceVisitTrackLinks)
+          .where(and(eq(serviceVisitTrackLinks.visitId, input.visitId), eq(serviceVisitTrackLinks.userId, input.ownerUserId), eq(serviceVisitTrackLinks.active, true)))
+          .limit(1);
+        // Fail closed: no owner-started link, no position is ever stored.
+        if (!link) throw new TRPCError({ code: "BAD_REQUEST", message: "The owner has not started live tracking for this visit." });
+        await db.update(serviceVisitTrackLinks)
+          .set({ lastLat: input.lat, lastLng: input.lng, lastAccuracy: input.accuracy ?? null, lastPingAt: new Date() })
+          .where(eq(serviceVisitTrackLinks.id, link.id));
+        return { success: true };
       }),
 
     updateAssignmentStatus: staffProcedure
@@ -8537,10 +8571,23 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         db.select({ teamMemberId: staffAvailabilityBlocks.teamMemberId, startsAt: staffAvailabilityBlocks.startsAt, endsAt: staffAvailabilityBlocks.endsAt })
           .from(staffAvailabilityBlocks).where(eq(staffAvailabilityBlocks.userId, ctx.user.id)),
       ]);
-      return visits.map(visit => ({
-        ...visit,
-        availabilityConflict: visit.status !== "cancelled" && visit.teamMemberId !== null && availabilityBlocks.some(block => block.teamMemberId === visit.teamMemberId && block.startsAt < visit.scheduledEnd && block.endsAt > visit.scheduledStart),
-      }));
+      const [activeLinks] = await Promise.all([
+        db.select({ visitId: serviceVisitTrackLinks.visitId, token: serviceVisitTrackLinks.token, expiresAt: serviceVisitTrackLinks.expiresAt })
+          .from(serviceVisitTrackLinks)
+          .where(and(eq(serviceVisitTrackLinks.userId, ctx.user.id), eq(serviceVisitTrackLinks.active, true))),
+      ]).then(r => r);
+      const linksByVisit = new Map(activeLinks.map(l => [l.visitId, l]));
+      return visits.map(visit => {
+        const link = linksByVisit.get(visit.id);
+        const trackingActive = !!link && link.expiresAt.getTime() > Date.now();
+        return {
+          ...visit,
+          availabilityConflict: visit.status !== "cancelled" && visit.teamMemberId !== null && availabilityBlocks.some(block => block.teamMemberId === visit.teamMemberId && block.startsAt < visit.scheduledEnd && block.endsAt > visit.scheduledStart),
+          trackingActive,
+          trackingUrl: trackingActive ? `/track/${link!.token}` : null,
+          trackingExpiresAt: trackingActive ? link!.expiresAt : null,
+        };
+      });
     }),
 
     listAvailabilityBlocks: protectedProcedure.query(async ({ ctx }) => {

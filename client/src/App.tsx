@@ -34,6 +34,7 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const ClientPortal = lazy(() => import("./pages/ClientPortal"));
 const TestimonialSubmit = lazy(() => import("./pages/TestimonialSubmit"));
+const TrackVisit = lazy(() => import("./pages/TrackVisit"));
 const BookingCancel = lazy(() => import("./pages/BookingCancel"));
 const ProposalSign = lazy(() => import("./pages/ProposalSign"));
 const IntakeFormPage = lazy(() => import("./pages/IntakeFormPage"));
@@ -111,6 +112,9 @@ function Router() {
 
         {/* Testimonial submission — public, token-gated */}
         <Route path="/testimonial/:token" component={TestimonialSubmit} />
+
+        {/* Live visit tracking — public, token-gated */}
+        <Route path="/track/:token" component={TrackVisit} />
 
         {/* Booking cancel/reschedule — public, token-gated */}
         <Route path="/booking/manage/:token" component={BookingCancel} />

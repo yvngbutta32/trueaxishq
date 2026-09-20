@@ -22,7 +22,7 @@ describe("Dispatch Board capacity preflight", () => {
   });
 
   it("retains the explicit manual dispatch boundary", () => {
-    expect(source).toContain("No GPS, routing, or automated ETA claims");
+    expect(source).toContain("Consent-based tracking only — never automatic");
     expect(source).toContain("Allow an intentional overlap");
   });
 });

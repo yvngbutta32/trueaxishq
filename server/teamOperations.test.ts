@@ -61,7 +61,7 @@ describe("team operations ownership contracts", () => {
     expect(source).toContain("hasDispatchConflict");
     expect(source).toContain("conflictAcknowledged");
     expect(source).toContain("service_visit_scheduled");
-    expect(dispatchUi).toContain("No GPS, routing, or automated ETA claims");
+    expect(dispatchUi).toContain("Consent-based tracking only — never automatic");
     expect(dispatchUi).toContain("allowConflict");
   });
 });
