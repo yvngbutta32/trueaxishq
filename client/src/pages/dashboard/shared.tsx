@@ -40,7 +40,7 @@ import {
   PieChart, Pie, Cell
 } from "recharts";
 
-type ActivePanel = "overview" | "executive" | "launch" | "clients" | "scheduling" | "jobs" | "team" | "dispatch" | "field" | "integrations" | "webhooks" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations" | "billing" | "outreach" | "deals" | "insights" | "photos" | "inventory" | "reports" | "import";
+type ActivePanel = "overview" | "executive" | "launch" | "clients" | "scheduling" | "jobs" | "team" | "dispatch" | "field" | "integrations" | "webhooks" | "invoices" | "followups" | "analytics" | "settings" | "ai" | "pulse" | "contracts" | "time" | "inbox" | "testimonials" | "services" | "expenses" | "proposals" | "automations" | "billing" | "outreach" | "deals" | "insights" | "photos" | "inventory" | "reports" | "import" | "subs";
 
 interface ConfirmState {
   open: boolean;

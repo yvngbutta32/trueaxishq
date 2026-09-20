@@ -17,7 +17,7 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { and, desc, eq, isNull, like, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "./db";
-import { userApiKeys, clients, jobs, invoices, proposals, serviceVisits, serviceVisitTrackLinks, users } from "../drizzle/schema";
+import { userApiKeys, clients, jobs, invoices, proposals, serviceVisits, serviceVisitTrackLinks, users, jobSubcontractors, jobSubcontractorNotes, jobActivities } from "../drizzle/schema";
 
 export const publicApiRouter = Router();
 
@@ -300,4 +300,122 @@ trackApiRouter.get("/:token", async (req: Request, res: Response) => {
         : null,
     },
   });
+});
+
+// ── Zero-install subcontractor workflow (public, token-gated) ──────────────────
+// Subcontractors never install the app or create an account. Everything they can
+// do happens through this token-scoped API: view the job the owner invited them
+// to (scope, schedule, and site details the owner wrote; client contact only if
+// the owner explicitly allowed it) and respond (accept, decline, complete, or
+// send a note back). No client email, budget, internal notes, or other subs are
+// ever exposed here, and no endpoint identifies which tokens exist.
+export const subApiRouter = Router();
+
+const SUB_TOKEN_RE = /^[0-9a-f]{64}$/;
+const SUB_RATE_LIMIT_MAX = 30;
+const SUB_RATE_LIMIT_WINDOW_MS = 60_000;
+const subHits = new Map<string, number[]>();
+const subRateLimited = (key: string) => {
+  const now = Date.now();
+  const hits = (subHits.get(key) ?? []).filter(t => now - t < SUB_RATE_LIMIT_WINDOW_MS);
+  hits.push(now);
+  subHits.set(key, hits.slice(-SUB_RATE_LIMIT_MAX * 4));
+  return hits.length > SUB_RATE_LIMIT_MAX;
+};
+
+// Returns null only for reasons the client can be told honestly: malformed
+// token, unknown token, revoked, or expired. A down database is the caller's
+// problem (503) and is checked before this runs.
+const loadSubAssignment = async (db: NonNullable<Awaited<ReturnType<typeof getDb>>>, rawToken: string) => {
+  if (!SUB_TOKEN_RE.test(rawToken)) return null;
+  const [assignment] = await db.select().from(jobSubcontractors)
+    .where(eq(jobSubcontractors.token, rawToken)).limit(1);
+  if (!assignment || !assignment.active || assignment.revokedAt || assignment.expiresAt.getTime() <= Date.now()) return null;
+  const [job] = await db.select().from(jobs).where(eq(jobs.id, assignment.jobId)).limit(1);
+  if (!job) return null;
+  return { assignment, job };
+};
+
+subApiRouter.get("/:token", async (req: Request, res: Response) => {
+  const db = await getDb();
+  if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Job link temporarily unavailable." } }); return; }
+  const loaded = await loadSubAssignment(db, String(req.params.token ?? ""));
+  if (!loaded) { res.status(404).json({ error: { code: "not_found", message: "This job link is no longer active." } }); return; }
+  const { assignment, job } = loaded;
+  const [owner] = await db.select({ businessName: users.businessName }).from(users).where(eq(users.id, assignment.userId)).limit(1);
+  let clientContact: { name: string; phone: string | null } | null = null;
+  if (assignment.shareClientContact) {
+    const [client] = await db.select({ name: clients.name, phone: clients.phone }).from(clients).where(eq(clients.id, job.clientId)).limit(1);
+    if (client) clientContact = { name: client.name, phone: client.phone };
+  }
+  if (!assignment.lastViewedAt || Date.now() - assignment.lastViewedAt.getTime() > 60_000) {
+    await db.update(jobSubcontractors).set({ lastViewedAt: new Date() }).where(eq(jobSubcontractors.id, assignment.id));
+  }
+  res.json({
+    data: {
+      status: assignment.status,
+      businessName: owner?.businessName || null,
+      jobNumber: job.jobNumber,
+      jobTitle: job.title,
+      jobStatus: job.status,
+      schedule: { startDate: job.startDate, targetDate: job.targetDate },
+      scopeNote: assignment.scopeNote,
+      clientContact,
+      expiresAt: assignment.expiresAt,
+    },
+  });
+});
+
+subApiRouter.post("/:token", async (req: Request, res: Response) => {
+  const ip = req.ip ?? "unknown";
+  if (subRateLimited(`post:${ip}`)) {
+    res.status(429).json({ error: { code: "rate_limited", message: "Too many requests. Try again in a minute." } });
+    return;
+  }
+  const db = await getDb();
+  if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Job link temporarily unavailable." } }); return; }
+  const loaded = await loadSubAssignment(db, String(req.params.token ?? ""));
+  if (!loaded) { res.status(404).json({ error: { code: "not_found", message: "This job link is no longer active." } }); return; }
+  const { assignment } = loaded;
+  const action = String(req.body?.action ?? "");
+  const note = typeof req.body?.note === "string" ? req.body.note.trim().slice(0, 1000) : "";
+  const now = new Date();
+
+  if (action === "accept" && assignment.status === "invited") {
+    await db.update(jobSubcontractors).set({ status: "accepted", respondedAt: now }).where(eq(jobSubcontractors.id, assignment.id));
+    await db.insert(jobSubcontractorNotes).values({ userId: assignment.userId, assignmentId: assignment.id, note: "Invitation accepted." });
+    await db.insert(jobActivities).values({
+      userId: assignment.userId, jobId: assignment.jobId, actor: "subcontractor", eventType: "subcontractor_accepted",
+      message: "Subcontractor accepted the job invitation.", metadata: JSON.stringify({ assignmentId: assignment.id }),
+    });
+    res.json({ data: { status: "accepted" } });
+    return;
+  }
+  if (action === "decline" && assignment.status === "invited") {
+    await db.update(jobSubcontractors).set({ status: "declined", respondedAt: now }).where(eq(jobSubcontractors.id, assignment.id));
+    await db.insert(jobSubcontractorNotes).values({ userId: assignment.userId, assignmentId: assignment.id, note: note || "Invitation declined." });
+    await db.insert(jobActivities).values({
+      userId: assignment.userId, jobId: assignment.jobId, actor: "subcontractor", eventType: "subcontractor_declined",
+      message: "Subcontractor declined the job invitation.", metadata: JSON.stringify({ assignmentId: assignment.id }),
+    });
+    res.json({ data: { status: "declined" } });
+    return;
+  }
+  if (action === "complete" && assignment.status === "accepted") {
+    await db.update(jobSubcontractors).set({ status: "completed", respondedAt: now }).where(eq(jobSubcontractors.id, assignment.id));
+    await db.insert(jobSubcontractorNotes).values({ userId: assignment.userId, assignmentId: assignment.id, note: note || "Work reported complete." });
+    await db.insert(jobActivities).values({
+      userId: assignment.userId, jobId: assignment.jobId, actor: "subcontractor", eventType: "subcontractor_completed",
+      message: "Subcontractor reported the work complete.", metadata: JSON.stringify({ assignmentId: assignment.id }),
+    });
+    res.json({ data: { status: "completed" } });
+    return;
+  }
+  if (action === "note" && (assignment.status === "accepted" || assignment.status === "invited")) {
+    if (!note) { res.status(400).json({ error: { code: "bad_request", message: "Write a note first." } }); return; }
+    await db.insert(jobSubcontractorNotes).values({ userId: assignment.userId, assignmentId: assignment.id, note });
+    res.json({ data: { status: assignment.status } });
+    return;
+  }
+  res.status(400).json({ error: { code: "bad_request", message: "That action isn't available for this job link right now." } });
 });

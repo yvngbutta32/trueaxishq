@@ -21,20 +21,7 @@ import { HealthMonitor } from "@/components/HealthMonitor";
 import { PanelErrorBoundary } from "@/components/PanelErrorBoundary";
 import GlobalSearch from "@/components/GlobalSearch";
 import { PanelTabs } from "@/components/PanelTabs";
-import {
-  LayoutDashboard, Users, Calendar, FileText, Mail,
-  BarChart3, Settings, Zap, Plus, TrendingUp,
-  DollarSign, Clock, CheckCircle, ArrowUpRight,
-  ChevronRight, LogOut, X, Edit2, Trash2, Send,
-  Download, Phone, AlertCircle, RefreshCw, User,
-  Building, Save, Bot, CreditCard,
-  ExternalLink, Bell, Search, ChevronDown, Loader2, Link,
-  Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
-  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload,
-  Home, Crown, ArrowRight, Shield, Inbox, MessageSquare, Tag, ThumbsUp, CalendarX, Link2, Wifi, WifiOff,
-  Package, Receipt, Smartphone, Rocket, UsersRound, MapPin, PlugZap, Webhook,
-  FileBarChart
-} from "lucide-react";
+import { Activity, AlertCircle, ArrowRight, ArrowUpRight, BarChart3, Bell, Bot, Building, Calendar, CalendarX, Camera, Check, CheckCircle, ChevronDown, ChevronRight, Clock, Copy, CreditCard, Crown, DollarSign, Download, Edit2, ExternalLink, Eye, EyeOff, FileBarChart, FileSignature, FileText, Globe, HardHat, HeartPulse, Home, Inbox, LayoutDashboard, Link, Link2, Loader2, LogOut, Mail, MapPin, MessageSquare, MoreHorizontal, Package, Phone, PlugZap, Plus, Printer, Receipt, RefreshCw, Rocket, Save, Search, Send, Settings, Shield, Smartphone, Sparkles, Star, Tag, ThumbsUp, ToggleLeft, ToggleRight, Trash2, TrendingUp, Upload, User, Users, UsersRound, Webhook, Wifi, WifiOff, X, Zap } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, BarChart, Bar,
@@ -63,6 +50,7 @@ const navGroups: { label: string; items: { icon: React.ElementType; label: strin
       { icon: UsersRound,      label: "Team",       panel: "team"       },
       { icon: MapPin,          label: "Dispatch",   panel: "dispatch"   },
       { icon: Smartphone,      label: "Field Mode", panel: "field"      },
+      { icon: HardHat,         label: "Subs",       panel: "subs"       },
     ],
   },
   {

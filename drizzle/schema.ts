@@ -1521,5 +1521,64 @@ export const serviceVisitTrackLinks = mysqlTable("serviceVisitTrackLinks", {
   index("serviceVisitTrackLinks_userId_idx").on(t.userId),
   index("serviceVisitTrackLinks_visitId_active_idx").on(t.visitId, t.active),
 ]);
+
+// ── Zero-install subcontractor workflow ───────────────────────────────────────
+// Subcontractors never install the app or create an account. The owner keeps a
+// directory of subs, invites them per job with a token-gated link (SMS if Twilio
+// is configured, otherwise a copyable link the owner can send any way they like),
+// and the sub works entirely from a public page.
+export const subcontractors = mysqlTable("subcontractors", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  trade: varchar("trade", { length: 64 }),
+  email: varchar("email", { length: 255 }),
+  notes: varchar("notes", { length: 1000 }),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("subcontractors_userId_idx").on(t.userId),
+]);
+
+export const jobSubcontractors = mysqlTable("jobSubcontractors", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  jobId: int("jobId").notNull(),
+  subId: int("subId").notNull(),
+  // Operational scope the owner writes for the sub. Site details live here by
+  // owner choice; no client contact data is exposed unless shareClientContact.
+  scopeNote: text("scopeNote"),
+  shareClientContact: boolean("shareClientContact").notNull().default(false),
+  status: mysqlEnum("status", ["invited", "accepted", "declined", "completed"]).notNull().default("invited"),
+  token: varchar("token", { length: 96 }).notNull().unique(),
+  active: boolean("active").notNull().default(true),
+  respondedAt: timestamp("respondedAt"),
+  lastViewedAt: timestamp("lastViewedAt"),
+  revokedAt: timestamp("revokedAt"),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("jobSubcontractors_userId_idx").on(t.userId),
+  index("jobSubcontractors_jobId_idx").on(t.jobId),
+  index("jobSubcontractors_subId_idx").on(t.subId),
+]);
+
+export const jobSubcontractorNotes = mysqlTable("jobSubcontractorNotes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  assignmentId: int("assignmentId").notNull(),
+  note: varchar("note", { length: 1000 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("jobSubcontractorNotes_assignmentId_idx").on(t.assignmentId),
+]);
+export type Subcontractor = typeof subcontractors.$inferSelect;
+export type InsertSubcontractor = typeof subcontractors.$inferInsert;
+export type JobSubcontractor = typeof jobSubcontractors.$inferSelect;
+export type InsertJobSubcontractor = typeof jobSubcontractors.$inferInsert;
+
 export type ServiceVisitTrackLink = typeof serviceVisitTrackLinks.$inferSelect;
 export type InsertServiceVisitTrackLink = typeof serviceVisitTrackLinks.$inferInsert;

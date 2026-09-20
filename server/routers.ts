@@ -1,5 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { eq, desc, and, sql, inArray, or, like, isNull, isNotNull, gt, gte, lt, lte, ne, type SQL, type Column, type SQLWrapper } from "drizzle-orm";
+import { eq, desc, asc, and, sql, inArray, or, like, isNull, isNotNull, gt, gte, lt, lte, ne, type SQL, type Column, type SQLWrapper } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
 import { createHash, randomBytes } from "node:crypto";
@@ -21,7 +21,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -5073,6 +5073,217 @@ Only include actions when you have actually generated a complete draft. For gene
 
   // ── API Keys ──────────────────────────────────────────────────────────────────
   // ── Live "on my way" tracking (opt-in, consent-first) ───────────────────────
+  subcontractors: router({
+    /** Zero-install subcontractor directory. Subs never create accounts; the owner keeps the roster. */
+    list: protectedProcedure
+      .query(async ({ ctx }) => {
+        const db = await requireDb();
+        const rows = await db.select().from(subcontractors)
+          .where(eq(subcontractors.userId, ctx.user.id))
+          .orderBy(asc(subcontractors.name));
+        return rows;
+      }),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().trim().min(1).max(255),
+        phone: z.string().trim().min(7).max(32),
+        trade: z.string().trim().max(64).nullable().optional(),
+        email: z.string().trim().email().max(255).nullable().optional(),
+        notes: z.string().trim().max(1000).nullable().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const phone = normalizePhoneToE164(input.phone);
+        if (!phone) throw new TRPCError({ code: "BAD_REQUEST", message: "Enter a valid phone number, e.g. +1 512 555 0100." });
+        const [row] = await db.insert(subcontractors).values({
+          userId: ctx.user.id, name: input.name, phone,
+          trade: input.trade ?? null, email: input.email ?? null, notes: input.notes ?? null,
+        });
+        return { id: row.insertId };
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        name: z.string().trim().min(1).max(255).optional(),
+        phone: z.string().trim().min(7).max(32).optional(),
+        trade: z.string().trim().max(64).nullable().optional(),
+        email: z.string().trim().email().max(255).nullable().optional(),
+        notes: z.string().trim().max(1000).nullable().optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [existing] = await db.select().from(subcontractors)
+          .where(and(eq(subcontractors.id, input.id), eq(subcontractors.userId, ctx.user.id))).limit(1);
+        if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Subcontractor not found." });
+        const patch: Record<string, unknown> = {};
+        if (input.name !== undefined) patch.name = input.name;
+        if (input.phone !== undefined) {
+          const phone = normalizePhoneToE164(input.phone);
+          if (!phone) throw new TRPCError({ code: "BAD_REQUEST", message: "Enter a valid phone number, e.g. +1 512 555 0100." });
+          patch.phone = phone;
+        }
+        if (input.trade !== undefined) patch.trade = input.trade;
+        if (input.email !== undefined) patch.email = input.email;
+        if (input.notes !== undefined) patch.notes = input.notes;
+        if (input.active !== undefined) patch.active = input.active;
+        if (!Object.keys(patch).length) return { success: true };
+        await db.update(subcontractors).set(patch).where(and(eq(subcontractors.id, input.id), eq(subcontractors.userId, ctx.user.id)));
+        return { success: true };
+      }),
+    /** Removes the sub when unused; deactivates in place if history exists so audit trails stay intact. */
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [existing] = await db.select().from(subcontractors)
+          .where(and(eq(subcontractors.id, input.id), eq(subcontractors.userId, ctx.user.id))).limit(1);
+        if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Subcontractor not found." });
+        const assignments = await db.select({ id: jobSubcontractors.id }).from(jobSubcontractors)
+          .where(eq(jobSubcontractors.subId, input.id)).limit(1);
+        if (assignments.length) {
+          await db.update(subcontractors).set({ active: false })
+            .where(and(eq(subcontractors.id, input.id), eq(subcontractors.userId, ctx.user.id)));
+          await db.update(jobSubcontractors).set({ active: false, revokedAt: new Date() })
+            .where(and(eq(jobSubcontractors.subId, input.id), eq(jobSubcontractors.active, true)));
+          return { softDeleted: true };
+        }
+        await db.delete(subcontractors).where(and(eq(subcontractors.id, input.id), eq(subcontractors.userId, ctx.user.id)));
+        return { softDeleted: false };
+      }),
+
+    /** Invites a sub to a job. Creates a fresh token link; SMS is attempted when Twilio is configured, and the link is always returned so the owner can send it themselves. */
+    inviteToJob: protectedProcedure
+      .input(z.object({
+        jobId: z.number().int().positive(),
+        subId: z.number().int().positive(),
+        scopeNote: z.string().trim().max(2000).nullable().optional(),
+        shareClientContact: z.boolean().default(false),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [job] = await db.select().from(jobs)
+          .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+        if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        const [sub] = await db.select().from(subcontractors)
+          .where(and(eq(subcontractors.id, input.subId), eq(subcontractors.userId, ctx.user.id))).limit(1);
+        if (!sub) throw new TRPCError({ code: "NOT_FOUND", message: "Subcontractor not found." });
+        if (!sub.active) throw new TRPCError({ code: "BAD_REQUEST", message: "This subcontractor is deactivated. Reactivate them first." });
+        // One live invitation per sub per job: any previous one is revoked.
+        await db.update(jobSubcontractors).set({ active: false, revokedAt: new Date() })
+          .where(and(eq(jobSubcontractors.jobId, input.jobId), eq(jobSubcontractors.subId, input.subId), eq(jobSubcontractors.active, true)));
+        const token = randomBytes(32).toString("hex");
+        const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+        const [assignment] = await db.insert(jobSubcontractors).values({
+          userId: ctx.user.id, jobId: input.jobId, subId: input.subId,
+          scopeNote: input.scopeNote ?? null, shareClientContact: input.shareClientContact,
+          status: "invited", token, active: true, expiresAt,
+        });
+        const inviteUrl = `/sub/${token}`;
+        await db.insert(jobActivities).values({
+          userId: ctx.user.id, jobId: input.jobId, actor: "owner", eventType: "subcontractor_invited",
+          message: `Subcontractor invited: ${sub.name}.`,
+          metadata: JSON.stringify({ assignmentId: assignment.insertId, subId: sub.id, sms: getSmsDeliveryStatus().configured }),
+        });
+        const [owner] = await db.select({ businessName: users.businessName }).from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        let smsDelivered = false;
+        if (getSmsDeliveryStatus().configured) {
+          const smsResult = await sendSms({
+            to: sub.phone,
+            body: `${owner?.businessName || "A TrueAxis HQ business"} invited you to a job. Open your job link: ${inviteUrl}. It expires in 14 days.`,
+          });
+          smsDelivered = wasSmsAcceptedByConfiguredTwilio(smsResult);
+        }
+        await db.insert(auditLogs).values({
+          userId: ctx.user.id, action: "subcontractor.invited", entityType: "job", entityId: input.jobId,
+          details: JSON.stringify({ subId: sub.id, assignmentId: assignment.insertId, smsDelivered }),
+        });
+        return { assignmentId: assignment.insertId, inviteUrl, smsDelivered, expiresAt };
+      }),
+
+    /** All invitations, optionally scoped to one job, with sub and job context plus note counts. */
+    listInvitations: protectedProcedure
+      .input(z.object({ jobId: z.number().int().positive().nullable().optional() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const conditions = [eq(jobSubcontractors.userId, ctx.user.id)];
+        if (input.jobId) conditions.push(eq(jobSubcontractors.jobId, input.jobId));
+        const rows = await db.select({
+          id: jobSubcontractors.id, jobId: jobSubcontractors.jobId, status: jobSubcontractors.status,
+          shareClientContact: jobSubcontractors.shareClientContact, active: jobSubcontractors.active,
+          scopeNote: jobSubcontractors.scopeNote, respondedAt: jobSubcontractors.respondedAt,
+          revokedAt: jobSubcontractors.revokedAt, expiresAt: jobSubcontractors.expiresAt,
+          createdAt: jobSubcontractors.createdAt,
+          subName: subcontractors.name, subPhone: subcontractors.phone, subTrade: subcontractors.trade,
+          jobTitle: jobs.title, jobNumber: jobs.jobNumber, jobStatus: jobs.status,
+        })
+          .from(jobSubcontractors)
+          .innerJoin(subcontractors, eq(subcontractors.id, jobSubcontractors.subId))
+          .innerJoin(jobs, eq(jobs.id, jobSubcontractors.jobId))
+          .where(and(...conditions))
+          .orderBy(desc(jobSubcontractors.createdAt));
+        const noteCounts = await db.select({ assignmentId: jobSubcontractorNotes.assignmentId, count: sql<number>`count(*)` })
+          .from(jobSubcontractorNotes)
+          .innerJoin(jobSubcontractors, eq(jobSubcontractors.id, jobSubcontractorNotes.assignmentId))
+          .where(eq(jobSubcontractors.userId, ctx.user.id))
+          .groupBy(jobSubcontractorNotes.assignmentId);
+        const noteCountMap = new Map(noteCounts.map(r => [r.assignmentId, Number(r.count)]));
+        return rows.map(r => ({ ...r, noteCount: noteCountMap.get(r.id) ?? 0 }));
+      }),
+
+    /** Rotates the token and re-attempts SMS. Works for pending and accepted invitations. */
+    resend: protectedProcedure
+      .input(z.object({ assignmentId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [assignment] = await db.select().from(jobSubcontractors)
+          .where(and(eq(jobSubcontractors.id, input.assignmentId), eq(jobSubcontractors.userId, ctx.user.id))).limit(1);
+        if (!assignment) throw new TRPCError({ code: "NOT_FOUND", message: "Invitation not found." });
+        if (!assignment.active) throw new TRPCError({ code: "BAD_REQUEST", message: "This invitation was revoked. Invite the subcontractor to the job again." });
+        const [sub] = await db.select().from(subcontractors).where(and(eq(subcontractors.id, assignment.subId), eq(subcontractors.userId, ctx.user.id))).limit(1);
+        const [owner] = await db.select({ businessName: users.businessName }).from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        const token = randomBytes(32).toString("hex");
+        const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+        await db.update(jobSubcontractors).set({ token, expiresAt }).where(eq(jobSubcontractors.id, assignment.id));
+        const inviteUrl = `/sub/${token}`;
+        let smsDelivered = false;
+        if (sub && getSmsDeliveryStatus().configured) {
+          const smsResult = await sendSms({
+            to: sub.phone,
+            body: `${owner?.businessName || "A TrueAxis HQ business"} invited you to a job. Open your job link: ${inviteUrl}. It expires in 14 days.`,
+          });
+          smsDelivered = wasSmsAcceptedByConfiguredTwilio(smsResult);
+        }
+        await db.insert(auditLogs).values({
+          userId: ctx.user.id, action: "subcontractor.invite_resent", entityType: "job", entityId: assignment.jobId,
+          details: JSON.stringify({ assignmentId: assignment.id, smsDelivered }),
+        });
+        return { inviteUrl, smsDelivered, expiresAt };
+      }),
+
+    revoke: protectedProcedure
+      .input(z.object({ assignmentId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [assignment] = await db.select().from(jobSubcontractors)
+          .where(and(eq(jobSubcontractors.id, input.assignmentId), eq(jobSubcontractors.userId, ctx.user.id))).limit(1);
+        if (!assignment) throw new TRPCError({ code: "NOT_FOUND", message: "Invitation not found." });
+        if (!assignment.active) return { success: true };
+        await db.update(jobSubcontractors).set({ active: false, revokedAt: new Date() })
+          .where(eq(jobSubcontractors.id, assignment.id));
+        await db.insert(jobActivities).values({
+          userId: ctx.user.id, jobId: assignment.jobId, actor: "owner", eventType: "subcontractor_invite_revoked",
+          message: "Subcontractor job link revoked.",
+          metadata: JSON.stringify({ assignmentId: assignment.id }),
+        });
+        await db.insert(auditLogs).values({
+          userId: ctx.user.id, action: "subcontractor.invite_revoked", entityType: "job", entityId: assignment.jobId,
+          details: JSON.stringify({ assignmentId: assignment.id }),
+        });
+        return { success: true };
+      }),
+  }),
+
   tracking: router({
     /** Owner explicitly starts a live tracking link for a single visit. Nothing is ever shared without this action. */
     start: protectedProcedure

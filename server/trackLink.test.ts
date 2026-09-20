@@ -57,7 +57,12 @@ describe("tracking link lifecycle (owner-initiated only)", () => {
 
 describe("public track endpoint privacy boundary", () => {
   it("serves position and visit context only — no client, technician, address, or routing data", () => {
-    const trackSection = publicApi.slice(publicApi.indexOf("trackApiRouter"));
+    // Bound the section to the track router only — later routers in this file
+    // (e.g. subApiRouter) have their own, deliberately different payloads.
+    const trackStart = publicApi.indexOf("trackApiRouter");
+    const nextRouter = publicApi.indexOf("\n// ── ", trackStart + 10);
+    const trackEnd = nextRouter === -1 ? publicApi.indexOf("export const", trackStart + 10) : nextRouter;
+    const trackSection = publicApi.slice(trackStart, trackEnd === -1 ? undefined : trackEnd);
     expect(trackSection).toContain("position");
     expect(trackSection).toContain("businessName");
     // Inspect only the JSON payloads the endpoint can ever emit.

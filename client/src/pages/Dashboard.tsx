@@ -50,6 +50,7 @@ const Automations = lazy(() => import("./Automations"));
 const BillingPanel = lazy(() => import("./BillingPanel"));
 const JobPhotosPanel = lazy(() => import("./JobPhotosPanel"));
 const InventoryPanel = lazy(() => import("./dashboard/InventoryPanel"));
+const SubcontractorsPanel = lazy(() => import("./dashboard/SubcontractorsPanel"));
 const ReportsPanel = lazy(() => import("./dashboard/ReportsPanel"));
 const ImportPanel = lazy(() => import("./dashboard/ImportPanel"));
 const JobWorkspace = lazy(() => import("./JobWorkspace"));
@@ -85,7 +86,7 @@ export default function Dashboard() {
   const [active, setActive] = useState<ActivePanel>(() => {
     if (typeof window !== "undefined") {
       const param = new URLSearchParams(window.location.search).get("panel");
-      const valid: ActivePanel[] = ["overview","clients","scheduling","jobs","team","dispatch","integrations","webhooks","billing","outreach","deals","insights","settings","ai","photos","inventory","reports","import",
+      const valid: ActivePanel[] = ["overview","clients","scheduling","jobs","team","dispatch","integrations","webhooks","billing","outreach","deals","insights","settings","ai","photos","inventory","reports","import","subs",
         // Legacy sub-panel deep links — will auto-redirect to parent
         "invoices","followups","analytics","pulse","contracts","time","inbox","testimonials","services","expenses","proposals","automations"];
       if (param && valid.includes(param as ActivePanel)) return param as ActivePanel;
@@ -172,6 +173,7 @@ export default function Dashboard() {
       insights: "Insights — TrueAxis HQ",
       photos: "Job Photos — TrueAxis HQ",
       inventory: "Inventory — TrueAxis HQ",
+      subs: "Subcontractors — TrueAxis HQ",
       reports: "Custom Reports — TrueAxis HQ",
       import: "Import Data — TrueAxis HQ",
     };
@@ -241,7 +243,7 @@ export default function Dashboard() {
     contracts: "Contracts", time: "Time Tracking",
     inbox: "Smart Inbox", testimonials: "Testimonials",
     services: "Services", expenses: "Expenses & P&L", proposals: "Proposals", automations: "Automations",
-    billing: "Billing", outreach: "Outreach", deals: "Deals", insights: "Insights", photos: "Job Photos", inventory: "Inventory", reports: "Custom Reports", import: "Import Data",
+    billing: "Billing", outreach: "Outreach", deals: "Deals", insights: "Insights", photos: "Job Photos", inventory: "Inventory", reports: "Custom Reports", import: "Import Data", subs: "Subcontractors",
   };
   const panelSubtitles: Record<ActivePanel, string> = {
     overview: "Your business at a glance",
@@ -277,6 +279,7 @@ export default function Dashboard() {
     inventory: "Truck-level stock, purchase orders, and audit trail",
     reports: "Build, save, and export any view of your data",
     import: "Bring your data over from another system in one guided afternoon",
+    subs: "Zero-install subcontractor invites: private job links, no accounts required",
   };
   // useMemo ensures the panel JSX element is only recreated when `active` changes.
   // Without this, every Dashboard re-render (notification poll, search state, etc.)
@@ -365,6 +368,7 @@ export default function Dashboard() {
           <JobPhotosPanel />
         </PanelErrorBoundary>
       );
+      case "subs": return <PanelErrorBoundary panelName="Subcontractors"><SubcontractorsPanel /></PanelErrorBoundary>;
       case "inventory": return (
         <PanelErrorBoundary panelName="Inventory">
           <InventoryPanel />
