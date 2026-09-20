@@ -81,4 +81,26 @@ describe("zero-cost launch: every feature works without paying any company", () 
     expect(routers).toContain("calendarFeedTokens");
     expect(read("../server/publicApi.ts")).toContain("trackApiRouter");
   });
+
+  it("selling: plan subscriptions use inline price_data — no Stripe dashboard setup, no fixed fees anywhere", () => {
+    const src = read("../server/routers.ts");
+    expect(src).toContain('mode: "subscription"');
+    expect(src).toMatch(/price_data/);
+    // inline pricing means no Stripe products/prices must be pre-created
+    expect(src).not.toContain("price: \"prod_");
+    expect(src).not.toContain("stripe-billing");
+  });
+
+  it("selling: pricing plans are real products (dollars in cents), free tier stays honest", () => {
+    const products = read("../server/products.ts");
+    expect(products).toMatch(/monthlyPrice: \d{4,}/); // priced in cents
+    expect(products).toContain("PLAN_LIST");
+  });
+
+  it("selling: README documents $0-fixed-cost revenue economics", () => {
+    const readme = read("../README.md");
+    expect(readme).toContain("Selling also costs $0 fixed");
+    expect(readme).toMatch(/no setup fee, no monthly fee/i);
+    expect(readme).toMatch(/usage-based/i);
+  });
 });

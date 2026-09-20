@@ -4,6 +4,44 @@ The all-in-one operations platform for independent home-service businesses —
 booking, scheduling, dispatch, quoting, invoicing, client portal, proposals,
 intake forms, automations, and reporting in a single deployable app.
 
+## Running at $0 (no external companies required)
+
+TrueAxis HQ is fully usable with **zero paid services**. A contract test
+(`server/zeroCostLaunch.test.ts`) pins this so it cannot regress:
+
+| Capability | Free path (no provider) |
+|---|---|
+| Payments | Mark invoices paid manually (cash/check/transfer); Stripe online checkout is optional |
+| Accounting export | QuickBooks-format CSV built in — no Intuit subscription |
+| Email | Console/in-app notification fallback; any SMTP relay works (self-hosted Postfix is free) |
+| SMS | Copy-link flows work with zero credentials; Twilio is optional |
+| AI features | Honest "not configured" state; any OpenAI-compatible endpoint works, incl. self-hosted Ollama (free) |
+| Geocoding / maps | Keyless OpenStreetMap + Nominatim (free, no account); self-hostable |
+| Calendar sync | ICS feed built in — no Google account needed |
+| Fonts / CDN | Self-hosted; zero third-party requests on page load |
+| Hosting | Any Linux host or the included Dockerfile; no platform lock-in |
+| Mobile | PWA install (no app store fees) |
+
+Nothing in that table requires an account, key, or subscription. Optional
+providers only ever *add* capability (live email/SMS/cards); they are never
+required for the app to function, and every one degrades honestly when unset.
+
+### Selling also costs $0 fixed (revenue economics)
+
+You can charge customers from day one with **zero fixed operating cost**:
+
+- **Stripe standard account**: no setup fee, no monthly fee, no minimums. Fees are
+  purely usage-based — ~2.9% + 30¢ per transaction, charged only when money comes in.
+  No sale, no fee. Plans use inline `price_data`, so there's not even a Stripe
+  dashboard configuration step.
+- **Hosting**: any Linux box — including free-tier cloud (e.g. Oracle Cloud Always
+  Free), a home server, or a cheap VPS. The app is a single Node process + MySQL.
+- **Everything else**: already $0 per the table above.
+
+Break-even math on the Starter plan ($49/mo): Stripe takes ~$1.72 per charge, you
+net ~$47.28. Fixed cost is $0, so the business is profitable from the first sale.
+The only cost that can ever exist is a percentage of revenue you chose to collect.
+
 ## Stack
 
 | Layer     | Technology |
