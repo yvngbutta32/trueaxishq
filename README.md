@@ -131,6 +131,14 @@ docs/     Audit history, research, launch checklists
 scripts/  Admin bootstrap + CI bundle-budget check
 ```
 
+## Launch day checklist
+
+1. **Deploy**: any Linux host — `docker compose up` or Node 20+ with `NODE_ENV=production`, MySQL, and `JWT_SECRET` set.
+2. **First account**: set `BOOTSTRAP_INVITE_CODE` (single-use) and create the first owner account, then unset it.
+3. **Smoke test the deployment**: `BASE_URL=https://your-domain.com ./scripts/smoke.sh` — ten checks: health, app shell, self-hosted fonts, pricing/status/security pages, API auth gates (public REST + tRPC metrics must 401 anonymous), and token pages 404 honestly.
+4. **Optional providers** (none required): SMTP for live email, Stripe live keys for online payments, Twilio for SMS. Each degrades honestly when unset.
+5. **Sell**: plans and the pricing page share one source of truth (`shared/plans.ts`), so what the page says is what Stripe charges.
+
 ## First-run setup (creating the first account)
 
 Registration is invite-only: existing owners mint invite codes from Settings.

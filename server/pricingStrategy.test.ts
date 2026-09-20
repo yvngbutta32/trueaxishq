@@ -10,7 +10,7 @@
  * - The flagship features we advertise are features we actually shipped
  */
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { PLANS, PLAN_LIST } from "../shared/plans";
 
@@ -62,5 +62,22 @@ describe("pricing strategy: affordable entry, profitable top, no drift", () => {
   it("billing and the public page quote the same numbers (drift impossible by construction)", () => {
     const routers = read("../server/routers.ts");
     expect(routers).toContain('from "./products"'); // billing path still works through the re-export
+  });
+});
+
+describe("launch day readiness", () => {
+  it("smoke script exists, is executable, and checks the real gates (health, auth 401s, honest 404s)", () => {
+    const sh = readFileSync(join(__dirname, "../scripts/smoke.sh"), "utf8");
+    expect(sh).toContain("/api/health");
+    expect(sh).toContain('check "public API is gated"     401');
+    expect(sh).toContain('check "tRPC ops metrics gated" 401');
+    expect(sh).toContain('check "expired tracking token"  404');
+    expect(sh).toContain('check "expired sub token"       404');
+    expect(existsSync(join(__dirname, "../scripts/smoke.sh"))).toBe(true);
+  });
+
+  it("README documents the launch day checklist", () => {
+    expect(read("../README.md")).toContain("Launch day checklist");
+    expect(read("../README.md")).toContain("smoke.sh");
   });
 });
