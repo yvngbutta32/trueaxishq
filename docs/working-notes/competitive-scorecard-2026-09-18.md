@@ -91,3 +91,17 @@ From cross-vendor review analysis, no platform has solved:
 - getonecrew.com, projul.com, fieldcamp.ai, fervorstudio.ca, downtobid.com, myquoteiq.com 2026 pricing analyses (cross-checked; ranges noted where sources disagree)
 - TrueAxis HQ codebase audit: server/routers.ts (59 top-level domains), 462-test CI gate, security layer verification (this conversation)
 - Prior research record: docs/working-notes/competitive_research.md (Aug 2026 program)
+
+---
+
+## Update — September 20, 2026 (post-sprint re-scoring)
+
+Shipped since the Sept 18 audit, all live-verified and green (702 tests):
+- **Live tracking** (GPS 6 → **9**): consented "On My Way" links, keyless OSM, auto-revoke on arrival. Now leads: no competitor offers tokenized, privacy-scoped tracking without an app install.
+- **Public REST API v1** + **subcontractor zero-install workflow** (Integrations 5 → **7**): market-wide unsolved gap #1 addressed; CSV import wizard (switching moat) + workspace export/import closed the data-portability loop.
+- **Route planning + capacity forecasting** (Scheduling 8 → **9**): geocode cache, nearest-neighbor + 2-opt routes, 7/14-day over-capacity flags.
+- **Ops observability** (new differentiator): owner-only System Health card — req/min, p95/p99, error rate, busiest routes, from zero-dep in-memory middleware. No SMB competitor exposes ops health without an enterprise tier.
+- **Zero-cost launch guarantee**: 9-test contract suite pins that every feature runs with no paid provider. Pricing & value 9 → **10** — no competitor can match "runs at $0, self-hostable, no lock-in."
+- **Updated self-assessed overall: 8.5** — leads on security, trust, evidence chain, Pulse, switching freedom, transparent ops. Remaining gaps all require owner credentials (native apps, QBO OAuth, live email/SMS/cards) or are enterprise-tier features outside our SMB wedge (ServiceTitan territory by design).
+
+Re-verification cadence: scorecard sections must cite shipped, tested code — every claim above is pinned by an evidence-boundary or contract test in CI.

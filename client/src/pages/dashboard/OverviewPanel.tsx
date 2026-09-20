@@ -10,6 +10,7 @@ import { useFormFields } from "@/hooks/useFormFields";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { ActionCards } from "@/components/ActionCards";
+import { SystemHealthCard } from "@/components/SystemHealthCard";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,7 @@ import { type ActivePanel, type ConfirmState, type LineItem, Field, FREQUENCY_LA
 
 // ─── Overview Panel ───────────────────────────────────────────────────────────
 function OverviewPanel({ userName, setActivePanel }: { userName: string; setActivePanel: (p: ActivePanel) => void }) {
+  const { user } = useAuth();
   const { data: analytics, isLoading } = trpc.analytics.overview.useQuery(undefined, { retry: 2 });
   const { data: recentClients } = trpc.clients.list.useQuery({ search: "", status: "all" });
   const { data: recentBookings } = trpc.bookings.list.useQuery({ status: "scheduled" });
@@ -92,6 +94,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       </div>
       <OnboardingChecklist onNavigate={(panel) => setActivePanel(panel as ActivePanel)} />
       <ActionCards onNavigate={(panel) => setActivePanel(panel as ActivePanel)} />
+      <SystemHealthCard enabled={user?.isOwner === true} />
 
       {/* ⚠️ Overdue Invoice Alert Banner */}
       {overdueInvoices && overdueInvoices.length > 0 && (

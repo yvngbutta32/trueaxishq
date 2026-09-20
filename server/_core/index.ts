@@ -18,6 +18,7 @@ import { invoicePdfRouter } from "../invoicePdf";
 import { verifyGoogleOAuthState } from "../googleOAuthState";
 import { publicApiRouter, trackApiRouter, subApiRouter } from "../publicApi";
 import { assertSessionSecretConfigured } from "../auth";
+import { recordRequest, normalizeRequestLabel } from "./metrics";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -49,6 +50,16 @@ async function startServer() {
 
   // ── Gzip/Brotli compression for all responses ────────────────────────────
   app.use(compression({ level: 6, threshold: 1024 }));
+
+  // Zero-cost request observability: normalized (PII-free) labels, no external APM.
+  app.use((req, res, next) => {
+    const start = process.hrtime.bigint();
+    res.on("finish", () => {
+      const ms = Number(process.hrtime.bigint() - start) / 1e6;
+      recordRequest({ label: normalizeRequestLabel(req.method, req.path), status: res.statusCode, ms });
+    });
+    next();
+  });
 
   // ── Stripe webhook MUST use raw body — register BEFORE express.json() ──────
   app.post(

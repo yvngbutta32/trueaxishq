@@ -27,6 +27,7 @@ import { registerUser, loginUser, createSessionToken, recordSession, revokeSessi
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
+import { getOpsMetrics } from "./_core/metrics";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
 import { sendSms, normalizePhoneToE164, getSmsDeliveryStatus, wasSmsAcceptedByConfiguredTwilio } from "./_core/sms";
@@ -2986,6 +2987,13 @@ Only include actions when you have actually generated a complete draft. For gene
   }),
 
   // ── Admin ─────────────────────────────────────────────────────────────────
+  // Zero-cost ops observability: in-memory request metrics (owner-only)
+  ops: router({
+    /** Owner-only system health: latencies, error rate, top/slowest routes.
+     * In-memory only — resets on restart. No PII: labels are path-normalized. */
+    metrics: ownerProcedure.query(() => getOpsMetrics()),
+  }),
+
   admin: router({
     listUsers: ownerProcedure
       .input(z.object({
