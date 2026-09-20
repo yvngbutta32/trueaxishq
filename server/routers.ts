@@ -419,6 +419,7 @@ import {
   normalizeEmail, normalizePhoneDigits,
   type FieldMapping, type ImportTarget, type ExtractedClientRow, type ExtractedServiceRow,
 } from "./csvImport";
+import { EXPORT_TABLES, EXPORT_ROW_CAP, redactSensitive } from "./_core/workspaceExport";
 
 // ── Migration / data import helpers ─────────────────────────────────────────
 const IMPORT_MAX_ROWS = 10_000;
@@ -4908,6 +4909,39 @@ Only include actions when you have actually generated a complete draft. For gene
 
   // ── Migration / data import — the switching moat ─────────────────────────────
   migration: router({
+    /**
+     * Full workspace export: every business table as one JSON payload, owner-scoped,
+     * capped at EXPORT_ROW_CAP rows per table with an honest truncated flag.
+     * Credential material (password hashes, tokens, API keys, secrets) is never
+     * exported — sensitive keys are redacted server-side before the row leaves.
+     */
+    exportAll: protectedProcedure
+      .query(async ({ ctx }) => {
+        const db = await requireDb();
+        const tables: Record<string, { rows: Record<string, unknown>[]; truncated: boolean }> = {};
+        for (const [key, table] of EXPORT_TABLES) {
+          const rows = await db.select().from(table as never)
+            .where(eq((table as unknown as { userId: never }).userId, ctx.user.id))
+            .limit(EXPORT_ROW_CAP + 1);
+          const truncated = rows.length > EXPORT_ROW_CAP;
+          tables[key] = {
+            rows: rows.slice(0, EXPORT_ROW_CAP).map((row: Record<string, unknown>) => redactSensitive(row)),
+            truncated,
+          };
+        }
+        const [owner] = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        await db.insert(auditLogs).values({
+          userId: ctx.user.id, action: "workspace.exported", entityType: "workspace", entityId: 0,
+          details: JSON.stringify({ tables: Object.keys(tables).length }),
+        });
+        return {
+          generatedAt: new Date(),
+          rowCap: EXPORT_ROW_CAP,
+          owner: owner ? redactSensitive(owner as unknown as Record<string, unknown>) : null,
+          tables,
+        };
+      }),
+
     /** Dry-run: parse, detect the source system, auto-map, and validate. Nothing is written. */
     preview: protectedProcedure
       .input(z.object({

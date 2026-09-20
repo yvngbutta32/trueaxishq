@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { AlertTriangle, ArrowRight, CheckCircle2, CircleAlert, Download, FileUp, Loader2, RefreshCw, Users, Wrench } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AlertTriangle, ArrowRight, CheckCircle2, CircleAlert, Download, FileUp, HardDriveDownload, Loader2, RefreshCw, Users, Wrench } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 /* Data import wizard — the switching moat. Guides a business owner from a
@@ -7,6 +7,13 @@ import { trpc } from "@/lib/trpc";
  * mandatory dry-run before anything is written. */
 
 type Step = "target" | "paste" | "review" | "results";
+
+interface WorkspaceExport {
+  generatedAt: string | Date;
+  rowCap: number;
+  owner: Record<string, unknown> | null;
+  tables: Record<string, { rows: Record<string, unknown>[]; truncated: boolean }>;
+}
 const STEP_ORDER: [Step, string][] = [
   ["target", "What to import"],
   ["paste", "Add your file"],
@@ -64,6 +71,30 @@ const downloadTemplate = (target: Target) => {
 };
 
 export default function ImportPanel() {
+  const [lastExport, setLastExport] = useState<WorkspaceExport | null>(null);
+  const exportQuery = trpc.migration.exportAll.useQuery(undefined, {
+    enabled: false, // export only on explicit click — it can be a heavy query
+    staleTime: 0, gcTime: 0,
+  });
+  const exporting = exportQuery.isFetching;
+  const exportError = exportQuery.error;
+
+  // When an explicit fetch succeeds, save it and stream it out as a file download.
+  useEffect(() => {
+    const data = exportQuery.data;
+    if (!data || exportQuery.isFetching) return;
+    setLastExport(data);
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `trueaxishq-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [exportQuery.data, exportQuery.isFetching]);
+
   const [step, setStep] = useState<Step>("target");
   const [target, setTarget] = useState<Target>("clients");
   const [csvText, setCsvText] = useState("");
@@ -343,6 +374,33 @@ export default function ImportPanel() {
           </div>
         </section>
       )}
+
+      <section aria-labelledby="export-heading" className="mt-10 rounded-2xl border border-[rgba(26,26,26,0.1)] bg-[#FAFAF8] p-5">
+        <h3 id="export-heading" className="flex items-center gap-2 font-bold text-[#1A1A1A]"><HardDriveDownload className="h-4 w-4" /> Export all your data</h3>
+        <p className="mt-1 text-sm text-[rgba(26,26,26,0.7)]">
+          Download your entire workspace — clients, jobs, invoices, proposals, photos metadata, team, inventory and more — as one JSON backup file.
+          Importing here is always matched by an honest exit: your data belongs to you, and credentials (passwords, tokens, API keys) are never included in any export.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            disabled={exporting}
+            onClick={() => exportQuery.refetch()}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#1A3C2E] px-4 py-2 text-sm font-bold text-white hover:bg-[#143024] disabled:opacity-60"
+          >
+            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <HardDriveDownload className="h-4 w-4" />}
+            {exporting ? "Preparing backup…" : "Download full backup (JSON)"}
+          </button>
+          {exportError && <p className="text-sm font-bold text-[#B42318]">Couldn't prepare the export: {exportError.message}</p>}
+          {lastExport && <p className="text-sm text-[rgba(26,26,26,0.55)]">Backup ready — download should have started.</p>}
+        </div>
+        {lastExport && (
+          <p className="mt-2 text-xs text-[rgba(26,26,26,0.55)]">
+            Generated {new Date(lastExport.generatedAt as string | Date).toLocaleString()}.
+            {Object.values(lastExport.tables).some(t => t.truncated) && " Some very large tables were capped at " + lastExport.rowCap + " rows each (flagged truncated in the file)."}
+          </p>
+        )}
+      </section>
     </div>
   );
 }
