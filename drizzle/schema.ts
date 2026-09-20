@@ -1284,6 +1284,30 @@ export const geocodeCache = mysqlTable("geocodeCache", {
 ]);
 export type GeocodeCacheEntry = typeof geocodeCache.$inferSelect;
 
+export const pushSubscriptions = mysqlTable("pushSubscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  endpoint: varchar("endpoint", { length: 512 }).notNull(),
+  p256dh: varchar("p256dh", { length: 255 }).notNull(),
+  auth: varchar("auth", { length: 255 }).notNull(),
+  userAgent: varchar("userAgent", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  uniqueIndex("push_endpoint_unique").on(t.endpoint),
+  index("push_owner_idx").on(t.userId),
+]);
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+
+export const pushVapidKeys = mysqlTable("pushVapidKeys", {
+  id: int("id").primaryKey(),
+  publicKey: varchar("publicKey", { length: 255 }).notNull(),
+  privateKey: varchar("privateKey", { length: 255 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+
 // Authenticated staff access is a separate, opt-in layer over the owner roster.
 // A roster email alone never grants workspace access.
 export const workspaceStaffInvites = mysqlTable("workspaceStaffInvites", {

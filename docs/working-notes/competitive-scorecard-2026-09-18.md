@@ -36,7 +36,7 @@ Weighting note: overall is a rough equal-weight average; ServiceTitan wins enter
 **Where we trail today (honest gaps)**
 - **Invoicing & payments (7)**: no card-present/Tap-to-Pay, no ACH, no consumer financing on proposals, no instant payouts.
 - **Integrations (5)**: CSV export to QuickBooks but no native bi-directional QBO sync, no Zapier, no public API/marketplace, SMS is readiness-only.
-- **Mobile (7)**: PWA only — no app-store native apps, no background GPS, no push notifications.
+- **Mobile (7→8, Sept 20 2026)**: PWA + **web push notifications now shipped** (open Web Push protocol, zero vendors, no app store, no per-message fee — pushes on new website bookings and manual bookings, Integration Hub device toggle + test send, iOS requires Home-Screen install as browsers honestly disclose). Still trailing: app-store native apps, background GPS (native only).
 - **GPS (6)**: dispatch map/route previews exist, but no live "On My Way" tracking link for customers.
 - **AI (7)**: chat assistant, smart scheduling, Pulse, invoice categorization — but no voice agent/receptionist, which all five leaders shipped 2025-2026.
 

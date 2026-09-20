@@ -22,12 +22,13 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
 import { getOpsMetrics } from "./_core/metrics";
+import { sendPushToUser, getVapidKeys } from "./_core/push";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
 import { sendSms, normalizePhoneToE164, getSmsDeliveryStatus, wasSmsAcceptedByConfiguredTwilio } from "./_core/sms";
@@ -2128,6 +2129,8 @@ export const appRouter = router({
           isPublicBooking: false,
           slotKey: `${ctx.user.id}|${input.date}|${input.time}`,
         });
+        // Web push is best-effort: never blocks or fails the booking.
+        void sendPushToUser(ctx.user.id, "New booking created", `${input.clientName} — ${input.service ?? "booking"} on ${input.date} at ${input.time}`, "/bookings").catch(() => {});
         return { id: Number((result as any).insertId), success: true };
       }),
 
@@ -3391,6 +3394,8 @@ Only include actions when you have actually generated a complete draft. For gene
               depositStatus: selectedService.depositAmountCents ? "required" : null,
             });
             newBookingId = Number((bookingResult as any).insertId);
+            // Notify the business owner's subscribed devices (best-effort).
+            void sendPushToUser(hostId, "New booking from your website", `${input.clientName} — ${input.service} on ${input.preferredDate}`, "/bookings").catch(() => {});
 
             if (input.clientEmail) {
               const initials = input.clientName
@@ -9446,6 +9451,61 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           details: JSON.stringify({ to, mode: result.mode, id: result.id }),
         });
         return { mode: result.mode, id: result.id };
+      }),
+  }),
+
+  push: router({
+    /** Public VAPID key for the browser's PushManager.subscribe(). */
+    vapidPublicKey: protectedProcedure
+      .query(async () => {
+        const keys = await getVapidKeys();
+        return { publicKey: keys?.publicKey ?? null };
+      }),
+
+    status: protectedProcedure
+      .query(async ({ ctx }) => {
+        const db = await requireDb();
+        const rows = await db.select().from(pushSubscriptions)
+          .where(eq(pushSubscriptions.userId, ctx.user.id));
+        return { subscribed: rows.length > 0, devices: rows.length };
+      }),
+
+    subscribe: protectedProcedure
+      .input(z.object({
+        endpoint: z.string().url().max(512),
+        keys: z.object({ p256dh: z.string().min(1).max(255), auth: z.string().min(1).max(255) }),
+        userAgent: z.string().max(255).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.insert(pushSubscriptions)
+          .values({
+            userId: ctx.user.id,
+            endpoint: input.endpoint,
+            p256dh: input.keys.p256dh,
+            auth: input.keys.auth,
+            userAgent: input.userAgent ?? null,
+          })
+          .onDuplicateKeyUpdate({
+            set: { userId: ctx.user.id, p256dh: input.keys.p256dh, auth: input.keys.auth, updatedAt: new Date() },
+          });
+        return { ok: true as const };
+      }),
+
+    unsubscribe: protectedProcedure
+      .input(z.object({ endpoint: z.string().url().max(512) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await db.delete(pushSubscriptions)
+          .where(and(eq(pushSubscriptions.endpoint, input.endpoint), eq(pushSubscriptions.userId, ctx.user.id)));
+        return { ok: true as const };
+      }),
+
+    /** Owner-visible proof it works. */
+    sendTest: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const result = await sendPushToUser(ctx.user.id, "TrueAxis HQ", "Test notification — push is working.", "/status");
+        return result;
       }),
   }),
 

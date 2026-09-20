@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { CalendarDays, CheckCircle2, CreditCard, ExternalLink, Loader2, MessageSquare, PlugZap, ShieldCheck, XCircle } from "lucide-react";
+import { Bell, CalendarDays, CheckCircle2, CreditCard, ExternalLink, Loader2, MessageSquare, PlugZap, ShieldCheck, XCircle } from "lucide-react";
 
 type Provider = "google_calendar" | "outlook_calendar" | "quickbooks" | "gmail" | "outlook" | "slack" | "twilio" | "zapier" | "stripe";
 type Category = "calendar" | "accounting" | "communications" | "automation" | "payments";
@@ -15,6 +15,105 @@ const categoryMeta: Record<Category, { label: string; icon: typeof CalendarDays 
   automation: { label: "Automation", icon: PlugZap },
   payments: { label: "Payments", icon: ShieldCheck },
 };
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  const bytes = new Uint8Array(new ArrayBuffer(raw.length));
+  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+  return bytes;
+}
+
+function PushNotificationsCard() {
+  const utils = trpc.useUtils();
+  const { data: pushStatus } = trpc.push.status.useQuery();
+  const { data: vapid } = trpc.push.vapidPublicKey.useQuery();
+  const subscribe = trpc.push.subscribe.useMutation({
+    onSuccess: () => { void utils.push.status.invalidate(); toast.success("Push notifications enabled on this device."); },
+    onError: e => toast.error(e.message),
+  });
+  const unsubscribe = trpc.push.unsubscribe.useMutation({
+    onSuccess: () => { void utils.push.status.invalidate(); toast.info("Push notifications disabled on this device."); },
+    onError: e => toast.error(e.message),
+  });
+  const sendTest = trpc.push.sendTest.useMutation({
+    onSuccess: r => r.sent > 0 ? toast.success(`Test notification delivered to ${r.sent} device(s).`) : toast.error(`Not delivered: ${r.skippedBecause ?? "unknown reason"}`),
+    onError: e => toast.error(e.message),
+  });
+
+  const supported = typeof navigator !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
+  const subscribed = pushStatus?.subscribed ?? false;
+
+  const handleSubscribe = async () => {
+    try {
+      if (!vapid?.publicKey) { toast.error("Push keys unavailable on the server. Contact support."); return; }
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") { toast.error("Notification permission was denied in your browser."); return; }
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapid.publicKey),
+      });
+      const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
+      if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) { toast.error("Browser returned an incomplete subscription."); return; }
+      subscribe.mutate({
+        endpoint: json.endpoint,
+        keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
+        userAgent: navigator.userAgent.slice(0, 255),
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not enable push on this device.");
+    }
+  };
+
+  const handleUnsubscribe = async () => {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await unsubscribe.mutate({ endpoint: sub.endpoint });
+        await sub.unsubscribe();
+      } else if (subscribed) {
+        // Server knows a device this browser cannot see (e.g. re-installed);
+        // it still prunes when delivery fails, so report honestly.
+        toast.info("No active browser subscription found; stale entries clean themselves up.");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not disable push.");
+    }
+  };
+
+  return (
+    <section className="mb-2">
+      <div className="mb-3 flex items-center gap-2"><Bell className="h-4 w-4 text-[#D4922A]" /><h2 className="text-sm font-bold text-[#1A1A1A]">Notifications</h2></div>
+      <article className="flex flex-col rounded-2xl border border-[rgba(26,26,26,0.1)] bg-white p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="font-bold text-[#1A1A1A]">Browser push notifications</h3>
+            <p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.58)]">
+              Real-time alerts on any device with a browser — new bookings from your website and manually created bookings. Open protocol, no app store, no per-message fees.
+            </p>
+          </div>
+          <StatusBadge status={subscribed ? "connected" : supported ? "needs_configuration" : "unavailable"} />
+        </div>
+        {!supported && <p className="mt-3 rounded-lg bg-[#F7F6F3] px-3 py-2 text-xs text-[rgba(26,26,26,0.62)]">This browser does not support web push. iOS/iPadOS requires the app installed to the Home Screen first.</p>}
+        <div className="mt-auto flex gap-2 pt-4">
+          {subscribed ? (
+            <>
+              <Button size="sm" variant="outline" onClick={() => sendTest.mutate()} disabled={sendTest.isPending} className="flex-1 border-[#D4922A]/40 text-[#8A5A0B]" aria-label="Send a test push notification to this device">Send test notification</Button>
+              <Button size="sm" variant="outline" onClick={handleUnsubscribe} disabled={unsubscribe.isPending} className="border-rose-200 text-rose-700 hover:bg-rose-50" aria-label="Disable push notifications on this device">Disable</Button>
+            </>
+          ) : (
+            <Button size="sm" onClick={handleSubscribe} disabled={!supported || subscribe.isPending} className="w-full bg-[#1C2333] text-white hover:bg-[#2B3446]" aria-label="Enable push notifications on this device">
+              {supported ? "Enable on this device" : "Not supported in this browser"}
+            </Button>
+          )}
+        </div>
+      </article>
+    </section>
+  );
+}
 
 export default function IntegrationHub({ onOpenSettings }: { onOpenSettings: () => void }) {
   const utils = trpc.useUtils();
@@ -55,6 +154,8 @@ export default function IntegrationHub({ onOpenSettings }: { onOpenSettings: () 
     <header><p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#D4922A]">Ecosystem</p><h1 className="mt-1 text-2xl font-bold text-[#1A1A1A]">Integration Hub</h1><p className="mt-1 max-w-2xl text-sm text-[rgba(26,26,26,0.62)]">A single, truthful view of the tools around your business. A provider is marked connected only after an authorized integration path confirms it.</p></header>
 
     <section className="rounded-2xl border border-[#D4922A]/25 bg-[#D4922A]/5 p-4"><div className="flex gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#9A610A]" /><div><h2 className="text-sm font-bold text-[#1A1A1A]">Connection-state integrity</h2><p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.65)]">This hub never accepts a manual “connected” claim. Google Calendar is derived from its secure authorization record. Other entries remain in readiness states until their provider flow is implemented and verified with the owner’s account.</p></div></div></section>
+
+    <PushNotificationsCard />
 
     <div className="space-y-6">{groups.map(([category, group]) => {
       const meta = categoryMeta[category as Category];
