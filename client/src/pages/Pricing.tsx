@@ -9,69 +9,24 @@ import { toast } from "sonner";
 import { CheckCircle, Zap, ArrowLeft, Star, Shield, Sparkles, Brain, X } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 
-const plans = [
-  {
-    name: "Starter",
-    price: { monthly: 49, annual: 39 },
-    description: "Perfect for freelancers just getting started.",
-    accentColor: "rgba(26,26,26,0.30)",
-    features: [
-      "Up to 20 active clients",
-      "AI client intake forms",
-      "Smart scheduling (basic)",
-      "Invoice creation and status tracking",
-      "Email follow-ups (5/month)",
-      "Analytics dashboard",
-      "1 booking page",
-      "Email support",
-    ],
-    notIncluded: ["Client Pulse AI™", "Unlimited follow-ups", "Priority support"],
-    cta: "Create Account",
-    popular: false,
-  },
-  {
-    name: "Pro",
-    price: { monthly: 99, annual: 79 },
-    description: "For growing service businesses ready to scale.",
-    accentColor: "#D4922A",
-    features: [
-      "Unlimited active clients",
-      "AI client intake + lead scoring",
-      "Smart scheduling (advanced)",
-      "Invoice workflow + reminder drafts",
-      "Unlimited AI follow-ups",
-      "Full analytics + insights",
-      "Custom booking page + branding",
-      "Client Pulse AI™",
-      "Priority support",
-      "API access",
-    ],
-    notIncluded: [],
-    cta: "Create Account",
-    popular: true,
-  },
-  {
-    name: "Agency",
-    price: { monthly: 199, annual: 159 },
-    description: "For coaches and consultants managing a team.",
-    accentColor: "#7A9A8A",
-    features: [
-      "Everything in Pro",
-      "Up to 10 sub-accounts",
-      "White-label booking pages",
-      "Team management dashboard",
-      "Shared client database",
-      "Custom AI training",
-      "Dedicated account manager",
-      "SLA support",
-      "Custom integrations",
-      "Revenue sharing tools",
-    ],
-    notIncluded: [],
-    cta: "Contact Sales",
-    popular: false,
-  },
-];
+// Single source of truth: shared/plans.ts (also drives Stripe billing) —
+// the public page and what we charge can never drift apart.
+import { PLANS as PLAN_SOURCE } from "@shared/plans";
+
+const planPresentation: Record<string, { accentColor: string; cta: string; notIncluded: string[] }> = {
+  Starter: { accentColor: "rgba(26,26,26,0.30)", cta: "Create Account", notIncluded: ["Client Pulse AI™", "Unlimited follow-ups", "Priority support"] },
+  Pro: { accentColor: "#D4922A", cta: "Create Account", notIncluded: [] },
+  Agency: { accentColor: "#7A9A8A", cta: "Contact Sales", notIncluded: [] },
+};
+
+const plans = Object.values(PLAN_SOURCE).map((p) => ({
+  name: p.name,
+  price: { monthly: p.monthlyPrice / 100, annual: Math.round(p.annualPrice / 100) },
+  description: p.description,
+  features: p.features,
+  popular: p.highlighted,
+  ...planPresentation[p.name],
+}));
 
 const faqs = [
   { q: "How do I get started?", a: "Create an account with an invitation code to explore the workspace. Package availability and billing configuration are confirmed during onboarding." },

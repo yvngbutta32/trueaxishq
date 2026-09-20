@@ -92,9 +92,11 @@ describe("zero-cost launch: every feature works without paying any company", () 
   });
 
   it("selling: pricing plans are real products (dollars in cents), free tier stays honest", () => {
-    const products = read("../server/products.ts");
-    expect(products).toMatch(/monthlyPrice: \d{4,}/); // priced in cents
-    expect(products).toContain("PLAN_LIST");
+    const plans = read("../shared/plans.ts");
+    expect(plans).toMatch(/monthlyPrice: \d{4,}/); // priced in cents
+    expect(plans).toContain("PLAN_LIST");
+    // billing imports the same single source of truth as the public page
+    expect(read("../server/products.ts")).toContain('from "../shared/plans"');
   });
 
   it("selling: README documents $0-fixed-cost revenue economics", () => {
