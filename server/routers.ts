@@ -6244,6 +6244,11 @@ Only include actions when you have actually generated a complete draft. For gene
         .from(recurringInvoices).where(eq(recurringInvoices.userId, uid)).limit(1);
       const hasRecurring = !!recurringRow;
 
+      // Check first automation
+      const [automationRow] = await db.select({ id: automations.id })
+        .from(automations).where(eq(automations.userId, uid)).limit(1);
+      const hasAutomation = !!automationRow;
+
       return {
         profile: profileComplete,
         client: hasClient,
@@ -6251,6 +6256,7 @@ Only include actions when you have actually generated a complete draft. For gene
         booking: bookingSetup,
         followup: hasFollowUp,
         recurring: hasRecurring,
+        automation: hasAutomation,
       };
     }),
 

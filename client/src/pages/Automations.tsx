@@ -96,6 +96,7 @@ export default function Automations() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [logAutomationId, setLogAutomationId] = useState<number | null>(null);
   const [previewAutomationId, setPreviewAutomationId] = useState<number | null>(null);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const { data: logs = [], isLoading: logsLoading } = trpc.automations.logs.useQuery(
     { automationId: logAutomationId ?? undefined, limit: 20 },
     { enabled: logAutomationId !== null },
@@ -135,7 +136,7 @@ export default function Automations() {
     else createMut.mutate(payload);
   }
 
-  function openEdit(automation: typeof automations[number]) {
+  function openEdit(automation: typeof automations[number]) { setStep(1);
     let parsedActions: AutomationForm["actions"] = [];
     try {
       const parsed: unknown = JSON.parse(automation.actions || "[]");
@@ -173,23 +174,23 @@ export default function Automations() {
           <p className="text-sm text-[rgba(26,26,26,0.55)] mt-0.5">Configure triggers and actions, review readiness, and inspect recorded outcomes.</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => seedMut.mutate()} disabled={seedMut.isPending} variant="outline" className="border-[rgba(139,92,246,0.3)] text-[#A78BFA] hover:bg-[rgba(139,92,246,0.1)] gap-2 hidden sm:flex">
+          <Button onClick={() => seedMut.mutate()} disabled={seedMut.isPending} variant="outline" className="border-[rgba(139,92,246,0.3)] text-[#A78BFA] hover:bg-[rgba(139,92,246,0.1)] gap-2">
             {seedMut.isPending ? <span className="w-4 h-4 border-2 border-[#A78BFA]/40 border-t-[#A78BFA] rounded-full animate-spin" /> : <Zap className="w-4 h-4" />} Load Templates
           </Button>
-          <Button onClick={() => { setEditingId(null); setForm(EMPTY_FORM); setOpen(true); }} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold gap-2">
+          <Button onClick={() => { setEditingId(null); setForm(EMPTY_FORM); setStep(1); setOpen(true); }} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold gap-2">
             <Plus className="w-4 h-4" /> New Automation
           </Button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {[
           { label: "Total Automations", value: automations.length, color: "#8B5CF6" },
           { label: "Active", value: activeCount, color: "#34D399" },
           { label: "Paused", value: automations.length - activeCount, color: "rgba(26,26,26,0.4)" },
         ].map(s => (
-          <div key={s.label} className="bg-white border border-[rgba(26,26,26,0.08)] rounded-xl p-4 text-center">
+          <div key={s.label} className="bg-white border border-[rgba(26,26,26,0.08)] rounded-xl p-3 sm:p-4 text-center">
             <p className="text-xl font-bold" style={{ color: s.color }}>{s.value}</p>
             <p className="text-xs text-[rgba(26,26,26,0.45)] mt-0.5">{s.label}</p>
           </div>
@@ -225,7 +226,7 @@ export default function Automations() {
               <div key={starter.title} className="rounded-lg border border-[rgba(139,92,246,0.16)] bg-white p-4">
                 <h3 className="text-sm font-semibold text-[rgba(26,26,26,0.9)]">{starter.title}</h3>
                 <p className="mt-1 min-h-10 text-xs leading-5 text-[rgba(26,26,26,0.58)]">{starter.description}</p>
-                <Button size="sm" variant="outline" className="mt-3 border-[rgba(139,92,246,0.32)] text-[#6D28D9] hover:bg-[rgba(139,92,246,0.1)]" onClick={() => { setEditingId(null); setForm(starter.draft); setOpen(true); toast.message("Starter loaded as a paused draft. Review it before saving."); }}>
+                <Button size="sm" variant="outline" className="mt-3 border-[rgba(139,92,246,0.32)] text-[#6D28D9] hover:bg-[rgba(139,92,246,0.1)]" onClick={() => { setEditingId(null); setForm(starter.draft); setStep(1); setOpen(true); toast.message("Starter loaded as a paused draft. Review it before saving."); }}>
                   Use starter
                 </Button>
               </div>
@@ -244,11 +245,16 @@ export default function Automations() {
           </div>
           <h3 className="text-lg font-semibold text-[rgba(26,26,26,0.85)] mb-2">No automations yet</h3>
           <p className="text-sm text-[rgba(26,26,26,0.45)] mb-6 max-w-sm">Load 3 ready-made templates or build your own from scratch.</p>
+          <ol className="mx-auto mb-6 grid max-w-md gap-1.5 text-left text-xs text-[rgba(26,26,26,0.6)]">
+            <li className="flex items-center gap-2"><span className="w-4 h-4 rounded-full bg-[rgba(139,92,246,0.15)] text-[#6D28D9] text-[10px] font-bold flex items-center justify-center flex-shrink-0">1</span>Load a starter template — nothing activates on its own</li>
+            <li className="flex items-center gap-2"><span className="w-4 h-4 rounded-full bg-[rgba(139,92,246,0.15)] text-[#6D28D9] text-[10px] font-bold flex items-center justify-center flex-shrink-0">2</span>Review the trigger, timing, and message in plain English</li>
+            <li className="flex items-center gap-2"><span className="w-4 h-4 rounded-full bg-[rgba(139,92,246,0.15)] text-[#6D28D9] text-[10px] font-bold flex items-center justify-center flex-shrink-0">3</span>Test it, then flip it on when it looks right</li>
+          </ol>
           <div className="flex flex-col sm:flex-row gap-3">
             <Button onClick={() => seedMut.mutate()} disabled={seedMut.isPending} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold gap-2">
               {seedMut.isPending ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Zap className="w-4 h-4" />} Load Starter Templates
             </Button>
-            <Button onClick={() => { setEditingId(null); setForm(EMPTY_FORM); setOpen(true); }} variant="outline" className="border-[rgba(139,92,246,0.3)] text-[#A78BFA] hover:bg-[rgba(139,92,246,0.1)] gap-2">
+            <Button onClick={() => { setEditingId(null); setForm(EMPTY_FORM); setStep(1); setOpen(true); }} variant="outline" className="border-[rgba(139,92,246,0.3)] text-[#A78BFA] hover:bg-[rgba(139,92,246,0.1)] gap-2">
               <Plus className="w-4 h-4" /> Build from Scratch
             </Button>
           </div>
@@ -374,48 +380,61 @@ export default function Automations() {
       </Dialog>
 
       {/* Create Dialog */}
-      <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) { setForm(EMPTY_FORM); setEditingId(null); } }}>
+      <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) { setForm(EMPTY_FORM); setEditingId(null); setStep(1); } }}>
         <DialogContent className="bg-white border-[rgba(26,26,26,0.1)] text-[rgba(26,26,26,0.95)] max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="flex items-center gap-2"><Zap className="w-5 h-5 text-[#8B5CF6]" /> {editingId !== null ? "Edit Automation" : "New Automation"}</DialogTitle></DialogHeader>
-          <div className="space-y-5 py-2">
-            <div>
-              <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Automation Name *</label>
-              <Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Welcome New Clients" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Internal Description</label>
-              <Input value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="What this rule protects or accomplishes" maxLength={500} className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
-            </div>
+          {/* Guided 3-step builder: one decision per screen, with a visible progress path. */}
+          <div className="flex items-center justify-between px-1 pb-1" aria-label={`Builder step ${step} of 3`}>
+            {[
+              { n: 1, label: "Trigger" },
+              { n: 2, label: "Action" },
+              { n: 3, label: "Review" },
+            ].map((sdef, i) => (
+              <div key={sdef.label} className="flex flex-1 items-center last:flex-none">
+                <div className="flex items-center gap-1.5">
+                  <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors ${step === sdef.n ? "bg-[#8B5CF6] text-white" : step > sdef.n ? "bg-emerald-100 text-emerald-700" : "bg-[rgba(26,26,26,0.06)] text-[rgba(26,26,26,0.4)]"}`}>
+                    {step > sdef.n ? <CheckCircle className="h-4 w-4" /> : sdef.n}
+                  </div>
+                  <span className={`text-xs font-semibold ${step === sdef.n ? "text-[rgba(26,26,26,0.9)]" : "text-[rgba(26,26,26,0.45)]"}`}>{sdef.label}</span>
+                </div>
+                {i < 2 && <div className={`mx-1.5 h-px flex-1 sm:mx-3 ${step > sdef.n ? "bg-emerald-200" : "bg-[rgba(26,26,26,0.08)]"}`} />}
+              </div>
+            ))}
+          </div>
 
-            {/* Trigger */}
-            <div>
-              <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-2 block">When this happens (Trigger)</label>
-              <div className="grid grid-cols-1 gap-2">
-                {TRIGGERS.map(t => (
-                  <button key={t.value} onClick={() =>         setForm(p => ({ ...p, trigger: t.value as TriggerType }))}
-                    className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-all ${form.trigger === t.value ? "border-[#8B5CF6] bg-[rgba(139,92,246,0.1)]" : "border-[rgba(26,26,26,0.08)] hover:border-[rgba(26,26,26,0.2)] bg-[rgba(255,255,255,0.03)]"}`}>
-                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 ${form.trigger === t.value ? "border-[#8B5CF6] bg-[#8B5CF6]" : "border-[rgba(26,26,26,0.3)]"}`} />
-                    <div>
-                      <p className="text-sm font-medium text-[rgba(26,26,26,0.9)]">{t.label}</p>
-                      <p className="text-xs text-[rgba(26,26,26,0.45)]">{t.desc}</p>
-                    </div>
-                  </button>
-                ))}
+          {step === 1 && (
+            <div className="space-y-5 py-2">
+              <p className="text-xs text-[rgba(26,26,26,0.5)]">Pick the event that starts this workflow. Not sure? "Booking Confirmed" and "Invoice Overdue" are the most common starting points.</p>
+              <div>
+                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-2 block">When this happens (Trigger)</label>
+                <div className="grid grid-cols-1 gap-2">
+                  {TRIGGERS.map(t => (
+                    <button key={t.value} onClick={() => setForm(p2 => ({ ...p2, trigger: t.value as TriggerType }))}
+                      className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-all ${form.trigger === t.value ? "border-[#8B5CF6] bg-[rgba(139,92,246,0.1)]" : "border-[rgba(26,26,26,0.08)] hover:border-[rgba(26,26,26,0.2)] bg-[rgba(255,255,255,0.03)]"}`}>
+                      <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 ${form.trigger === t.value ? "border-[#8B5CF6] bg-[#8B5CF6]" : "border-[rgba(26,26,26,0.3)]"}`} />
+                      <div>
+                        <p className="text-sm font-medium text-[rgba(26,26,26,0.9)]">{t.label}</p>
+                        <p className="text-xs text-[rgba(26,26,26,0.45)]">{t.desc}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Wait before running</label>
+                <div className="flex items-center gap-2">
+                  <Input type="number" min={0} max={720} value={form.triggerDelayHours} onChange={e2 => setForm(p2 => ({ ...p2, triggerDelayHours: Math.min(720, Math.max(0, Number(e2.target.value) || 0)) }))} className="w-28 bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
+                  <span className="text-sm text-[rgba(26,26,26,0.55)]">hours after the trigger</span>
+                </div>
+                <p className="text-xs text-[rgba(26,26,26,0.45)] mt-1">Use this for a timed follow-up. Review run history for recorded processing outcomes; provider delivery requires its own configured evidence.</p>
               </div>
             </div>
+          )}
 
-            <div>
-              <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Wait before running</label>
-              <div className="flex items-center gap-2">
-                <Input type="number" min={0} max={720} value={form.triggerDelayHours} onChange={e => setForm(p => ({ ...p, triggerDelayHours: Math.min(720, Math.max(0, Number(e.target.value) || 0)) }))} className="w-28 bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
-                <span className="text-sm text-[rgba(26,26,26,0.55)]">hours after the trigger</span>
-              </div>
-              <p className="text-xs text-[rgba(26,26,26,0.45)] mt-1">Use this for a timed follow-up. Review run history for recorded processing outcomes; provider delivery requires its own configured evidence.</p>
-            </div>
-
-            {/* Actions */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
+          {step === 2 && (
+            <div className="space-y-3 py-2">
+              <p className="text-xs text-[rgba(26,26,26,0.5)]">Choose what happens automatically. Actions run in the order shown — stack as many as you need.</p>
+              <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)]">Do this (Actions)</label>
                 <button onClick={addAction} className="text-xs text-[#8B5CF6] hover:text-[#A78BFA] flex items-center gap-1 transition-colors"><Plus className="w-3 h-3" /> Add Action</button>
               </div>
@@ -423,7 +442,8 @@ export default function Automations() {
                 {form.actions.map((action, idx) => (
                   <div key={idx} className="bg-white border border-[rgba(26,26,26,0.08)] rounded-lg p-3 space-y-2">
                     <div className="flex items-center gap-2">
-                      <select value={action.type} onChange={e => updateAction(idx, "type", e.target.value as ActionType)} className="flex-1 bg-[rgba(255,255,255,0.05)] border border-[rgba(26,26,26,0.12)] rounded-md px-2 py-1.5 text-sm text-[rgba(26,26,26,0.9)]">
+                      <span className="w-5 h-5 rounded-full bg-[rgba(139,92,246,0.12)] text-[#6D28D9] text-[10px] font-bold flex items-center justify-center flex-shrink-0">{idx + 1}</span>
+                      <select value={action.type} onChange={e2 => updateAction(idx, "type", e2.target.value as ActionType)} className="flex-1 bg-[rgba(255,255,255,0.05)] border border-[rgba(26,26,26,0.12)] rounded-md px-2 py-1.5 text-sm text-[rgba(26,26,26,0.9)]">
                         {ACTIONS.map(a => <option key={a.value} value={a.value} className="bg-white">{a.label}</option>)}
                       </select>
                       {form.actions.length > 1 && (
@@ -432,26 +452,59 @@ export default function Automations() {
                     </div>
                     {(action.type === "send_email" || action.type === "create_followup") && (
                       <>
-                        <Input value={action.config.subject ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, subject: e.target.value })} placeholder="Subject (e.g. A quick follow-up)" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
-                        <textarea value={action.config.message ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, message: e.target.value })} placeholder={action.type === "send_email" ? "Message to the matching client..." : "Draft follow-up message..."} maxLength={4000} rows={3} className="w-full rounded-md border border-[rgba(26,26,26,0.12)] bg-white px-3 py-2 text-sm text-[rgba(26,26,26,0.9)] outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20" />
+                        <Input value={action.config.subject ?? ""} onChange={e2 => updateAction(idx, "config", { ...action.config, subject: e2.target.value })} placeholder="Subject (e.g. A quick follow-up)" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
+                        <textarea value={action.config.message ?? ""} onChange={e2 => updateAction(idx, "config", { ...action.config, message: e2.target.value })} placeholder={action.type === "send_email" ? "Message to the matching client..." : "Draft follow-up message..."} maxLength={4000} rows={3} className="w-full rounded-md border border-[rgba(26,26,26,0.12)] bg-white px-3 py-2 text-sm text-[rgba(26,26,26,0.9)] outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20" />
                       </>
                     )}
                     {action.type === "notify_owner" && (
                       <>
-                        <Input value={action.config.title ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, title: e.target.value })} placeholder="Notification title" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
-                        <textarea value={action.config.message ?? ""} onChange={e => updateAction(idx, "config", { ...action.config, message: e.target.value })} placeholder="Notification message..." maxLength={4000} rows={3} className="w-full rounded-md border border-[rgba(26,26,26,0.12)] bg-white px-3 py-2 text-sm text-[rgba(26,26,26,0.9)] outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20" />
+                        <Input value={action.config.title ?? ""} onChange={e2 => updateAction(idx, "config", { ...action.config, title: e2.target.value })} placeholder="Notification title" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
+                        <textarea value={action.config.message ?? ""} onChange={e2 => updateAction(idx, "config", { ...action.config, message: e2.target.value })} placeholder="Notification message..." maxLength={4000} rows={3} className="w-full rounded-md border border-[rgba(26,26,26,0.12)] bg-white px-3 py-2 text-sm text-[rgba(26,26,26,0.9)] outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20" />
                       </>
                     )}
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setOpen(false)} className="text-[rgba(26,26,26,0.6)]">Cancel</Button>
-            <Button onClick={handleSubmit} disabled={createMut.isPending || updateDetailsMut.isPending} className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold">
-              {editingId !== null ? "Save Changes" : form.active ? "Create Automation" : "Save Paused Draft"}
-            </Button>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-5 py-2">
+              <p className="text-xs text-[rgba(26,26,26,0.5)]">Last step — name it and confirm it reads the way you expect.</p>
+              <div>
+                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Automation Name *</label>
+                <Input value={form.name} onChange={e2 => setForm(p2 => ({ ...p2, name: e2.target.value }))} placeholder="e.g. Welcome New Clients" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
+                {!form.name.trim() && <p className="text-xs text-amber-600 mt-1">Give it a name so you can find it later.</p>}
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Internal Description</label>
+                <Input value={form.description} onChange={e2 => setForm(p2 => ({ ...p2, description: e2.target.value }))} placeholder="What this rule protects or accomplishes" maxLength={500} className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
+              </div>
+              <div className="rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.07)] p-3" aria-label="Plain-English summary">
+                <p className="text-xs font-semibold text-[#6D28D9] flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> In plain English</p>
+                <p className="mt-1 text-sm text-[rgba(26,26,26,0.8)]">
+                  When <strong>{TRIGGERS.find(t => t.value === form.trigger)?.label ?? form.trigger}</strong>
+                  {form.triggerDelayHours > 0 ? <> (after {form.triggerDelayHours} hour{form.triggerDelayHours === 1 ? "" : "s"})</> : null},
+                  automatically {" "}
+                  {form.actions.map((ac, i) => (
+                    <span key={i}>{i > 0 ? " and " : ""}<strong>{ACTIONS.find(x => x.value === ac.type)?.label.toLowerCase() ?? ac.type}</strong></span>
+                  ))}.
+                </p>
+                <p className="mt-1.5 text-xs text-[rgba(26,26,26,0.5)]">You can test it with a preview before anything activates.</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex-col gap-2 border-t border-[rgba(26,26,26,0.06)] sm:flex-row sm:items-center">
+            <Button variant="ghost" onClick={() => setOpen(false)} className="text-[rgba(26,26,26,0.6)] sm:order-first">Cancel</Button>
+            <div className="flex w-full gap-2 sm:w-auto sm:ml-auto">
+              {step > 1 && <Button variant="outline" onClick={() => setStep(cur => (cur - 1) as 1 | 2 | 3)} className="flex-1 sm:flex-none">Back</Button>}
+              {step < 3 && <Button onClick={() => setStep(cur => (cur + 1) as 1 | 2 | 3)} className="flex-1 sm:flex-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold">Next: {step === 1 ? "Action" : "Review"}</Button>}
+              {step === 3 && (
+                <Button onClick={handleSubmit} disabled={createMut.isPending || updateDetailsMut.isPending || !form.name.trim()} className="flex-1 sm:flex-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold">
+                  {editingId !== null ? "Save Changes" : form.active ? "Create Automation" : "Save Paused Draft"}
+                </Button>
+              )}
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

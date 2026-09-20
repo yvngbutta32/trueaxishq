@@ -28,6 +28,7 @@ const STEPS: { id: string; label: string; desc: string; panel?: string }[] = [
   { id: "invoice",   label: "Send your first invoice",       desc: "Create and send an invoice from the Billing panel",                     panel: "billing"    },
   { id: "booking",   label: "Set up your booking page",      desc: "Set a booking username in Settings so clients can schedule with you",   panel: "settings"   },
   { id: "followup",  label: "Create a follow-up sequence",   desc: "Set up automated follow-up messages in Outreach",                       panel: "outreach"   },
+  { id: "automation", label: "Create your first automation",  desc: "Load a template in Automations — it takes about a minute",              panel: "automations" },
   { id: "recurring", label: "Set up a recurring invoice",    desc: "Automate your regular billing in the Billing panel",                    panel: "billing"    },
 ];
 
