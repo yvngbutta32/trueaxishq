@@ -15,13 +15,14 @@ import { publicProcedure, protectedProcedure, staffProcedure, adminProcedure, ow
 import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
+import { geocodeLabelWithNominatim, normalizeGeocodeLabel, GEOCODE_BATCH_LIMIT } from "./_core/geocode";
 import { getDb } from "./db";
 import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -8769,6 +8770,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         scheduledEnd: serviceVisits.scheduledEnd,
         status: serviceVisits.status,
         siteLabel: serviceVisits.siteLabel,
+        routeOrder: serviceVisits.routeOrder,
         dispatchNote: serviceVisits.dispatchNote,
         clientVisible: serviceVisits.clientVisible,
         clientUpdate: serviceVisits.clientUpdate,
@@ -8800,6 +8802,148 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         };
       });
     }),
+
+    /**
+     * Resolves dispatch site labels to coordinates on explicit owner action.
+     * Cache-first; uncached labels hit the free Nominatim service (throttled,
+     * keyless). Nothing is geocoded unless the owner asks for this day.
+     */
+    geocodeSites: protectedProcedure
+      .input(z.object({ labels: z.array(z.string()).min(1).max(GEOCODE_BATCH_LIMIT) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const normalized = new Map<string, string>();
+        for (const label of input.labels) {
+          const key = normalizeGeocodeLabel(label);
+          if (key) normalized.set(key, label);
+        }
+        if (normalized.size === 0) throw new TRPCError({ code: "BAD_REQUEST", message: "No resolvable site labels provided." });
+        const keys = Array.from(normalized.keys());
+        const cached = await db.select().from(geocodeCache)
+          .where(and(eq(geocodeCache.userId, ctx.user.id), inArray(geocodeCache.labelKey, keys)));
+        const byKey = new Map(cached.map(entry => [entry.labelKey, entry]));
+        const results: Array<{ label: string; status: "resolved" | "not_found" | "unavailable"; lat?: number; lng?: number; source?: string }> = [];
+        let serviceDegraded = false;
+        for (const key of keys) {
+          const original = normalized.get(key)!;
+          const hit = byKey.get(key);
+          if (hit) {
+            results.push({ label: original, status: "resolved", lat: hit.lat, lng: hit.lng, source: hit.source });
+            continue;
+          }
+          const outcome = await geocodeLabelWithNominatim(original);
+          if (outcome.status === "resolved") {
+            await db.insert(geocodeCache).values({ userId: ctx.user.id, labelKey: key, lat: outcome.lat, lng: outcome.lng, source: "nominatim" })
+              .onDuplicateKeyUpdate({ set: { lat: outcome.lat, lng: outcome.lng, source: "nominatim" } });
+            results.push({ label: original, status: "resolved", lat: outcome.lat, lng: outcome.lng, source: "nominatim" });
+          } else if (outcome.status === "not_found") {
+            results.push({ label: original, status: "not_found" });
+          } else {
+            serviceDegraded = true;
+            results.push({ label: original, status: "unavailable" });
+          }
+        }
+        await db.insert(auditLogs).values({
+          userId: ctx.user.id, action: "dispatch.geocode_sites", entityType: "dispatch", entityId: 0,
+          details: JSON.stringify({ requested: keys.length, resolved: results.filter(r => r.status === "resolved").length, degraded: serviceDegraded }),
+        });
+        return { results, serviceDegraded };
+      }),
+
+    /**
+     * Persists the owner-approved private stop order for a set of visits.
+     * Planning data only: this never dispatches, notifies, or changes any
+     * client-facing field. Every visit must belong to the owner.
+     */
+    setRouteOrder: protectedProcedure
+      .input(z.object({
+        visitIds: z.array(z.number().int().positive()).min(1).max(12),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        if (new Set(input.visitIds).size !== input.visitIds.length) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Each visit may appear only once in the stop order." });
+        }
+        const owned = await db.select({ id: serviceVisits.id }).from(serviceVisits)
+          .where(and(eq(serviceVisits.userId, ctx.user.id), inArray(serviceVisits.id, input.visitIds)));
+        if (owned.length !== input.visitIds.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "One or more visits do not belong to this workspace." });
+        }
+        for (let index = 0; index < input.visitIds.length; index += 1) {
+          await db.update(serviceVisits).set({ routeOrder: index + 1 }).where(and(eq(serviceVisits.id, input.visitIds[index]), eq(serviceVisits.userId, ctx.user.id)));
+        }
+        await db.insert(auditLogs).values({
+          userId: ctx.user.id, action: "dispatch.route_order_saved", entityType: "dispatch", entityId: 0,
+          details: JSON.stringify({ visitIds: input.visitIds }),
+        });
+        return { saved: input.visitIds.length };
+      }),
+
+    /**
+     * Forward 14-day capacity forecast per active team member. A private
+     * planning aid: daily capacity is the member's weekly capacity averaged
+     * over five workdays, and blocked minutes come from private availability
+     * blocks. No attendance, payroll, GPS, or client-facing claims.
+     */
+    capacityForecast: protectedProcedure
+      .input(z.object({ days: z.union([z.literal(7), z.literal(14)]).default(14) }).optional())
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const horizonDays = input?.days ?? 14;
+        const now = new Date();
+        const rangeStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+        const rangeEnd = new Date(rangeStart.getTime() + horizonDays * 24 * 60 * 60 * 1000);
+        const [members, visits, blocks] = await Promise.all([
+          db.select().from(teamMembers).where(and(eq(teamMembers.userId, ctx.user.id), eq(teamMembers.active, true))).orderBy(teamMembers.name),
+          db.select({
+            teamMemberId: serviceVisits.teamMemberId,
+            scheduledStart: serviceVisits.scheduledStart,
+            scheduledEnd: serviceVisits.scheduledEnd,
+          }).from(serviceVisits).where(and(
+            eq(serviceVisits.userId, ctx.user.id),
+            inArray(serviceVisits.status, ["scheduled", "en_route", "in_progress"]),
+            lt(serviceVisits.scheduledStart, rangeEnd),
+            gt(serviceVisits.scheduledEnd, rangeStart),
+          )),
+          db.select({ teamMemberId: staffAvailabilityBlocks.teamMemberId, startsAt: staffAvailabilityBlocks.startsAt, endsAt: staffAvailabilityBlocks.endsAt })
+            .from(staffAvailabilityBlocks).where(and(
+              eq(staffAvailabilityBlocks.userId, ctx.user.id),
+              lt(staffAvailabilityBlocks.startsAt, rangeEnd),
+              gt(staffAvailabilityBlocks.endsAt, rangeStart),
+            )),
+        ]);
+        const days: Array<{ dateKey: string; members: Array<{
+          teamMemberId: number; name: string; color: string;
+          dailyCapacityMinutes: number; scheduledMinutes: number; blockedMinutes: number;
+          utilization: number; overCapacity: boolean;
+        }>; unassignedVisitCount: number }> = [];
+        for (let offset = 0; offset < horizonDays; offset += 1) {
+          const dayStart = new Date(rangeStart.getTime() + offset * 24 * 60 * 60 * 1000);
+          const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+          const dayMinutes = (start: Date, end: Date) =>
+            Math.max(0, Math.round((Math.min(end.getTime(), dayEnd.getTime()) - Math.max(start.getTime(), dayStart.getTime())) / 60_000));
+          days.push({
+            dateKey: dayStart.toISOString().slice(0, 10),
+            members: members.map(member => {
+              const dailyCapacityMinutes = Math.max(60, Math.round(member.weeklyCapacityMinutes / 5));
+              const scheduledMinutes = visits
+                .filter(visit => visit.teamMemberId === member.id && visit.scheduledStart < dayEnd && visit.scheduledEnd > dayStart)
+                .reduce((sum, visit) => sum + dayMinutes(visit.scheduledStart, visit.scheduledEnd), 0);
+              const blockedMinutes = blocks
+                .filter(block => block.teamMemberId === member.id && block.startsAt < dayEnd && block.endsAt > dayStart)
+                .reduce((sum, block) => sum + dayMinutes(block.startsAt, block.endsAt), 0);
+              return {
+                teamMemberId: member.id, name: member.name, color: member.color,
+                dailyCapacityMinutes, scheduledMinutes, blockedMinutes,
+                utilization: Math.min(1, scheduledMinutes / dailyCapacityMinutes),
+                overCapacity: scheduledMinutes > dailyCapacityMinutes,
+              };
+            }),
+            unassignedVisitCount: visits.filter(visit => visit.teamMemberId === null && visit.scheduledStart < dayEnd && visit.scheduledEnd > dayStart).length,
+          });
+        }
+        return { days, generatedAt: now };
+      }),
 
     listAvailabilityBlocks: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();

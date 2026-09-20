@@ -68,6 +68,7 @@ function SchedulingPanel() {
 
   const { data: bookingList, isLoading } = trpc.bookings.list.useQuery({ status: "all" });
   const { data: clientList } = trpc.clients.list.useQuery({ search: "", status: "all" });
+  const { data: capacityForecast, isLoading: forecastLoading } = trpc.dispatch.capacityForecast.useQuery({ days: 14 });
 
   const createBooking = trpc.bookings.create.useMutation({
     onSuccess: () => { utils.bookings.list.invalidate(); toast.success("Booking confirmed!"); setShowAdd(false); setForm({ clientName: "", clientEmail: "", service: "", date: "", time: "", duration: 60, notes: "" }); },
@@ -99,6 +100,52 @@ function SchedulingPanel() {
         <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>
           <Plus className="w-3.5 h-3.5" />New Booking
         </Button>
+      </div>
+
+      <div className="bg-white rounded-xl border border-[#DDDBD7] p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h3 className="text-sm font-bold text-[#1A1A1A]">14-day capacity forecast</h3>
+            <p className="mt-1 text-xs text-[#6B6B6B]">Private planning aid. Daily capacity is each member's weekly capacity averaged over five workdays; blocked minutes come from private availability blocks. No attendance, payroll, GPS, or client-facing claims.</p>
+          </div>
+          <span className="rounded-full bg-[#F7F6F3] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[#6B6B6B]">Planning only</span>
+        </div>
+        {forecastLoading ? <Skeleton className="mt-4 h-24" /> : !capacityForecast || capacityForecast.days.length === 0 || capacityForecast.days.every(day => day.members.length === 0) ? (
+          <p className="mt-4 rounded-lg bg-[#F7F6F3] px-4 py-3 text-xs text-[#6B6B6B]">No active team members yet. Add team members to see a forward capacity forecast.</p>
+        ) : (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[720px] text-xs">
+              <thead>
+                <tr className="text-left text-[#6B6B6B]">
+                  <th className="pb-2 pr-3 font-semibold">Member</th>
+                  {capacityForecast.days.map(day => <th key={day.dateKey} className="pb-2 px-1 text-center font-medium">{new Date(day.dateKey + "T00:00:00Z").toLocaleDateString("en-US", { month: "numeric", day: "numeric", timeZone: "UTC" })}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {capacityForecast.days[0].members.map(member => (
+                  <tr key={member.teamMemberId} className="border-t border-[#EEECEA]">
+                    <td className="py-2 pr-3 whitespace-nowrap">
+                      <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ backgroundColor: member.color }} />
+                      <span className="font-medium text-[#1A1A1A]">{member.name}</span>
+                    </td>
+                    {capacityForecast.days.map(day => {
+                      const cell = day.members.find(entry => entry.teamMemberId === member.teamMemberId);
+                      const utilization = cell?.utilization ?? 0;
+                      const over = cell?.overCapacity ?? false;
+                      const tone = over ? "bg-rose-100 text-rose-800" : utilization >= 0.8 ? "bg-amber-100 text-amber-800" : utilization > 0 ? "bg-emerald-100 text-emerald-800" : "bg-[#F7F6F3] text-[#9A9A9A]";
+                      return <td key={day.dateKey} className="py-2 px-1 text-center"><span className={`inline-block w-11 rounded-md px-1 py-0.5 font-semibold ${tone}`}>{Math.round(utilization * 100)}%</span></td>;
+                    })}
+                  </tr>
+                ))}
+                <tr className="border-t border-[#EEECEA]">
+                  <td className="py-2 pr-3 font-medium text-[#6B6B6B]">Unassigned visits</td>
+                  {capacityForecast.days.map(day => <td key={day.dateKey} className="py-2 px-1 text-center"><span className={`inline-block w-11 rounded-md px-1 py-0.5 font-semibold ${day.unassignedVisitCount > 0 ? "bg-indigo-100 text-indigo-800" : "bg-[#F7F6F3] text-[#9A9A9A]"}`}>{day.unassignedVisitCount || "–"}</span></td>)}
+                </tr>
+              </tbody>
+            </table>
+            <p className="mt-3 text-[11px] text-[#9A9A9A]">Over 100% (rose) means the member is scheduled beyond the daily baseline — review or accept the intentional overload. Blocked private time is not counted as scheduled load.</p>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-xl border border-[#DDDBD7] overflow-hidden">

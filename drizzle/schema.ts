@@ -1267,6 +1267,23 @@ export const staffAvailabilityBlocks = mysqlTable("staffAvailabilityBlocks", {
 ]);
 export type StaffAvailabilityBlock = typeof staffAvailabilityBlocks.$inferSelect;
 
+// Owner-scoped cache of resolved site-label coordinates. Labels are geocoded
+// on explicit owner action only (free OpenStreetMap Nominatim service); the
+// cache avoids repeat lookups and keeps the feature working keyless.
+export const geocodeCache = mysqlTable("geocodeCache", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  labelKey: varchar("labelKey", { length: 512 }).notNull(),
+  lat: double("lat").notNull(),
+  lng: double("lng").notNull(),
+  source: varchar("source", { length: 32 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("geocodeCache_owner_label_idx").on(t.userId, t.labelKey),
+]);
+export type GeocodeCacheEntry = typeof geocodeCache.$inferSelect;
+
 // Authenticated staff access is a separate, opt-in layer over the owner roster.
 // A roster email alone never grants workspace access.
 export const workspaceStaffInvites = mysqlTable("workspaceStaffInvites", {
@@ -1343,6 +1360,7 @@ export const serviceVisits = mysqlTable("serviceVisits", {
   scheduledEnd: timestamp("scheduledEnd").notNull(),
   status: mysqlEnum("status", ["scheduled", "en_route", "in_progress", "completed", "cancelled"]).notNull().default("scheduled"),
   siteLabel: varchar("siteLabel", { length: 255 }),
+  routeOrder: int("routeOrder"),
   dispatchNote: varchar("dispatchNote", { length: 1000 }),
   clientVisible: boolean("clientVisible").notNull().default(false),
   clientUpdate: varchar("clientUpdate", { length: 500 }),

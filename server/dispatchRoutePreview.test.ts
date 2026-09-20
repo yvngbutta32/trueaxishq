@@ -14,10 +14,15 @@ describe("Dispatch Board private route preview", () => {
     expect(dispatchSource).toContain("localDateKey(visit.scheduledStart) === routePlanningDay");
     expect(dispatchSource).toContain("Select private route planning day");
     expect(dispatchSource).toContain("const moveRouteStop = (id: number, direction: -1 | 1)");
-    expect(dispatchSource).toContain("Use the arrow controls to arrange this browser-only sequence.");
-    expect(dispatchSource).toContain("Session only");
+    expect(dispatchSource).toContain("Arrange stops with the arrows, optimize by straight-line distance, then save the order.");
+    expect(dispatchSource).toContain("Private planning");
     expect(dispatchSource).toContain("optimizeWaypoints: false");
     expect(dispatchSource).toContain("This is not optimized routing, live traffic, staff tracking, or a client-facing ETA.");
+    // The keyless optimizer is explicitly scoped: straight-line suggestions only, review before saving.
+    expect(dispatchSource).toContain("not a driving-distance or traffic-aware result");
+    expect(dispatchSource).toContain("Optimize order");
+    expect(dispatchSource).toContain("Save stop order");
+    expect(dispatchSource).not.toContain("AI-powered routing");
   });
 
   it("loads the maps routes library and requires two resolved private locations", () => {
@@ -48,7 +53,7 @@ describe("Dispatch Board private route preview", () => {
     expect(dispatchSource).toContain("Clear route");
     expect(dispatchSource).toContain("no client data or status was changed");
     expect(dispatchSource).toContain("Locations are never added to the client portal");
-    expect(dispatchSource).toContain("The selected day, stop order, and site labels stay in this browser session.");
+    expect(dispatchSource).toContain("a saved stop order persists per workspace as private planning data.");
     expect(dispatchSource).toContain("resolvedStopsRef.current = new Map()");
     expect(dispatchSource).toContain("resolvedStopsRef.current.set(visit.id, position)");
     expect(dispatchSource).toContain("orderedMappableVisits.map(visit => resolvedStopsRef.current.get(visit.id))");

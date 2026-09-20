@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { optimizeStopOrder, totalRouteKm, type RouteStop } from "@shared/routeOptimizer";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MapView } from "@/components/Map";
@@ -117,6 +118,10 @@ export default function DispatchBoard() {
   const [routeSuggestionState, setRouteSuggestionState] = useState<"idle" | "loading" | "suggested" | "unavailable" | "error">("idle");
   const [routeOrder, setRouteOrder] = useState<number[]>([]);
   const [routePlanningDay, setRoutePlanningDay] = useState("");
+  const [keylessCoords, setKeylessCoords] = useState<Map<number, { lat: number; lng: number }>>(new Map());
+  const [optimizeState, setOptimizeState] = useState<"idle" | "insufficient" | "optimized" | "unavailable">("idle");
+  const [optimizeSavings, setOptimizeSavings] = useState<{ beforeKm: number; afterKm: number } | null>(null);
+  const [savedOrderAt, setSavedOrderAt] = useState<string | null>(null);
   const dispatchMapRef = useRef<google.maps.Map | null>(null);
   const routeRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
   const resolvedStopsRef = useRef(new Map<number, google.maps.LatLng>());
@@ -133,7 +138,10 @@ export default function DispatchBoard() {
     const activeStopIds = mappableVisits.map(visit => visit.id);
     setRouteOrder(current => {
       const preserved = current.filter(id => activeStopIds.includes(id));
-      const next = [...preserved, ...activeStopIds.filter(id => !preserved.includes(id))];
+      const byId = new Map(mappableVisits.map(visit => [visit.id, visit]));
+      const seeded = activeStopIds.filter(id => !preserved.includes(id))
+        .sort((left, right) => (byId.get(left)?.routeOrder ?? 999) - (byId.get(right)?.routeOrder ?? 999));
+      const next = [...preserved, ...seeded];
       return next.length === current.length && next.every((id, index) => id === current[index]) ? current : next;
     });
   }, [mappableVisits]);
@@ -302,6 +310,67 @@ const stopTracking = trpc.tracking.stop.useMutation({
     toast.success("Private stop order restored to the scheduled sequence.");
   };
 
+  const geocodeSites = trpc.dispatch.geocodeSites.useMutation({
+    onSuccess: data => {
+      const coordsByLabel = new Map(data.results.filter(result => result.status === "resolved").map(result => [result.label.toLowerCase(), { lat: result.lat!, lng: result.lng! }]));
+      setKeylessCoords(current => {
+        const next = new Map(current);
+        for (const visit of mappableVisits) {
+          const label = visit.siteLabel?.trim();
+          const coord = label ? coordsByLabel.get(label.toLowerCase()) : undefined;
+          if (coord) next.set(visit.id, coord);
+        }
+        return next;
+      });
+      const resolved = data.results.filter(result => result.status === "resolved").length;
+      if (data.serviceDegraded) toast.info(`Resolved ${resolved} site ${resolved === 1 ? "label" : "labels"}; the free geocoding service was unavailable or rate-limited for the rest.`);
+      else if (resolved > 0) toast.success(`Resolved ${resolved} site ${resolved === 1 ? "label" : "labels"} (cached results included).`);
+      else toast.error("No site labels could be resolved right now.");
+    },
+    onError: error => toast.error(error.message),
+  });
+
+  const dayStops = (): RouteStop[] | null => {
+    const stops: RouteStop[] = [];
+    for (const visit of orderedMappableVisits) {
+      const googleStop = resolvedStopsRef.current.get(visit.id);
+      const keyless = keylessCoords.get(visit.id);
+      if (googleStop) stops.push({ id: visit.id, lat: googleStop.lat(), lng: googleStop.lng() });
+      else if (keyless) stops.push({ id: visit.id, lat: keyless.lat, lng: keyless.lng });
+      else return null;
+    }
+    return stops.length >= 3 ? stops : null;
+  };
+
+  const optimizeOrder = () => {
+    const stops = dayStops();
+    if (!stops) { setOptimizeState("insufficient"); return; }
+    const beforeKm = totalRouteKm(stops);
+    const optimizedIds = optimizeStopOrder(stops);
+    if (!optimizedIds) { setOptimizeState("insufficient"); return; }
+    const byId = new Map(stops.map(stop => [stop.id, stop]));
+    const afterKm = totalRouteKm(optimizedIds.map(id => byId.get(id)!));
+    if (optimizedIds.every((id, index) => id === stops[index].id) || afterKm >= beforeKm - 1e-9) {
+      setOptimizeState("optimized");
+      setOptimizeSavings({ beforeKm, afterKm });
+      toast.info("This order is already the best straight-line sequence found.");
+      return;
+    }
+    setRouteOrder(optimizedIds);
+    setOptimizeState("optimized");
+    setOptimizeSavings({ beforeKm, afterKm });
+    clearRoute();
+    toast.success(`Optimized: ${beforeKm.toFixed(1)} km → ${afterKm.toFixed(1)} km straight-line. Review before saving.`);
+  };
+
+  const saveRouteOrder = trpc.dispatch.setRouteOrder.useMutation({
+    onSuccess: data => {
+      setSavedOrderAt(new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }));
+      toast.success(`Private stop order saved for ${data.saved} visit${data.saved === 1 ? "" : "s"}. Planning data only — nothing was dispatched or shared.`);
+    },
+    onError: error => toast.error(error.message),
+  });
+
   const submitVisit = () => {
     if (!selectedAssignment) return toast.error("Choose an active job assignment.");
     const scheduledStart = new Date(form.start);
@@ -427,17 +496,17 @@ const stopTracking = trpc.tracking.stop.useMutation({
           <select value={routePlanningDay} onChange={event => { setRoutePlanningDay(event.target.value); clearRoute(); }} className="mt-1.5 block w-full rounded-lg border border-[#D4922A]/35 bg-white px-3 py-2 text-sm font-normal text-[#1A1A1A] outline-none focus:ring-2 focus:ring-[#D4922A]/35" aria-label="Select private route planning day">
             {routePlanningDays.map(day => <option key={day} value={day}>{planningDayLabel(day)}</option>)}
           </select>
-          <span className="mt-1 block text-xs font-normal text-[rgba(26,26,26,0.62)]">The selected day, stop order, and site labels stay in this browser session.</span>
+          <span className="mt-1 block text-xs font-normal text-[rgba(26,26,26,0.62)]">The selected day and site labels stay in this browser session; a saved stop order persists per workspace as private planning data.</span>
         </label>
         <div className="mt-4 rounded-xl border border-[#D4922A]/25 bg-[#FFF9EE] p-3">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"><div><h3 className="text-sm font-bold text-[#1A1A1A]">Private stop order</h3><p className="mt-0.5 text-xs text-[rgba(26,26,26,0.62)]">Use the arrow controls to arrange this browser-only sequence. It does not change visit timing, assignments, client updates, or stored records.</p></div><span className="self-start rounded-full bg-white px-2 py-1 text-[10px] font-bold text-[#8A5A0B]">Session only</span></div>
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"><div><h3 className="text-sm font-bold text-[#1A1A1A]">Private stop order</h3><p className="mt-0.5 text-xs text-[rgba(26,26,26,0.62)]">Arrange stops with the arrows, optimize by straight-line distance, then save the order. Saving does not change visit timing, assignments, or client updates — it is private planning data.</p></div><span className="self-start rounded-full bg-white px-2 py-1 text-[10px] font-bold text-[#8A5A0B]">Private planning</span></div>
           <ol className="mt-3 space-y-2" aria-label="Private route stop order">
             {orderedMappableVisits.map((visit, index) => <li key={visit.id} className="flex items-center gap-3 rounded-lg border border-[#D4922A]/20 bg-white px-3 py-2"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#D4922A] text-xs font-bold text-white">{index + 1}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-[#1A1A1A]">{visit.title}</p><p className="truncate text-xs text-[rgba(26,26,26,0.58)]">{visit.siteLabel}</p></div><div className="flex shrink-0 gap-1"><Button type="button" size="icon" variant="outline" onClick={() => moveRouteStop(visit.id, -1)} disabled={index === 0} aria-label={`Move ${visit.title} earlier in the private stop order`} className="h-8 w-8 border-[#D4922A]/30 text-[#8A5A0B]"><ArrowUp className="h-3.5 w-3.5" /></Button><Button type="button" size="icon" variant="outline" onClick={() => moveRouteStop(visit.id, 1)} disabled={index === orderedMappableVisits.length - 1} aria-label={`Move ${visit.title} later in the private stop order`} className="h-8 w-8 border-[#D4922A]/30 text-[#8A5A0B]"><ArrowDown className="h-3.5 w-3.5" /></Button></div></li>)}
           </ol>
         </div>
         <div className="mt-4 overflow-hidden rounded-xl border border-[rgba(26,26,26,0.1)]"><MapView initialZoom={10} className="h-[320px]" onMapLoadError={() => { setMapUnavailable(true); setMapResult(null); clearRoute(); }} onMapReady={map => { if (!window.google?.maps) return; setMapUnavailable(false); dispatchMapRef.current = map; resolvedStopsRef.current = new Map(); setMapResult(null); setRouteState("idle"); const geocoder = new window.google.maps.Geocoder(); const bounds = new window.google.maps.LatLngBounds(); let resolved = 0; let unresolved = 0; orderedMappableVisits.forEach(visit => { const siteLabel = visit.siteLabel?.trim(); if (!siteLabel) return; geocoder.geocode({ address: siteLabel }, (results, status) => { if (status === "OK" && results?.[0]) { const position = results[0].geometry.location; resolvedStopsRef.current.set(visit.id, position); new window.google!.maps.marker.AdvancedMarkerElement({ map, position, title: visit.title }); bounds.extend(position); resolved += 1; if (resolved === 1) map.setCenter(position); else map.fitBounds(bounds, 48); } else unresolved += 1; if (resolved + unresolved === orderedMappableVisits.length) setMapResult({ resolved, unresolved }); }); }); }} /></div>
-        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p role="status" className="text-xs text-[rgba(26,26,26,0.62)]">{mapUnavailable ? "Map provider unavailable. Dispatch scheduling and private visit data remain unchanged." : mapResult ? mapResult.resolved ? `${mapResult.resolved} private site ${mapResult.resolved === 1 ? "location was" : "locations were"} resolved.${mapResult.unresolved ? ` ${mapResult.unresolved} label${mapResult.unresolved === 1 ? " could" : "s could"} not be resolved.` : ""}` : "No site labels could be resolved for a route preview." : "Resolving private site labels…"}</p><div className="flex shrink-0 flex-wrap gap-2"><Button type="button" size="sm" variant="outline" onClick={resetRouteOrder} className="border-slate-300 text-slate-700">Use scheduled order</Button><Button type="button" size="sm" variant="outline" onClick={suggestRouteOrder} disabled={mapUnavailable || !mapResult || mapResult.resolved < 3 || mapResult.unresolved > 0 || routeSuggestionState === "loading"} className="border-teal-300 text-teal-800 hover:bg-teal-50">{routeSuggestionState === "loading" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Route className="mr-1 h-3.5 w-3.5" />} Suggest private order</Button><Button type="button" size="sm" variant="outline" onClick={previewRoute} disabled={mapUnavailable || !mapResult || mapResult.resolved < 2 || routeState === "loading"} className="border-[#D4922A]/40 text-[#8A5A0B]">{routeState === "loading" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Route className="mr-1 h-3.5 w-3.5" />} Preview stop order</Button>{routeState === "ready" && <Button type="button" size="sm" variant="outline" onClick={clearRoute} className="border-slate-300 text-slate-700">Clear route</Button>}</div></div>
-        {routeSuggestionState === "suggested" && <p role="status" className="mt-2 rounded-lg bg-teal-50 px-3 py-2 text-xs text-teal-950">A private map order suggestion was applied to this session. Review or adjust the arrows before using it; it does not dispatch work or change any stored visit.</p>}{routeSuggestionState === "unavailable" && <p role="status" className="mt-2 text-xs text-amber-800">Resolve every displayed private site label and keep at least three stops before requesting an order suggestion.</p>}{routeSuggestionState === "error" && <p role="status" className="mt-2 text-xs text-rose-700">A private map order suggestion could not be created. Your current manual order is unchanged; review the site labels and try again.</p>}
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p role="status" className="text-xs text-[rgba(26,26,26,0.62)]">{mapUnavailable ? "Map provider unavailable. Dispatch scheduling and private visit data remain unchanged." : mapResult ? mapResult.resolved ? `${mapResult.resolved} private site ${mapResult.resolved === 1 ? "location was" : "locations were"} resolved.${mapResult.unresolved ? ` ${mapResult.unresolved} label${mapResult.unresolved === 1 ? " could" : "s could"} not be resolved.` : ""}` : "No site labels could be resolved for a route preview." : "Resolving private site labels…"}</p><div className="flex shrink-0 flex-wrap gap-2"><Button type="button" size="sm" variant="outline" onClick={resetRouteOrder} className="border-slate-300 text-slate-700">Use scheduled order</Button><Button type="button" size="sm" variant="outline" onClick={suggestRouteOrder} disabled={mapUnavailable || !mapResult || mapResult.resolved < 3 || mapResult.unresolved > 0 || routeSuggestionState === "loading"} className="border-teal-300 text-teal-800 hover:bg-teal-50">{routeSuggestionState === "loading" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Route className="mr-1 h-3.5 w-3.5" />} Suggest private order</Button><Button type="button" size="sm" variant="outline" onClick={previewRoute} disabled={mapUnavailable || !mapResult || mapResult.resolved < 2 || routeState === "loading"} className="border-[#D4922A]/40 text-[#8A5A0B]">{routeState === "loading" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Route className="mr-1 h-3.5 w-3.5" />} Preview stop order</Button>{routeState === "ready" && <Button type="button" size="sm" variant="outline" onClick={clearRoute} className="border-slate-300 text-slate-700">Clear route</Button>}<Button type="button" size="sm" variant="outline" onClick={() => geocodeSites.mutate({ labels: Array.from(new Set(mappableVisits.map(visit => visit.siteLabel?.trim() ?? "").filter(Boolean))).slice(0, 12) })} disabled={geocodeSites.isPending || mappableVisits.length === 0} className="border-slate-300 text-slate-700">{geocodeSites.isPending ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <MapPin className="mr-1 h-3.5 w-3.5" />} Resolve sites (keyless)</Button><Button type="button" size="sm" variant="outline" onClick={optimizeOrder} className="border-indigo-300 text-indigo-800 hover:bg-indigo-50">Optimize order</Button><Button type="button" size="sm" onClick={() => saveRouteOrder.mutate({ visitIds: orderedMappableVisits.map(visit => visit.id) })} disabled={saveRouteOrder.isPending || orderedMappableVisits.length < 2} className="bg-[#1C2333] text-white hover:bg-[#2B3446]">Save stop order</Button></div></div>
+        {routeSuggestionState === "suggested" && <p role="status" className="mt-2 rounded-lg bg-teal-50 px-3 py-2 text-xs text-teal-950">A private map order suggestion was applied to this session. Review or adjust the arrows before using it; it does not dispatch work or change any stored visit.</p>}{routeSuggestionState === "unavailable" && <p role="status" className="mt-2 text-xs text-amber-800">Resolve every displayed private site label and keep at least three stops before requesting an order suggestion.</p>}{optimizeState === "insufficient" && <p role="status" className="mt-2 text-xs text-amber-800">Optimization needs coordinates for at least three stops. Resolve sites with the map provider or the keyless resolver first.</p>}{optimizeState === "optimized" && optimizeSavings && <p role="status" className="mt-2 rounded-lg bg-indigo-50 px-3 py-2 text-xs text-indigo-950">Straight-line estimate: {optimizeSavings.beforeKm.toFixed(1)} km → {optimizeSavings.afterKm.toFixed(1)} km. This is a planning suggestion to review, not a driving-distance or traffic-aware result.</p>}{savedOrderAt && <p role="status" className="mt-2 text-xs text-emerald-800">Stop order saved at {savedOrderAt}. It persists across sessions for this workspace and never dispatches, notifies, or changes client-facing data.</p>}<p role="status" className="mt-2 text-xs text-[rgba(26,26,26,0.5)]">Keyless site resolution uses the free OpenStreetMap Nominatim service on your explicit action, then caches results in your workspace. Saved orders are private planning data.</p>{routeSuggestionState === "error" && <p role="status" className="mt-2 text-xs text-rose-700">A private map order suggestion could not be created. Your current manual order is unchanged; review the site labels and try again.</p>}
         {routeState === "unavailable" && <p role="status" className="mt-2 text-xs text-amber-800">At least two resolved private site labels are needed before a route can be previewed.</p>}{routeState === "error" && <p role="status" className="mt-2 text-xs text-rose-700">The route preview could not be created. Review the site labels and try again; no client data or status was changed.</p>}
       </>}</section>
 
