@@ -18,6 +18,7 @@ import { notifyOwner } from "./_core/notification";
 import { geocodeLabelWithNominatim, normalizeGeocodeLabel, GEOCODE_BATCH_LIMIT } from "./_core/geocode";
 import { getDb } from "./db";
 import { requireClientPaymentsAccount, getStripeAccountForUser } from "./_core/stripeConnect";
+import { requirePlanFeature, getEntitlements } from "./_core/entitlements";
 import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
@@ -530,6 +531,54 @@ const stripeConnectRouter = router({
   }),
 });
 
+// ── Card-present / Tap-to-Pay (Stripe Terminal) ──────────────────────────
+// Client money rule holds: terminal connection tokens are issued on the
+// FREELANCER'S connected account, never the platform's. Tokens power any
+// Stripe Terminal-compatible reader workflow; recordCardPresent lets a
+// freelancer with ANY external terminal book the payment honestly.
+const terminalRouter = router({
+  status: protectedProcedure.query(async ({ ctx }) => {
+    const account = await getStripeAccountForUser(ctx.user.id);
+    return {
+      connected: Boolean(account),
+      chargesEnabled: account?.chargesEnabled ?? false,
+      payoutsEnabled: account?.payoutsEnabled ?? false,
+      inAppReaderCheckout: "Requires a Stripe Terminal-approved connected account and a registered reader.",
+      recordCardPresent: true,
+    };
+  }),
+  createConnectionToken: protectedProcedure.mutation(async ({ ctx }) => {
+    if (!process.env.STRIPE_SECRET_KEY) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Payments are not configured on this deployment. Set STRIPE_SECRET_KEY." });
+    const accountId = await requireClientPaymentsAccount(ctx.user.id);
+    const stripe = getStripe();
+    const token = await stripe.terminal.connectionTokens.create({}, { stripeAccount: accountId });
+    const db = await requireDb();
+    await db.insert(auditLogs).values({
+      userId: ctx.user.id, action: "terminal.connection_token", entityType: "integration", entityId: 0,
+      details: JSON.stringify({ stripeAccount: accountId }),
+    });
+    return { secret: token.secret };
+  }),
+  recordCardPresent: protectedProcedure
+    .input(z.object({ invoiceId: z.number().int().positive(), readerNote: z.string().trim().max(200).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDb();
+      const [inv] = await db.select().from(invoices)
+        .where(and(eq(invoices.id, input.invoiceId), eq(invoices.userId, ctx.user.id))).limit(1);
+      if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
+      if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice is already paid." });
+      const paidAt = new Date();
+      await db.update(invoices).set({ status: "paid", paidAt, updatedAt: paidAt })
+        .where(and(eq(invoices.id, input.invoiceId), eq(invoices.userId, ctx.user.id)));
+      await db.insert(auditLogs).values({
+        userId: ctx.user.id, action: "terminal.card_present_recorded", entityType: "invoice", entityId: input.invoiceId,
+        details: JSON.stringify({ readerNote: input.readerNote ?? null, amount: String(inv.amount) }),
+      });
+      await deliverWorkflowWebhookEvent(db, ctx.user.id, "app.invoice.paid", { invoiceId: inv.id, invoiceNumber: inv.invoiceNumber, amount: Number(inv.amount), method: "card_present" });
+      return { success: true, paidAt: paidAt.toISOString() };
+    }),
+});
+
 export const appRouter = router({
   system: systemRouter,
 
@@ -598,6 +647,7 @@ export const appRouter = router({
       }),
   }),
   stripeConnect: stripeConnectRouter,
+  terminal: terminalRouter,
 
   // ── Active sessions (device management) ─────────────────────────────────────
   sessions: router({
@@ -2920,6 +2970,10 @@ Only include actions when you have actually generated a complete draft. For gene
   // ── Stripe Billing ──────────────────────────────────────────────────────────────
   billing: router({
     getPlans: publicProcedure.query(() => PLAN_LIST),
+    myEntitlements: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return getEntitlements(db, ctx.user.id);
+    }),
 
     getSubscription: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
@@ -5195,6 +5249,7 @@ Only include actions when you have actually generated a complete draft. For gene
     list: protectedProcedure
       .query(async ({ ctx }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "subcontractors");
         const rows = await db.select().from(subcontractors)
           .where(eq(subcontractors.userId, ctx.user.id))
           .orderBy(asc(subcontractors.name));
@@ -5210,6 +5265,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "subcontractors");
         const phone = normalizePhoneToE164(input.phone);
         if (!phone) throw new TRPCError({ code: "BAD_REQUEST", message: "Enter a valid phone number, e.g. +1 512 555 0100." });
         const [row] = await db.insert(subcontractors).values({
@@ -5230,6 +5286,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "subcontractors");
         const [existing] = await db.select().from(subcontractors)
           .where(and(eq(subcontractors.id, input.id), eq(subcontractors.userId, ctx.user.id))).limit(1);
         if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Subcontractor not found." });
@@ -5253,6 +5310,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "subcontractors");
         const [existing] = await db.select().from(subcontractors)
           .where(and(eq(subcontractors.id, input.id), eq(subcontractors.userId, ctx.user.id))).limit(1);
         if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Subcontractor not found." });
@@ -5279,6 +5337,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "subcontractors");
         const [job] = await db.select().from(jobs)
           .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
         if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
@@ -5323,6 +5382,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ jobId: z.number().int().positive().nullable().optional() }))
       .query(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "subcontractors");
         const conditions = [eq(jobSubcontractors.userId, ctx.user.id)];
         if (input.jobId) conditions.push(eq(jobSubcontractors.jobId, input.jobId));
         const rows = await db.select({
@@ -5353,6 +5413,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ assignmentId: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "subcontractors");
         const [assignment] = await db.select().from(jobSubcontractors)
           .where(and(eq(jobSubcontractors.id, input.assignmentId), eq(jobSubcontractors.userId, ctx.user.id))).limit(1);
         if (!assignment) throw new TRPCError({ code: "NOT_FOUND", message: "Invitation not found." });
@@ -5382,6 +5443,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ assignmentId: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "subcontractors");
         const [assignment] = await db.select().from(jobSubcontractors)
           .where(and(eq(jobSubcontractors.id, input.assignmentId), eq(jobSubcontractors.userId, ctx.user.id))).limit(1);
         if (!assignment) throw new TRPCError({ code: "NOT_FOUND", message: "Invitation not found." });
@@ -5407,6 +5469,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ visitId: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "liveTracking");
         const [visit] = await db.select().from(serviceVisits)
           .where(and(eq(serviceVisits.id, input.visitId), eq(serviceVisits.userId, ctx.user.id))).limit(1);
         if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Service visit not found." });
@@ -5436,6 +5499,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ visitId: z.number().int().positive(), lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180), accuracy: z.number().min(0).max(5000).optional() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "liveTracking");
         const [visit] = await db.select().from(serviceVisits)
           .where(and(eq(serviceVisits.id, input.visitId), eq(serviceVisits.userId, ctx.user.id))).limit(1);
         if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Service visit not found." });
@@ -5453,6 +5517,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ visitId: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "liveTracking");
         const result = await db.update(serviceVisitTrackLinks).set({ active: false, revokedAt: new Date() })
           .where(and(eq(serviceVisitTrackLinks.visitId, input.visitId), eq(serviceVisitTrackLinks.userId, ctx.user.id), eq(serviceVisitTrackLinks.active, true)));
         await db.insert(auditLogs).values({ userId: ctx.user.id, action: "tracking.link_stopped", entityType: "serviceVisit", entityId: input.visitId, details: "{}" });
@@ -5463,6 +5528,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ visitId: z.number().int().positive() }))
       .query(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "liveTracking");
         const [link] = await db.select().from(serviceVisitTrackLinks)
           .where(and(eq(serviceVisitTrackLinks.visitId, input.visitId), eq(serviceVisitTrackLinks.userId, ctx.user.id), eq(serviceVisitTrackLinks.active, true))).limit(1);
         if (!link || link.revokedAt) return null;
@@ -5473,6 +5539,7 @@ Only include actions when you have actually generated a complete draft. For gene
   apiKeys: router({
     list: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
+      await requirePlanFeature(db, ctx.user.id, "restApi");
       const rows = await db.select({
         id: userApiKeys.id,
         name: userApiKeys.name,
@@ -5491,6 +5558,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ name: z.string().trim().min(1).max(128) }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "restApi");
         // Generate a secure random API key
         const crypto = await import("crypto");
         const rawKey = `sk_live_${crypto.randomBytes(24).toString("hex")}`;
@@ -5511,6 +5579,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "restApi");
         await db.update(userApiKeys)
           .set({ active: false })
           .where(and(eq(userApiKeys.id, input.id), eq(userApiKeys.userId, ctx.user.id)));
@@ -5976,6 +6045,7 @@ Only include actions when you have actually generated a complete draft. For gene
   reports: router({
     list: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
+      await requirePlanFeature(db, ctx.user.id, "customReports");
       return db.select().from(customReports).where(eq(customReports.userId, ctx.user.id)).orderBy(desc(customReports.updatedAt));
     }),
 
@@ -5983,6 +6053,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ name: safeString(120), config: reportConfigSchema }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "customReports");
         const [result] = await db.insert(customReports).values({
           userId: ctx.user.id, name: input.name,
           dataset: input.config.dataset, metric: input.config.metric, groupBy: input.config.groupBy,
@@ -5995,6 +6066,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ id: z.number().int().positive(), name: safeOptionalString(120), config: reportConfigSchema.optional() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "customReports");
         const [report] = await db.select().from(customReports).where(and(eq(customReports.id, input.id), eq(customReports.userId, ctx.user.id))).limit(1);
         if (!report) throw new TRPCError({ code: "NOT_FOUND", message: "Report not found." });
         const updates: Record<string, unknown> = {};
@@ -6013,6 +6085,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "customReports");
         await db.delete(customReports).where(and(eq(customReports.id, input.id), eq(customReports.userId, ctx.user.id)));
         return { success: true };
       }),
@@ -6022,6 +6095,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ id: z.number().int().positive() }))
       .query(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "customReports");
         const [report] = await db.select().from(customReports).where(and(eq(customReports.id, input.id), eq(customReports.userId, ctx.user.id))).limit(1);
         if (!report) throw new TRPCError({ code: "NOT_FOUND", message: "Report not found." });
         let filters: Record<string, unknown> = {};
@@ -6039,6 +6113,7 @@ Only include actions when you have actually generated a complete draft. For gene
   priceBook: router({
     list: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
+      await requirePlanFeature(db, ctx.user.id, "priceBook");
       return db.select().from(priceBookItems)
         .where(eq(priceBookItems.userId, ctx.user.id))
         .orderBy(priceBookItems.category, priceBookItems.name);
@@ -6054,6 +6129,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "priceBook");
         const [row] = await db.insert(priceBookItems).values({
           userId: ctx.user.id,
           name: input.name,
@@ -6077,6 +6153,7 @@ Only include actions when you have actually generated a complete draft. For gene
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "priceBook");
         const updates: Record<string, unknown> = {};
         if (input.name !== undefined) updates.name = input.name;
         if (input.description !== undefined) updates.description = input.description ?? null;
@@ -6095,6 +6172,7 @@ Only include actions when you have actually generated a complete draft. For gene
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "priceBook");
         const result = await db.delete(priceBookItems)
           .where(and(eq(priceBookItems.id, input.id), eq(priceBookItems.userId, ctx.user.id)));
         if (!result[0]?.affectedRows) throw new TRPCError({ code: "NOT_FOUND" });
@@ -8930,6 +9008,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       .input(z.object({ labels: z.array(z.string()).min(1).max(GEOCODE_BATCH_LIMIT) }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "routeOptimizer");
         const normalized = new Map<string, string>();
         for (const label of input.labels) {
           const key = normalizeGeocodeLabel(label);
@@ -8979,6 +9058,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "routeOptimizer");
         if (new Set(input.visitIds).size !== input.visitIds.length) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Each visit may appear only once in the stop order." });
         }
@@ -9007,6 +9087,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       .input(z.object({ days: z.union([z.literal(7), z.literal(14)]).default(14) }).optional())
       .query(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "capacityForecast");
         const horizonDays = input?.days ?? 14;
         const now = new Date();
         const rangeStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
@@ -9704,6 +9785,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "webhooks");
         const existing = await db.select({ id: workflowWebhooks.id }).from(workflowWebhooks).where(eq(workflowWebhooks.userId, ctx.user.id));
         if (existing.length >= 3) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "You can keep up to three webhook endpoints per workspace." });
         let endpointUrl: string;

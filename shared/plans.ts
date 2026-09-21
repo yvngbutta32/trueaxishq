@@ -94,3 +94,33 @@ export const PLANS: Record<PlanId, Plan> = {
 };
 
 export const PLAN_LIST = Object.values(PLANS);
+
+// ── Plan-gated features (server-enforced, client-reflected) ────────────
+// The Pro and Agency plans unlock the advanced operating layer. Free and
+// Starter are honest, complete tools for their tier — never crippled traps.
+export const PRO_FEATURES = [
+  "liveTracking", "routeOptimizer", "capacityForecast", "priceBook",
+  "customReports", "subcontractors", "restApi", "webhooks",
+] as const;
+export type ProFeature = typeof PRO_FEATURES[number];
+
+export const PRO_FEATURE_LABELS: Record<ProFeature, string> = {
+  liveTracking: "Live customer tracking links",
+  routeOptimizer: "Route optimization & geocoding",
+  capacityForecast: "Capacity forecasting",
+  priceBook: "Price book",
+  customReports: "Custom report builder",
+  subcontractors: "Subcontractor workflow",
+  restApi: "Public REST API keys",
+  webhooks: "Outbound webhooks",
+};
+
+export function planUnlocksProFeature(planId: string | null | undefined, feature: ProFeature): boolean {
+  const plan = (planId ?? "free").trim().toLowerCase();
+  return (plan === "pro" || plan === "agency") && (PRO_FEATURES as readonly string[]).includes(feature);
+}
+
+export function featureEntitlements(planId: string | null | undefined): Record<ProFeature, boolean> {
+  const entries = PRO_FEATURES.map(feature => [feature, planUnlocksProFeature(planId, feature)] as const);
+  return Object.fromEntries(entries) as Record<ProFeature, boolean>;
+}

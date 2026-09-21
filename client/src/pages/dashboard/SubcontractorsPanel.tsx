@@ -7,6 +7,7 @@
  */
 import { useMemo, useState } from "react";
 import { trpc, type RouterOutputs } from "@/lib/trpc";
+import { FeatureLock } from "@/components/FeatureLock";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -115,6 +116,8 @@ export default function SubcontractorsPanel() {
   const liveInvites = useMemo(() => (invitations.data ?? []).filter(i => i.active && !i.revokedAt && new Date(i.expiresAt).getTime() > Date.now()), [invitations.data]);
 
   return (
+    <FeatureLock feature="subcontractors" label="The subcontractor workflow">
+    
     <div className="space-y-8">
       {/* ── Roster ─────────────────────────────────────────────── */}
       <section aria-labelledby="subs-roster">
@@ -293,5 +296,7 @@ export default function SubcontractorsPanel() {
         onConfirm={() => confirmDelete && void deleteSub.mutate({ id: confirmDelete.id })}
       />
     </div>
+  
+    </FeatureLock>
   );
 }

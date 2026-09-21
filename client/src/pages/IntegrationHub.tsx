@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { TerminalSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -61,7 +62,20 @@ function StripeConnectCard() {
         </div>
       </div>
     </div>
-  </section>;
+  
+  <section className="mt-2 rounded-2xl border border-[#1B2D4F]/15 bg-[#F8FBFB] p-4">
+    <div className="flex gap-3">
+      <TerminalSquare className="mt-0.5 h-5 w-5 shrink-0 text-[#007A68]" />
+      <div className="flex-1">
+        <h2 className="text-sm font-bold text-[#1A1A1A]">Card-present &amp; Tap to Pay (Stripe Terminal)</h2>
+        <p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.65)]">Take payments in person with a Stripe Terminal-compatible reader. Connection tokens are issued on <strong>your</strong> connected Stripe account, and any card-present payment can be recorded on an invoice — even from a reader you already own, at $0 fixed cost.</p>
+        <div className="mt-3 rounded-lg bg-white px-3 py-2">
+          <TerminalStatus />
+        </div>
+      </div>
+    </div>
+  </section>
+</section>;
 }
 
 function PushNotificationsCard() {
@@ -212,4 +226,11 @@ function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = { connected: "bg-emerald-50 text-emerald-700", needs_configuration: "bg-amber-50 text-amber-800", provider_setup_required: "bg-amber-50 text-amber-800", error: "bg-rose-50 text-rose-700", not_connected: "bg-slate-100 text-slate-600" };
   const text: Record<string, string> = { connected: "Connected", needs_configuration: "Needs setup", provider_setup_required: "Needs setup", error: "Needs attention", not_connected: "Not connected" };
   return <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold ${styles[status] ?? styles.not_connected}`}>{text[status] ?? "Not connected"}</span>;
+}
+
+function TerminalStatus() {
+  const { data: terminal } = trpc.terminal.status.useQuery();
+  if (!terminal) return null;
+  if (!terminal.connected) return <p className="text-xs text-[rgba(26,26,26,0.62)]">Connect your Stripe account in the card above first. Tap to Pay unlocks after your connected account is approved for Stripe Terminal.</p>;
+  return <p className="text-xs text-[rgba(26,26,26,0.62)]">{terminal.chargesEnabled ? "Your connected account accepts charges. Register your reader in your Stripe dashboard (Terminal → Readers), then use in-person checkout from this workspace." : "Charges are pending on your connected account. Tap to Pay unlocks once Stripe finishes your account review."} {terminal.inAppReaderCheckout}</p>;
 }
