@@ -25,6 +25,45 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
+function StripeConnectCard() {
+  const utils = trpc.useUtils();
+  const { data: status } = trpc.stripeConnect.status.useQuery();
+  const start = trpc.stripeConnect.start.useMutation({
+    onError: e => toast.error(e.message),
+  });
+  const disconnect = trpc.stripeConnect.disconnect.useMutation({
+    onSuccess: () => { void utils.stripeConnect.status.invalidate(); toast.info("Your Stripe account is disconnected. Client payments are paused until you reconnect."); },
+    onError: e => toast.error(e.message),
+  });
+
+  const account = status?.account ?? null;
+  const platformConfigured = status?.platformConfigured ?? false;
+
+  return <section className="rounded-2xl border border-[#D4922A]/25 bg-[#D4922A]/5 p-4">
+    <div className="flex gap-3">
+      <CreditCard className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#9A610A]" />
+      <div className="flex-1">
+        <h2 className="text-sm font-bold text-[#1A1A1A]">Client payments — your own Stripe account</h2>
+        <p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.65)]">Client money from invoices and booking deposits goes straight to <strong>your</strong> Stripe account, never through the platform. Connect once and payouts land in your bank.</p>
+        <div className="mt-3 rounded-lg bg-white px-3 py-2">
+          {!platformConfigured ? <p className="text-xs text-[rgba(26,26,26,0.62)]">Stripe is not configured on this deployment yet. You can mark invoices paid manually at any time; card checkout unlocks once the platform key is set.</p>
+            : !account ? <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-[rgba(26,26,26,0.62)]">No Stripe account connected yet. Card checkout for clients stays off until you connect your own account.</p><Button size="sm" onClick={() => start.mutate(undefined, { onSuccess: r => { window.location.href = r.url; } })} disabled={start.isPending} className="bg-[#D4922A] text-white hover:bg-[#B87716]">{start.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Connect Stripe"}</Button></div>
+            : <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-[#1A1A1A]">{account.id}</p>
+                  <p className="text-xs text-[rgba(26,26,26,0.62)]">{account.chargesEnabled ? "Charges enabled — clients can pay by card." : account.detailsSubmitted ? "Charges pending — Stripe is finishing your account review." : "Onboarding not finished yet — complete it to accept client card payments."}</p>
+                </div>
+                <div className="flex gap-2">
+                  {!account.chargesEnabled && <Button size="sm" onClick={() => start.mutate(undefined, { onSuccess: r => { window.location.href = r.url; } })} disabled={start.isPending} variant="outline" className="border-[#D4922A]/40 text-[#8A5A0B]">Continue onboarding</Button>}
+                  <Button size="sm" variant="outline" onClick={() => disconnect.mutate()} disabled={disconnect.isPending} className="border-rose-200 text-rose-700 hover:bg-rose-50">Disconnect</Button>
+                </div>
+              </div>}
+        </div>
+      </div>
+    </div>
+  </section>;
+}
+
 function PushNotificationsCard() {
   const utils = trpc.useUtils();
   const { data: pushStatus } = trpc.push.status.useQuery();
@@ -156,6 +195,7 @@ export default function IntegrationHub({ onOpenSettings }: { onOpenSettings: () 
     <section className="rounded-2xl border border-[#D4922A]/25 bg-[#D4922A]/5 p-4"><div className="flex gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#9A610A]" /><div><h2 className="text-sm font-bold text-[#1A1A1A]">Connection-state integrity</h2><p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.65)]">This hub never accepts a manual “connected” claim. Google Calendar is derived from its secure authorization record. Other entries remain in readiness states until their provider flow is implemented and verified with the owner’s account.</p></div></div></section>
 
     <PushNotificationsCard />
+    <StripeConnectCard />
 
     <div className="space-y-6">{groups.map(([category, group]) => {
       const meta = categoryMeta[category as Category];

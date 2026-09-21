@@ -108,6 +108,7 @@ async function startServer() {
     }
     res.status(databaseAvailable ? 200 : 503).json({
       status: databaseAvailable ? "healthy" : "degraded",
+      supportEmail: process.env.SUPPORT_EMAIL || null,
       timestamp: new Date().toISOString(),
     });
   });

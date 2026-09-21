@@ -1307,6 +1307,22 @@ export const pushVapidKeys = mysqlTable("pushVapidKeys", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+// ── Stripe Connect ──────────────────────────────────────────────────────────
+// Each freelancer/business owner connects their OWN Stripe account; client
+// money (invoice payments, booking deposits) lands in their connected account,
+// never in the platform's. The platform key only bills SaaS subscriptions.
+export const stripeAccounts = mysqlTable("stripeAccounts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  stripeAccountId: varchar("stripeAccountId", { length: 64 }).notNull().unique(),
+  chargesEnabled: boolean("chargesEnabled").notNull().default(false),
+  payoutsEnabled: boolean("payoutsEnabled").notNull().default(false),
+  detailsSubmitted: boolean("detailsSubmitted").notNull().default(false),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type StripeAccount = typeof stripeAccounts.$inferSelect;
+
 
 // Authenticated staff access is a separate, opt-in layer over the owner roster.
 // A roster email alone never grants workspace access.

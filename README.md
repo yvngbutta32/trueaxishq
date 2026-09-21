@@ -4,6 +4,17 @@ The all-in-one operations platform for independent home-service businesses —
 booking, scheduling, dispatch, quoting, invoicing, client portal, proposals,
 intake forms, automations, and reporting in a single deployable app.
 
+## Who collects client money (Stripe Connect architecture)
+
+Client money — invoice payments, booking deposits, portal payments — always lands
+in the freelancer's OWN connected Stripe account, never the platform's. The
+platform's `STRIPE_SECRET_KEY` bills SaaS subscriptions only. Each workspace
+connects their own Stripe via Integration Hub → Payments (Express onboarding,
+works with just the platform key — no separate OAuth app for you to create).
+Without a connected account, card checkout fails honestly; invoices can always
+be marked paid manually at $0. The developer never needs a phone number for
+anything; `SUPPORT_EMAIL` is the developer's public contact (shown on /status).
+
 ## Running at $0 (no external companies required)
 
 TrueAxis HQ is fully usable with **zero paid services**. A contract test

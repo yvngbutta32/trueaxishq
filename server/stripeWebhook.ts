@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import Stripe from "stripe";
 import { and, eq, inArray, lt, lte, or, sql } from "drizzle-orm";
 import { getDb } from "./db";
-import { users, invoices, stripeWebhookEvents } from "../drizzle/schema";
+import { users, invoices, stripeWebhookEvents, stripeAccounts } from "../drizzle/schema";
 import { notifyOwner } from "./_core/notification";
 import { decryptWebhookSecret, encryptWebhookSecret } from "./workflowWebhookDelivery";
 
@@ -119,6 +119,15 @@ async function processEvent(eventType: string, data: Stripe.Event["data"]["objec
   if (!db) throw new Error("Database unavailable — will retry");
 
   switch (eventType) {
+    case "account.updated": {
+      const account = data as Stripe.Account;
+      await db.update(stripeAccounts).set({
+        chargesEnabled: Boolean(account.charges_enabled),
+        payoutsEnabled: Boolean(account.payouts_enabled),
+        detailsSubmitted: Boolean(account.details_submitted),
+      }).where(eq(stripeAccounts.stripeAccountId, account.id));
+      break;
+    }
     case "checkout.session.completed": {
       const session = data as Stripe.Checkout.Session;
       const userId = session.metadata?.user_id;

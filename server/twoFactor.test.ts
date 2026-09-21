@@ -101,7 +101,12 @@ describe("two-factor login enforcement (source contract)", () => {
   });
 
   it("never returns the stored secret once enabled — status exposes only the flag", () => {
-    const idx = routersSource.indexOf("status: protectedProcedure.query");
+    // Locate the status procedure INSIDE the twoFactor router, not just the first
+    // one in the file (other routers may legitimately define their own status).
+    const tf = routersSource.indexOf("twoFactor: router({");
+    expect(tf).toBeGreaterThan(0);
+    const idx = routersSource.indexOf("status: protectedProcedure.query", tf);
+    expect(idx).toBeGreaterThan(tf);
     const statusBlock = routersSource.slice(idx, idx + 260);
     expect(statusBlock).toContain("enabled");
     expect(statusBlock).not.toContain("twoFactorSecret");

@@ -17,12 +17,13 @@ import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { geocodeLabelWithNominatim, normalizeGeocodeLabel, GEOCODE_BATCH_LIMIT } from "./_core/geocode";
 import { getDb } from "./db";
+import { requireClientPaymentsAccount, getStripeAccountForUser } from "./_core/stripeConnect";
 import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions, stripeAccounts } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -470,6 +471,65 @@ function clientInsertValues(userId: number, record: ExtractedClientRow): typeof 
   };
 }
 
+// ── Stripe Connect: each workspace connects its OWN Stripe account ────────────
+// The platform's STRIPE_SECRET_KEY bills SaaS subscriptions only. Client money
+// (invoice payments, booking deposits) always flows to the freelancer's own
+// connected account — see _core/stripeConnect.ts for the hard boundary.
+const stripeConnectRouter = router({
+  status: protectedProcedure.query(async ({ ctx }) => {
+    await requireDb();
+    const row = await getStripeAccountForUser(ctx.user.id);
+    return {
+      platformConfigured: Boolean(process.env.STRIPE_SECRET_KEY),
+      supportEmail: process.env.SUPPORT_EMAIL || null,
+      account: row ? {
+        id: row.stripeAccountId,
+        chargesEnabled: row.chargesEnabled,
+        payoutsEnabled: row.payoutsEnabled,
+        detailsSubmitted: row.detailsSubmitted,
+        connectedAt: row.createdAt,
+      } : null,
+    };
+  }),
+  start: protectedProcedure.mutation(async ({ ctx }) => {
+    const db = await requireDb();
+    const stripe = getStripe();
+    let row = await getStripeAccountForUser(ctx.user.id);
+    if (!row) {
+      const account = await stripe.accounts.create({
+        type: "express",
+        metadata: { workspace_user_id: String(ctx.user.id) },
+      });
+      await db.insert(stripeAccounts).values({ userId: ctx.user.id, stripeAccountId: account.id });
+      row = await getStripeAccountForUser(ctx.user.id);
+    }
+    if (!row) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not create your Stripe account record. Please try again." });
+    const origin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "https://trueaxishq.com";
+    const link = await stripe.accountLinks.create({
+      account: row.stripeAccountId,
+      refresh_url: `${origin}/integrations`,
+      return_url: `${origin}/integrations`,
+      type: "account_onboarding",
+    });
+    await db.insert(auditLogs).values({
+      userId: ctx.user.id, action: "stripe.connect.started", entityType: "integration", entityId: row.id,
+      details: JSON.stringify({ stripeAccountId: row.stripeAccountId }),
+    });
+    return { url: link.url };
+  }),
+  disconnect: protectedProcedure.mutation(async ({ ctx }) => {
+    const db = await requireDb();
+    const row = await getStripeAccountForUser(ctx.user.id);
+    if (!row) return { success: true };
+    await db.delete(stripeAccounts).where(eq(stripeAccounts.userId, ctx.user.id));
+    await db.insert(auditLogs).values({
+      userId: ctx.user.id, action: "stripe.connect.disconnected", entityType: "integration", entityId: row.id,
+      details: JSON.stringify({ stripeAccountId: row.stripeAccountId }),
+    });
+    return { success: true };
+  }),
+});
+
 export const appRouter = router({
   system: systemRouter,
 
@@ -537,6 +597,7 @@ export const appRouter = router({
         return { enabled: false } as const;
       }),
   }),
+  stripeConnect: stripeConnectRouter,
 
   // ── Active sessions (device management) ─────────────────────────────────────
   sessions: router({
@@ -1922,6 +1983,7 @@ export const appRouter = router({
         const amountCents = Math.round(parseFloat(String(inv.amount)) * 100);
         if (amountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
 
+                const stripeAccountId = await requireClientPaymentsAccount(ctx.user.id); // client money -> freelancer's own connected Stripe account
         const session = await stripe.checkout.sessions.create({
           mode: "payment",
           payment_method_types: ["card"],
@@ -1950,7 +2012,7 @@ export const appRouter = router({
           success_url: `${origin}/dashboard?panel=invoices&payment_returned=1`,
           cancel_url: `${origin}/dashboard?panel=invoices`,
           allow_promotion_codes: true,
-        });
+        }, { stripeAccount: stripeAccountId });
 
         return { url: session.url! };
       }),
@@ -2055,6 +2117,7 @@ export const appRouter = router({
         if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice already paid" });
         const amountCents = Math.round(parseFloat(String(inv.amount)) * 100);
         if (amountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
+                const stripeAccountId = await requireClientPaymentsAccount(inv.userId); // client money -> freelancer's own connected Stripe account
         const stripe = getStripe();
         const session = await stripe.checkout.sessions.create({
           payment_method_types: ["card"],
@@ -2070,7 +2133,7 @@ export const appRouter = router({
           success_url: `${returnOrigin}/pay/${input.token}?payment_returned=1`,
           cancel_url: `${returnOrigin}/pay/${input.token}`,
           metadata: { invoiceId: String(inv.id), payLinkToken: input.token },
-        });
+        }, { stripeAccount: stripeAccountId });
         return { checkoutUrl: session.url };
       }),
   }),
@@ -3533,6 +3596,7 @@ Only include actions when you have actually generated a complete draft. For gene
         if (selectedService.depositAmountCents && newBookingId) {
           try {
             const stripe = getStripe();
+            const stripeAccountId = await requireClientPaymentsAccount(hostId); // client money -> freelancer's own connected Stripe account
             const session = await stripe.checkout.sessions.create({
               payment_method_types: ["card"],
               line_items: [{
@@ -3551,7 +3615,7 @@ Only include actions when you have actually generated a complete draft. For gene
                 deposit_amount_cents: String(selectedService.depositAmountCents),
                 client_name: input.clientName,
               },
-            });
+            }, { stripeAccount: stripeAccountId });
             depositCheckoutUrl = session.url ?? null;
           } catch (error) {
             console.error("[Booking deposit] Stripe checkout unavailable:", error instanceof Error ? error.message : error);
@@ -4087,6 +4151,7 @@ Only include actions when you have actually generated a complete draft. For gene
                 if (inv.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "This invoice is already paid." });
         const portalAmountCents = Math.round(parseFloat(String(inv.amount)) * 100);
         if (portalAmountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
+                const stripeAccountId = await requireClientPaymentsAccount(portalRecord.userId); // client money -> freelancer's own connected Stripe account
         const stripe = getStripe();
         const session = await stripe.checkout.sessions.create({
           payment_method_types: ["card"],
@@ -4108,7 +4173,7 @@ Only include actions when you have actually generated a complete draft. For gene
           success_url: `${returnOrigin}/portal/${input.token}?payment_returned=1`,
           cancel_url: `${returnOrigin}/portal/${input.token}`,
           allow_promotion_codes: true,
-        });
+        }, { stripeAccount: stripeAccountId });
                 return { checkoutUrl: session.url };
       }),
 
