@@ -7,6 +7,10 @@ import { CheckCircle2, Clipboard, Code2, ExternalLink, Eye, EyeOff, Loader2, Plu
 import { WORKFLOW_WEBHOOK_EVENTS, type WorkflowWebhookEvent } from "@shared/workflowWebhooks";
 
 const eventLabel: Record<WorkflowWebhookEvent, string> = {
+  "app.booking.created": "New booking created",
+  "app.client.created": "New client added",
+  "app.invoice.paid": "Invoice paid",
+  "app.proposal.signed": "Proposal signed",
   "job.status_changed": "Job status changed",
   "service_visit.scheduled": "Service visit scheduled",
   "service_visit.status_changed": "Service visit status changed",
@@ -15,6 +19,10 @@ const eventLabel: Record<WorkflowWebhookEvent, string> = {
 const blankForm = () => ({ name: "", endpointUrl: "", events: [] as WorkflowWebhookEvent[] });
 
 const webhookDataExamples: Record<WorkflowWebhookEvent, Record<string, unknown>> = {
+  "app.booking.created": { bookingId: 1420, service: "Interior painting", date: "2026-09-24", preferredTime: "morning" },
+  "app.client.created": { clientId: 311, name: "Jordan Reyes", email: null },
+  "app.invoice.paid": { invoiceId: 8806, invoiceNumber: "INV-0087", amount: 1250 },
+  "app.proposal.signed": { proposalId: 204, signatureName: "Jordan Reyes", total: 4312.5 },
   "job.status_changed": { jobId: 42, previousStatus: "approved", status: "in_progress" },
   "service_visit.scheduled": { visitId: 19, jobId: 42, teamMemberId: 7, title: "Onsite installation", scheduledStart: "2026-08-26T15:00:00.000Z", scheduledEnd: "2026-08-26T16:00:00.000Z" },
   "service_visit.status_changed": { visitId: 19, jobId: 42, previousStatus: "scheduled", status: "en_route" },

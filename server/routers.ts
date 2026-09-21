@@ -1376,6 +1376,7 @@ export const appRouter = router({
           avatarInitials: initials,
           defaultRate: input.defaultRate || null,
         });
+        await deliverWorkflowWebhookEvent(db, ctx.user.id, "app.client.created", { clientId: Number((result as any).insertId), name: input.name, email: input.email ?? null });
         return { id: Number((result as any).insertId), success: true };
       }),
 
@@ -1834,6 +1835,7 @@ export const appRouter = router({
         await db.update(invoices)
           .set({ status: "paid", paidAt, updatedAt: new Date() })
           .where(and(eq(invoices.id, input.id), eq(invoices.userId, ctx.user.id)));
+        await deliverWorkflowWebhookEvent(db, ctx.user.id, "app.invoice.paid", { invoiceId: inv.id, invoiceNumber: inv.invoiceNumber, amount: Number(inv.amount) });
         // Send invoice paid confirmation email to client
         if (inv.clientEmail) {
           const [user] = await db.select({ name: users.name, businessName: users.businessName })
@@ -2192,6 +2194,7 @@ export const appRouter = router({
           isPublicBooking: false,
           slotKey: `${ctx.user.id}|${input.date}|${input.time}`,
         });
+        await deliverWorkflowWebhookEvent(db, ctx.user.id, "app.booking.created", { bookingId: Number((result as any).insertId), clientName: input.clientName, service: input.service ?? null, date: input.date, time: input.time });
         // Web push is best-effort: never blocks or fails the booking.
         void sendPushToUser(ctx.user.id, "New booking created", `${input.clientName} — ${input.service ?? "booking"} on ${input.date} at ${input.time}`, "/bookings").catch(() => {});
         return { id: Number((result as any).insertId), success: true };
@@ -3457,6 +3460,7 @@ Only include actions when you have actually generated a complete draft. For gene
               depositStatus: selectedService.depositAmountCents ? "required" : null,
             });
             newBookingId = Number((bookingResult as any).insertId);
+            await deliverWorkflowWebhookEvent(db, hostId, "app.booking.created", { bookingId: newBookingId, service: input.service, date: input.preferredDate, preferredTime: input.preferredTime });
             // Notify the business owner's subscribed devices (best-effort).
             void sendPushToUser(hostId, "New booking from your website", `${input.clientName} — ${input.service} on ${input.preferredDate}`, "/bookings").catch(() => {});
 
@@ -7146,6 +7150,8 @@ Only include actions when you have actually generated a complete draft. For gene
         if (!signatureClaim || signatureClaim.affectedRows !== 1) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "This proposal has already been signed." });
         }
+
+        await deliverWorkflowWebhookEvent(db, row.userId, "app.proposal.signed", { proposalId: row.id, signatureName: input.signatureName, total: Number(selectedTotal ?? row.total ?? 0) });
 
         // ── Quote-to-cash continuation ──────────────────────────────────────
         // The signature claim owns this proposal: create the linked invoice once

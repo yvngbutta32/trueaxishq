@@ -6,9 +6,9 @@ import { WORKFLOW_WEBHOOK_EVENTS, parseWebhookEvents } from "../shared/workflowW
 
 describe("workflow webhook primitives", () => {
   it("parses only supported unique events and signs the exact timestamp-payload pair", () => {
-    expect(parseWebhookEvents(JSON.stringify(["job.status_changed", "job.status_changed", "unknown"]))).toEqual(["job.status_changed"]);
+    expect(parseWebhookEvents(JSON.stringify(["job.status_changed", "job.status_changed", "app.invoice.paid", "unknown"]))).toEqual(["job.status_changed", "app.invoice.paid"]);
     expect(parseWebhookEvents("not-json")).toEqual([]);
-    expect(WORKFLOW_WEBHOOK_EVENTS).toEqual(["job.status_changed", "service_visit.scheduled", "service_visit.status_changed"]);
+    expect(WORKFLOW_WEBHOOK_EVENTS).toEqual(["app.booking.created", "app.client.created", "app.invoice.paid", "app.proposal.signed", "job.status_changed", "service_visit.scheduled", "service_visit.status_changed"]);
     expect(createWebhookSignature("secret", "1710000000", '{"id":"event"}')).toBe("625a515f0161afd9dc78d28c426c55566c16b761abf1ea4b557ae152e9eae649");
   });
 
