@@ -5,6 +5,7 @@
  */
 import { useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { FeatureLock } from "@/components/FeatureLock";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PanelTabs } from "@/components/PanelTabs";
@@ -252,12 +253,15 @@ export default function ReportsPanel() {
     { id: "saved", label: "My Reports", icon: Table2, content: <MyReportsTab onEdit={report => { setEditing(report); setTabSeq(seq => seq + 1); }} /> },
   ], [editing]);
   return (
+    <FeatureLock feature="customReports" label="Custom reports">
+    
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-extrabold text-[#1A1A1A]">Custom Reports</h2>
-        <p className="text-sm text-[#6B6B6B]">Build the exact view you need — dataset, measure, grouping, filters — then save it forever and export CSV. Included in every plan.</p>
+        <p className="text-sm text-[#6B6B6B]">Build the exact view you need — dataset, measure, grouping, filters — then save it forever and export CSV. Included with Pro and Agency plans.</p>
       </div>
       <PanelTabs key={tabSeq} defaultTab="builder" tabs={tabs} />
     </div>
+    </FeatureLock>
   );
 }

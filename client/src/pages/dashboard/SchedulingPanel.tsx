@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { FeatureLock } from "@/components/FeatureLock";
 import { useAuth } from "@/_core/hooks/useAuth";
 import AIAssistant from "@/components/AIAssistant";
 import { HealthMonitor } from "@/components/HealthMonitor";
@@ -102,6 +103,7 @@ function SchedulingPanel() {
         </Button>
       </div>
 
+      <FeatureLock feature="capacityForecast" label="Capacity forecasting">
       <div className="bg-white rounded-xl border border-[#DDDBD7] p-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
@@ -147,6 +149,7 @@ function SchedulingPanel() {
           </div>
         )}
       </div>
+      </FeatureLock>
 
       <div className="bg-white rounded-xl border border-[#DDDBD7] overflow-hidden">
         <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-[#F7F6F3] text-xs font-semibold text-[#6B6B6B] uppercase tracking-wide">

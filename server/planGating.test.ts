@@ -61,5 +61,14 @@ describe("plan-tier feature gating (Pro operating layer)", () => {
     expect(source("../client/src/pages/WorkflowWebhooks.tsx")).toContain('FeatureLock feature="webhooks"');
     expect(source("../client/src/pages/dashboard/SubcontractorsPanel.tsx")).toContain('FeatureLock feature="subcontractors"');
     expect(source("../client/src/pages/IntegrationHub.tsx")).toContain("terminal.status.useQuery");
+    // remaining surfaces added Oct 5 2026: every gated server feature now has an honest client affordance
+    expect(source("../client/src/pages/dashboard/ReportsPanel.tsx")).toContain('FeatureLock feature="customReports"');
+    expect(source("../client/src/pages/dashboard/SettingsPanel.tsx")).toContain('FeatureLock feature="restApi"');
+    expect(source("../client/src/pages/dashboard/SchedulingPanel.tsx")).toContain('FeatureLock feature="capacityForecast"');
+    expect(source("../client/src/pages/DispatchBoard.tsx")).toContain('FeatureLock feature="routeOptimizer"');
+    expect(source("../client/src/pages/DispatchBoard.tsx")).toContain('useFeatureAllowed("liveTracking")');
+    expect(source("../client/src/pages/Proposals.tsx")).toContain('useFeatureAllowed("priceBook")');
+    // no stale "included in every plan" claim on a Pro-gated surface
+    expect(source("../client/src/pages/dashboard/ReportsPanel.tsx")).not.toContain("Included in every plan");
   });
 });

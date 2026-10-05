@@ -24,3 +24,11 @@ export function FeatureLock({ feature, label, children }: { feature: string; lab
     </div>
   );
 }
+
+export function useFeatureAllowed(feature: string) {
+  const { features, loading } = useEntitlements();
+  if (loading) return null;
+  return features ? Boolean((features as Record<string, boolean>)[feature]) : false;
+}
+
+export const FEATURE_LOCK_TOAST = "That's a Pro-plan feature. Upgrade in Settings → Billing to unlock it.";

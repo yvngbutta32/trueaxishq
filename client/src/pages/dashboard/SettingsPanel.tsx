@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { FeatureLock } from "@/components/FeatureLock";
 import { useAuth } from "@/_core/hooks/useAuth";
 import AIAssistant from "@/components/AIAssistant";
 import { HealthMonitor } from "@/components/HealthMonitor";
@@ -521,6 +522,8 @@ function ApiKeysSection() {
     onError: (e) => toast.error(e.message),
   });
   return (
+      <FeatureLock feature="restApi" label="REST API keys">
+      
     <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
       <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2"><Zap className="w-4 h-4 text-[#D4922A]" />API Keys</h3>
       <p className="text-xs text-[#6B6B6B]">Use API keys to integrate TrueAxis HQ with Zapier, Make, or your own tools.</p>
@@ -557,6 +560,7 @@ function ApiKeysSection() {
       </div>
       <ApiReference />
     </div>
+  </FeatureLock>
   );
 }
 
