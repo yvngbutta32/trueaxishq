@@ -380,8 +380,8 @@ export default function Admin() {
               <h3 className="text-base font-bold text-[#F5EFE3] mb-5">Plan Distribution</h3>
               <div className="space-y-4">
                 {[
-                  { id: "agency", label: "Agency ($199/mo)", color: "bg-purple-500" },
-                  { id: "pro", label: "Pro ($99/mo)", color: "bg-[#D4922A]" },
+                  { id: "agency", label: "Agency ($299/mo)", color: "bg-purple-500" },
+                  { id: "pro", label: "Pro ($129/mo)", color: "bg-[#D4922A]" },
                   { id: "starter", label: "Starter ($49/mo)", color: "bg-blue-500" },
                   { id: "free", label: "Free", color: "bg-gray-300" },
                 ].map(plan => {

@@ -21,6 +21,7 @@ import {
   jobRunGuards,
 } from "../drizzle/schema";
 import { sendSms, normalizePhoneToE164 } from "./_core/sms";
+import { sendMeteredSms } from "./_core/smsMeter";
 import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, bookingReminderEmail, postSessionCheckInEmail, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { getRecurringInvoiceDeliveryOutcome } from "./recurringInvoiceDeliveryOutcome";
 import { processDueAutomations } from "./automationEngine";
@@ -537,10 +538,10 @@ async function runBookingReminders() {
           // SMS reminder — only for clients with an explicit opt-in on record (TCPA).
           const smsTarget = normalizePhoneToE164(booking.clientRecordPhone || booking.clientPhone);
           if (booking.smsOptIn === 1 && smsTarget) {
-            const smsResult = await sendSms({
+            const smsResult = await sendMeteredSms(db, booking.userId, {
               to: smsTarget,
               body: `${freelancerName}: Reminder — ${booking.service || "your session"} is tomorrow, ${booking.date} at ${booking.time}. Reply STOP to opt out.`,
-            });
+            }, "reminder");
             console.log(`[Jobs] Booking reminder SMS ${smsResult.success ? "sent" : `failed (${smsResult.error})`} for booking ${booking.id}`);
           }
         } catch (err) {
@@ -621,10 +622,10 @@ async function runPostSessionCheckIns() {
           // SMS check-in — only for clients with an explicit opt-in on record (TCPA).
           const smsTarget = normalizePhoneToE164(booking.clientRecordPhone || booking.clientPhone);
           if (booking.smsOptIn === 1 && smsTarget) {
-            const smsResult = await sendSms({
+            const smsResult = await sendMeteredSms(db, booking.userId, {
               to: smsTarget,
               body: `${freelancerName}: How did your ${booking.service || "recent session"} go? Reply with any feedback${booking.bookingUsername ? ` or book again: ${bookingUrl}` : ""}. Reply STOP to opt out.`,
-            });
+            }, "checkin");
             console.log(`[Jobs] Check-in SMS ${smsResult.success ? "sent" : `failed (${smsResult.error})`} for booking ${booking.id}`);
           }
         } catch (err) {

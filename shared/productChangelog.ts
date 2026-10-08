@@ -18,6 +18,13 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-08",
+    title: "Bundled SMS with a fair-use meter — no surprise bills",
+    tag: "Money",
+    description: "Every plan now bundles monthly client texting into the subscription: 50 SMS/mo on Free, 500 on Starter, 2,000 on Pro, 5,000 on Agency — covering booking confirmations, reminders, check-ins, and subcontractor invites. The Integration Hub SMS card shows a live usage meter, and once the allowance is used up we stop sending with an honest upgrade message instead of billing anyone extra. Unlike Jobber and Housecall Pro, which hold two-way texting behind their $249–$329 tiers, texting is included from the first paid plan.",
+  },
+
+  {
+    date: "2026-10-08",
     title: "Included business lines — one click, no Twilio account",
     tag: "Money",
     description: "Paid plans can now add a managed business line from Integration Hub with one click: we provision a local number on the operator's Twilio account and wire it to your voice settings automatically. You never open a Twilio account, never enter credentials, and never pay another website — minutes are bundled into your plan under a fair-use cap (300/mo Starter, 1,000/mo Pro, 2,500/mo Agency), with a live usage meter on the card. Pointing your existing Twilio number at us (bring-your-own) still works and is never capped, since those minutes bill to your own account.",

@@ -64,6 +64,13 @@ const LaunchReadiness = lazy(() => import("./LaunchReadiness"));
 const OutreachPanel = lazy(() => import("./OutreachPanel"));
 const DealsPanel = lazy(() => import("./DealsPanel"));
 const InsightsPanel = lazy(() => import("./InsightsPanel"));
+// On-demand dashboard panels — lazy so the Dashboard route chunk stays lean.
+const SettingsPanel = lazy(() => import("./dashboard/SettingsPanel").then(m => ({ default: m.SettingsPanel })));
+const InvoicesPanel = lazy(() => import("./dashboard/InvoicesPanel").then(m => ({ default: m.InvoicesPanel })));
+const ContractsPanel = lazy(() => import("./dashboard/ContractsPanel").then(m => ({ default: m.ContractsPanel })));
+const TestimonialsPanel = lazy(() => import("./dashboard/TestimonialsPanel").then(m => ({ default: m.TestimonialsPanel })));
+const SmartInboxPanel = lazy(() => import("./dashboard/SmartInboxPanel").then(m => ({ default: m.SmartInboxPanel })));
+const AnalyticsPanel = lazy(() => import("./dashboard/AnalyticsPanel").then(m => ({ default: m.AnalyticsPanel })));
 
 
 import { Sidebar } from "./dashboard/Sidebar";
@@ -71,13 +78,7 @@ import { ChangelogModal } from "./dashboard/ChangelogModal";
 import { OverviewPanel } from "./dashboard/OverviewPanel";
 import { ClientsPanel } from "./dashboard/ClientsPanel";
 import { SchedulingPanel } from "./dashboard/SchedulingPanel";
-import { InvoicesPanel } from "./dashboard/InvoicesPanel";
 import { FollowUpsPanel } from "./dashboard/FollowUpsPanel";
-import { AnalyticsPanel } from "./dashboard/AnalyticsPanel";
-import { SettingsPanel } from "./dashboard/SettingsPanel";
-import { ContractsPanel } from "./dashboard/ContractsPanel";
-import { SmartInboxPanel } from "./dashboard/SmartInboxPanel";
-import { TestimonialsPanel } from "./dashboard/TestimonialsPanel";
 import { MobileQuickStats, MobileBottomNav } from "./dashboard/MobileNav";
 import { type ActivePanel, type ConfirmState, defaultConfirm, LEGACY_PANEL_REDIRECTS, Skeleton, Modal } from "./dashboard/shared";
 

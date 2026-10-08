@@ -53,7 +53,9 @@ describe("SMS booking confirmation consent boundary", () => {
 
   it("sends the confirmation SMS only after an explicit booking-form opt-in", () => {
     expect(bookingSubmit).toContain("if (smsTo && input.smsOptIn === true)");
-    expect(bookingSubmit).toContain("sendSms({");
+    // Metered since Oct 2026: the host's allowance is charged for the confirmation
+    // text (the opt-in guard still gates the send).
+    expect(bookingSubmit).toContain("sendMeteredSms(db, hostId, {");
   });
 
   it("persists the opt-in on the client record and never silently revokes it", () => {

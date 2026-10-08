@@ -4,12 +4,14 @@
  * Shared by the billing server (Stripe inline price_data) and the public
  * pricing page, so marketing can never drift from what we charge.
  *
- * Pricing strategy (owner-set, Sept 2026): affordable entry, but never undersold.
+ * Pricing strategy (owner-set, Oct 2026): maximize revenue while staying fair.
  * - Starter $49/mo: priced at the Jobber/HousecallPro entry band, but includes
- *   flagship features they gate higher (live tracking, client portal, CSV export).
- * - Pro $99/mo: the sweet spot — at HCP's mid tier with our full feature set.
- * - Agency $299/mo: white-label + sub-accounts is enterprise-grade value;
- *   Buildertrend charges $399+ for less. We don't compete on being the cheapest.
+ *   flagship features they gate higher (live tracking, client portal, CSV export,
+ *   bundled SMS + voice minutes).
+ * - Pro $129/mo: HCP Essentials' price point with their MAX-tier feature set —
+ *   2-way texting and AI voice cost $249-348+ elsewhere; we bundle both.
+ * - Agency $299/mo: matches HCP MAX with white-label + sub-accounts on top;
+ *   Buildertrend charges $399+ for less.
  * - Annual = 20% discount, applied consistently across all plans.
  * Prices are in cents. Stripe uses inline price_data (no dashboard setup).
  */
@@ -39,6 +41,7 @@ export const PLANS: Record<PlanId, Plan> = {
       "Smart scheduling (basic)",
       "Automated invoicing",
       "Email follow-ups (5/month)",
+      "500 bundled SMS/month",
       "Analytics dashboard",
       "1 booking page",
       "Live 'on my way' client tracking",
@@ -52,8 +55,8 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "pro",
     name: "Pro",
     description: "The full operation: dispatch, routing, subs, and Pulse AI.",
-    monthlyPrice: 9900,   // $99/mo
-    annualPrice: 7920,    // $79.20/mo billed annually ($950.40/yr)
+    monthlyPrice: 12900,  // $129/mo — HCP Essentials price point with their MAX-tier feature set
+    annualPrice: 10320,   // $103.20/mo billed annually ($1,238.40/yr)
     features: [
       "Unlimited active clients",
       "AI client intake + lead scoring",
@@ -65,7 +68,7 @@ export const PLANS: Record<PlanId, Plan> = {
       "Client Pulse AI™",
       "Full analytics + insights",
       "Custom booking page + branding",
-      "SMS notifications",
+      "2,000 bundled SMS/month",
       "Priority support",
       "Public REST API access",
     ],
@@ -75,8 +78,8 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "agency",
     name: "Agency",
     description: "Multi-crew and multi-location operators who need their own brand on everything.",
-    monthlyPrice: 29900,  // $299/mo
-    annualPrice: 23920,  // $239.20/mo billed annually ($2,870.40/yr)
+    monthlyPrice: 29900,  // $299/mo — matches HCP MAX with white-label + sub-accounts on top
+    annualPrice: 23920,   // $239.20/mo billed annually ($2,870.40/yr)
     features: [
       "Everything in Pro",
       "Up to 10 sub-accounts",
@@ -88,6 +91,7 @@ export const PLANS: Record<PlanId, Plan> = {
       "SLA support",
       "Custom integrations",
       "Revenue sharing tools",
+      "5,000 bundled SMS/month",
     ],
     highlighted: false,
   },
@@ -110,6 +114,26 @@ export const VOICE_LINE_MINUTES: Record<string, number> = {
 export function voiceLineMinutesFor(planId: string | null | undefined): number {
   const key = (planId ?? "free").trim().toLowerCase();
   return VOICE_LINE_MINUTES[key] ?? 0;
+}
+
+// ── Bundled SMS (platform-sent client notifications) ────────────────────
+// Every SMS the platform delivers on the operator's Twilio account costs
+// real money (~$0.008 base + ~$0.004 carrier surcharge per segment in the
+// US). Like voice minutes, SMS is bundled into the plan under a fair-use
+// cap. SMS and voice are SEPARATE buckets by design — a voice minute costs
+// ~10x one SMS segment, so pooling them invites margin collapse.
+// Free plan: a small transactional allowance (one-way notifications stay
+// working; volume texting is a paid feature).
+export const SMS_INCLUDED_MONTHLY: Record<string, number> = {
+  free: 50,
+  starter: 500,
+  pro: 2000,
+  agency: 5000,
+};
+
+export function smsIncludedFor(planId: string | null | undefined): number {
+  const key = (planId ?? "free").trim().toLowerCase();
+  return SMS_INCLUDED_MONTHLY[key] ?? SMS_INCLUDED_MONTHLY.free;
 }
 
 // ── Plan-gated features (server-enforced, client-reflected) ────────────

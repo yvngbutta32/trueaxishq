@@ -1654,6 +1654,16 @@ export const voiceSettings = mysqlTable("voiceSettings", {
   updatedAt: timestamp("updatedAt").onUpdateNow().defaultNow().notNull(),
 });
 
+export const smsSends = mysqlTable("smsSends", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  kind: varchar("kind", { length: 24 }).notNull().default("other"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index("smsSends_userId_idx").on(table.userId),
+  createdIdx: index("smsSends_createdAt_idx").on(table.createdAt),
+}));
+
 export const voiceCalls = mysqlTable("voiceCalls", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),

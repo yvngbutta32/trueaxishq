@@ -3,7 +3,7 @@
  * "affordable but don't sell our systems short — good profit while competing."
  * Guards the business model, not just the code:
  * - Entry tier stays affordable (at the Jobber/HCP entry band, <= $59/mo)
- * - Top tier is never undersold (white-label + sub-accounts >= $299, > 2.5x entry)
+ * - Top tier is never undersold (white-label + sub-accounts >= $249, > 2.5x entry)
  * - Annual discount is consistently 20% on every plan
  * - One single source of truth for prices (billing + public page share shared/plans.ts;
  *   no hardcoded dollar figures on the pricing page)

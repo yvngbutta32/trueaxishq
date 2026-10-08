@@ -38,6 +38,7 @@ import { sendPushToUser, getVapidKeys } from "./_core/push";
 import { PLANS, PLAN_LIST, type PlanId } from "./products";
 import { withTimeout } from "./utils";
 import { sendSms, normalizePhoneToE164, getSmsDeliveryStatus, wasSmsAcceptedByConfiguredTwilio } from "./_core/sms";
+import { sendMeteredSms, getSmsAllowanceOverview } from "./_core/smsMeter";
 import { allowSmsLoginRequest, generateSmsLoginCode, hashSmsLoginCode, verifySmsLoginCodeHash, SMS_LOGIN_CODE_TTL_MS, SMS_LOGIN_MAX_ATTEMPTS } from "./_core/smsLogin";
 import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail, getEmailDeliveryStatus, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { createPublicUploadToken, hashPublicUploadToken, isOwnerPhotoKeyForType, PUBLIC_UPLOAD_MAX_FILES, PUBLIC_UPLOAD_TTL_MS } from "./photoUploadSecurity";
@@ -3757,10 +3758,10 @@ Only include actions when you have actually generated a complete draft. For gene
         // client record). Degrades to console mode when Twilio is unset. ──────────
         const smsTo = normalizePhoneToE164(input.clientPhone);
         if (smsTo && input.smsOptIn === true) {
-          sendSms({
+          sendMeteredSms(db, hostId, {
             to: smsTo,
             body: `${freelancerName}: ${input.service} confirmed for ${input.preferredDate} at ${input.preferredTime}. ${rescheduleUrl ? `Need a change? ${rescheduleUrl}` : "Reply to this message if anything changes."}`,
-          }).catch(() => {});
+          }, "booking").catch(() => {});
         }
         // Send welcome email to new clients
         if (isNewClient) {
@@ -5493,7 +5494,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const [owner] = await db.select({ businessName: users.businessName }).from(users).where(eq(users.id, ctx.user.id)).limit(1);
         let smsDelivered = false;
         if (getSmsDeliveryStatus().configured) {
-          const smsResult = await sendSms({
+          const smsResult = await sendMeteredSms(db, ctx.user.id, {
             to: sub.phone,
             body: `${owner?.businessName || "A TrueAxis HQ business"} invited you to a job. Open your job link: ${inviteUrl}. It expires in 14 days.`,
           });
@@ -5555,7 +5556,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const inviteUrl = `/sub/${token}`;
         let smsDelivered = false;
         if (sub && getSmsDeliveryStatus().configured) {
-          const smsResult = await sendSms({
+          const smsResult = await sendMeteredSms(db, ctx.user.id, {
             to: sub.phone,
             body: `${owner?.businessName || "A TrueAxis HQ business"} invited you to a job. Open your job link: ${inviteUrl}. It expires in 14 days.`,
           });
@@ -9698,12 +9699,15 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
   // ── SMS (Twilio, env-gated) ──────────────────────────────────────────────────
   sms: router({
     /** Owner-facing delivery status: "console" (not configured) vs "twilio" (live). */
-    status: protectedProcedure.query(async () => {
+    status: protectedProcedure.query(async ({ ctx }) => {
       const { configured } = getSmsDeliveryStatus();
+      const db = await requireDb();
+      const overview = await getSmsAllowanceOverview(db, ctx.user.id, ctx.user.planId ?? null);
       return {
         configured,
         mode: configured ? ("twilio" as const) : ("console" as const),
         from: configured ? ENV.twilioFromNumber : null,
+        ...overview,
       };
     }),
 
@@ -9718,10 +9722,10 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         if (!to) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Enter a valid phone number, e.g. +1 512 555 0100." });
         }
-        const result = await sendSms({
+        const result = await sendMeteredSms(db, ctx.user.id, {
           to,
           body: `TrueAxis HQ test message — SMS is working for ${to}.`,
-        });
+        }, "test");
         if (!result.success) {
           throw new TRPCError({ code: "BAD_REQUEST", message: result.error ?? "Twilio rejected the message." });
         }
