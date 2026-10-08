@@ -7,6 +7,7 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
 
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useLocation } from "wouter";
+import { Reveal } from "@/components/Reveal";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import {
@@ -635,6 +636,7 @@ function StatsBar() {
   return (
     <section className="py-12" style={{ background: "#F2F0EC" }}>
       <div className="container">
+        <Reveal cascade>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl overflow-hidden" style={{ background: "rgba(232,160,32,0.08)" }}>
           {stats.map((s, i) => (
             <div key={i} className="flex flex-col items-center justify-center py-10 px-6 text-center" style={{ background: "#F7F6F3" }}>
@@ -646,6 +648,7 @@ function StatsBar() {
             </div>
           ))}
         </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -665,6 +668,7 @@ function FeaturesSection() {
   return (
     <section id="features" className="py-16" style={{ background: "#F7F6F3" }}>
       <div className="container">
+        <Reveal>
         <div className="text-center mb-10">
           <div className="section-label mb-3">Platform Features</div>
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
@@ -674,7 +678,9 @@ function FeaturesSection() {
             TrueAxis HQ replaces your scheduling app, invoicing software, CRM, and email tool — in one platform.
           </p>
         </div>
+        </Reveal>
 
+        <Reveal cascade>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {features.map((f, i) => (
             <div
@@ -708,6 +714,7 @@ function FeaturesSection() {
             </div>
           ))}
         </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -891,6 +898,7 @@ function HowItWorksSection() {
   return (
     <section id="how-it-works" className="py-20" style={{ background: "#F2F0EC" }}>
       <div className="container">
+        <Reveal>
         <div className="text-center mb-12">
           <div className="section-label mb-3">Product Demo</div>
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
@@ -900,7 +908,9 @@ function HowItWorksSection() {
             One platform. Four core systems. Zero overhead.
           </p>
         </div>
+        </Reveal>
 
+        <Reveal cascade>
         <div className="grid lg:grid-cols-[1fr_420px] gap-10 items-start">
           {/* Left — tab list + copy */}
           <div>
@@ -978,6 +988,7 @@ function HowItWorksSection() {
             </div>
           </div>
         </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -995,6 +1006,7 @@ function ClientPulseShowcase() {
   return (
     <section className="py-16" style={{ background: "#F2F0EC" }}>
       <div className="container">
+        <Reveal>
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left — copy */}
           <div>
@@ -1074,6 +1086,7 @@ function ClientPulseShowcase() {
             </div>
           </div>
         </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -1089,13 +1102,16 @@ function ProductPrinciplesSection() {
   return (
     <section className="py-16" style={{ background: "#F7F6F3" }}>
       <div className="container">
+        <Reveal>
         <div className="text-center mb-8">
           <div className="section-label mb-3">A clearer way to operate</div>
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
             One source of truth for client work.
           </h2>
         </div>
+        </Reveal>
 
+        <Reveal cascade>
         <div className="grid md:grid-cols-3 gap-6">
           {principles.map((item, i) => {
             const Icon = item.icon;
@@ -1109,6 +1125,7 @@ function ProductPrinciplesSection() {
             </div>
           )})}
         </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -1134,6 +1151,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
 
   return (
     <section className="py-16" style={{ background: "#1B2D4F" }}>
+        <Reveal>
       <div className="container text-center max-w-2xl mx-auto">
         <div className="section-label mb-4">Start Today</div>
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
@@ -1169,6 +1187,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
           We record your interest and keep your details in the TrueAxis HQ workspace.
         </p>
       </div>
+        </Reveal>
     </section>
   );
 }
@@ -1188,11 +1207,13 @@ function FAQSection() {
   return (
     <section className="py-20 px-6" style={{ background: "#F2F0EC" }}>
       <div className="max-w-3xl mx-auto">
+        <Reveal>
         <div className="text-center mb-12">
           <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ background: "rgba(232,160,32,0.12)", color: "#D4922A" }}>FAQ</span>
           <h2 className="text-3xl md:text-4xl font-extrabold mb-3" style={{ color: "#1A1A1A", letterSpacing: "-0.02em" }}>Frequently Asked Questions</h2>
           <p className="text-[#3D3D3D] text-base">Everything you need to know before getting started.</p>
         </div>
+        </Reveal>
         <div className="space-y-3">
           {HOME_FAQS.map((faq, i) => (
             <div key={i} className="rounded-xl border overflow-hidden" style={{ borderColor: open === i ? "rgba(232,160,32,0.4)" : "rgba(221,219,215,0.80)", background: open === i ? "rgba(232,160,32,0.04)" : "#FFFFFF" }}>

@@ -291,7 +291,7 @@ export default function ClientPortal() {
   const nextStep = getClientNextStep({ unpaidInvoices, bookings, jobs: jobData?.jobs ?? [] });
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7]">
+    <div className="min-h-screen bg-[#F5F5F7] fade-in-up">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">

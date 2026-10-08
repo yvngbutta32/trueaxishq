@@ -18,6 +18,12 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-08",
+    title: "The landing page now moves as you scroll",
+    tag: "Platform",
+    description: "Design pass, part two: the public site earned the same motion language the dashboard got. Sections now rise into place the first time they enter your view instead of sitting flat — the stats strip and feature cards cascade one after another, the product demo and AI showcase arrive as composed blocks, and the booking page and client portal greet you with the same soft entrance. Each section reveals exactly once and never replays, and customers with reduced-motion enabled in their OS see everything instantly, completely still.",
+  },
+  {
+    date: "2026-10-08",
     title: "A motion system for the whole app",
     tag: "Platform",
     description: "Design pass: one easing family and three durations now govern every animation. Dashboard panels enter with the same 320ms rise every time instead of snapping in, the overview's stat cards cascade in sequence, every button that didn't already have its own motion gets consistent 120ms tactile press feedback, headings balance their line breaks, tables render tabular numerals so money columns stop jittering, and the scrollbar and text selection now carry the brand's warm neutrals and amber. All of it respects prefers-reduced-motion: customers who turn animations off in their OS get a completely still interface.",

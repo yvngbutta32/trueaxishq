@@ -270,7 +270,7 @@ export default function BookingPage() {
     });
 
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white fade-in-up">
         {/* Header */}
         <header className="bg-[#F7F6F3] border-b border-[#DDDBD7] px-4 py-3.5">
           <div className="max-w-xl mx-auto flex items-center gap-3">
@@ -423,7 +423,7 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white fade-in-up">
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* Header */}
