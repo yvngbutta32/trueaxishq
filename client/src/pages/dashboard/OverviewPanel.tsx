@@ -65,7 +65,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28" />)}
       </div>
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-6 stagger-children">
         <Skeleton className="h-64" />
         <Skeleton className="h-64" />
       </div>
@@ -137,7 +137,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger-children">
         {stats.map(s => (
           <div key={s.label} className="bg-white rounded-xl p-4 sm:p-5 border border-[#DDDBD7] card-lift group transition-all duration-200 hover:border-[#C8C5BF]" style={{ '--card-glow': s.color } as React.CSSProperties}>
             <div className="flex items-start justify-between mb-2 sm:mb-3">
@@ -213,7 +213,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       </div>
 
       {/* Charts */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-6 stagger-children">
         <div className="bg-white rounded-xl p-5 border border-[#DDDBD7]">
           <h3 className="font-bold text-[#1A1A1A] text-sm mb-4">Revenue (Last 6 Months)</h3>
           {monthlyData.length > 0 ? (
@@ -314,7 +314,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       })()}
 
       {/* Recent Activity */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-6 stagger-children">
         <div className="bg-white rounded-xl border border-[#DDDBD7] overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-[#EEECEA]">
             <h3 className="font-bold text-sm text-[#1A1A1A]">Recent Clients</h3>

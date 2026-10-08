@@ -18,6 +18,12 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-08",
+    title: "A motion system for the whole app",
+    tag: "Platform",
+    description: "Design pass: one easing family and three durations now govern every animation. Dashboard panels enter with the same 320ms rise every time instead of snapping in, the overview's stat cards cascade in sequence, every button that didn't already have its own motion gets consistent 120ms tactile press feedback, headings balance their line breaks, tables render tabular numerals so money columns stop jittering, and the scrollbar and text selection now carry the brand's warm neutrals and amber. All of it respects prefers-reduced-motion: customers who turn animations off in their OS get a completely still interface.",
+  },
+  {
+    date: "2026-10-08",
     title: "What the price card says is what you get",
     tag: "Platform",
     description: "We audited every line of every plan against the running product and fixed the drift in both directions. Starter now truly includes live 'on my way' tracking at $49 — competitors hold that until their $149+ tiers — and the card lists the 300 bundled voice minutes and 500 SMS it ships with. The Pro card now names everything $129 actually unlocks, including the price book, custom reports, outbound webhooks, and the AI voice receptionist with 1,000 bundled minutes. Agency's white-label booking pages are real: your public booking page drops our branding and carries yours. And the claims we couldn't stand behind — sub-accounts, SLA support, dedicated account managers, invented client caps — are off the cards until the day they ship.",

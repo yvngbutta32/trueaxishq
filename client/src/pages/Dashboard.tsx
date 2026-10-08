@@ -558,7 +558,7 @@ export default function Dashboard() {
         {/* Panel Content — pb-[130px] ensures content clears MobileQuickStats (~40px) + MobileBottomNav (~62px) + buffer on mobile */}
         <div className="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-x-hidden pb-[130px] md:pb-6">
           <Suspense fallback={<div className="flex min-h-48 items-center justify-center text-sm text-[#6B6B6B]"><Loader2 className="mr-2 h-5 w-5 animate-spin text-[#D4922A]" />Loading workspace…</div>}>
-            {activePanel}
+            <div key={active} className="panel-in">{activePanel}</div>
           </Suspense>
         </div>
       </main>

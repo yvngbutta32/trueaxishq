@@ -973,3 +973,68 @@
 .card-lift:hover .stat-icon-pop {
   transform: scale(1.12) rotate(-3deg);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MOTION SYSTEM (Oct 2026 design pass) — one easing family, three durations.
+     120ms — tactile feedback (press)
+     200ms — hover / color
+     320ms — entrances (panels)
+   Everything above is disabled globally by the prefers-reduced-motion block.
+═══════════════════════════════════════════════════════════════════════════════ */
+:root {
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-press: 120ms;
+  --duration-panel: 320ms;
+}
+
+/* Panel transitions — every dashboard panel enters the same way, every time. */
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.997); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.panel-in { animation: panel-in var(--duration-panel) var(--ease-out-soft) both; }
+
+/* Staggered entrances — grid children rise in sequence (first 8, rest follow). */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.stagger-children > * { animation: rise-in 0.5s var(--ease-out-soft) both; }
+.stagger-children > *:nth-child(1) { animation-delay: 20ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 110ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 140ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 170ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(n+8) { animation-delay: 230ms; }
+
+/* Tactile press — buttons that don't manage their own motion get consistent
+   physical feedback. Components that already declare a transition-* utility
+   opt out of the global so their own hover/press choreography is untouched. */
+button:not([class*="transition"]):not(:disabled),
+[role="button"]:not([class*="transition"]):not([aria-disabled="true"]) {
+  transition: transform var(--duration-press) var(--ease-in-out-soft);
+}
+button:not([class*="transition"]):not(:disabled):active,
+[role="button"]:not([class*="transition"]):not([aria-disabled="true"]):active {
+  transform: scale(0.97);
+}
+
+/* Typographic polish — balanced headings, tabular data everywhere. */
+h1, h2, h3 { text-wrap: balance; }
+table, .tnum { font-variant-numeric: tabular-nums; }
+
+/* Brand selection + refined scrollbars. */
+::selection { background: rgba(212, 146, 42, 0.22); color: inherit; }
+html { scrollbar-width: thin; scrollbar-color: var(--neutral-300) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--neutral-300);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--neutral-400); background-clip: content-box; }
