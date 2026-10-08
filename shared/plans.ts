@@ -100,7 +100,7 @@ export const PLAN_LIST = Object.values(PLANS);
 // Starter are honest, complete tools for their tier — never crippled traps.
 export const PRO_FEATURES = [
   "liveTracking", "routeOptimizer", "capacityForecast", "priceBook",
-  "customReports", "subcontractors", "restApi", "webhooks",
+  "customReports", "subcontractors", "restApi", "webhooks", "voiceAgent",
 ] as const;
 export type ProFeature = typeof PRO_FEATURES[number];
 
@@ -113,6 +113,7 @@ export const PRO_FEATURE_LABELS: Record<ProFeature, string> = {
   subcontractors: "Subcontractor workflow",
   restApi: "Public REST API keys",
   webhooks: "Outbound webhooks",
+  voiceAgent: "AI voice receptionist",
 };
 
 export function planUnlocksProFeature(planId: string | null | undefined, feature: ProFeature): boolean {

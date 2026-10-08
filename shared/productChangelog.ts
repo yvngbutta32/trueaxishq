@@ -17,6 +17,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-08",
+    title: "AI Voice Receptionist — your business line, answered",
+    tag: "Platform",
+    description: "Every market leader shipped an AI phone agent; we matched it at $0 fixed cost. A Twilio number pointed at /api/voice/answer?u=<your id> now greets callers, answers business questions, and captures voice leads straight into your pipeline — with a full voicemail fallback on every plan, and AI conversation mode on Pro. Calls are signature-verified and fail closed; transcripts and outcomes live under Integration Hub → Voice Receptionist, with a dry-run TwiML preview so you can hear exactly what callers hear before a phone ever rings.",
+  },
+  {
     date: "2026-09-19",
     title: "SMS code sign-in (magic links without the link)",
     description:

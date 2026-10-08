@@ -16,6 +16,8 @@ import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { geocodeLabelWithNominatim, normalizeGeocodeLabel, GEOCODE_BATCH_LIMIT } from "./_core/geocode";
+import { getVoiceStatus, VOICE_DEFAULT_GREETING } from "./_core/voiceAgent";
+import { renderTwiML, buildSay, buildGather, buildRecord, buildHangup } from "./_core/voiceTwiML";
 import { getDb } from "./db";
 import { requireClientPaymentsAccount, getStripeAccountForUser } from "./_core/stripeConnect";
 import { requirePlanFeature, getEntitlements } from "./_core/entitlements";
@@ -24,7 +26,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions, stripeAccounts } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions, stripeAccounts, voiceSettings, voiceCalls } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -579,7 +581,89 @@ const terminalRouter = router({
     }),
 });
 
+
+// ─── Voice receptionist (Oct 8 2026) ───────────────────────────────────────────
+// AI phone answering + voicemail fallback. Twilio webhooks live in
+// server/voiceApi.ts; this router is the owner console. Honest tiering:
+// voicemail mode is available to every plan; AI mode is Pro-gated.
+const voiceRouter = router({
+  status: protectedProcedure.query(async ({ ctx }) => {
+    const db = await requireDb();
+    const [settings] = await db.select().from(voiceSettings).where(eq(voiceSettings.userId, ctx.user.id)).limit(1);
+    const recent = await db.select({ id: voiceCalls.id }).from(voiceCalls)
+      .where(eq(voiceCalls.userId, ctx.user.id)).limit(200);
+    return {
+      ...getVoiceStatus(),
+      settings: settings
+        ? { greeting: settings.greeting, businessInfo: settings.businessInfo, agentMode: settings.agentMode, voicemailEnabled: Boolean(settings.voicemailEnabled) }
+        : { greeting: VOICE_DEFAULT_GREETING, businessInfo: "", agentMode: "voicemail", voicemailEnabled: true },
+      totalCalls: recent.length,
+    };
+  }),
+
+  updateSettings: protectedProcedure
+    .input(z.object({
+      greeting: z.string().min(10).max(500),
+      businessInfo: z.string().max(1500).default(""),
+      agentMode: z.enum(["ai", "voicemail"]).default("voicemail"),
+      voicemailEnabled: z.boolean().default(true),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDb();
+      if (input.agentMode === "ai") {
+        await requirePlanFeature(db, ctx.user.id, "voiceAgent");
+      }
+      const existing = await db.select().from(voiceSettings).where(eq(voiceSettings.userId, ctx.user.id)).limit(1);
+      const values = {
+        greeting: input.greeting.trim(),
+        businessInfo: input.businessInfo.trim(),
+        agentMode: input.agentMode,
+        voicemailEnabled: input.voicemailEnabled,
+      };
+      if (existing.length) {
+        await db.update(voiceSettings).set(values).where(eq(voiceSettings.userId, ctx.user.id));
+      } else {
+        await db.insert(voiceSettings).values({ userId: ctx.user.id, ...values });
+      }
+      await db.insert(auditLogs).values({
+        userId: ctx.user.id, action: "voice.settings.updated", entityType: "integration", entityId: ctx.user.id,
+        details: JSON.stringify({ agentMode: input.agentMode, voicemailEnabled: input.voicemailEnabled }),
+      });
+      return { saved: true };
+    }),
+
+  calls: protectedProcedure.query(async ({ ctx }) => {
+    const db = await requireDb();
+    const rows = await db.select().from(voiceCalls)
+      .where(eq(voiceCalls.userId, ctx.user.id))
+      .orderBy(desc(voiceCalls.startedAt)).limit(50);
+    return rows.map(r => ({
+      id: r.id, callSid: r.callSid, fromNumber: r.fromNumber, status: r.status, outcome: r.outcome,
+      callerName: r.callerName, serviceRequested: r.serviceRequested, preferredTime: r.preferredTime,
+      durationSeconds: r.durationSeconds, recordingUrl: r.recordingUrl, startedAt: r.startedAt.toISOString(),
+      turns: r.turns,
+      transcript: Array.isArray(r.transcriptJson) ? (r.transcriptJson as Array<{ role: string; text: string }>) : [],
+    }));
+  }),
+
+  // Dry-run: the exact TwiML a call would receive right now, without ringing a phone.
+  previewCall: protectedProcedure.query(async ({ ctx }) => {
+    const db = await requireDb();
+    const [settings] = await db.select().from(voiceSettings).where(eq(voiceSettings.userId, ctx.user.id)).limit(1);
+    const plan = (await db.select({ planId: users.planId }).from(users).where(eq(users.id, ctx.user.id)).limit(1))[0]?.planId ?? "free";
+    const greeting = settings?.greeting?.trim() || VOICE_DEFAULT_GREETING;
+    const aiMode = settings?.agentMode === "ai" && (plan === "pro" || plan === "agency") && getVoiceStatus().llmConfigured;
+    const twiml = aiMode
+      ? renderTwiML([buildGather("https://preview.invalid/api/voice/gather", greeting)])
+      : settings?.voicemailEnabled !== false
+        ? renderTwiML([buildSay(greeting), buildRecord("https://preview.invalid/api/voice/completed")])
+        : renderTwiML([buildSay(greeting), buildSay("Please call back during business hours. Goodbye."), buildHangup()]);
+    return { mode: aiMode ? "ai" : "voicemail", twiml };
+  }),
+});
+
 export const appRouter = router({
+  voice: voiceRouter,
   system: systemRouter,
 
   // ── Two-factor authentication (TOTP) ────────────────────────────────────────

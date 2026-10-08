@@ -25,7 +25,7 @@ describe("plan-tier feature gating (Pro operating layer)", () => {
   it("every gated router enforces the feature server-side — client locks are UX only", () => {
     const routers = source("./routers.ts");
     const gates = routers.split('requirePlanFeature(db, ctx.user.id,').length - 1;
-    expect(gates).toBe(31); // 28 + webhooks list/deliveries/processDue (Oct 8 2026)
+    expect(gates).toBe(32); // 28 + webhooks list/deliveries/processDue + voiceAgent (Oct 8 2026)
     for (const feature of PRO_FEATURES) {
       expect(routers).toContain(`requirePlanFeature(db, ctx.user.id, "${feature}")`);
     }

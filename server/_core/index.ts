@@ -17,6 +17,7 @@ import { startBackgroundJobs, stopBackgroundJobs } from "../backgroundJobs";
 import { invoicePdfRouter } from "../invoicePdf";
 import { verifyGoogleOAuthState } from "../googleOAuthState";
 import { publicApiRouter, trackApiRouter, subApiRouter } from "../publicApi";
+import { voiceApiRouter } from "../voiceApi";
 import { assertSessionSecretConfigured } from "../auth";
 import { recordRequest, normalizeRequestLabel } from "./metrics";
 
@@ -91,6 +92,7 @@ async function startServer() {
   app.use("/api/v1", publicApiRouter);
   app.use("/api/track", trackApiRouter);
   app.use("/api/sub", subApiRouter);
+  app.use("/api/voice", voiceApiRouter);
 
   // ── Health Check ─────────────────────────────────────────────────────────
   app.get("/api/health", async (_req, res) => {

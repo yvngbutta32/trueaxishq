@@ -1,5 +1,6 @@
 import {
   int,
+  json,
   mysqlEnum,
   mysqlTable,
   text,
@@ -1640,3 +1641,43 @@ export type InsertJobSubcontractor = typeof jobSubcontractors.$inferInsert;
 
 export type ServiceVisitTrackLink = typeof serviceVisitTrackLinks.$inferSelect;
 export type InsertServiceVisitTrackLink = typeof serviceVisitTrackLinks.$inferInsert;
+
+// ─── Voice receptionist (Oct 8 2026) ──────────────────────────────────────────
+export const voiceSettings = mysqlTable("voiceSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  greeting: varchar("greeting", { length: 500 }).notNull(),
+  businessInfo: varchar("businessInfo", { length: 1500 }).notNull().default(""),
+  agentMode: varchar("agentMode", { length: 20 }).notNull().default("voicemail"),
+  voicemailEnabled: boolean("voicemailEnabled").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").onUpdateNow().defaultNow().notNull(),
+});
+
+export const voiceCalls = mysqlTable("voiceCalls", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  callSid: varchar("callSid", { length: 64 }).notNull().unique(),
+  fromNumber: varchar("fromNumber", { length: 32 }).notNull().default(""),
+  status: varchar("status", { length: 20 }).notNull().default("ringing"),
+  outcome: varchar("outcome", { length: 20 }).notNull().default("unknown"),
+  transcriptJson: json("transcriptJson"),
+  callerName: varchar("callerName", { length: 120 }),
+  serviceRequested: varchar("serviceRequested", { length: 300 }),
+  preferredTime: varchar("preferredTime", { length: 200 }),
+  leadId: int("leadId"),
+  durationSeconds: int("durationSeconds").notNull().default(0),
+  recordingUrl: varchar("recordingUrl", { length: 500 }),
+  turns: int("turns").notNull().default(0),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  endedAt: timestamp("endedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").onUpdateNow().defaultNow().notNull(),
+}, (t) => [
+  index("voiceCalls_userId_idx").on(t.userId),
+  index("voiceCalls_startedAt_idx").on(t.startedAt),
+]);
+export type VoiceSettings = typeof voiceSettings.$inferSelect;
+export type InsertVoiceSettings = typeof voiceSettings.$inferInsert;
+export type VoiceCall = typeof voiceCalls.$inferSelect;
+export type InsertVoiceCall = typeof voiceCalls.$inferInsert;

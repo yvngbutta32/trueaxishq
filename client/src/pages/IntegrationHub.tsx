@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
+import { useFeatureAllowed } from "@/components/FeatureLock";
 import { TerminalSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Bell, CalendarDays, CheckCircle2, CreditCard, ExternalLink, Loader2, MessageSquare, PlugZap, ShieldCheck, XCircle } from "lucide-react";
+import { Bell, CalendarDays, CheckCircle2, CreditCard, ExternalLink, Loader2, MessageSquare, Phone, PlugZap, ShieldCheck, XCircle } from "lucide-react";
 
 type Provider = "google_calendar" | "outlook_calendar" | "quickbooks" | "gmail" | "outlook" | "slack" | "twilio" | "zapier" | "stripe";
 type Category = "calendar" | "accounting" | "communications" | "automation" | "payments";
@@ -76,6 +77,64 @@ function StripeConnectCard() {
     </div>
   </section>
 </section>;
+}
+
+
+function VoiceReceptionistCard() {
+  const status = trpc.voice.status.useQuery();
+  const calls = trpc.voice.calls.useQuery();
+  const save = trpc.voice.updateSettings.useMutation({ onSuccess: () => { void status.refetch(); setSaved(true); setTimeout(() => setSaved(false), 2500); } });
+  const preview = trpc.voice.previewCall.useQuery(undefined, { enabled: false });
+  const allowed = useFeatureAllowed("voiceAgent");
+  const [greeting, setGreeting] = useState("");
+  const [businessInfo, setBusinessInfo] = useState("");
+  const [agentMode, setAgentMode] = useState<"voicemail" | "ai">("voicemail");
+  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    const d = status.data?.settings;
+    if (d && !greeting) { setGreeting(d.greeting); setBusinessInfo(d.businessInfo); setAgentMode(d.agentMode === "ai" ? "ai" : "voicemail"); }
+  }, [status.data, greeting]);
+  const voiceState = status.data;
+  return (
+    <section className="rounded-2xl border border-[#D4922A]/25 bg-[#D4922A]/5 p-4">
+      <div className="flex gap-3"><Phone className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#9A610A]" />
+        <div className="flex-1">
+          <h2 className="text-sm font-bold text-[#1A1A1A]">AI Voice Receptionist</h2>
+          <p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.65)]">
+            Answers your business line, captures voice leads, and takes messages after hours. Point a Twilio number&rsquo;s Voice URL at <code className="rounded bg-[#F7F6F3] px-1">/api/voice/answer?u=&lt;your user id&gt;</code> to go live.
+          </p>
+          <p className="mt-2 text-xs text-[rgba(26,26,26,0.62)]">
+            {voiceState?.state === "ai_ready" ? `AI mode ready (line ${voiceState.fromNumber ?? "via Twilio"}).`
+              : voiceState?.state === "voicemail_only" ? "Twilio configured. Voicemail mode is live; AI conversation needs the LLM key."
+              : "Needs Twilio env vars before calls can be answered."}
+            {voiceState ? ` ${voiceState.totalCalls} call${voiceState.totalCalls === 1 ? "" : "s"} answered so far.` : ""}
+          </p>
+          {calls.data && calls.data.length > 0 && <ul className="mt-2 space-y-1">{calls.data.slice(0, 5).map(c => <li key={c.id} className="text-xs text-[rgba(26,26,26,0.62)]">{new Date(c.startedAt).toLocaleString()} &middot; {c.fromNumber || "unknown"} &middot; {c.outcome}</li>)}</ul>}
+          <label htmlFor="voice-greeting" className="mt-3 block text-sm font-semibold text-[#1A1A1A]">Greeting spoken to callers
+            <textarea id="voice-greeting" value={greeting} onChange={e => setGreeting(e.target.value)} rows={2} className="mt-1.5 block w-full rounded-lg border border-[rgba(26,26,26,0.16)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-[#D4922A]/35" />
+          </label>
+          <label htmlFor="voice-info" className="mt-2 block text-sm font-semibold text-[#1A1A1A]">Business info the agent may quote (hours, services, service area)
+            <textarea id="voice-info" value={businessInfo} onChange={e => setBusinessInfo(e.target.value)} rows={3} className="mt-1.5 block w-full rounded-lg border border-[rgba(26,26,26,0.16)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-[#D4922A]/35" />
+          </label>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button size="sm" onClick={() => save.mutate({ greeting: greeting.trim() || "Thanks for calling! How can I help you today?", businessInfo, agentMode: allowed === false ? "voicemail" : agentMode })}
+              disabled={save.isPending || greeting.trim().length < 10} className="bg-[#D4922A] text-white hover:bg-[#B87716]">{save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}</Button>
+            <Button size="sm" variant="outline" onClick={() => preview.refetch()} disabled={preview.isFetching} className="border-[#D4922A]/40 text-[#8A5A0B]">Preview spoken TwiML</Button>
+            {saved && <span className="text-xs font-semibold text-emerald-700">Saved</span>}
+          </div>
+          {allowed === false && <p className="mt-2 rounded-lg bg-[#F7F6F3] px-3 py-2 text-xs text-[rgba(26,26,26,0.62)]">AI conversation mode is a Pro-plan feature. Voicemail answering stays available on every plan.</p>}
+          {allowed === true && <div className="mt-2 flex items-center gap-2">
+            <label htmlFor="voice-mode" className="text-xs font-semibold text-[#1A1A1A]">Mode</label>
+            <select id="voice-mode" value={agentMode} onChange={e => setAgentMode(e.target.value === "ai" ? "ai" : "voicemail")} className="rounded-lg border border-[rgba(26,26,26,0.16)] bg-white px-2 py-1 text-xs">
+              <option value="voicemail">Voicemail only</option>
+              <option value="ai">AI receptionist (Pro)</option>
+            </select>
+          </div>}
+          {preview.data && <pre className="mt-3 max-h-40 overflow-auto rounded-lg bg-[#1C2333] p-3 text-[10px] leading-4 text-[#D7E4E4]">{preview.data.twiml}</pre>}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function PushNotificationsCard() {
@@ -209,6 +268,7 @@ export default function IntegrationHub({ onOpenSettings }: { onOpenSettings: () 
     <section className="rounded-2xl border border-[#D4922A]/25 bg-[#D4922A]/5 p-4"><div className="flex gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#9A610A]" /><div><h2 className="text-sm font-bold text-[#1A1A1A]">Connection-state integrity</h2><p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.65)]">This hub never accepts a manual “connected” claim. Google Calendar is derived from its secure authorization record. Other entries remain in readiness states until their provider flow is implemented and verified with the owner’s account.</p></div></div></section>
 
     <PushNotificationsCard />
+  <VoiceReceptionistCard />
     <StripeConnectCard />
 
     <div className="space-y-6">{groups.map(([category, group]) => {
