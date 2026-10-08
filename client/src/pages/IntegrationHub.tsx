@@ -83,6 +83,10 @@ function StripeConnectCard() {
 function VoiceReceptionistCard() {
   const status = trpc.voice.status.useQuery();
   const calls = trpc.voice.calls.useQuery();
+  const line = trpc.voice.myLine.useQuery();
+  const requestLine = trpc.voice.requestLine.useMutation({ onSuccess: () => void line.refetch() });
+  const releaseLine = trpc.voice.releaseLine.useMutation({ onSuccess: () => void line.refetch() });
+  const [areaCode, setAreaCode] = useState("");
   const save = trpc.voice.updateSettings.useMutation({ onSuccess: () => { void status.refetch(); setSaved(true); setTimeout(() => setSaved(false), 2500); } });
   const preview = trpc.voice.previewCall.useQuery(undefined, { enabled: false });
   const allowed = useFeatureAllowed("voiceAgent");
@@ -90,6 +94,7 @@ function VoiceReceptionistCard() {
   const [businessInfo, setBusinessInfo] = useState("");
   const [agentMode, setAgentMode] = useState<"voicemail" | "ai">("voicemail");
   const [saved, setSaved] = useState(false);
+  const lineData = line.data;
   useEffect(() => {
     const d = status.data?.settings;
     if (d && !greeting) { setGreeting(d.greeting); setBusinessInfo(d.businessInfo); setAgentMode(d.agentMode === "ai" ? "ai" : "voicemail"); }
@@ -101,7 +106,7 @@ function VoiceReceptionistCard() {
         <div className="flex-1">
           <h2 className="text-sm font-bold text-[#1A1A1A]">AI Voice Receptionist</h2>
           <p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.65)]">
-            Answers your business line, captures voice leads, and takes messages after hours. Point a Twilio number&rsquo;s Voice URL at <code className="rounded bg-[#F7F6F3] px-1">/api/voice/answer?u=&lt;your user id&gt;</code> to go live.
+            Answers your business line, captures voice leads, and takes messages after hours. Paid plans include a managed business line — one click below, and we provision the number for you. No Twilio account, no extra bills; minutes are part of your plan under a fair-use cap.
           </p>
           <p className="mt-2 text-xs text-[rgba(26,26,26,0.62)]">
             {voiceState?.state === "ai_ready" ? `AI mode ready (line ${voiceState.fromNumber ?? "via Twilio"}).`
@@ -110,6 +115,30 @@ function VoiceReceptionistCard() {
             {voiceState ? ` ${voiceState.totalCalls} call${voiceState.totalCalls === 1 ? "" : "s"} answered so far.` : ""}
           </p>
           {calls.data && calls.data.length > 0 && <ul className="mt-2 space-y-1">{calls.data.slice(0, 5).map(c => <li key={c.id} className="text-xs text-[rgba(26,26,26,0.62)]">{new Date(c.startedAt).toLocaleString()} &middot; {c.fromNumber || "unknown"} &middot; {c.outcome}</li>)}</ul>}
+          <div className="mt-3 rounded-lg border border-[#D4922A]/25 bg-white p-3">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-[#8A5A0B]">Your business line</h3>
+            {lineData?.line ? (
+              <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-[#1A1A1A]">{lineData.line.phoneNumber}
+                  <span className="ml-2 text-xs font-normal text-[rgba(26,26,26,0.62)]">{lineData.minutesUsed} of {lineData.minutesIncluded} plan minutes used this month</span>
+                </p>
+                <Button size="sm" variant="outline" onClick={() => { if (window.confirm("Release this number? Your customers will lose this line.")) releaseLine.mutate(); }} disabled={releaseLine.isPending} className="border-[rgba(26,26,26,0.2)] text-[rgba(26,26,26,0.6)]">Release number</Button>
+              </div>
+            ) : lineData && !lineData.available ? (
+              <p className="mt-1.5 text-xs text-[rgba(26,26,26,0.62)]">Managed lines aren&rsquo;t turned on for this deployment yet — the operator must connect Twilio and set the public URL. Meanwhile, you can point any existing phone number&rsquo;s webhook at <code className="rounded bg-[#F7F6F3] px-1">/api/voice/answer?u={lineData.line === null ? "your user id" : ""}</code>.</p>
+            ) : lineData && lineData.minutesIncluded === 0 ? (
+              <p className="mt-1.5 text-xs text-[rgba(26,26,26,0.62)]">A managed business line — with plan-included minutes — comes with the Starter plan and up. Upgrade in Settings → Billing and your number is one click away.</p>
+            ) : (
+              <div className="mt-1.5 flex flex-wrap items-end gap-2">
+                <label htmlFor="voice-area" className="text-xs font-semibold text-[#1A1A1A]">Area code
+                  <input id="voice-area" value={areaCode} onChange={e => setAreaCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 3))} inputMode="numeric" placeholder="optional" className="mt-1 block w-24 rounded-lg border border-[rgba(26,26,26,0.16)] bg-white px-2 py-1.5 text-xs font-normal outline-none focus:ring-2 focus:ring-[#D4922A]/35" />
+                </label>
+                <Button size="sm" onClick={() => requestLine.mutate(areaCode ? { areaCode } : {})} disabled={requestLine.isPending} className="bg-[#D4922A] text-white hover:bg-[#B87716]">{requestLine.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add a business line"}</Button>
+                <span className="text-xs text-[rgba(26,26,26,0.62)]">We pick a local number and wire it up — included in your plan.</span>
+              </div>
+            )}
+            {requestLine.error && <p className="mt-1.5 text-xs text-rose-700">{requestLine.error.message}</p>}
+          </div>
           <label htmlFor="voice-greeting" className="mt-3 block text-sm font-semibold text-[#1A1A1A]">Greeting spoken to callers
             <textarea id="voice-greeting" value={greeting} onChange={e => setGreeting(e.target.value)} rows={2} className="mt-1.5 block w-full rounded-lg border border-[rgba(26,26,26,0.16)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-[#D4922A]/35" />
           </label>

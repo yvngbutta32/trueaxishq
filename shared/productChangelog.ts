@@ -18,6 +18,12 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-08",
+    title: "Included business lines — one click, no Twilio account",
+    tag: "Money",
+    description: "Paid plans can now add a managed business line from Integration Hub with one click: we provision a local number on the operator's Twilio account and wire it to your voice settings automatically. You never open a Twilio account, never enter credentials, and never pay another website — minutes are bundled into your plan under a fair-use cap (300/mo Starter, 1,000/mo Pro, 2,500/mo Agency), with a live usage meter on the card. Pointing your existing Twilio number at us (bring-your-own) still works and is never capped, since those minutes bill to your own account.",
+  },
+  {
+    date: "2026-10-08",
     title: "AI Voice Receptionist — your business line, answered",
     tag: "Platform",
     description: "Every market leader shipped an AI phone agent; we matched it at $0 fixed cost. A Twilio number pointed at /api/voice/answer?u=<your id> now greets callers, answers business questions, and captures voice leads straight into your pipeline — with a full voicemail fallback on every plan, and AI conversation mode on Pro. Calls are signature-verified and fail closed; transcripts and outcomes live under Integration Hub → Voice Receptionist, with a dry-run TwiML preview so you can hear exactly what callers hear before a phone ever rings.",

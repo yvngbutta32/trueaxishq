@@ -17,16 +17,18 @@ import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { geocodeLabelWithNominatim, normalizeGeocodeLabel, GEOCODE_BATCH_LIMIT } from "./_core/geocode";
 import { getVoiceStatus, VOICE_DEFAULT_GREETING } from "./_core/voiceAgent";
+import { buyLineNumber, getActiveLine, getLineOverview, getVoiceLineStatus as getVoiceLineDeploymentStatus, releaseLineNumber } from "./_core/voiceLines";
+import { voiceLineMinutesFor } from "../shared/plans";
 import { renderTwiML, buildSay, buildGather, buildRecord, buildHangup } from "./_core/voiceTwiML";
 import { getDb } from "./db";
 import { requireClientPaymentsAccount, getStripeAccountForUser } from "./_core/stripeConnect";
-import { requirePlanFeature, getEntitlements } from "./_core/entitlements";
+import { requirePlanFeature, getEntitlements, getPlanTier } from "./_core/entitlements";
 import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions, stripeAccounts, voiceSettings, voiceCalls } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions, stripeAccounts, voiceSettings, voiceCalls, voiceLines } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -587,6 +589,49 @@ const terminalRouter = router({
 // server/voiceApi.ts; this router is the owner console. Honest tiering:
 // voicemail mode is available to every plan; AI mode is Pro-gated.
 const voiceRouter = router({
+  myLine: protectedProcedure.query(async ({ ctx }) => {
+    const db = await requireDb();
+    const overview = await getLineOverview(db, ctx.user.id, await getPlanTier(db, ctx.user.id));
+    const deployment = getVoiceLineDeploymentStatus();
+    return { ...overview, ...deployment };
+  }),
+
+  // Included business line: the platform buys the number on the operator's
+  // Twilio account and wires it to this deployment's voice webhooks. Clients
+  // never open a Twilio account or pay Twilio — minutes are bundled into the
+  // plan price under a fair-use cap (shared/plans.ts).
+  requestLine: protectedProcedure
+    .input(z.object({ areaCode: z.string().trim().regex(/^[0-9]{3}$/).optional() }).default({}))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDb();
+      const planId = await getPlanTier(db, ctx.user.id);
+      if (voiceLineMinutesFor(planId) === 0) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "A managed business line is included with the Starter plan and up. Upgrade in Settings → Billing to get a number your customers can call — no Twilio account needed.",
+        });
+      }
+      if (await getActiveLine(db, ctx.user.id)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "This account already has a business line." });
+      }
+      const result = await buyLineNumber(db, ctx.user.id, input.areaCode ?? "");
+      if (!result.success) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: result.error });
+      }
+      await db.insert(auditLogs).values({ userId: ctx.user.id, action: "voice.line.added", details: `Managed line ${result.phoneNumber} provisioned` });
+      return { phoneNumber: result.phoneNumber };
+    }),
+
+  releaseLine: protectedProcedure.mutation(async ({ ctx }) => {
+    const db = await requireDb();
+    const result = await releaseLineNumber(db, ctx.user.id);
+    if (!result.success) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: result.error ?? "Could not release the line." });
+    }
+    await db.insert(auditLogs).values({ userId: ctx.user.id, action: "voice.line.released", details: "Managed line released back to the provider" });
+    return { released: true };
+  }),
+
   status: protectedProcedure.query(async ({ ctx }) => {
     const db = await requireDb();
     const [settings] = await db.select().from(voiceSettings).where(eq(voiceSettings.userId, ctx.user.id)).limit(1);

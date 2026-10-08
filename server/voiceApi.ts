@@ -6,8 +6,10 @@
 import { Router, type Request, type Response } from "express";
 import { eq } from "drizzle-orm";
 import { getDb } from "./db";
-import { users, voiceCalls, voiceSettings, leads, auditLogs } from "../drizzle/schema";
+import { users, voiceCalls, voiceSettings, voiceLines, leads, auditLogs } from "../drizzle/schema";
 import { getPlanTier } from "./_core/entitlements";
+import { getActiveLine, monthlyMinutesUsed } from "./_core/voiceLines";
+import { voiceLineMinutesFor } from "../shared/plans";
 import { sendPushToUser } from "./_core/push";
 import {
   getVoiceStatus, validateTwilioSignature, decideNextTurn, newCallTranscript, appendTurn,
@@ -56,7 +58,7 @@ async function loadOwnerContext(userIdRaw: unknown) {
   if (!Number.isInteger(userId) || userId <= 0) return null;
   const db = await getDb();
   if (!db) throw new Error("database unavailable");
-  const [user] = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+  const [user] = await db.select({ id: users.id, planId: users.planId }).from(users).where(eq(users.id, userId)).limit(1);
   if (!user) return null; // unknown destination: never answer calls for a made-up user id
   const [settings] = await db.select().from(voiceSettings).where(eq(voiceSettings.userId, userId)).limit(1);
   const plan = await getPlanTier(db, userId);
@@ -94,6 +96,23 @@ voiceApiRouter.post("/answer", withGracefulVoice(async (req: Request, res: Respo
     try {
       await ctx.db.insert(voiceCalls).values({ userId: ctx.userId, callSid: sid, fromNumber: (body.From ?? "").slice(0, 32), status: "answered" });
     } catch { /* duplicate SID (Twilio retry) — continue with the existing row */ }
+  }
+
+  // Fair use on platform-purchased lines only: bring-your-own numbers bill
+  // to the client's own Twilio account and are never capped by us.
+  const line = await getActiveLine(ctx.db, ctx.userId);
+  if (line) {
+    const cap = voiceLineMinutesFor(ctx.plan);
+    if (cap > 0) {
+      const used = await monthlyMinutesUsed(ctx.db, ctx.userId);
+      if (used >= cap) {
+        try { await ctx.db.update(voiceCalls).set({ outcome: "fair_use_cap", status: "completed", endedAt: new Date() }).where(eq(voiceCalls.callSid, sid)); } catch { /* row may not exist */ }
+        return twiml(res, [
+          buildSay("The number you have dialed is not accepting calls right now. Please try again later."),
+          buildHangup(),
+        ]);
+      }
+    }
   }
 
   if (wantsAi(ctx)) {

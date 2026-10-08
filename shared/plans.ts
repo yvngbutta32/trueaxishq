@@ -95,6 +95,23 @@ export const PLANS: Record<PlanId, Plan> = {
 
 export const PLAN_LIST = Object.values(PLANS);
 
+// ── Included business lines (managed voice) ─────────────────────────────
+// Minutes on a platform-purchased line are paid by the operator, bundled into
+// the subscription price — clients never open a Twilio account. Fair-use
+// caps keep a single account from costing more than its plan is worth.
+// Free plan: no managed line (bring-your-own-number webhook path still works).
+export const VOICE_LINE_MINUTES: Record<string, number> = {
+  free: 0,
+  starter: 300,
+  pro: 1000,
+  agency: 2500,
+};
+
+export function voiceLineMinutesFor(planId: string | null | undefined): number {
+  const key = (planId ?? "free").trim().toLowerCase();
+  return VOICE_LINE_MINUTES[key] ?? 0;
+}
+
 // ── Plan-gated features (server-enforced, client-reflected) ────────────
 // The Pro and Agency plans unlock the advanced operating layer. Free and
 // Starter are honest, complete tools for their tier — never crippled traps.

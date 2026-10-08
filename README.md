@@ -85,6 +85,11 @@ Copy `.env.example` to `.env` and fill in real values. Only `DATABASE_URL` and
 `JWT_SECRET` are strictly required to boot; everything else degrades gracefully
 (see notes in `.env.example`).
 
+**Managed business lines** (phone numbers the platform buys for paid clients,
+bundled into their subscription — clients never open a Twilio account) need
+`SITE_ORIGIN` set to this deployment's real https origin plus the operator's
+Twilio credentials; they stay honestly off otherwise.
+
 ## Scripts
 
 | Script             | Purpose |

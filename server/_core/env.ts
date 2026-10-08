@@ -7,4 +7,9 @@ export const ENV = {
   twilioAccountSid: process.env.TWILIO_ACCOUNT_SID ?? "",
   twilioAuthToken: process.env.TWILIO_AUTH_TOKEN ?? "",
   twilioFromNumber: process.env.TWILIO_FROM_NUMBER ?? "",
+  /** Public https origin of this deployment (SITE_ORIGIN). Used to wire
+   *  webhook URLs onto platform-purchased phone lines. Managed business lines
+   *  require it to be set explicitly — no silent default, because a wrong
+   *  origin would wire a paid number to a dead URL. */
+  siteOrigin: process.env.SITE_ORIGIN ?? "",
 };

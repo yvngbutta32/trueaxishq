@@ -1677,6 +1677,17 @@ export const voiceCalls = mysqlTable("voiceCalls", {
   index("voiceCalls_userId_idx").on(t.userId),
   index("voiceCalls_startedAt_idx").on(t.startedAt),
 ]);
+export const voiceLines = mysqlTable("voiceLines", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  phoneNumber: varchar("phoneNumber", { length: 32 }).notNull(),
+  twilioSid: varchar("twilioSid", { length: 64 }).notNull(),
+  areaCode: varchar("areaCode", { length: 5 }).notNull().default(""),
+  status: varchar("status", { length: 20 }).notNull().default("active"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").onUpdateNow().defaultNow().notNull(),
+});
+export type VoiceLine = typeof voiceLines.$inferSelect;
 export type VoiceSettings = typeof voiceSettings.$inferSelect;
 export type InsertVoiceSettings = typeof voiceSettings.$inferInsert;
 export type VoiceCall = typeof voiceCalls.$inferSelect;
