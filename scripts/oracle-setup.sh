@@ -141,12 +141,28 @@ systemctl daemon-reload
 systemctl enable --now trueaxis
 
 # ── 7. Caddy reverse proxy with automatic HTTPS ──────────────────────────────
-cat > /etc/caddy/Caddyfile <<CADDY
+if [[ "$DOMAIN" != www.* ]]; then
+  cat > /etc/caddy/Caddyfile <<CADDY
 ${DOMAIN} {
     encode gzip
     reverse_proxy 127.0.0.1:${APP_PORT}
 }
+www.${DOMAIN} {
+    redir https://${DOMAIN}{uri} permanent
+}
 CADDY
+else
+  APEX="${DOMAIN#www.}"
+  cat > /etc/caddy/Caddyfile <<CADDY
+${DOMAIN} {
+    encode gzip
+    reverse_proxy 127.0.0.1:${APP_PORT}
+}
+${APEX} {
+    redir https://${DOMAIN}{uri} permanent
+}
+CADDY
+fi
 systemctl enable --now caddy 2>/dev/null || true
 systemctl restart caddy
 
