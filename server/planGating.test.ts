@@ -25,7 +25,7 @@ describe("plan-tier feature gating (Pro operating layer)", () => {
   it("every gated router enforces the feature server-side — client locks are UX only", () => {
     const routers = source("./routers.ts");
     const gates = routers.split('requirePlanFeature(db, ctx.user.id,').length - 1;
-    expect(gates).toBe(28);
+    expect(gates).toBe(31); // 28 + webhooks list/deliveries/processDue (Oct 8 2026)
     for (const feature of PRO_FEATURES) {
       expect(routers).toContain(`requirePlanFeature(db, ctx.user.id, "${feature}")`);
     }
@@ -68,6 +68,10 @@ describe("plan-tier feature gating (Pro operating layer)", () => {
     expect(source("../client/src/pages/DispatchBoard.tsx")).toContain('FeatureLock feature="routeOptimizer"');
     expect(source("../client/src/pages/DispatchBoard.tsx")).toContain('useFeatureAllowed("liveTracking")');
     expect(source("../client/src/pages/Proposals.tsx")).toContain('useFeatureAllowed("priceBook")');
+    // Oct 8 2026: webhooks read ops gated like create (was list/deliveries/processDue ungated)
+    expect(source("./routers.ts")).toMatch(/webhooks: router\(\{[\s\S]{0,200}list: protectedProcedure\.query[\s\S]{0,120}requirePlanFeature\(db, ctx\.user\.id, "webhooks"\)/);
+    expect(source("./routers.ts")).toMatch(/deliveries: protectedProcedure\.query[\s\S]{0,120}requirePlanFeature\(db, ctx\.user\.id, "webhooks"\)/);
+    expect(source("./routers.ts")).toMatch(/processDue: protectedProcedure[\s\S]{0,300}requirePlanFeature\(db, ctx\.user\.id, "webhooks"\)/);
     // no stale "included in every plan" claim on a Pro-gated surface
     expect(source("../client/src/pages/dashboard/ReportsPanel.tsx")).not.toContain("Included in every plan");
   });
