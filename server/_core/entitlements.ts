@@ -4,7 +4,7 @@ import { users } from "../../drizzle/schema";
 import { TRPCError } from "@trpc/server";
 
 type Db = NonNullable<Awaited<ReturnType<typeof getDb>>>;
-import { PRO_FEATURES, featureEntitlements, type ProFeature } from "../../shared/plans";
+import { PRO_FEATURES, PRO_FEATURE_LABELS, featureEntitlements, featureMinPlanLabel, type ProFeature } from "../../shared/plans";
 
 /** Reads the account's plan tier. Missing/unknown plans fall back to "free" —
  *  never to full access. */
@@ -27,7 +27,7 @@ export async function requirePlanFeature(db: Db, userId: number, feature: ProFea
   if (!features[feature]) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: `${feature} is part of the Pro plan. Upgrade in Settings → Billing to unlock it.`,
+      message: `${PRO_FEATURE_LABELS[feature]} is part of the ${featureMinPlanLabel(feature)} plan. Upgrade in Settings → Billing to unlock it.`,
     });
   }
 }

@@ -3516,9 +3516,13 @@ Only include actions when you have actually generated a complete draft. For gene
           bookingServices: users.bookingServices,
           bookingAvailability: users.bookingAvailability,
           avatarUrl: users.avatarUrl,
+          planId: users.planId,
         }).from(users).where(eq(users.bookingUsername, input.username)).limit(1);
         if (!result[0]) return null;
-        const host = result[0];
+        // Agency white-label: the public page drops TrueAxis branding. planId
+        // itself never leaves the server — only the resolved boolean does.
+        const { planId: hostPlanId, ...host } = result[0];
+        const whiteLabel = (hostPlanId ?? "").trim().toLowerCase() === "agency";
         const today = new Date().toISOString().slice(0, 10);
         const publicWindowEnd = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
         const bookedSlots = await db.select({ date: bookings.date, time: bookings.time })
@@ -3532,6 +3536,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const serviceCatalog = getPublishedBookingServiceCatalog(host.bookingServices).filter(service => service.active);
         return {
           ...host,
+          whiteLabel,
           bookingServices: serviceCatalog.map(service => service.name),
           bookingServiceCatalog: serviceCatalog.map(service => ({ name: service.name, durationMinutes: service.durationMinutes, priceGuidance: service.priceGuidance, depositAmountCents: service.depositAmountCents })),
           bookingAvailability: getPublishedBookingSchedule(host.bookingAvailability),

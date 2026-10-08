@@ -36,16 +36,17 @@ export const PLANS: Record<PlanId, Plan> = {
     monthlyPrice: 4900,   // $49/mo
     annualPrice: 3920,    // $39.20/mo billed annually ($470.40/yr)
     features: [
-      "Up to 20 active clients",
-      "AI client intake forms",
-      "Smart scheduling (basic)",
+      "Full client & job CRM",
+      "Client intake forms",
+      "Smart scheduling",
       "Automated invoicing",
-      "Email follow-ups (5/month)",
+      "Automated email follow-ups",
       "500 bundled SMS/month",
-      "Analytics dashboard",
-      "1 booking page",
+      "300 bundled voice minutes/month",
       "Live 'on my way' client tracking",
       "Client portal",
+      "Analytics dashboard",
+      "1 booking page",
       "QuickBooks-format CSV export",
       "Email support",
     ],
@@ -58,19 +59,17 @@ export const PLANS: Record<PlanId, Plan> = {
     monthlyPrice: 12900,  // $129/mo — HCP Essentials price point with their MAX-tier feature set
     annualPrice: 10320,   // $103.20/mo billed annually ($1,238.40/yr)
     features: [
-      "Unlimited active clients",
-      "AI client intake + lead scoring",
-      "Smart scheduling (advanced)",
-      "Automated invoicing + reminders",
-      "Unlimited AI follow-ups",
+      "Everything in Starter, plus:",
       "Route planning + capacity forecast",
+      "Price book + custom report builder",
       "Zero-install subcontractor jobs",
-      "Client Pulse AI™",
+      "Outbound webhooks + public REST API",
+      "AI voice receptionist (1,000 bundled minutes/month)",
+      "Client Pulse AI™ relationship insights",
       "Full analytics + insights",
-      "Custom booking page + branding",
+      "Automated invoicing + reminders",
       "2,000 bundled SMS/month",
       "Priority support",
-      "Public REST API access",
     ],
     highlighted: true,
   },
@@ -81,17 +80,12 @@ export const PLANS: Record<PlanId, Plan> = {
     monthlyPrice: 29900,  // $299/mo — matches HCP MAX with white-label + sub-accounts on top
     annualPrice: 23920,   // $239.20/mo billed annually ($2,870.40/yr)
     features: [
-      "Everything in Pro",
-      "Up to 10 sub-accounts",
+      "Everything in Pro, plus:",
       "White-label booking pages",
-      "Team management dashboard",
-      "Shared client database",
-      "Custom AI training",
-      "Dedicated account manager",
-      "SLA support",
-      "Custom integrations",
-      "Revenue sharing tools",
       "5,000 bundled SMS/month",
+      "2,500 bundled voice minutes/month",
+      "Highest fair-use allowances",
+      "Highest-priority support",
     ],
     highlighted: false,
   },
@@ -157,9 +151,32 @@ export const PRO_FEATURE_LABELS: Record<ProFeature, string> = {
   voiceAgent: "AI voice receptionist",
 };
 
+/** The lowest tier that unlocks each gated feature. Starter carries the
+ *  flagship claims the pricing card advertises at $49 (live tracking);
+ *  the advanced operating layer stays Pro. Oct 2026 truth-in-advertising fix. */
+export const FEATURE_MIN_PLAN: Record<ProFeature, "starter" | "pro"> = {
+  liveTracking: "starter",
+  routeOptimizer: "pro",
+  capacityForecast: "pro",
+  priceBook: "pro",
+  customReports: "pro",
+  subcontractors: "pro",
+  restApi: "pro",
+  webhooks: "pro",
+  voiceAgent: "pro",
+};
+
+const PLAN_RANK: Record<string, number> = { free: 0, starter: 1, pro: 2, agency: 3 };
+
+/** Human name of the cheapest plan that unlocks a gated feature — used by
+ *  server errors and client lock cards so upgrade copy is never wrong. */
+export function featureMinPlanLabel(feature: ProFeature): string {
+  return FEATURE_MIN_PLAN[feature] === "starter" ? "Starter" : "Pro";
+}
+
 export function planUnlocksProFeature(planId: string | null | undefined, feature: ProFeature): boolean {
   const plan = (planId ?? "free").trim().toLowerCase();
-  return (plan === "pro" || plan === "agency") && (PRO_FEATURES as readonly string[]).includes(feature);
+  return (PLAN_RANK[plan] ?? 0) >= PLAN_RANK[FEATURE_MIN_PLAN[feature]];
 }
 
 export function featureEntitlements(planId: string | null | undefined): Record<ProFeature, boolean> {

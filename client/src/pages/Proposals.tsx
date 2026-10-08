@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { BookOpen, Lock, Search } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { useFeatureAllowed, FEATURE_LOCK_TOAST } from "@/components/FeatureLock";
+import { useFeatureAllowed, featureLockToast } from "@/components/FeatureLock";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -470,7 +470,7 @@ export default function Proposals() {
                   <button onClick={() => setForm(p => ({...p, lineItems: [...p.lineItems, newLineItem()]}))} className="text-xs text-[#3B82F6] hover:text-[#60A5FA] flex items-center gap-1 transition-colors">
                     <Plus className="w-3 h-3" /> Add Line
                   </button>
-                  <button type="button" onClick={() => priceBookAllowed === false ? toast.info(FEATURE_LOCK_TOAST) : setPriceBookOpen(true)} title={priceBookAllowed === false ? "Price book is a Pro-plan feature" : "Insert from your price book"} className={`text-xs flex items-center gap-1 transition-colors ${priceBookAllowed === false ? "text-[#9A9A9A]" : "text-[#3B82F6] hover:text-[#60A5FA]"}`}>
+                  <button type="button" onClick={() => priceBookAllowed === false ? toast.info(featureLockToast("priceBook")) : setPriceBookOpen(true)} title={priceBookAllowed === false ? "Price book is a Pro-plan feature" : "Insert from your price book"} className={`text-xs flex items-center gap-1 transition-colors ${priceBookAllowed === false ? "text-[#9A9A9A]" : "text-[#3B82F6] hover:text-[#60A5FA]"}`}>
                     {priceBookAllowed === false ? <Lock className="w-3 h-3" /> : <BookOpen className="w-3 h-3" />} Price book{priceBookAllowed === false ? " (Pro)" : ""}
                   </button>
                 </div>

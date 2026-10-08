@@ -6,9 +6,14 @@ import { PRO_FEATURES, featureEntitlements, planUnlocksProFeature, PRO_FEATURE_L
 const source = (rel: string) => readFileSync(resolve(import.meta.dirname, rel), "utf8");
 
 describe("plan-tier feature gating (Pro operating layer)", () => {
-  it("free and Starter honestly keep every core tool; Pro/Agency unlock the advanced layer", () => {
+  it("free keeps every core tool; Starter adds its advertised flagship (tracking); Pro/Agency unlock the advanced layer", () => {
     expect(featureEntitlements("free")).toEqual(Object.fromEntries(PRO_FEATURES.map(f => [f, false])));
-    expect(featureEntitlements("starter")).toEqual(featureEntitlements("free"));
+    // Oct 2026 truth-in-advertising: the Starter card advertises live tracking
+    // at $49, so the gate lets Starter through — every other gate stays Pro+.
+    const starterEntitlements = featureEntitlements("starter");
+    for (const feature of PRO_FEATURES) {
+      expect(starterEntitlements[feature]).toBe(feature === "liveTracking");
+    }
     for (const feature of PRO_FEATURES) {
       expect(planUnlocksProFeature("pro", feature)).toBe(true);
       expect(planUnlocksProFeature("agency", feature)).toBe(true);

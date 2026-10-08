@@ -1,5 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { Lock } from "lucide-react";
+import { featureMinPlanLabel, type ProFeature } from "@shared/plans";
 
 // Reflects the SERVER-enforced plan gate. This is UX only - every gated
 // router procedure re-checks entitlements server-side (FORBIDDEN on mismatch).
@@ -16,7 +17,7 @@ export function FeatureLock({ feature, label, children }: { feature: string; lab
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-[rgba(26,26,26,0.1)] bg-white px-6 py-12 text-center">
       <Lock className="h-8 w-8 text-[#D4922A]" />
-      <h3 className="mt-3 text-sm font-bold text-[#1A1A1A]">{label} is a Pro-plan feature</h3>
+      <h3 className="mt-3 text-sm font-bold text-[#1A1A1A]">{label} is a {featureMinPlanLabel(feature as ProFeature)}-plan feature</h3>
       <p className="mt-1 max-w-md text-xs leading-5 text-[rgba(26,26,26,0.56)]">
         Upgrade in Settings &rarr; Billing to unlock it. Your current plan keeps every core tool - this layer is the advanced operating tier.
       </p>
@@ -31,4 +32,7 @@ export function useFeatureAllowed(feature: string) {
   return features ? Boolean((features as Record<string, boolean>)[feature]) : false;
 }
 
-export const FEATURE_LOCK_TOAST = "That's a Pro-plan feature. Upgrade in Settings → Billing to unlock it.";
+/** Tier-aware lock toast — the named plan always matches the real gate. */
+export function featureLockToast(feature: string): string {
+  return `That's a ${featureMinPlanLabel(feature as ProFeature)}-plan feature. Upgrade in Settings → Billing to unlock it.`;
+}

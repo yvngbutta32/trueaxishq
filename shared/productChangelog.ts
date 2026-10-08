@@ -18,6 +18,12 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-08",
+    title: "What the price card says is what you get",
+    tag: "Platform",
+    description: "We audited every line of every plan against the running product and fixed the drift in both directions. Starter now truly includes live 'on my way' tracking at $49 — competitors hold that until their $149+ tiers — and the card lists the 300 bundled voice minutes and 500 SMS it ships with. The Pro card now names everything $129 actually unlocks, including the price book, custom reports, outbound webhooks, and the AI voice receptionist with 1,000 bundled minutes. Agency's white-label booking pages are real: your public booking page drops our branding and carries yours. And the claims we couldn't stand behind — sub-accounts, SLA support, dedicated account managers, invented client caps — are off the cards until the day they ship.",
+  },
+  {
+    date: "2026-10-08",
     title: "Bundled SMS with a fair-use meter — no surprise bills",
     tag: "Money",
     description: "Every plan now bundles monthly client texting into the subscription: 50 SMS/mo on Free, 500 on Starter, 2,000 on Pro, 5,000 on Agency — covering booking confirmations, reminders, check-ins, and subcontractor invites. The Integration Hub SMS card shows a live usage meter, and once the allowance is used up we stop sending with an honest upgrade message instead of billing anyone extra. Unlike Jobber and Housecall Pro, which hold two-way texting behind their $249–$329 tiers, texting is included from the first paid plan.",

@@ -13,11 +13,11 @@ import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, DEFAULT_PUBLIC_BOOKING_SERVICES, PUBLI
 
 // ─── .ics calendar file generator ────────────────────────────────────────────
 function generateICS({
-  title, description, date, time, durationMins, organizerName, organizerEmail, attendeeEmail, attendeeName,
+  title, description, date, time, durationMins, organizerName, organizerEmail, attendeeEmail, attendeeName, whiteLabel,
 }: {
   title: string; description: string; date: string; time: string;
   durationMins: number; organizerName: string; organizerEmail: string;
-  attendeeEmail: string; attendeeName: string;
+  attendeeEmail: string; attendeeName: string; whiteLabel: boolean;
 }): string {
   // Parse date (YYYY-MM-DD or "Mon Apr 14, 2026") and time ("2:00 PM")
   const parseDateTime = (dateStr: string, timeStr: string): Date => {
@@ -62,7 +62,7 @@ function generateICS({
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//TrueAxis HQ//Booking//EN",
+    "PRODID:" + (whiteLabel ? "-//Booking//EN" : "-//TrueAxis HQ//Booking//EN") + "",
     "CALSCALE:GREGORIAN",
     "METHOD:REQUEST",
     "BEGIN:VEVENT",
@@ -149,8 +149,6 @@ function getNextDays(count: number, weekdays: number[]) {
 export default function BookingPage() {
   const params = useParams<{ username: string }>();
   const username = params.username ?? "";
-  useEffect(() => { document.title = username ? `Book with @${username} — TrueAxis HQ` : "Book a Session — TrueAxis HQ"; }, [username]);
-
   const [step, setStep] = useState<"details" | "datetime" | "confirm" | "success">("details");
   const [depositCheckoutUrl, setDepositCheckoutUrl] = useState<string | null>(null);
   const [estimatePhotos, setEstimatePhotos] = useState<{ file: File; previewUrl: string }[]>([]);
@@ -167,6 +165,9 @@ export default function BookingPage() {
   });
 
   const pageQuery = trpc.booking.getPage.useQuery({ username }, { enabled: !!username });
+  // Agency white-label: the business's own brand replaces ours on this page.
+  const whiteLabel = pageQuery.data?.whiteLabel === true;
+  useEffect(() => { document.title = username ? `Book with @${username}${whiteLabel ? "" : " — TrueAxis HQ"}` : "Book a Session — TrueAxis HQ"; }, [username, whiteLabel]);
   const submitMutation = trpc.booking.submit.useMutation({
     onSuccess: () => setStep("success"),
     onError: (e) => toast.error("Booking failed: " + e.message),
@@ -247,7 +248,7 @@ export default function BookingPage() {
   if (step === "success") {
     const selectedDurationMins = host.bookingServiceCatalog?.find(service => service.name === form.service)?.durationMinutes ?? 60;
     const icsTitle = `${form.service} with ${host.name}`;
-    const icsDescription = `Service: ${form.service}\nClient: ${form.clientName}\nEmail: ${form.clientEmail}${form.message ? `\nMessage: ${form.message}` : ""}\n\nBooked via TrueAxis HQ`;
+    const icsDescription = `Service: ${form.service}\nClient: ${form.clientName}\nEmail: ${form.clientEmail}${form.message ? `\nMessage: ${form.message}` : ""}${whiteLabel ? "" : "\\n\\nBooked via TrueAxis HQ"}`;
     const icsContent = generateICS({
       title: icsTitle,
       description: icsDescription,
@@ -258,6 +259,7 @@ export default function BookingPage() {
       organizerEmail: "noreply@trueaxishq.com",
       attendeeEmail: form.clientEmail,
       attendeeName: form.clientName,
+      whiteLabel,
     });
     const googleUrl = buildGoogleCalendarUrl({
       title: icsTitle,
@@ -427,12 +429,16 @@ export default function BookingPage() {
       {/* Header */}
       <header className="bg-[#F7F6F3] border-b border-[#DDDBD7] px-4 py-3.5" role="banner">
         <div className="max-w-xl mx-auto flex items-center gap-3">
-          <img
-            src={TRUEAXIS_LOGO_URL}
-            alt="TrueAxis HQ"
-            className="h-7 w-auto object-contain flex-shrink-0"
-          />
-          <div className="w-px h-5 bg-white/15 flex-shrink-0" aria-hidden="true" />
+          {whiteLabel
+            ? <span className="text-base font-semibold text-[#1A1A1A]">{host?.businessName || host?.name || `@${username}`}</span>
+            : <>
+                <img
+                  src={TRUEAXIS_LOGO_URL}
+                  alt="TrueAxis HQ"
+                  className="h-7 w-auto object-contain flex-shrink-0"
+                />
+                <div className="w-px h-5 bg-white/15 flex-shrink-0" aria-hidden="true" />
+              </>}
           <div>
             <p className="text-xs text-[#6B6B6B]">Booking with</p>
             <h1 className="text-sm font-bold text-[#1A1A1A]">
