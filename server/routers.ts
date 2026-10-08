@@ -877,7 +877,7 @@ export const appRouter = router({
             recordFailedLogin(input.email, ip, ctx.req);
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });
           }
-          console.error("[Auth] Login error:", err);
+          console.error("[Auth] Login error:", err, "CAUSE:", err?.cause?.code, err?.cause?.message);
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Login failed. Please try again." });
         }
       }),
@@ -9733,6 +9733,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
   webhooks: router({
     list: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
+      await requirePlanFeature(db, ctx.user.id, "webhooks");
       const hooks = await db.select({
         id: workflowWebhooks.id,
         name: workflowWebhooks.name,
@@ -9750,6 +9751,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
 
     deliveries: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
+      await requirePlanFeature(db, ctx.user.id, "webhooks");
       return db.select({
         id: workflowWebhookDeliveries.id,
         webhookId: workflowWebhookDeliveries.webhookId,
@@ -9775,7 +9777,11 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
 
     processDue: protectedProcedure
       .input(z.object({ limit: z.number().int().min(1).max(25).default(10) }).optional())
-      .mutation(async ({ ctx, input }) => processDueWorkflowWebhookDeliveries(await requireDb(), ctx.user.id, input?.limit ?? 10)),
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await requirePlanFeature(db, ctx.user.id, "webhooks");
+        return processDueWorkflowWebhookDeliveries(db, ctx.user.id, input?.limit ?? 10);
+      }),
 
     create: protectedProcedure
       .input(z.object({

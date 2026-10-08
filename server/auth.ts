@@ -18,7 +18,7 @@ import { ENV } from "./_core/env";
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { ForbiddenError, UnauthorizedError } from "@shared/_core/errors";
 import type { User } from "../drizzle/schema";
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 
 const BCRYPT_ROUNDS = 12;
 
@@ -61,8 +61,12 @@ export async function createSessionToken(userId: number, email: string): Promise
   const expiresInMs = ONE_YEAR_MS;
   const expirationSeconds = Math.floor((issuedAt + expiresInMs) / 1000);
 
+  // Oct 8 2026: unique JWT ID per token — without it, two logins issued in the same
+  // second produce byte-identical tokens (same exp precision), and the userSessions
+  // unique tokenHash then rejects the second login with an opaque 500 (ER_DUP_ENTRY).
   return new SignJWT({ userId, email, type: "email_password" })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setJti(randomBytes(16).toString("hex"))
     .setExpirationTime(expirationSeconds)
     .sign(secretKey);
 }
