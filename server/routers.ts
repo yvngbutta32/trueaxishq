@@ -1,5 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { eq, desc, asc, and, sql, inArray, or, like, isNull, isNotNull, gt, gte, lt, lte, ne, type SQL, type Column, type SQLWrapper } from "drizzle-orm";
+import { eq, desc, asc, and, sql, inArray, or, like, notLike, isNull, isNotNull, gt, gte, lt, lte, ne, type SQL, type Column, type SQLWrapper } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
 import { createHash, randomBytes } from "node:crypto";
@@ -19,6 +19,7 @@ import { geocodeLabelWithNominatim, normalizeGeocodeLabel, GEOCODE_BATCH_LIMIT }
 import { getVoiceStatus, VOICE_DEFAULT_GREETING } from "./_core/voiceAgent";
 import { buyLineNumber, getActiveLine, getLineOverview, getVoiceLineStatus as getVoiceLineDeploymentStatus, releaseLineNumber } from "./_core/voiceLines";
 import { voiceLineMinutesFor } from "../shared/plans";
+import { DEMO_CLIENT_PREFIX, DEMO_INVOICE_PREFIX, DEMO_JOB_PREFIX } from "../shared/demoData";
 import { renderTwiML, buildSay, buildGather, buildRecord, buildHangup } from "./_core/voiceTwiML";
 import { getDb } from "./db";
 import { requireClientPaymentsAccount, getStripeAccountForUser } from "./_core/stripeConnect";
@@ -2628,9 +2629,11 @@ export const appRouter = router({
         createdAt: users.createdAt,
       }).from(users).where(eq(users.id, ctx.user.id)).limit(1);
       if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
-      const [clientCount] = await db.select({ count: sql<number>`COUNT(*)` }).from(clients).where(eq(clients.userId, ctx.user.id));
-      const [jobCount] = await db.select({ count: sql<number>`COUNT(*)` }).from(jobs).where(eq(jobs.userId, ctx.user.id));
-      const [invoiceCount] = await db.select({ count: sql<number>`COUNT(*)` }).from(invoices).where(eq(invoices.userId, ctx.user.id));
+      // Sample-data rows are excluded on purpose: exploring with demo data must
+      // never satisfy the operational-in-under-an-hour guarantee.
+      const [clientCount] = await db.select({ count: sql<number>`COUNT(*)` }).from(clients).where(and(eq(clients.userId, ctx.user.id), notLike(clients.name, `${DEMO_CLIENT_PREFIX}%`)));
+      const [jobCount] = await db.select({ count: sql<number>`COUNT(*)` }).from(jobs).where(and(eq(jobs.userId, ctx.user.id), notLike(jobs.jobNumber, `${DEMO_JOB_PREFIX}%`)));
+      const [invoiceCount] = await db.select({ count: sql<number>`COUNT(*)` }).from(invoices).where(and(eq(invoices.userId, ctx.user.id), notLike(invoices.clientName, `${DEMO_CLIENT_PREFIX}%`)));
       const services = Array.isArray(user.bookingServices) ? user.bookingServices : (() => { try { return JSON.parse(user.bookingServices || "[]"); } catch { return []; } })();
       const steps = [
         { id: "profile", label: "Add your business name", detail: "Clients see it on invoices, proposals, and the booking page.", minutes: 2, done: Boolean(user.businessName), panel: "settings" },
@@ -6841,6 +6844,116 @@ Only include actions when you have actually generated a complete draft. For gene
         if (toInsert.length) await db.insert(services).values(toInsert.map(service => ({ userId: ctx.user.id, name: service.name, description: service.description, price: "0", durationMinutes: service.durationMinutes, category: "fast_start", active: true })));
         return { added: toInsert.length, skipped: selectedServices.length - toInsert.length };
       }),
+
+    /** Reports whether sample data is currently seeded (drives the Import panel card). */
+    demoStatus: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [row] = await db.select({ count: sql<number>`COUNT(*)` })
+        .from(clients)
+        .where(and(eq(clients.userId, ctx.user.id), like(clients.name, `${DEMO_CLIENT_PREFIX}%`)));
+      return { seeded: Number(row.count) > 0, sampleClients: Number(row.count) };
+    }),
+
+    /** One-click sample data: four prefixed clients, three jobs, four bookings,
+     *  three invoices — realistic enough to explore every dashboard, clearly
+     *  marked so it can never be mistaken for real work, and removable with a
+     *  single click. Idempotent: a second call is an honest no-op. */
+    seedDemoData: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await requireDb();
+      const uid = ctx.user.id;
+
+      const [existing] = await db.select({ id: clients.id }).from(clients)
+        .where(and(eq(clients.userId, uid), like(clients.name, `${DEMO_CLIENT_PREFIX}%`))).limit(1);
+      if (existing) return { alreadySeeded: true, clients: 0, jobs: 0, bookings: 0, invoices: 0 };
+
+      const demoClients = [
+        { name: `${DEMO_CLIENT_PREFIX}Rivera Home Remodel`, email: "sample.rivera@example.com", phone: "+15125550101", service: "Kitchen remodel", status: "active" as const },
+        { name: `${DEMO_CLIENT_PREFIX}Chen Landscaping`, email: "sample.chen@example.com", phone: "+15125550102", service: "Weekly maintenance", status: "active" as const },
+        { name: `${DEMO_CLIENT_PREFIX}Okafor Design Studio`, email: "sample.okafor@example.com", phone: "+15125550103", service: "Brand refresh", status: "active" as const },
+        { name: `${DEMO_CLIENT_PREFIX}Midtown Coffee Co.`, email: "sample.midtown@example.com", phone: "+15125550104", service: "POS installation", status: "prospect" as const },
+      ].map(client => ({ ...client, userId: uid }));
+      // Multi-row insert: mysql2 returns ONE OkPacket whose insertId is the
+      // first row's id; the rest are sequential by construction (single statement).
+      const [inserted] = await db.insert(clients).values(demoClients);
+      const firstClientId = Number((inserted as any).insertId);
+      const clientIds = demoClients.map((_, i) => firstClientId + i);
+
+      const day = (offsetDays: number) => {
+        const d = new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000);
+        return d.toISOString().slice(0, 10);
+      };
+
+      const demoJobs = [
+        { clientId: clientIds[0], jobNumber: `${DEMO_JOB_PREFIX}1`, title: `${DEMO_CLIENT_PREFIX}Kitchen cabinet install`, status: "scheduled" as const, priority: "normal" as const, startDate: day(3), description: "Sample job — scheduled work to explore the dashboard. Remove with one click from the Import panel." },
+        { clientId: clientIds[1], jobNumber: `${DEMO_JOB_PREFIX}2`, title: `${DEMO_CLIENT_PREFIX}Weekly grounds maintenance`, status: "in_progress" as const, priority: "low" as const, startDate: day(0), description: "Sample job — in-progress work to explore the dashboard. Remove with one click from the Import panel." },
+        { clientId: clientIds[2], jobNumber: `${DEMO_JOB_PREFIX}3`, title: `${DEMO_CLIENT_PREFIX}Signage package install`, status: "completed" as const, priority: "normal" as const, startDate: day(-4), description: "Sample job — completed work to explore the dashboard. Remove with one click from the Import panel." },
+      ].map(job => ({
+        ...job, userId: uid,
+        completedAt: job.status === "completed" ? new Date() : null,
+      }));
+      await db.insert(jobs).values(demoJobs);
+
+      await db.insert(bookings).values([
+        { userId: uid, clientId: clientIds[0], clientName: demoClients[0].name, service: "Site walkthrough", date: day(2), time: "09:00", duration: 60, status: "scheduled" as const, isPublicBooking: false },
+        { userId: uid, clientId: clientIds[1], clientName: demoClients[1].name, service: "Weekly service visit", date: day(5), time: "14:00", duration: 90, status: "scheduled" as const, isPublicBooking: false },
+        { userId: uid, clientId: clientIds[2], clientName: demoClients[2].name, service: "Design review", date: day(8), time: "11:00", duration: 60, status: "scheduled" as const, isPublicBooking: false },
+        { userId: uid, clientId: clientIds[3], clientName: demoClients[3].name, service: "Estimate visit", date: day(10), time: "10:30", duration: 45, status: "scheduled" as const, isPublicBooking: false },
+      ]);
+
+      await db.insert(invoices).values([
+        { userId: uid, clientId: clientIds[0], invoiceNumber: `${DEMO_INVOICE_PREFIX}001`, clientName: demoClients[0].name, clientEmail: demoClients[0].email, service: "Kitchen remodel — deposit", amount: "2500.00", status: "sent" as const, dueDate: day(14), notes: "Sample invoice — explores your billing views. Remove with one click from the Import panel.", lineItems: JSON.stringify([{ description: "Remodel deposit", qty: 1, unitPrice: 2500 }]) },
+        { userId: uid, clientId: clientIds[1], invoiceNumber: `${DEMO_INVOICE_PREFIX}002`, clientName: demoClients[1].name, clientEmail: demoClients[1].email, service: "Monthly maintenance retainer", amount: "480.00", status: "paid" as const, dueDate: day(-2), paidAt: new Date(), notes: "Sample invoice (paid) — explores your revenue views. Remove with one click from the Import panel.", lineItems: JSON.stringify([{ description: "Weekly maintenance (4 visits)", qty: 4, unitPrice: 120 }]) },
+        { userId: uid, clientId: clientIds[2], invoiceNumber: `${DEMO_INVOICE_PREFIX}003`, clientName: demoClients[2].name, clientEmail: demoClients[2].email, service: "Brand refresh — phase 2", amount: "1200.00", status: "draft" as const, dueDate: day(21), notes: "Sample draft invoice — explores your billing views. Remove with one click from the Import panel.", lineItems: JSON.stringify([{ description: "Design phase 2", qty: 1, unitPrice: 1200 }]) },
+      ]);
+
+      await db.insert(auditLogs).values({
+        userId: uid, action: "onboarding.demo.seeded", entityType: "onboarding", entityId: 0,
+        details: JSON.stringify({ clients: 4, jobs: 3, bookings: 4, invoices: 3 }),
+      });
+      return { alreadySeeded: false, clients: 4, jobs: 3, bookings: 4, invoices: 3 };
+    }),
+
+    /** Removes every sample row this account owns — and only sample rows. Real
+     *  clients, jobs, bookings, and invoices are never matched by the prefixes. */
+    clearDemoData: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await requireDb();
+      const uid = ctx.user.id;
+
+      const sampleClients = await db.select({ id: clients.id }).from(clients)
+        .where(and(eq(clients.userId, uid), like(clients.name, `${DEMO_CLIENT_PREFIX}%`)));
+      const sampleClientIds = sampleClients.map(row => row.id);
+
+      const inSampleClients = sampleClientIds.length ? inArray(bookings.clientId, sampleClientIds) : sql`FALSE`;
+      const bookingResult = await db.delete(bookings).where(and(
+        eq(bookings.userId, uid),
+        or(like(bookings.clientName, `${DEMO_CLIENT_PREFIX}%`), inSampleClients),
+      ));
+      const bookingsDeleted = Number((bookingResult as any)[0]?.affectedRows ?? 0);
+
+      const jobResult = await db.delete(jobs).where(and(
+        eq(jobs.userId, uid),
+        or(like(jobs.jobNumber, `${DEMO_JOB_PREFIX}%`), sampleClientIds.length ? inArray(jobs.clientId, sampleClientIds) : sql`FALSE`),
+      ));
+      const jobsDeleted = Number((jobResult as any)[0]?.affectedRows ?? 0);
+
+      const invoiceResult = await db.delete(invoices).where(and(
+        eq(invoices.userId, uid),
+        or(like(invoices.clientName, `${DEMO_CLIENT_PREFIX}%`), like(invoices.invoiceNumber, `${DEMO_INVOICE_PREFIX}%`), sampleClientIds.length ? inArray(invoices.clientId, sampleClientIds) : sql`FALSE`),
+      ));
+      const invoicesDeleted = Number((invoiceResult as any)[0]?.affectedRows ?? 0);
+
+      const clientResult = await db.delete(clients).where(and(
+        eq(clients.userId, uid),
+        like(clients.name, `${DEMO_CLIENT_PREFIX}%`),
+      ));
+      const clientsDeleted = Number((clientResult as any)[0]?.affectedRows ?? 0);
+
+      await db.insert(auditLogs).values({
+        userId: uid, action: "onboarding.demo.cleared", entityType: "onboarding", entityId: 0,
+        details: JSON.stringify({ clients: clientsDeleted, jobs: jobsDeleted, bookings: bookingsDeleted, invoices: invoicesDeleted }),
+      });
+      return { clients: clientsDeleted, jobs: jobsDeleted, bookings: bookingsDeleted, invoices: invoicesDeleted };
+    }),
   }),
 
   // ── Global Search ─────────────────────────────────────────────────────────

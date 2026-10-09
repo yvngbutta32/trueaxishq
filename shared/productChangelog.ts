@@ -18,6 +18,12 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-08",
+    title: "Explore with sample data — one click in, one click out",
+    tag: "Platform",
+    description: "New owners no longer face empty dashboards. The Import panel can seed four clearly-marked sample clients with jobs, bookings, and invoices to explore every screen with realistic data, then remove all of it with a single click. Sample records carry a “Sample — ” prefix and reserved contact details so they can never be mistaken for real work, the removal matches only prefixed rows so real records are untouchable, and sample data is excluded from first-hour setup progress — exploring never fakes “operational.”",
+  },
+  {
+    date: "2026-10-08",
     title: "The landing page now moves as you scroll",
     tag: "Platform",
     description: "Design pass, part two: the public site earned the same motion language the dashboard got. Sections now rise into place the first time they enter your view instead of sitting flat — the stats strip and feature cards cascade one after another, the product demo and AI showcase arrive as composed blocks, and the booking page and client portal greet you with the same soft entrance. Each section reveals exactly once and never replays, and customers with reduced-motion enabled in their OS see everything instantly, completely still.",

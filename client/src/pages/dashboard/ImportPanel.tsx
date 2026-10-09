@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, ArrowRight, CheckCircle2, CircleAlert, Download, FileUp, HardDriveDownload, Loader2, RefreshCw, Users, Wrench } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, CircleAlert, Download, FileUp, HardDriveDownload, Loader2, RefreshCw, Sparkles, Trash2, Users, Wrench } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 /* Data import wizard — the switching moat. Guides a business owner from a
@@ -96,6 +96,24 @@ export default function ImportPanel() {
   }, [exportQuery.data, exportQuery.isFetching]);
 
   const [step, setStep] = useState<Step>("target");
+  const trpcUtils = trpc.useUtils();
+
+  // Sample-data explorer: one click in, one click out — never touches real rows.
+  const demoStatus = trpc.onboarding.demoStatus.useQuery(undefined, { refetchOnMount: "always" });
+  const [demoError, setDemoError] = useState<string | null>(null);
+
+  // Sample data changes client/invoice/job lists everywhere, so both actions
+  // invalidate the queries the dashboards read.
+  const seedDemo = trpc.onboarding.seedDemoData.useMutation({
+    onMutate: () => setDemoError(null),
+    onSuccess: async () => { await trpcUtils.invalidate(); },
+    onError: (err) => setDemoError(err.message),
+  });
+  const clearDemo = trpc.onboarding.clearDemoData.useMutation({
+    onMutate: () => setDemoError(null),
+    onSuccess: async () => { await trpcUtils.invalidate(); },
+    onError: (err) => setDemoError(err.message),
+  });
   const [target, setTarget] = useState<Target>("clients");
   const [csvText, setCsvText] = useState("");
   const [mapping, setMapping] = useState<Record<string, number>>({});
@@ -374,6 +392,41 @@ export default function ImportPanel() {
           </div>
         </section>
       )}
+
+      <section aria-labelledby="demo-heading" className="mt-10 rounded-2xl border border-[rgba(26,26,26,0.1)] bg-[#FAFAF8] p-5">
+        <h3 id="demo-heading" className="flex items-center gap-2 font-bold text-[#1A1A1A]"><Sparkles className="h-4 w-4" /> Try it with sample data</h3>
+        <p className="mt-1 text-sm text-[rgba(26,26,26,0.7)]">
+          Not ready to import your real list? Seed four sample clients with jobs, bookings, and invoices to explore every dashboard with realistic data.
+          Each sample record is clearly marked “Sample — ” and removable with one click — your real records are never touched, and sample data never counts toward your first-hour setup progress.
+        </p>
+        {demoStatus.data?.seeded ? (
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">Sample data loaded</span>
+            <button
+              type="button"
+              disabled={seedDemo.isPending || clearDemo.isPending}
+              onClick={() => clearDemo.mutate()}
+              className="inline-flex items-center gap-2 rounded-xl border border-[#B42318]/40 px-4 py-2 text-sm font-bold text-[#B42318] hover:bg-[#B42318]/10 disabled:opacity-60"
+            >
+              {clearDemo.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              {clearDemo.isPending ? "Removing…" : "Remove all sample data"}
+            </button>
+          </div>
+        ) : (
+          <div className="mt-4">
+            <button
+              type="button"
+              disabled={seedDemo.isPending || clearDemo.isPending}
+              onClick={() => seedDemo.mutate()}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#1A3C2E] px-4 py-2 text-sm font-bold text-white hover:bg-[#143024] disabled:opacity-60"
+            >
+              {seedDemo.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {seedDemo.isPending ? "Adding sample data…" : "Add sample data"}
+            </button>
+          </div>
+        )}
+        {demoError && <p className="mt-2 text-sm font-bold text-[#B42318]">{demoError}</p>}
+      </section>
 
       <section aria-labelledby="export-heading" className="mt-10 rounded-2xl border border-[rgba(26,26,26,0.1)] bg-[#FAFAF8] p-5">
         <h3 id="export-heading" className="flex items-center gap-2 font-bold text-[#1A1A1A]"><HardDriveDownload className="h-4 w-4" /> Export all your data</h3>
