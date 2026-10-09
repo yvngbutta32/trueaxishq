@@ -88,6 +88,17 @@ export async function recordSession(userId: number, token: string, req: Request)
   });
 }
 
+/** Revokes EVERY active session for a user — used when an Agency parent
+ *  suspends a sub-account or resets its password: the parent's decision must
+ *  stop access NOW, not at the next sign-in. */
+export async function revokeAllSessionsForUser(userId: number, reason: "admin_revoke" | "password_changed"): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(userSessions)
+    .set({ isActive: false, invalidatedAt: new Date(), invalidationReason: reason })
+    .where(and(eq(userSessions.userId, userId), eq(userSessions.isActive, true)));
+}
+
 export async function revokeSession(token: string | undefined | null, reason: "logout" | "password_changed" | "admin_revoke" = "logout"): Promise<void> {
   if (!token) return;
   const db = await getDb();
@@ -188,6 +199,10 @@ export async function loginUser(data: {
 
   const valid = await verifyPassword(data.password, user.passwordHash);
   if (!valid) throw new Error("INVALID_CREDENTIALS");
+
+  // Suspended Agency sub-accounts keep their data but cannot sign in —
+  // the parent operator decides when access resumes.
+  if (user.subSuspended === true) throw new Error("ACCOUNT_SUSPENDED");
 
   // Update lastSignedIn
   await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, user.id));

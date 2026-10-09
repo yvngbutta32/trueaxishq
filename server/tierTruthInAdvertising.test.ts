@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
-  PLANS, PLAN_LIST, VOICE_LINE_MINUTES, SMS_INCLUDED_MONTHLY,
+  PLANS, PLAN_LIST, VOICE_LINE_MINUTES, SMS_INCLUDED_MONTHLY, SUB_ACCOUNT_LIMITS,
   PRO_FEATURES, planUnlocksProFeature, FEATURE_MIN_PLAN,
 } from "../shared/plans";
 
@@ -52,12 +52,27 @@ describe("tier truth-in-advertising (price cards match shipped reality)", () => 
 
   it("no tier advertises anything the product does not ship", () => {
     const vaporware = [
-      "sub-account", "Shared client database", "lead scoring", "Dedicated account manager",
+      "Shared client database", "lead scoring", "Dedicated account manager",
       "SLA", "Custom AI training", "Revenue sharing", "Custom integrations",
       "Up to 20", "(5/month)", "Unlimited active clients",
     ];
     for (const claim of vaporware) {
       expect(allCards).not.toContain(claim);
+    }
+  });
+
+  it("Agency's sub-account claim is shipped: gated, capped, and isolated (not vaporware)", () => {
+    expect(agencyCard).toContain("Up to 10 managed client workspaces (sub-accounts)");
+    expect(SUB_ACCOUNT_LIMITS.agency).toBe(10);
+    expect(FEATURE_MIN_PLAN.subAccounts).toBe("agency");
+    expect(planUnlocksProFeature("pro", "subAccounts")).toBe(false); // Pro cannot create subs
+    expect(planUnlocksProFeature("agency", "subAccounts")).toBe(true);
+    const routers = source("./routers.ts");
+    expect(routers).toContain("agencyRouter = router({");
+    for (const op of ["listSubAccounts", "createSubAccount", "setSubAccountStatus", "resetSubAccountPassword"]) {
+      const at = routers.indexOf(`${op}: protectedProcedure`);
+      expect(at).toBeGreaterThan(-1);
+      expect(routers.slice(at, at + 400)).toContain('requirePlanFeature(db, ctx.user.id, "subAccounts")');
     }
   });
 

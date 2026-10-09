@@ -18,7 +18,7 @@ import { notifyOwner } from "./_core/notification";
 import { geocodeLabelWithNominatim, normalizeGeocodeLabel, GEOCODE_BATCH_LIMIT } from "./_core/geocode";
 import { getVoiceStatus, VOICE_DEFAULT_GREETING } from "./_core/voiceAgent";
 import { buyLineNumber, getActiveLine, getLineOverview, getVoiceLineStatus as getVoiceLineDeploymentStatus, releaseLineNumber } from "./_core/voiceLines";
-import { voiceLineMinutesFor } from "../shared/plans";
+import { voiceLineMinutesFor, subAccountLimitFor } from "../shared/plans";
 import { DEMO_CLIENT_PREFIX, DEMO_INVOICE_PREFIX, DEMO_JOB_PREFIX } from "../shared/demoData";
 import { renderTwiML, buildSay, buildGather, buildRecord, buildHangup } from "./_core/voiceTwiML";
 import { getDb } from "./db";
@@ -30,7 +30,7 @@ import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
 import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions, stripeAccounts, voiceSettings, voiceCalls, voiceLines } from "../drizzle/schema";
-import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, hashPassword, verifyPassword } from "./auth";
+import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, revokeAllSessionsForUser, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
 import { computeClientPulse, computeAllClientPulses } from "./pulseEngine";
@@ -709,9 +709,131 @@ const voiceRouter = router({
   }),
 });
 
+// ─── Agency Sub-Accounts (managed client workspaces) ────────────────────────
+// The Agency tier's flagship differentiator: the operator can run up to
+// SUB_ACCOUNT_LIMITS.agency separate client workspaces (crews, locations, or
+// managed businesses). A sub-account is a normal user row owned by its parent,
+// so EVERY existing per-userId isolation rule applies unchanged — a sub sees
+// only its own data, and the parent never sees subs' rows through ordinary
+// queries either. Sub workspaces carry the Pro feature set. Only the parent
+// (plan-gated Agency) can create, suspend, reactivate, and reset them.
+const agencyRouter = router({
+  listSubAccounts: protectedProcedure.query(async ({ ctx }) => {
+    const db = await requireDb();
+    await requirePlanFeature(db, ctx.user.id, "subAccounts");
+    const limit = subAccountLimitFor(await getPlanTier(db, ctx.user.id));
+    const subs = await db.select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      businessName: users.businessName,
+      subSuspended: users.subSuspended,
+      createdAt: users.createdAt,
+      lastSignedIn: users.lastSignedIn,
+    }).from(users).where(eq(users.parentUserId, ctx.user.id)).orderBy(asc(users.id));
+    if (subs.length === 0) return { subs: [], limit };
+    const ids = subs.map(sub => sub.id);
+    const [clientRows, jobRows, invoiceRows] = await Promise.all([
+      db.select({ userId: clients.userId, count: sql<number>`COUNT(*)` }).from(clients).where(inArray(clients.userId, ids)).groupBy(clients.userId),
+      db.select({ userId: jobs.userId, count: sql<number>`COUNT(*)` }).from(jobs).where(inArray(jobs.userId, ids)).groupBy(jobs.userId),
+      db.select({ userId: invoices.userId, count: sql<number>`COUNT(*)` }).from(invoices).where(inArray(invoices.userId, ids)).groupBy(invoices.userId),
+    ]);
+    const tally = (rows: { userId: number; count: number }[]) => new Map(rows.map(r => [r.userId, Number(r.count)]));
+    const clientMap = tally(clientRows), jobMap = tally(jobRows), invoiceMap = tally(invoiceRows);
+    return {
+      limit,
+      subs: subs.map(sub => ({
+        ...sub,
+        clients: clientMap.get(sub.id) ?? 0,
+        jobs: jobMap.get(sub.id) ?? 0,
+        invoices: invoiceMap.get(sub.id) ?? 0,
+      })),
+    };
+  }),
+
+  createSubAccount: protectedProcedure
+    .input(z.object({
+      businessName: safeString(255),
+      email: z.string().trim().toLowerCase().email().max(320),
+      password: strongPasswordSchema,
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDb();
+      await requirePlanFeature(db, ctx.user.id, "subAccounts");
+      const [dup] = await db.select({ id: users.id }).from(users).where(eq(users.email, input.email)).limit(1);
+      if (dup) throw new TRPCError({ code: "CONFLICT", message: "That email already has a TrueAxis HQ account. Sub-accounts need their own email address." });
+      const [countRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(users).where(eq(users.parentUserId, ctx.user.id));
+      const limit = subAccountLimitFor(await getPlanTier(db, ctx.user.id));
+      if (Number(countRow.count) >= limit) {
+        throw new TRPCError({ code: "FORBIDDEN", message: `Your Agency plan includes up to ${limit} sub-accounts. Suspend or reuse an existing workspace instead.` });
+      }
+      const passwordHash = await hashPassword(input.password);
+      const [result] = await db.insert(users).values({
+        openId: `email:${input.email}`,
+        name: input.businessName,
+        email: input.email,
+        role: "user",
+        loginMethod: "password",
+        passwordHash,
+        planId: "pro", // sub workspaces run the Pro feature set under the Agency subscription
+        parentUserId: ctx.user.id,
+        businessName: input.businessName,
+      });
+      const id = Number((result as any).insertId);
+      await db.insert(auditLogs).values({
+        userId: ctx.user.id, action: "agency.subaccount.created", entityType: "user", entityId: id,
+        details: JSON.stringify({ email: input.email, businessName: input.businessName }),
+      });
+      return { id, email: input.email, businessName: input.businessName };
+    }),
+
+  setSubAccountStatus: protectedProcedure
+    .input(z.object({ id: z.number().int().positive(), suspended: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDb();
+      await requirePlanFeature(db, ctx.user.id, "subAccounts");
+      // Ownership is enforced in the WHERE clause: a parent can only ever
+      // touch workspaces whose parentUserId is its own id.
+      const [sub] = await db.select({ id: users.id }).from(users)
+        .where(and(eq(users.id, input.id), eq(users.parentUserId, ctx.user.id))).limit(1);
+      if (!sub) throw new TRPCError({ code: "NOT_FOUND", message: "Sub-account not found." });
+      await db.update(users).set({ subSuspended: input.suspended, updatedAt: new Date() })
+        .where(and(eq(users.id, input.id), eq(users.parentUserId, ctx.user.id)));
+      // Suspension stops access immediately: every live session the
+      // workspace held (phone, laptop) is revoked, not just future sign-ins.
+      if (input.suspended) await revokeAllSessionsForUser(input.id, "admin_revoke");
+      await db.insert(auditLogs).values({
+        userId: ctx.user.id, action: input.suspended ? "agency.subaccount.suspended" : "agency.subaccount.reactivated",
+        entityType: "user", entityId: input.id, details: JSON.stringify({ suspended: input.suspended }),
+      });
+      return { success: true };
+    }),
+
+  resetSubAccountPassword: protectedProcedure
+    .input(z.object({ id: z.number().int().positive(), password: strongPasswordSchema }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDb();
+      await requirePlanFeature(db, ctx.user.id, "subAccounts");
+      const [sub] = await db.select({ id: users.id }).from(users)
+        .where(and(eq(users.id, input.id), eq(users.parentUserId, ctx.user.id))).limit(1);
+      if (!sub) throw new TRPCError({ code: "NOT_FOUND", message: "Sub-account not found." });
+      const passwordHash = await hashPassword(input.password);
+      await db.update(users).set({ passwordHash, updatedAt: new Date() })
+        .where(and(eq(users.id, input.id), eq(users.parentUserId, ctx.user.id)));
+      // A password reset by the parent invalidates the sub's existing sessions too.
+      await revokeAllSessionsForUser(input.id, "password_changed");
+      await db.insert(auditLogs).values({
+        userId: ctx.user.id, action: "agency.subaccount.password_reset", entityType: "user", entityId: input.id,
+        details: JSON.stringify({ by: "parent" }),
+      });
+      return { success: true };
+    }),
+});
+
 export const appRouter = router({
   voice: voiceRouter,
   system: systemRouter,
+  agency: agencyRouter,
 
   // ── Two-factor authentication (TOTP) ────────────────────────────────────────
   twoFactor: router({
@@ -1004,6 +1126,9 @@ export const appRouter = router({
           ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
           return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
         } catch (err: any) {
+          if (err?.message === "ACCOUNT_SUSPENDED") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "This workspace has been suspended by its agency administrator. Contact your agency to restore access." });
+          }
           if (err?.message === "INVALID_CREDENTIALS" || err?.message === "NO_PASSWORD") {
             recordFailedLogin(input.email, ip, ctx.req);
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });
@@ -1078,6 +1203,9 @@ export const appRouter = router({
           return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
         } catch (err: any) {
           if (err instanceof TRPCError) throw err;
+          if (err?.message === "ACCOUNT_SUSPENDED") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "This workspace has been suspended by its agency administrator. Contact your agency to restore access." });
+          }
           if (err?.message === "INVALID_CREDENTIALS" || err?.message === "NO_PASSWORD") {
             recordFailedLogin(input.email, ip, ctx.req);
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });

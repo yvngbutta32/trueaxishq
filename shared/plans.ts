@@ -82,6 +82,7 @@ export const PLANS: Record<PlanId, Plan> = {
     features: [
       "Everything in Pro, plus:",
       "White-label booking pages",
+      "Up to 10 managed client workspaces (sub-accounts)",
       "5,000 bundled SMS/month",
       "2,500 bundled voice minutes/month",
       "Highest fair-use allowances",
@@ -104,6 +105,26 @@ export const VOICE_LINE_MINUTES: Record<string, number> = {
   pro: 1000,
   agency: 2500,
 };
+
+// ── Agency sub-accounts (managed client workspaces) ───────────────────────
+// The Agency tier is the only plan that can create sub-accounts. Each
+// sub-account is a full workspace (Pro feature set) for one of the
+// operator's crews, locations, or managed client businesses. The cap bounds
+// the platform's worst-case bundled usage: 10 Pro workspaces max out at
+// 20,000 SMS (~$80/mo at $0.004/segment) + 10,000 voice minutes (~$181/mo
+// at $0.0181/min) = ~$261/mo against the $299 price — real usage is far
+// lower, so the tier stays profitable by construction.
+export const SUB_ACCOUNT_LIMITS: Record<string, number> = {
+  free: 0,
+  starter: 0,
+  pro: 0,
+  agency: 10,
+};
+
+export function subAccountLimitFor(planId: string | null | undefined): number {
+  const key = (planId ?? "free").trim().toLowerCase();
+  return SUB_ACCOUNT_LIMITS[key] ?? 0;
+}
 
 export function voiceLineMinutesFor(planId: string | null | undefined): number {
   const key = (planId ?? "free").trim().toLowerCase();
@@ -135,7 +156,7 @@ export function smsIncludedFor(planId: string | null | undefined): number {
 // Starter are honest, complete tools for their tier — never crippled traps.
 export const PRO_FEATURES = [
   "liveTracking", "routeOptimizer", "capacityForecast", "priceBook",
-  "customReports", "subcontractors", "restApi", "webhooks", "voiceAgent",
+  "customReports", "subcontractors", "restApi", "webhooks", "voiceAgent", "subAccounts",
 ] as const;
 export type ProFeature = typeof PRO_FEATURES[number];
 
@@ -149,12 +170,13 @@ export const PRO_FEATURE_LABELS: Record<ProFeature, string> = {
   restApi: "Public REST API keys",
   webhooks: "Outbound webhooks",
   voiceAgent: "AI voice receptionist",
+  subAccounts: "Managed client workspaces (sub-accounts)",
 };
 
 /** The lowest tier that unlocks each gated feature. Starter carries the
  *  flagship claims the pricing card advertises at $49 (live tracking);
  *  the advanced operating layer stays Pro. Oct 2026 truth-in-advertising fix. */
-export const FEATURE_MIN_PLAN: Record<ProFeature, "starter" | "pro"> = {
+export const FEATURE_MIN_PLAN: Record<ProFeature, "starter" | "pro" | "agency"> = {
   liveTracking: "starter",
   routeOptimizer: "pro",
   capacityForecast: "pro",
@@ -164,6 +186,7 @@ export const FEATURE_MIN_PLAN: Record<ProFeature, "starter" | "pro"> = {
   restApi: "pro",
   webhooks: "pro",
   voiceAgent: "pro",
+  subAccounts: "agency",
 };
 
 const PLAN_RANK: Record<string, number> = { free: 0, starter: 1, pro: 2, agency: 3 };
@@ -171,7 +194,8 @@ const PLAN_RANK: Record<string, number> = { free: 0, starter: 1, pro: 2, agency:
 /** Human name of the cheapest plan that unlocks a gated feature — used by
  *  server errors and client lock cards so upgrade copy is never wrong. */
 export function featureMinPlanLabel(feature: ProFeature): string {
-  return FEATURE_MIN_PLAN[feature] === "starter" ? "Starter" : "Pro";
+  const min = FEATURE_MIN_PLAN[feature];
+  return min === "starter" ? "Starter" : min === "agency" ? "Agency" : "Pro";
 }
 
 export function planUnlocksProFeature(planId: string | null | undefined, feature: ProFeature): boolean {

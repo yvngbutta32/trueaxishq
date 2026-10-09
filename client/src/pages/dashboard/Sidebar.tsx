@@ -21,7 +21,7 @@ import { HealthMonitor } from "@/components/HealthMonitor";
 import { PanelErrorBoundary } from "@/components/PanelErrorBoundary";
 import GlobalSearch from "@/components/GlobalSearch";
 import { PanelTabs } from "@/components/PanelTabs";
-import { Activity, AlertCircle, ArrowRight, ArrowUpRight, BarChart3, Bell, Bot, Building, Calendar, CalendarX, Camera, Check, CheckCircle, ChevronDown, ChevronRight, Clock, Copy, CreditCard, Crown, DollarSign, Download, Edit2, ExternalLink, Eye, EyeOff, FileBarChart, FileSignature, FileText, Globe, HardHat, HeartPulse, Home, Inbox, LayoutDashboard, Link, Link2, Loader2, LogOut, Mail, MapPin, MessageSquare, MoreHorizontal, Package, Phone, PlugZap, Plus, Printer, Receipt, RefreshCw, Rocket, Save, Search, Send, Settings, Shield, Smartphone, Sparkles, Star, Tag, ThumbsUp, ToggleLeft, ToggleRight, Trash2, TrendingUp, Upload, User, Users, UsersRound, Webhook, Wifi, WifiOff, X, Zap } from "lucide-react";
+import { Building2, Activity, AlertCircle, ArrowRight, ArrowUpRight, BarChart3, Bell, Bot, Building, Calendar, CalendarX, Camera, Check, CheckCircle, ChevronDown, ChevronRight, Clock, Copy, CreditCard, Crown, DollarSign, Download, Edit2, ExternalLink, Eye, EyeOff, FileBarChart, FileSignature, FileText, Globe, HardHat, HeartPulse, Home, Inbox, LayoutDashboard, Link, Link2, Loader2, LogOut, Mail, MapPin, MessageSquare, MoreHorizontal, Package, Phone, PlugZap, Plus, Printer, Receipt, RefreshCw, Rocket, Save, Search, Send, Settings, Shield, Smartphone, Sparkles, Star, Tag, ThumbsUp, ToggleLeft, ToggleRight, Trash2, TrendingUp, Upload, User, Users, UsersRound, Webhook, Wifi, WifiOff, X, Zap } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, BarChart, Bar,
@@ -74,6 +74,7 @@ const navGroups: { label: string; items: { icon: React.ElementType; label: strin
     items: [
       { icon: PlugZap,         label: "Integrations", panel: "integrations" },
       { icon: Webhook,         label: "Webhooks",    panel: "webhooks"   },
+      { icon: Building2,      label: "Sub-Accounts", panel: "agency"     },
       { icon: Download,       label: "Import Data", panel: "import"   },
       { icon: Settings,        label: "Settings",   panel: "settings"   },
       { icon: Bot,             label: "AI Assistant", panel: "ai"       },

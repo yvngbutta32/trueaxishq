@@ -51,6 +51,12 @@ export const users = mysqlTable("users", {
   // Two-factor authentication (TOTP, RFC 6238)
   twoFactorSecret: varchar("twoFactorSecret", { length: 64 }),
   twoFactorEnabled: boolean("twoFactorEnabled").default(false).notNull(),
+  // Agency sub-accounts: this workspace is owned by a parent Agency-plan user.
+  // parentUserId is set ONLY by the agency.createSubAccount procedure —
+  // self-registered accounts always keep it NULL.
+  parentUserId: int("parentUserId"),
+  // Suspended sub-accounts keep their data but cannot sign in.
+  subSuspended: boolean("subSuspended").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

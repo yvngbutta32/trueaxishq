@@ -17,6 +17,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-09",
+    title: "Agency owners can run managed client workspaces (sub-accounts)",
+    tag: "Platform",
+    description: "The Agency plan's flagship capability is here: operators can create up to ten separate, fully-isolated workspaces — one per crew, location, or managed client business. Each workspace signs in with its own email, sees only its own clients, jobs, and invoices (isolation is enforced server-side on every query), and carries the complete Pro feature set under the Agency subscription. Owners can suspend or reactivate a workspace at any time — suspended workspaces keep every byte of data but cannot sign in — and reset passwords when a client loses one. Every action is audit-logged.",
+  },
+
+  {
     date: "2026-10-08",
     title: "Explore with sample data — one click in, one click out",
     tag: "Platform",

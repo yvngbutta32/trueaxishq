@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { PRO_FEATURES, featureEntitlements, planUnlocksProFeature, PRO_FEATURE_LABELS } from "../shared/plans";
+import { FEATURE_MIN_PLAN, PRO_FEATURES, featureEntitlements, planUnlocksProFeature, PRO_FEATURE_LABELS } from "../shared/plans";
 
 const source = (rel: string) => readFileSync(resolve(import.meta.dirname, rel), "utf8");
 
@@ -15,7 +15,10 @@ describe("plan-tier feature gating (Pro operating layer)", () => {
       expect(starterEntitlements[feature]).toBe(feature === "liveTracking");
     }
     for (const feature of PRO_FEATURES) {
-      expect(planUnlocksProFeature("pro", feature)).toBe(true);
+      // subAccounts is the Agency-only differentiator ($299); every other
+      // gated feature unlocks at Pro.
+      const proUnlocks = FEATURE_MIN_PLAN[feature] !== "agency";
+      expect(planUnlocksProFeature("pro", feature)).toBe(proUnlocks);
       expect(planUnlocksProFeature("agency", feature)).toBe(true);
     }
     // unknown/missing plan falls back to free, never to full access
@@ -30,7 +33,7 @@ describe("plan-tier feature gating (Pro operating layer)", () => {
   it("every gated router enforces the feature server-side — client locks are UX only", () => {
     const routers = source("./routers.ts");
     const gates = routers.split('requirePlanFeature(db, ctx.user.id,').length - 1;
-    expect(gates).toBe(32); // 28 + webhooks list/deliveries/processDue + voiceAgent (Oct 8 2026)
+    expect(gates).toBe(36); // 32 + agency list/create/status/resetSubAccountPassword (Oct 9 2026)
     for (const feature of PRO_FEATURES) {
       expect(routers).toContain(`requirePlanFeature(db, ctx.user.id, "${feature}")`);
     }
