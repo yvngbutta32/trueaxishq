@@ -41,7 +41,7 @@ import {
 } from "recharts";
 
 // ─── Changelog Modal ─────────────────────────────────────────────────────────
-const CHANGELOG_VERSION = "1.4.0";
+const CHANGELOG_VERSION = "1.4.1";
 const CHANGELOG_KEY = `trueaxis_changelog_${CHANGELOG_VERSION}`;
 
 function ChangelogModal() {
@@ -63,6 +63,8 @@ function ChangelogModal() {
         </div>
         <div className="p-5 space-y-4">
           {([
+            { emoji: "📱", title: "Fair-Use SMS Meter", desc: "Bundled SMS (50/500/2,000/5,000 by plan) is counted live with honest refusals at the cap. See your monthly usage in Integration Hub → SMS." },
+            { emoji: "👆", title: "Touch & Type Polish", desc: "Every button now meets 24px+ tap standards, AI suggestions wrap cleanly on small screens, and footer links got roomier." },
             { emoji: "🔔", title: "Notification center", desc: "Review available app notifications from the bell menu." },
             { emoji: "⏱", title: "Time Tracking", desc: "Start/stop timer, log billable hours, and see summary stats per client." },
             { emoji: "🔁", title: "Recurring Invoices", desc: "Configure weekly, monthly, or custom invoice plans and review related records in Billing." },
