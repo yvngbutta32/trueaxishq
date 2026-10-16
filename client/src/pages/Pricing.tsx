@@ -114,7 +114,7 @@ export default function Pricing() {
               className="relative w-12 h-6 rounded-full transition-colors focus:outline-none"
               style={{ background: annual ? "#D4922A" : "rgba(26,26,26,0.12)", border: "1px solid rgba(26,26,26,0.12)" }}
             >
-              <div className="absolute top-0.5 w-5 h-5 rounded-full shadow transition-transform" style={{ background: "#FFFFFF", transform: annual ? "translateX(1.5rem)" : "translateX(0.125rem)" }} />
+              <div className="absolute top-0.5 w-5 h-5 rounded-full shadow transition-transform" style={{ background: "var(--card)", transform: annual ? "translateX(1.5rem)" : "translateX(0.125rem)" }} />
             </button>
             <span className="text-sm font-medium flex items-center gap-2" style={{ color: annual ? "#1A1A1A" : "rgba(26,26,26,0.45)" }}>
               Annual
@@ -141,7 +141,7 @@ export default function Pricing() {
                 key={plan.name}
                 className="relative rounded-xl p-6 flex flex-col"
                 style={{
-                  background: plan.popular ? "rgba(232,160,32,0.04)" : "#FFFFFF",
+                  background: plan.popular ? "rgba(232,160,32,0.04)" : "var(--card)",
                   border: plan.popular ? "1px solid rgba(232,160,32,0.30)" : "1px solid rgba(221,219,215,0.90)",
                   boxShadow: plan.popular ? "0 0 40px rgba(232,160,32,0.08)" : "none",
                   transform: plan.popular ? "scale(1.02)" : "scale(1)",
@@ -241,7 +241,7 @@ export default function Pricing() {
               <div
                 key={i}
                 className="grid grid-cols-4 min-w-[480px] px-5 py-3"
-                style={{ background: i % 2 === 0 ? "#FFFFFF" : "#F7F6F3", borderBottom: i < comparisonRows.length - 1 ? "1px solid rgba(221,219,215,0.60)" : "none" }}
+                style={{ background: i % 2 === 0 ? "var(--card)" : "var(--muted)", borderBottom: i < comparisonRows.length - 1 ? "1px solid rgba(221,219,215,0.60)" : "none" }}
               >
                 <div className="text-sm" style={{ color: "rgba(26,26,26,0.85)" }}>{row.feature}</div>
                 {[row.starter, row.pro, row.agency].map((val, j) => (
@@ -305,7 +305,7 @@ export default function Pricing() {
                 <button
                   className="w-full text-left px-5 py-4 flex items-center justify-between text-sm font-semibold"
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  style={{ background: openFaq === i ? "rgba(232,160,32,0.04)" : "#FFFFFF", color: "#1A1A1A", border: "none", minHeight: "auto" }}
+                  style={{ background: openFaq === i ? "rgba(232,160,32,0.04)" : "var(--card)", color: "#1A1A1A", border: "none", minHeight: "auto" }}
                 >
                   {faq.q}
                   <span className="text-lg transition-transform" style={{ color: "#D4922A", transform: openFaq === i ? "rotate(45deg)" : "none", display: "inline-block" }}>+</span>

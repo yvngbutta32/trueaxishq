@@ -17,6 +17,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-16",
+    title: "Soft Studio visual recalibration — zero glare across every page",
+    tag: "Platform",
+    description: "We audited every screen for eye comfort and removed every pure-white surface in the product. Large fields now sit in a restful warm-neutral band (no luminance spikes), text stays near-black so contrast actually improves as backgrounds soften, form inputs, cards, modals, and the booking flow all use one consistent off-white tone, and focus borders were tuned to keep structure readable at the lower brightness. Same information, same speed — just kinder on your eyes through a long day.",
+  },
+
+  {
     date: "2026-10-09",
     title: "Agency owners can run managed client workspaces (sub-accounts)",
     tag: "Platform",

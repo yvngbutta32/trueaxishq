@@ -226,7 +226,7 @@ export default function BookingPage() {
   // Loading state
   if (pageQuery.isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center" role="status" aria-label="Loading booking page">
+      <div className="min-h-screen bg-card flex items-center justify-center" role="status" aria-label="Loading booking page">
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-[#D4922A] animate-spin mx-auto mb-3" aria-hidden="true" />
           <p className="text-gray-600 text-sm">Loading booking page…</p>
@@ -270,7 +270,7 @@ export default function BookingPage() {
     });
 
     return (
-      <div className="min-h-screen bg-white fade-in-up">
+      <div className="min-h-screen bg-card fade-in-up">
         {/* Header */}
         <header className="bg-[#F7F6F3] border-b border-[#DDDBD7] px-4 py-3.5">
           <div className="max-w-xl mx-auto flex items-center gap-3">
@@ -423,7 +423,7 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white fade-in-up">
+    <div className="min-h-screen bg-card fade-in-up">
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* Header */}

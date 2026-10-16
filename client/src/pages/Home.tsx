@@ -420,7 +420,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
     <section className="trueaxis-hero relative min-h-[min(100dvh,980px)] flex items-center overflow-hidden" style={{ paddingTop: "4rem" }} aria-labelledby="hero-heading">
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 60% at 78% 32%, rgba(0,168,143,0.16) 0%, transparent 68%), radial-gradient(ellipse 55% 45% at 8% 82%, rgba(255,107,107,0.10) 0%, transparent 70%)" }} />
       {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent, #F7F6F3)" }} />
+      <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent, var(--background))" }} />
 
       <div className="container relative z-10">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center py-12 sm:py-16 lg:py-20">
@@ -1216,7 +1216,7 @@ function FAQSection() {
         </Reveal>
         <div className="space-y-3">
           {HOME_FAQS.map((faq, i) => (
-            <div key={i} className="rounded-xl border overflow-hidden" style={{ borderColor: open === i ? "rgba(232,160,32,0.4)" : "rgba(221,219,215,0.80)", background: open === i ? "rgba(232,160,32,0.04)" : "#FFFFFF" }}>
+            <div key={i} className="rounded-xl border overflow-hidden" style={{ borderColor: open === i ? "rgba(232,160,32,0.4)" : "rgba(221,219,215,0.80)", background: open === i ? "rgba(232,160,32,0.04)" : "var(--card)" }}>
               <button
                 className="w-full flex items-center justify-between px-5 py-4 text-left"
                 onClick={() => setOpen(open === i ? null : i)}
