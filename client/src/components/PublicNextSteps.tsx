@@ -19,22 +19,22 @@ export function PublicNextSteps({
 
   return (
     <div className="space-y-2 text-left">
-      <p className="text-xs text-[rgba(26,26,26,0.40)] font-semibold uppercase tracking-wider">Next steps</p>
+      <p className="text-xs text-[color-mix(in oklab, var(--foreground) 40%, transparent)] font-semibold uppercase tracking-wider">Next steps</p>
       {payUrl && !paid && (
         <a href={payUrl} className="flex items-center justify-between rounded-xl border border-[#D4922A]/30 bg-white px-4 py-3 transition hover:border-[#D4922A]/60">
-          <span className="text-sm font-semibold text-[#1A1A1A]">{invoiceNumber ? `Pay invoice ${invoiceNumber}` : "Pay your invoice"}</span>
+          <span className="text-sm font-semibold text-[var(--foreground)]">{invoiceNumber ? `Pay invoice ${invoiceNumber}` : "Pay your invoice"}</span>
           <span className="text-sm font-bold text-[#D4922A]">Pay now →</span>
         </a>
       )}
       {paid && (
         <div className="flex items-center justify-between rounded-xl border border-green-500/30 bg-green-50 px-4 py-3">
-          <span className="text-sm font-semibold text-[#1A1A1A]">{invoiceNumber ? `Invoice ${invoiceNumber} is paid` : "Invoice paid"}</span>
+          <span className="text-sm font-semibold text-[var(--foreground)]">{invoiceNumber ? `Invoice ${invoiceNumber} is paid` : "Invoice paid"}</span>
           <span className="text-sm font-bold text-green-600">Paid ✓</span>
         </div>
       )}
       {bookingUrl && (
-        <a href={bookingUrl} className="flex items-center justify-between rounded-xl border border-[#DDDBD7] bg-white px-4 py-3 transition hover:border-[#D4922A]/60">
-          <span className="text-sm font-semibold text-[#1A1A1A]">Schedule your service</span>
+        <a href={bookingUrl} className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-white px-4 py-3 transition hover:border-[#D4922A]/60">
+          <span className="text-sm font-semibold text-[var(--foreground)]">Schedule your service</span>
           <span className="text-sm font-bold text-[#D4922A]">Book a time →</span>
         </a>
       )}

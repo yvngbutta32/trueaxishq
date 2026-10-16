@@ -68,13 +68,13 @@ function BillingSection() {
   const plans = plansQuery.data ?? [];
 
   return (
-    <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-5">
-      <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2">
+    <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-5">
+      <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2">
         <CreditCard className="w-4 h-4 text-[#D4922A]" />Billing &amp; Subscription
       </h3>
 
       {/* Current plan status */}
-      <div className="flex items-center justify-between p-3 bg-[#F7F6F3] border border-[#DDDBD7] rounded-xl">
+      <div className="flex items-center justify-between p-3 bg-[var(--background)] border border-[var(--border)] rounded-xl">
         <div className="flex items-center gap-3">
           {(() => {
             const Icon = BILLING_PLAN_ICONS[currentPlan] ?? Zap;
@@ -82,14 +82,14 @@ function BillingSection() {
             return <div className={`w-9 h-9 rounded-lg ${color} flex items-center justify-center flex-shrink-0`}><Icon className="w-4 h-4 text-white" /></div>;
           })()}
           <div>
-            <p className="text-sm font-semibold text-[#1A1A1A] capitalize">
+            <p className="text-sm font-semibold text-[var(--foreground)] capitalize">
               {currentPlan === "free" ? "Free Plan" : `${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan`}
             </p>
             <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full mt-0.5 ${
               currentStatus === "active" ? "bg-green-500/15 text-green-400" :
               currentStatus === "past_due" ? "bg-yellow-500/15 text-yellow-400" :
               currentStatus === "cancelled" ? "bg-red-500/15 text-red-400" :
-              "bg-[#EEECEA] text-[#6B6B6B]"
+              "bg-[var(--muted)] text-[var(--muted-foreground)]"
             }`}>
               {currentStatus === "active" && <CheckCircle className="w-3 h-3" />}
               {currentStatus === "active" ? "Active" : currentStatus === "past_due" ? "Payment Due" : currentStatus === "cancelled" ? "Cancelled" : "Free"}
@@ -112,7 +112,7 @@ function BillingSection() {
             className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all border ${
               billingInterval === opt
                 ? "gradient-amber text-white border-transparent shadow-sm"
-                : "bg-[#F7F6F3] text-[#6B6B6B] border-[#DDDBD7] hover:border-[#C8C5BF]"
+                : "bg-[var(--background)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--border-strong)]"
             }`}
           >
             {opt === "monthly" ? "Monthly" : (
@@ -143,7 +143,7 @@ function BillingSection() {
                 className={`rounded-xl border-2 p-4 flex flex-col transition-all ${
                   plan.highlighted ? "border-[#D4922A] shadow-md shadow-[#D4922A]/10 bg-[#D4922A]/3" :
                   isCurrent ? "border-blue-300 bg-blue-50/30" :
-                  "border-[#DDDBD7] bg-[#F7F6F3] hover:border-[#DDDBD7]"
+                  "border-[var(--border)] bg-[var(--background)] hover:border-[var(--border)]"
                 }`}
               >
                 {plan.highlighted && (
@@ -155,16 +155,16 @@ function BillingSection() {
                 <div className={`w-8 h-8 rounded-lg ${color} flex items-center justify-center mb-3`}>
                   <Icon className="w-4 h-4 text-white" />
                 </div>
-                <p className="text-sm font-extrabold text-[#1A1A1A] mb-0.5">{plan.name}</p>
-                <p className="text-[11px] text-[#3D3D3D] mb-3 leading-snug">{plan.description}</p>
+                <p className="text-sm font-extrabold text-[var(--foreground)] mb-0.5">{plan.name}</p>
+                <p className="text-[11px] text-[var(--foreground-soft)] mb-3 leading-snug">{plan.description}</p>
                 <div className="mb-3">
-                  <span className="text-xl font-extrabold text-[#1A1A1A]">${price}</span>
-                  <span className="text-xs text-[#3D3D3D]">/mo</span>
+                  <span className="text-xl font-extrabold text-[var(--foreground)]">${price}</span>
+                  <span className="text-xs text-[var(--foreground-soft)]">/mo</span>
                   {billingInterval === "annual" && <p className="text-[10px] text-green-600 font-semibold">Billed annually</p>}
                 </div>
                 <ul className="space-y-1.5 mb-4 flex-1">
                   {plan.features.slice(0, 4).map((feature: string) => (
-                    <li key={feature} className="flex items-start gap-1.5 text-[11px] text-[#6B6B6B]">
+                    <li key={feature} className="flex items-start gap-1.5 text-[11px] text-[var(--muted-foreground)]">
                       <CheckCircle className="w-3 h-3 text-[#D4922A] flex-shrink-0 mt-0.5" />{feature}
                     </li>
                   ))}
@@ -234,13 +234,13 @@ function ChangePasswordSection() {
   const isDisabled = changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword;
 
   return (
-    <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
-      <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2">
+    <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2">
         <Settings className="w-4 h-4 text-[#D4922A]" />Change Password
       </h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Current Password</label>
+          <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Current Password</label>
           <div className="relative">
             <input
               type={showPasswords ? "text" : "password"}
@@ -253,7 +253,7 @@ function ChangePasswordSection() {
             <button
               type="button"
               onClick={() => setShowPasswords(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B6B6B] hover:text-[#6B6B6B]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)]"
               aria-label={showPasswords ? "Hide passwords" : "Show passwords"}
             >
               {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -261,7 +261,7 @@ function ChangePasswordSection() {
           </div>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">New Password</label>
+          <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">New Password</label>
           <input
             type={showPasswords ? "text" : "password"}
             value={newPassword}
@@ -272,7 +272,7 @@ function ChangePasswordSection() {
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Confirm New Password</label>
+          <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Confirm New Password</label>
           <input
             type={showPasswords ? "text" : "password"}
             value={confirmPassword}
@@ -280,7 +280,7 @@ function ChangePasswordSection() {
             placeholder="Re-enter new password"
             autoComplete="new-password"
             className={`form-input-light ${
-              confirmPassword && confirmPassword !== newPassword ? "border-red-300" : "border-[#DDDBD7]"
+              confirmPassword && confirmPassword !== newPassword ? "border-red-300" : "border-[var(--border)]"
             }`}
           />
           {confirmPassword && confirmPassword !== newPassword && (
@@ -370,14 +370,14 @@ function TwoFactorSection() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
-      <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2">
+    <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2">
         <ShieldCheck className="w-4 h-4 text-[#D4922A]" />Two-Factor Authentication
-        <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${enabled ? "bg-emerald-100 text-emerald-700" : "bg-[#F2F0EC] text-[#6B6B6B]"}`}>
+        <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${enabled ? "bg-emerald-100 text-emerald-700" : "bg-[#F2F0EC] text-[var(--muted-foreground)]"}`}>
           {enabled ? "Enabled" : "Off"}
         </span>
       </h3>
-      <p className="text-xs text-[#6B6B6B]">
+      <p className="text-xs text-[var(--muted-foreground)]">
         Require a 6-digit code from your authenticator app (Google Authenticator, Authy, 1Password) at sign-in. Even if your password leaks, nobody can get in without your phone.
       </p>
 
@@ -388,39 +388,39 @@ function TwoFactorSection() {
       )}
 
       {step === "setup" && setup && (
-        <div className="space-y-4 rounded-xl bg-[#F7F6F3] border border-[#DDDBD7] p-4">
-          <p className="text-xs text-[#6B6B6B]">1. Scan this QR code with your authenticator app…</p>
-          <div className="flex justify-center"><img src={setup.qrDataUrl} alt="Two-factor QR code" width={200} height={200} className="rounded-lg border border-[#DDDBD7] bg-white" /></div>
-          <p className="text-xs text-[#6B6B6B]">…or enter this key manually: <code className="block mt-1 font-mono text-[11px] bg-white border border-[#DDDBD7] rounded px-2 py-1 break-all">{setup.secret}</code></p>
-          <p className="text-xs text-[#6B6B6B]">2. Enter the 6-digit code the app shows to finish:</p>
+        <div className="space-y-4 rounded-xl bg-[var(--background)] border border-[var(--border)] p-4">
+          <p className="text-xs text-[var(--muted-foreground)]">1. Scan this QR code with your authenticator app…</p>
+          <div className="flex justify-center"><img src={setup.qrDataUrl} alt="Two-factor QR code" width={200} height={200} className="rounded-lg border border-[var(--border)] bg-white" /></div>
+          <p className="text-xs text-[var(--muted-foreground)]">…or enter this key manually: <code className="block mt-1 font-mono text-[11px] bg-white border border-[var(--border)] rounded px-2 py-1 break-all">{setup.secret}</code></p>
+          <p className="text-xs text-[var(--muted-foreground)]">2. Enter the 6-digit code the app shows to finish:</p>
           <div className="flex items-center gap-2">
             <input
               value={confirmCode}
               onChange={(e) => setConfirmCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
               placeholder="123456"
               inputMode="numeric"
-              className="w-32 rounded-lg border border-[#DDDBD7] px-3 py-2 text-sm text-center tracking-[0.3em] bg-white"
+              className="w-32 rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-center tracking-[0.3em] bg-white"
               aria-label="Six-digit authenticator code"
             />
             <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90" onClick={() => setupConfirm.mutate({ code: confirmCode })} disabled={setupConfirm.isPending || confirmCode.length !== 6}>
               {setupConfirm.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify & enable"}
             </Button>
-            <Button size="sm" variant="outline" className="border-[#DDDBD7] text-[#6B6B6B]" onClick={() => { setStep("idle"); setSetup(null); setConfirmCode(""); }}>Cancel</Button>
+            <Button size="sm" variant="outline" className="border-[var(--border)] text-[var(--muted-foreground)]" onClick={() => { setStep("idle"); setSetup(null); setConfirmCode(""); }}>Cancel</Button>
           </div>
         </div>
       )}
 
       {step === "backup" && backupCodes && (
-        <div className="space-y-4 rounded-xl bg-[#F7F6F3] border border-[#DDDBD7] p-4">
+        <div className="space-y-4 rounded-xl bg-[var(--background)] border border-[var(--border)] p-4">
           <p className="text-xs font-semibold text-[#8A5A0B]">Save your backup codes now — they're shown only once.</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {backupCodes.map(code => (
-              <code key={code} className="font-mono text-xs bg-white border border-[#DDDBD7] rounded px-2 py-1.5 text-center">{code}</code>
+              <code key={code} className="font-mono text-xs bg-white border border-[var(--border)] rounded px-2 py-1.5 text-center">{code}</code>
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" className="border-[#DDDBD7] text-[#6B6B6B]" onClick={downloadBackupCodes}><Download className="w-3.5 h-3.5" />Download</Button>
-            <Button size="sm" variant="outline" className="border-[#DDDBD7] text-[#6B6B6B]" onClick={() => setStep("idle")}>Done — I saved them</Button>
+            <Button size="sm" variant="outline" className="border-[var(--border)] text-[var(--muted-foreground)]" onClick={downloadBackupCodes}><Download className="w-3.5 h-3.5" />Download</Button>
+            <Button size="sm" variant="outline" className="border-[var(--border)] text-[var(--muted-foreground)]" onClick={() => setStep("idle")}>Done — I saved them</Button>
           </div>
         </div>
       )}
@@ -433,7 +433,7 @@ function TwoFactorSection() {
             onChange={(e) => setDisablePassword(e.target.value)}
             placeholder="Password to disable"
             autoComplete="current-password"
-            className="w-56 rounded-lg border border-[#DDDBD7] px-3 py-2 text-sm bg-white"
+            className="w-56 rounded-lg border border-[var(--border)] px-3 py-2 text-sm bg-white"
             aria-label="Password to disable two-factor"
           />
           <Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50" onClick={() => disable.mutate({ password: disablePassword })} disabled={disable.isPending || !disablePassword}>
@@ -460,33 +460,33 @@ function SessionsSection() {
   const iconFor = (t: string) => t === "mobile" || t === "tablet" ? <Smartphone className="w-4 h-4" /> : <Monitor className="w-4 h-4" />;
 
   return (
-    <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
-      <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2">
+    <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2">
         <Monitor className="w-4 h-4 text-[#D4922A]" />Active Sessions
       </h3>
-      <p className="text-xs text-[#6B6B6B]">
+      <p className="text-xs text-[var(--muted-foreground)]">
         Devices currently signed in to your account. Revoking signs them out immediately — useful if you lost a phone or used a shared computer.
       </p>
 
       {isLoading ? (
-        <div className="flex items-center gap-2 text-xs text-[#6B6B6B]"><Loader2 className="w-3.5 h-3.5 animate-spin" />Loading sessions…</div>
+        <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]"><Loader2 className="w-3.5 h-3.5 animate-spin" />Loading sessions…</div>
       ) : !sessions?.length ? (
-        <p className="text-xs text-[#6B6B6B]">No active sessions found.</p>
+        <p className="text-xs text-[var(--muted-foreground)]">No active sessions found.</p>
       ) : (
         <>
-          <ul className="divide-y divide-[#EDEBE7] border border-[#DDDBD7] rounded-xl overflow-hidden">
+          <ul className="divide-y divide-[#EDEBE7] border border-[var(--border)] rounded-xl overflow-hidden">
             {sessions.map((session) => (
               <li key={session.id} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-[#6B6B6B] shrink-0">{iconFor(session.deviceType)}</span>
+                  <span className="text-[var(--muted-foreground)] shrink-0">{iconFor(session.deviceType)}</span>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-[#1A1A1A] truncate">
+                    <p className="text-xs font-semibold text-[var(--foreground)] truncate">
                       {session.browser} on {session.os}
                       {session.isCurrent && (
                         <span className="ml-2 text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">This device</span>
                       )}
                     </p>
-                    <p className="text-[11px] text-[#6B6B6B] truncate">
+                    <p className="text-[11px] text-[var(--muted-foreground)] truncate">
                       {session.deviceType === "mobile" || session.deviceType === "tablet" ? session.deviceType : "desktop"}
                       {" · IP "}{session.ip ?? "unknown"}
                       {" · since "}{new Date(session.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
@@ -524,14 +524,14 @@ function ApiKeysSection() {
   return (
       <FeatureLock feature="restApi" label="REST API keys">
       
-    <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
-      <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2"><Zap className="w-4 h-4 text-[#D4922A]" />API Keys</h3>
-      <p className="text-xs text-[#6B6B6B]">Use API keys to integrate TrueAxis HQ with Zapier, Make, or your own tools.</p>
+    <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2"><Zap className="w-4 h-4 text-[#D4922A]" />API Keys</h3>
+      <p className="text-xs text-[var(--muted-foreground)]">Use API keys to integrate TrueAxis HQ with Zapier, Make, or your own tools.</p>
       {createdKey && (
         <div className="bg-green-500/10 border border-green-200 rounded-xl p-3">
           <p className="text-xs font-semibold text-green-700 mb-1">Your new API key (copy it now — it won't be shown again):</p>
           <div className="flex items-center gap-2">
-            <code className="text-xs font-mono bg-[#F7F6F3] px-2 py-1 rounded border border-[#DDDBD7] flex-1 truncate text-[#1A1A1A]">{createdKey}</code>
+            <code className="text-xs font-mono bg-[var(--background)] px-2 py-1 rounded border border-[var(--border)] flex-1 truncate text-[var(--foreground)]">{createdKey}</code>
             <button onClick={() => { navigator.clipboard.writeText(createdKey); toast.success("Copied!"); }} className="p-2 rounded hover:bg-green-500/20 text-green-600" aria-label="Copy API key"><Copy className="w-3.5 h-3.5" /></button>
           </div>
           <button onClick={() => setCreatedKey(null)} className="text-xs text-green-600 hover:underline mt-1">Dismiss</button>
@@ -540,17 +540,17 @@ function ApiKeysSection() {
       {isLoading ? <Skeleton className="h-10" /> : keys && keys.length > 0 ? (
         <div className="space-y-2">
           {keys.map(k => (
-            <div key={k.id} className="flex items-center justify-between p-3 bg-[#F7F6F3] rounded-xl">
+            <div key={k.id} className="flex items-center justify-between p-3 bg-[var(--background)] rounded-xl">
               <div>
-                <p className="text-sm font-semibold text-[#1A1A1A]">{k.name}</p>
-                <p className="text-xs text-[#6B6B6B] font-mono">{k.keyPrefix}... · Created {new Date(k.createdAt).toLocaleDateString()}{k.lastUsedAt ? ` · Last used ${new Date(k.lastUsedAt).toLocaleDateString()}` : " · Never used"}</p>
+                <p className="text-sm font-semibold text-[var(--foreground)]">{k.name}</p>
+                <p className="text-xs text-[var(--muted-foreground)] font-mono">{k.keyPrefix}... · Created {new Date(k.createdAt).toLocaleDateString()}{k.lastUsedAt ? ` · Last used ${new Date(k.lastUsedAt).toLocaleDateString()}` : " · Never used"}</p>
               </div>
               <button onClick={() => revokeKey.mutate({ id: k.id })} className="text-xs text-red-500 hover:underline font-medium" disabled={revokeKey.isPending}>Revoke</button>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-xs text-[#6B6B6B]">No API keys yet.</p>
+        <p className="text-xs text-[var(--muted-foreground)]">No API keys yet.</p>
       )}
       <div className="flex gap-2">
         <input value={newKeyName} onChange={e => setNewKeyName(e.target.value)} placeholder="Key name (e.g. Zapier)" className="form-input-light flex-1" autoComplete="off" enterKeyHint="done" onKeyDown={e => e.key === 'Enter' && newKeyName.trim() && createKey.mutate({ name: newKeyName.trim() })} />
@@ -582,20 +582,20 @@ function ApiReference() {
   return (
     <div className="border-t border-[#EFEEE9] pt-4 space-y-3">
       <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between text-left" aria-expanded={open}>
-        <span className="text-xs font-bold text-[#1A1A1A] flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5 text-[#D4922A]" />REST API reference {open ? "—" : "+"}</span>
+        <span className="text-xs font-bold text-[var(--foreground)] flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5 text-[#D4922A]" />REST API reference {open ? "—" : "+"}</span>
       </button>
       {open && (
         <>
-          <p className="text-xs text-[#6B6B6B]">Send <code className="font-mono bg-[#F7F6F3] px-1 rounded">Authorization: Bearer sk_live_…</code> with every request. Success returns <code className="font-mono bg-[#F7F6F3] px-1 rounded">{'{ data }'}</code>; errors return <code className="font-mono bg-[#F7F6F3] px-1 rounded">{'{ error: { code, message } }'}</code>. Rate limit: 600 requests/minute per key (X-RateLimit headers included).</p>
+          <p className="text-xs text-[var(--muted-foreground)]">Send <code className="font-mono bg-[var(--background)] px-1 rounded">Authorization: Bearer sk_live_…</code> with every request. Success returns <code className="font-mono bg-[var(--background)] px-1 rounded">{'{ data }'}</code>; errors return <code className="font-mono bg-[var(--background)] px-1 rounded">{'{ error: { code, message } }'}</code>. Rate limit: 600 requests/minute per key (X-RateLimit headers included).</p>
           <div className="rounded-lg border border-[#EFEEE9] divide-y divide-[#EFEEE9]">
             {API_ENDPOINTS.map(endpoint => (
               <div key={`${endpoint.method} ${endpoint.path}`} className="p-2.5">
-                <p className="text-xs font-mono"><span className={endpoint.method === "GET" ? "text-emerald-700" : endpoint.method === "POST" ? "text-[#D4922A]" : "text-blue-700"}>{endpoint.method}</span> <span className="text-[#1A1A1A]">{endpoint.path}</span></p>
-                <p className="text-[11px] text-[#6B6B6B] mt-0.5">{endpoint.description}</p>
+                <p className="text-xs font-mono"><span className={endpoint.method === "GET" ? "text-emerald-700" : endpoint.method === "POST" ? "text-[#D4922A]" : "text-blue-700"}>{endpoint.method}</span> <span className="text-[var(--foreground)]">{endpoint.path}</span></p>
+                <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">{endpoint.description}</p>
               </div>
             ))}
           </div>
-          <p className="text-xs text-[#6B6B6B] rounded-lg bg-[#F7F6F3] p-2.5"><strong className="text-[#1A1A1A]">Connect Zapier or Make:</strong> create a key above, then use it in a "Webhooks by Zapier" step (or Make's HTTP module) with the Bearer header. Example: PATCH <code className="font-mono">/api/v1/jobs/:id</code> to move a job along your pipeline whenever a trigger fires.</p>
+          <p className="text-xs text-[var(--muted-foreground)] rounded-lg bg-[var(--background)] p-2.5"><strong className="text-[var(--foreground)]">Connect Zapier or Make:</strong> create a key above, then use it in a "Webhooks by Zapier" step (or Make's HTTP module) with the Bearer header. Example: PATCH <code className="font-mono">/api/v1/jobs/:id</code> to move a job along your pipeline whenever a trigger fires.</p>
         </>
       )}
     </div>
@@ -606,21 +606,21 @@ function ApiReference() {
 function AuditLogSection() {
   const { data: logs, isLoading } = trpc.auditLog.list.useQuery({ limit: 20, offset: 0 }, { retry: 1 });
   return (
-    <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
-      <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2"><Activity className="w-4 h-4 text-[#D4922A]" />Activity Log</h3>
-      <p className="text-xs text-[#6B6B6B]">A record of your recent account activity.</p>
+    <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2"><Activity className="w-4 h-4 text-[#D4922A]" />Activity Log</h3>
+      <p className="text-xs text-[var(--muted-foreground)]">A record of your recent account activity.</p>
       {isLoading ? <div className="space-y-2">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-8" />)}</div> : !logs || logs.length === 0 ? (
-        <p className="text-xs text-[#6B6B6B]">No activity recorded yet.</p>
+        <p className="text-xs text-[var(--muted-foreground)]">No activity recorded yet.</p>
       ) : (
         <div className="space-y-1 max-h-64 overflow-y-auto">
           {logs.map(log => (
-            <div key={log.id} className="flex items-start gap-3 py-2 border-b border-[#EEECEA] last:border-0">
+            <div key={log.id} className="flex items-start gap-3 py-2 border-b border-[var(--muted)] last:border-0">
               <div className="w-1.5 h-1.5 rounded-full bg-[#D4922A] mt-1.5 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-[#1A1A1A]">{log.action.replace(/\./g, ' › ')}</p>
-                {log.details && <p className="text-xs text-[#6B6B6B] truncate">{log.details}</p>}
+                <p className="text-xs font-medium text-[var(--foreground)]">{log.action.replace(/\./g, ' › ')}</p>
+                {log.details && <p className="text-xs text-[var(--muted-foreground)] truncate">{log.details}</p>}
               </div>
-              <p className="text-xs text-[#6B6B6B] shrink-0">{new Date(log.createdAt).toLocaleString()}</p>
+              <p className="text-xs text-[var(--muted-foreground)] shrink-0">{new Date(log.createdAt).toLocaleString()}</p>
             </div>
           ))}
         </div>
@@ -780,13 +780,13 @@ function SettingsPanel() {
   return (
     <div className="space-y-6 max-w-2xl w-full">
       <div>
-        <h2 className="text-xl font-extrabold text-[#1A1A1A]">Settings</h2>
-        <p className="text-sm text-[#6B6B6B]">Manage your profile, business info, and preferences</p>
+        <h2 className="text-xl font-extrabold text-[var(--foreground)]">Settings</h2>
+        <p className="text-sm text-[var(--muted-foreground)]">Manage your profile, business info, and preferences</p>
       </div>
 
       {/* Profile */}
-      <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2"><User className="w-4 h-4 text-[#D4922A]" />Profile</h3>
+      <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
+        <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2"><User className="w-4 h-4 text-[#D4922A]" />Profile</h3>
 
         {/* Avatar Upload */}
         <div className="flex items-center gap-4">
@@ -808,8 +808,8 @@ function SettingsPanel() {
             </button>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-[#1A1A1A] mb-0.5">Profile Photo</p>
-            <p className="text-xs text-[#6B6B6B] mb-2">JPEG, PNG, WebP or GIF · Max 5 MB</p>
+            <p className="text-sm font-semibold text-[var(--foreground)] mb-0.5">Profile Photo</p>
+            <p className="text-xs text-[var(--muted-foreground)] mb-2">JPEG, PNG, WebP or GIF · Max 5 MB</p>
             <div className="flex gap-2">
               <button
                 onClick={() => avatarInputRef.current?.click()}
@@ -821,7 +821,7 @@ function SettingsPanel() {
               </button>
               {avatarUrl && (
                 <>
-                  <span className="text-[#6B6B6B]">·</span>
+                  <span className="text-[var(--muted-foreground)]">·</span>
                   <button
                     onClick={handleAvatarRemove}
                     disabled={avatarUploading}
@@ -853,8 +853,8 @@ function SettingsPanel() {
       </div>
 
       {/* Business */}
-      <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2"><Building className="w-4 h-4 text-[#D4922A]" />Business Info</h3>
+      <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
+        <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2"><Building className="w-4 h-4 text-[#D4922A]" />Business Info</h3>
         <Field label="Business Name" value={business.businessName} onChange={setBusinessName} placeholder="My Coaching Studio" autoComplete="organization" enterKeyHint="next" />
         <Field label="Business Phone" value={business.businessPhone} onChange={setBusinessPhone} placeholder="+1 (555) 000-0000" type="tel" autoComplete="tel" enterKeyHint="next" />
         <Field label="Business Address" value={business.businessAddress} onChange={setBusinessAddress} placeholder="123 Main St, New York, NY 10001" autoComplete="street-address" enterKeyHint="next" />
@@ -865,12 +865,12 @@ function SettingsPanel() {
       </div>
 
       {/* Booking Page */}
-      <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2"><Globe className="w-4 h-4 text-[#D4922A]" />Booking Page</h3>
+      <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
+        <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2"><Globe className="w-4 h-4 text-[#D4922A]" />Booking Page</h3>
         <div>
-          <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Your Booking URL</label>
+          <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Your Booking URL</label>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span className="text-sm text-[#6B6B6B] flex-shrink-0 truncate max-w-full">{window.location.origin}/book/</span>
+            <span className="text-sm text-[var(--muted-foreground)] flex-shrink-0 truncate max-w-full">{window.location.origin}/book/</span>
             <input
               value={bookingPage.bookingUsername}
               onChange={e => setBookingPage(p => ({ ...p, bookingUsername: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
@@ -883,9 +883,9 @@ function SettingsPanel() {
           </div>
           {bookingUrl && (
             <div className="mt-3 space-y-2">
-              <div className="flex items-center gap-2 bg-[#F7F6F3] rounded-xl px-3 py-2 border border-[#DDDBD7] min-w-0">
-                <span className="text-xs text-[#6B6B6B] flex-1 truncate font-mono min-w-0">{bookingUrl}</span>
-                <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-[#6B6B6B] hover:text-[#D4922A] transition-colors flex-shrink-0" title="Preview booking page">
+              <div className="flex items-center gap-2 bg-[var(--background)] rounded-xl px-3 py-2 border border-[var(--border)] min-w-0">
+                <span className="text-xs text-[var(--muted-foreground)] flex-1 truncate font-mono min-w-0">{bookingUrl}</span>
+                <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--muted-foreground)] hover:text-[#D4922A] transition-colors flex-shrink-0" title="Preview booking page">
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -895,10 +895,10 @@ function SettingsPanel() {
         </div>
         <Field label="Booking Page Bio" value={bookingPage.bookingBio} onChange={setBookingBio} placeholder="Book a session with me..." textarea rows={2} enterKeyHint="done" />
         <div>
-          <label className="block text-xs font-semibold text-[#6B6B6B] mb-2">Services Offered</label>
+          <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-2">Services Offered</label>
           <div className="space-y-2 mb-3">
             {bookingPage.bookingServices.map((s, i) => (
-              <div key={i} className="flex items-center gap-2 bg-[#F7F6F3] rounded-xl px-3 py-2">
+              <div key={i} className="flex items-center gap-2 bg-[var(--background)] rounded-xl px-3 py-2">
                 <span className={`text-sm flex-1 ${s.active ? "" : "text-[#8A8882] line-through"}`}>{s.name}</span>
                 <select value={s.durationMinutes} onChange={e => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.map((service, j) => j === i ? { ...service, durationMinutes: Number(e.target.value) } : service) }))} className="form-input-light w-24 text-xs" aria-label={`${s.name} duration`}>
                   {[30, 45, 60, 90, 120, 180, 240].map(minutes => <option key={minutes} value={minutes}>{minutes} min</option>)}
@@ -919,7 +919,7 @@ function SettingsPanel() {
                   aria-label={`${s.name} booking deposit in dollars`}
                 />
                 <button type="button" onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.map((service, j) => j === i ? { ...service, active: !service.active } : service) }))} className="text-xs font-semibold text-[#D4922A]" aria-pressed={s.active}>{s.active ? "Live" : "Hidden"}</button>
-                <button onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.filter((_, j) => j !== i) }))} className="text-[#6B6B6B] hover:text-red-500 transition-colors" aria-label={`Remove ${s.name}`}>
+                <button onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.filter((_, j) => j !== i) }))} className="text-[var(--muted-foreground)] hover:text-red-500 transition-colors" aria-label={`Remove ${s.name}`}>
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -940,30 +940,30 @@ function SettingsPanel() {
             {showPresetServices ? "Hide" : "Browse"} 50+ preset services
           </button>
           {showPresetServices && (
-            <div className="flex flex-wrap gap-1.5 p-3 bg-[#F7F6F3] rounded-xl border border-[#DDDBD7] max-h-48 overflow-y-auto">
+            <div className="flex flex-wrap gap-1.5 p-3 bg-[var(--background)] rounded-xl border border-[var(--border)] max-h-48 overflow-y-auto">
               {PRESET_SERVICES.filter(s => !bookingPage.bookingServices.some(service => service.name === s)).map(s => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => setBookingPage(p => ({ ...p, bookingServices: [...p.bookingServices, { name: s, durationMinutes: 60, active: true, priceGuidance: null, depositAmountCents: null }] }))}
-                  className="text-xs bg-white border border-[#DDDBD7] hover:border-[#D4922A] hover:text-[#D4922A] text-[#6B6B6B] rounded-full px-2.5 py-1 transition-colors"
+                  className="text-xs bg-white border border-[var(--border)] hover:border-[#D4922A] hover:text-[#D4922A] text-[var(--muted-foreground)] rounded-full px-2.5 py-1 transition-colors"
                 >
                   + {s}
                 </button>
               ))}
               {PRESET_SERVICES.filter(s => !bookingPage.bookingServices.some(service => service.name === s)).length === 0 && (
-                <p className="text-xs text-[#6B6B6B]">All preset services added!</p>
+                <p className="text-xs text-[var(--muted-foreground)]">All preset services added!</p>
               )}
             </div>
           )}
         </div>
-        <div className="rounded-xl border border-[#DDDBD7] bg-[#F7F6F3] p-4 space-y-4">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-4 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-[#6B6B6B] mb-1">Published booking availability</label>
-            <p className="text-xs text-[#6B6B6B]">Choose the weekdays and half-hour times shown on your public booking page. At least one day and one time must remain selected. This is not calendar synchronization or time-zone conversion.</p>
+            <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1">Published booking availability</label>
+            <p className="text-xs text-[var(--muted-foreground)]">Choose the weekdays and half-hour times shown on your public booking page. At least one day and one time must remain selected. This is not calendar synchronization or time-zone conversion.</p>
           </div>
           <fieldset>
-            <legend className="text-xs font-semibold text-[#6B6B6B] mb-2">Available days</legend>
+            <legend className="text-xs font-semibold text-[var(--muted-foreground)] mb-2">Available days</legend>
             <div className="flex flex-wrap gap-2" role="group" aria-label="Published booking days">
               {[
                 { id: 1, label: "Mon" }, { id: 2, label: "Tue" }, { id: 3, label: "Wed" }, { id: 4, label: "Thu" }, { id: 5, label: "Fri" }, { id: 6, label: "Sat" }, { id: 0, label: "Sun" },
@@ -978,13 +978,13 @@ function SettingsPanel() {
                     const weekdays = selected ? (current.length === 1 ? current : current.filter(value => value !== day.id)) : [...current, day.id].sort((a, b) => a - b);
                     return { ...p, bookingAvailability: { ...p.bookingAvailability, weekdays } };
                   })}
-                  className={`min-h-[36px] rounded-lg border px-3 text-xs font-semibold transition-colors ${selected ? "border-[#D4922A] bg-[#D4922A]/15 text-[#8A5A0B]" : "border-[#C8C5BF] bg-white text-[#6B6B6B] hover:border-[#D4922A]/60"}`}
+                  className={`min-h-[36px] rounded-lg border px-3 text-xs font-semibold transition-colors ${selected ? "border-[#D4922A] bg-[#D4922A]/15 text-[#8A5A0B]" : "border-[var(--border-strong)] bg-white text-[var(--muted-foreground)] hover:border-[#D4922A]/60"}`}
                 >{day.label}</button>;
               })}
             </div>
           </fieldset>
           <fieldset>
-            <legend className="text-xs font-semibold text-[#6B6B6B] mb-2">Available times</legend>
+            <legend className="text-xs font-semibold text-[var(--muted-foreground)] mb-2">Available times</legend>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-4" role="group" aria-label="Published booking times">
               {PUBLIC_BOOKING_TIME_SLOTS.map(time => {
                 const selected = bookingPage.bookingAvailability.timeSlots.includes(time);
@@ -997,15 +997,15 @@ function SettingsPanel() {
                     const timeSlots = selected ? (current.length === 1 ? current : current.filter(value => value !== time)) : PUBLIC_BOOKING_TIME_SLOTS.filter(value => current.includes(value) || value === time);
                     return { ...p, bookingAvailability: { ...p.bookingAvailability, timeSlots } };
                   })}
-                  className={`min-h-[36px] rounded-lg border px-2 text-xs font-semibold transition-colors ${selected ? "border-[#D4922A] bg-[#D4922A]/15 text-[#8A5A0B]" : "border-[#C8C5BF] bg-white text-[#6B6B6B] hover:border-[#D4922A]/60"}`}
+                  className={`min-h-[36px] rounded-lg border px-2 text-xs font-semibold transition-colors ${selected ? "border-[#D4922A] bg-[#D4922A]/15 text-[#8A5A0B]" : "border-[var(--border-strong)] bg-white text-[var(--muted-foreground)] hover:border-[#D4922A]/60"}`}
                 >{time}</button>;
               })}
             </div>
           </fieldset>
-          <div className="flex items-center justify-between gap-3 border-t border-[#DDDBD7] pt-4">
+          <div className="flex items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
             <div>
-              <p className="text-sm font-semibold text-[#1A1A1A]">Appointment buffer</p>
-              <p className="text-xs text-[#6B6B6B]">Reserve time after appointments when checking public availability.</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">Appointment buffer</p>
+              <p className="text-xs text-[var(--muted-foreground)]">Reserve time after appointments when checking public availability.</p>
             </div>
             <select value={bookingPage.bookingAvailability.bufferMinutes} onChange={e => setBookingPage(p => ({ ...p, bookingAvailability: { ...p.bookingAvailability, bufferMinutes: Number(e.target.value) } }))} className="form-input-light w-28 text-sm" aria-label="Appointment buffer">
               {[0, 15, 30, 45, 60, 90, 120].map(minutes => <option key={minutes} value={minutes}>{minutes === 0 ? "No buffer" : `${minutes} min`}</option>)}
@@ -1018,28 +1018,28 @@ function SettingsPanel() {
       </div>
 
       {/* iCal Feed */}
-      <div className="space-y-3 p-5 bg-white rounded-xl border border-[#DDDBD7]">
-        <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2"><Calendar className="w-4 h-4 text-[#D4922A]" />Calendar Sync (iCal)</h3>
-        <p className="text-xs text-[#6B6B6B]">Create a private, revocable subscription URL for Google Calendar, Apple Calendar, or Outlook. It contains service-level schedule details only, so treat it like a password.</p>
+      <div className="space-y-3 p-5 bg-white rounded-xl border border-[var(--border)]">
+        <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2"><Calendar className="w-4 h-4 text-[#D4922A]" />Calendar Sync (iCal)</h3>
+        <p className="text-xs text-[var(--muted-foreground)]">Create a private, revocable subscription URL for Google Calendar, Apple Calendar, or Outlook. It contains service-level schedule details only, so treat it like a password.</p>
         {issuedCalendarFeedUrl ? (
-          <div className="flex items-center gap-2 bg-[#F7F6F3] rounded-xl px-3 py-2 border border-[#DDDBD7] min-w-0">
-            <span className="text-xs text-[#6B6B6B] flex-1 truncate font-mono min-w-0">{issuedCalendarFeedUrl}</span>
+          <div className="flex items-center gap-2 bg-[var(--background)] rounded-xl px-3 py-2 border border-[var(--border)] min-w-0">
+            <span className="text-xs text-[var(--muted-foreground)] flex-1 truncate font-mono min-w-0">{issuedCalendarFeedUrl}</span>
             <button
               onClick={() => {
                 navigator.clipboard.writeText(issuedCalendarFeedUrl).then(() => toast.success("Private iCal URL copied.")).catch(() => toast.info("Copy the private feed URL shown above."));
               }}
-              className="text-[#6B6B6B] hover:text-[#D4922A] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#D4922A]/10"
+              className="text-[var(--muted-foreground)] hover:text-[#D4922A] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#D4922A]/10"
               title="Copy private iCal feed URL"
               aria-label="Copy private iCal feed URL"
             >
               <Copy className="w-3.5 h-3.5" />
             </button>
-            <a href={issuedCalendarFeedUrl} download className="text-[#6B6B6B] hover:text-[#D4922A] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#D4922A]/10" title="Download .ics file" aria-label="Download private iCal file">
+            <a href={issuedCalendarFeedUrl} download className="text-[var(--muted-foreground)] hover:text-[#D4922A] transition-colors flex-shrink-0 p-2 rounded hover:bg-[#D4922A]/10" title="Download .ics file" aria-label="Download private iCal file">
               <Download className="w-3.5 h-3.5" />
             </a>
           </div>
         ) : (
-          <p className="text-xs text-[#6B6B6B]">{calendarFeedStatus?.active ? "An active private feed exists. Rotate it to receive a replacement URL; the existing secret is not shown again." : "No active private feed exists yet."}</p>
+          <p className="text-xs text-[var(--muted-foreground)]">{calendarFeedStatus?.active ? "An active private feed exists. Rotate it to receive a replacement URL; the existing secret is not shown again." : "No active private feed exists yet."}</p>
         )}
         <div className="flex flex-wrap gap-2 pt-1">
           {!calendarFeedStatus?.active ? (
@@ -1070,7 +1070,7 @@ function SettingsPanel() {
             </a>
             <a
               href={issuedCalendarFeedUrl.replace(/^https?:/, "webcal:")}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[#F7F6F3] hover:bg-[#EEECEA] text-[#6B6B6B] text-xs font-semibold transition-colors border border-[#DDDBD7]"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[var(--background)] hover:bg-[var(--muted)] text-[var(--muted-foreground)] text-xs font-semibold transition-colors border border-[var(--border)]"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
               Subscribe (Apple / Outlook)
@@ -1080,8 +1080,8 @@ function SettingsPanel() {
       </div>
 
       {/* Notifications */}
-      <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4">
-        <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2"><Bell className="w-4 h-4 text-[#D4922A]" />Notifications</h3>
+      <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
+        <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2"><Bell className="w-4 h-4 text-[#D4922A]" />Notifications</h3>
         {[
           { key: "notifyNewBooking" as const, label: "New Booking", desc: "Get notified when a client books a session" },
           { key: "notifyInvoicePaid" as const, label: "Invoice Paid", desc: "Get notified when an invoice is marked as paid" },
@@ -1089,8 +1089,8 @@ function SettingsPanel() {
         ].map(n => (
           <div key={n.key} className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-[#1A1A1A]">{n.label}</p>
-              <p className="text-xs text-[#6B6B6B]">{n.desc}</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">{n.label}</p>
+              <p className="text-xs text-[var(--muted-foreground)]">{n.desc}</p>
             </div>
             <button
               onClick={() => setNotifications(p => ({ ...p, [n.key]: !p[n.key] }))}
@@ -1180,20 +1180,20 @@ function IntegrationsSection() {
   });
 
   return (
-    <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-5">
-      <h3 className="font-bold text-sm text-[#1A1A1A] flex items-center gap-2">
+    <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-5">
+      <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2">
         <Zap className="w-4 h-4 text-[#D4922A]" />Integrations & Automation
       </h3>
 
       {/* Google Calendar */}
-      <div className="flex items-center justify-between gap-4 py-3 border-b border-[#DDDBD7]">
+      <div className="flex items-center justify-between gap-4 py-3 border-b border-[var(--border)]">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
             <Calendar className="w-5 h-5 text-blue-500" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#1A1A1A]">Google Calendar</p>
-            <p className="text-xs text-[#6B6B6B]">
+            <p className="text-sm font-semibold text-[var(--foreground)]">Google Calendar</p>
+            <p className="text-xs text-[var(--muted-foreground)]">
               {calStatus?.connected
                 ? calStatus.syncEnabled
                   ? "Connected · Google Calendar synchronization is enabled"
@@ -1222,8 +1222,8 @@ function IntegrationsSection() {
             <Mail className="w-5 h-5 text-green-500" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#1A1A1A]">Monthly Business Report</p>
-            <p className="text-xs text-[#6B6B6B]">When enabled, this prepares a report on the 1st. It is marked sent only after configured SMTP acceptance.</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">Monthly Business Report</p>
+            <p className="text-xs text-[var(--muted-foreground)]">When enabled, this prepares a report on the 1st. It is marked sent only after configured SMTP acceptance.</p>
           </div>
         </div>
         <button
@@ -1244,15 +1244,15 @@ function IntegrationsSection() {
       </div>
 
       {/* Live provider connection test (SMTP + Stripe) */}
-      <div className="pt-3 border-t border-[#DDDBD7] space-y-3">
+      <div className="pt-3 border-t border-[var(--border)] space-y-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
               <Webhook className="w-5 h-5 text-amber-500" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-[#1A1A1A]">Email &amp; Payments check</p>
-              <p className="text-xs text-[#6B6B6B]">Runs a live SMTP handshake and Stripe account ping so you can validate credentials in one click.</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">Email &amp; Payments check</p>
+              <p className="text-xs text-[var(--muted-foreground)]">Runs a live SMTP handshake and Stripe account ping so you can validate credentials in one click.</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -1267,8 +1267,8 @@ function IntegrationsSection() {
           </div>
         </div>
         {connectionResult && (
-          <div className="rounded-xl border border-[#DDDBD7] bg-[#F7F6F3] p-4 space-y-2" aria-live="polite">
-            <p className="text-xs font-bold uppercase tracking-wide text-[#6B6B6B]">Last check results</p>
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-4 space-y-2" aria-live="polite">
+            <p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Last check results</p>
             <div className="grid gap-2 sm:grid-cols-2">
               <ConnectionCheckCard label="Email (SMTP)" entry={connectionResult.smtp} />
               <ConnectionCheckCard label="Payments (Stripe)" entry={connectionResult.stripe} />
@@ -1305,28 +1305,28 @@ const CONNECTION_ERROR_HINTS: Record<string, string> = {
 
 function ConnectionCheckCard({ label, entry }: { label: string; entry: ConnectionCheckCardEntry }) {
   const status = !entry.configured
-    ? { text: "Not configured", tone: "text-[#6B6B6B] bg-[#EEECEA]" }
+    ? { text: "Not configured", tone: "text-[var(--muted-foreground)] bg-[var(--muted)]" }
     : entry.verified
       ? { text: "Live", tone: "text-green-600 bg-green-500/10" }
       : { text: "Failed", tone: "text-red-500 bg-red-500/10" };
   return (
-    <div className="rounded-lg bg-white border border-[#DDDBD7] p-3">
+    <div className="rounded-lg bg-white border border-[var(--border)] p-3">
       <div className="flex items-center justify-between mb-1.5">
-        <p className="text-xs font-semibold text-[#1A1A1A]">{label}</p>
+        <p className="text-xs font-semibold text-[var(--foreground)]">{label}</p>
         <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${status.tone}`}>{status.text}</span>
       </div>
       {entry.configured && (
-        <p className="text-[11px] text-[#6B6B6B]">
+        <p className="text-[11px] text-[var(--muted-foreground)]">
           {entry.verified
             ? `Authenticated${entry.latencyMs != null ? ` in ${entry.latencyMs}ms` : ""}${entry.testEmailSent ? " · test email sent to your inbox" : ""}`
             : CONNECTION_ERROR_HINTS[entry.errorKind ?? "unknown"] ?? CONNECTION_ERROR_HINTS.unknown}
         </p>
       )}
       {!entry.configured && entry.issues && entry.issues.length > 0 && (
-        <p className="text-[11px] text-[#6B6B6B]">Add {entry.issues.length > 1 ? "the missing settings" : "the missing setting"} to enable live delivery.</p>
+        <p className="text-[11px] text-[var(--muted-foreground)]">Add {entry.issues.length > 1 ? "the missing settings" : "the missing setting"} to enable live delivery.</p>
       )}
       {entry.verified !== true && entry.errorDetail && (
-        <p className="text-[11px] text-[#6B6B6B] mt-1 break-words">{entry.errorDetail}</p>
+        <p className="text-[11px] text-[var(--muted-foreground)] mt-1 break-words">{entry.errorDetail}</p>
       )}
     </div>
   );

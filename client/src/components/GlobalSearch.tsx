@@ -155,14 +155,14 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
 
       {/* Modal */}
       <div
-        className="relative w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl border border-[#DDDBD7] search-modal-enter"
+        className="relative w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl border border-[var(--border)] search-modal-enter"
         style={{ background: "#FFFFFF" }}
       >
         {/* Search input row */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#DDDBD7]">
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[var(--border)]">
           {isFetching
             ? <Loader2 className="w-4 h-4 text-[#D4922A] animate-spin flex-shrink-0" />
-            : <Search className="w-4 h-4 text-[rgba(26,26,26,0.70)] flex-shrink-0" />
+            : <Search className="w-4 h-4 text-[color-mix(in oklab, var(--foreground) 70%, transparent)] flex-shrink-0" />
           }
           <input
             ref={inputRef}
@@ -171,16 +171,16 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
             onChange={e => { setQuery(e.target.value); setCursor(0); }}
             onKeyDown={handleKeyDown}
             placeholder="Search records or jump to an operation…"
-            className="flex-1 bg-transparent text-[#1A1A1A] placeholder-[rgba(26,26,26,0.60)] text-sm outline-none"
+            className="flex-1 bg-transparent text-[var(--foreground)] placeholder-[color-mix(in oklab, var(--foreground) 60%, transparent)] text-sm outline-none"
             autoComplete="off"
             spellCheck={false}
           />
           {query && (
             <button onClick={() => { setQuery(""); setDebouncedQuery(""); inputRef.current?.focus(); }} className="p-1 rounded hover:bg-white/10 transition-colors" aria-label="Clear search">
-              <X className="w-3.5 h-3.5 text-[rgba(26,26,26,0.70)]" />
+              <X className="w-3.5 h-3.5 text-[color-mix(in oklab, var(--foreground) 70%, transparent)]" />
             </button>
           )}
-          <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-[#C8C5BF] text-[10px] text-[rgba(26,26,26,0.60)] font-mono">
+          <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-[var(--border-strong)] text-[10px] text-[color-mix(in oklab, var(--foreground) 60%, transparent)] font-mono">
             Esc
           </kbd>
         </div>
@@ -192,14 +192,14 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
               <div className="w-10 h-10 rounded-xl bg-[#D4922A]/10 flex items-center justify-center mx-auto mb-3">
                 <Command className="w-5 h-5 text-[#D4922A]" />
               </div>
-              <p className="text-center text-sm font-medium text-[rgba(26,26,26,0.72)]">Find a record or jump into an operation</p>
-              <p className="mt-1 text-center text-xs text-[rgba(26,26,26,0.60)]">Search clients, invoices, bookings, and contracts—or use a workflow shortcut.</p>
+              <p className="text-center text-sm font-medium text-[color-mix(in oklab, var(--foreground) 72%, transparent)]">Find a record or jump into an operation</p>
+              <p className="mt-1 text-center text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Search clients, invoices, bookings, and contracts—or use a workflow shortcut.</p>
               <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {OPERATIONAL_SHORTCUTS.map(shortcut => {
                   const Icon = shortcut.icon;
                   return <button key={shortcut.panel} type="button" onClick={() => { onNavigate(shortcut.panel); onClose(); }} className="flex min-h-16 items-center gap-2.5 rounded-xl border border-[#E7E5E4] bg-[#FCFCFB] p-3 text-left transition hover:border-[#D4922A]/40 hover:bg-[#FFF9EF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00A88F]">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ background: `${shortcut.color}16`, color: shortcut.color }}><Icon className="h-4 w-4" aria-hidden="true" /></span>
-                    <span className="min-w-0"><span className="block truncate text-xs font-bold text-[#1A1A1A]">{shortcut.label}</span><span className="mt-0.5 block truncate text-[10px] text-[#666]">{shortcut.detail}</span></span>
+                    <span className="min-w-0"><span className="block truncate text-xs font-bold text-[var(--foreground)]">{shortcut.label}</span><span className="mt-0.5 block truncate text-[10px] text-[#666]">{shortcut.detail}</span></span>
                   </button>;
                 })}
               </div>
@@ -208,8 +208,8 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
 
           {showEmpty && (
             <div className="py-10 text-center">
-              <Search className="w-8 h-8 text-[rgba(26,26,26,0.20)] mx-auto mb-2" />
-              <p className="text-sm text-[rgba(26,26,26,0.70)]">No results for "<span className="text-[#1A1A1A]">{debouncedQuery}</span>"</p>
+              <Search className="w-8 h-8 text-[color-mix(in oklab, var(--foreground) 20%, transparent)] mx-auto mb-2" />
+              <p className="text-sm text-[color-mix(in oklab, var(--foreground) 70%, transparent)]">No results for "<span className="text-[var(--foreground)]">{debouncedQuery}</span>"</p>
             </div>
           )}
 
@@ -245,9 +245,9 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
                             <meta.icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-[#1A1A1A] truncate">{label}</p>
+                            <p className="text-sm font-medium text-[var(--foreground)] truncate">{label}</p>
                             {sub && (
-                              <p className="text-xs text-[rgba(26,26,26,0.70)] truncate flex items-center gap-1.5">
+                              <p className="text-xs text-[color-mix(in oklab, var(--foreground) 70%, transparent)] truncate flex items-center gap-1.5">
                                 {statusVal && (
                                   <span className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: STATUS_COLOR[statusVal] || "#9CA3AF" }} />
                                 )}
@@ -269,15 +269,15 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
         {/* Footer hints */}
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/6">
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 text-[10px] text-[rgba(26,26,26,0.60)]">
-              <kbd className="px-1 py-0.5 rounded border border-[#C8C5BF] font-mono text-[9px]">↑↓</kbd> navigate
+            <span className="flex items-center gap-1 text-[10px] text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">
+              <kbd className="px-1 py-0.5 rounded border border-[var(--border-strong)] font-mono text-[9px]">↑↓</kbd> navigate
             </span>
-            <span className="flex items-center gap-1 text-[10px] text-[rgba(26,26,26,0.60)]">
-              <kbd className="px-1 py-0.5 rounded border border-[#C8C5BF] font-mono text-[9px]">↵</kbd> open panel
+            <span className="flex items-center gap-1 text-[10px] text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">
+              <kbd className="px-1 py-0.5 rounded border border-[var(--border-strong)] font-mono text-[9px]">↵</kbd> open panel
             </span>
           </div>
           {data && data.total > 0 && (
-            <span className="text-[10px] text-[rgba(26,26,26,0.60)]">{data.total} result{data.total !== 1 ? "s" : ""}</span>
+            <span className="text-[10px] text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">{data.total} result{data.total !== 1 ? "s" : ""}</span>
           )}
         </div>
       </div>

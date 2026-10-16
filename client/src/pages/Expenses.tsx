@@ -82,13 +82,13 @@ export default function Expenses() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[rgba(26,26,26,0.95)]">Expenses & P&L</h1>
-          <p className="text-sm text-[rgba(26,26,26,0.55)] mt-0.5">Track spending, see your real profit, and stay tax-ready</p>
+          <h1 className="text-2xl font-bold text-[color-mix(in oklab, var(--foreground) 95%, transparent)]">Expenses & P&L</h1>
+          <p className="text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] mt-0.5">Track spending, see your real profit, and stay tax-ready</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex bg-[#EEECEA] rounded-lg p-0.5">
+          <div className="flex bg-[var(--muted)] rounded-lg p-0.5">
             {(["pnl","list"] as const).map(v => (
-              <button key={v} onClick={() => setView(v)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === v ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#6B6B6B] hover:text-[#1A1A1A]"}`}>
+              <button key={v} onClick={() => setView(v)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === v ? "bg-white text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"}`}>
                 {v === "pnl" ? "P&L Report" : "Expense List"}
               </button>
             ))}
@@ -101,15 +101,15 @@ export default function Expenses() {
 
       {/* Filters */}
       <div className="flex items-center gap-2 flex-wrap">
-        <select value={year} onChange={e => setYear(Number(e.target.value))} className="bg-white border border-[#DDDBD7] rounded-lg px-3 py-1.5 text-sm text-[#1A1A1A]">
+        <select value={year} onChange={e => setYear(Number(e.target.value))} className="bg-white border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm text-[var(--foreground)]">
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
-        <select value={month ?? ""} onChange={e => setMonth(e.target.value ? Number(e.target.value) : undefined)} className="bg-white border border-[#DDDBD7] rounded-lg px-3 py-1.5 text-sm text-[#1A1A1A]">
+        <select value={month ?? ""} onChange={e => setMonth(e.target.value ? Number(e.target.value) : undefined)} className="bg-white border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm text-[var(--foreground)]">
           <option value="">All Months</option>
           {months.map((m, i) => <option key={i} value={i+1}>{m}</option>)}
         </select>
         {view === "list" && (
-          <select value={catFilter ?? ""} onChange={e => setCatFilter(e.target.value || undefined)} className="bg-white border border-[#DDDBD7] rounded-lg px-3 py-1.5 text-sm text-[#1A1A1A]">
+          <select value={catFilter ?? ""} onChange={e => setCatFilter(e.target.value || undefined)} className="bg-white border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm text-[var(--foreground)]">
             <option value="">All Categories</option>
             {EXPENSE_CATEGORIES.map(c => <option key={c} value={c} className="capitalize">{c}</option>)}
           </select>
@@ -127,29 +127,29 @@ export default function Expenses() {
                 { label: "Net Profit", value: `$${pnl.netProfit.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}`, icon: pnl.netProfit >= 0 ? ArrowUpRight : ArrowDownRight, color: pnl.netProfit >= 0 ? "#34D399" : "#FF6B6B", sub: `${pnl.profitMargin}% margin` },
                 { label: "Tax Deductible", value: `$${pnl.taxDeductibleExpenses.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}`, icon: CheckCircle, color: "#F59E0B", sub: "Deductible expenses" },
               ].map(kpi => (
-                <div key={kpi.label} className="bg-white border border-[rgba(26,26,26,0.08)] rounded-xl p-4">
+                <div key={kpi.label} className="bg-white border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${kpi.color}20` }}>
                       <kpi.icon className="w-4 h-4" style={{ color: kpi.color }} />
                     </div>
-                    <span className="text-xs text-[rgba(26,26,26,0.5)]">{kpi.label}</span>
+                    <span className="text-xs text-[color-mix(in oklab, var(--foreground) 50%, transparent)]">{kpi.label}</span>
                   </div>
-                  <p className="text-xl font-bold text-[rgba(26,26,26,0.95)]">{kpi.value}</p>
-                  <p className="text-xs text-[rgba(26,26,26,0.4)] mt-0.5">{kpi.sub}</p>
+                  <p className="text-xl font-bold text-[color-mix(in oklab, var(--foreground) 95%, transparent)]">{kpi.value}</p>
+                  <p className="text-xs text-[color-mix(in oklab, var(--foreground) 40%, transparent)] mt-0.5">{kpi.sub}</p>
                 </div>
               ))}
             </div>
 
             {/* Monthly Chart */}
             {pnl.monthly.length > 0 && (
-              <div className="bg-white border border-[rgba(26,26,26,0.08)] rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-[rgba(26,26,26,0.7)] mb-4">Revenue vs Expenses (Last 12 Months)</h3>
+              <div className="bg-white border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] rounded-xl p-5">
+                <h3 className="text-sm font-semibold text-[color-mix(in oklab, var(--foreground) 70%, transparent)] mb-4">Revenue vs Expenses (Last 12 Months)</h3>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={pnl.monthly} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="month" tick={{ fill: "rgba(26,26,26,0.4)", fontSize: 11 }} tickFormatter={v => v.slice(5)} />
-                    <YAxis tick={{ fill: "rgba(26,26,26,0.4)", fontSize: 11 }} tickFormatter={v => `$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`} />
-                    <Tooltip contentStyle={{ background: "#FFFFFF", border: "1px solid #DDDBD7", borderRadius: 8, color: "#1A1A1A" }} formatter={(v: any) => [`$${Number(v).toLocaleString()}`, ""]} />
-                    <Legend wrapperStyle={{ color: "rgba(26,26,26,0.5)", fontSize: 12 }} />
+                    <XAxis dataKey="month" tick={{ fill: "color-mix(in oklab, var(--foreground) 40%, transparent)", fontSize: 11 }} tickFormatter={v => v.slice(5)} />
+                    <YAxis tick={{ fill: "color-mix(in oklab, var(--foreground) 40%, transparent)", fontSize: 11 }} tickFormatter={v => `$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`} />
+                    <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} formatter={(v: any) => [`$${Number(v).toLocaleString()}`, ""]} />
+                    <Legend wrapperStyle={{ color: "color-mix(in oklab, var(--foreground) 50%, transparent)", fontSize: 12 }} />
                     <Bar dataKey="revenue" name="Revenue" fill="#00C9A7" radius={[4,4,0,0]} />
                     <Bar dataKey="expenses" name="Expenses" fill="#FF6B6B" radius={[4,4,0,0]} />
                   </BarChart>
@@ -159,19 +159,19 @@ export default function Expenses() {
 
             {/* By Category */}
             {categoryData.length > 0 && (
-              <div className="bg-white border border-[rgba(26,26,26,0.08)] rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-[rgba(26,26,26,0.7)] mb-4">Expenses by Category</h3>
+              <div className="bg-white border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] rounded-xl p-5">
+                <h3 className="text-sm font-semibold text-[color-mix(in oklab, var(--foreground) 70%, transparent)] mb-4">Expenses by Category</h3>
                 <div className="space-y-2">
                   {categoryData.map(cat => {
                     const pct = pnl.totalExpenses > 0 ? (cat.value / pnl.totalExpenses) * 100 : 0;
                     return (
                       <div key={cat.name} className="flex items-center gap-3">
-                        <span className="text-xs text-[rgba(26,26,26,0.6)] w-24 capitalize truncate">{cat.name}</span>
+                        <span className="text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)] w-24 capitalize truncate">{cat.name}</span>
                         <div className="flex-1 h-2 bg-white rounded-full overflow-hidden">
                           <div className="h-full bg-[#FF6B6B] rounded-full transition-all" style={{ width: `${pct}%` }} />
                         </div>
-                        <span className="text-xs text-[rgba(26,26,26,0.7)] w-16 text-right">${cat.value.toLocaleString()}</span>
-                        <span className="text-xs text-[rgba(26,26,26,0.4)] w-10 text-right">{pct.toFixed(0)}%</span>
+                        <span className="text-xs text-[color-mix(in oklab, var(--foreground) 70%, transparent)] w-16 text-right">${cat.value.toLocaleString()}</span>
+                        <span className="text-xs text-[color-mix(in oklab, var(--foreground) 40%, transparent)] w-10 text-right">{pct.toFixed(0)}%</span>
                       </div>
                     );
                   })}
@@ -190,28 +190,28 @@ export default function Expenses() {
               <div className="w-14 h-14 rounded-2xl bg-[rgba(255,107,107,0.12)] flex items-center justify-center mb-4">
                 <Receipt className="w-7 h-7 text-[#FF6B6B]" />
               </div>
-              <h3 className="text-base font-semibold text-[rgba(26,26,26,0.8)] mb-2">No expenses recorded</h3>
-              <p className="text-sm text-[rgba(26,26,26,0.45)] mb-5">Start tracking your business expenses to see your real profit.</p>
+              <h3 className="text-base font-semibold text-[color-mix(in oklab, var(--foreground) 80%, transparent)] mb-2">No expenses recorded</h3>
+              <p className="text-sm text-[color-mix(in oklab, var(--foreground) 45%, transparent)] mb-5">Start tracking your business expenses to see your real profit.</p>
               <Button onClick={openCreate} className="bg-[#FF6B6B] hover:bg-[#e85f5f] text-white font-semibold gap-2"><Plus className="w-4 h-4" />Add First Expense</Button>
             </div>
           ) : expenseList.map(e => (
-            <div key={e.id} className="group flex items-center gap-4 bg-white border border-[rgba(26,26,26,0.07)] rounded-xl px-4 py-3 hover:border-[rgba(255,107,107,0.25)] transition-all">
+            <div key={e.id} className="group flex items-center gap-4 bg-white border border-[color-mix(in oklab, var(--foreground) 7.0%, transparent)] rounded-xl px-4 py-3 hover:border-[rgba(255,107,107,0.25)] transition-all">
               <div className="w-9 h-9 rounded-lg bg-[rgba(255,107,107,0.12)] flex items-center justify-center flex-shrink-0">
                 <Receipt className="w-4 h-4 text-[#FF6B6B]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-[rgba(26,26,26,0.9)] text-sm truncate">{e.description}</p>
+                <p className="font-medium text-[color-mix(in oklab, var(--foreground) 90%, transparent)] text-sm truncate">{e.description}</p>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <Badge variant="outline" className="text-xs border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.45)] capitalize py-0">{e.category}</Badge>
-                  {e.vendor && <span className="text-xs text-[rgba(26,26,26,0.4)]">{e.vendor}</span>}
-                  <span className="text-xs text-[rgba(26,26,26,0.35)] flex items-center gap-1"><Calendar className="w-3 h-3" />{e.date}</span>
+                  <Badge variant="outline" className="text-xs border-[color-mix(in oklab, var(--foreground) 12%, transparent)] text-[color-mix(in oklab, var(--foreground) 45%, transparent)] capitalize py-0">{e.category}</Badge>
+                  {e.vendor && <span className="text-xs text-[color-mix(in oklab, var(--foreground) 40%, transparent)]">{e.vendor}</span>}
+                  <span className="text-xs text-[color-mix(in oklab, var(--foreground) 35%, transparent)] flex items-center gap-1"><Calendar className="w-3 h-3" />{e.date}</span>
                   {e.taxDeductible && <span className="text-xs text-[#F59E0B]">Tax deductible</span>}
                 </div>
               </div>
               <span className="font-bold text-[#FF6B6B] text-base">${parseFloat(String(e.amount)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => openEdit(e)} aria-label={`Edit expense ${e.id}`} className="p-1.5 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-                <button onClick={() => setDeleteConfirm(e.id)} aria-label={`Delete expense ${e.id}`} className="p-1.5 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                <button onClick={() => openEdit(e)} aria-label={`Edit expense ${e.id}`} className="p-1.5 rounded-lg hover:bg-white text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[color-mix(in oklab, var(--foreground) 90%, transparent)] transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                <button onClick={() => setDeleteConfirm(e.id)} aria-label={`Delete expense ${e.id}`} className="p-1.5 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
               </div>
             </div>
           ))}
@@ -220,45 +220,45 @@ export default function Expenses() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) { setEditing(null); setForm(EMPTY_FORM); } }}>
-        <DialogContent className="bg-white border-[rgba(26,26,26,0.1)] text-[rgba(26,26,26,0.95)] max-w-md">
+        <DialogContent className="bg-white border-[color-mix(in oklab, var(--foreground) 10%, transparent)] text-[color-mix(in oklab, var(--foreground) 95%, transparent)] max-w-md">
           <DialogHeader><DialogTitle>{editing !== null ? "Edit Expense" : "Add Expense"}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Amount (USD) *</label>
+                <label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5 block">Amount (USD) *</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgba(26,26,26,0.4)] text-sm">$</span>
-                  <Input value={form.amount} onChange={e => setForm(p => ({...p, amount: e.target.value}))} placeholder="0.00" className="pl-7 bg-white border-[#DDDBD7] text-[#1A1A1A]" />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[color-mix(in oklab, var(--foreground) 40%, transparent)] text-sm">$</span>
+                  <Input value={form.amount} onChange={e => setForm(p => ({...p, amount: e.target.value}))} placeholder="0.00" className="pl-7 bg-white border-[var(--border)] text-[var(--foreground)]" />
                 </div>
               </div>
               <div>
-                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Date *</label>
-                <Input type="date" value={form.date} onChange={e => setForm(p => ({...p, date: e.target.value}))} className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
+                <label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5 block">Date *</label>
+                <Input type="date" value={form.date} onChange={e => setForm(p => ({...p, date: e.target.value}))} className="bg-[rgba(255,255,255,0.05)] border-[color-mix(in oklab, var(--foreground) 12%, transparent)] text-[color-mix(in oklab, var(--foreground) 90%, transparent)]" />
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Description *</label>
-              <Input value={form.description} onChange={e => setForm(p => ({...p, description: e.target.value}))} placeholder="e.g. Adobe Creative Cloud subscription" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
+              <label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5 block">Description *</label>
+              <Input value={form.description} onChange={e => setForm(p => ({...p, description: e.target.value}))} placeholder="e.g. Adobe Creative Cloud subscription" className="bg-[rgba(255,255,255,0.05)] border-[color-mix(in oklab, var(--foreground) 12%, transparent)] text-[color-mix(in oklab, var(--foreground) 90%, transparent)]" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Vendor</label>
-                <Input value={form.vendor} onChange={e => setForm(p => ({...p, vendor: e.target.value}))} placeholder="e.g. Adobe" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
+                <label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5 block">Vendor</label>
+                <Input value={form.vendor} onChange={e => setForm(p => ({...p, vendor: e.target.value}))} placeholder="e.g. Adobe" className="bg-[rgba(255,255,255,0.05)] border-[color-mix(in oklab, var(--foreground) 12%, transparent)] text-[color-mix(in oklab, var(--foreground) 90%, transparent)]" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Category</label>
-                <select value={form.category} onChange={e => setForm(p => ({...p, category: e.target.value}))} className="w-full bg-[rgba(255,255,255,0.05)] border border-[rgba(26,26,26,0.12)] rounded-md px-3 py-2 text-sm text-[rgba(26,26,26,0.9)]">
+                <label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5 block">Category</label>
+                <select value={form.category} onChange={e => setForm(p => ({...p, category: e.target.value}))} className="w-full bg-[rgba(255,255,255,0.05)] border border-[color-mix(in oklab, var(--foreground) 12%, transparent)] rounded-md px-3 py-2 text-sm text-[color-mix(in oklab, var(--foreground) 90%, transparent)]">
                   {EXPENSE_CATEGORIES.map(c => <option key={c} value={c} className="capitalize bg-white">{c}</option>)}
                 </select>
               </div>
             </div>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.taxDeductible} onChange={e => setForm(p => ({...p, taxDeductible: e.target.checked}))} className="w-4 h-4 rounded" />
-              <span className="text-sm text-[rgba(26,26,26,0.7)]">Tax deductible</span>
+              <span className="text-sm text-[color-mix(in oklab, var(--foreground) 70%, transparent)]">Tax deductible</span>
             </label>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setOpen(false)} className="text-[rgba(26,26,26,0.6)]">Cancel</Button>
+            <Button variant="ghost" onClick={() => setOpen(false)} className="text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Cancel</Button>
             <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="bg-[#FF6B6B] hover:bg-[#e85f5f] text-white font-semibold">
               {editing !== null ? "Save Changes" : "Add Expense"}
             </Button>
@@ -268,11 +268,11 @@ export default function Expenses() {
 
       {/* Delete Confirm */}
       <Dialog open={deleteConfirm !== null} onOpenChange={v => !v && setDeleteConfirm(null)}>
-        <DialogContent className="bg-white border-[rgba(26,26,26,0.1)] text-[rgba(26,26,26,0.95)] max-w-sm">
+        <DialogContent className="bg-white border-[color-mix(in oklab, var(--foreground) 10%, transparent)] text-[color-mix(in oklab, var(--foreground) 95%, transparent)] max-w-sm">
           <DialogHeader><DialogTitle>Delete Expense?</DialogTitle></DialogHeader>
-          <p className="text-sm text-[rgba(26,26,26,0.6)]">This will permanently remove this expense record.</p>
+          <p className="text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">This will permanently remove this expense record.</p>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setDeleteConfirm(null)} className="text-[rgba(26,26,26,0.6)]">Cancel</Button>
+            <Button variant="ghost" onClick={() => setDeleteConfirm(null)} className="text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Cancel</Button>
             <Button variant="destructive" onClick={() => { if (deleteConfirm !== null) { deleteMut.mutate({ id: deleteConfirm }); setDeleteConfirm(null); } }}>Delete</Button>
           </DialogFooter>
         </DialogContent>

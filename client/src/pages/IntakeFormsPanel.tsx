@@ -158,8 +158,8 @@ export default function IntakeFormsPanel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1A1A1A]">Intake Forms</h2>
-          <p className="text-sm text-[rgba(26,26,26,0.55)]">Build questionnaires for new client onboarding</p>
+          <h2 className="text-xl font-extrabold text-[var(--foreground)]">Intake Forms</h2>
+          <p className="text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">Build questionnaires for new client onboarding</p>
         </div>
         <Button
           size="sm"
@@ -172,17 +172,17 @@ export default function IntakeFormsPanel() {
 
       {/* Form Builder */}
       {showCreate && (
-        <div className="bg-white border border-[#DDDBD7] rounded-2xl p-5 space-y-4">
+        <div className="bg-white border border-[var(--border)] rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-[#1A1A1A]">{editingId ? "Edit Form" : "New Intake Form"}</h3>
-            <button onClick={resetBuilder} aria-label="Close form builder" className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors">
+            <h3 className="font-bold text-[var(--foreground)]">{editingId ? "Edit Form" : "New Intake Form"}</h3>
+            <button onClick={resetBuilder} aria-label="Close form builder" className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)] transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">Form Name *</label>
+              <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5">Form Name *</label>
               <input
                 value={formName}
                 onChange={e => setFormName(e.target.value)}
@@ -191,7 +191,7 @@ export default function IntakeFormsPanel() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">Description (optional)</label>
+              <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5">Description (optional)</label>
               <input
                 value={formDesc}
                 onChange={e => setFormDesc(e.target.value)}
@@ -204,19 +204,19 @@ export default function IntakeFormsPanel() {
           {/* Fields */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-[rgba(26,26,26,0.7)]">Fields ({fields.length})</span>
+              <span className="text-sm font-semibold text-[color-mix(in oklab, var(--foreground) 70%, transparent)]">Fields ({fields.length})</span>
             </div>
 
             {fields.length === 0 && (
-              <div className="text-center py-6 text-sm text-[rgba(26,26,26,0.60)] border border-dashed border-[#DDDBD7] rounded-xl">
+              <div className="text-center py-6 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)] border border-dashed border-[var(--border)] rounded-xl">
                 Add fields below to build your form
               </div>
             )}
 
             {fields.map((field, idx) => (
-              <div key={field.id} className="bg-[#F7F6F3] rounded-xl p-3 border border-[#DDDBD7] space-y-2">
+              <div key={field.id} className="bg-[var(--background)] rounded-xl p-3 border border-[var(--border)] space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-[rgba(26,26,26,0.60)] w-5 text-center">{idx + 1}</span>
+                  <span className="text-[10px] font-bold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] w-5 text-center">{idx + 1}</span>
                   <select
                     value={field.type}
                     onChange={e => updateField(field.id, { type: e.target.value as FieldType })}
@@ -230,7 +230,7 @@ export default function IntakeFormsPanel() {
                     placeholder="Field label"
                     className="form-input-light text-xs py-1 flex-1"
                   />
-                  <label className="flex items-center gap-1 text-xs text-[rgba(26,26,26,0.5)] cursor-pointer flex-shrink-0">
+                  <label className="flex items-center gap-1 text-xs text-[color-mix(in oklab, var(--foreground) 50%, transparent)] cursor-pointer flex-shrink-0">
                     <input
                       type="checkbox"
                       checked={field.required}
@@ -239,13 +239,13 @@ export default function IntakeFormsPanel() {
                     />
                     Required
                   </label>
-                  <button onClick={() => removeField(field.id)} aria-label={`Remove field ${field.label}`} className="text-[rgba(26,26,26,0.3)] hover:text-red-400 transition-colors flex-shrink-0">
+                  <button onClick={() => removeField(field.id)} aria-label={`Remove field ${field.label}`} className="text-[color-mix(in oklab, var(--foreground) 30%, transparent)] hover:text-red-400 transition-colors flex-shrink-0">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 {field.type === "select" && (
                   <div className="ml-7">
-                    <label className="block text-[10px] text-[rgba(26,26,26,0.70)] mb-1">Options (one per line)</label>
+                    <label className="block text-[10px] text-[color-mix(in oklab, var(--foreground) 70%, transparent)] mb-1">Options (one per line)</label>
                     <textarea
               maxLength={5000}
                       value={(field.options ?? []).join("\n")}
@@ -265,7 +265,7 @@ export default function IntakeFormsPanel() {
                 <button
                   key={ft.type}
                   onClick={() => addField(ft.type)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-[rgba(26,26,26,0.6)] hover:text-[#1A1A1A] transition-all border border-[#DDDBD7]"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)] hover:text-[var(--foreground)] transition-all border border-[var(--border)]"
                 >
                   <ft.icon className="w-3 h-3" />
                   {ft.label}
@@ -274,7 +274,7 @@ export default function IntakeFormsPanel() {
             </div>
           </div>
 
-          <div className="flex gap-2 justify-end pt-2 border-t border-[#DDDBD7]">
+          <div className="flex gap-2 justify-end pt-2 border-t border-[var(--border)]">
             <Button size="sm" variant="outline" onClick={resetBuilder}>Cancel</Button>
             <Button
               size="sm"
@@ -291,10 +291,10 @@ export default function IntakeFormsPanel() {
 
       {/* Forms list */}
       {forms.length === 0 && !showCreate ? (
-        <div className="text-center py-12 bg-white rounded-2xl border border-[#DDDBD7]">
-          <ClipboardList className="w-10 h-10 text-[rgba(26,26,26,0.2)] mx-auto mb-3" />
-          <p className="text-sm font-semibold text-[rgba(26,26,26,0.5)]">No intake forms yet</p>
-          <p className="text-xs text-[rgba(26,26,26,0.3)] mt-1 mb-4">Create your first questionnaire to collect client info</p>
+        <div className="text-center py-12 bg-white rounded-2xl border border-[var(--border)]">
+          <ClipboardList className="w-10 h-10 text-[color-mix(in oklab, var(--foreground) 20%, transparent)] mx-auto mb-3" />
+          <p className="text-sm font-semibold text-[color-mix(in oklab, var(--foreground) 50%, transparent)]">No intake forms yet</p>
+          <p className="text-xs text-[color-mix(in oklab, var(--foreground) 30%, transparent)] mt-1 mb-4">Create your first questionnaire to collect client info</p>
           <Button size="sm" className="gradient-amber text-white border-0" onClick={() => setShowCreate(true)}>
             <Plus className="w-3.5 h-3.5 mr-1.5" />Create First Form
           </Button>
@@ -306,7 +306,7 @@ export default function IntakeFormsPanel() {
             try { fieldCount = JSON.parse(form.fields).length; } catch {}
             const isExpanded = expandedId === form.id;
             return (
-              <div key={form.id} className="bg-white border border-[#DDDBD7] rounded-2xl overflow-hidden">
+              <div key={form.id} className="bg-white border border-[var(--border)] rounded-2xl overflow-hidden">
                 <div
                   className="flex items-center gap-3 p-4 cursor-pointer hover:bg-white/3 transition-colors"
                   onClick={() => setExpandedId(isExpanded ? null : form.id)}
@@ -316,15 +316,15 @@ export default function IntakeFormsPanel() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm text-[#1A1A1A] truncate">{form.name}</span>
+                      <span className="font-semibold text-sm text-[var(--foreground)] truncate">{form.name}</span>
                       <Badge
                         variant="outline"
-                        className={`text-[10px] px-1.5 py-0 border-0 ${form.active ? "bg-emerald-500/15 text-emerald-400" : "bg-[#EEECEA] text-[rgba(26,26,26,0.4)]"}`}
+                        className={`text-[10px] px-1.5 py-0 border-0 ${form.active ? "bg-emerald-500/15 text-emerald-400" : "bg-[var(--muted)] text-[color-mix(in oklab, var(--foreground) 40%, transparent)]"}`}
                       >
                         {form.active ? "Active" : "Inactive"}
                       </Badge>
                     </div>
-                    <div className="text-xs text-[rgba(26,26,26,0.70)] mt-0.5">
+                    <div className="text-xs text-[color-mix(in oklab, var(--foreground) 70%, transparent)] mt-0.5">
                       {fieldCount} field{fieldCount !== 1 ? "s" : ""}
                       {form.description && ` · ${form.description}`}
                     </div>
@@ -332,14 +332,14 @@ export default function IntakeFormsPanel() {
                   <div className="flex items-center gap-1.5 flex-shrink-0" onClick={e => e.stopPropagation()}>
                     <button
                       onClick={() => toggleActive.mutate({ id: form.id, active: !form.active })}
-                      className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors p-1"
+                      className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)] transition-colors p-1"
                       title={form.active ? "Deactivate" : "Activate"}
                     >
                       {form.active ? <ToggleRight className="w-4 h-4 text-emerald-400" /> : <ToggleLeft className="w-4 h-4" />}
                     </button>
                     <button
                       onClick={() => form.publicSlug && copyLink(form.publicSlug)}
-                      className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors p-1"
+                      className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)] transition-colors p-1"
                       title="Copy public link"
                     >
                       <Copy className="w-3.5 h-3.5" />
@@ -349,7 +349,7 @@ export default function IntakeFormsPanel() {
                         href={`/intake/${form.publicSlug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors p-1"
+                        className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)] transition-colors p-1"
                         title="Preview form"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -360,7 +360,7 @@ export default function IntakeFormsPanel() {
                         href={`/book/${bookingUsername}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[rgba(26,26,26,0.4)] hover:text-[#D4922A] transition-colors p-1"
+                        className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[#D4922A] transition-colors p-1"
                         title="Open booking page (send to clients after intake)"
                       >
                         <Link2 className="w-3.5 h-3.5" />
@@ -368,27 +368,27 @@ export default function IntakeFormsPanel() {
                     )}
                     <button
                       onClick={() => setViewingResponsesId(viewingResponsesId === form.id ? null : form.id)}
-                      className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors p-1"
+                      className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)] transition-colors p-1"
                       title="View responses"
                     >
                       <Eye className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => startEdit(form)}
-                      className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors p-1"
+                      className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)] transition-colors p-1"
                       title="Edit form"
                     >
                       <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => deleteForm.mutate({ id: form.id })}
-                      className="text-[rgba(26,26,26,0.3)] hover:text-red-400 transition-colors p-1"
+                      className="text-[color-mix(in oklab, var(--foreground) 30%, transparent)] hover:text-red-400 transition-colors p-1"
                       title="Delete form"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  {isExpanded ? <ChevronDown className="w-4 h-4 text-[rgba(26,26,26,0.4)] flex-shrink-0" /> : <ChevronRight className="w-4 h-4 text-[rgba(26,26,26,0.4)] flex-shrink-0" />}
+                  {isExpanded ? <ChevronDown className="w-4 h-4 text-[color-mix(in oklab, var(--foreground) 40%, transparent)] flex-shrink-0" /> : <ChevronRight className="w-4 h-4 text-[color-mix(in oklab, var(--foreground) 40%, transparent)] flex-shrink-0" />}
                 </div>
 
                 {/* Responses panel */}
@@ -438,27 +438,27 @@ function ResponsesView({ formId, formFields }: { formId: number; formFields: str
   if (isLoading) return <div className="px-4 pb-4"><Skeleton className="h-20 rounded-xl" /></div>;
 
   return (
-    <div className="border-t border-[#DDDBD7] px-4 pb-4 pt-3 space-y-3">
+    <div className="border-t border-[var(--border)] px-4 pb-4 pt-3 space-y-3">
       <div className="flex items-center gap-2">
-        <Users className="w-3.5 h-3.5 text-[rgba(26,26,26,0.4)]" />
-        <span className="text-xs font-semibold text-[rgba(26,26,26,0.6)]">{responses.length} Response{responses.length !== 1 ? "s" : ""}</span>
+        <Users className="w-3.5 h-3.5 text-[color-mix(in oklab, var(--foreground) 40%, transparent)]" />
+        <span className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">{responses.length} Response{responses.length !== 1 ? "s" : ""}</span>
       </div>
       {responses.length === 0 ? (
-        <p className="text-xs text-[rgba(26,26,26,0.3)] text-center py-3">No responses yet. Share the public link to collect responses.</p>
+        <p className="text-xs text-[color-mix(in oklab, var(--foreground) 30%, transparent)] text-center py-3">No responses yet. Share the public link to collect responses.</p>
       ) : (
         <div className="space-y-2 max-h-64 overflow-y-auto">
           {responses.map(r => {
             let answers: Record<string, string> = {};
             try { answers = JSON.parse(r.answers); } catch {}
             return (
-              <div key={r.id} className="bg-[#F7F6F3] rounded-xl p-3 border border-[#EEECEA]">
+              <div key={r.id} className="bg-[var(--background)] rounded-xl p-3 border border-[var(--muted)]">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <span className="text-xs font-semibold text-[#1A1A1A]">{r.respondentName || "Anonymous"}</span>
-                    {r.respondentEmail && <span className="text-[10px] text-[rgba(26,26,26,0.70)] ml-2">{r.respondentEmail}</span>}
+                    <span className="text-xs font-semibold text-[var(--foreground)]">{r.respondentName || "Anonymous"}</span>
+                    {r.respondentEmail && <span className="text-[10px] text-[color-mix(in oklab, var(--foreground) 70%, transparent)] ml-2">{r.respondentEmail}</span>}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-[rgba(26,26,26,0.60)]">{new Date(r.createdAt).toLocaleDateString()}</span>
+                    <span className="text-[10px] text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">{new Date(r.createdAt).toLocaleDateString()}</span>
                     <Button
                       size="sm"
                       variant="outline"
@@ -473,8 +473,8 @@ function ResponsesView({ formId, formFields }: { formId: number; formFields: str
                 <div className="grid grid-cols-2 gap-1.5">
                   {parsedFields.slice(0, 4).map(f => (
                     <div key={f.id} className="text-[10px]">
-                      <span className="text-[rgba(26,26,26,0.4)]">{f.label}: </span>
-                      <span className="text-[rgba(26,26,26,0.7)]">{answers[f.id] || "—"}</span>
+                      <span className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)]">{f.label}: </span>
+                      <span className="text-[color-mix(in oklab, var(--foreground) 70%, transparent)]">{answers[f.id] || "—"}</span>
                     </div>
                   ))}
                 </div>

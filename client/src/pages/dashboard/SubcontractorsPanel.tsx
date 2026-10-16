@@ -123,26 +123,26 @@ export default function SubcontractorsPanel() {
       <section aria-labelledby="subs-roster">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 id="subs-roster" className="flex items-center gap-2 text-base font-bold text-[#1A1A1A]"><HardHat className="h-5 w-5 text-[#D4922A]" /> Subcontractor roster</h2>
-            <p className="mt-1 text-sm text-[rgba(26,26,26,0.6)]">Your trusted subs. They never need an account — invite them per job with a private link.</p>
+            <h2 id="subs-roster" className="flex items-center gap-2 text-base font-bold text-[var(--foreground)]"><HardHat className="h-5 w-5 text-[#D4922A]" /> Subcontractor roster</h2>
+            <p className="mt-1 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Your trusted subs. They never need an account — invite them per job with a private link.</p>
           </div>
           <Button onClick={openAdd}><Plus className="mr-1.5 h-4 w-4" /> Add subcontractor</Button>
         </div>
-        <div className="mt-4 overflow-hidden rounded-2xl border border-[rgba(26,26,26,0.08)] bg-white">
+        <div className="mt-4 overflow-hidden rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white">
           {subs.isLoading ? (
             <div className="p-5"><Skeleton /></div>
           ) : activeSubs.length === 0 ? (
             <div className="p-10 text-center">
-              <UserRound className="mx-auto h-8 w-8 text-[rgba(26,26,26,0.25)]" />
-              <p className="mt-2 text-sm text-[rgba(26,26,26,0.6)]">No subcontractors yet. Add your first sub to invite them to jobs.</p>
+              <UserRound className="mx-auto h-8 w-8 text-[color-mix(in oklab, var(--foreground) 25%, transparent)]" />
+              <p className="mt-2 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">No subcontractors yet. Add your first sub to invite them to jobs.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-[rgba(26,26,26,0.06)]">
+            <ul className="divide-y divide-[color-mix(in oklab, var(--foreground) 6%, transparent)]">
               {activeSubs.map(sub => (
                 <li key={sub.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div className="min-w-0">
-                    <p className="font-semibold text-[#1A1A1A]">{sub.name}{sub.trade && <span className="ml-2 rounded-full bg-[rgba(26,26,26,0.06)] px-2 py-0.5 text-xs font-semibold text-[rgba(26,26,26,0.65)]">{sub.trade}</span>}</p>
-                    <p className="mt-0.5 text-sm text-[rgba(26,26,26,0.6)]">{sub.phone}{sub.email ? ` · ${sub.email}` : ""}</p>
+                    <p className="font-semibold text-[var(--foreground)]">{sub.name}{sub.trade && <span className="ml-2 rounded-full bg-[color-mix(in oklab, var(--foreground) 6%, transparent)] px-2 py-0.5 text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 65%, transparent)]">{sub.trade}</span>}</p>
+                    <p className="mt-0.5 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">{sub.phone}{sub.email ? ` · ${sub.email}` : ""}</p>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={() => openEdit(sub)}>Edit</Button>
@@ -160,33 +160,33 @@ export default function SubcontractorsPanel() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 id="subs-invites" className="flex items-center gap-2 text-base font-bold text-[#1A1A1A"><Link2 className="h-5 w-5 text-[#D4922A]" /> Job invitations</h2>
-            <p className="mt-1 text-sm text-[rgba(26,26,26,0.6)]">Each invitation is a private link your sub opens on their phone — no app, no signup. Revoke anytime.</p>
+            <p className="mt-1 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Each invitation is a private link your sub opens on their phone — no app, no signup. Revoke anytime.</p>
           </div>
           <Button onClick={() => setInviteModal(true)} disabled={activeSubs.length === 0 || (jobs.data ?? []).length === 0}>
             <Send className="mr-1.5 h-4 w-4" /> Invite to job
           </Button>
         </div>
-        <div className="mt-4 overflow-hidden rounded-2xl border border-[rgba(26,26,26,0.08)] bg-white">
+        <div className="mt-4 overflow-hidden rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white">
           {invitations.isLoading ? (
             <div className="p-5"><Skeleton /></div>
           ) : liveInvites.length === 0 ? (
             <div className="p-10 text-center">
-              <Clock3 className="mx-auto h-8 w-8 text-[rgba(26,26,26,0.25)]" />
-              <p className="mt-2 text-sm text-[rgba(26,26,26,0.6)]">No live invitations. Invite a sub to a job and they'll get a private link that works instantly.</p>
+              <Clock3 className="mx-auto h-8 w-8 text-[color-mix(in oklab, var(--foreground) 25%, transparent)]" />
+              <p className="mt-2 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">No live invitations. Invite a sub to a job and they'll get a private link that works instantly.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-[rgba(26,26,26,0.06)]">
+            <ul className="divide-y divide-[color-mix(in oklab, var(--foreground) 6%, transparent)]">
               {liveInvites.map(inv => {
                 const st = STATUS_STYLES[inv.status];
                 return (
                   <li key={inv.id} className="p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="font-semibold text-[#1A1A1A]">
+                        <p className="font-semibold text-[var(--foreground)]">
                           {inv.subName}
-                          <span className="ml-2 text-sm font-normal text-[rgba(26,26,26,0.55)]">→ {inv.jobTitle} (#{inv.jobNumber})</span>
+                          <span className="ml-2 text-sm font-normal text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">→ {inv.jobTitle} (#{inv.jobNumber})</span>
                         </p>
-                        <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[rgba(26,26,26,0.6)]">
+                        <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">
                           <span className={`rounded-full px-2 py-0.5 font-semibold ${st.cls}`}>
                             {inv.status === "accepted" || inv.status === "declined" ? (inv.status === "accepted" ? <CheckCircle2 className="mr-1 inline h-3 w-3" /> : <XCircle className="mr-1 inline h-3 w-3" />) : null}
                             {st.label}
@@ -201,7 +201,7 @@ export default function SubcontractorsPanel() {
                         <Button variant="outline" size="sm" className="text-red-600 hover:bg-red-50" onClick={() => setConfirmRevoke(inv)}><Ban className="mr-1 h-3.5 w-3.5" /> Revoke</Button>
                       </div>
                     </div>
-                    {inv.scopeNote && <p className="mt-2 line-clamp-2 text-xs text-[rgba(26,26,26,0.5)]">{inv.scopeNote}</p>}
+                    {inv.scopeNote && <p className="mt-2 line-clamp-2 text-xs text-[color-mix(in oklab, var(--foreground) 50%, transparent)]">{inv.scopeNote}</p>}
                   </li>
                 );
               })}
@@ -229,14 +229,14 @@ export default function SubcontractorsPanel() {
       <Modal open={inviteModal} title="Invite subcontractor to a job" onClose={() => setInviteModal(false)}>
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-semibold text-[#1A1A1A]">Subcontractor</label>
+            <label className="text-sm font-semibold text-[var(--foreground)]">Subcontractor</label>
             <select value={inviteForm.subId} onChange={e => setInviteForm(f => ({ ...f, subId: Number(e.target.value) }))} className="mt-1.5 w-full form-input-light">
               <option value={0}>Choose a sub…</option>
               {activeSubs.map(s => <option key={s.id} value={s.id}>{s.name}{s.trade ? ` — ${s.trade}` : ""}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-sm font-semibold text-[#1A1A1A]">Job</label>
+            <label className="text-sm font-semibold text-[var(--foreground)]">Job</label>
             <select value={inviteForm.jobId} onChange={e => setInviteForm(f => ({ ...f, jobId: Number(e.target.value) }))} className="mt-1.5 w-full form-input-light">
               <option value={0}>Choose a job…</option>
               {(jobs.data ?? []).map(j => <option key={j.id} value={j.id}>#{j.jobNumber} — {j.title}</option>)}
@@ -244,9 +244,9 @@ export default function SubcontractorsPanel() {
           </div>
           <div>
             <Field label="Scope & site details" value={inviteForm.scopeNote} onChange={v => setInviteForm(f => ({ ...f, scopeNote: v }))} placeholder="What the sub needs: scope, site address, gate codes, materials, timing…" textarea rows={4} maxLen={2000} />
-            <p className="mt-1 text-xs text-[rgba(26,26,26,0.55)]">This is what your sub sees. Put site details here — nothing else about the job is shared.</p>
+            <p className="mt-1 text-xs text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">This is what your sub sees. Put site details here — nothing else about the job is shared.</p>
           </div>
-          <label className="flex items-start gap-2.5 text-sm text-[rgba(26,26,26,0.75)]">
+          <label className="flex items-start gap-2.5 text-sm text-[color-mix(in oklab, var(--foreground) 75%, transparent)]">
             <input type="checkbox" checked={inviteForm.shareClientContact} onChange={e => setInviteForm(f => ({ ...f, shareClientContact: e.target.checked }))} className="mt-0.5 h-4 w-4 accent-[#D4922A]" />
             <span>Share the client's name and phone with this sub</span>
           </label>
@@ -261,13 +261,13 @@ export default function SubcontractorsPanel() {
       <Modal open={shareTarget !== null} title="Invitation link ready" onClose={() => setShareTarget(null)}>
         {shareTarget && (
           <div className="space-y-4">
-            <p className="text-sm text-[rgba(26,26,26,0.75)]">
+            <p className="text-sm text-[color-mix(in oklab, var(--foreground) 75%, transparent)]">
               {shareTarget.smsDelivered
                 ? "We texted the invitation to your sub. You can also copy the link below."
                 : "Twilio isn't configured yet, so we couldn't text it automatically. Copy the link and send it to your sub however you like — it works the same either way."}
             </p>
-            <div className="rounded-xl border border-[rgba(26,26,26,0.12)] bg-[rgba(26,26,26,0.03)] p-3">
-              <p className="break-all text-xs text-[rgba(26,26,26,0.7)]">{shareTarget.inviteUrl}</p>
+            <div className="rounded-xl border border-[color-mix(in oklab, var(--foreground) 12%, transparent)] bg-[color-mix(in oklab, var(--foreground) 3%, transparent)] p-3">
+              <p className="break-all text-xs text-[color-mix(in oklab, var(--foreground) 70%, transparent)]">{shareTarget.inviteUrl}</p>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => void copyLink(shareTarget.inviteUrl)}><Copy className="mr-1.5 h-4 w-4" /> Copy link</Button>

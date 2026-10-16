@@ -55,11 +55,11 @@ export default function ForgotPassword() {
             </div>
             <h1
               className="mb-3"
-              style={{ fontWeight: 700, fontSize: "1.5rem", color: "#1A1A1A" }}
+              style={{ fontWeight: 700, fontSize: "1.5rem", color: "var(--foreground)" }}
             >
               Reset link sent
             </h1>
-            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.55)" }}>
+            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "color-mix(in oklab, var(--foreground) 55.0%, transparent)" }}>
               If an account exists for{" "}
               <strong style={{ color: "#D4922A" }}>{email}</strong>, a password reset link has been
               delivered to the account owner's notification inbox. The link expires in 1 hour.
@@ -89,11 +89,11 @@ export default function ForgotPassword() {
             </div>
             <h1
               className="text-center mb-2"
-              style={{ fontWeight: 700, fontSize: "1.625rem", color: "#1A1A1A" }}
+              style={{ fontWeight: 700, fontSize: "1.625rem", color: "var(--foreground)" }}
             >
               Reset your password
             </h1>
-            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.75)" }}>
+            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "color-mix(in oklab, var(--foreground) 75%, transparent)" }}>
               Enter your email and we'll send you a reset link
             </p>
 
@@ -102,7 +102,7 @@ export default function ForgotPassword() {
                 <label
                   htmlFor="email"
                   className="block text-sm font-semibold mb-1.5"
-                  style={{ color: "rgba(26,26,26,0.70)" }}
+                  style={{ color: "color-mix(in oklab, var(--foreground) 70%, transparent)" }}
                 >
                   Email address
                 </label>
@@ -141,7 +141,7 @@ export default function ForgotPassword() {
               </button>
             </form>
 
-            <p className="text-center mt-6 text-sm" style={{ color: "rgba(26,26,26,0.75)" }}>
+            <p className="text-center mt-6 text-sm" style={{ color: "color-mix(in oklab, var(--foreground) 75%, transparent)" }}>
               Remember your password?{" "}
               <button
                 onClick={() => navigate("/login")}
@@ -158,8 +158,8 @@ export default function ForgotPassword() {
       {/* Back link */}
       <button
         onClick={() => navigate("/")}
-        className="mt-6 flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors hover:bg-[#1A1A1A]/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] focus-visible:ring-offset-2"
-        style={{ color: "rgba(26,26,26,0.72)", background: "none", border: "none", cursor: "pointer" }}
+        className="mt-6 flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors hover:bg-[var(--foreground)]/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A] focus-visible:ring-offset-2"
+        style={{ color: "color-mix(in oklab, var(--foreground) 72%, transparent)", background: "none", border: "none", cursor: "pointer" }}
       >
         <ArrowLeft size={14} />
         Back to homepage

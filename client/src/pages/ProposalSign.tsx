@@ -97,7 +97,7 @@ export default function ProposalSign() {
       <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center">
         <div className="text-center space-y-3">
           <Loader2 className="w-10 h-10 text-[#D4922A] animate-spin mx-auto" />
-          <p className="text-[rgba(26,26,26,0.55)] text-sm">Loading proposal…</p>
+          <p className="text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] text-sm">Loading proposal…</p>
         </div>
       </div>
     );
@@ -124,21 +124,21 @@ export default function ProposalSign() {
             <ThumbsUp className="w-10 h-10 text-green-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#1A1A1A] mb-2">Proposal Signed!</h1>
-            <p className="text-[rgba(26,26,26,0.55)] text-sm">
+            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">Proposal Signed!</h1>
+            <p className="text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] text-sm">
               {proposal.status === "signed" && proposal.signatureName
                 ? `Signed by ${proposal.signatureName}`
                 : "You have successfully signed this proposal."}
             </p>
             {proposal.signedAt && (
-              <p className="text-[rgba(26,26,26,0.35)] text-xs mt-1">
+              <p className="text-[color-mix(in oklab, var(--foreground) 35%, transparent)] text-xs mt-1">
                 {new Date(proposal.signedAt).toLocaleString()}
               </p>
             )}
           </div>
-          <div className="p-4 rounded-xl bg-white/4 border border-[#DDDBD7] text-left space-y-2">
-            <p className="text-xs text-[rgba(26,26,26,0.40)] font-semibold uppercase tracking-wider">Proposal Summary</p>
-            <p className="text-[#1A1A1A] font-semibold">{proposal.title}</p>
+          <div className="p-4 rounded-xl bg-white/4 border border-[var(--border)] text-left space-y-2">
+            <p className="text-xs text-[color-mix(in oklab, var(--foreground) 40%, transparent)] font-semibold uppercase tracking-wider">Proposal Summary</p>
+            <p className="text-[var(--foreground)] font-semibold">{proposal.title}</p>
             <p className="text-[#D4922A] font-bold text-lg">
               {proposal.currency} {parseFloat(String(proposal.total)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </p>
@@ -149,7 +149,7 @@ export default function ProposalSign() {
             invoiceNumber={continuation.invoiceNumber}
             bookingUrl={continuation.bookingUrl}
           />
-          <p className="text-[rgba(26,26,26,0.35)] text-xs">
+          <p className="text-[color-mix(in oklab, var(--foreground) 35%, transparent)] text-xs">
             The sender has been notified. They will be in touch shortly.
           </p>
         </div>
@@ -165,8 +165,8 @@ export default function ProposalSign() {
           <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
             <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
-          <h1 className="text-xl font-bold text-[#1A1A1A]">Proposal Declined</h1>
-          <p className="text-[rgba(26,26,26,0.55)] text-sm">
+          <h1 className="text-xl font-bold text-[var(--foreground)]">Proposal Declined</h1>
+          <p className="text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] text-sm">
             This proposal has been declined. Please contact the sender if you believe this is an error.
           </p>
         </div>
@@ -188,17 +188,17 @@ export default function ProposalSign() {
 
   // ── Main view ──────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#F2F0EC] text-[#1A1A1A]">
+    <div className="min-h-screen bg-[#F2F0EC] text-[var(--foreground)]">
       {/* Header */}
-      <div className="border-b border-[#DDDBD7] bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b border-[var(--border)] bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#D4922A]/20 border border-[#D4922A]/30 flex items-center justify-center">
               <FileText className="w-4 h-4 text-[#D4922A]" />
             </div>
             <div>
-              <p className="text-xs text-[rgba(26,26,26,0.40)] font-medium">Proposal from TrueAxis HQ</p>
-              <p className="text-sm font-semibold text-[#1A1A1A] truncate max-w-[200px] sm:max-w-none">{proposal.title}</p>
+              <p className="text-xs text-[color-mix(in oklab, var(--foreground) 40%, transparent)] font-medium">Proposal from TrueAxis HQ</p>
+              <p className="text-sm font-semibold text-[var(--foreground)] truncate max-w-[200px] sm:max-w-none">{proposal.title}</p>
             </div>
           </div>
           <StatusBadge status={proposal.status} />
@@ -208,14 +208,14 @@ export default function ProposalSign() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
         {/* Client greeting */}
-        <div className="p-5 rounded-2xl bg-white border border-[#DDDBD7]">
+        <div className="p-5 rounded-2xl bg-white border border-[var(--border)]">
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-full bg-[#D4922A]/15 border border-[#D4922A]/25 flex items-center justify-center shrink-0">
               <User className="w-5 h-5 text-[#D4922A]" />
             </div>
             <div>
-              <p className="text-[#1A1A1A] font-semibold text-lg">Hi {proposal.clientName},</p>
-              <p className="text-[rgba(26,26,26,0.55)] text-sm mt-1">
+              <p className="text-[var(--foreground)] font-semibold text-lg">Hi {proposal.clientName},</p>
+              <p className="text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] text-sm mt-1">
                 Please review the proposal below. Once you're ready, sign at the bottom to get started.
               </p>
             </div>
@@ -229,22 +229,22 @@ export default function ProposalSign() {
             { icon: Calendar, label: "Valid Until", value: proposal.validUntil ? new Date(proposal.validUntil + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "Open", color: "#60a5fa" },
             { icon: Clock, label: "Status", value: proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1), color: "#22c55e" },
           ].map(({ icon: Icon, label, value, color }) => (
-            <div key={label} className="p-3 rounded-xl bg-white border border-[#DDDBD7]">
+            <div key={label} className="p-3 rounded-xl bg-white border border-[var(--border)]">
               <div className="flex items-center gap-2 mb-1">
                 <Icon className="w-3.5 h-3.5" style={{ color }} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[rgba(26,26,26,0.35)]">{label}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[color-mix(in oklab, var(--foreground) 35%, transparent)]">{label}</span>
               </div>
-              <p className="text-sm font-bold text-[#1A1A1A]">{value}</p>
+              <p className="text-sm font-bold text-[var(--foreground)]">{value}</p>
             </div>
           ))}
         </div>
 
         {/* Scope of Work */}
         {proposal.scope && (
-          <div className="p-5 rounded-2xl bg-white border border-[#DDDBD7] space-y-3">
-            <h2 className="text-sm font-bold text-[#1A1A1A] uppercase tracking-wider">Scope of Work</h2>
+          <div className="p-5 rounded-2xl bg-white border border-[var(--border)] space-y-3">
+            <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider">Scope of Work</h2>
             <div className="prose prose-sm prose-invert max-w-none">
-              <p className="text-[rgba(26,26,26,0.70)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.scope}</p>
+              <p className="text-[color-mix(in oklab, var(--foreground) 70%, transparent)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.scope}</p>
             </div>
           </div>
         )}
@@ -252,43 +252,43 @@ export default function ProposalSign() {
         {proposalPackages.length > 0 && (
           <section className="rounded-2xl border border-violet-200 bg-violet-50/55 p-5">
             <div className="flex items-start gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-violet-200 bg-violet-100"><FileText className="h-4 w-4 text-violet-700" /></div><div><h2 className="text-sm font-bold uppercase tracking-wider text-violet-950">Choose your proposal option</h2><p className="mt-1 text-sm text-violet-950/70">Select one option to review and sign. Selection is recorded with your signature.</p></div></div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[...proposalPackages].map(option => ({ ...option, computedSubtotal: getProposalPackageSubtotal(option) })).sort((a, b) => a.computedSubtotal - b.computedSubtotal).map((option, index, sorted) => { const optionSubtotal = option.computedSubtotal; const optionTax = optionSubtotal * (taxRate / 100); const optionTotal = optionSubtotal + optionTax; const selected = effectiveSelectedPackageId === option.id; const recommended = option.recommended === true; const tierLabel = sorted.length >= 2 ? (index === 0 ? "Good" : index === sorted.length - 1 ? "Best" : "Better") : null; return <button key={option.id} type="button" onClick={() => setSelectedPackageId(option.id)} aria-pressed={selected} aria-label={`${option.name}${tierLabel ? `, ${tierLabel} option` : ""}${recommended ? ", recommended" : ""}`} className={`relative rounded-xl border p-4 text-left transition focus:outline-none focus:ring-2 focus:ring-violet-400 ${selected ? "border-violet-500 bg-white shadow-md" : recommended ? "border-violet-300 bg-white/80 hover:border-violet-400" : "border-violet-200 bg-white/70 hover:border-violet-300"}`}><div className="flex items-center gap-2">{tierLabel && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-700">{tierLabel}</span>}{recommended && <span className="rounded-full bg-[#D4922A] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Recommended</span>}</div><div className="mt-2 flex items-start justify-between gap-3"><p className="font-semibold text-[#1A1A1A]">{option.name}</p><span className={`mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 ${selected ? "border-violet-600 bg-violet-600 shadow-[inset_0_0_0_2px_white]" : "border-violet-300"}`} aria-hidden="true" /></div>{option.description && <p className="mt-2 text-xs leading-5 text-[rgba(26,26,26,0.62)]">{option.description}</p>}<ul className="mt-3 space-y-1.5 border-t border-violet-100 pt-3">{option.lineItems.map(item => <li key={item.id} className="flex justify-between gap-3 text-xs text-[rgba(26,26,26,0.72)]"><span>{item.name}{item.qty > 1 ? ` × ${item.qty}` : ""}</span><span>{proposal.currency} {item.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></li>)}</ul><div className="mt-3 flex justify-between border-t border-violet-100 pt-3 text-sm font-bold text-violet-950"><span>Total{taxRate > 0 ? ` incl. ${taxRate}% tax` : ""}</span><span>{proposal.currency} {optionTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div></button>; })}</div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[...proposalPackages].map(option => ({ ...option, computedSubtotal: getProposalPackageSubtotal(option) })).sort((a, b) => a.computedSubtotal - b.computedSubtotal).map((option, index, sorted) => { const optionSubtotal = option.computedSubtotal; const optionTax = optionSubtotal * (taxRate / 100); const optionTotal = optionSubtotal + optionTax; const selected = effectiveSelectedPackageId === option.id; const recommended = option.recommended === true; const tierLabel = sorted.length >= 2 ? (index === 0 ? "Good" : index === sorted.length - 1 ? "Best" : "Better") : null; return <button key={option.id} type="button" onClick={() => setSelectedPackageId(option.id)} aria-pressed={selected} aria-label={`${option.name}${tierLabel ? `, ${tierLabel} option` : ""}${recommended ? ", recommended" : ""}`} className={`relative rounded-xl border p-4 text-left transition focus:outline-none focus:ring-2 focus:ring-violet-400 ${selected ? "border-violet-500 bg-white shadow-md" : recommended ? "border-violet-300 bg-white/80 hover:border-violet-400" : "border-violet-200 bg-white/70 hover:border-violet-300"}`}><div className="flex items-center gap-2">{tierLabel && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-700">{tierLabel}</span>}{recommended && <span className="rounded-full bg-[#D4922A] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Recommended</span>}</div><div className="mt-2 flex items-start justify-between gap-3"><p className="font-semibold text-[var(--foreground)]">{option.name}</p><span className={`mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 ${selected ? "border-violet-600 bg-violet-600 shadow-[inset_0_0_0_2px_white]" : "border-violet-300"}`} aria-hidden="true" /></div>{option.description && <p className="mt-2 text-xs leading-5 text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">{option.description}</p>}<ul className="mt-3 space-y-1.5 border-t border-violet-100 pt-3">{option.lineItems.map(item => <li key={item.id} className="flex justify-between gap-3 text-xs text-[color-mix(in oklab, var(--foreground) 72%, transparent)]"><span>{item.name}{item.qty > 1 ? ` × ${item.qty}` : ""}</span><span>{proposal.currency} {item.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></li>)}</ul><div className="mt-3 flex justify-between border-t border-violet-100 pt-3 text-sm font-bold text-violet-950"><span>Total{taxRate > 0 ? ` incl. ${taxRate}% tax` : ""}</span><span>{proposal.currency} {optionTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div></button>; })}</div>
           </section>
         )}
 
         {/* Line Items */}
         {lineItems.length > 0 && (
-          <div className="rounded-2xl bg-white border border-[#DDDBD7] overflow-hidden">
-            <div className="px-5 py-3 border-b border-[#DDDBD7]">
-              <h2 className="text-sm font-bold text-[#1A1A1A] uppercase tracking-wider">Deliverables & Pricing</h2>
+          <div className="rounded-2xl bg-white border border-[var(--border)] overflow-hidden">
+            <div className="px-5 py-3 border-b border-[var(--border)]">
+              <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider">Deliverables & Pricing</h2>
             </div>
             <div className="divide-y divide-white/5">
               {lineItems.map((li) => (
                 <div key={li.id} className="px-5 py-3 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#1A1A1A]">{li.name}</p>
-                    {li.description && <p className="text-xs text-[rgba(26,26,26,0.45)] mt-0.5">{li.description}</p>}
-                    <p className="text-xs text-[rgba(26,26,26,0.35)] mt-0.5">{li.qty} × {proposal.currency} {li.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">{li.name}</p>
+                    {li.description && <p className="text-xs text-[color-mix(in oklab, var(--foreground) 45%, transparent)] mt-0.5">{li.description}</p>}
+                    <p className="text-xs text-[color-mix(in oklab, var(--foreground) 35%, transparent)] mt-0.5">{li.qty} × {proposal.currency} {li.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                   </div>
-                  <p className="text-sm font-bold text-[#1A1A1A] shrink-0">
+                  <p className="text-sm font-bold text-[var(--foreground)] shrink-0">
                     {proposal.currency} {li.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               ))}
             </div>
             {/* Totals */}
-            <div className="px-5 py-4 border-t border-[#DDDBD7] space-y-2 bg-white/2">
-              <div className="flex justify-between text-sm text-[rgba(26,26,26,0.55)]">
+            <div className="px-5 py-4 border-t border-[var(--border)] space-y-2 bg-white/2">
+              <div className="flex justify-between text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">
                 <span>Subtotal</span>
                 <span>{proposal.currency} {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
               {taxRate > 0 && (
-                <div className="flex justify-between text-sm text-[rgba(26,26,26,0.55)]">
+                <div className="flex justify-between text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">
                   <span>Tax ({taxRate}%)</span>
                   <span>{proposal.currency} {taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
               )}
-              <div className="flex justify-between text-base font-bold text-[#1A1A1A] pt-2 border-t border-[#DDDBD7]">
+              <div className="flex justify-between text-base font-bold text-[var(--foreground)] pt-2 border-t border-[var(--border)]">
                 <span>Total</span>
                 <span className="text-[#D4922A]">{proposal.currency} {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
@@ -298,14 +298,14 @@ export default function ProposalSign() {
 
         {/* Notes */}
         {proposal.notes && (
-          <div className="p-5 rounded-2xl bg-white border border-[#DDDBD7] space-y-2">
-            <h2 className="text-sm font-bold text-[#1A1A1A] uppercase tracking-wider">Additional Notes</h2>
-            <p className="text-[rgba(26,26,26,0.60)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.notes}</p>
+          <div className="p-5 rounded-2xl bg-white border border-[var(--border)] space-y-2">
+            <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider">Additional Notes</h2>
+            <p className="text-[color-mix(in oklab, var(--foreground) 60%, transparent)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.notes}</p>
           </div>
         )}
 
         <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
-          {!declineOpen ? <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-sm font-semibold text-[#1A1A1A]">Need to pass on this proposal?</h2><p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.58)]">You can record a decline instead of signing. An optional note is shared only with the proposal owner.</p></div><Button type="button" variant="outline" onClick={() => setDeclineOpen(true)} className="border-slate-300 text-slate-700 hover:bg-slate-100">Decline proposal</Button></div> : <div><h2 className="text-sm font-semibold text-[#1A1A1A]">Confirm decline</h2><p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.58)]">This records a final decline for this secure proposal link. You may include an optional note for the owner.</p><textarea value={declineReason} onChange={event => setDeclineReason(event.target.value)} maxLength={1000} rows={3} placeholder="Optional note" className="mt-3 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:ring-2 focus:ring-slate-300" /><div className="mt-3 flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => { setDeclineOpen(false); setDeclineReason(""); }} disabled={declineMutation.isPending}>Keep reviewing</Button><Button type="button" onClick={handleDecline} disabled={declineMutation.isPending} className="bg-slate-700 text-white hover:bg-slate-800">{declineMutation.isPending ? "Recording…" : "Confirm decline"}</Button></div></div>}
+          {!declineOpen ? <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-sm font-semibold text-[var(--foreground)]">Need to pass on this proposal?</h2><p className="mt-1 text-xs leading-5 text-[color-mix(in oklab, var(--foreground) 58.0%, transparent)]">You can record a decline instead of signing. An optional note is shared only with the proposal owner.</p></div><Button type="button" variant="outline" onClick={() => setDeclineOpen(true)} className="border-slate-300 text-slate-700 hover:bg-slate-100">Decline proposal</Button></div> : <div><h2 className="text-sm font-semibold text-[var(--foreground)]">Confirm decline</h2><p className="mt-1 text-xs leading-5 text-[color-mix(in oklab, var(--foreground) 58.0%, transparent)]">This records a final decline for this secure proposal link. You may include an optional note for the owner.</p><textarea value={declineReason} onChange={event => setDeclineReason(event.target.value)} maxLength={1000} rows={3} placeholder="Optional note" className="mt-3 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-[var(--foreground)] outline-none focus:ring-2 focus:ring-slate-300" /><div className="mt-3 flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => { setDeclineOpen(false); setDeclineReason(""); }} disabled={declineMutation.isPending}>Keep reviewing</Button><Button type="button" onClick={handleDecline} disabled={declineMutation.isPending} className="bg-slate-700 text-white hover:bg-slate-800">{declineMutation.isPending ? "Recording…" : "Confirm decline"}</Button></div></div>}
         </section>
 
         {/* Signature Section */}
@@ -315,19 +315,19 @@ export default function ProposalSign() {
               <PenLine className="w-4 h-4 text-[#D4922A]" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-[#1A1A1A]">Electronic Signature</h2>
-              <p className="text-xs text-[rgba(26,26,26,0.45)]">Type your full name to record acceptance of this proposal</p>
+              <h2 className="text-sm font-bold text-[var(--foreground)]">Electronic Signature</h2>
+              <p className="text-xs text-[color-mix(in oklab, var(--foreground) 45%, transparent)]">Type your full name to record acceptance of this proposal</p>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[rgba(26,26,26,0.55)] mb-2">Full Name *</label>
+            <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] mb-2">Full Name *</label>
             <input
               type="text"
               value={signatureName}
               onChange={e => setSignatureName(e.target.value)}
               placeholder="e.g. Jane Smith"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-[#DDDBD7] text-[#1A1A1A] placeholder-[rgba(26,26,26,0.25)] text-sm focus:outline-none focus:border-[#D4922A]/60 focus:ring-1 focus:ring-[#D4922A]/30 transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-[var(--border)] text-[var(--foreground)] placeholder-[color-mix(in oklab, var(--foreground) 25%, transparent)] text-sm focus:outline-none focus:border-[#D4922A]/60 focus:ring-1 focus:ring-[#D4922A]/30 transition-all"
               onKeyDown={e => { if (e.key === "Enter") handleSign(); }}
             />
             {signatureName.trim() && (
@@ -346,7 +346,7 @@ export default function ProposalSign() {
             >
               {agreementChecked && <CheckCircle className="w-3 h-3 text-white" />}
             </div>
-            <span className="text-xs text-[rgba(26,26,26,0.55)] leading-relaxed">
+            <span className="text-xs text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] leading-relaxed">
               I have reviewed the scope of work and pricing outlined in this proposal and want the sender to record my acceptance in TrueAxis HQ.
             </span>
           </label>
@@ -369,7 +369,7 @@ export default function ProposalSign() {
         </div>
 
         {/* Trust footer */}
-        <div className="flex items-center justify-center gap-2 text-[rgba(26,26,26,0.30)] text-xs pb-8">
+        <div className="flex items-center justify-center gap-2 text-[color-mix(in oklab, var(--foreground) 30%, transparent)] text-xs pb-8">
           <Shield className="w-3.5 h-3.5" />
           <span>Secure proposal link · Acceptance is recorded in TrueAxis HQ</span>
         </div>

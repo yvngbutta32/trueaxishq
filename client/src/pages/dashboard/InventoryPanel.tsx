@@ -53,7 +53,7 @@ function ItemsTab() {
   const lowCount = (items.data ?? []).filter(item => item.lowStock && item.active).length;
 
   const locationSelect = (value: string, onChange: (v: string) => void, label: string, excludeEmpty = false) => (
-    <label className="block text-sm font-medium text-[#1A1A1A]">{label}
+    <label className="block text-sm font-medium text-[var(--foreground)]">{label}
       <select value={value} onChange={event => onChange(event.target.value)} className="mt-1.5 w-full form-input-light">
         {!excludeEmpty && <option value="">Choose a location…</option>}
         {activeLocations.map(location => <option key={location.id} value={location.id}>{location.type === "truck" ? "🚚" : "🏬"} {location.name}</option>)}
@@ -64,13 +64,13 @@ function ItemsTab() {
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl p-4 border border-[#DDDBD7]"><div className="w-9 h-9 rounded-xl bg-[#D4922A] flex items-center justify-center text-white mb-3"><Package className="w-4 h-4" /></div><p className="text-xl font-extrabold text-[#1A1A1A]">{items.data?.length ?? 0}</p><p className="text-xs text-[#6B6B6B] mt-0.5">Items tracked</p></div>
-        <div className="bg-white rounded-xl p-4 border border-[#DDDBD7]"><div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white mb-3 ${lowCount > 0 ? "bg-amber-500" : "bg-emerald-500"}`}><AlertTriangle className="w-4 h-4" /></div><p className="text-xl font-extrabold text-[#1A1A1A]">{lowCount}</p><p className="text-xs text-[#6B6B6B] mt-0.5">Low or out of stock</p></div>
-        <div className="bg-white rounded-xl p-4 border border-[#DDDBD7]"><div className="w-9 h-9 rounded-xl bg-[#1C2333] flex items-center justify-center text-white mb-3"><TrendingUp className="w-4 h-4" /></div><p className="text-xl font-extrabold text-[#1A1A1A]">{formatCurrency(stockValue)}</p><p className="text-xs text-[#6B6B6B] mt-0.5">Stock value at cost</p></div>
+        <div className="bg-white rounded-xl p-4 border border-[var(--border)]"><div className="w-9 h-9 rounded-xl bg-[#D4922A] flex items-center justify-center text-white mb-3"><Package className="w-4 h-4" /></div><p className="text-xl font-extrabold text-[var(--foreground)]">{items.data?.length ?? 0}</p><p className="text-xs text-[var(--muted-foreground)] mt-0.5">Items tracked</p></div>
+        <div className="bg-white rounded-xl p-4 border border-[var(--border)]"><div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white mb-3 ${lowCount > 0 ? "bg-amber-500" : "bg-emerald-500"}`}><AlertTriangle className="w-4 h-4" /></div><p className="text-xl font-extrabold text-[var(--foreground)]">{lowCount}</p><p className="text-xs text-[var(--muted-foreground)] mt-0.5">Low or out of stock</p></div>
+        <div className="bg-white rounded-xl p-4 border border-[var(--border)]"><div className="w-9 h-9 rounded-xl bg-[#1C2333] flex items-center justify-center text-white mb-3"><TrendingUp className="w-4 h-4" /></div><p className="text-xl font-extrabold text-[var(--foreground)]">{formatCurrency(stockValue)}</p><p className="text-xs text-[var(--muted-foreground)] mt-0.5">Stock value at cost</p></div>
       </div>
 
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-[#1A1A1A]">Items</h3>
+        <h3 className="font-bold text-[var(--foreground)]">Items</h3>
         <Button size="sm" onClick={() => setItemModal(true)} className="bg-[#D4922A] hover:bg-[#C07F1D] text-white"><Plus className="h-4 w-4 mr-1" /> Add item</Button>
       </div>
 
@@ -78,24 +78,24 @@ function ItemsTab() {
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">Add a warehouse or truck under Locations first — stock movements need somewhere to live.</div>
       )}
 
-      <div className="bg-white rounded-xl border border-[#DDDBD7] divide-y divide-[#EFEEE9]">
+      <div className="bg-white rounded-xl border border-[var(--border)] divide-y divide-[#EFEEE9]">
         {items.isLoading ? <div className="p-5"><Skeleton className="h-16" /></div>
-          : items.data?.length === 0 ? <p className="p-6 text-sm text-[#6B6B6B] text-center">No items yet. Add the materials you keep on hand — filters, blades, fittings — to track what's on the truck.</p>
+          : items.data?.length === 0 ? <p className="p-6 text-sm text-[var(--muted-foreground)] text-center">No items yet. Add the materials you keep on hand — filters, blades, fittings — to track what's on the truck.</p>
           : items.data!.map(item => (
             <div key={item.id} className="flex flex-wrap items-center gap-3 p-4">
               <div className="min-w-0 flex-1 basis-48">
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold text-[#1A1A1A]">{item.name}</p>
+                  <p className="font-semibold text-[var(--foreground)]">{item.name}</p>
                   {!item.active && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">Archived</span>}
                   {item.active && item.lowStock && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">Low</span>}
                 </div>
-                <p className="mt-0.5 text-xs text-[#6B6B6B]">{item.sku ? `SKU ${item.sku} · ` : ""}Cost {formatCurrency(num(item.unitCost))} · Sells at {formatCurrency(num(item.unitPrice))} · Reorder at {qtyLabel(num(item.reorderPoint), item.unit)}</p>
+                <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{item.sku ? `SKU ${item.sku} · ` : ""}Cost {formatCurrency(num(item.unitCost))} · Sells at {formatCurrency(num(item.unitPrice))} · Reorder at {qtyLabel(num(item.reorderPoint), item.unit)}</p>
               </div>
-              <p className={`text-sm font-bold ${item.totalOnHand <= 0 ? "text-[#6B6B6B]" : "text-[#1A1A1A]"}`}>{qtyLabel(item.totalOnHand, item.unit)} on hand</p>
+              <p className={`text-sm font-bold ${item.totalOnHand <= 0 ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"}`}>{qtyLabel(item.totalOnHand, item.unit)} on hand</p>
               <div className="flex flex-wrap items-center gap-1.5">
-                <Button size="sm" variant="outline" className="border-[#DDDBD7]" disabled={activeLocations.length === 0} onClick={() => { setReceiveForm({ locationId: String(activeLocations[0]?.id ?? ""), quantity: "", unitCost: "", note: "" }); setReceiveFor(item); }}><TrendingDown className="h-3.5 w-3.5 mr-1 rotate-180" /> Receive</Button>
-                <Button size="sm" variant="outline" className="border-[#DDDBD7]" disabled={activeLocations.length === 0} onClick={() => { setAdjustForm({ locationId: String(activeLocations[0]?.id ?? ""), quantity: "", note: "" }); setAdjustFor(item); }}>Adjust</Button>
-                <Button size="sm" variant="outline" className="border-[#DDDBD7]" disabled={activeLocations.length === 0} onClick={() => { setUseForm({ locationId: String(activeLocations[0]?.id ?? ""), jobId: "", quantity: "" }); setUseFor(item); }}>Use on job</Button>
+                <Button size="sm" variant="outline" className="border-[var(--border)]" disabled={activeLocations.length === 0} onClick={() => { setReceiveForm({ locationId: String(activeLocations[0]?.id ?? ""), quantity: "", unitCost: "", note: "" }); setReceiveFor(item); }}><TrendingDown className="h-3.5 w-3.5 mr-1 rotate-180" /> Receive</Button>
+                <Button size="sm" variant="outline" className="border-[var(--border)]" disabled={activeLocations.length === 0} onClick={() => { setAdjustForm({ locationId: String(activeLocations[0]?.id ?? ""), quantity: "", note: "" }); setAdjustFor(item); }}>Adjust</Button>
+                <Button size="sm" variant="outline" className="border-[var(--border)]" disabled={activeLocations.length === 0} onClick={() => { setUseForm({ locationId: String(activeLocations[0]?.id ?? ""), jobId: "", quantity: "" }); setUseFor(item); }}>Use on job</Button>
               </div>
             </div>
           ))}
@@ -158,7 +158,7 @@ function ItemsTab() {
       <Modal open={useFor !== null} onClose={() => setUseFor(null)} title={useFor ? `Use ${useFor.name} on a job` : ""}>
         <div className="space-y-3">
           {locationSelect(useForm.locationId, v => setUseForm(f => ({ ...f, locationId: v })), "Take from")}
-          <label className="block text-sm font-medium text-[#1A1A1A]">Job
+          <label className="block text-sm font-medium text-[var(--foreground)]">Job
             <select value={useForm.jobId} onChange={event => setUseForm(f => ({ ...f, jobId: event.target.value }))} className="mt-1.5 w-full form-input-light">
               <option value="">Choose a job…</option>
               {(jobs.data ?? []).map(job => <option key={job.id} value={job.id}>{job.jobNumber} · {job.title}</option>)}
@@ -202,33 +202,33 @@ function PurchaseOrdersTab() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-[#1A1A1A]">Purchase orders</h3>
+        <h3 className="font-bold text-[var(--foreground)]">Purchase orders</h3>
         <Button size="sm" onClick={() => { if (locations.data?.length === 0) { toast.error("Add a warehouse or truck under Locations first."); return; } setCreateOpen(true); }} className="bg-[#D4922A] hover:bg-[#C07F1D] text-white"><Plus className="h-4 w-4 mr-1" /> New purchase order</Button>
       </div>
 
       <div className="space-y-3">
-        {orders.isLoading ? <div className="bg-white rounded-xl border border-[#DDDBD7] p-5"><Skeleton className="h-20" /></div>
-          : orders.data?.length === 0 ? <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 text-center"><ClipboardList className="mx-auto h-6 w-6 text-[#D4922A]" /><p className="mt-2 text-sm font-medium text-[#1A1A1A]">No purchase orders yet</p><p className="mt-1 text-xs text-[#6B6B6B]">Order stock from suppliers, then receive it into any warehouse or truck in one tap.</p></div>
+        {orders.isLoading ? <div className="bg-white rounded-xl border border-[var(--border)] p-5"><Skeleton className="h-20" /></div>
+          : orders.data?.length === 0 ? <div className="bg-white rounded-xl border border-[var(--border)] p-6 text-center"><ClipboardList className="mx-auto h-6 w-6 text-[#D4922A]" /><p className="mt-2 text-sm font-medium text-[var(--foreground)]">No purchase orders yet</p><p className="mt-1 text-xs text-[var(--muted-foreground)]">Order stock from suppliers, then receive it into any warehouse or truck in one tap.</p></div>
           : orders.data!.map(order => (
-            <div key={order.id} className="bg-white rounded-xl border border-[#DDDBD7] p-4">
+            <div key={order.id} className="bg-white rounded-xl border border-[var(--border)] p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2"><p className="font-bold text-[#1A1A1A]">{order.poNumber}</p>{statusBadge(order.status)}</div>
-                  <p className="mt-0.5 text-xs text-[#6B6B6B]">{order.supplierName} · into {order.locationName}{order.expectedDate ? ` · expected ${order.expectedDate}` : ""}</p>
+                  <div className="flex items-center gap-2"><p className="font-bold text-[var(--foreground)]">{order.poNumber}</p>{statusBadge(order.status)}</div>
+                  <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{order.supplierName} · into {order.locationName}{order.expectedDate ? ` · expected ${order.expectedDate}` : ""}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(num(order.totalAmount))}</p>
+                  <p className="text-sm font-bold text-[var(--foreground)]">{formatCurrency(num(order.totalAmount))}</p>
                   {order.status === "draft" && <Button size="sm" variant="outline" className="border-blue-200 text-blue-800 hover:bg-blue-50" disabled={submitPO.isPending} onClick={() => submitPO.mutate({ id: order.id })}>Submit</Button>}
                   {order.status === "ordered" && <Button size="sm" variant="outline" className="border-emerald-200 text-emerald-800 hover:bg-emerald-50" disabled={receivePO.isPending} onClick={() => receivePO.mutate({ id: order.id })}><RefreshCw className="h-3.5 w-3.5 mr-1" /> Receive</Button>}
                   {(order.status === "draft" || order.status === "ordered") && <Button size="sm" variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50" onClick={() => setPendingCancel(order)}>Cancel</Button>}
                 </div>
               </div>
               {order.items.length > 0 && (
-                <div className="mt-3 rounded-lg bg-[#F7F6F3] p-3 text-xs text-[#1A1A1A] space-y-1">
-                  {order.items.map(line => <p key={line.id} className="flex justify-between gap-2"><span className="truncate">{line.description}</span><span className="shrink-0 text-[#6B6B6B]">{num(line.quantity)} × {formatCurrency(num(line.unitCost))}</span></p>)}
+                <div className="mt-3 rounded-lg bg-[var(--background)] p-3 text-xs text-[var(--foreground)] space-y-1">
+                  {order.items.map(line => <p key={line.id} className="flex justify-between gap-2"><span className="truncate">{line.description}</span><span className="shrink-0 text-[var(--muted-foreground)]">{num(line.quantity)} × {formatCurrency(num(line.unitCost))}</span></p>)}
                 </div>
               )}
-              {order.status === "ordered" && <p className="mt-2 text-[11px] text-[#6B6B6B]">Receiving adds every catalog line into {order.locationName} and updates each item's unit cost.</p>}
+              {order.status === "ordered" && <p className="mt-2 text-[11px] text-[var(--muted-foreground)]">Receiving adds every catalog line into {order.locationName} and updates each item's unit cost.</p>}
             </div>
           ))}
       </div>
@@ -237,7 +237,7 @@ function PurchaseOrdersTab() {
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Supplier" value={form.supplierName} onChange={v => setForm(f => ({ ...f, supplierName: v }))} placeholder="e.g. Ferguson Plumbing" required maxLen={255} />
-            <label className="block text-sm font-medium text-[#1A1A1A]">Receive into
+            <label className="block text-sm font-medium text-[var(--foreground)]">Receive into
               <select value={form.locationId} onChange={event => setForm(f => ({ ...f, locationId: event.target.value }))} className="mt-1.5 w-full form-input-light">
                 <option value="">Choose a location…</option>
                 {(locations.data ?? []).map(location => <option key={location.id} value={location.id}>{location.type === "truck" ? "🚚" : "🏬"} {location.name}</option>)}
@@ -246,7 +246,7 @@ function PurchaseOrdersTab() {
           </div>
           <Field label="Expected date (optional)" value={form.expectedDate} onChange={v => setForm(f => ({ ...f, expectedDate: v }))} placeholder="2026-10-02" type="date" />
           <div className="space-y-1.5">
-            <p className="text-sm font-medium text-[#1A1A1A]">Lines</p>
+            <p className="text-sm font-medium text-[var(--foreground)]">Lines</p>
             {lines.map((line, index) => (
               <div key={index} className="grid grid-cols-[1.4fr_60px_80px_1fr_28px] gap-1.5 items-center">
                 <select value={line.inventoryItemId} onChange={event => { const itemId = event.target.value; setLines(prev => prev.map((l, i) => i === index ? { ...l, inventoryItemId: itemId, description: itemId ? (items.data?.find(item => item.id === Number(itemId))?.name ?? l.description) : l.description } : l)); }} className="form-input-light text-xs">
@@ -259,11 +259,11 @@ function PurchaseOrdersTab() {
                 <button type="button" onClick={() => setLines(prev => prev.filter((_, i) => i !== index))} className="text-red-400 hover:text-red-600 text-lg leading-none" aria-label={`Remove line ${index + 1}`}>&times;</button>
               </div>
             ))}
-            <Button size="sm" variant="outline" className="border-[#DDDBD7]" onClick={() => setLines(prev => [...prev, { description: "", quantity: "1", unitCost: "0", inventoryItemId: "" }])}><Plus className="h-3.5 w-3.5 mr-1" /> Add line</Button>
+            <Button size="sm" variant="outline" className="border-[var(--border)]" onClick={() => setLines(prev => [...prev, { description: "", quantity: "1", unitCost: "0", inventoryItemId: "" }])}><Plus className="h-3.5 w-3.5 mr-1" /> Add line</Button>
           </div>
           <Field label="Notes (optional)" value={form.notes} onChange={v => setForm(f => ({ ...f, notes: v }))} textarea rows={2} maxLen={2000} />
           <div className="flex items-center justify-between pt-2">
-            <p className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(total)}</p>
+            <p className="text-sm font-bold text-[var(--foreground)]">{formatCurrency(total)}</p>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
               <Button disabled={!form.supplierName.trim() || !form.locationId || lines.length === 0 || lines.some(line => !line.description.trim() || num(line.quantity) <= 0) || createPO.isPending} onClick={() => createPO.mutate({
@@ -292,9 +292,9 @@ function LocationsTab() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white rounded-xl border border-[#DDDBD7] p-5">
-        <h3 className="font-bold text-[#1A1A1A]">Stock locations</h3>
-        <p className="mt-1 text-xs text-[#6B6B6B]">Track stock at the warehouse and on each truck. Movements move stock between your records; archive a location to retire a vehicle without losing history.</p>
+      <div className="bg-white rounded-xl border border-[var(--border)] p-5">
+        <h3 className="font-bold text-[var(--foreground)]">Stock locations</h3>
+        <p className="mt-1 text-xs text-[var(--muted-foreground)]">Track stock at the warehouse and on each truck. Movements move stock between your records; archive a location to retire a vehicle without losing history.</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <input value={name} onChange={event => setName(event.target.value)} maxLength={100} placeholder="e.g. Main warehouse, Truck 2" className="min-w-0 flex-1 form-input-light" aria-label="Location name" />
           <select value={type} onChange={event => setType(event.target.value as "warehouse" | "truck")} className="form-input-light w-32" aria-label="Location type">
@@ -305,20 +305,20 @@ function LocationsTab() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-[#DDDBD7] divide-y divide-[#EFEEE9]">
+      <div className="bg-white rounded-xl border border-[var(--border)] divide-y divide-[#EFEEE9]">
         {locations.isLoading ? <div className="p-5"><Skeleton className="h-12" /></div>
-          : locations.data?.length === 0 ? <p className="p-6 text-sm text-[#6B6B6B] text-center">No locations yet — add your warehouse and each truck to track stock where it actually lives.</p>
+          : locations.data?.length === 0 ? <p className="p-6 text-sm text-[var(--muted-foreground)] text-center">No locations yet — add your warehouse and each truck to track stock where it actually lives.</p>
           : locations.data!.map(location => (
             <div key={location.id} className="flex flex-wrap items-center gap-3 p-4">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1C2333] text-white">{location.type === "truck" ? <Truck className="h-4 w-4" /> : <Warehouse className="h-4 w-4" />}</div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold text-[#1A1A1A]">{location.name}</p>
+                  <p className="font-semibold text-[var(--foreground)]">{location.name}</p>
                   {!location.active && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">Archived</span>}
                 </div>
-                <p className="text-xs text-[#6B6B6B]">{location.type === "truck" ? "Truck stock" : "Warehouse stock"}</p>
+                <p className="text-xs text-[var(--muted-foreground)]">{location.type === "truck" ? "Truck stock" : "Warehouse stock"}</p>
               </div>
-              <Button size="sm" variant="outline" className="border-[#DDDBD7]" disabled={updateLocation.isPending} onClick={() => updateLocation.mutate({ id: location.id, active: !location.active })}>{location.active ? "Archive" : "Restore"}</Button>
+              <Button size="sm" variant="outline" className="border-[var(--border)]" disabled={updateLocation.isPending} onClick={() => updateLocation.mutate({ id: location.id, active: !location.active })}>{location.active ? "Archive" : "Restore"}</Button>
             </div>
           ))}
       </div>
@@ -334,15 +334,15 @@ function MovementsTab() {
   };
   return (
     <div className="space-y-5">
-      <h3 className="font-bold text-[#1A1A1A]">Recent stock movements</h3>
-      <div className="bg-white rounded-xl border border-[#DDDBD7] divide-y divide-[#EFEEE9]">
+      <h3 className="font-bold text-[var(--foreground)]">Recent stock movements</h3>
+      <div className="bg-white rounded-xl border border-[var(--border)] divide-y divide-[#EFEEE9]">
         {movements.isLoading ? <div className="p-5"><Skeleton className="h-12" /></div>
-          : movements.data?.length === 0 ? <p className="p-6 text-sm text-[#6B6B6B] text-center">No movements yet — receives, adjustments, and job usage will appear here as a permanent audit trail.</p>
+          : movements.data?.length === 0 ? <p className="p-6 text-sm text-[var(--muted-foreground)] text-center">No movements yet — receives, adjustments, and job usage will appear here as a permanent audit trail.</p>
           : movements.data!.map(movement => (
             <div key={movement.id} className="flex flex-wrap items-center gap-3 p-4">
               <div className="min-w-0 flex-1 basis-48">
-                <div className="flex items-center gap-2"><p className="font-semibold text-[#1A1A1A]">{movement.itemName}</p>{typeBadge(movement.type)}</div>
-                <p className="mt-0.5 text-xs text-[#6B6B6B]">{movement.locationType === "truck" ? "🚚" : "🏬"} {movement.locationName}{movement.note ? ` · ${movement.note}` : ""} · {new Date(movement.createdAt).toLocaleDateString()}</p>
+                <div className="flex items-center gap-2"><p className="font-semibold text-[var(--foreground)]">{movement.itemName}</p>{typeBadge(movement.type)}</div>
+                <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{movement.locationType === "truck" ? "🚚" : "🏬"} {movement.locationName}{movement.note ? ` · ${movement.note}` : ""} · {new Date(movement.createdAt).toLocaleDateString()}</p>
               </div>
               <p className={`text-sm font-bold ${Number(movement.quantity) < 0 ? "text-amber-700" : "text-emerald-700"}`}>{Number(movement.quantity) > 0 ? "+" : ""}{num(movement.quantity)}</p>
             </div>
@@ -362,8 +362,8 @@ export default function InventoryPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-extrabold text-[#1A1A1A]">Inventory</h2>
-        <p className="text-sm text-[#6B6B6B]">Truck-level stock, purchase orders, and a full audit trail — know what's on every vehicle without counting by hand.</p>
+        <h2 className="text-xl font-extrabold text-[var(--foreground)]">Inventory</h2>
+        <p className="text-sm text-[var(--muted-foreground)]">Truck-level stock, purchase orders, and a full audit trail — know what's on every vehicle without counting by hand.</p>
       </div>
       <PanelTabs defaultTab="items" tabs={tabs} />
     </div>

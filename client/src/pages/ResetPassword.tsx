@@ -85,11 +85,11 @@ export default function ResetPassword() {
             </div>
             <h1
               className="mb-3"
-              style={{ fontWeight: 700, fontSize: "1.5rem", color: "#1A1A1A" }}
+              style={{ fontWeight: 700, fontSize: "1.5rem", color: "var(--foreground)" }}
             >
               Invalid reset link
             </h1>
-            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.50)" }}>
+            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "color-mix(in oklab, var(--foreground) 50%, transparent)" }}>
               This link is missing a reset token. Please request a new password reset.
             </p>
             <button
@@ -117,11 +117,11 @@ export default function ResetPassword() {
             </div>
             <h1
               className="mb-3"
-              style={{ fontWeight: 700, fontSize: "1.5rem", color: "#1A1A1A" }}
+              style={{ fontWeight: 700, fontSize: "1.5rem", color: "var(--foreground)" }}
             >
               Password updated!
             </h1>
-            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.55)" }}>
+            <p className="mb-8 leading-relaxed" style={{ fontSize: "0.9rem", color: "color-mix(in oklab, var(--foreground) 55.0%, transparent)" }}>
               Your password has been changed successfully. You can now sign in with your new password.
             </p>
             <button
@@ -149,11 +149,11 @@ export default function ResetPassword() {
             </div>
             <h1
               className="text-center mb-2"
-              style={{ fontWeight: 700, fontSize: "1.625rem", color: "#1A1A1A" }}
+              style={{ fontWeight: 700, fontSize: "1.625rem", color: "var(--foreground)" }}
             >
               Set new password
             </h1>
-            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.75)" }}>
+            <p className="text-center mb-8" style={{ fontSize: "0.9rem", color: "color-mix(in oklab, var(--foreground) 75%, transparent)" }}>
               Choose a strong password for your account
             </p>
 
@@ -163,7 +163,7 @@ export default function ResetPassword() {
                 <label
                   htmlFor="newPassword"
                   className="block text-sm font-semibold mb-1.5"
-                  style={{ color: "rgba(26,26,26,0.70)" }}
+                  style={{ color: "color-mix(in oklab, var(--foreground) 70%, transparent)" }}
                 >
                   New Password
                 </label>
@@ -183,7 +183,7 @@ export default function ResetPassword() {
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:opacity-80"
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(26,26,26,0.65)", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "color-mix(in oklab, var(--foreground) 65%, transparent)", padding: 0, minHeight: "auto", minWidth: "auto" }}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -201,7 +201,7 @@ export default function ResetPassword() {
                 <label
                   htmlFor="confirmPassword"
                   className="block text-sm font-semibold mb-1.5"
-                  style={{ color: "rgba(26,26,26,0.70)" }}
+                  style={{ color: "color-mix(in oklab, var(--foreground) 70%, transparent)" }}
                 >
                   Confirm New Password
                 </label>
@@ -250,7 +250,7 @@ export default function ResetPassword() {
       <button
         onClick={() => navigate("/login")}
         className="mt-6 flex items-center gap-1.5 text-sm transition-colors hover:opacity-70"
-        style={{ color: "rgba(26,26,26,0.65)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+        style={{ color: "color-mix(in oklab, var(--foreground) 65%, transparent)", background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
       >
         <ArrowLeft size={14} />
         Back to Sign In

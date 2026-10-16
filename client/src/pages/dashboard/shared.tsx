@@ -164,10 +164,10 @@ function Modal({ open, onClose, title, children, wide }: {
         tabIndex={-1}
         className={`relative bg-white rounded-xl shadow-2xl w-full ${wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto outline-none`}
       >
-        <div className="flex items-center justify-between p-5 border-b border-[#DDDBD7]">
-          <h2 id={titleId} className="font-bold text-[#1A1A1A] text-base">{title}</h2>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-[#EEECEA] transition-colors" aria-label="Close dialog">
-            <X className="w-4 h-4 text-[#6B6B6B]" />
+        <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
+          <h2 id={titleId} className="font-bold text-[var(--foreground)] text-base">{title}</h2>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-[var(--muted)] transition-colors" aria-label="Close dialog">
+            <X className="w-4 h-4 text-[var(--muted-foreground)]" />
           </button>
         </div>
         <div className="p-5">{children}</div>
@@ -201,7 +201,7 @@ const Field = memo(function Field({ label, value, onChange, placeholder, type = 
 
   return (
     <div>
-      <label htmlFor={controlId} className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">{label}{required && " *"}</label>
+      <label htmlFor={controlId} className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">{label}{required && " *"}</label>
       {textarea
         ? <textarea
             id={controlId}

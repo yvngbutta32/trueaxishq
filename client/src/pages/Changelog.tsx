@@ -16,17 +16,17 @@ const TAG_COLORS: Record<string, string> = {
 export default function Changelog() {
   const [, navigate] = useLocation();
   return (
-    <div className="min-h-screen bg-[#FBFAF8]" style={{ color: "#1A1A1A" }}>
+    <div className="min-h-screen bg-[#FBFAF8]" style={{ color: "var(--foreground)" }}>
       <div className="container max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
-          <button onClick={() => navigate("/")} className="flex items-center gap-2 text-sm text-[#6B6B6B] hover:text-[#1A1A1A]" aria-label="Back to home">
+          <button onClick={() => navigate("/")} className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]" aria-label="Back to home">
             <ArrowLeft className="w-4 h-4" /> <img src={TRUEAXIS_LOGO_URL} alt="TrueAxis HQ" className="h-7 w-auto object-contain" />
           </button>
-          <button onClick={() => navigate("/status")} className="text-xs text-[#6B6B6B] hover:text-[#1A1A1A]">System status →</button>
+          <button onClick={() => navigate("/status")} className="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]">System status →</button>
         </div>
 
         <h1 className="text-2xl font-bold flex items-center gap-2"><History className="w-6 h-6 text-[#D4922A]" /> Changelog</h1>
-        <p className="mt-2 text-sm text-[#6B6B6B]">
+        <p className="mt-2 text-sm text-[var(--muted-foreground)]">
           Every meaningful change we ship to TrueAxis HQ, newest first — written the day it reaches the main branch.
           No marketing gloss: if a feature is marked live here, it's live in the product.
         </p>

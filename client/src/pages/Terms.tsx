@@ -97,8 +97,8 @@ export default function Terms() {
   const [, navigate] = useLocation();
   useEffect(() => { document.title = "Terms of Service — TrueAxis HQ"; }, []);
   return (
-    <div className="min-h-screen bg-[#F2F0EC] text-[#1A1A1A]">
-      <nav className="border-b border-[#DDDBD7] px-4 sm:px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#F2F0EC] text-[var(--foreground)]">
+      <nav className="border-b border-[var(--border)] px-4 sm:px-6 py-4 flex items-center justify-between">
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Home</span>
@@ -119,22 +119,22 @@ export default function Terms() {
           </div>
           <span className="text-xs font-semibold text-[#D4922A] uppercase tracking-wider">Legal</span>
         </div>
-        <h1 className="text-4xl sm:text-5xl font-extrabold mb-3 text-[#1A1A1A]">Terms of Service</h1>
-        <p className="text-sm text-[rgba(26,26,26,0.55)] mb-12">{REVIEW_STATUS}</p>
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-3 text-[var(--foreground)]">Terms of Service</h1>
+        <p className="text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] mb-12">{REVIEW_STATUS}</p>
 
-        <p className="text-[rgba(26,26,26,0.80)] leading-relaxed mb-10 text-base">
+        <p className="text-[color-mix(in oklab, var(--foreground) 80%, transparent)] leading-relaxed mb-10 text-base">
           Please read these Terms of Service carefully before using the TrueAxis HQ platform. They describe the platform policies intended to govern access and use. The owner should obtain qualified legal review before relying on any terms for a particular jurisdiction or use case.
         </p>
 
         <div className="space-y-10">
           {sections.map(({ title, content }) => (
             <section key={title}>
-              <h2 className="text-xl font-bold mb-4 text-[#1A1A1A]">{title}</h2>
-              <div className="text-[rgba(26,26,26,0.75)] text-sm leading-relaxed space-y-3">
+              <h2 className="text-xl font-bold mb-4 text-[var(--foreground)]">{title}</h2>
+              <div className="text-[color-mix(in oklab, var(--foreground) 75%, transparent)] text-sm leading-relaxed space-y-3">
                 {content.split("\n\n").map((para, i) => (
                   <p key={i} dangerouslySetInnerHTML={{
                     __html: para
-                      .replace(/\*\*(.+?)\*\*/g, "<strong class='text-[#1A1A1A]'>$1</strong>")
+                      .replace(/\*\*(.+?)\*\*/g, "<strong class='text-[var(--foreground)]'>$1</strong>")
                       .replace(/^- (.+)$/gm, "<li class='ml-4 list-disc'>$1</li>")
                   }} />
                 ))}
@@ -144,7 +144,7 @@ export default function Terms() {
         </div>
       </div>
 
-      <footer className="border-t border-[#DDDBD7] py-8 px-4 text-center text-xs text-[rgba(26,26,26,0.45)]">
+      <footer className="border-t border-[var(--border)] py-8 px-4 text-center text-xs text-[color-mix(in oklab, var(--foreground) 45%, transparent)]">
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

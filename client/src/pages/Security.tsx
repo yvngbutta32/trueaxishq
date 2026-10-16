@@ -49,17 +49,17 @@ const sections = [
 export default function Security() {
   const [, navigate] = useLocation();
   return (
-    <div className="min-h-screen bg-[#FBFAF8]" style={{ color: "#1A1A1A" }}>
+    <div className="min-h-screen bg-[#FBFAF8]" style={{ color: "var(--foreground)" }}>
       <div className="container max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
-          <button onClick={() => navigate("/")} className="flex items-center gap-2 text-sm text-[#6B6B6B] hover:text-[#1A1A1A]" aria-label="Back to home">
+          <button onClick={() => navigate("/")} className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]" aria-label="Back to home">
             <ArrowLeft className="w-4 h-4" /> <img src={TRUEAXIS_LOGO_URL} alt="TrueAxis HQ" className="h-7 w-auto object-contain" />
           </button>
-          <button onClick={() => navigate("/status")} className="text-xs text-[#6B6B6B] hover:text-[#1A1A1A]">System status →</button>
+          <button onClick={() => navigate("/status")} className="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]">System status →</button>
         </div>
 
         <h1 className="text-2xl font-bold flex items-center gap-2"><Lock className="w-6 h-6 text-[#D4922A]" /> Security</h1>
-        <p className="mt-2 text-sm text-[#6B6B6B]">
+        <p className="mt-2 text-sm text-[var(--muted-foreground)]">
           Everything below describes features that are shipped and running — not a roadmap. Field-service software holds your
           clients' addresses, your pricing, and your money; here's exactly how that's protected.
         </p>

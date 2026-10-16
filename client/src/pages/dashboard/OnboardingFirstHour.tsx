@@ -39,17 +39,17 @@ export default function OnboardingFirstHour({ setActivePanel }: Props) {
           <div className="flex gap-3">
             <Rocket className="mt-0.5 h-5 w-5 shrink-0 text-[#D4922A]" />
             <div>
-              <h2 id="first-hour-heading" className="text-sm font-bold text-[#1A1A1A]">
+              <h2 id="first-hour-heading" className="text-sm font-bold text-[var(--foreground)]">
                 Be fully operational in {data.remainingMinutes} minutes
               </h2>
-              <p className="mt-1 text-xs leading-5 text-[rgba(26,26,26,0.62)]">
+              <p className="mt-1 text-xs leading-5 text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">
                 Six quick steps from signup to your first invoice — no consultants, no implementation calls. Progress saves as you go.
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#D4922A]" aria-label="Updating progress" />}
-            <button onClick={hideForSession} className="rounded-lg p-1.5 text-[#6B6B6B] hover:bg-[#F0EEE9]" aria-label="Hide the first-hour checklist (reappears on your next visit until complete)"> <X className="h-4 w-4" /> </button>
+            <button onClick={hideForSession} className="rounded-lg p-1.5 text-[var(--muted-foreground)] hover:bg-[#F0EEE9]" aria-label="Hide the first-hour checklist (reappears on your next visit until complete)"> <X className="h-4 w-4" /> </button>
           </div>
         </div>
 
@@ -57,18 +57,18 @@ export default function OnboardingFirstHour({ setActivePanel }: Props) {
           <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#EDE9E1]">
             <div className="h-full rounded-full bg-[#D4922A] transition-all" style={{ width: `${(data.doneCount / data.totalSteps) * 100}%` }} />
           </div>
-          <p className="text-xs font-bold text-[#1A1A1A]">{data.doneCount}/{data.totalSteps}</p>
+          <p className="text-xs font-bold text-[var(--foreground)]">{data.doneCount}/{data.totalSteps}</p>
         </div>
 
         <ol className="mt-4 grid gap-2 sm:grid-cols-2">
           {data.steps.map(step => (
-            <li key={step.id} className={`flex items-center gap-3 rounded-xl border p-3 ${step.done ? "border-emerald-100 bg-emerald-50/45" : "border-[rgba(26,26,26,0.08)] bg-white"}`}>
+            <li key={step.id} className={`flex items-center gap-3 rounded-xl border p-3 ${step.done ? "border-emerald-100 bg-emerald-50/45" : "border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white"}`}>
               {step.done
                 ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-label="Done" />
                 : <Circle className="h-4 w-4 shrink-0 text-[#D4922A]" aria-label="Not done yet" />}
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-[#1A1A1A]">{step.label}</p>
-                <p className="mt-0.5 text-[11px] leading-4 text-[rgba(26,26,26,0.58)]">{step.detail}</p>
+                <p className="text-xs font-bold text-[var(--foreground)]">{step.label}</p>
+                <p className="mt-0.5 text-[11px] leading-4 text-[color-mix(in oklab, var(--foreground) 58.0%, transparent)]">{step.detail}</p>
               </div>
               {!step.done && (
                 <button
@@ -82,7 +82,7 @@ export default function OnboardingFirstHour({ setActivePanel }: Props) {
           ))}
         </ol>
 
-        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-[rgba(26,26,26,0.55)]">
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">
           <Clock className="h-3.5 w-3.5 text-[#D4922A]" />
           Estimated remaining work: {data.remainingMinutes} min — part of our operational-in-under-an-hour guarantee.
         </p>

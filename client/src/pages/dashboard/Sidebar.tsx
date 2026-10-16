@@ -22,6 +22,7 @@ import { PanelErrorBoundary } from "@/components/PanelErrorBoundary";
 import GlobalSearch from "@/components/GlobalSearch";
 import { PanelTabs } from "@/components/PanelTabs";
 import { Building2, Activity, AlertCircle, ArrowRight, ArrowUpRight, BarChart3, Bell, Bot, Building, Calendar, CalendarX, Camera, Check, CheckCircle, ChevronDown, ChevronRight, Clock, Copy, CreditCard, Crown, DollarSign, Download, Edit2, ExternalLink, Eye, EyeOff, FileBarChart, FileSignature, FileText, Globe, HardHat, HeartPulse, Home, Inbox, LayoutDashboard, Link, Link2, Loader2, LogOut, Mail, MapPin, MessageSquare, MoreHorizontal, Package, Phone, PlugZap, Plus, Printer, Receipt, RefreshCw, Rocket, Save, Search, Send, Settings, Shield, Smartphone, Sparkles, Star, Tag, ThumbsUp, ToggleLeft, ToggleRight, Trash2, TrendingUp, Upload, User, Users, UsersRound, Webhook, Wifi, WifiOff, X, Zap } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, BarChart, Bar,
@@ -192,6 +193,11 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
             </div>
           </div>
         )}
+        {/* Theme: light / dark */}
+        <div className={collapsed ? "flex justify-center" : "flex justify-between items-center px-3"}>
+          {!collapsed && <span className="text-xs text-white/50">Appearance</span>}
+          <ThemeToggle compact className="text-white/50 border-white/15 hover:bg-white/10" />
+        </div>
         {/* Collapse / Expand toggle */}
         <button
           onClick={() => setCollapsed(v => !v)}

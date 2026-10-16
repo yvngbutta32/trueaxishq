@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { CheckCircle, Zap, ArrowLeft, Star, Shield, Sparkles, Brain, X } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 // Single source of truth: shared/plans.ts (also drives Stripe billing) —
@@ -14,7 +15,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { PLANS as PLAN_SOURCE } from "@shared/plans";
 
 const planPresentation: Record<string, { accentColor: string; cta: string; notIncluded: string[] }> = {
-  Starter: { accentColor: "rgba(26,26,26,0.30)", cta: "Create Account", notIncluded: ["Client Pulse AI™", "Unlimited follow-ups", "Priority support"] },
+  Starter: { accentColor: "color-mix(in oklab, var(--foreground) 30%, transparent)", cta: "Create Account", notIncluded: ["Client Pulse AI™", "Unlimited follow-ups", "Priority support"] },
   Pro: { accentColor: "#D4922A", cta: "Create Account", notIncluded: [] },
   Agency: { accentColor: "#7A9A8A", cta: "Contact Sales", notIncluded: [] },
 };
@@ -58,21 +59,22 @@ export default function Pricing() {
   useEffect(() => { document.title = "Pricing — TrueAxis HQ"; }, []);
 
   return (
-    <div style={{ background: "#F7F6F3", minHeight: "100vh", color: "#1A1A1A" }}>
+    <div style={{ background: "var(--background)", minHeight: "100vh", color: "var(--foreground)" }}>
       {/* Nav */}
       <nav
         className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
-        style={{ background: "rgba(247,246,243,0.97)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(221,219,215,0.80)" }}
+        style={{ background: "rgba(247,246,243,0.97)", backdropFilter: "blur(12px)", borderBottom: "1px solid color-mix(in oklab, var(--border) 80%, transparent)" }}
         aria-label="Pricing navigation"
       >
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-sm font-medium animated-underline"
-          style={{ color: "rgba(26,26,26,0.85)", background: "rgba(26,26,26,0.05)", border: "1px solid rgba(26,26,26,0.12)", borderRadius: "0.5rem", padding: "0.35rem 0.75rem", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+          style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)", background: "color-mix(in oklab, var(--foreground) 5%, transparent)", border: "1px solid color-mix(in oklab, var(--foreground) 12%, transparent)", borderRadius: "0.5rem", padding: "0.35rem 0.75rem", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </button>
+        <ThemeToggle compact className="ml-1" />
         <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }} aria-label="Go to homepage">
           <img
             src={TRUEAXIS_LOGO_URL}
@@ -94,29 +96,29 @@ export default function Pricing() {
             <Sparkles className="w-3 h-3" />
             Simple, Transparent Pricing
           </div>
-          <h1 style={{ fontWeight: 800, fontSize: "clamp(2rem, 4.5vw, 3.25rem)", letterSpacing: "-0.03em", color: "#1A1A1A", lineHeight: 1.1 }}>
+          <h1 style={{ fontWeight: 800, fontSize: "clamp(2rem, 4.5vw, 3.25rem)", letterSpacing: "-0.03em", color: "var(--foreground)", lineHeight: 1.1 }}>
             Invest in your business.
             <br />
             <span style={{ color: "#D4922A" }}>Keep operations in one place.</span>
           </h1>
-          <p className="mt-4 mb-10 max-w-xl mx-auto" style={{ color: "rgba(26,26,26,0.75)", fontSize: "1.0625rem" }}>
+          <p className="mt-4 mb-10 max-w-xl mx-auto" style={{ color: "color-mix(in oklab, var(--foreground) 75%, transparent)", fontSize: "1.0625rem" }}>
             Review package information and create an account to explore the workspace. Package availability and billing configuration are confirmed during onboarding.
           </p>
 
           {/* Billing toggle */}
           <div className="flex items-center justify-center gap-4" role="group" aria-label="Billing period">
-            <span className="text-sm font-medium" style={{ color: !annual ? "#1A1A1A" : "rgba(26,26,26,0.45)" }}>Monthly</span>
+            <span className="text-sm font-medium" style={{ color: !annual ? "var(--foreground)" : "color-mix(in oklab, var(--foreground) 45%, transparent)" }}>Monthly</span>
             <button
               onClick={() => setAnnual(!annual)}
               role="switch"
               aria-checked={annual}
               aria-label="Annual billing"
               className="relative w-12 h-6 rounded-full transition-colors focus:outline-none"
-              style={{ background: annual ? "#D4922A" : "rgba(26,26,26,0.12)", border: "1px solid rgba(26,26,26,0.12)" }}
+              style={{ background: annual ? "#D4922A" : "color-mix(in oklab, var(--foreground) 12%, transparent)", border: "1px solid color-mix(in oklab, var(--foreground) 12%, transparent)" }}
             >
               <div className="absolute top-0.5 w-5 h-5 rounded-full shadow transition-transform" style={{ background: "var(--card)", transform: annual ? "translateX(1.5rem)" : "translateX(0.125rem)" }} />
             </button>
-            <span className="text-sm font-medium flex items-center gap-2" style={{ color: annual ? "#1A1A1A" : "rgba(26,26,26,0.45)" }}>
+            <span className="text-sm font-medium flex items-center gap-2" style={{ color: annual ? "var(--foreground)" : "color-mix(in oklab, var(--foreground) 45%, transparent)" }}>
               Annual
               <span className="tag tag-amber" style={{ fontSize: "0.65rem" }}>Annual option</span>
             </span>
@@ -142,7 +144,7 @@ export default function Pricing() {
                 className="relative rounded-xl p-6 flex flex-col"
                 style={{
                   background: plan.popular ? "rgba(232,160,32,0.04)" : "var(--card)",
-                  border: plan.popular ? "1px solid rgba(232,160,32,0.30)" : "1px solid rgba(221,219,215,0.90)",
+                  border: plan.popular ? "1px solid rgba(232,160,32,0.30)" : "1px solid color-mix(in oklab, var(--border) 90%, transparent)",
                   boxShadow: plan.popular ? "0 0 40px rgba(232,160,32,0.08)" : "none",
                   transform: plan.popular ? "scale(1.02)" : "scale(1)",
                 }}
@@ -160,16 +162,16 @@ export default function Pricing() {
                   <div className="w-10 h-10 rounded flex items-center justify-center mb-3" style={{ background: `${plan.accentColor}18`, border: `1px solid ${plan.accentColor}30` }}>
                     {plan.name === "Pro" ? <Brain className="w-5 h-5" style={{ color: plan.accentColor }} /> : <Zap className="w-5 h-5" style={{ color: plan.accentColor }} />}
                   </div>
-                  <h3 style={{ fontWeight: 700, fontSize: "1.25rem", color: "#1A1A1A" }}>{plan.name}</h3>
-                  <p className="text-sm mt-1" style={{ color: "rgba(26,26,26,0.65)" }}>{plan.description}</p>
+                  <h3 style={{ fontWeight: 700, fontSize: "1.25rem", color: "var(--foreground)" }}>{plan.name}</h3>
+                  <p className="text-sm mt-1" style={{ color: "color-mix(in oklab, var(--foreground) 65%, transparent)" }}>{plan.description}</p>
                 </div>
 
                 <div className="mb-6">
                   <div className="flex items-end gap-1">
-                    <span style={{ fontWeight: 800, fontSize: "2.5rem", color: "#1A1A1A", lineHeight: 1 }}>
+                    <span style={{ fontWeight: 800, fontSize: "2.5rem", color: "var(--foreground)", lineHeight: 1 }}>
                       ${annual ? plan.price.annual : plan.price.monthly}
                     </span>
-                    <span className="mb-1 text-sm" style={{ color: "rgba(26,26,26,0.65)" }}>/mo</span>
+                    <span className="mb-1 text-sm" style={{ color: "color-mix(in oklab, var(--foreground) 65%, transparent)" }}>/mo</span>
                   </div>
                   {annual && (
                     <p className="text-xs mt-1" style={{ color: "#D4922A" }}>
@@ -198,13 +200,13 @@ export default function Pricing() {
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2.5 text-sm">
                       <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: plan.popular ? "#D4922A" : "#7A9A8A" }} />
-                      <span style={{ color: "rgba(26,26,26,0.65)" }}>{feature}</span>
+                      <span style={{ color: "color-mix(in oklab, var(--foreground) 65%, transparent)" }}>{feature}</span>
                     </li>
                   ))}
                   {plan.notIncluded.map((feature) => (
                     <li key={feature} className="flex items-start gap-2.5 text-sm opacity-50">
-                      <X className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "rgba(26,26,26,0.50)" }} />
-                      <span style={{ color: "rgba(26,26,26,0.55)", textDecoration: "line-through" }}>{feature}</span>
+                      <X className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "color-mix(in oklab, var(--foreground) 50%, transparent)" }} />
+                      <span style={{ color: "color-mix(in oklab, var(--foreground) 55.0%, transparent)", textDecoration: "line-through" }}>{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -219,7 +221,7 @@ export default function Pricing() {
         <div className="container max-w-4xl mx-auto px-4">
           <div className="text-center mb-12">
             <div className="section-label mb-3">Full Comparison</div>
-            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
+            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "var(--foreground)", letterSpacing: "-0.025em" }}>
               What's included in each plan
             </h2>
           </div>
@@ -227,11 +229,11 @@ export default function Pricing() {
           <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(232,160,32,0.10)" }}>
             <div className="overflow-x-auto">
             {/* Header */}
-            <div className="grid grid-cols-4 min-w-[480px] px-5 py-3" style={{ background: "#EEECEA", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
-              <div className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(26,26,26,0.55)" }}>Feature</div>
+            <div className="grid grid-cols-4 min-w-[480px] px-5 py-3" style={{ background: "var(--muted)", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
+              <div className="text-xs font-bold uppercase tracking-widest" style={{ color: "color-mix(in oklab, var(--foreground) 55.0%, transparent)" }}>Feature</div>
               {["Starter", "Pro", "Agency"].map((p, i) => (
                 <div key={p} className="text-center">
-                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: i === 1 ? "#D4922A" : "rgba(26,26,26,0.70)" }}>{p}</span>
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: i === 1 ? "#D4922A" : "color-mix(in oklab, var(--foreground) 70%, transparent)" }}>{p}</span>
                 </div>
               ))}
             </div>
@@ -241,11 +243,11 @@ export default function Pricing() {
               <div
                 key={i}
                 className="grid grid-cols-4 min-w-[480px] px-5 py-3"
-                style={{ background: i % 2 === 0 ? "var(--card)" : "var(--muted)", borderBottom: i < comparisonRows.length - 1 ? "1px solid rgba(221,219,215,0.60)" : "none" }}
+                style={{ background: i % 2 === 0 ? "var(--card)" : "var(--muted)", borderBottom: i < comparisonRows.length - 1 ? "1px solid color-mix(in oklab, var(--border) 60%, transparent)" : "none" }}
               >
-                <div className="text-sm" style={{ color: "rgba(26,26,26,0.85)" }}>{row.feature}</div>
+                <div className="text-sm" style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}>{row.feature}</div>
                 {[row.starter, row.pro, row.agency].map((val, j) => (
-                  <div key={j} className="text-center text-sm" style={{ color: val === "—" ? "rgba(26,26,26,0.35)" : j === 1 ? "#D4922A" : "rgba(26,26,26,0.80)" }}>
+                  <div key={j} className="text-center text-sm" style={{ color: val === "—" ? "color-mix(in oklab, var(--foreground) 35%, transparent)" : j === 1 ? "#D4922A" : "color-mix(in oklab, var(--foreground) 80%, transparent)" }}>
                     {val === "✓" ? <CheckCircle className="w-4 h-4 mx-auto" style={{ color: j === 1 ? "#D4922A" : "#7A9A8A" }} /> : val}
                   </div>
                 ))}
@@ -257,7 +259,7 @@ export default function Pricing() {
       </section>
 
       {/* Product assurances */}
-      <section className="py-12" style={{ background: "#F7F6F3", borderTop: "1px solid rgba(232,160,32,0.08)", borderBottom: "1px solid rgba(232,160,32,0.08)" }}>
+      <section className="py-12" style={{ background: "var(--background)", borderTop: "1px solid rgba(232,160,32,0.08)", borderBottom: "1px solid rgba(232,160,32,0.08)" }}>
         <div className="container">
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm">
             {[
@@ -266,7 +268,7 @@ export default function Pricing() {
               { icon: Star, text: "Evidence-led product guidance" },
               { icon: Zap, text: "Operational health diagnostics" },
             ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-2" style={{ color: "rgba(26,26,26,0.75)" }}>
+              <div key={text} className="flex items-center gap-2" style={{ color: "color-mix(in oklab, var(--foreground) 75%, transparent)" }}>
                 <Icon className="w-4 h-4" style={{ color: "#D4922A" }} />
                 {text}
               </div>
@@ -276,15 +278,15 @@ export default function Pricing() {
       </section>
 
       {/* Billing guidance */}
-      <section className="py-12 px-4" style={{ background: "#F7F6F3" }}>
+      <section className="py-12 px-4" style={{ background: "var(--background)" }}>
         <div className="container max-w-2xl mx-auto">
           <div className="flex flex-col sm:flex-row items-center gap-6 p-7 rounded-xl" style={{ background: "rgba(232,160,32,0.05)", border: "1px solid rgba(232,160,32,0.18)" }}>
             <div className="flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(232,160,32,0.12)", border: "2px solid rgba(232,160,32,0.30)" }}>
               <Shield className="w-8 h-8" style={{ color: "#D4922A" }} />
             </div>
             <div className="text-center sm:text-left">
-              <h3 style={{ fontWeight: 700, fontSize: "1.125rem", color: "#1A1A1A" }}>Clear billing guidance</h3>
-              <p className="mt-1 text-sm" style={{ color: "rgba(26,26,26,0.75)" }}>Billing controls and payment availability are shown in your workspace when payment configuration is active. For account questions, contact billing@trueaxishq.com.</p>
+              <h3 style={{ fontWeight: 700, fontSize: "1.125rem", color: "var(--foreground)" }}>Clear billing guidance</h3>
+              <p className="mt-1 text-sm" style={{ color: "color-mix(in oklab, var(--foreground) 75%, transparent)" }}>Billing controls and payment availability are shown in your workspace when payment configuration is active. For account questions, contact billing@trueaxishq.com.</p>
             </div>
           </div>
         </div>
@@ -295,23 +297,23 @@ export default function Pricing() {
         <div className="container max-w-2xl mx-auto">
           <div className="text-center mb-12">
             <div className="section-label mb-3">FAQ</div>
-            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
+            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "var(--foreground)", letterSpacing: "-0.025em" }}>
               Common questions
             </h2>
           </div>
           <div className="space-y-2">
             {faqs.map((faq, i) => (
-              <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(221,219,215,0.80)" }}>
+              <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid color-mix(in oklab, var(--border) 80%, transparent)" }}>
                 <button
                   className="w-full text-left px-5 py-4 flex items-center justify-between text-sm font-semibold"
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  style={{ background: openFaq === i ? "rgba(232,160,32,0.04)" : "var(--card)", color: "#1A1A1A", border: "none", minHeight: "auto" }}
+                  style={{ background: openFaq === i ? "rgba(232,160,32,0.04)" : "var(--card)", color: "var(--foreground)", border: "none", minHeight: "auto" }}
                 >
                   {faq.q}
                   <span className="text-lg transition-transform" style={{ color: "#D4922A", transform: openFaq === i ? "rotate(45deg)" : "none", display: "inline-block" }}>+</span>
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-4 text-sm leading-relaxed" style={{ background: "rgba(232,160,32,0.02)", borderTop: "1px solid rgba(232,160,32,0.08)", color: "rgba(26,26,26,0.80)" }}>
+                  <div className="px-5 pb-4 text-sm leading-relaxed" style={{ background: "rgba(232,160,32,0.02)", borderTop: "1px solid rgba(232,160,32,0.08)", color: "color-mix(in oklab, var(--foreground) 80%, transparent)" }}>
                     {faq.a}
                   </div>
                 )}
@@ -322,14 +324,14 @@ export default function Pricing() {
       </section>
 
       {/* CTA */}
-      <section className="pt-20 pb-16 page-bottom text-center relative overflow-hidden" style={{ background: "#F7F6F3" }}>
+      <section className="pt-20 pb-16 page-bottom text-center relative overflow-hidden" style={{ background: "var(--background)" }}>
         <div className="absolute inset-0 retro-grid opacity-25 pointer-events-none" />
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 70% at 50% 50%, rgba(232,160,32,0.06) 0%, transparent 70%)" }} />
         <div className="container relative z-10">
-          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "#1A1A1A", letterSpacing: "-0.025em" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "var(--foreground)", letterSpacing: "-0.025em" }}>
             Explore TrueAxis HQ.
           </h2>
-          <p className="mt-3 mb-8" style={{ color: "rgba(26,26,26,0.75)" }}>Create an account to explore the workflows built for your service business.</p>
+          <p className="mt-3 mb-8" style={{ color: "color-mix(in oklab, var(--foreground) 75%, transparent)" }}>Create an account to explore the workflows built for your service business.</p>
           <button onClick={() => navigate(isAuthenticated ? "/dashboard" : "/register")} className="btn-amber" style={{ padding: "0.75rem 2.5rem", fontSize: "1rem" }}>
             Create Account
             <Zap className="w-4 h-4" />

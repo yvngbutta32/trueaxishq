@@ -43,7 +43,7 @@ export function ActionCards({ onNavigate }: { onNavigate: (panel: ActionCardTarg
 
   return (
     <section aria-label="Today's priorities" className="space-y-2">
-      <h2 className="text-xs font-semibold uppercase tracking-wider text-[#6B6B6B]">Today's priorities</h2>
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Today's priorities</h2>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {data.cards.map((card: ServerActionCard) => {
           const Icon = CARD_ICONS[card.id] ?? DollarSign;
@@ -52,14 +52,14 @@ export function ActionCards({ onNavigate }: { onNavigate: (panel: ActionCardTarg
               key={card.id}
               type="button"
               onClick={() => onNavigate(card.target)}
-              className={`group flex items-start gap-3 rounded-xl border p-3 text-left transition hover:border-[#D4922A]/60 hover:shadow-sm ${CARD_STYLES[card.id] ?? "border-[#DDDBD7] bg-white/60 dark:bg-transparent"}`}
+              className={`group flex items-start gap-3 rounded-xl border p-3 text-left transition hover:border-[#D4922A]/60 hover:shadow-sm ${CARD_STYLES[card.id] ?? "border-[var(--border)] bg-white/60 dark:bg-transparent"}`}
             >
               <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#D4922A]/10">
                 <Icon className="h-4 w-4 text-[#D4922A]" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold text-[#1A1A1A]">{card.title}</span>
-                <span className="mt-0.5 block truncate text-xs text-[#6B6B6B]">{card.detail}</span>
+                <span className="block truncate text-sm font-semibold text-[var(--foreground)]">{card.title}</span>
+                <span className="mt-0.5 block truncate text-xs text-[var(--muted-foreground)]">{card.detail}</span>
               </span>
               <span className="mt-1 text-sm font-bold text-[#D4922A] opacity-60 transition group-hover:opacity-100">→</span>
             </button>

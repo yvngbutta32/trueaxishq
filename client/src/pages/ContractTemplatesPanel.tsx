@@ -136,8 +136,8 @@ export default function ContractTemplatesPanel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1A1A1A]">Contract Templates</h2>
-          <p className="text-sm text-[rgba(26,26,26,0.55)]">{templates.length} templates · click "Use" to apply to a new contract</p>
+          <h2 className="text-xl font-extrabold text-[var(--foreground)]">Contract Templates</h2>
+          <p className="text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">{templates.length} templates · click "Use" to apply to a new contract</p>
         </div>
         <Button
           size="sm"
@@ -157,7 +157,7 @@ export default function ContractTemplatesPanel() {
             className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
               categoryFilter === cat
                 ? "bg-[#D4922A] text-white"
-                : "bg-white/5 text-[rgba(26,26,26,0.5)] hover:bg-white/10 hover:text-[#1A1A1A]"
+                : "bg-white/5 text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:bg-white/10 hover:text-[var(--foreground)]"
             }`}
           >
             {cat}
@@ -167,18 +167,18 @@ export default function ContractTemplatesPanel() {
 
       {/* Template editor */}
       {showCreate && (
-        <div className="bg-white border border-[#DDDBD7] rounded-2xl p-5 space-y-4">
+        <div className="bg-white border border-[var(--border)] rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-[#1A1A1A]">{editingId ? "Edit Template" : "New Contract Template"}</h3>
-            <button type="button" aria-label="Close template editor" onClick={resetForm} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A]"><X className="w-4 h-4" /></button>
+            <h3 className="font-bold text-[var(--foreground)]">{editingId ? "Edit Template" : "New Contract Template"}</h3>
+            <button type="button" aria-label="Close template editor" onClick={resetForm} className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)]"><X className="w-4 h-4" /></button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">Template Name *</label>
+              <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5">Template Name *</label>
               <input value={tplName} onChange={e => setTplName(e.target.value)} placeholder="e.g. Web Development Agreement" className="form-input-light w-full" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">Category</label>
+              <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5">Category</label>
               <select value={tplCategory} onChange={e => setTplCategory(e.target.value)} className="form-input-light w-full">
                 <option value="">Select category…</option>
                 {CATEGORIES.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
@@ -186,9 +186,9 @@ export default function ContractTemplatesPanel() {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">
+            <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5">
               Contract Body *
-              <span className="ml-2 text-[rgba(26,26,26,0.60)] font-normal">Use [CLIENT NAME], [YOUR NAME], [DATE] as placeholders</span>
+              <span className="ml-2 text-[color-mix(in oklab, var(--foreground) 60%, transparent)] font-normal">Use [CLIENT NAME], [YOUR NAME], [DATE] as placeholders</span>
             </label>
             <textarea
               maxLength={50000}
@@ -199,7 +199,7 @@ export default function ContractTemplatesPanel() {
               placeholder="Paste or write your contract template here…"
             />
           </div>
-          <div className="flex gap-2 justify-end pt-2 border-t border-[#DDDBD7]">
+          <div className="flex gap-2 justify-end pt-2 border-t border-[var(--border)]">
             <Button size="sm" variant="outline" onClick={resetForm}>Cancel</Button>
             <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={handleSave} disabled={createTemplate.isPending || updateTemplate.isPending}>
               <Save className="w-3.5 h-3.5" />{createTemplate.isPending || updateTemplate.isPending ? "Saving…" : "Save Template"}
@@ -214,22 +214,22 @@ export default function ContractTemplatesPanel() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#D4922A]" />
-              <h3 className="font-bold text-[#1A1A1A]">Apply Template: {useTemplate.name}</h3>
+              <h3 className="font-bold text-[var(--foreground)]">Apply Template: {useTemplate.name}</h3>
             </div>
-            <button type="button" aria-label="Close apply template panel" onClick={() => setUseTemplateId(null)} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A]"><X className="w-4 h-4" /></button>
+            <button type="button" aria-label="Close apply template panel" onClick={() => setUseTemplateId(null)} className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)]"><X className="w-4 h-4" /></button>
           </div>
-          <p className="text-xs text-[rgba(26,26,26,0.5)]">Fill in the placeholders below. The filled contract text will be copied to your clipboard.</p>
+          <p className="text-xs text-[color-mix(in oklab, var(--foreground) 50%, transparent)]">Fill in the placeholders below. The filled contract text will be copied to your clipboard.</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">Client Name</label>
+              <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5">Client Name</label>
               <input value={fillClientName} onChange={e => setFillClientName(e.target.value)} placeholder="[CLIENT NAME]" className="form-input-light w-full" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">Your Name</label>
+              <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5">Your Name</label>
               <input value={fillYourName} onChange={e => setFillYourName(e.target.value)} placeholder="[YOUR NAME]" className="form-input-light w-full" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">Date</label>
+              <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5">Date</label>
               <input type="date" value={fillDate} onChange={e => setFillDate(e.target.value)} className="form-input-light w-full" />
             </div>
           </div>
@@ -244,16 +244,16 @@ export default function ContractTemplatesPanel() {
 
       {/* Preview dialog */}
       {previewId && previewTemplate && (
-        <div className="bg-white border border-[#DDDBD7] rounded-2xl p-5 space-y-3">
+        <div className="bg-white border border-[var(--border)] rounded-2xl p-5 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-[rgba(26,26,26,0.5)]" />
-              <h3 className="font-bold text-[#1A1A1A]">{previewTemplate.name}</h3>
-              {previewTemplate.category && <Badge variant="outline" className="text-[10px] border-[#C8C5BF] text-[rgba(26,26,26,0.4)]">{previewTemplate.category}</Badge>}
+              <BookOpen className="w-4 h-4 text-[color-mix(in oklab, var(--foreground) 50%, transparent)]" />
+              <h3 className="font-bold text-[var(--foreground)]">{previewTemplate.name}</h3>
+              {previewTemplate.category && <Badge variant="outline" className="text-[10px] border-[var(--border-strong)] text-[color-mix(in oklab, var(--foreground) 40%, transparent)]">{previewTemplate.category}</Badge>}
             </div>
-            <button type="button" aria-label="Close template preview" onClick={() => setPreviewId(null)} className="text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A]"><X className="w-4 h-4" /></button>
+            <button type="button" aria-label="Close template preview" onClick={() => setPreviewId(null)} className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)]"><X className="w-4 h-4" /></button>
           </div>
-          <pre className="text-xs text-[rgba(26,26,26,0.7)] whitespace-pre-wrap font-mono bg-[#F7F6F3] rounded-xl p-4 max-h-80 overflow-y-auto border border-[#EEECEA]">
+          <pre className="text-xs text-[color-mix(in oklab, var(--foreground) 70%, transparent)] whitespace-pre-wrap font-mono bg-[var(--background)] rounded-xl p-4 max-h-80 overflow-y-auto border border-[var(--muted)]">
             {previewTemplate.body}
           </pre>
           <div className="flex gap-2 justify-end">
@@ -269,41 +269,41 @@ export default function ContractTemplatesPanel() {
 
       {/* Templates list */}
       {filtered.length === 0 ? (
-        <div className="text-center py-10 bg-white rounded-2xl border border-[#DDDBD7]">
-          <FileSignature className="w-10 h-10 text-[rgba(26,26,26,0.2)] mx-auto mb-3" />
-          <p className="text-sm text-[rgba(26,26,26,0.4)]">No templates in this category</p>
+        <div className="text-center py-10 bg-white rounded-2xl border border-[var(--border)]">
+          <FileSignature className="w-10 h-10 text-[color-mix(in oklab, var(--foreground) 20%, transparent)] mx-auto mb-3" />
+          <p className="text-sm text-[color-mix(in oklab, var(--foreground) 40%, transparent)]">No templates in this category</p>
         </div>
       ) : (
         <div className="space-y-2">
           {filtered.map(t => (
-            <div key={t.id} className="bg-white border border-[#DDDBD7] rounded-xl flex items-center gap-3 px-4 py-3 hover:border-[#C8C5BF] transition-all group">
+            <div key={t.id} className="bg-white border border-[var(--border)] rounded-xl flex items-center gap-3 px-4 py-3 hover:border-[var(--border-strong)] transition-all group">
               <div className="w-8 h-8 rounded-lg bg-[#D4922A]/12 flex items-center justify-center flex-shrink-0">
                 <FileSignature className="w-4 h-4 text-[#D4922A]" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-[#1A1A1A] truncate">{t.name}</span>
+                  <span className="text-sm font-semibold text-[var(--foreground)] truncate">{t.name}</span>
                   {t.isBuiltIn && (
                     <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-[#D4922A]/30 text-[#D4922A] bg-[#D4922A]/8 flex-shrink-0">
                       Built-in
                     </Badge>
                   )}
                   {t.category && (
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-[#DDDBD7] text-[rgba(26,26,26,0.4)] flex-shrink-0">
+                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-[var(--border)] text-[color-mix(in oklab, var(--foreground) 40%, transparent)] flex-shrink-0">
                       {t.category}
                     </Badge>
                   )}
                 </div>
-                <p className="text-[10px] text-[rgba(26,26,26,0.60)] mt-0.5 truncate">
+                <p className="text-[10px] text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mt-0.5 truncate">
                   {t.body.slice(0, 80)}…
                 </p>
               </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                <button type="button" aria-label={`Preview template ${t.name}`} onClick={() => setPreviewId(t.id)} className="p-1.5 rounded-lg hover:bg-[#EEECEA] text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors" title="Preview">
+                <button type="button" aria-label={`Preview template ${t.name}`} onClick={() => setPreviewId(t.id)} className="p-1.5 rounded-lg hover:bg-[var(--muted)] text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)] transition-colors" title="Preview">
                   <Eye className="w-3.5 h-3.5" />
                 </button>
                 {!t.isBuiltIn && (
-                  <button type="button" aria-label={`Edit template ${t.name}`} onClick={() => startEdit(t)} className="p-1.5 rounded-lg hover:bg-[#EEECEA] text-[rgba(26,26,26,0.4)] hover:text-[#1A1A1A] transition-colors" title="Edit">
+                  <button type="button" aria-label={`Edit template ${t.name}`} onClick={() => startEdit(t)} className="p-1.5 rounded-lg hover:bg-[var(--muted)] text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)] transition-colors" title="Edit">
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                 )}
@@ -314,12 +314,12 @@ export default function ContractTemplatesPanel() {
                   <Sparkles className="w-3 h-3" />Use
                 </button>
                 {!t.isBuiltIn && (
-                  <button type="button" aria-label={`Delete template ${t.name}`} onClick={() => deleteTemplate.mutate({ id: t.id })} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[rgba(26,26,26,0.3)] hover:text-red-400 transition-colors" title="Delete">
+                  <button type="button" aria-label={`Delete template ${t.name}`} onClick={() => deleteTemplate.mutate({ id: t.id })} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[color-mix(in oklab, var(--foreground) 30%, transparent)] hover:text-red-400 transition-colors" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
-              <ChevronRight className="w-4 h-4 text-[rgba(26,26,26,0.2)] flex-shrink-0 group-hover:text-[rgba(26,26,26,0.4)] transition-colors" />
+              <ChevronRight className="w-4 h-4 text-[color-mix(in oklab, var(--foreground) 20%, transparent)] flex-shrink-0 group-hover:text-[color-mix(in oklab, var(--foreground) 40%, transparent)] transition-colors" />
             </div>
           ))}
         </div>

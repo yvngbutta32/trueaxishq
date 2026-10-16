@@ -51,14 +51,14 @@ function ChangelogModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="What's new">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={dismiss} aria-hidden="true" />
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-[#DDDBD7]">
-        <div className="flex items-center justify-between p-5 border-b border-[#EEECEA]">
+      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-[var(--border)]">
+        <div className="flex items-center justify-between p-5 border-b border-[var(--muted)]">
           <div>
-            <h2 className="font-extrabold text-[#1A1A1A] text-base">What's New in v{CHANGELOG_VERSION} 🎉</h2>
-            <p className="text-xs text-[#6B6B6B] mt-0.5">TrueAxis HQ — Latest Updates</p>
+            <h2 className="font-extrabold text-[var(--foreground)] text-base">What's New in v{CHANGELOG_VERSION} 🎉</h2>
+            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">TrueAxis HQ — Latest Updates</p>
           </div>
           <button onClick={dismiss} className="p-2 rounded-lg hover:bg-[#F0EEE9] transition-colors" aria-label="Close">
-            <X className="w-4 h-4 text-[#6B6B6B]" />
+            <X className="w-4 h-4 text-[var(--muted-foreground)]" />
           </button>
         </div>
         <div className="p-5 space-y-4">
@@ -75,8 +75,8 @@ function ChangelogModal() {
             <div key={item.title} className="flex items-start gap-3">
               <span className="text-xl flex-shrink-0">{item.emoji}</span>
               <div>
-                <p className="text-sm font-bold text-[#1A1A1A]">{item.title}</p>
-                <p className="text-xs text-[#6B6B6B] mt-0.5">{item.desc}</p>
+                <p className="text-sm font-bold text-[var(--foreground)]">{item.title}</p>
+                <p className="text-xs text-[var(--muted-foreground)] mt-0.5">{item.desc}</p>
               </div>
             </div>
           ))}

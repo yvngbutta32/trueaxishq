@@ -66,10 +66,10 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
     if (type === "booking") return <Calendar className="w-4 h-4 text-[#D4922A]" />;
     if (type === "invoice_paid") return <CheckCircle className="w-4 h-4 text-green-500" />;
     if (type === "invoice_overdue") return <AlertCircle className="w-4 h-4 text-red-500" />;
-    if (type === "invoice") return <FileText className="w-4 h-4 text-[#3D3D3D]" />;
+    if (type === "invoice") return <FileText className="w-4 h-4 text-[var(--foreground-soft)]" />;
     if (type === "success") return <CheckCircle className="w-4 h-4 text-green-500" />;
     if (type === "warning") return <AlertCircle className="w-4 h-4 text-orange-500" />;
-    return <Bell className="w-4 h-4 text-[#3D3D3D]" />;
+    return <Bell className="w-4 h-4 text-[var(--foreground-soft)]" />;
   };
 
   const typeColor = (type: string) => {
@@ -79,7 +79,7 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
     if (type === "invoice_overdue") return "bg-red-500/10 border-red-100";
     if (type === "warning") return "bg-orange-50 border-orange-100";
     if (type === "success") return "bg-green-500/10 border-green-100";
-    return "bg-[#F7F6F3] border-[#DDDBD7]";
+    return "bg-[var(--background)] border-[var(--border)]";
   };
 
   return (
@@ -87,8 +87,8 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-[#1A1A1A]">Smart Inbox</h2>
-          <p className="text-sm text-[#3D3D3D] mt-0.5">
+          <h2 className="text-xl font-bold text-[var(--foreground)]">Smart Inbox</h2>
+          <p className="text-sm text-[var(--foreground-soft)] mt-0.5">
             {unreadCount > 0 ? `${unreadCount} unread item${unreadCount !== 1 ? "s" : ""}` : "All caught up"}
           </p>
         </div>
@@ -105,7 +105,7 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
         {(["all", "unread", "messages", "bookings", "invoices"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold capitalize transition-all ${
-              filter === f ? "bg-[#D4922A] text-white" : "bg-white border border-[#DDDBD7] text-[#6B6B6B] hover:border-[#D4922A]"
+              filter === f ? "bg-[#D4922A] text-white" : "bg-white border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[#D4922A]"
             }`}>
             {f}{f === "unread" && unreadCount > 0 ? ` (${unreadCount})` : ""}
           </button>
@@ -117,34 +117,34 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
         <div className="space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-20 bg-white rounded-xl animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
-          <div className="w-16 h-16 rounded-xl bg-[#EEECEA] flex items-center justify-center mx-auto mb-4">
-            <Inbox className="w-8 h-8 text-[#6B6B6B]" />
+          <div className="w-16 h-16 rounded-xl bg-[var(--muted)] flex items-center justify-center mx-auto mb-4">
+            <Inbox className="w-8 h-8 text-[var(--muted-foreground)]" />
           </div>
           <p className="font-semibold text-[#2A2A2A]">Nothing here</p>
-          <p className="text-sm text-[#3D3D3D] mt-1">Your activity feed will appear here</p>
+          <p className="text-sm text-[var(--foreground-soft)] mt-1">Your activity feed will appear here</p>
         </div>
       ) : (
         <div className="space-y-2">
           {filtered.map(item => (
             <div key={item.id}
               className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer hover:shadow-sm ${
-                item.read ? "bg-white border-[#DDDBD7]" : typeColor(item.type)
+                item.read ? "bg-white border-[var(--border)]" : typeColor(item.type)
               }`}
               onClick={() => {
                 if (!item.read && item.meta?.notifId) markRead.mutate({ notifId: item.meta.notifId });
                 if (item.link) setActivePanel(item.link.includes("panel=") ? (item.link.split("panel=")[1].split("&")[0] as ActivePanel) : "overview");
               }}
             >
-              <div className="w-8 h-8 rounded-lg bg-white/90 border border-[#DDDBD7] flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-lg bg-white/90 border border-[var(--border)] flex items-center justify-center flex-shrink-0 mt-0.5">
                 {typeIcon(item.type)}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
-                  <p className={`text-sm font-semibold truncate ${item.read ? "text-[#2A2A2A]" : "text-[#1A1A1A]"}` }>{item.title}</p>
+                  <p className={`text-sm font-semibold truncate ${item.read ? "text-[#2A2A2A]" : "text-[var(--foreground)]"}` }>{item.title}</p>
                   {!item.read && <span className="w-2 h-2 rounded-full bg-[#D4922A] flex-shrink-0 mt-1" />}
                 </div>
-                <p className="text-xs text-[#3D3D3D] mt-0.5 line-clamp-2">{item.body}</p>
-                <p className="text-[10px] text-[#3D3D3D] mt-1">{new Date(item.createdAt).toLocaleString()}</p>
+                <p className="text-xs text-[var(--foreground-soft)] mt-0.5 line-clamp-2">{item.body}</p>
+                <p className="text-[10px] text-[var(--foreground-soft)] mt-1">{new Date(item.createdAt).toLocaleString()}</p>
               </div>
             </div>
           ))}

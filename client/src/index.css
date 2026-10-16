@@ -24,7 +24,7 @@
 @theme {
   /* Anti-glare override: "white" is now the card tone, never pure #FFF.
      Every bg-white / text-white / bg-white/… utility inherits this. */
-  --color-white: oklch(0.973 0.003 85);   /* off-white #FAF9F6 */
+  --color-white: oklch(0.94 0.005 85);    /* ivory card tone — Tailwind white = card, never #FFF */
 }
 
 @theme inline {
@@ -95,24 +95,26 @@
   --neutral-900:  #1A1A1A;
 
   /* ── Semantic Tokens (Light / Neutral) ── */
-  --background:              oklch(0.945 0.005 85);  /* warm light-gray #EFEEE9 */
+  --background:              oklch(0.90 0.007 85);   /* warm greige "paper" — the medium: no white, no glare */
   --foreground:              oklch(0.13 0.005 80);   /* near-black #1A1A1A */
-  --card:                    oklch(0.973 0.003 85);  /* off-white #FAF9F6 — never pure white */
+  --card:                    oklch(0.94 0.005 85);   /* soft ivory — elevated, still not white */
   --card-foreground:         oklch(0.13 0.005 80);
-  --popover:                 oklch(0.965 0.003 85);  /* a shade under card so menus sit quieter */
+  --popover:                 oklch(0.935 0.004 85);  /* a shade under card so menus sit quieter */
   --popover-foreground:      oklch(0.13 0.005 80);
   --primary:                 oklch(0.62 0.14 60);    /* amber #D4922A */
-  --primary-foreground:      oklch(1 0 0);
-  --secondary:               oklch(0.915 0.006 85);  /* warm gray #E8E6E1 */
+  --primary-foreground:      oklch(0.20 0.02 65);  /* near-black on amber */
+  --secondary:               oklch(0.855 0.007 85);  /* warm gray */
   --secondary-foreground:    oklch(0.13 0.005 80);
-  --muted:                   oklch(0.915 0.006 85);
-  --muted-foreground:        oklch(0.42 0.008 85);   /* #63625E — darker for AA on dimmer fields */
-  --accent:                  oklch(0.92 0.010 60);   /* amber tint */
+  --muted:                   oklch(0.865 0.006 85);  /* recessed zones on the paper page */
+  --muted-foreground:        oklch(0.46 0.008 85);   /* AA on the paper page */
+  --accent:                  oklch(0.87 0.022 70);   /* amber tint, visible on the dimmer page */
   --accent-foreground:       oklch(0.13 0.005 80);
   --destructive:             oklch(0.50 0.19 25);    /* red */
   --destructive-foreground:  oklch(1 0 0);
-  --border:                  oklch(0.878 0.006 85);  /* slightly deeper so structure reads on dimmer surfaces */
-  --input:                   oklch(0.955 0.004 85);
+  --border:                  oklch(0.795 0.007 85);  /* deep enough that cards stay readable on greige */
+  --foreground-soft:         oklch(0.34 0.006 85);  /* body text */
+  --border-strong:           oklch(0.74 0.006 85);  /* hover/emphasis borders */
+  --input:                   oklch(0.925 0.005 85);  /* fields read as inset on the paper page */
   --ring:                    oklch(0.62 0.14 60);    /* amber focus ring */
 
   --chart-1: oklch(0.62 0.14 60);   /* amber */
@@ -122,7 +124,7 @@
   --chart-5: oklch(0.40 0.10 160);  /* green */
 
   /* Sidebar — slightly darker warm white */
-  --sidebar:                    oklch(0.928 0.006 85); /* quiet zone beside the page */
+  --sidebar:                    oklch(0.86 0.008 85);  /* quiet zone beside the page */
   --sidebar-foreground:         oklch(0.13 0.005 80);
   --sidebar-primary:            oklch(0.62 0.14 60);
   --sidebar-primary-foreground: oklch(1 0 0);
@@ -135,6 +137,52 @@
   --focus-ring-offset: 3px;
   --focus-ring-width:  2px;
 }
+/* ─── Dark theme — "Studio Dark": warm charcoal, amber signal ─────────────
+   Applied when <html class="dark"> (default for new visitors; toggleable).
+   Surfaces stay in the 0.165–0.30 lightness band; text near-white for
+   WCAG AA+; amber lightened one step so CTAs carry on dark. */
+.dark {
+  color-scheme: dark;
+  --background:              oklch(0.185 0.006 85);  /* warm charcoal #24231F */
+  --foreground:              oklch(0.93 0.004 85);   /* warm off-white #EAE8E3 */
+  --foreground-soft:         oklch(0.80 0.004 85);   /* body text */
+  --card:                    oklch(0.235 0.005 85);  /* #2E2D29 */
+  --card-foreground:         oklch(0.93 0.004 85);
+  --popover:                 oklch(0.235 0.005 85);
+  --popover-foreground:      oklch(0.93 0.004 85);
+  --primary:                 oklch(0.70 0.14 65);   /* amber, lifted for dark */
+  --primary-foreground:      oklch(0.16 0.01 65);   /* dark text on amber — high contrast */
+  --secondary:               oklch(0.30 0.006 85);
+  --secondary-foreground:    oklch(0.93 0.004 85);
+  --muted:                   oklch(0.28 0.005 85);
+  --muted-foreground:        oklch(0.66 0.006 85);  /* AA on dark surfaces */
+  --accent:                  oklch(0.30 0.03 65);   /* amber tint on dark */
+  --accent-foreground:       oklch(0.93 0.004 85);
+  --destructive:             oklch(0.62 0.19 25);
+  --destructive-foreground:  oklch(0.16 0.01 25);
+  --border:                  oklch(0.36 0.005 85);
+  --border-strong:           oklch(0.44 0.005 85);
+  --input:                   oklch(0.26 0.005 85);
+  --ring:                    oklch(0.72 0.14 65);
+
+  --chart-1: oklch(0.75 0.14 65);   /* amber, lifted */
+  --chart-2: oklch(0.62 0.09 240);  /* navy → slate-blue, readable on dark */
+  --chart-3: oklch(0.68 0.12 175);  /* teal */
+  --chart-4: oklch(0.65 0.19 25);   /* red */
+  --chart-5: oklch(0.60 0.10 160);  /* green */
+
+  --sidebar:                    oklch(0.165 0.006 85);
+  --sidebar-foreground:         oklch(0.93 0.004 85);
+  --sidebar-primary:            oklch(0.70 0.14 65);
+  --sidebar-primary-foreground: oklch(0.16 0.01 65);
+  --sidebar-accent:             oklch(0.24 0.02 65);
+  --sidebar-accent-foreground:   oklch(0.93 0.004 85);
+  --sidebar-border:             oklch(0.30 0.005 85);
+  --sidebar-ring:               oklch(0.72 0.14 65);
+
+  --focus-ring-color:  #E8A840;
+}
+
 
 /* ─── Base Layer ────────────────────────────────────────────────────────────── */
 @layer base {
@@ -183,8 +231,8 @@
     min-height: 100dvh;
     overflow-x: hidden;
     max-width: 100vw;
-    background-color: #F7F6F3;
-    color: #1A1A1A;
+    background-color: var(--background);
+    color: var(--foreground);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -193,10 +241,10 @@
     line-height: 1.2;
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: #1A1A1A;
+    color: var(--foreground);
   }
 
-  p { color: #3D3D3D; }
+  p { color: var(--foreground-soft); }
 
   .touch-target { min-height: 44px; min-width: 44px; }
 
@@ -258,7 +306,7 @@
 
   ::selection {
     background: rgba(212, 146, 42, 0.18);
-    color: #1A1A1A;
+    color: var(--foreground);
   }
 }
 
@@ -283,7 +331,7 @@
   .text-brand-red   { color: #C0392B; }
   .text-yellow      { color: #D4922A; }
   .text-brand-green { color: #1E6B45; }
-  .text-ink         { color: #1A1A1A; }
+  .text-ink         { color: var(--foreground); }
   .text-amber       { color: #D4922A; }
   .text-teal        { color: #00A88F; }
   .text-coral       { color: #C0392B; }
@@ -291,16 +339,16 @@
   .text-sage        { color: #1E6B45; }
   .text-rust        { color: #C0392B; }
   .text-amber-light { color: #E8A840; }
-  .text-muted-body  { color: #6B6B6B; }
-  .text-body        { color: #3D3D3D; }
+  .text-muted-body  { color: var(--muted-foreground); }
+  .text-body        { color: var(--foreground-soft); }
 
   /* ── Brand Backgrounds ─────────────────────────────────────────────────── */
   .bg-navy        { background-color: #1B2D4F; }
   .bg-brand-red   { background-color: #C0392B; }
   .bg-yellow      { background-color: #D4922A; }
   .bg-brand-green { background-color: #1E6B45; }
-  .bg-warm-white  { background-color: #F7F6F3; }
-  .bg-warm-gray   { background-color: #EEECEA; }
+  .bg-warm-white  { background-color: var(--background); }
+  .bg-warm-gray   { background-color: var(--muted); }
 
   /* ── Gradient Utilities ────────────────────────────────────────────────── */
   .gradient-navy {
@@ -316,7 +364,7 @@
     background: linear-gradient(135deg, rgba(212,146,42,0.08) 0%, rgba(212,146,42,0.02) 100%);
   }
   .gradient-neutral {
-    background: linear-gradient(160deg, #F7F6F3 0%, #EEECEA 100%);
+    background: linear-gradient(160deg, var(--background) 0%, var(--muted) 100%);
   }
   .gradient-multicolor {
     background: linear-gradient(135deg, #1B2D4F 0%, #C0392B 33%, #D4922A 66%, #1E6B45 100%);
@@ -337,8 +385,8 @@
   .section-red    { background-color: #C0392B; color: #FFFFFF; }
   .section-yellow { background-color: #D4922A; color: #FFFFFF; }
   .section-green  { background-color: #1E6B45; color: #FFFFFF; }
-  .section-paper  { background-color: #F7F6F3; color: #1A1A1A; }
-  .section-white  { background-color: #FFFFFF; color: #1A1A1A; }
+  .section-paper  { background-color: var(--background); color: var(--foreground); }
+  .section-white  { background-color: var(--card); color: var(--foreground); }
 
   /* ── Buttons ───────────────────────────────────────────────────────────── */
   .btn-navy {
@@ -396,7 +444,7 @@
     gap: 0.5rem;
     padding: 0.625rem 1.5rem;
     background: #D4922A;
-    color: #FFFFFF;
+    color: #221205;  /* near-black on amber — 7:1 contrast, far kinder than white */
     font-family: 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.875rem;
@@ -490,7 +538,7 @@
   }
   .card-neutral:hover {
     box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-    border-color: #C8C5BF;
+    border-color: var(--border-strong);
   }
   .card-lift {
     transition: box-shadow 0.18s ease, transform 0.18s ease;
@@ -536,7 +584,7 @@
     font-weight: 800;
     letter-spacing: -0.03em;
     line-height: 1.08;
-    color: #1A1A1A;
+    color: var(--foreground);
   }
   .heading-section {
     font-family: 'Inter', sans-serif;
@@ -544,7 +592,7 @@
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.2;
-    color: #1A1A1A;
+    color: var(--foreground);
   }
   .section-label {
     font-family: 'Inter', sans-serif;
@@ -561,7 +609,7 @@
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.03em;
-    color: #1A1A1A;
+    color: var(--foreground);
   }
 
   /* ── Pill / Badge ──────────────────────────────────────────────────────── */
@@ -620,7 +668,7 @@
   .tag-amber  { background: rgba(212,146,42,0.10); color: #8A5E10; border: 1px solid rgba(212,146,42,0.22); }
   .tag-sage   { background: rgba(30,107,69,0.08);  color: #1E6B45; border: 1px solid rgba(30,107,69,0.18); }
   .tag-rust   { background: rgba(192,57,43,0.08);  color: #A0301F; border: 1px solid rgba(192,57,43,0.18); }
-  .tag-cream  { background: rgba(27,45,79,0.06);   color: #3D3D3D; border: 1px solid rgba(27,45,79,0.12); }
+  .tag-cream  { background: rgba(27,45,79,0.06);   color: var(--foreground-soft); border: 1px solid rgba(27,45,79,0.12); }
 
   /* ── Separator Lines ───────────────────────────────────────────────────── */
   .amber-line {
@@ -633,7 +681,7 @@
   }
   .neutral-line {
     height: 1px;
-    background: #DDDBD7;
+    background: var(--border);
   }
 
   /* ── Marquee / Ticker ─────────────────────────────────────────────────── */
@@ -739,7 +787,7 @@
     border-radius: 0.5rem;
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
-    color: #1A1A1A;
+    color: var(--foreground);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     outline: none;
     -webkit-tap-highlight-color: transparent;
@@ -760,7 +808,7 @@
     border-radius: 0.5rem;
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
-    color: #1A1A1A;
+    color: var(--foreground);
     outline: none;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     caret-color: #D4922A;
@@ -786,6 +834,16 @@
     transition: background-color 5000s ease-in-out 0s;
   }
 
+
+/* Dark-mode autofill: Chrome forces its own colors; pin them to the dark card */
+.dark .form-input:-webkit-autofill,
+.dark .form-input-light:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #2E2D29 inset !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  caret-color: #E8A840 !important;
+  border-color: var(--border) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
   /* form-input-light — same as form-input (neutral theme, no dark variant needed) */
   .form-input-light {
     width: 100%;
@@ -795,7 +853,7 @@
     border-radius: 0.5rem;
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
-    color: #1A1A1A;
+    color: var(--foreground);
     outline: none;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     caret-color: #D4922A;
@@ -829,13 +887,13 @@
     font-family: 'Inter', sans-serif;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: #3D3D3D;
+    color: var(--foreground-soft);
     margin-bottom: 0.375rem;
     line-height: 1.4;
   }
   .form-hint {
     font-size: 0.75rem;
-    color: #6B6B6B;
+    color: var(--muted-foreground);
     margin-top: 0.3rem;
     line-height: 1.4;
   }

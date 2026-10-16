@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2, CheckCircle, Zap, Shield, TrendingUp } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 
 
@@ -115,7 +116,7 @@ export default function Login() {
       {/* Left panel — branding & features */}
       <div
         className="hidden lg:flex flex-col justify-between w-[45%] p-12 relative overflow-hidden"
-        style={{ background: "#EEECEA", borderRight: "1px solid rgba(232,160,32,0.12)" }}
+        style={{ background: "var(--muted)", borderRight: "1px solid rgba(232,160,32,0.12)" }}
       >
         {/* Subtle background grid */}
         <div className="absolute inset-0 retro-grid opacity-30 pointer-events-none" />
@@ -135,12 +136,12 @@ export default function Login() {
           <div>
             <h2
               className="text-4xl font-extrabold leading-tight mb-4"
-              style={{ color: "#1A1A1A" }}
+              style={{ color: "var(--foreground)" }}
             >
               Your business,<br />
               <span style={{ color: "#D4922A" }}>moving with clarity.</span>
             </h2>
-            <p className="text-base leading-relaxed" style={{ color: "rgba(26,26,26,0.75)" }}>
+            <p className="text-base leading-relaxed" style={{ color: "color-mix(in oklab, var(--foreground) 75%, transparent)" }}>
               Bring client intake, scheduling, billing, job progress, and follow-ups into one focused workspace.
             </p>
           </div>
@@ -154,7 +155,7 @@ export default function Login() {
                 >
                   <Icon className="w-4 h-4" style={{ color: "#D4922A" }} />
                 </div>
-                <span className="text-sm leading-relaxed" style={{ color: "rgba(26,26,26,0.80)" }}>
+                <span className="text-sm leading-relaxed" style={{ color: "color-mix(in oklab, var(--foreground) 80%, transparent)" }}>
                   {text}
                 </span>
               </li>
@@ -165,7 +166,7 @@ export default function Login() {
             className="rounded-xl p-5"
             style={{ background: "rgba(232,160,32,0.06)", border: "1px solid rgba(232,160,32,0.15)" }}
           >
-            <p className="text-sm font-semibold leading-relaxed" style={{ color: "rgba(26,26,26,0.85)" }}>
+            <p className="text-sm font-semibold leading-relaxed" style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}>
               Built for the operational handoffs that keep service work moving.
             </p>
             <div className="mt-3 flex items-center gap-2">
@@ -176,15 +177,15 @@ export default function Login() {
                 ✓
               </div>
               <div>
-                <p className="text-xs font-semibold" style={{ color: "#1A1A1A" }}>Clear client handoffs</p>
-                <p className="text-xs" style={{ color: "rgba(26,26,26,0.65)" }}>Bookings, proof, payments, and next steps in context.</p>
+                <p className="text-xs font-semibold" style={{ color: "var(--foreground)" }}>Clear client handoffs</p>
+                <p className="text-xs" style={{ color: "color-mix(in oklab, var(--foreground) 65%, transparent)" }}>Bookings, proof, payments, and next steps in context.</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer note */}
-          <p className="relative z-10 text-xs" style={{ color: "rgba(26,26,26,0.50)" }}>
+          <p className="relative z-10 text-xs" style={{ color: "color-mix(in oklab, var(--foreground) 50%, transparent)" }}>
           © 2026 TrueAxis HQ. All rights reserved.
         </p>
       </div>
@@ -205,17 +206,17 @@ export default function Login() {
           <div className="mb-8">
             <h1
               className="mb-2"
-              style={{ fontWeight: 700, fontSize: "1.75rem", color: "#1A1A1A" }}
+              style={{ fontWeight: 700, fontSize: "1.75rem", color: "var(--foreground)" }}
             >
               Welcome back
             </h1>
-            <p style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.65)" }}>
+            <p style={{ fontSize: "0.9rem", color: "color-mix(in oklab, var(--foreground) 65%, transparent)" }}>
               Sign in to access your dashboard
             </p>
           </div>
 
           {smsAvailable && (
-            <div className="mb-6 flex rounded-xl" style={{ background: "rgba(26,26,26,0.05)" }} role="tablist" aria-label="Sign-in method">
+            <div className="mb-6 flex rounded-xl" style={{ background: "color-mix(in oklab, var(--foreground) 5%, transparent)" }} role="tablist" aria-label="Sign-in method">
               <button
                 type="button"
                 role="tab"
@@ -223,8 +224,8 @@ export default function Login() {
                 onClick={() => setMode("password")}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
                 style={mode === "password"
-                  ? { background: "#1A1A1A", color: "#F2F0EC", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }
-                  : { background: "none", color: "rgba(26,26,26,0.65)", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+                  ? { background: "var(--foreground)", color: "#F2F0EC", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }
+                  : { background: "none", color: "color-mix(in oklab, var(--foreground) 65%, transparent)", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
               >
                 Password
               </button>
@@ -235,8 +236,8 @@ export default function Login() {
                 onClick={() => { setMode("sms"); setSmsCodeSent(false); setSmsCode(""); setSmsNeedsTwoFactor(false); }}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
                 style={mode === "sms"
-                  ? { background: "#1A1A1A", color: "#F2F0EC", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }
-                  : { background: "none", color: "rgba(26,26,26,0.65)", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+                  ? { background: "var(--foreground)", color: "#F2F0EC", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }
+                  : { background: "none", color: "color-mix(in oklab, var(--foreground) 65%, transparent)", border: "none", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
               >
                 Text me a code
               </button>
@@ -250,7 +251,7 @@ export default function Login() {
               <label
                 htmlFor="login-phone"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(26,26,26,0.85)" }}
+                style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}
               >
                 Phone number
               </label>
@@ -285,7 +286,7 @@ export default function Login() {
                 <label
                   htmlFor="sms-code"
                   className="text-sm font-semibold block mb-1.5"
-                  style={{ color: "rgba(26,26,26,0.85)" }}
+                  style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}
                 >
                   6-digit code
                 </label>
@@ -302,7 +303,7 @@ export default function Login() {
                   autoComplete="one-time-code"
                   className="form-input tracking-[0.35em] text-center"
                 />
-                <p className="text-xs mt-1.5" style={{ color: "rgba(26,26,26,0.55)" }}>
+                <p className="text-xs mt-1.5" style={{ color: "color-mix(in oklab, var(--foreground) 55.0%, transparent)" }}>
                   Expires in 10 minutes. Didn't get it?{" "}
                   <button
                     type="button"
@@ -323,7 +324,7 @@ export default function Login() {
                 <label
                   htmlFor="sms-twoFactorCode"
                   className="text-sm font-semibold block mb-1.5"
-                  style={{ color: "rgba(26,26,26,0.85)" }}
+                  style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}
                 >
                   Authenticator code
                 </label>
@@ -370,7 +371,7 @@ export default function Login() {
               <label
                 htmlFor="email"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(26,26,26,0.85)" }}
+                style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}
               >
                 Email address
               </label>
@@ -394,7 +395,7 @@ export default function Login() {
                 <label
                   htmlFor="password"
                   className="text-sm font-semibold"
-                  style={{ color: "rgba(26,26,26,0.85)" }}
+                  style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}
                 >
                   Password
                 </label>
@@ -422,7 +423,7 @@ export default function Login() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:opacity-80"
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(26,26,26,0.60)", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "color-mix(in oklab, var(--foreground) 60%, transparent)", padding: 0, minHeight: "auto", minWidth: "auto" }}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -436,7 +437,7 @@ export default function Login() {
                 <label
                   htmlFor="twoFactorCode"
                   className="text-sm font-semibold block mb-1.5"
-                  style={{ color: "rgba(26,26,26,0.85)" }}
+                  style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}
                 >
                   Authenticator code
                 </label>
@@ -451,7 +452,7 @@ export default function Login() {
                   autoComplete="one-time-code"
                   className="form-input tracking-[0.15em] text-center"
                 />
-                <p className="text-xs mt-1.5" style={{ color: "rgba(26,26,26,0.55)" }}>
+                <p className="text-xs mt-1.5" style={{ color: "color-mix(in oklab, var(--foreground) 55.0%, transparent)" }}>
                   Lost your phone? Enter one of your saved backup codes instead (letters and dashes).
                 </p>
               </div>
@@ -481,7 +482,7 @@ export default function Login() {
           </form>
           )}
 
-          <p className="mt-6 text-sm" style={{ color: "rgba(26,26,26,0.80)" }}>
+          <p className="mt-6 text-sm" style={{ color: "color-mix(in oklab, var(--foreground) 80%, transparent)" }}>
             Don't have an account?{" "}
             <button
               onClick={() => navigate("/register")}
@@ -492,15 +493,18 @@ export default function Login() {
             </button>
           </p>
 
-          <div className="mt-8 pt-6" style={{ borderTop: "1px solid rgba(26,26,26,0.08)" }}>
+          <div className="mt-8 pt-6" style={{ borderTop: "1px solid color-mix(in oklab, var(--foreground) 8%, transparent)" }}>
             <button
               onClick={() => navigate("/")}
               className="text-sm font-medium transition-all hover:opacity-90 flex items-center gap-1.5 px-3 py-2 rounded-lg"
-              style={{ color: "rgba(26,26,26,0.85)", background: "rgba(26,26,26,0.05)", border: "1px solid rgba(26,26,26,0.12)", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+              style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)", background: "color-mix(in oklab, var(--foreground) 5%, transparent)", border: "1px solid color-mix(in oklab, var(--foreground) 12%, transparent)", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
             >
               ← Back to homepage
             </button>
           </div>
+        </div>
+        <div className="flex justify-center">
+          <ThemeToggle compact />
         </div>
       </div>
     </div>

@@ -46,7 +46,7 @@ export default function Contact() {
 
   const field = (id: keyof typeof form, label: string, type = "text", multiline = false) => (
     <div>
-      <label htmlFor={id} className="block text-xs font-semibold text-[#3D3D3D] mb-1.5">{label} *</label>
+      <label htmlFor={id} className="block text-xs font-semibold text-[var(--foreground-soft)] mb-1.5">{label} *</label>
       {multiline ? (
         <textarea
               maxLength={5000}
@@ -54,7 +54,7 @@ export default function Contact() {
           value={form[id]}
           onChange={e => { setForm(p => ({ ...p, [id]: e.target.value })); setErrors(p => ({ ...p, [id]: "" })); }}
           rows={5}
-          className={`w-full px-4 py-3 bg-white border border-[#DDDBD7] rounded-xl text-[#1A1A1A] placeholder-[#9B9B9B] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4922A] transition-colors resize-none ${errors[id] ? "border-red-400" : "border-[#DDDBD7]"}`}
+          className={`w-full px-4 py-3 bg-white border border-[var(--border)] rounded-xl text-[var(--foreground)] placeholder-[#9B9B9B] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4922A] transition-colors resize-none ${errors[id] ? "border-red-400" : "border-[var(--border)]"}`}
           placeholder={`Your ${label.toLowerCase()}...`}
           aria-invalid={!!errors[id]}
           aria-describedby={errors[id] ? `${id}-error` : undefined}
@@ -65,7 +65,7 @@ export default function Contact() {
           type={type}
           value={form[id]}
           onChange={e => { setForm(p => ({ ...p, [id]: e.target.value })); setErrors(p => ({ ...p, [id]: "" })); }}
-          className={`w-full px-4 py-3 bg-white border border-[#DDDBD7] rounded-xl text-[#1A1A1A] placeholder-[#9B9B9B] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4922A] transition-colors ${errors[id] ? "border-red-400" : "border-[#DDDBD7]"}`}
+          className={`w-full px-4 py-3 bg-white border border-[var(--border)] rounded-xl text-[var(--foreground)] placeholder-[#9B9B9B] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4922A] transition-colors ${errors[id] ? "border-red-400" : "border-[var(--border)]"}`}
           placeholder={`Your ${label.toLowerCase()}`}
           autoComplete={id === "email" ? "email" : id === "name" ? "name" : undefined}
           aria-invalid={!!errors[id]}
@@ -77,8 +77,8 @@ export default function Contact() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F2F0EC] text-[#1A1A1A]">
-      <nav className="border-b border-[#DDDBD7] px-4 sm:px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#F2F0EC] text-[var(--foreground)]">
+      <nav className="border-b border-[var(--border)] px-4 sm:px-6 py-4 flex items-center justify-between">
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Home</span>
@@ -103,7 +103,7 @@ export default function Contact() {
             <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">
               We'd love to<br /><span className="text-[#D4922A]">hear from you.</span>
             </h1>
-            <p className="text-[#3D3D3D] leading-relaxed mb-10">
+            <p className="text-[var(--foreground-soft)] leading-relaxed mb-10">
               For product, pricing, or account questions, send a message for review in TrueAxis HQ.
             </p>
 
@@ -113,14 +113,14 @@ export default function Contact() {
                 { icon: Mail, title: "Billing contact", value: "billing@trueaxishq.com", sub: "Payment and subscription questions" },
                 { icon: Clock, title: "Follow-up timing", value: "Configured during launch", sub: "Response timing requires verified support delivery" },
               ].map(({ icon: Icon, title, value, sub }) => (
-                <div key={title} className="flex items-start gap-4 bg-white border border-[#DDDBD7] rounded-xl p-4">
+                <div key={title} className="flex items-start gap-4 bg-white border border-[var(--border)] rounded-xl p-4">
                   <div className="w-9 h-9 rounded-xl bg-[#D4922A]/15 flex items-center justify-center flex-shrink-0">
                     <Icon className="w-4 h-4 text-[#D4922A]" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-[#3D3D3D] mb-0.5">{title}</p>
-                    <p className="text-sm font-medium text-[#1A1A1A]">{value}</p>
-                    <p className="text-xs text-[#6B6B6B]">{sub}</p>
+                    <p className="text-xs font-semibold text-[var(--foreground-soft)] mb-0.5">{title}</p>
+                    <p className="text-sm font-medium text-[var(--foreground)]">{value}</p>
+                    <p className="text-xs text-[var(--muted-foreground)]">{sub}</p>
                   </div>
                 </div>
               ))}
@@ -128,14 +128,14 @@ export default function Contact() {
           </div>
 
           {/* Right — Form */}
-          <div className="bg-white border border-[#DDDBD7] rounded-xl p-6 sm:p-8">
+          <div className="bg-white border border-[var(--border)] rounded-xl p-6 sm:p-8">
             {submitted ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 rounded-full bg-[#D4922A]/15 flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-8 h-8 text-[#D4922A]" />
                 </div>
                 <h2 className="text-xl font-bold mb-2">Message Received!</h2>
-                <p className="text-[#3D3D3D] text-sm mb-6">Thank you for reaching out. Your message was received in TrueAxis HQ. Follow-up to <strong className="text-[#1A1A1A]">{form.email}</strong> depends on configured support delivery.</p>
+                <p className="text-[var(--foreground-soft)] text-sm mb-6">Thank you for reaching out. Your message was received in TrueAxis HQ. Follow-up to <strong className="text-[var(--foreground)]">{form.email}</strong> depends on configured support delivery.</p>
                 <Button onClick={() => navigate("/")} className="bg-[#D4922A] hover:bg-[#D4911A] text-white border-0 px-6 py-2.5 rounded-xl text-sm">
                   Back to Home
                 </Button>
@@ -166,7 +166,7 @@ export default function Contact() {
         </div>
       </div>
 
-      <footer className="border-t border-[#DDDBD7] py-8 px-4 text-center text-xs text-gray-600">
+      <footer className="border-t border-[var(--border)] py-8 px-4 text-center text-xs text-gray-600">
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

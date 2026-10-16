@@ -170,8 +170,8 @@ export default function Automations() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[rgba(26,26,26,0.95)]">Workflow Automation</h1>
-          <p className="text-sm text-[rgba(26,26,26,0.55)] mt-0.5">Configure triggers and actions, review readiness, and inspect recorded outcomes.</p>
+          <h1 className="text-2xl font-bold text-[color-mix(in oklab, var(--foreground) 95%, transparent)]">Workflow Automation</h1>
+          <p className="text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] mt-0.5">Configure triggers and actions, review readiness, and inspect recorded outcomes.</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => seedMut.mutate()} disabled={seedMut.isPending} variant="outline" className="border-[rgba(139,92,246,0.3)] text-[#A78BFA] hover:bg-[rgba(139,92,246,0.1)] gap-2">
@@ -188,11 +188,11 @@ export default function Automations() {
         {[
           { label: "Total Automations", value: automations.length, color: "#8B5CF6" },
           { label: "Active", value: activeCount, color: "#34D399" },
-          { label: "Paused", value: automations.length - activeCount, color: "rgba(26,26,26,0.4)" },
+          { label: "Paused", value: automations.length - activeCount, color: "color-mix(in oklab, var(--foreground) 40%, transparent)" },
         ].map(s => (
-          <div key={s.label} className="bg-white border border-[rgba(26,26,26,0.08)] rounded-xl p-3 sm:p-4 text-center">
+          <div key={s.label} className="bg-white border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] rounded-xl p-3 sm:p-4 text-center">
             <p className="text-xl font-bold" style={{ color: s.color }}>{s.value}</p>
-            <p className="text-xs text-[rgba(26,26,26,0.45)] mt-0.5">{s.label}</p>
+            <p className="text-xs text-[color-mix(in oklab, var(--foreground) 45%, transparent)] mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
@@ -209,8 +209,8 @@ export default function Automations() {
             ].map(s => (
               <div key={s.step} className="space-y-1">
                 <div className="w-8 h-8 rounded-full bg-[rgba(139,92,246,0.2)] text-[#A78BFA] font-bold text-sm flex items-center justify-center mx-auto">{s.step}</div>
-                <p className="text-xs font-semibold text-[rgba(26,26,26,0.8)]">{s.title}</p>
-                <p className="text-xs text-[rgba(26,26,26,0.45)]">{s.desc}</p>
+                <p className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 80%, transparent)]">{s.title}</p>
+                <p className="text-xs text-[color-mix(in oklab, var(--foreground) 45%, transparent)]">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -220,12 +220,12 @@ export default function Automations() {
       {!isLoading && (
         <section className="rounded-xl border border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.05)] p-5" aria-labelledby="automation-starters-heading">
           <h2 id="automation-starters-heading" className="text-sm font-semibold text-[#6D28D9]">Start with a reviewable workflow</h2>
-          <p className="mt-1 text-xs text-[rgba(26,26,26,0.6)]">Choose a starting point, review every field, then save it as a paused draft. Nothing sends or activates from this chooser.</p>
+          <p className="mt-1 text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Choose a starting point, review every field, then save it as a paused draft. Nothing sends or activates from this chooser.</p>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             {AUTOMATION_STARTERS.map((starter) => (
               <div key={starter.title} className="rounded-lg border border-[rgba(139,92,246,0.16)] bg-white p-4">
-                <h3 className="text-sm font-semibold text-[rgba(26,26,26,0.9)]">{starter.title}</h3>
-                <p className="mt-1 min-h-10 text-xs leading-5 text-[rgba(26,26,26,0.58)]">{starter.description}</p>
+                <h3 className="text-sm font-semibold text-[color-mix(in oklab, var(--foreground) 90%, transparent)]">{starter.title}</h3>
+                <p className="mt-1 min-h-10 text-xs leading-5 text-[color-mix(in oklab, var(--foreground) 58.0%, transparent)]">{starter.description}</p>
                 <Button size="sm" variant="outline" className="mt-3 border-[rgba(139,92,246,0.32)] text-[#6D28D9] hover:bg-[rgba(139,92,246,0.1)]" onClick={() => { setEditingId(null); setForm(starter.draft); setStep(1); setOpen(true); toast.message("Starter loaded as a paused draft. Review it before saving."); }}>
                   Use starter
                 </Button>
@@ -243,9 +243,9 @@ export default function Automations() {
           <div className="w-16 h-16 rounded-2xl bg-[rgba(139,92,246,0.12)] flex items-center justify-center mb-4">
             <Zap className="w-8 h-8 text-[#8B5CF6]" />
           </div>
-          <h3 className="text-lg font-semibold text-[rgba(26,26,26,0.85)] mb-2">No automations yet</h3>
-          <p className="text-sm text-[rgba(26,26,26,0.45)] mb-6 max-w-sm">Load 3 ready-made templates or build your own from scratch.</p>
-          <ol className="mx-auto mb-6 grid max-w-md gap-1.5 text-left text-xs text-[rgba(26,26,26,0.6)]">
+          <h3 className="text-lg font-semibold text-[color-mix(in oklab, var(--foreground) 85%, transparent)] mb-2">No automations yet</h3>
+          <p className="text-sm text-[color-mix(in oklab, var(--foreground) 45%, transparent)] mb-6 max-w-sm">Load 3 ready-made templates or build your own from scratch.</p>
+          <ol className="mx-auto mb-6 grid max-w-md gap-1.5 text-left text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">
             <li className="flex items-center gap-2"><span className="w-4 h-4 rounded-full bg-[rgba(139,92,246,0.15)] text-[#6D28D9] text-[10px] font-bold flex items-center justify-center flex-shrink-0">1</span>Load a starter template — nothing activates on its own</li>
             <li className="flex items-center gap-2"><span className="w-4 h-4 rounded-full bg-[rgba(139,92,246,0.15)] text-[#6D28D9] text-[10px] font-bold flex items-center justify-center flex-shrink-0">2</span>Review the trigger, timing, and message in plain English</li>
             <li className="flex items-center gap-2"><span className="w-4 h-4 rounded-full bg-[rgba(139,92,246,0.15)] text-[#6D28D9] text-[10px] font-bold flex items-center justify-center flex-shrink-0">3</span>Test it, then flip it on when it looks right</li>
@@ -271,32 +271,32 @@ export default function Automations() {
               actions = [];
             }
             return (
-              <div key={a.id} className={`group flex items-center gap-4 border rounded-xl px-5 py-4 transition-all ${a.active ? "bg-white border-[rgba(26,26,26,0.07)] hover:border-[rgba(139,92,246,0.3)]" : "bg-[rgba(255,255,255,0.02)] border-[rgba(26,26,26,0.04)] opacity-60"}`}>
+              <div key={a.id} className={`group flex items-center gap-4 border rounded-xl px-5 py-4 transition-all ${a.active ? "bg-white border-[color-mix(in oklab, var(--foreground) 7.0%, transparent)] hover:border-[rgba(139,92,246,0.3)]" : "bg-[rgba(255,255,255,0.02)] border-[color-mix(in oklab, var(--foreground) 4%, transparent)] opacity-60"}`}>
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${a.active ? "bg-[rgba(139,92,246,0.15)]" : "bg-[rgba(255,255,255,0.05)]"}`}>
-                  <Zap className={`w-5 h-5 ${a.active ? "text-[#8B5CF6]" : "text-[rgba(26,26,26,0.3)]"}`} />
+                  <Zap className={`w-5 h-5 ${a.active ? "text-[#8B5CF6]" : "text-[color-mix(in oklab, var(--foreground) 30%, transparent)]"}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-[rgba(26,26,26,0.9)] truncate">{a.name}</h3>
-                    <Badge variant="outline" className={`text-xs flex-shrink-0 ${a.active ? "border-[rgba(52,211,153,0.3)] text-[#34D399]" : "border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.4)]"}`}>
+                    <h3 className="font-semibold text-[color-mix(in oklab, var(--foreground) 90%, transparent)] truncate">{a.name}</h3>
+                    <Badge variant="outline" className={`text-xs flex-shrink-0 ${a.active ? "border-[rgba(52,211,153,0.3)] text-[#34D399]" : "border-[color-mix(in oklab, var(--foreground) 12%, transparent)] text-[color-mix(in oklab, var(--foreground) 40%, transparent)]"}`}>
                       {a.active ? "Active" : "Paused"}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-1.5 mt-0.5 text-xs text-[rgba(26,26,26,0.45)]">
+                  <div className="flex items-center gap-1.5 mt-0.5 text-xs text-[color-mix(in oklab, var(--foreground) 45%, transparent)]">
                     <span className="text-[#A78BFA]">{triggerDef?.label ?? a.trigger}</span>
                     <ChevronRight className="w-3 h-3" />
                     <span>{actions.length ? actions.map(ac => ACTIONS.find(x => x.value === ac.type)?.label ?? ac.type).join(", ") : "No valid actions configured"}</span>
                   </div>
                 </div>
                 <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
-                  <button aria-label={`Edit ${a.name}`} onClick={() => openEdit(a)} title="Edit automation" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#8B5CF6] transition-colors"><Pencil className="w-4 h-4" /></button>
-                  <button aria-label={`Preview ${a.name}`} onClick={() => setPreviewAutomationId(a.id)} title="Preview without running" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#8B5CF6] transition-colors"><Eye className="w-4 h-4" /></button>
-                  <button aria-label={`View history for ${a.name}`} onClick={() => setLogAutomationId(logAutomationId === a.id ? null : a.id)} title="View run history" className={`p-2 rounded-lg transition-colors ${logAutomationId === a.id ? "bg-[rgba(139,92,246,0.15)] text-[#8B5CF6]" : "hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#8B5CF6]"}`}><History className="w-4 h-4" /></button>
-                  <button aria-label={`Send test notification for ${a.name}`} onClick={() => testMut.mutate({ id: a.id })} title="Send owner-notification test" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[rgba(26,26,26,0.5)] hover:text-[#A78BFA] transition-colors"><Play className="w-4 h-4" /></button>
-                  <button aria-label={`${a.active ? "Pause" : "Activate"} ${a.name}`} onClick={() => toggleMut.mutate({ id: a.id, active: !a.active })} title={a.active ? "Pause" : "Activate"} className="p-2 rounded-lg hover:bg-white text-[rgba(26,26,26,0.5)] hover:text-[rgba(26,26,26,0.9)] transition-colors">
+                  <button aria-label={`Edit ${a.name}`} onClick={() => openEdit(a)} title="Edit automation" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[#8B5CF6] transition-colors"><Pencil className="w-4 h-4" /></button>
+                  <button aria-label={`Preview ${a.name}`} onClick={() => setPreviewAutomationId(a.id)} title="Preview without running" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[#8B5CF6] transition-colors"><Eye className="w-4 h-4" /></button>
+                  <button aria-label={`View history for ${a.name}`} onClick={() => setLogAutomationId(logAutomationId === a.id ? null : a.id)} title="View run history" className={`p-2 rounded-lg transition-colors ${logAutomationId === a.id ? "bg-[rgba(139,92,246,0.15)] text-[#8B5CF6]" : "hover:bg-[rgba(139,92,246,0.15)] text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[#8B5CF6]"}`}><History className="w-4 h-4" /></button>
+                  <button aria-label={`Send test notification for ${a.name}`} onClick={() => testMut.mutate({ id: a.id })} title="Send owner-notification test" className="p-2 rounded-lg hover:bg-[rgba(139,92,246,0.15)] text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[#A78BFA] transition-colors"><Play className="w-4 h-4" /></button>
+                  <button aria-label={`${a.active ? "Pause" : "Activate"} ${a.name}`} onClick={() => toggleMut.mutate({ id: a.id, active: !a.active })} title={a.active ? "Pause" : "Activate"} className="p-2 rounded-lg hover:bg-white text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[color-mix(in oklab, var(--foreground) 90%, transparent)] transition-colors">
                     {a.active ? <ToggleRight className="w-4 h-4 text-[#34D399]" /> : <ToggleLeft className="w-4 h-4" />}
                   </button>
-                  <button aria-label={`Delete ${a.name}`} onClick={() => setDeleteConfirm(a.id)} title="Delete" className="p-2 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.5)] hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                  <button aria-label={`Delete ${a.name}`} onClick={() => setDeleteConfirm(a.id)} title="Delete" className="p-2 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             );
@@ -305,29 +305,29 @@ export default function Automations() {
       )}
 
       {logAutomationId !== null && (
-        <section className="rounded-xl border border-[rgba(26,26,26,0.08)] bg-white overflow-hidden" aria-label="Automation run history">
-          <div className="flex items-center justify-between gap-4 p-4 border-b border-[rgba(26,26,26,0.08)]">
+        <section className="rounded-xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white overflow-hidden" aria-label="Automation run history">
+          <div className="flex items-center justify-between gap-4 p-4 border-b border-[color-mix(in oklab, var(--foreground) 8%, transparent)]">
             <div>
-              <h2 className="font-semibold text-[rgba(26,26,26,0.9)]">Run History</h2>
-              <p className="text-xs text-[rgba(26,26,26,0.5)] mt-0.5">Recent executions, delivery outcomes, and recovery notes.</p>
+              <h2 className="font-semibold text-[color-mix(in oklab, var(--foreground) 90%, transparent)]">Run History</h2>
+              <p className="text-xs text-[color-mix(in oklab, var(--foreground) 50%, transparent)] mt-0.5">Recent executions, delivery outcomes, and recovery notes.</p>
             </div>
             <Button size="sm" variant="ghost" onClick={() => setLogAutomationId(null)}>Close</Button>
           </div>
           {logsLoading ? (
-            <div className="p-5 text-sm text-[rgba(26,26,26,0.5)]">Loading execution history…</div>
+            <div className="p-5 text-sm text-[color-mix(in oklab, var(--foreground) 50%, transparent)]">Loading execution history…</div>
           ) : logs.length === 0 ? (
-            <div className="p-5 text-sm text-[rgba(26,26,26,0.5)]">No runs yet. This rule will appear here when a matching event is processed.</div>
+            <div className="p-5 text-sm text-[color-mix(in oklab, var(--foreground) 50%, transparent)]">No runs yet. This rule will appear here when a matching event is processed.</div>
           ) : (
-            <div className="divide-y divide-[rgba(26,26,26,0.06)]">
+            <div className="divide-y divide-[color-mix(in oklab, var(--foreground) 6%, transparent)]">
               {logs.map((log) => {
                 const succeeded = log.status === "success";
                 return (
                   <div key={log.id} className="p-4 flex gap-3">
                     {succeeded ? <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" /> : log.status === "failed" ? <XCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" /> : <Clock className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />}
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-[rgba(26,26,26,0.85)] capitalize">{log.status} · {log.actionsExecuted} action{log.actionsExecuted === 1 ? "" : "s"} executed</p>
-                      <p className="text-xs text-[rgba(26,26,26,0.5)] mt-0.5">{log.createdAt ? new Date(log.createdAt).toLocaleString() : "Time unavailable"} · Trigger: {log.trigger}</p>
-                      {log.errorMessage && <p className="text-xs text-[rgba(26,26,26,0.65)] mt-2 break-words">{log.errorMessage}</p>}
+                      <p className="text-sm font-medium text-[color-mix(in oklab, var(--foreground) 85%, transparent)] capitalize">{log.status} · {log.actionsExecuted} action{log.actionsExecuted === 1 ? "" : "s"} executed</p>
+                      <p className="text-xs text-[color-mix(in oklab, var(--foreground) 50%, transparent)] mt-0.5">{log.createdAt ? new Date(log.createdAt).toLocaleString() : "Time unavailable"} · Trigger: {log.trigger}</p>
+                      {log.errorMessage && <p className="text-xs text-[color-mix(in oklab, var(--foreground) 65%, transparent)] mt-2 break-words">{log.errorMessage}</p>}
                     </div>
                   </div>
                 );
@@ -338,31 +338,31 @@ export default function Automations() {
       )}
 
       <Dialog open={previewAutomationId !== null} onOpenChange={open => { if (!open) setPreviewAutomationId(null); }}>
-        <DialogContent className="bg-white border-[rgba(26,26,26,0.1)] text-[rgba(26,26,26,0.95)] max-w-lg">
+        <DialogContent className="bg-white border-[color-mix(in oklab, var(--foreground) 10%, transparent)] text-[color-mix(in oklab, var(--foreground) 95%, transparent)] max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><Eye className="w-5 h-5 text-[#8B5CF6]" /> Automation Preview</DialogTitle>
           </DialogHeader>
           {previewLoading ? (
-            <div className="py-8 text-sm text-[rgba(26,26,26,0.55)]">Preparing a safe preview…</div>
+            <div className="py-8 text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">Preparing a safe preview…</div>
           ) : preview ? (
             <div className="space-y-4 py-2">
-              <div className="rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.07)] p-3 text-sm text-[rgba(26,26,26,0.7)]">
+              <div className="rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.07)] p-3 text-sm text-[color-mix(in oklab, var(--foreground) 70%, transparent)]">
                 <div className="flex items-center gap-2 font-medium text-[#6D28D9]"><ShieldCheck className="w-4 h-4" /> Preview only — nothing will be sent or changed.</div>
                 <p className="mt-1 text-xs">This review does not create drafts, send emails, write logs, or update run counts.</p>
               </div>
-              <div className="rounded-lg border border-[rgba(26,26,26,0.08)] p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[rgba(26,26,26,0.45)]">When</p>
+              <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[color-mix(in oklab, var(--foreground) 45%, transparent)]">When</p>
                 <p className="mt-1 text-sm font-medium">When {preview.triggerLabel}, run {preview.timingLabel.toLowerCase()}.</p>
               </div>
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[rgba(26,26,26,0.45)]">Expected actions</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[color-mix(in oklab, var(--foreground) 45%, transparent)]">Expected actions</p>
                 {preview.actions.map((action, index) => (
-                  <div key={`${action.label}-${index}`} className="rounded-lg border border-[rgba(26,26,26,0.08)] p-3">
+                  <div key={`${action.label}-${index}`} className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-medium">{index + 1}. {action.label}</p>
-                        <p className="mt-0.5 text-xs text-[rgba(26,26,26,0.55)]">To: {action.destination}</p>
-                        <p className="mt-1 text-xs text-[rgba(26,26,26,0.65)]">{action.detail}</p>
+                        <p className="mt-0.5 text-xs text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">To: {action.destination}</p>
+                        <p className="mt-1 text-xs text-[color-mix(in oklab, var(--foreground) 65%, transparent)]">{action.detail}</p>
                       </div>
                       <Badge variant="outline" className={action.state === "ready" ? "border-emerald-200 text-emerald-700" : "border-amber-200 text-amber-700"}>{action.state === "ready" ? "Ready" : "Needs attention"}</Badge>
                     </div>
@@ -381,7 +381,7 @@ export default function Automations() {
 
       {/* Create Dialog */}
       <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) { setForm(EMPTY_FORM); setEditingId(null); setStep(1); } }}>
-        <DialogContent className="bg-white border-[rgba(26,26,26,0.1)] text-[rgba(26,26,26,0.95)] max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-[color-mix(in oklab, var(--foreground) 10%, transparent)] text-[color-mix(in oklab, var(--foreground) 95%, transparent)] max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="flex items-center gap-2"><Zap className="w-5 h-5 text-[#8B5CF6]" /> {editingId !== null ? "Edit Automation" : "New Automation"}</DialogTitle></DialogHeader>
           {/* Guided 3-step builder: one decision per screen, with a visible progress path. */}
           <div className="flex items-center justify-between px-1 pb-1" aria-label={`Builder step ${step} of 3`}>
@@ -392,74 +392,74 @@ export default function Automations() {
             ].map((sdef, i) => (
               <div key={sdef.label} className="flex flex-1 items-center last:flex-none">
                 <div className="flex items-center gap-1.5">
-                  <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors ${step === sdef.n ? "bg-[#8B5CF6] text-white" : step > sdef.n ? "bg-emerald-100 text-emerald-700" : "bg-[rgba(26,26,26,0.06)] text-[rgba(26,26,26,0.4)]"}`}>
+                  <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors ${step === sdef.n ? "bg-[#8B5CF6] text-white" : step > sdef.n ? "bg-emerald-100 text-emerald-700" : "bg-[color-mix(in oklab, var(--foreground) 6%, transparent)] text-[color-mix(in oklab, var(--foreground) 40%, transparent)]"}`}>
                     {step > sdef.n ? <CheckCircle className="h-4 w-4" /> : sdef.n}
                   </div>
-                  <span className={`text-xs font-semibold ${step === sdef.n ? "text-[rgba(26,26,26,0.9)]" : "text-[rgba(26,26,26,0.45)]"}`}>{sdef.label}</span>
+                  <span className={`text-xs font-semibold ${step === sdef.n ? "text-[color-mix(in oklab, var(--foreground) 90%, transparent)]" : "text-[color-mix(in oklab, var(--foreground) 45%, transparent)]"}`}>{sdef.label}</span>
                 </div>
-                {i < 2 && <div className={`mx-1.5 h-px flex-1 sm:mx-3 ${step > sdef.n ? "bg-emerald-200" : "bg-[rgba(26,26,26,0.08)]"}`} />}
+                {i < 2 && <div className={`mx-1.5 h-px flex-1 sm:mx-3 ${step > sdef.n ? "bg-emerald-200" : "bg-[color-mix(in oklab, var(--foreground) 8%, transparent)]"}`} />}
               </div>
             ))}
           </div>
 
           {step === 1 && (
             <div className="space-y-5 py-2">
-              <p className="text-xs text-[rgba(26,26,26,0.5)]">Pick the event that starts this workflow. Not sure? "Booking Confirmed" and "Invoice Overdue" are the most common starting points.</p>
+              <p className="text-xs text-[color-mix(in oklab, var(--foreground) 50%, transparent)]">Pick the event that starts this workflow. Not sure? "Booking Confirmed" and "Invoice Overdue" are the most common starting points.</p>
               <div>
-                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-2 block">When this happens (Trigger)</label>
+                <label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-2 block">When this happens (Trigger)</label>
                 <div className="grid grid-cols-1 gap-2">
                   {TRIGGERS.map(t => (
                     <button key={t.value} onClick={() => setForm(p2 => ({ ...p2, trigger: t.value as TriggerType }))}
-                      className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-all ${form.trigger === t.value ? "border-[#8B5CF6] bg-[rgba(139,92,246,0.1)]" : "border-[rgba(26,26,26,0.08)] hover:border-[rgba(26,26,26,0.2)] bg-[rgba(255,255,255,0.03)]"}`}>
-                      <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 ${form.trigger === t.value ? "border-[#8B5CF6] bg-[#8B5CF6]" : "border-[rgba(26,26,26,0.3)]"}`} />
+                      className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-all ${form.trigger === t.value ? "border-[#8B5CF6] bg-[rgba(139,92,246,0.1)]" : "border-[color-mix(in oklab, var(--foreground) 8%, transparent)] hover:border-[color-mix(in oklab, var(--foreground) 20%, transparent)] bg-[rgba(255,255,255,0.03)]"}`}>
+                      <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 ${form.trigger === t.value ? "border-[#8B5CF6] bg-[#8B5CF6]" : "border-[color-mix(in oklab, var(--foreground) 30%, transparent)]"}`} />
                       <div>
-                        <p className="text-sm font-medium text-[rgba(26,26,26,0.9)]">{t.label}</p>
-                        <p className="text-xs text-[rgba(26,26,26,0.45)]">{t.desc}</p>
+                        <p className="text-sm font-medium text-[color-mix(in oklab, var(--foreground) 90%, transparent)]">{t.label}</p>
+                        <p className="text-xs text-[color-mix(in oklab, var(--foreground) 45%, transparent)]">{t.desc}</p>
                       </div>
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Wait before running</label>
+                <label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5 block">Wait before running</label>
                 <div className="flex items-center gap-2">
-                  <Input type="number" min={0} max={720} value={form.triggerDelayHours} onChange={e2 => setForm(p2 => ({ ...p2, triggerDelayHours: Math.min(720, Math.max(0, Number(e2.target.value) || 0)) }))} className="w-28 bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
-                  <span className="text-sm text-[rgba(26,26,26,0.55)]">hours after the trigger</span>
+                  <Input type="number" min={0} max={720} value={form.triggerDelayHours} onChange={e2 => setForm(p2 => ({ ...p2, triggerDelayHours: Math.min(720, Math.max(0, Number(e2.target.value) || 0)) }))} className="w-28 bg-[rgba(255,255,255,0.05)] border-[color-mix(in oklab, var(--foreground) 12%, transparent)] text-[color-mix(in oklab, var(--foreground) 90%, transparent)]" />
+                  <span className="text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">hours after the trigger</span>
                 </div>
-                <p className="text-xs text-[rgba(26,26,26,0.45)] mt-1">Use this for a timed follow-up. Review run history for recorded processing outcomes; provider delivery requires its own configured evidence.</p>
+                <p className="text-xs text-[color-mix(in oklab, var(--foreground) 45%, transparent)] mt-1">Use this for a timed follow-up. Review run history for recorded processing outcomes; provider delivery requires its own configured evidence.</p>
               </div>
             </div>
           )}
 
           {step === 2 && (
             <div className="space-y-3 py-2">
-              <p className="text-xs text-[rgba(26,26,26,0.5)]">Choose what happens automatically. Actions run in the order shown — stack as many as you need.</p>
+              <p className="text-xs text-[color-mix(in oklab, var(--foreground) 50%, transparent)]">Choose what happens automatically. Actions run in the order shown — stack as many as you need.</p>
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)]">Do this (Actions)</label>
+                <label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Do this (Actions)</label>
                 <button onClick={addAction} className="text-xs text-[#8B5CF6] hover:text-[#A78BFA] flex items-center gap-1 transition-colors"><Plus className="w-3 h-3" /> Add Action</button>
               </div>
               <div className="space-y-3">
                 {form.actions.map((action, idx) => (
-                  <div key={idx} className="bg-white border border-[rgba(26,26,26,0.08)] rounded-lg p-3 space-y-2">
+                  <div key={idx} className="bg-white border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] rounded-lg p-3 space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="w-5 h-5 rounded-full bg-[rgba(139,92,246,0.12)] text-[#6D28D9] text-[10px] font-bold flex items-center justify-center flex-shrink-0">{idx + 1}</span>
-                      <select value={action.type} onChange={e2 => updateAction(idx, "type", e2.target.value as ActionType)} className="flex-1 bg-[rgba(255,255,255,0.05)] border border-[rgba(26,26,26,0.12)] rounded-md px-2 py-1.5 text-sm text-[rgba(26,26,26,0.9)]">
+                      <select value={action.type} onChange={e2 => updateAction(idx, "type", e2.target.value as ActionType)} className="flex-1 bg-[rgba(255,255,255,0.05)] border border-[color-mix(in oklab, var(--foreground) 12%, transparent)] rounded-md px-2 py-1.5 text-sm text-[color-mix(in oklab, var(--foreground) 90%, transparent)]">
                         {ACTIONS.map(a => <option key={a.value} value={a.value} className="bg-white">{a.label}</option>)}
                       </select>
                       {form.actions.length > 1 && (
-                        <button onClick={() => removeAction(idx)} aria-label={`Remove action ${idx + 1}`} className="p-1.5 rounded hover:bg-[rgba(255,80,80,0.12)] text-[rgba(26,26,26,0.4)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => removeAction(idx)} aria-label={`Remove action ${idx + 1}`} className="p-1.5 rounded hover:bg-[rgba(255,80,80,0.12)] text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                       )}
                     </div>
                     {(action.type === "send_email" || action.type === "create_followup") && (
                       <>
-                        <Input value={action.config.subject ?? ""} onChange={e2 => updateAction(idx, "config", { ...action.config, subject: e2.target.value })} placeholder="Subject (e.g. A quick follow-up)" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
-                        <textarea value={action.config.message ?? ""} onChange={e2 => updateAction(idx, "config", { ...action.config, message: e2.target.value })} placeholder={action.type === "send_email" ? "Message to the matching client..." : "Draft follow-up message..."} maxLength={4000} rows={3} className="w-full rounded-md border border-[rgba(26,26,26,0.12)] bg-white px-3 py-2 text-sm text-[rgba(26,26,26,0.9)] outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20" />
+                        <Input value={action.config.subject ?? ""} onChange={e2 => updateAction(idx, "config", { ...action.config, subject: e2.target.value })} placeholder="Subject (e.g. A quick follow-up)" className="bg-[rgba(255,255,255,0.05)] border-[color-mix(in oklab, var(--foreground) 12%, transparent)] text-[color-mix(in oklab, var(--foreground) 90%, transparent)] text-sm" />
+                        <textarea value={action.config.message ?? ""} onChange={e2 => updateAction(idx, "config", { ...action.config, message: e2.target.value })} placeholder={action.type === "send_email" ? "Message to the matching client..." : "Draft follow-up message..."} maxLength={4000} rows={3} className="w-full rounded-md border border-[color-mix(in oklab, var(--foreground) 12%, transparent)] bg-white px-3 py-2 text-sm text-[color-mix(in oklab, var(--foreground) 90%, transparent)] outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20" />
                       </>
                     )}
                     {action.type === "notify_owner" && (
                       <>
-                        <Input value={action.config.title ?? ""} onChange={e2 => updateAction(idx, "config", { ...action.config, title: e2.target.value })} placeholder="Notification title" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)] text-sm" />
-                        <textarea value={action.config.message ?? ""} onChange={e2 => updateAction(idx, "config", { ...action.config, message: e2.target.value })} placeholder="Notification message..." maxLength={4000} rows={3} className="w-full rounded-md border border-[rgba(26,26,26,0.12)] bg-white px-3 py-2 text-sm text-[rgba(26,26,26,0.9)] outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20" />
+                        <Input value={action.config.title ?? ""} onChange={e2 => updateAction(idx, "config", { ...action.config, title: e2.target.value })} placeholder="Notification title" className="bg-[rgba(255,255,255,0.05)] border-[color-mix(in oklab, var(--foreground) 12%, transparent)] text-[color-mix(in oklab, var(--foreground) 90%, transparent)] text-sm" />
+                        <textarea value={action.config.message ?? ""} onChange={e2 => updateAction(idx, "config", { ...action.config, message: e2.target.value })} placeholder="Notification message..." maxLength={4000} rows={3} className="w-full rounded-md border border-[color-mix(in oklab, var(--foreground) 12%, transparent)] bg-white px-3 py-2 text-sm text-[color-mix(in oklab, var(--foreground) 90%, transparent)] outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20" />
                       </>
                     )}
                   </div>
@@ -470,19 +470,19 @@ export default function Automations() {
 
           {step === 3 && (
             <div className="space-y-5 py-2">
-              <p className="text-xs text-[rgba(26,26,26,0.5)]">Last step — name it and confirm it reads the way you expect.</p>
+              <p className="text-xs text-[color-mix(in oklab, var(--foreground) 50%, transparent)]">Last step — name it and confirm it reads the way you expect.</p>
               <div>
-                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Automation Name *</label>
-                <Input value={form.name} onChange={e2 => setForm(p2 => ({ ...p2, name: e2.target.value }))} placeholder="e.g. Welcome New Clients" className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
+                <label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5 block">Automation Name *</label>
+                <Input value={form.name} onChange={e2 => setForm(p2 => ({ ...p2, name: e2.target.value }))} placeholder="e.g. Welcome New Clients" className="bg-[rgba(255,255,255,0.05)] border-[color-mix(in oklab, var(--foreground) 12%, transparent)] text-[color-mix(in oklab, var(--foreground) 90%, transparent)]" />
                 {!form.name.trim() && <p className="text-xs text-amber-600 mt-1">Give it a name so you can find it later.</p>}
               </div>
               <div>
-                <label className="text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5 block">Internal Description</label>
-                <Input value={form.description} onChange={e2 => setForm(p2 => ({ ...p2, description: e2.target.value }))} placeholder="What this rule protects or accomplishes" maxLength={500} className="bg-[rgba(255,255,255,0.05)] border-[rgba(26,26,26,0.12)] text-[rgba(26,26,26,0.9)]" />
+                <label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5 block">Internal Description</label>
+                <Input value={form.description} onChange={e2 => setForm(p2 => ({ ...p2, description: e2.target.value }))} placeholder="What this rule protects or accomplishes" maxLength={500} className="bg-[rgba(255,255,255,0.05)] border-[color-mix(in oklab, var(--foreground) 12%, transparent)] text-[color-mix(in oklab, var(--foreground) 90%, transparent)]" />
               </div>
               <div className="rounded-lg border border-[rgba(139,92,246,0.2)] bg-[rgba(139,92,246,0.07)] p-3" aria-label="Plain-English summary">
                 <p className="text-xs font-semibold text-[#6D28D9] flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> In plain English</p>
-                <p className="mt-1 text-sm text-[rgba(26,26,26,0.8)]">
+                <p className="mt-1 text-sm text-[color-mix(in oklab, var(--foreground) 80%, transparent)]">
                   When <strong>{TRIGGERS.find(t => t.value === form.trigger)?.label ?? form.trigger}</strong>
                   {form.triggerDelayHours > 0 ? <> (after {form.triggerDelayHours} hour{form.triggerDelayHours === 1 ? "" : "s"})</> : null},
                   automatically {" "}
@@ -490,12 +490,12 @@ export default function Automations() {
                     <span key={i}>{i > 0 ? " and " : ""}<strong>{ACTIONS.find(x => x.value === ac.type)?.label.toLowerCase() ?? ac.type}</strong></span>
                   ))}.
                 </p>
-                <p className="mt-1.5 text-xs text-[rgba(26,26,26,0.5)]">You can test it with a preview before anything activates.</p>
+                <p className="mt-1.5 text-xs text-[color-mix(in oklab, var(--foreground) 50%, transparent)]">You can test it with a preview before anything activates.</p>
               </div>
             </div>
           )}
-          <DialogFooter className="flex-col gap-2 border-t border-[rgba(26,26,26,0.06)] sm:flex-row sm:items-center">
-            <Button variant="ghost" onClick={() => setOpen(false)} className="text-[rgba(26,26,26,0.6)] sm:order-first">Cancel</Button>
+          <DialogFooter className="flex-col gap-2 border-t border-[color-mix(in oklab, var(--foreground) 6%, transparent)] sm:flex-row sm:items-center">
+            <Button variant="ghost" onClick={() => setOpen(false)} className="text-[color-mix(in oklab, var(--foreground) 60%, transparent)] sm:order-first">Cancel</Button>
             <div className="flex w-full gap-2 sm:w-auto sm:ml-auto">
               {step > 1 && <Button variant="outline" onClick={() => setStep(cur => (cur - 1) as 1 | 2 | 3)} className="flex-1 sm:flex-none">Back</Button>}
               {step < 3 && <Button onClick={() => setStep(cur => (cur + 1) as 1 | 2 | 3)} className="flex-1 sm:flex-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold">Next: {step === 1 ? "Action" : "Review"}</Button>}
@@ -511,11 +511,11 @@ export default function Automations() {
 
       {/* Delete Confirm */}
       <Dialog open={deleteConfirm !== null} onOpenChange={v => !v && setDeleteConfirm(null)}>
-        <DialogContent className="bg-white border-[rgba(26,26,26,0.1)] text-[rgba(26,26,26,0.95)] max-w-sm">
+        <DialogContent className="bg-white border-[color-mix(in oklab, var(--foreground) 10%, transparent)] text-[color-mix(in oklab, var(--foreground) 95%, transparent)] max-w-sm">
           <DialogHeader><DialogTitle>Delete Automation?</DialogTitle></DialogHeader>
-          <p className="text-sm text-[rgba(26,26,26,0.6)]">This automation will stop running immediately.</p>
+          <p className="text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">This automation will stop running immediately.</p>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setDeleteConfirm(null)} className="text-[rgba(26,26,26,0.6)]">Cancel</Button>
+            <Button variant="ghost" onClick={() => setDeleteConfirm(null)} className="text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Cancel</Button>
             <Button variant="destructive" onClick={() => { if (deleteConfirm !== null) { deleteMut.mutate({ id: deleteConfirm }); setDeleteConfirm(null); } }}>Delete</Button>
           </DialogFooter>
         </DialogContent>

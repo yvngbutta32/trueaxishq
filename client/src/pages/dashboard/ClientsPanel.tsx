@@ -319,13 +319,13 @@ function ClientsPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1A1A1A]">Clients</h2>
-          <p className="text-sm text-[#6B6B6B]">{clientList?.length || 0} clients in your roster</p>
+          <h2 className="text-xl font-extrabold text-[var(--foreground)]">Clients</h2>
+          <p className="text-sm text-[var(--muted-foreground)]">{clientList?.length || 0} clients in your roster</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <div className="flex rounded-lg border border-[#DDDBD7] overflow-hidden">
-            <button onClick={() => setViewMode("list")} className={`px-3 py-1.5 text-xs font-medium transition-colors ${viewMode === "list" ? "bg-[#D4922A] text-white" : "bg-transparent text-[#6B6B6B] hover:bg-white/5"}`}>List</button>
-            <button onClick={() => setViewMode("pipeline")} className={`px-3 py-1.5 text-xs font-medium transition-colors ${viewMode === "pipeline" ? "bg-[#D4922A] text-white" : "bg-transparent text-[#6B6B6B] hover:bg-white/5"}`}>Pipeline</button>
+          <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
+            <button onClick={() => setViewMode("list")} className={`px-3 py-1.5 text-xs font-medium transition-colors ${viewMode === "list" ? "bg-[#D4922A] text-white" : "bg-transparent text-[var(--muted-foreground)] hover:bg-white/5"}`}>List</button>
+            <button onClick={() => setViewMode("pipeline")} className={`px-3 py-1.5 text-xs font-medium transition-colors ${viewMode === "pipeline" ? "bg-[#D4922A] text-white" : "bg-transparent text-[var(--muted-foreground)] hover:bg-white/5"}`}>Pipeline</button>
           </div>
           <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={exportClientsCSV} title="Export clients as CSV">
             <Download className="w-3.5 h-3.5" />Export CSV
@@ -344,27 +344,27 @@ function ClientsPanel() {
         <div className="space-y-3">
           {pipelineLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              {PIPELINE_STAGES.map(s => <div key={s.id} className="bg-white rounded-xl border border-[#DDDBD7] p-3 min-h-[200px]"><Skeleton className="h-6 w-24 mb-3" />{[0,1].map(i => <Skeleton key={i} className="h-16 mb-2" />)}</div>)}
+              {PIPELINE_STAGES.map(s => <div key={s.id} className="bg-white rounded-xl border border-[var(--border)] p-3 min-h-[200px]"><Skeleton className="h-6 w-24 mb-3" />{[0,1].map(i => <Skeleton key={i} className="h-16 mb-2" />)}</div>)}
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               {PIPELINE_STAGES.map(stage => {
                 const stageClients = (pipelineData as Record<string, Array<{id:number;name:string;email:string|null;service:string|null;status:string}>>)?.[stage.id] ?? [];
                 return (
-                  <div key={stage.id} className="bg-white rounded-xl border border-[#DDDBD7] p-3 min-h-[200px] flex flex-col gap-2">
+                  <div key={stage.id} className="bg-white rounded-xl border border-[var(--border)] p-3 min-h-[200px] flex flex-col gap-2">
                     <div className="flex items-center justify-between mb-1">
                       <div>
                         <div className="text-xs font-bold" style={{ color: stage.color }}>{stage.label}</div>
-                        <div className="text-[10px] text-[#3D3D3D]">{stage.desc}</div>
+                        <div className="text-[10px] text-[var(--foreground-soft)]">{stage.desc}</div>
                       </div>
                       <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: stage.bg, color: stage.color }}>{stageClients.length}</span>
                     </div>
                     {stageClients.length === 0 ? (
-                      <div className="flex-1 flex items-center justify-center text-[10px] text-[#6B6B6B] text-center">No clients</div>
+                      <div className="flex-1 flex items-center justify-center text-[10px] text-[var(--muted-foreground)] text-center">No clients</div>
                     ) : stageClients.map(c => (
-                      <div key={c.id} className="bg-[#F7F6F3] rounded-lg p-2.5 border border-[#EEECEA] hover:border-[#C8C5BF] transition-all cursor-pointer group" onClick={() => setSelectedId(c.id)}>
-                        <div className="text-xs font-semibold text-[#1A1A1A] truncate">{c.name}</div>
-                        {c.service && <div className="text-[10px] text-[#3D3D3D] truncate mt-0.5">{c.service}</div>}
+                      <div key={c.id} className="bg-[var(--background)] rounded-lg p-2.5 border border-[var(--muted)] hover:border-[var(--border-strong)] transition-all cursor-pointer group" onClick={() => setSelectedId(c.id)}>
+                        <div className="text-xs font-semibold text-[var(--foreground)] truncate">{c.name}</div>
+                        {c.service && <div className="text-[10px] text-[var(--foreground-soft)] truncate mt-0.5">{c.service}</div>}
                         <div className="flex gap-1 mt-2 flex-wrap">
                           {PIPELINE_STAGES.filter(s => s.id !== stage.id).map(s => (
                             <button key={s.id} onClick={e => { e.stopPropagation(); updateStage.mutate({ id: c.id, pipelineStage: s.id as PipelineStageId }); }} className="text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: s.bg, color: s.color }} title={`Move to ${s.label}`}>→ {s.label}</button>
@@ -377,13 +377,13 @@ function ClientsPanel() {
               })}
             </div>
           )}
-          <p className="text-xs text-[#6B6B6B] text-center">Hover a client card to see stage move buttons</p>
+          <p className="text-xs text-[var(--muted-foreground)] text-center">Hover a client card to see stage move buttons</p>
         </div>
       )}
       {/* Filters */}
       {viewMode === "list" && <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" aria-hidden="true" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" aria-hidden="true" />
           <input
             type="search"
             value={search}
@@ -408,26 +408,26 @@ function ClientsPanel() {
         </select>
       </div>}
       {/* Table */}
-      {viewMode === "list" && <div className="bg-white rounded-xl border border-[#DDDBD7] overflow-hidden">
-        <div className="hidden sm:grid grid-cols-4 gap-4 px-5 py-3 bg-[#F7F6F3] text-xs font-semibold text-[#6B6B6B] uppercase tracking-wide">
+      {viewMode === "list" && <div className="bg-white rounded-xl border border-[var(--border)] overflow-hidden">
+        <div className="hidden sm:grid grid-cols-4 gap-4 px-5 py-3 bg-[var(--background)] text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide">
           <span className="col-span-2">Client</span>
           <span>Service</span>
           <span>Status</span>
         </div>
         {isLoading ? (
           <div className="space-y-px">
-            {[...Array(4)].map((_, i) => <div key={i} className="px-5 py-4 border-t border-[#EEECEA]"><Skeleton className="h-10" /></div>)}
+            {[...Array(4)].map((_, i) => <div key={i} className="px-5 py-4 border-t border-[var(--muted)]"><Skeleton className="h-10" /></div>)}
           </div>
         ) : !clientList || clientList.length === 0 ? (
-          <div className="text-center py-16 text-[#6B6B6B]">
+          <div className="text-center py-16 text-[var(--muted-foreground)]">
             <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="text-sm font-medium text-[#6B6B6B]">No clients found</p>
+            <p className="text-sm font-medium text-[var(--muted-foreground)]">No clients found</p>
             <p className="text-xs mt-1">{search ? "Try adjusting your search." : "Add your first client to get started."}</p>
           </div>
         ) : clientList.map(c => (
           <div
             key={c.id}
-            className="flex sm:grid sm:grid-cols-4 gap-3 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-[#EEECEA] hover:bg-[#F7F6F3] transition-colors items-center cursor-pointer"
+            className="flex sm:grid sm:grid-cols-4 gap-3 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-[var(--muted)] hover:bg-[var(--background)] transition-colors items-center cursor-pointer"
             onClick={() => setSelectedId(c.id)}
             role="button"
             tabIndex={0}
@@ -459,23 +459,23 @@ function ClientsPanel() {
                 })()}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#1A1A1A] truncate">{c.name}</p>
-                <p className="text-xs text-[#6B6B6B] truncate">
+                <p className="text-sm font-semibold text-[var(--foreground)] truncate">{c.name}</p>
+                <p className="text-xs text-[var(--muted-foreground)] truncate">
                   {c.email || "No email"}
                   {c.lastActivity && (
-                    <span className="ml-2 text-[#3D3D3D]">· last seen {new Date(c.lastActivity).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                    <span className="ml-2 text-[var(--foreground-soft)]">· last seen {new Date(c.lastActivity).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
                   )}
                 </p>
               </div>
             </div>
-            <p className="hidden sm:block text-sm text-[#6B6B6B] truncate">{c.service || "—"}</p>
+            <p className="hidden sm:block text-sm text-[var(--muted-foreground)] truncate">{c.service || "—"}</p>
             <div className="flex items-center justify-between ml-auto sm:ml-0 flex-shrink-0 gap-2">
-              <Badge className={`text-xs border-0 ${c.status === "active" ? "bg-green-500/10 text-green-600" : c.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-[#EEECEA] text-[#6B6B6B]"}`}>
+              <Badge className={`text-xs border-0 ${c.status === "active" ? "bg-green-500/10 text-green-600" : c.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-[var(--muted)] text-[var(--muted-foreground)]"}`}>
                 {c.status}
               </Badge>
               <button
                 onClick={e => { e.stopPropagation(); setClientConfirm({ open: true, title: "Remove Client?", description: `Remove ${c.name} from your clients? This cannot be undone.`, onConfirm: () => deleteClient.mutate({ id: c.id }) }); }}
-                className="p-2 rounded-lg hover:bg-red-500/100/10 text-[#3D3D3D] hover:text-red-500 transition-colors"
+                className="p-2 rounded-lg hover:bg-red-500/100/10 text-[var(--foreground-soft)] hover:text-red-500 transition-colors"
                 aria-label={`Delete ${c.name}`}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -493,7 +493,7 @@ function ClientsPanel() {
           <Field label="Service / Niche" value={form.service} onChange={setFormService} placeholder="Business Coaching, Web Design..." autoComplete="off" enterKeyHint="next" />
           <Field label="Default Hourly Rate ($)" value={form.defaultRate} onChange={setFormDefaultRate} placeholder="0.00" type="number" autoComplete="off" enterKeyHint="next" />
           <div>
-            <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Status</label>
+            <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Status</label>
             <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as typeof form.status }))} className="form-input-light">
               <option value="active">Active</option>
               <option value="prospect">Prospect / Lead</option>
@@ -515,11 +515,11 @@ function ClientsPanel() {
         {selectedClient && (
           <div className="space-y-4">
             {/* Profile Tab Bar */}
-            <div className="flex gap-1 bg-[#EEECEA] rounded-xl p-1">
+            <div className="flex gap-1 bg-[var(--muted)] rounded-xl p-1">
               {(["info", "tags", "messages"] as const).map(t => (
                 <button key={t} onClick={() => setProfileTab(t)}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-                    profileTab === t ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[#3D3D3D] hover:text-[#2A2A2A]"
+                    profileTab === t ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[var(--foreground-soft)] hover:text-[#2A2A2A]"
                   }`}>
                   {t === "messages" ? "Messages" : t === "tags" ? "Tags" : "Info"}
                 </button>
@@ -530,9 +530,9 @@ function ClientsPanel() {
                 {selectedClient.avatarInitials || selectedClient.name.slice(0, 2).toUpperCase()}
               </div>
               <div>
-                <h3 className="text-lg font-bold text-[#1A1A1A]">{selectedClient.name}</h3>
-                <p className="text-sm text-[#6B6B6B]">{selectedClient.service || "General Client"}</p>
-                <Badge className={`text-xs border-0 mt-1 ${selectedClient.status === "active" ? "bg-green-500/10 text-green-600" : selectedClient.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-[#EEECEA] text-[#6B6B6B]"}`}>
+                <h3 className="text-lg font-bold text-[var(--foreground)]">{selectedClient.name}</h3>
+                <p className="text-sm text-[var(--muted-foreground)]">{selectedClient.service || "General Client"}</p>
+                <Badge className={`text-xs border-0 mt-1 ${selectedClient.status === "active" ? "bg-green-500/10 text-green-600" : selectedClient.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-[var(--muted)] text-[var(--muted-foreground)]"}`}>
                   {selectedClient.status}
                 </Badge>
               </div>
@@ -544,12 +544,12 @@ function ClientsPanel() {
                 { icon: DollarSign, label: "Default Rate", value: selectedClient.defaultRate ? `$${parseFloat(selectedClient.defaultRate).toFixed(2)}/hr` : "Not set" },
                 { icon: Calendar, label: "Added", value: formatDate(selectedClient.createdAt) },
               ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className="bg-[#F7F6F3] rounded-xl p-3">
+                <div key={label} className="bg-[var(--background)] rounded-xl p-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon className="w-3.5 h-3.5 text-[#6B6B6B]" />
-                    <p className="text-xs text-[#6B6B6B]">{label}</p>
+                    <Icon className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+                    <p className="text-xs text-[var(--muted-foreground)]">{label}</p>
                   </div>
-                  <p className="text-sm font-semibold text-[#1A1A1A] truncate">{value}</p>
+                  <p className="text-sm font-semibold text-[var(--foreground)] truncate">{value}</p>
                 </div>
               ))}
             </div>
@@ -565,7 +565,7 @@ function ClientsPanel() {
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {clientTagsData.length === 0 && <p className="text-xs text-[#3D3D3D]">No tags yet. Add your first tag above.</p>}
+                  {clientTagsData.length === 0 && <p className="text-xs text-[var(--foreground-soft)]">No tags yet. Add your first tag above.</p>}
                   {clientTagsData.map(t => (
                     <span key={t.id} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4922A]/10 text-[#D4922A] text-xs font-semibold">
                       {t.tag}
@@ -579,15 +579,15 @@ function ClientsPanel() {
             )}
             {profileTab === "messages" && (
               <div className="space-y-3">
-                <div className="max-h-64 overflow-y-auto space-y-2 bg-[#F7F6F3] rounded-xl p-3">
-                  {messages.length === 0 && <p className="text-xs text-[#3D3D3D] text-center py-4">No messages yet. Clients can message you from their portal.</p>}
+                <div className="max-h-64 overflow-y-auto space-y-2 bg-[var(--background)] rounded-xl p-3">
+                  {messages.length === 0 && <p className="text-xs text-[var(--foreground-soft)] text-center py-4">No messages yet. Clients can message you from their portal.</p>}
                   {(messages as Array<{ id: number; senderRole: string; body: string; createdAt: Date }>).map(m => (
                     <div key={m.id} className={`flex ${ m.senderRole === "owner" ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${
-                        m.senderRole === "owner" ? "bg-[#D4922A] text-white" : "bg-white border border-[#DDDBD7] text-[#1A1A1A]"
+                        m.senderRole === "owner" ? "bg-[#D4922A] text-white" : "bg-white border border-[var(--border)] text-[var(--foreground)]"
                       }`}>
                         <p>{m.body}</p>
-                        <p className={`text-[10px] mt-1 ${ m.senderRole === "owner" ? "text-white/70" : "text-[#3D3D3D]"}`}>{new Date(m.createdAt).toLocaleString()}</p>
+                        <p className={`text-[10px] mt-1 ${ m.senderRole === "owner" ? "text-white/70" : "text-[var(--foreground-soft)]"}`}>{new Date(m.createdAt).toLocaleString()}</p>
                       </div>
                     </div>
                   ))}
@@ -604,15 +604,15 @@ function ClientsPanel() {
               </div>
             )}
             {profileTab === "info" && selectedClient.notes && (
-              <div className="bg-[#F7F6F3] rounded-xl p-4">
-                <p className="text-xs font-semibold text-[#6B6B6B] mb-1">Notes</p>
+              <div className="bg-[var(--background)] rounded-xl p-4">
+                <p className="text-xs font-semibold text-[var(--muted-foreground)] mb-1">Notes</p>
                 <p className="text-sm text-[#2A2A2A] whitespace-pre-wrap">{selectedClient.notes}</p>
               </div>
             )}
             {profileTab === "info" && (
-              <div className="bg-[#F7F6F3] rounded-xl p-4 space-y-3">
+              <div className="bg-[var(--background)] rounded-xl p-4 space-y-3">
                 <div>
-                  <p className="text-xs font-semibold text-[#6B6B6B]">Private client fields</p>
+                  <p className="text-xs font-semibold text-[var(--muted-foreground)]">Private client fields</p>
                   <p className="text-xs text-[#8A8A8A] mt-1">Owner-only profile details. These fields are never shown in the client portal.</p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -625,8 +625,8 @@ function ClientsPanel() {
               </div>
             )}
             {profileTab === "info" && !!clientCustomFields?.length && (
-              <div className="bg-[#F7F6F3] rounded-xl p-4 space-y-3">
-                <p className="text-xs font-semibold text-[#6B6B6B]">Private custom fields</p>
+              <div className="bg-[var(--background)] rounded-xl p-4 space-y-3">
+                <p className="text-xs font-semibold text-[var(--muted-foreground)]">Private custom fields</p>
                 {clientCustomFields.filter(field => field.active).map(field => {
                   const value = selectedClientCustomValues?.find(item => item.fieldId === field.id)?.value ?? "";
                   const options = field.fieldType === "select" ? (JSON.parse(field.options || "[]") as string[]) : [];
@@ -639,25 +639,25 @@ function ClientsPanel() {
             {/* Document Storage & Actions - only show on Info tab */}
             {profileTab === "info" && (
               <>
-                <div className="bg-[#F7F6F3] rounded-xl p-4">
+                <div className="bg-[var(--background)] rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs font-semibold text-[#6B6B6B]">Documents ({clientDocs?.length || 0})</p>
+                    <p className="text-xs font-semibold text-[var(--muted-foreground)]">Documents ({clientDocs?.length || 0})</p>
                     <label className={`text-xs font-semibold cursor-pointer px-3 py-1.5 rounded-lg transition-colors ${docUploading ? 'opacity-50 pointer-events-none' : 'bg-[#D4922A]/10 text-[#D4922A] hover:bg-[#D4922A]/20'}`}>
                       {docUploading ? 'Uploading...' : '+ Upload'}
                       <input type="file" className="sr-only" onChange={handleDocUpload} disabled={docUploading} accept="*/*" />
                     </label>
                   </div>
                   {!clientDocs || clientDocs.length === 0 ? (
-                    <p className="text-xs text-[#6B6B6B] text-center py-3">No documents yet. Upload contracts, briefs, or any files.</p>
+                    <p className="text-xs text-[var(--muted-foreground)] text-center py-3">No documents yet. Upload contracts, briefs, or any files.</p>
                   ) : (
                     <div className="space-y-2">
                       {clientDocs.map(doc => (
-                        <div key={doc.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-[#DDDBD7]">
+                        <div key={doc.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-[var(--border)]">
                           <FileText className="w-3.5 h-3.5 text-[#D4922A] flex-shrink-0" />
-                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs font-medium text-[#1A1A1A] truncate hover:underline">{doc.fileName}</a>
-                          {doc.sizeBytes && <span className="text-[10px] text-[#6B6B6B] flex-shrink-0">{(doc.sizeBytes / 1024).toFixed(0)} KB</span>}
+                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs font-medium text-[var(--foreground)] truncate hover:underline">{doc.fileName}</a>
+                          {doc.sizeBytes && <span className="text-[10px] text-[var(--muted-foreground)] flex-shrink-0">{(doc.sizeBytes / 1024).toFixed(0)} KB</span>}
                           <button type="button" onClick={() => setDocumentVisibility.mutate({ id: doc.id, clientVisible: !doc.clientVisible })} disabled={setDocumentVisibility.isPending} className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors disabled:opacity-60 ${doc.clientVisible ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`} aria-label={`${doc.clientVisible ? "Remove" : "Share"} ${doc.fileName} ${doc.clientVisible ? "from" : "in"} client portal`}>{doc.clientVisible ? "Shared" : "Private"}</button>
-                          <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-2 rounded hover:bg-red-500/100/10 text-[#3D3D3D] hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
+                          <button onClick={() => deleteDoc.mutate({ id: doc.id })} className="p-2 rounded hover:bg-red-500/100/10 text-[var(--foreground-soft)] hover:text-red-500 transition-colors flex-shrink-0" aria-label="Delete document">
                             <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
@@ -739,10 +739,10 @@ function ClientsPanel() {
 
           {/* File upload */}
           <div>
-            <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Upload a CSV file</label>
-            <label className="flex items-center justify-center gap-2 border-2 border-dashed border-[#DDDBD7] rounded-xl p-4 cursor-pointer hover:border-[#D4922A]/60 hover:bg-amber-500/5 transition-colors">
-              <Upload className="w-4 h-4 text-[#3D3D3D]" />
-              <span className="text-xs text-[#6B6B6B]">Click to choose a .csv file, or drag and drop</span>
+            <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Upload a CSV file</label>
+            <label className="flex items-center justify-center gap-2 border-2 border-dashed border-[var(--border)] rounded-xl p-4 cursor-pointer hover:border-[#D4922A]/60 hover:bg-amber-500/5 transition-colors">
+              <Upload className="w-4 h-4 text-[var(--foreground-soft)]" />
+              <span className="text-xs text-[var(--muted-foreground)]">Click to choose a .csv file, or drag and drop</span>
               <input
                 type="file"
                 accept=".csv,text/csv"
@@ -765,7 +765,7 @@ function ClientsPanel() {
 
           {/* Or paste manually */}
           <div>
-            <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Or paste CSV content directly</label>
+            <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Or paste CSV content directly</label>
             <textarea
               value={csvText}
               onChange={e => { setCsvText(e.target.value); parseCsv(e.target.value); }}
@@ -777,21 +777,21 @@ function ClientsPanel() {
           </div>
           {csvPreview.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-[#6B6B6B] mb-2">{csvPreview.length} client{csvPreview.length > 1 ? "s" : ""} detected — preview (first 5):</p>
-              <div className="border border-[#DDDBD7] rounded-xl overflow-hidden">
+              <p className="text-xs font-semibold text-[var(--muted-foreground)] mb-2">{csvPreview.length} client{csvPreview.length > 1 ? "s" : ""} detected — preview (first 5):</p>
+              <div className="border border-[var(--border)] rounded-xl overflow-hidden">
                 {csvPreview.slice(0, 5).map((row, i) => (
-                  <div key={i} className="flex items-center gap-3 px-3 py-2 border-t border-[#EEECEA] first:border-t-0 text-xs">
+                  <div key={i} className="flex items-center gap-3 px-3 py-2 border-t border-[var(--muted)] first:border-t-0 text-xs">
                     <div className="w-6 h-6 rounded-full gradient-amber flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
                       {row.name.slice(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-[#1A1A1A] truncate">{row.name}</p>
-                      <p className="text-[#6B6B6B] truncate">{row.email || "No email"}</p>
+                      <p className="font-semibold text-[var(--foreground)] truncate">{row.name}</p>
+                      <p className="text-[var(--muted-foreground)] truncate">{row.email || "No email"}</p>
                     </div>
-                    <span className="text-[#6B6B6B]">{row.service || "—"}</span>
+                    <span className="text-[var(--muted-foreground)]">{row.service || "—"}</span>
                   </div>
                 ))}
-                {csvPreview.length > 5 && <div className="px-3 py-2 text-xs text-[#6B6B6B] border-t border-[#EEECEA]">+{csvPreview.length - 5} more...</div>}
+                {csvPreview.length > 5 && <div className="px-3 py-2 text-xs text-[var(--muted-foreground)] border-t border-[var(--muted)]">+{csvPreview.length - 5} more...</div>}
               </div>
             </div>
           )}

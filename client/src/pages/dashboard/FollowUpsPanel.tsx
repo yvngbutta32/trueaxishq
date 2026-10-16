@@ -99,8 +99,8 @@ function FollowUpsPanel() {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1A1A1A]">AI Follow-Ups</h2>
-          <p className="text-sm text-[#6B6B6B]">Let AI write personalized follow-up emails for your clients</p>
+          <h2 className="text-xl font-extrabold text-[var(--foreground)]">AI Follow-Ups</h2>
+          <p className="text-sm text-[var(--muted-foreground)]">Let AI write personalized follow-up emails for your clients</p>
         </div>
         {fuTab === "emails" ? (
           <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowGenerate(true)}>
@@ -113,11 +113,11 @@ function FollowUpsPanel() {
         )}
       </div>
       {/* Tab Bar */}
-      <div className="flex gap-1 bg-[#EEECEA] rounded-xl p-1">
+      <div className="flex gap-1 bg-[var(--muted)] rounded-xl p-1">
         {(["emails", "sequences"] as const).map(t => (
           <button key={t} onClick={() => setFuTab(t)}
             className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-              fuTab === t ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[#3D3D3D] hover:text-[#2A2A2A]"
+              fuTab === t ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[var(--foreground-soft)] hover:text-[#2A2A2A]"
             }`}>
             {t === "sequences" ? "Auto-Sequences" : "AI Emails"}
           </button>
@@ -132,8 +132,8 @@ function FollowUpsPanel() {
                 <Zap className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-[#1A1A1A] text-sm">Automated Follow-Up Rules</h3>
-                <p className="text-xs text-[#6B6B6B] mt-1 leading-relaxed">
+                <h3 className="font-bold text-[var(--foreground)] text-sm">Automated Follow-Up Rules</h3>
+                <p className="text-xs text-[var(--muted-foreground)] mt-1 leading-relaxed">
                   Set a rule once and the system automatically generates and queues a follow-up email when a client hasn't booked in X days. Rules run daily — passive revenue recovery while you sleep.
                 </p>
               </div>
@@ -142,23 +142,23 @@ function FollowUpsPanel() {
           {rulesLoading ? (
             [...Array(2)].map((_, i) => <Skeleton key={i} className="h-16" />)
           ) : rules.length === 0 ? (
-            <div className="bg-white rounded-xl border border-[#DDDBD7] text-center py-12 text-[#6B6B6B]">
+            <div className="bg-white rounded-xl border border-[var(--border)] text-center py-12 text-[var(--muted-foreground)]">
               <Zap className="w-8 h-8 mx-auto mb-3 opacity-30" />
               <p className="text-sm font-medium">No automation rules yet</p>
               <p className="text-xs mt-1">Create your first rule to start automating follow-ups.</p>
             </div>
           ) : (rules as Array<{ id: number; name: string; triggerDays: number; emailSubject: string; active: boolean }>).map(r => (
-            <div key={r.id} className="bg-white rounded-xl border border-[#DDDBD7] p-4 flex items-center gap-3">
+            <div key={r.id} className="bg-white rounded-xl border border-[var(--border)] p-4 flex items-center gap-3">
               <div className={`w-2 h-10 rounded-full flex-shrink-0 ${r.active ? "bg-green-400" : "bg-gray-200"}`} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-[#1A1A1A]">{r.name}</p>
-                <p className="text-xs text-[#6B6B6B] mt-0.5">Triggers after <span className="font-semibold text-[#D4922A]">{r.triggerDays} days</span> of no booking · {r.emailSubject}</p>
+                <p className="text-sm font-bold text-[var(--foreground)]">{r.name}</p>
+                <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Triggers after <span className="font-semibold text-[#D4922A]">{r.triggerDays} days</span> of no booking · {r.emailSubject}</p>
               </div>
               <div className="flex gap-1.5 flex-shrink-0">
-                <button onClick={() => toggleRule.mutate({ id: r.id, active: !r.active })} className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${r.active ? "bg-green-500/15 text-green-400 hover:bg-green-500/25" : "bg-[#EEECEA] text-[#3D3D3D] hover:bg-white/12"}`}>
+                <button onClick={() => toggleRule.mutate({ id: r.id, active: !r.active })} className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${r.active ? "bg-green-500/15 text-green-400 hover:bg-green-500/25" : "bg-[var(--muted)] text-[var(--foreground-soft)] hover:bg-white/12"}`}>
                   {r.active ? "Active" : "Paused"}
                 </button>
-                <button onClick={() => deleteRule.mutate({ id: r.id })} className="p-2 rounded-lg hover:bg-red-500/100/10 text-[#3D3D3D] hover:text-red-500 transition-colors" aria-label="Delete rule">
+                <button onClick={() => deleteRule.mutate({ id: r.id })} className="p-2 rounded-lg hover:bg-red-500/100/10 text-[var(--foreground-soft)] hover:text-red-500 transition-colors" aria-label="Delete rule">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -169,19 +169,19 @@ function FollowUpsPanel() {
             <div className="space-y-4">
               <Field label="Rule Name *" value={ruleForm.context} onChange={setRuleContext} placeholder="e.g. 30-Day Re-engagement" required />
               <div>
-                <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Trigger: No booking in</label>
+                <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Trigger: No booking in</label>
                 <div className="flex items-center gap-2">
                   <input type="number" min={1} max={365} value={ruleForm.triggerDays} onChange={e => setRuleForm(p => ({ ...p, triggerDays: parseInt(e.target.value) || 30 }))}
                     className="form-input-light w-24 text-center" />
-                  <span className="text-sm text-[#6B6B6B]">days</span>
+                  <span className="text-sm text-[var(--muted-foreground)]">days</span>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Email Tone</label>
+                <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Email Tone</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(["professional", "friendly", "motivational"] as const).map(t => (
                     <button key={t} onClick={() => setRuleForm(p => ({ ...p, tone: t }))}
-                      className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${ruleForm.tone === t ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]" : "border-[#DDDBD7] text-[#6B6B6B] hover:border-[#C8C5BF]"}`}>
+                      className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${ruleForm.tone === t ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]" : "border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--border-strong)]"}`}>
                       {t}
                     </button>
                   ))}
@@ -205,8 +205,8 @@ function FollowUpsPanel() {
             <Zap className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-[#1A1A1A] text-sm">How AI Follow-Ups Work</h3>
-            <p className="text-xs text-[#6B6B6B] mt-1 leading-relaxed">
+            <h3 className="font-bold text-[var(--foreground)] text-sm">How AI Follow-Ups Work</h3>
+            <p className="text-xs text-[var(--muted-foreground)] mt-1 leading-relaxed">
               Select a client, choose a tone, and our AI writes a personalized follow-up email in seconds. The email checks in on their progress, encourages rebooking, and sounds like it came directly from you. Copy the email and send it from your preferred email client.
             </p>
           </div>
@@ -218,37 +218,37 @@ function FollowUpsPanel() {
         {isLoading ? (
           [...Array(3)].map((_, i) => <Skeleton key={i} className="h-20" />)
         ) : !followUpList || followUpList.length === 0 ? (
-          <div className="bg-white rounded-xl border border-[#DDDBD7] text-center py-16 text-[#6B6B6B]">
+          <div className="bg-white rounded-xl border border-[var(--border)] text-center py-16 text-[var(--muted-foreground)]">
             <Mail className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="text-sm font-medium text-[#6B6B6B]">No follow-ups generated yet</p>
+            <p className="text-sm font-medium text-[var(--muted-foreground)]">No follow-ups generated yet</p>
             <p className="text-xs mt-1">Generate your first AI follow-up email above.</p>
           </div>
         ) : followUpList.map(f => (
-          <div key={f.id} className="bg-white rounded-xl border border-[#DDDBD7] p-4 hover:border-[#D4922A]/30 transition-colors">
+          <div key={f.id} className="bg-white rounded-xl border border-[var(--border)] p-4 hover:border-[#D4922A]/30 transition-colors">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-bold text-[#1A1A1A]">{f.clientName}</p>
+                  <p className="text-sm font-bold text-[var(--foreground)]">{f.clientName}</p>
                   <Badge className={`text-xs border-0 ${f.status === "sent" ? "bg-green-500/10 text-green-600" : "bg-yellow-50 text-yellow-600"}`}>
                     {f.status}
                   </Badge>
                 </div>
-                <p className="text-xs text-[#6B6B6B] mt-0.5 font-medium">{f.subject}</p>
-                <p className="text-xs text-[#6B6B6B] mt-1 line-clamp-2">{f.body}</p>
+                <p className="text-xs text-[var(--muted-foreground)] mt-0.5 font-medium">{f.subject}</p>
+                <p className="text-xs text-[var(--muted-foreground)] mt-1 line-clamp-2">{f.body}</p>
               </div>
               <div className="flex gap-1.5 flex-shrink-0">
-                <button onClick={() => copyToClipboard(f.body)} className="p-2 rounded-lg hover:bg-[#D4922A]/10 text-[#6B6B6B] hover:text-[#D4922A] transition-colors" aria-label="Copy email body to clipboard" title="Copy email body">
+                <button onClick={() => copyToClipboard(f.body)} className="p-2 rounded-lg hover:bg-[#D4922A]/10 text-[var(--muted-foreground)] hover:text-[#D4922A] transition-colors" aria-label="Copy email body to clipboard" title="Copy email body">
                   <Copy className="w-4 h-4" />
                 </button>
-                <button onClick={() => setPreviewFollowUp(f)} className="p-2 rounded-lg hover:bg-[#EEECEA] text-[#6B6B6B] hover:text-[#6B6B6B] transition-colors" aria-label="Preview email">
+                <button onClick={() => setPreviewFollowUp(f)} className="p-2 rounded-lg hover:bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)] transition-colors" aria-label="Preview email">
                   <Eye className="w-4 h-4" />
                 </button>
                 {f.status === "draft" && (
-                  <button onClick={() => markSent.mutate({ id: f.id })} className="p-2 rounded-lg hover:bg-green-500/10 text-[#6B6B6B] hover:text-green-600 transition-colors" aria-label="Mark as sent">
+                  <button onClick={() => markSent.mutate({ id: f.id })} className="p-2 rounded-lg hover:bg-green-500/10 text-[var(--muted-foreground)] hover:text-green-600 transition-colors" aria-label="Mark as sent">
                     <Send className="w-4 h-4" />
                   </button>
                 )}
-                <button onClick={() => setFuConfirm({ open: true, title: "Delete Follow-Up?", description: "Delete this follow-up email? This cannot be undone.", onConfirm: () => deleteFollowUp.mutate({ id: f.id }) })} className="p-2 rounded-lg hover:bg-red-500/100/10 text-[#3D3D3D] hover:text-red-500 transition-colors" aria-label="Delete follow-up">
+                <button onClick={() => setFuConfirm({ open: true, title: "Delete Follow-Up?", description: "Delete this follow-up email? This cannot be undone.", onConfirm: () => deleteFollowUp.mutate({ id: f.id }) })} className="p-2 rounded-lg hover:bg-red-500/100/10 text-[var(--foreground-soft)] hover:text-red-500 transition-colors" aria-label="Delete follow-up">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -261,7 +261,7 @@ function FollowUpsPanel() {
       <Modal open={showGenerate} onClose={() => setShowGenerate(false)} title="Generate AI Follow-Up Email">
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Select Client</label>
+            <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Select Client</label>
             <select onChange={e => { const pid = parseInt(e.target.value, 10); const c = !isNaN(pid) ? clientList?.find(c => c.id === pid) : undefined; if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "", service: c.service || "" })); }} className="form-input-light">
               <option value="">— Or enter manually below —</option>
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -272,13 +272,13 @@ function FollowUpsPanel() {
           <Field label="Service / Context" value={form.service} onChange={setFollowService} placeholder="Business coaching, web design..." autoComplete="off" enterKeyHint="next" />
           <Field label="Additional Context (optional)" value={form.context} onChange={setFollowContext} placeholder="Last session was about goal-setting, they struggled with time management..." textarea enterKeyHint="done" />
           <div>
-            <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Email Tone</label>
+            <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Email Tone</label>
             <div className="grid grid-cols-3 gap-2">
               {(["professional", "friendly", "motivational"] as const).map(t => (
                 <button
                   key={t}
                   onClick={() => setForm(p => ({ ...p, tone: t }))}
-                  className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${form.tone === t ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]" : "border-[#DDDBD7] text-[#6B6B6B] hover:border-[#C8C5BF]"}`}
+                  className={`py-2 px-3 text-xs font-semibold rounded-xl border-2 transition-all capitalize ${form.tone === t ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]" : "border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--border-strong)]"}`}
                 >
                   {t}
                 </button>
@@ -299,18 +299,18 @@ function FollowUpsPanel() {
         {previewFollowUp && (
           <div className="font-sans">
             {/* Email client header */}
-            <div className="bg-[#F7F6F3] border border-[#DDDBD7] rounded-xl mb-4 overflow-hidden">
-              <div className="px-4 py-2 border-b border-[#DDDBD7] flex items-center gap-2">
-                <span className="text-[11px] font-bold text-[#3D3D3D] uppercase tracking-wide w-14">From</span>
+            <div className="bg-[var(--background)] border border-[var(--border)] rounded-xl mb-4 overflow-hidden">
+              <div className="px-4 py-2 border-b border-[var(--border)] flex items-center gap-2">
+                <span className="text-[11px] font-bold text-[var(--foreground-soft)] uppercase tracking-wide w-14">From</span>
                 <span className="text-sm text-[#2A2A2A]">TrueAxis HQ &lt;noreply@trueaxishq.com&gt;</span>
               </div>
-              <div className="px-4 py-2 border-b border-[#DDDBD7] flex items-center gap-2">
-                <span className="text-[11px] font-bold text-[#3D3D3D] uppercase tracking-wide w-14">To</span>
+              <div className="px-4 py-2 border-b border-[var(--border)] flex items-center gap-2">
+                <span className="text-[11px] font-bold text-[var(--foreground-soft)] uppercase tracking-wide w-14">To</span>
                 <span className="text-sm text-[#2A2A2A]">{previewFollowUp.clientEmail || previewFollowUp.clientName}</span>
               </div>
               <div className="px-4 py-2 flex items-center gap-2">
-                <span className="text-[11px] font-bold text-[#3D3D3D] uppercase tracking-wide w-14">Subject</span>
-                <span className="text-sm font-semibold text-[#1A1A1A]">{previewFollowUp.subject}</span>
+                <span className="text-[11px] font-bold text-[var(--foreground-soft)] uppercase tracking-wide w-14">Subject</span>
+                <span className="text-sm font-semibold text-[var(--foreground)]">{previewFollowUp.subject}</span>
               </div>
             </div>
 
@@ -320,26 +320,26 @@ function FollowUpsPanel() {
                 {/* Top accent bar */}
                 <div className="h-1 bg-[#D4922A]" />
                 {/* Brand header */}
-                <div className="px-5 py-4 border-b border-[#DDDBD7] flex items-center gap-3">
+                <div className="px-5 py-4 border-b border-[var(--border)] flex items-center gap-3">
                   <div className="w-7 h-7 rounded-lg bg-[#D4922A] flex items-center justify-center">
                     <span className="text-white font-black text-xs">T</span>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-[#1A1A1A] leading-none">TrueAxis HQ</p>
-                    <p className="text-[10px] text-[#3D3D3D] mt-0.5">AI-Powered Business OS for Freelancers</p>
+                    <p className="text-sm font-bold text-[var(--foreground)] leading-none">TrueAxis HQ</p>
+                    <p className="text-[10px] text-[var(--foreground-soft)] mt-0.5">AI-Powered Business OS for Freelancers</p>
                   </div>
                 </div>
                 {/* Body */}
                 <div className="px-5 py-5">
-                  <h2 className="text-base font-bold text-[#1A1A1A] mb-2">{previewFollowUp.subject}</h2>
-                  <p className="text-sm text-[#3D3D3D] mb-3">Hi {previewFollowUp.clientName},</p>
+                  <h2 className="text-base font-bold text-[var(--foreground)] mb-2">{previewFollowUp.subject}</h2>
+                  <p className="text-sm text-[var(--foreground-soft)] mb-3">Hi {previewFollowUp.clientName},</p>
                   {previewFollowUp.body.split("\n").filter((l: string) => l.trim()).map((line: string, i: number) => (
-                    <p key={i} className="text-sm text-[#6B6B6B] leading-relaxed mb-2">{line}</p>
+                    <p key={i} className="text-sm text-[var(--muted-foreground)] leading-relaxed mb-2">{line}</p>
                   ))}
                 </div>
                 {/* Footer */}
-                <div className="px-5 py-3 bg-[#F7F6F3] border-t border-[#DDDBD7]">
-                  <p className="text-[10px] text-[#3D3D3D] text-center">&copy; {new Date().getFullYear()} TrueAxis HQ &mdash; <span className="text-[#D4922A]">Unsubscribe</span></p>
+                <div className="px-5 py-3 bg-[var(--background)] border-t border-[var(--border)]">
+                  <p className="text-[10px] text-[var(--foreground-soft)] text-center">&copy; {new Date().getFullYear()} TrueAxis HQ &mdash; <span className="text-[#D4922A]">Unsubscribe</span></p>
                 </div>
               </div>
             </div>

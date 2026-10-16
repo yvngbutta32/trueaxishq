@@ -272,7 +272,7 @@ function InvoicesPanel() {
   });
 
   const statusColor: Record<string, string> = {
-    draft: "bg-[#EEECEA] text-[#6B6B6B]",
+    draft: "bg-[var(--muted)] text-[var(--muted-foreground)]",
     sent: "bg-blue-50 text-blue-600",
     paid: "bg-green-500/10 text-green-600",
     overdue: "bg-red-500/10 text-red-500",
@@ -283,15 +283,15 @@ function InvoicesPanel() {
       {/* Panel header with top-level tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1A1A1A]">Invoices</h2>
-          <p className="text-sm text-[#6B6B6B]">
+          <h2 className="text-xl font-extrabold text-[var(--foreground)]">Invoices</h2>
+          <p className="text-sm text-[var(--muted-foreground)]">
             {invTab === "invoices" ? `${invoiceList?.length || 0} total invoices` : `${schedules?.length || 0} schedules · ${formatCurrency(estMonthlyRevenue)}/mo est.`}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {invTab === "invoices" ? (
             <>
-              <Button size="sm" variant="outline" className="gap-1.5 text-[#6B6B6B] border-[#DDDBD7]" onClick={exportInvoicesCSV} title="Export all invoices as CSV">
+              <Button size="sm" variant="outline" className="gap-1.5 text-[var(--muted-foreground)] border-[var(--border)]" onClick={exportInvoicesCSV} title="Export all invoices as CSV">
                 <Download className="w-3.5 h-3.5" />Export CSV
               </Button>
               <Button size="sm" variant="outline" className="gap-1.5 text-[#8A5A0B] border-[#D4922A]/40 hover:bg-[#D4922A]/10" onClick={() => setShowAccountingExport(true)} title="Accountant-ready export: QuickBooks invoices, payments, monthly summary">
@@ -310,11 +310,11 @@ function InvoicesPanel() {
       </div>
 
       {/* Top-level tab switcher */}
-      <div className="flex gap-1 p-1 bg-[#EEECEA] rounded-xl overflow-x-auto">
+      <div className="flex gap-1 p-1 bg-[var(--muted)] rounded-xl overflow-x-auto">
         <button
           onClick={() => setInvTab("invoices")}
           className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-            invTab === "invoices" ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[#6B6B6B] hover:text-[#2A2A2A]"
+            invTab === "invoices" ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[#2A2A2A]"
           }`}
         >
           <FileText className="w-3.5 h-3.5" />Invoices
@@ -322,7 +322,7 @@ function InvoicesPanel() {
         <button
           onClick={() => setInvTab("recurring")}
           className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-            invTab === "recurring" ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[#6B6B6B] hover:text-[#2A2A2A]"
+            invTab === "recurring" ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[#2A2A2A]"
           }`}
         >
           <RefreshCw className="w-3.5 h-3.5" />Recurring
@@ -337,23 +337,23 @@ function InvoicesPanel() {
         <div className="space-y-5">
           {/* Summary stats */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-[#DDDBD7]">
-              <p className="text-2xl font-bold text-[#1A1A1A]">{activeScheduleCount}</p>
-              <p className="text-xs text-[#3D3D3D] mt-0.5">Active Schedules</p>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-[var(--border)]">
+              <p className="text-2xl font-bold text-[var(--foreground)]">{activeScheduleCount}</p>
+              <p className="text-xs text-[var(--foreground-soft)] mt-0.5">Active Schedules</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-[#DDDBD7]">
-              <p className="text-2xl font-bold text-[#1A1A1A]">{formatCurrency(estMonthlyRevenue)}</p>
-              <p className="text-xs text-[#3D3D3D] mt-0.5">Est. Monthly Revenue</p>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-[var(--border)]">
+              <p className="text-2xl font-bold text-[var(--foreground)]">{formatCurrency(estMonthlyRevenue)}</p>
+              <p className="text-xs text-[var(--foreground-soft)] mt-0.5">Est. Monthly Revenue</p>
             </div>
           </div>
 
           {/* Create form */}
           {showRecurringForm && (
-            <div className="bg-white rounded-xl p-5 shadow-sm border border-[#DDDBD7]">
-              <h3 className="font-bold text-sm text-[#1A1A1A] mb-4">New Recurring Schedule</h3>
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-[var(--border)]">
+              <h3 className="font-bold text-sm text-[var(--foreground)] mb-4">New Recurring Schedule</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Client</label>
+                  <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Client</label>
                   <select
                     value={recurringForm.clientId}
                     onChange={e => {
@@ -370,13 +370,13 @@ function InvoicesPanel() {
                 <Field label="Client Email" value={recurringForm.clientEmail} onChange={setRecurClientEmail} placeholder="client@example.com" type="email" autoComplete="email" enterKeyHint="next" />
                 <Field label="Amount ($)" required value={recurringForm.amount} onChange={setRecurAmount} placeholder="e.g. 500" type="number" enterKeyHint="next" />
                 <div>
-                  <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Frequency *</label>
+                  <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Frequency *</label>
                   <select value={recurringForm.frequency} onChange={e => setRecurFrequency(e.target.value)} className="form-input-light">
                     {Object.entries(FREQUENCY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">First Due Date *</label>
+                  <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">First Due Date *</label>
                   <input type="date" value={recurringForm.nextDueAt} onChange={e => setRecurNextDueAt(e.target.value)} className="form-input-light" />
                 </div>
                 <div className="sm:col-span-2">
@@ -413,48 +413,48 @@ function InvoicesPanel() {
           )}
 
           {/* Schedules list */}
-          <div className="bg-white rounded-xl shadow-sm border border-[#DDDBD7] overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#DDDBD7]">
-              <h3 className="font-bold text-sm text-[#1A1A1A]">All Schedules</h3>
+          <div className="bg-white rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
+            <div className="px-5 py-4 border-b border-[var(--border)]">
+              <h3 className="font-bold text-sm text-[var(--foreground)]">All Schedules</h3>
             </div>
             {schedulesLoading ? (
               <div className="p-8 text-center"><Loader2 className="w-6 h-6 text-[#D4922A] animate-spin mx-auto" /></div>
             ) : !schedules || schedules.length === 0 ? (
               <div className="p-10 text-center">
-                <RefreshCw className="w-10 h-10 text-[#6B6B6B] mx-auto mb-3" />
-                <p className="text-sm font-semibold text-[#3D3D3D]">No recurring schedules yet</p>
-                <p className="text-xs text-[#3D3D3D] mt-1">Click "New Schedule" to set up automatic billing</p>
+                <RefreshCw className="w-10 h-10 text-[var(--muted-foreground)] mx-auto mb-3" />
+                <p className="text-sm font-semibold text-[var(--foreground-soft)]">No recurring schedules yet</p>
+                <p className="text-xs text-[var(--foreground-soft)] mt-1">Click "New Schedule" to set up automatic billing</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-50">
                 {schedules.map((s) => {
                   const color = FREQUENCY_COLORS[s.frequency] || "#6366F1";
                   return (
-                    <div key={s.id} className={`flex items-center gap-4 px-5 py-4 hover:bg-[#F7F6F3] transition-colors ${!s.active ? "opacity-50" : ""}`}>
+                    <div key={s.id} className={`flex items-center gap-4 px-5 py-4 hover:bg-[var(--background)] transition-colors ${!s.active ? "opacity-50" : ""}`}>
                       <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + "15" }}>
                         <RefreshCw className="w-4 h-4" style={{ color }} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-semibold text-[#1A1A1A] truncate">{s.clientName}</p>
+                          <p className="text-sm font-semibold text-[var(--foreground)] truncate">{s.clientName}</p>
                           <span className="px-2 py-0.5 text-xs rounded-full font-semibold" style={{ background: color + "15", color }}>
                             {FREQUENCY_LABELS[s.frequency]}
                           </span>
-                          {!s.active && <span className="px-2 py-0.5 text-xs rounded-full bg-[#EEECEA] text-[#3D3D3D] font-semibold">Paused</span>}
+                          {!s.active && <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--muted)] text-[var(--foreground-soft)] font-semibold">Paused</span>}
                         </div>
-                        <p className="text-xs text-[#3D3D3D] mt-0.5">
+                        <p className="text-xs text-[var(--foreground-soft)] mt-0.5">
                           {s.description || "No description"} · Next: {new Date(s.nextDueAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         </p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(s.amount)}</p>
-                        <p className="text-xs text-[#3D3D3D]">{s.currency}</p>
+                        <p className="text-sm font-bold text-[var(--foreground)]">{formatCurrency(s.amount)}</p>
+                        <p className="text-xs text-[var(--foreground-soft)]">{s.currency}</p>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => toggleSchedule.mutate({ id: s.id, active: !s.active })}
                           disabled={toggleSchedule.isPending}
-                          className="p-2 rounded-lg hover:bg-[#EEECEA] text-[#3D3D3D] hover:text-[#6B6B6B] transition-colors"
+                          className="p-2 rounded-lg hover:bg-[var(--muted)] text-[var(--foreground-soft)] hover:text-[var(--muted-foreground)] transition-colors"
                           title={s.active ? "Pause schedule" : "Resume schedule"}
                         >
                           {s.active ? <ToggleRight className="w-5 h-5 text-green-500" /> : <ToggleLeft className="w-5 h-5" />}
@@ -462,7 +462,7 @@ function InvoicesPanel() {
                         <button
                           onClick={() => deleteScheduleM.mutate({ id: s.id })}
                           disabled={deleteScheduleM.isPending}
-                          className="p-2 rounded-lg hover:bg-red-500/100/10 text-[#6B6B6B] hover:text-red-400 transition-colors"
+                          className="p-2 rounded-lg hover:bg-red-500/100/10 text-[var(--muted-foreground)] hover:text-red-400 transition-colors"
                           aria-label="Delete schedule"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -490,10 +490,10 @@ function InvoicesPanel() {
       {invTab === "invoices" && (
       <>
       {/* Filter tabs */}
-      <div className="flex gap-1 p-1 bg-[#EEECEA] rounded-xl overflow-x-auto">
+      <div className="flex gap-1 p-1 bg-[var(--muted)] rounded-xl overflow-x-auto">
         {(["all", "unpaid", "paid", "overdue"] as const).map(f => (
           <button key={f} onClick={() => setInvFilter(f)} className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
-            invFilter === f ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[#6B6B6B] hover:text-[#2A2A2A]"
+            invFilter === f ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[#2A2A2A]"
           }`}>{f}</button>
         ))}
       </div>
@@ -508,14 +508,14 @@ function InvoicesPanel() {
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-xl p-3 sm:p-4`}>
             <p className="text-[11px] sm:text-xs font-semibold mb-1" style={{ color: s.color }}>{s.label}</p>
-            <p className="text-lg sm:text-xl font-extrabold text-[#1A1A1A] leading-tight">{s.value}</p>
+            <p className="text-lg sm:text-xl font-extrabold text-[var(--foreground)] leading-tight">{s.value}</p>
           </div>
         ))}
       </div>
 
       {/* Bulk action toolbar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-2 p-3 bg-[#F7F6F3] text-white rounded-xl">
+        <div className="flex items-center gap-2 p-3 bg-[var(--background)] text-white rounded-xl">
           <span className="text-xs font-semibold flex-1">{selectedIds.size} selected</span>
           <button
             onClick={() => {
@@ -548,13 +548,13 @@ function InvoicesPanel() {
             className="text-xs bg-red-500/100 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
             disabled={bulkPending}
           >Delete</button>
-          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-[#3D3D3D] hover:text-[#1A1A1A] px-2 py-1.5 transition-colors">✕ Clear</button>
+          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-[var(--foreground-soft)] hover:text-[var(--foreground)] px-2 py-1.5 transition-colors">✕ Clear</button>
         </div>
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-[#DDDBD7] overflow-hidden">
-        <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-[#F7F6F3] text-xs font-semibold text-[#6B6B6B] uppercase tracking-wide">
+      <div className="bg-white rounded-xl border border-[var(--border)] overflow-hidden">
+        <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-[var(--background)] text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide">
           <div className="col-span-2 flex items-center gap-2">
             <input type="checkbox" className="rounded w-3.5 h-3.5 accent-[#D4922A] cursor-pointer" checked={filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length} onChange={toggleSelectAll} title="Select all" />
             <span>Client / Service</span>
@@ -564,36 +564,36 @@ function InvoicesPanel() {
           <span>Status</span>
         </div>
         {isLoading ? (
-          <div className="space-y-px">{[...Array(3)].map((_, i) => <div key={i} className="px-5 py-4 border-t border-[#EEECEA]"><Skeleton className="h-10" /></div>)}</div>
+          <div className="space-y-px">{[...Array(3)].map((_, i) => <div key={i} className="px-5 py-4 border-t border-[var(--muted)]"><Skeleton className="h-10" /></div>)}</div>
         ) : !invoiceList || invoiceList.length === 0 ? (
-          <div className="text-center py-16 text-[#6B6B6B]">
+          <div className="text-center py-16 text-[var(--muted-foreground)]">
             <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="text-sm font-medium text-[#6B6B6B]">No invoices yet</p>
+            <p className="text-sm font-medium text-[var(--muted-foreground)]">No invoices yet</p>
             <p className="text-xs mt-1">Create your first invoice to start tracking payments.</p>
           </div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="text-center py-12 text-[#6B6B6B]">
+          <div className="text-center py-12 text-[var(--muted-foreground)]">
             <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm font-medium text-[#6B6B6B]">No {invFilter !== "all" ? invFilter : ""} invoices</p>
+            <p className="text-sm font-medium text-[var(--muted-foreground)]">No {invFilter !== "all" ? invFilter : ""} invoices</p>
           </div>
         ) : filteredInvoices.map(inv => (
-          <div key={inv.id} className={`flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-[#EEECEA] hover:bg-[#F7F6F3] transition-colors ${selectedIds.has(inv.id) ? "bg-[#D4922A]/5" : ""}`}>
+          <div key={inv.id} className={`flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-[var(--muted)] hover:bg-[var(--background)] transition-colors ${selectedIds.has(inv.id) ? "bg-[#D4922A]/5" : ""}`}>
             <div className="sm:col-span-2 flex items-start gap-2">
               <input type="checkbox" className="mt-1 rounded w-3.5 h-3.5 accent-[#D4922A] cursor-pointer flex-shrink-0" checked={selectedIds.has(inv.id)} onChange={() => toggleSelect(inv.id)} />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-[#1A1A1A] truncate">{inv.clientName}</p>
-                <p className="text-xs text-[#6B6B6B] truncate">{inv.invoiceNumber} · {inv.service || "General Service"}</p>
+                <p className="text-sm font-semibold text-[var(--foreground)] truncate">{inv.clientName}</p>
+                <p className="text-xs text-[var(--muted-foreground)] truncate">{inv.invoiceNumber} · {inv.service || "General Service"}</p>
                 {/* Mobile-only inline amount + due date */}
                 <div className="flex items-center gap-3 mt-1 sm:hidden">
-                  <span className="text-xs font-bold text-[#1A1A1A]">{formatCurrency(inv.amount)}</span>
-                  {inv.dueDate && <span className="text-xs text-[#6B6B6B]">Due {inv.dueDate}</span>}
+                  <span className="text-xs font-bold text-[var(--foreground)]">{formatCurrency(inv.amount)}</span>
+                  {inv.dueDate && <span className="text-xs text-[var(--muted-foreground)]">Due {inv.dueDate}</span>}
                 </div>
               </div>
             </div>
-            <p className="hidden sm:block text-sm font-bold text-[#1A1A1A]">{formatCurrency(inv.amount)}</p>
-            <p className="hidden sm:block text-sm text-[#6B6B6B]">{inv.dueDate || "—"}</p>
+            <p className="hidden sm:block text-sm font-bold text-[var(--foreground)]">{formatCurrency(inv.amount)}</p>
+            <p className="hidden sm:block text-sm text-[var(--muted-foreground)]">{inv.dueDate || "—"}</p>
             <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-              <Badge className={`text-xs border-0 flex-shrink-0 ${statusColor[inv.status] || "bg-[#EEECEA] text-[#6B6B6B]"}`}>{inv.status}</Badge>
+              <Badge className={`text-xs border-0 flex-shrink-0 ${statusColor[inv.status] || "bg-[var(--muted)] text-[var(--muted-foreground)]"}`}>{inv.status}</Badge>
               {inv.status !== "paid" && (
                 <button onClick={() => markPaid.mutate({ id: inv.id })} className="text-xs text-[#D4922A] hover:underline font-medium" disabled={markPaid.isPending}>
                   Mark Paid
@@ -629,19 +629,19 @@ function InvoicesPanel() {
                   </button>
                 </>
               )}
-              <button onClick={() => setPreviewInvoice(inv)} className="p-2 rounded hover:bg-[#EEECEA] text-[#6B6B6B] hover:text-[#6B6B6B] transition-colors" aria-label="Preview invoice" title="Preview invoice">
+              <button onClick={() => setPreviewInvoice(inv)} className="p-2 rounded hover:bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)] transition-colors" aria-label="Preview invoice" title="Preview invoice">
                 <Eye className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => openEditInvoice(inv)} className="p-2 rounded hover:bg-indigo-50 text-[#3D3D3D] hover:text-indigo-600 transition-colors" aria-label="Edit invoice" title="Edit invoice">
+              <button onClick={() => openEditInvoice(inv)} className="p-2 rounded hover:bg-indigo-50 text-[var(--foreground-soft)] hover:text-indigo-600 transition-colors" aria-label="Edit invoice" title="Edit invoice">
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-2 rounded hover:bg-blue-50 text-[#3D3D3D] hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
+              <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-2 rounded hover:bg-blue-50 text-[var(--foreground-soft)] hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
               {(inv.status === "sent" || inv.status === "overdue" || inv.status === "draft") && (
                 <button
                   onClick={() => generatePayLink.mutate({ id: inv.id })}
-                  className="p-2 rounded hover:bg-green-500/10 text-[#3D3D3D] hover:text-green-500 transition-colors"
+                  className="p-2 rounded hover:bg-green-500/10 text-[var(--foreground-soft)] hover:text-green-500 transition-colors"
                   aria-label="Generate direct pay link"
                   title="Generate a direct pay link — client pays without logging in"
                   disabled={generatePayLink.isPending}
@@ -649,10 +649,10 @@ function InvoicesPanel() {
                   <Link className="w-3.5 h-3.5" />
                 </button>
               )}
-              <button onClick={() => duplicateInvoice.mutate({ id: inv.id })} className="p-2 rounded hover:bg-[#D4922A]/10 text-[#3D3D3D] hover:text-[#D4922A] transition-colors" aria-label="Duplicate invoice" title="Duplicate invoice" disabled={duplicateInvoice.isPending}>
+              <button onClick={() => duplicateInvoice.mutate({ id: inv.id })} className="p-2 rounded hover:bg-[#D4922A]/10 text-[var(--foreground-soft)] hover:text-[#D4922A] transition-colors" aria-label="Duplicate invoice" title="Duplicate invoice" disabled={duplicateInvoice.isPending}>
                 <Copy className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => setInvConfirm({ open: true, title: "Delete Invoice?", description: "Delete this invoice? This cannot be undone.", onConfirm: () => deleteInvoice.mutate({ id: inv.id }) })} className="p-2 rounded hover:bg-red-500/100/10 text-[#3D3D3D] hover:text-red-500 transition-colors" aria-label="Delete invoice">
+              <button onClick={() => setInvConfirm({ open: true, title: "Delete Invoice?", description: "Delete this invoice? This cannot be undone.", onConfirm: () => deleteInvoice.mutate({ id: inv.id }) })} className="p-2 rounded hover:bg-red-500/100/10 text-[var(--foreground-soft)] hover:text-red-500 transition-colors" aria-label="Delete invoice">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -664,7 +664,7 @@ function InvoicesPanel() {
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Create Invoice">
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Select Client</label>
+            <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Select Client</label>
             <select onChange={e => { const pid = parseInt(e.target.value, 10); const c = !isNaN(pid) ? clientList?.find(c => c.id === pid) : undefined; if (c) setForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "" })); }} className="form-input-light">
               <option value="">— Or enter manually below —</option>
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -674,7 +674,7 @@ function InvoicesPanel() {
           <Field label="Client Email" value={form.clientEmail} onChange={setInvClientEmail} placeholder="jane@example.com" type="email" autoComplete="email" enterKeyHint="next" />
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-[#6B6B6B]">Service Description</label>
+              <label className="text-xs font-semibold text-[var(--muted-foreground)]">Service Description</label>
               {form.service && (
                 <Button size="sm" variant="outline" className="h-5 text-[10px] px-2 border-amber-500/30 text-amber-400 hover:bg-amber-500/10" onClick={() => categorizeInvoice.mutate({ service: form.service, notes: form.notes, amount: parseFloat(form.amount) || 0 })} disabled={categorizeInvoice.isPending}>
                   {categorizeInvoice.isPending ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <><Sparkles className="w-2.5 h-2.5 mr-1" />AI Categorize</>}
@@ -695,12 +695,12 @@ function InvoicesPanel() {
             >
               <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${useLineItems ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
             </button>
-            <span className="text-xs font-semibold text-[#6B6B6B]">Itemized line items</span>
+            <span className="text-xs font-semibold text-[var(--muted-foreground)]">Itemized line items</span>
           </div>
 
           {useLineItems ? (
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-[#6B6B6B]">Line Items</label>
+              <label className="block text-xs font-semibold text-[var(--muted-foreground)]">Line Items</label>
               {lineItems.map((item, idx) => (
                 <LineItemRow
                   key={idx}
@@ -718,7 +718,7 @@ function InvoicesPanel() {
                 className="text-xs text-[#D4922A] hover:underline font-semibold"
               >+ Add line item</button>
               {lineItems.length > 0 && (
-                <div className="text-right text-sm font-bold text-[#1A1A1A] pt-1">
+                <div className="text-right text-sm font-bold text-[var(--foreground)] pt-1">
                   Total: {formatCurrency(lineItemsTotal)}
                 </div>
               )}
@@ -729,7 +729,7 @@ function InvoicesPanel() {
           <Field label="Due Date" value={form.dueDate} onChange={setInvDueDate} type="date" autoComplete="off" />
           <Field label="Notes" value={form.notes} onChange={setInvNotes} placeholder="Payment terms, bank details..." textarea enterKeyHint="done" />
           <div>
-            <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Send as</label>
+            <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Send as</label>
             <select value={form.status} onChange={e => setInvStatus(e.target.value)} className="form-input-light">
               <option value="draft">Save as Draft</option>
               <option value="sent">Mark as Sent</option>
@@ -748,7 +748,7 @@ function InvoicesPanel() {
       <Modal open={!!editInvoice} onClose={() => setEditInvoice(null)} title={`Edit Invoice ${editInvoice?.invoiceNumber || ""}`}>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Select Client</label>
+            <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Select Client</label>
             <select onChange={e => { const pid = parseInt(e.target.value, 10); const c = !isNaN(pid) ? clientList?.find(c => c.id === pid) : undefined; if (c) setEditForm(p => ({ ...p, clientName: c.name, clientEmail: c.email || "" })); }} className="form-input-light">
               <option value="">— Or enter manually below —</option>
               {clientList?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -769,11 +769,11 @@ function InvoicesPanel() {
             >
               <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${editUseLineItems ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
             </button>
-            <span className="text-xs font-semibold text-[#6B6B6B]">Itemized line items</span>
+            <span className="text-xs font-semibold text-[var(--muted-foreground)]">Itemized line items</span>
           </div>
           {editUseLineItems ? (
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-[#6B6B6B]">Line Items</label>
+              <label className="block text-xs font-semibold text-[var(--muted-foreground)]">Line Items</label>
               {editLineItems.map((item, idx) => (
                 <LineItemRow
                   key={idx}
@@ -787,7 +787,7 @@ function InvoicesPanel() {
               ))}
               <button type="button" onClick={() => setEditLineItems(p => [...p, { description: "", qty: 1, unitPrice: 0 }])} className="text-xs text-[#D4922A] hover:underline font-semibold">+ Add line item</button>
               {editLineItems.length > 0 && (
-                <div className="text-right text-sm font-bold text-[#1A1A1A] pt-1">Total: {formatCurrency(editLineItemsTotal)}</div>
+                <div className="text-right text-sm font-bold text-[var(--foreground)] pt-1">Total: {formatCurrency(editLineItemsTotal)}</div>
               )}
             </div>
           ) : (
@@ -796,7 +796,7 @@ function InvoicesPanel() {
           <Field label="Due Date" value={editForm.dueDate} onChange={setEditDueDate} type="date" />
           <Field label="Notes" value={editForm.notes} onChange={setEditNotes} placeholder="Payment terms, bank details..." textarea />
           <div>
-            <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Status</label>
+            <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Status</label>
             <select value={editForm.status} onChange={e => setEditStatus(e.target.value)} className="form-input-light">
               <option value="draft">Draft</option>
               <option value="sent">Sent</option>
@@ -830,32 +830,32 @@ function InvoicesPanel() {
             {/* Header: INVOICE label + meta */}
             <div className="flex items-start justify-between mb-5">
               <div>
-                <p className="text-[11px] font-bold tracking-widest text-[#3D3D3D] uppercase mb-1">Invoice</p>
+                <p className="text-[11px] font-bold tracking-widest text-[var(--foreground-soft)] uppercase mb-1">Invoice</p>
                 <p className="text-3xl font-extrabold text-[#D4922A] tracking-tight">
                   {previewInvoice.invoiceNumber || `#${previewInvoice.id}`}
                 </p>
               </div>
               <div className="text-right space-y-1">
                 <div className="flex items-center justify-end gap-2">
-                  <span className="text-[11px] text-[#3D3D3D] uppercase tracking-wide">Status</span>
+                  <span className="text-[11px] text-[var(--foreground-soft)] uppercase tracking-wide">Status</span>
                   <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${
                     previewInvoice.status === "paid" ? "bg-green-500/15 text-green-400" :
                     previewInvoice.status === "overdue" ? "bg-red-500/15 text-red-400" :
                     "bg-amber-500/15 text-amber-400"
                   }`}>{previewInvoice.status}</span>
                 </div>
-                <p className="text-xs text-[#3D3D3D]">Issued {formatDate(previewInvoice.createdAt)}</p>
+                <p className="text-xs text-[var(--foreground-soft)]">Issued {formatDate(previewInvoice.createdAt)}</p>
                 {previewInvoice.dueDate && (
-                  <p className="text-xs text-[#3D3D3D]">Due {formatDate(previewInvoice.dueDate)}</p>
+                  <p className="text-xs text-[var(--foreground-soft)]">Due {formatDate(previewInvoice.dueDate)}</p>
                 )}
               </div>
             </div>
 
             {/* Bill To */}
             <div className="mb-4">
-              <p className="text-[10px] font-bold tracking-widest text-[#3D3D3D] uppercase mb-1">Bill To</p>
-              <p className="text-sm font-semibold text-[#1A1A1A]">{previewInvoice.clientName}</p>
-              {previewInvoice.clientEmail && <p className="text-xs text-[#3D3D3D]">{previewInvoice.clientEmail}</p>}
+              <p className="text-[10px] font-bold tracking-widest text-[var(--foreground-soft)] uppercase mb-1">Bill To</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">{previewInvoice.clientName}</p>
+              {previewInvoice.clientEmail && <p className="text-xs text-[var(--foreground-soft)]">{previewInvoice.clientEmail}</p>}
             </div>
 
             {/* Line items table */}
@@ -865,30 +865,30 @@ function InvoicesPanel() {
               const hasItems = parsedItems.length > 0;
               return (
                 <div className="overflow-x-auto mb-4">
-                <div className="border border-[#DDDBD7] rounded-lg overflow-hidden min-w-[280px]">
-                  <div className="grid grid-cols-[1fr_60px_90px] bg-[#F7F6F3] border-b border-[#DDDBD7]">
-                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-[#3D3D3D] uppercase">Description</div>
-                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-[#3D3D3D] uppercase text-center">Qty</div>
-                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-[#3D3D3D] uppercase text-right">Amount</div>
+                <div className="border border-[var(--border)] rounded-lg overflow-hidden min-w-[280px]">
+                  <div className="grid grid-cols-[1fr_60px_90px] bg-[var(--background)] border-b border-[var(--border)]">
+                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-[var(--foreground-soft)] uppercase">Description</div>
+                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-[var(--foreground-soft)] uppercase text-center">Qty</div>
+                    <div className="px-4 py-2 text-[10px] font-bold tracking-widest text-[var(--foreground-soft)] uppercase text-right">Amount</div>
                   </div>
                   {hasItems ? parsedItems.map((item, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_60px_90px] bg-white border-b border-[#DDDBD7] last:border-0">
-                      <div className="px-4 py-2.5"><p className="text-sm font-medium text-[#1A1A1A]">{item.description}</p></div>
-                      <div className="px-4 py-2.5 text-sm text-[#6B6B6B] text-center">{item.qty}</div>
-                      <div className="px-4 py-2.5 text-sm font-semibold text-[#1A1A1A] text-right">{formatCurrency(item.qty * item.unitPrice)}</div>
+                    <div key={idx} className="grid grid-cols-[1fr_60px_90px] bg-white border-b border-[var(--border)] last:border-0">
+                      <div className="px-4 py-2.5"><p className="text-sm font-medium text-[var(--foreground)]">{item.description}</p></div>
+                      <div className="px-4 py-2.5 text-sm text-[var(--muted-foreground)] text-center">{item.qty}</div>
+                      <div className="px-4 py-2.5 text-sm font-semibold text-[var(--foreground)] text-right">{formatCurrency(item.qty * item.unitPrice)}</div>
                     </div>
                   )) : (
-                    <div className="grid grid-cols-[1fr_60px_90px] bg-[#F7F6F3]">
+                    <div className="grid grid-cols-[1fr_60px_90px] bg-[var(--background)]">
                       <div className="px-4 py-3">
-                        <p className="text-sm font-medium text-[#1A1A1A]">{previewInvoice.service || "Professional Services"}</p>
-                        <p className="text-xs text-[#3D3D3D] mt-0.5">{previewInvoice.clientName}</p>
+                        <p className="text-sm font-medium text-[var(--foreground)]">{previewInvoice.service || "Professional Services"}</p>
+                        <p className="text-xs text-[var(--foreground-soft)] mt-0.5">{previewInvoice.clientName}</p>
                       </div>
-                      <div className="px-4 py-3 text-sm text-[#6B6B6B] text-center">1</div>
-                      <div className="px-4 py-3 text-sm font-bold text-[#1A1A1A] text-right">{formatCurrency(previewInvoice.amount)}</div>
+                      <div className="px-4 py-3 text-sm text-[var(--muted-foreground)] text-center">1</div>
+                      <div className="px-4 py-3 text-sm font-bold text-[var(--foreground)] text-right">{formatCurrency(previewInvoice.amount)}</div>
                     </div>
                   )}
-                  <div className="grid grid-cols-[1fr_auto] bg-amber-500/10 border-t border-[#DDDBD7]">
-                    <div className="px-4 py-3 text-xs font-bold text-[#3D3D3D] uppercase tracking-wide">Total Due</div>
+                  <div className="grid grid-cols-[1fr_auto] bg-amber-500/10 border-t border-[var(--border)]">
+                    <div className="px-4 py-3 text-xs font-bold text-[var(--foreground-soft)] uppercase tracking-wide">Total Due</div>
                     <div className="px-4 py-3 text-xl font-extrabold text-[#D4922A] text-right">{formatCurrency(previewInvoice.amount)}</div>
                   </div>
                 </div>
@@ -898,9 +898,9 @@ function InvoicesPanel() {
 
             {/* Notes */}
             {previewInvoice.notes && (
-              <div className="bg-[#F7F6F3] border border-[#DDDBD7] rounded-lg p-3 mb-4">
-                <p className="text-[10px] font-bold tracking-widest text-[#3D3D3D] uppercase mb-1">Notes</p>
-                <p className="text-sm text-[#6B6B6B] leading-relaxed">{previewInvoice.notes}</p>
+              <div className="bg-[var(--background)] border border-[var(--border)] rounded-lg p-3 mb-4">
+                <p className="text-[10px] font-bold tracking-widest text-[var(--foreground-soft)] uppercase mb-1">Notes</p>
+                <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">{previewInvoice.notes}</p>
               </div>
             )}
 
@@ -942,33 +942,33 @@ function InvoicesPanel() {
     onClose={() => setShowAccountingExport(false)}
     title="Accounting export"  >
     <div className="space-y-4">
-      <p className="text-sm text-[#6B6B6B]">
+      <p className="text-sm text-[var(--muted-foreground)]">
         Date-ranged exports in the formats bookkeepers use: QuickBooks Online invoice import columns, a payments-received ledger, and a monthly accrual vs. cash summary for tax prep. Leave dates blank to include everything.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block text-xs font-semibold text-[#6B6B6B]">From
-          <input type="date" value={accountingFrom} onChange={(e) => setAccountingFrom(e.target.value)} className="mt-1 w-full rounded-lg border border-[#DDDBD7] px-3 py-2 text-sm text-[#1A1A1A] bg-white" />
+        <label className="block text-xs font-semibold text-[var(--muted-foreground)]">From
+          <input type="date" value={accountingFrom} onChange={(e) => setAccountingFrom(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] bg-white" />
         </label>
-        <label className="block text-xs font-semibold text-[#6B6B6B]">To
-          <input type="date" value={accountingTo} onChange={(e) => setAccountingTo(e.target.value)} className="mt-1 w-full rounded-lg border border-[#DDDBD7] px-3 py-2 text-sm text-[#1A1A1A] bg-white" />
+        <label className="block text-xs font-semibold text-[var(--muted-foreground)]">To
+          <input type="date" value={accountingTo} onChange={(e) => setAccountingTo(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] bg-white" />
         </label>
       </div>
       {accountingExport.data && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" aria-live="polite">
-          <div className="rounded-xl bg-[#F7F6F3] border border-[#DDDBD7] p-3">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6B6B6B]">Invoices</p>
-            <p className="text-lg font-bold text-[#1A1A1A]">{accountingExport.data.summary.invoiceCount}</p>
+          <div className="rounded-xl bg-[var(--background)] border border-[var(--border)] p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Invoices</p>
+            <p className="text-lg font-bold text-[var(--foreground)]">{accountingExport.data.summary.invoiceCount}</p>
           </div>
-          <div className="rounded-xl bg-[#F7F6F3] border border-[#DDDBD7] p-3">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6B6B6B]">Invoiced</p>
-            <p className="text-lg font-bold text-[#1A1A1A]">{formatCurrency(accountingExport.data.summary.invoicedTotal)}</p>
+          <div className="rounded-xl bg-[var(--background)] border border-[var(--border)] p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Invoiced</p>
+            <p className="text-lg font-bold text-[var(--foreground)]">{formatCurrency(accountingExport.data.summary.invoicedTotal)}</p>
           </div>
-          <div className="rounded-xl bg-[#F7F6F3] border border-[#DDDBD7] p-3">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6B6B6B]">Paid</p>
+          <div className="rounded-xl bg-[var(--background)] border border-[var(--border)] p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Paid</p>
             <p className="text-lg font-bold text-emerald-600">{formatCurrency(accountingExport.data.summary.paidTotal)}</p>
           </div>
-          <div className="rounded-xl bg-[#F7F6F3] border border-[#DDDBD7] p-3">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6B6B6B]">Outstanding</p>
+          <div className="rounded-xl bg-[var(--background)] border border-[var(--border)] p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Outstanding</p>
             <p className="text-lg font-bold text-[#D4922A]">{formatCurrency(accountingExport.data.summary.outstandingTotal)}</p>
           </div>
         </div>
@@ -977,8 +977,8 @@ function InvoicesPanel() {
         <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90" onClick={() => void downloadAccountingFile("quickBooksInvoicesCsv", "QuickBooks invoices CSV")} disabled={accountingExport.isFetching}>
           {accountingExport.isFetching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Download invoices (QuickBooks format)"}
         </Button>
-        <Button size="sm" variant="outline" className="border-[#DDDBD7] text-[#6B6B6B]" onClick={() => void downloadAccountingFile("paymentsCsv", "Payments ledger")} disabled={accountingExport.isFetching}>Payments ledger</Button>
-        <Button size="sm" variant="outline" className="border-[#DDDBD7] text-[#6B6B6B]" onClick={() => void downloadAccountingFile("monthlySummaryCsv", "Monthly summary")} disabled={accountingExport.isFetching}>Monthly summary</Button>
+        <Button size="sm" variant="outline" className="border-[var(--border)] text-[var(--muted-foreground)]" onClick={() => void downloadAccountingFile("paymentsCsv", "Payments ledger")} disabled={accountingExport.isFetching}>Payments ledger</Button>
+        <Button size="sm" variant="outline" className="border-[var(--border)] text-[var(--muted-foreground)]" onClick={() => void downloadAccountingFile("monthlySummaryCsv", "Monthly summary")} disabled={accountingExport.isFetching}>Monthly summary</Button>
       </div>
     </div>
   </Modal>

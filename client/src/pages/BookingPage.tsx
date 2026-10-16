@@ -272,7 +272,7 @@ export default function BookingPage() {
     return (
       <div className="min-h-screen bg-card fade-in-up">
         {/* Header */}
-        <header className="bg-[#F7F6F3] border-b border-[#DDDBD7] px-4 py-3.5">
+        <header className="bg-[var(--background)] border-b border-[var(--border)] px-4 py-3.5">
           <div className="max-w-xl mx-auto flex items-center gap-3">
             <img
               src={TRUEAXIS_LOGO_URL}
@@ -291,39 +291,39 @@ export default function BookingPage() {
                 <CheckCircle className="w-10 h-10 text-[#D4922A]" />
               </div>
             </div>
-            <h1 className="text-3xl font-extrabold text-[#1A1A1A] mb-2">
+            <h1 className="text-3xl font-extrabold text-[var(--foreground)] mb-2">
               You're Booked!
             </h1>
-            <p className="text-[#3D3D3D] text-sm max-w-sm mx-auto">
-              Your appointment request has been recorded for <strong className="text-[#1A1A1A]">{host.name}</strong>. Keep the details below for your records.
+            <p className="text-[var(--foreground-soft)] text-sm max-w-sm mx-auto">
+              Your appointment request has been recorded for <strong className="text-[var(--foreground)]">{host.name}</strong>. Keep the details below for your records.
             </p>
           </div>
 
           {/* Booking summary card */}
-          <div className="bg-[#F7F6F3] border border-[#DDDBD7] rounded-xl p-5 mb-5">
+          <div className="bg-[var(--background)] border border-[var(--border)] rounded-xl p-5 mb-5">
             <div className="flex items-center gap-2 mb-4">
               <CalendarDays className="w-4 h-4 text-[#D4922A]" />
               <span className="text-xs font-bold text-[#D4922A] uppercase tracking-wider">Booking Summary</span>
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-[#3D3D3D] flex items-center gap-2"><Briefcase className="w-3.5 h-3.5" />Service</span>
-                <span className="text-sm font-semibold text-[#1A1A1A]">{form.service}</span>
+                <span className="text-sm text-[var(--foreground-soft)] flex items-center gap-2"><Briefcase className="w-3.5 h-3.5" />Service</span>
+                <span className="text-sm font-semibold text-[var(--foreground)]">{form.service}</span>
               </div>
-              <div className="h-px bg-[#F7F6F3]" />
+              <div className="h-px bg-[var(--background)]" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-[#3D3D3D] flex items-center gap-2"><Calendar className="w-3.5 h-3.5" />Date</span>
-                <span className="text-sm font-semibold text-[#1A1A1A]">{(() => { const d = new Date(form.preferredDate + 'T12:00:00'); return isNaN(d.getTime()) ? form.preferredDate : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); })()}</span>
+                <span className="text-sm text-[var(--foreground-soft)] flex items-center gap-2"><Calendar className="w-3.5 h-3.5" />Date</span>
+                <span className="text-sm font-semibold text-[var(--foreground)]">{(() => { const d = new Date(form.preferredDate + 'T12:00:00'); return isNaN(d.getTime()) ? form.preferredDate : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); })()}</span>
               </div>
-              <div className="h-px bg-[#F7F6F3]" />
+              <div className="h-px bg-[var(--background)]" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-[#3D3D3D] flex items-center gap-2"><Clock className="w-3.5 h-3.5" />Time</span>
-                <span className="text-sm font-semibold text-[#1A1A1A]">{form.preferredTime}</span>
+                <span className="text-sm text-[var(--foreground-soft)] flex items-center gap-2"><Clock className="w-3.5 h-3.5" />Time</span>
+                <span className="text-sm font-semibold text-[var(--foreground)]">{form.preferredTime}</span>
               </div>
-              <div className="h-px bg-[#F7F6F3]" />
+              <div className="h-px bg-[var(--background)]" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-[#3D3D3D] flex items-center gap-2"><User className="w-3.5 h-3.5" />With</span>
-                <span className="text-sm font-semibold text-[#1A1A1A]">{host.name}</span>
+                <span className="text-sm text-[var(--foreground-soft)] flex items-center gap-2"><User className="w-3.5 h-3.5" />With</span>
+                <span className="text-sm font-semibold text-[var(--foreground)]">{host.name}</span>
               </div>
             </div>
           </div>
@@ -353,12 +353,12 @@ export default function BookingPage() {
           })()}
 
           {/* Calendar add section */}
-          <div className="bg-[#F7F6F3] border border-[#DDDBD7] rounded-xl p-5 mb-5">
+          <div className="bg-[var(--background)] border border-[var(--border)] rounded-xl p-5 mb-5">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-[#D4922A]" />
               <span className="text-xs font-bold text-[#D4922A] uppercase tracking-wider">Add to Your Calendar</span>
             </div>
-            <p className="text-xs text-[#3D3D3D] mb-4">Save this appointment so you never miss it. Includes a 1-hour reminder.</p>
+            <p className="text-xs text-[var(--foreground-soft)] mb-4">Save this appointment so you never miss it. Includes a 1-hour reminder.</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               {/* Download .ics */}
               <button
@@ -366,7 +366,7 @@ export default function BookingPage() {
                   downloadICS(icsContent, `booking-${form.preferredDate}.ics`);
                   toast.success("Calendar file downloaded!");
                 }}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#C8C5BF] bg-[#F7F6F3] hover:bg-[#EEECEA] transition-colors text-sm font-semibold text-[#1A1A1A]"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[var(--border-strong)] bg-[var(--background)] hover:bg-[var(--muted)] transition-colors text-sm font-semibold text-[var(--foreground)]"
               >
                 <Download className="w-4 h-4 text-[#D4922A]" />
                 Download .ics
@@ -377,7 +377,7 @@ export default function BookingPage() {
                 href={googleUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#C8C5BF] bg-[#F7F6F3] hover:bg-[#EEECEA] transition-colors text-sm font-semibold text-[#1A1A1A]"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[var(--border-strong)] bg-[var(--background)] hover:bg-[var(--muted)] transition-colors text-sm font-semibold text-[var(--foreground)]"
               >
                 <ExternalLink className="w-4 h-4 text-[#4285F4]" />
                 Google Calendar
@@ -389,7 +389,7 @@ export default function BookingPage() {
                   downloadICS(icsContent, `booking-${form.preferredDate}.ics`);
                   toast.success("Calendar file downloaded — open it to add to Apple Calendar!");
                 }}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#C8C5BF] bg-[#F7F6F3] hover:bg-[#EEECEA] transition-colors text-sm font-semibold text-[#1A1A1A]"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[var(--border-strong)] bg-[var(--background)] hover:bg-[var(--muted)] transition-colors text-sm font-semibold text-[var(--foreground)]"
               >
                 <CalendarDays className="w-4 h-4 text-[#A2AAAD]" />
                 Apple Calendar
@@ -400,7 +400,7 @@ export default function BookingPage() {
           {/* Recordkeeping note */}
           <div className="flex items-start gap-3 bg-[#D4922A]/8 border border-[#D4922A]/20 rounded-xl p-4 mb-6">
             <Mail className="w-4 h-4 text-[#D4922A] flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-[#3D3D3D]">
+            <p className="text-xs text-[var(--foreground-soft)]">
               Add this appointment to your calendar or save these details for your records.
             </p>
           </div>
@@ -412,7 +412,7 @@ export default function BookingPage() {
                 setStep("details");
                 setForm({ clientName: "", clientEmail: "", clientPhone: "", smsOptIn: false, service: "", message: "", preferredDate: "", preferredTime: "" });
               }}
-              className="text-sm text-[#3D3D3D] hover:text-[#1A1A1A] underline underline-offset-2 transition-colors"
+              className="text-sm text-[var(--foreground-soft)] hover:text-[var(--foreground)] underline underline-offset-2 transition-colors"
             >
               Book another appointment
             </button>
@@ -427,10 +427,10 @@ export default function BookingPage() {
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* Header */}
-      <header className="bg-[#F7F6F3] border-b border-[#DDDBD7] px-4 py-3.5" role="banner">
+      <header className="bg-[var(--background)] border-b border-[var(--border)] px-4 py-3.5" role="banner">
         <div className="max-w-xl mx-auto flex items-center gap-3">
           {whiteLabel
-            ? <span className="text-base font-semibold text-[#1A1A1A]">{host?.businessName || host?.name || `@${username}`}</span>
+            ? <span className="text-base font-semibold text-[var(--foreground)]">{host?.businessName || host?.name || `@${username}`}</span>
             : <>
                 <img
                   src={TRUEAXIS_LOGO_URL}
@@ -440,8 +440,8 @@ export default function BookingPage() {
                 <div className="w-px h-5 bg-white/15 flex-shrink-0" aria-hidden="true" />
               </>}
           <div>
-            <p className="text-xs text-[#6B6B6B]">Booking with</p>
-            <h1 className="text-sm font-bold text-[#1A1A1A]">
+            <p className="text-xs text-[var(--muted-foreground)]">Booking with</p>
+            <h1 className="text-sm font-bold text-[var(--foreground)]">
               {host.name}
             </h1>
           </div>
@@ -454,7 +454,7 @@ export default function BookingPage() {
       </header>
 
       {/* Progress */}
-      <div className="bg-[#F7F6F3] border-b border-[#DDDBD7]" role="navigation" aria-label="Booking progress">
+      <div className="bg-[var(--background)] border-b border-[var(--border)]" role="navigation" aria-label="Booking progress">
         <div className="max-w-xl mx-auto px-4 py-3">
           <div className="flex items-center gap-2" role="list">
             {[
@@ -472,21 +472,21 @@ export default function BookingPage() {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                        isDone ? "bg-[#D4922A] text-[#1A1A1A]" :
+                        isDone ? "bg-[#D4922A] text-[var(--foreground)]" :
                         isCurrent ? "bg-[#D4922A]/20 text-[#D4922A] border-2 border-[#D4922A]" :
-                        "bg-[#EEECEA] text-gray-600"
+                        "bg-[var(--muted)] text-gray-600"
                       }`}
                       aria-current={isCurrent ? "step" : undefined}
                     >
                       {isDone ? <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" /> : i + 1}
                     </div>
                     <span className={`text-xs font-medium hidden sm:block ${
-                      isCurrent ? "text-[#D4922A]" : isDone ? "text-[#6B6B6B]" : "text-gray-500"
+                      isCurrent ? "text-[#D4922A]" : isDone ? "text-[var(--muted-foreground)]" : "text-gray-500"
                     }`}>
                       {s.label}
                     </span>
                   </div>
-                  {i < 2 && <div className="flex-1 h-px bg-[#EEECEA] mx-1" aria-hidden="true" />}
+                  {i < 2 && <div className="flex-1 h-px bg-[var(--muted)] mx-1" aria-hidden="true" />}
                 </div>
               );
             })}
@@ -500,10 +500,10 @@ export default function BookingPage() {
         {/* Step 1: Details */}
         {step === "details" && (
           <section aria-label="Your contact details">
-            <h2 className="text-xl font-bold text-[#1A1A1A] mb-1">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-1">
               Tell us about yourself
             </h2>
-            <p className="text-sm text-[#6B6B6B] mb-6">We'll share this with {host.name} to prepare for your session.</p>
+            <p className="text-sm text-[var(--muted-foreground)] mb-6">We'll share this with {host.name} to prepare for your session.</p>
 
             <div className="space-y-4">
               <div>
@@ -511,7 +511,7 @@ export default function BookingPage() {
                   Full Name <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" aria-hidden="true" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" aria-hidden="true" />
                   <input
                     id="client-name"
                     type="text"
@@ -531,7 +531,7 @@ export default function BookingPage() {
                   Email Address <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" aria-hidden="true" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" aria-hidden="true" />
                   <input
                     id="client-email"
                     type="email"
@@ -548,10 +548,10 @@ export default function BookingPage() {
 
               <div>
                 <label htmlFor="client-phone" className="form-label">
-                  Phone Number <span className="text-[#6B6B6B]">(optional)</span>
+                  Phone Number <span className="text-[var(--muted-foreground)]">(optional)</span>
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" aria-hidden="true" />
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" aria-hidden="true" />
                   <input
                     id="client-phone"
                     type="tel"
@@ -581,7 +581,7 @@ export default function BookingPage() {
                   Service Needed <span aria-hidden="true" className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" aria-hidden="true" />
+                  <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" aria-hidden="true" />
                   <select
                     id="service-select"
                     value={form.service}
@@ -605,10 +605,10 @@ export default function BookingPage() {
 
               <div>
                 <label htmlFor="client-message" className="form-label">
-                  Message <span className="text-[#6B6B6B] font-normal">(optional)</span>
+                  Message <span className="text-[var(--muted-foreground)] font-normal">(optional)</span>
                 </label>
                 <div className="relative">
-                  <MessageSquare className="absolute left-3.5 top-3 w-4 h-4 text-[#6B6B6B]" aria-hidden="true" />
+                  <MessageSquare className="absolute left-3.5 top-3 w-4 h-4 text-[var(--muted-foreground)]" aria-hidden="true" />
                   <textarea
                     id="client-message"
                     value={form.message}
@@ -624,7 +624,7 @@ export default function BookingPage() {
             </div>
 
             <Button
-              className="w-full gradient-amber text-[#1A1A1A] border-0 mt-6 h-12 text-base"
+              className="w-full gradient-amber text-[var(--foreground)] border-0 mt-6 h-12 text-base"
               onClick={() => {
                 if (!form.clientName.trim()) { toast.error("Please enter your name"); return; }
                 if (!form.clientEmail.includes("@")) { toast.error("Please enter a valid email"); return; }
@@ -643,13 +643,13 @@ export default function BookingPage() {
           <section aria-label="Select date and time">
             <button
               onClick={() => setStep("details")}
-              className="flex items-center gap-1.5 text-sm text-[#6B6B6B] hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
+              className="flex items-center gap-1.5 text-sm text-[var(--muted-foreground)] hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
               aria-label="Back to your details"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
             </button>
 
-            <h2 className="text-xl font-bold text-[#1A1A1A] mb-1">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-1">
               Choose a date & time
             </h2>
             <p className="text-sm text-gray-600 mb-6">Choose from the provider’s published appointment times.</p>
@@ -674,13 +674,13 @@ export default function BookingPage() {
                       aria-label={isFullyOccupied ? `${dayName} ${dateStr} is fully booked` : `${dayName} ${dateStr}`}
                       className={`p-3 rounded-xl border-2 text-center transition-all min-h-[64px] focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 ${
                         isFullyOccupied
-                          ? "cursor-not-allowed border-[#DDDBD7] bg-[#EEECEA] text-[#9A9892] opacity-70"
+                          ? "cursor-not-allowed border-[var(--border)] bg-[var(--muted)] text-[#9A9892] opacity-70"
                           : isSelected
                           ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]"
-                          : "border-[#C8C5BF] bg-[#F7F6F3] hover:border-white/25 text-[#3D3D3D]"
+                          : "border-[var(--border-strong)] bg-[var(--background)] hover:border-white/25 text-[var(--foreground-soft)]"
                       }`}
                     >
-                      <p className="text-xs text-[#6B6B6B]">{dayName}</p>
+                      <p className="text-xs text-[var(--muted-foreground)]">{dayName}</p>
                       <p className="text-lg font-bold">{dayNum}</p>
                     </button>
                   );
@@ -705,10 +705,10 @@ export default function BookingPage() {
                         aria-label={isOccupied ? `${time} is unavailable` : time}
                         className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] focus-visible:outline-[3px] focus-visible:outline-[#D4922A] focus-visible:outline-offset-2 ${
                           isOccupied
-                            ? "cursor-not-allowed border-[#DDDBD7] bg-[#EEECEA] text-[#9A9892] line-through"
+                            ? "cursor-not-allowed border-[var(--border)] bg-[var(--muted)] text-[#9A9892] line-through"
                             : isSelected
                             ? "border-[#D4922A] bg-[#D4922A]/10 text-[#D4922A]"
-                            : "border-[#C8C5BF] bg-[#F7F6F3] hover:border-white/25 text-[#3D3D3D]"
+                            : "border-[var(--border-strong)] bg-[var(--background)] hover:border-white/25 text-[var(--foreground-soft)]"
                         }`}
                       >
                         {time}
@@ -720,7 +720,7 @@ export default function BookingPage() {
             )}
 
             <Button
-              className="w-full gradient-amber text-[#1A1A1A] border-0 h-12 text-base"
+              className="w-full gradient-amber text-[var(--foreground)] border-0 h-12 text-base"
               onClick={() => {
                 if (!form.preferredDate) { toast.error("Please select a date"); return; }
                 if (!form.preferredTime) { toast.error("Please select a time"); return; }
@@ -739,29 +739,29 @@ export default function BookingPage() {
           <section aria-label="Confirm your booking">
             <button
               onClick={() => setStep("datetime")}
-              className="flex items-center gap-1.5 text-sm text-[#6B6B6B] hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
+              className="flex items-center gap-1.5 text-sm text-[var(--muted-foreground)] hover:text-gray-200 mb-5 min-h-[44px] transition-colors"
               aria-label="Back to date and time selection"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
             </button>
 
-            <h2 className="text-xl font-bold text-[#1A1A1A] mb-1">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-1">
               Confirm your booking
             </h2>
-            <p className="text-sm text-[#6B6B6B] mb-4">Please review the details below before submitting.</p>
+            <p className="text-sm text-[var(--muted-foreground)] mb-4">Please review the details below before submitting.</p>
 
             {/* Estimate photo upload */}
-            <div className="mb-5 p-4 bg-[#F7F6F3] rounded-xl border border-[#DDDBD7]">
-              <p className="text-sm font-semibold text-[#1A1A1A] mb-1 flex items-center gap-1.5">
+            <div className="mb-5 p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+              <p className="text-sm font-semibold text-[var(--foreground)] mb-1 flex items-center gap-1.5">
                 <Camera className="w-4 h-4 text-[#D4922A]" />
                 Estimate Photos
-                <span className="text-xs font-normal text-[#6B6B6B]">(optional)</span>
+                <span className="text-xs font-normal text-[var(--muted-foreground)]">(optional)</span>
               </p>
-              <p className="text-xs text-[#6B6B6B] mb-3">Upload photos of the work area so {host.name} can prepare an accurate estimate.</p>
+              <p className="text-xs text-[var(--muted-foreground)] mb-3">Upload photos of the work area so {host.name} can prepare an accurate estimate.</p>
               {estimatePhotos.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3">
                   {estimatePhotos.map((ep, idx) => (
-                    <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-[#DDDBD7]">
+                    <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-[var(--border)]">
                       <img src={ep.previewUrl} alt={`Estimate photo ${idx + 1}`} className="w-full h-full object-cover" />
                       <button
                         type="button"
@@ -775,9 +775,9 @@ export default function BookingPage() {
                   ))}
                 </div>
               )}
-              <label className="flex items-center gap-2 cursor-pointer border border-dashed border-[#C8C5BF] rounded-xl px-4 py-2.5 hover:border-[#D4922A]/60 hover:bg-[#D4922A]/5 transition-all">
-                <Upload className="w-4 h-4 text-[#6B6B6B]" />
-                <span className="text-sm text-[#6B6B6B]">
+              <label className="flex items-center gap-2 cursor-pointer border border-dashed border-[var(--border-strong)] rounded-xl px-4 py-2.5 hover:border-[#D4922A]/60 hover:bg-[#D4922A]/5 transition-all">
+                <Upload className="w-4 h-4 text-[var(--muted-foreground)]" />
+                <span className="text-sm text-[var(--muted-foreground)]">
                   {estimatePhotos.length > 0 ? `${estimatePhotos.length} photo${estimatePhotos.length > 1 ? "s" : ""} added — add more` : "Click to add photos"}
                 </span>
                 <input
@@ -795,14 +795,14 @@ export default function BookingPage() {
               </label>
             </div>
 
-            <div className="bg-[#F7F6F3] rounded-xl border border-[#DDDBD7] p-5 space-y-4 mb-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-[#DDDBD7]">
+            <div className="bg-[var(--background)] rounded-xl border border-[var(--border)] p-5 space-y-4 mb-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-[var(--border)]">
                 <div className="w-10 h-10 rounded-xl bg-[#D4922A]/15 border border-[#D4922A]/25 flex items-center justify-center flex-shrink-0" aria-hidden="true">
                   <User className="w-5 h-5 text-[#D4922A]" />
                 </div>
                 <div>
-                  <p className="font-bold text-[#1A1A1A]">{host.name}</p>
-                  <p className="text-xs text-[#6B6B6B]">Your service provider</p>
+                  <p className="font-bold text-[var(--foreground)]">{host.name}</p>
+                  <p className="text-xs text-[var(--muted-foreground)]">Your service provider</p>
                 </div>
               </div>
 
@@ -814,31 +814,31 @@ export default function BookingPage() {
                 { icon: Clock, label: "Time", value: form.preferredTime },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#F7F6F3] border border-[#DDDBD7] flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                    <Icon className="w-4 h-4 text-[#6B6B6B]" />
+                  <div className="w-8 h-8 rounded-lg bg-[var(--background)] border border-[var(--border)] flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                    <Icon className="w-4 h-4 text-[var(--muted-foreground)]" />
                   </div>
                   <div>
-                    <p className="text-xs text-[#6B6B6B]">{label}</p>
-                    <p className="text-sm font-semibold text-[#1A1A1A]">{value}</p>
+                    <p className="text-xs text-[var(--muted-foreground)]">{label}</p>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">{value}</p>
                   </div>
                 </div>
               ))}
 
               {form.message && (
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#F7F6F3] border border-[#DDDBD7] flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
-                    <MessageSquare className="w-4 h-4 text-[#6B6B6B]" />
+                  <div className="w-8 h-8 rounded-lg bg-[var(--background)] border border-[var(--border)] flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
+                    <MessageSquare className="w-4 h-4 text-[var(--muted-foreground)]" />
                   </div>
                   <div>
-                    <p className="text-xs text-[#6B6B6B]">Message</p>
-                    <p className="text-sm text-[#3D3D3D]">{form.message}</p>
+                    <p className="text-xs text-[var(--muted-foreground)]">Message</p>
+                    <p className="text-sm text-[var(--foreground-soft)]">{form.message}</p>
                   </div>
                 </div>
               )}
             </div>
 
             <Button
-              className="w-full gradient-amber text-[#1A1A1A] border-0 h-12 text-base gap-2"
+              className="w-full gradient-amber text-[var(--foreground)] border-0 h-12 text-base gap-2"
               onClick={() => void handleSubmit()}
               disabled={submitMutation.isPending || photoUploading}
               aria-label="Submit booking request"

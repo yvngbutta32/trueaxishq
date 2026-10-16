@@ -78,7 +78,7 @@ export default function Register() {
       {/* Left panel — branding & perks */}
       <div
         className="hidden lg:flex flex-col justify-between w-[45%] p-12 relative overflow-hidden"
-        style={{ background: "#EEECEA", borderRight: "1px solid rgba(232,160,32,0.12)" }}
+        style={{ background: "var(--muted)", borderRight: "1px solid rgba(232,160,32,0.12)" }}
       >
         {/* Subtle background grid */}
         <div className="absolute inset-0 retro-grid opacity-30 pointer-events-none" />
@@ -98,12 +98,12 @@ export default function Register() {
           <div>
             <h2
               className="text-4xl font-extrabold leading-tight mb-4"
-              style={{ color: "#1A1A1A" }}
+              style={{ color: "var(--foreground)" }}
             >
               Create your<br />
               <span style={{ color: "#D4922A" }}>TrueAxis HQ workspace.</span>
             </h2>
-            <p className="text-base leading-relaxed" style={{ color: "rgba(26,26,26,0.75)" }}>
+            <p className="text-base leading-relaxed" style={{ color: "color-mix(in oklab, var(--foreground) 75%, transparent)" }}>
               Everything you need to run your freelance business — in one place.
             </p>
           </div>
@@ -117,7 +117,7 @@ export default function Register() {
                 >
                   <Icon className="w-4 h-4" style={{ color: "#D4922A" }} />
                 </div>
-                <span className="text-sm leading-relaxed" style={{ color: "rgba(26,26,26,0.80)" }}>
+                <span className="text-sm leading-relaxed" style={{ color: "color-mix(in oklab, var(--foreground) 80%, transparent)" }}>
                   {text}
                 </span>
               </li>
@@ -127,7 +127,7 @@ export default function Register() {
         </div>
 
         {/* Footer note */}
-        <p className="relative z-10 text-xs" style={{ color: "rgba(26,26,26,0.50)" }}>
+        <p className="relative z-10 text-xs" style={{ color: "color-mix(in oklab, var(--foreground) 50%, transparent)" }}>
           © 2026 TrueAxis HQ. All rights reserved.
         </p>
       </div>
@@ -148,11 +148,11 @@ export default function Register() {
           <div className="mb-8">
             <h1
               className="mb-2"
-              style={{ fontWeight: 700, fontSize: "1.75rem", color: "#1A1A1A" }}
+              style={{ fontWeight: 700, fontSize: "1.75rem", color: "var(--foreground)" }}
             >
               Create your account
             </h1>
-            <p style={{ fontSize: "0.9rem", color: "rgba(26,26,26,0.65)" }}>
+            <p style={{ fontSize: "0.9rem", color: "color-mix(in oklab, var(--foreground) 65%, transparent)" }}>
               An invite code is required to get started
             </p>
           </div>
@@ -163,7 +163,7 @@ export default function Register() {
               <label
                 htmlFor="inviteCode"
                 className="flex items-center gap-1.5 text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(26,26,26,0.85)" }}
+                style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}
               >
                 <KeyRound size={13} style={{ color: "#D4922A" }} />
                 Invite Code
@@ -187,7 +187,7 @@ export default function Register() {
               <label
                 htmlFor="name"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(26,26,26,0.85)" }}
+                style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}
               >
                 Full Name
               </label>
@@ -208,7 +208,7 @@ export default function Register() {
               <label
                 htmlFor="email"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(26,26,26,0.85)" }}
+                style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}
               >
                 Email address
               </label>
@@ -230,7 +230,7 @@ export default function Register() {
               <label
                 htmlFor="password"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(26,26,26,0.85)" }}
+                style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}
               >
                 Password
               </label>
@@ -249,7 +249,7 @@ export default function Register() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:opacity-80"
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(26,26,26,0.60)", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "color-mix(in oklab, var(--foreground) 60%, transparent)", padding: 0, minHeight: "auto", minWidth: "auto" }}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -262,7 +262,7 @@ export default function Register() {
               <label
                 htmlFor="confirmPassword"
                 className="block text-sm font-semibold mb-1.5"
-                style={{ color: "rgba(26,26,26,0.85)" }}
+                style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}
               >
                 Confirm Password
               </label>
@@ -303,7 +303,7 @@ export default function Register() {
             </button>
           </form>
 
-          <p className="mt-6 text-sm" style={{ color: "rgba(26,26,26,0.80)" }}>
+          <p className="mt-6 text-sm" style={{ color: "color-mix(in oklab, var(--foreground) 80%, transparent)" }}>
             Already have an account?{" "}
             <button
               onClick={() => navigate("/login")}
@@ -314,11 +314,11 @@ export default function Register() {
             </button>
           </p>
 
-          <div className="mt-8 pt-6" style={{ borderTop: "1px solid rgba(26,26,26,0.08)" }}>
+          <div className="mt-8 pt-6" style={{ borderTop: "1px solid color-mix(in oklab, var(--foreground) 8%, transparent)" }}>
             <button
               onClick={() => navigate("/")}
               className="text-sm font-medium transition-all hover:opacity-90 flex items-center gap-1.5 px-3 py-2 rounded-lg"
-              style={{ color: "rgba(26,26,26,0.85)", background: "rgba(26,26,26,0.05)", border: "1px solid rgba(26,26,26,0.12)", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
+              style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)", background: "color-mix(in oklab, var(--foreground) 5%, transparent)", border: "1px solid color-mix(in oklab, var(--foreground) 12%, transparent)", cursor: "pointer", minHeight: "auto", minWidth: "auto" }}
             >
               ← Back to homepage
             </button>

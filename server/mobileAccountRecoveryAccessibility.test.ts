@@ -6,7 +6,7 @@ const source = readFileSync(resolve(process.cwd(), "client/src/pages/ForgotPassw
 
 describe("mobile account recovery accessibility", () => {
   it("keeps the homepage escape action visibly contrasted and keyboard focusable", () => {
-    expect(source).toContain('color: "rgba(26,26,26,0.72)"');
+    expect(source).toContain('color: "color-mix(in oklab, var(--foreground) 72%, transparent)"');
     expect(source).toContain("focus-visible:ring-2 focus-visible:ring-[#D4922A]");
   });
 

@@ -65,8 +65,8 @@ export default function Billing() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F2F0EC]">
         <div className="text-center max-w-sm">
-          <Shield className="w-12 h-12 text-[rgba(26,26,26,0.40)] mx-auto mb-4" aria-hidden="true" />
-          <h1 className="text-xl font-bold text-[#1A1A1A] mb-2">Sign in to manage billing</h1>
+          <Shield className="w-12 h-12 text-[color-mix(in oklab, var(--foreground) 40%, transparent)] mx-auto mb-4" aria-hidden="true" />
+          <h1 className="text-xl font-bold text-[var(--foreground)] mb-2">Sign in to manage billing</h1>
           <Button className="gradient-amber text-white border-0 mt-4" onClick={() => window.location.href = "/login"}>
             Sign In
           </Button>
@@ -81,9 +81,9 @@ export default function Billing() {
   const plans = plansQuery.data ?? [];
 
   return (
-    <div className="min-h-screen bg-[#F2F0EC] text-[#1A1A1A]">
+    <div className="min-h-screen bg-[#F2F0EC] text-[var(--foreground)]">
       <a href="#main-content" className="skip-link">Skip to main content</a>
-      <nav className="border-b border-[#DDDBD7] px-4 sm:px-6 py-4 flex items-center justify-between">
+      <nav className="border-b border-[var(--border)] px-4 sm:px-6 py-4 flex items-center justify-between">
         <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Dashboard</span>
@@ -100,15 +100,15 @@ export default function Billing() {
       <main id="main-content" className="max-w-4xl mx-auto px-4 pt-10 pb-12 page-bottom">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-extrabold text-[#1A1A1A] mb-1">
+          <h1 className="text-2xl font-extrabold text-[var(--foreground)] mb-1">
             Billing & Subscription
           </h1>
-          <p className="text-[rgba(26,26,26,0.55)] text-sm">Manage your plan, upgrade, or access your billing history.</p>
+          <p className="text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] text-sm">Manage your plan, upgrade, or access your billing history.</p>
         </div>
 
         {/* Current Plan Card */}
-        <section aria-label="Current subscription" className="bg-white rounded-xl border border-[#DDDBD7] shadow-sm p-6 mb-8">
-          <h2 className="text-base font-bold text-[#1A1A1A] mb-4">Current Plan</h2>
+        <section aria-label="Current subscription" className="bg-white rounded-xl border border-[var(--border)] shadow-sm p-6 mb-8">
+          <h2 className="text-base font-bold text-[var(--foreground)] mb-4">Current Plan</h2>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               {(() => {
@@ -121,7 +121,7 @@ export default function Billing() {
                 );
               })()}
               <div>
-                <p className="text-lg font-extrabold text-[#1A1A1A] capitalize">
+                <p className="text-lg font-extrabold text-[var(--foreground)] capitalize">
                   {currentPlan === "free" ? "Free Plan" : `${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan`}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -129,7 +129,7 @@ export default function Billing() {
                     currentStatus === "active" ? "bg-green-100 text-green-800" :
                     currentStatus === "past_due" ? "bg-yellow-100 text-yellow-800" :
                     currentStatus === "cancelled" ? "bg-red-100 text-red-800" :
-                    "bg-[#EEECEA] text-[rgba(26,26,26,0.65)]"
+                    "bg-[var(--muted)] text-[color-mix(in oklab, var(--foreground) 65%, transparent)]"
                   }`} role="status">
                     {currentStatus === "active" && <CheckCircle className="w-3 h-3" aria-hidden="true" />}
                     {currentStatus === "active" ? "Active" :
@@ -143,7 +143,7 @@ export default function Billing() {
               {hasActiveSubscription && (
                 <Button
                   variant="outline"
-                  className="gap-2 bg-transparent border-[#DDDBD7] text-[#1A1A1A] hover:bg-[#EEECEA] hover:text-[#1A1A1A] hover:border-[#C8C5BF]"
+                  className="gap-2 bg-transparent border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--border-strong)]"
                   onClick={() => portalMutation.mutate({ origin: window.location.origin })}
                   disabled={portalMutation.isPending}
                   aria-label="Open Stripe billing portal to manage subscription"
@@ -163,7 +163,7 @@ export default function Billing() {
 
         {/* Interval Toggle */}
         <div className="flex items-center justify-center mb-6">
-          <div className="bg-white border border-[#DDDBD7] rounded-xl p-1 flex" role="group" aria-label="Billing interval">
+          <div className="bg-white border border-[var(--border)] rounded-xl p-1 flex" role="group" aria-label="Billing interval">
             {(["monthly", "annual"] as const).map(opt => (
               <button
                 key={opt}
@@ -172,7 +172,7 @@ export default function Billing() {
                 className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all min-h-[40px] ${
                   billingCycle === opt
                     ? "gradient-amber text-white shadow-sm"
-                    : "text-[rgba(26,26,26,0.50)] hover:text-[#1A1A1A]"
+                    : "text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[var(--foreground)]"
                 }`}
               >
                 {opt === "monthly" ? "Monthly" : "Annual"}
@@ -210,7 +210,7 @@ export default function Billing() {
                         ? "border-[#D4922A] shadow-lg shadow-[#D4922A]/10"
                         : isCurrent
                         ? "border-blue-400/60"
-                        : "border-[#DDDBD7] hover:border-[#C8C5BF]"
+                        : "border-[var(--border)] hover:border-[var(--border-strong)]"
                     }`}
                     aria-label={`${plan.name} plan — $${price} per ${billingCycle === "annual" ? "month (billed annually)" : "month"}`}
                   >
@@ -229,14 +229,14 @@ export default function Billing() {
                       <Icon className="w-5 h-5 text-white" />
                     </div>
 
-                    <h3 className="text-lg font-extrabold text-[#1A1A1A] mb-1">
+                    <h3 className="text-lg font-extrabold text-[var(--foreground)] mb-1">
                       {plan.name}
                     </h3>
-                    <p className="text-xs text-[rgba(26,26,26,0.55)] mb-4">{plan.description}</p>
+                    <p className="text-xs text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] mb-4">{plan.description}</p>
 
                     <div className="mb-5">
-                      <span className="text-3xl font-extrabold text-[#1A1A1A]">${price}</span>
-                      <span className="text-sm text-[rgba(26,26,26,0.55)]">/mo</span>
+                      <span className="text-3xl font-extrabold text-[var(--foreground)]">${price}</span>
+                      <span className="text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">/mo</span>
                       {billingCycle === "annual" && (
                         <p className="text-xs text-green-600 font-semibold mt-0.5">Billed annually</p>
                       )}
@@ -244,7 +244,7 @@ export default function Billing() {
 
                     <ul className="space-y-2 mb-6 flex-1" aria-label={`${plan.name} features`}>
                       {plan.features.map((feature: string) => (
-                        <li key={feature} className="flex items-start gap-2 text-sm text-[rgba(26,26,26,0.75)]">
+                        <li key={feature} className="flex items-start gap-2 text-sm text-[color-mix(in oklab, var(--foreground) 75%, transparent)]">
                           <CheckCircle className="w-4 h-4 text-[#D4922A] flex-shrink-0 mt-0.5" aria-hidden="true" />
                           {feature}
                         </li>
@@ -254,7 +254,7 @@ export default function Billing() {
                     {isCurrent ? (
                       <Button
                         variant="outline"
-                        className="w-full bg-transparent border-[#DDDBD7] text-[rgba(26,26,26,0.40)] cursor-not-allowed hover:bg-transparent hover:text-[rgba(26,26,26,0.40)] hover:border-[#DDDBD7]"
+                        className="w-full bg-transparent border-[var(--border)] text-[color-mix(in oklab, var(--foreground) 40%, transparent)] cursor-not-allowed hover:bg-transparent hover:text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:border-[var(--border)]"
                         disabled
                         aria-label={`You are currently on the ${plan.name} plan`}
                       >
@@ -262,7 +262,7 @@ export default function Billing() {
                       </Button>
                     ) : (
                       <Button
-                        className={`w-full gap-2 ${plan.highlighted ? "gradient-amber text-white border-0" : "bg-[#EEECEA] border-[#DDDBD7] text-[#1A1A1A] hover:bg-[#E5E3DF] hover:text-[#1A1A1A] hover:border-[#C8C5BF]"}`}
+                        className={`w-full gap-2 ${plan.highlighted ? "gradient-amber text-white border-0" : "bg-[var(--muted)] border-[var(--border)] text-[var(--foreground)] hover:bg-[#E5E3DF] hover:text-[var(--foreground)] hover:border-[var(--border-strong)]"}`}
                         variant={plan.highlighted ? "default" : "outline"}
                         onClick={() => {
                           if (!isAuthenticated) {

@@ -50,15 +50,15 @@ function ResultView({ name, result, metric }: { name: string; result: ReportResu
   const format = (value: number) => metric === "count" || metric === "hours" ? String(Number.isInteger(value) ? value : value.toFixed(1)) : formatCurrency(value);
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-xl border border-[#DDDBD7] p-5">
+      <div className="bg-white rounded-xl border border-[var(--border)] p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <p className="text-sm font-bold text-[#1A1A1A]">{result.keyLabel} by {result.metricLabel.toLowerCase()}</p>
-            <p className="text-xs text-[#6B6B6B]">{result.rows.length} group{result.rows.length === 1 ? "" : "s"} · Total: <span className="font-semibold text-[#1A1A1A]">{format(result.total)}</span></p>
+            <p className="text-sm font-bold text-[var(--foreground)]">{result.keyLabel} by {result.metricLabel.toLowerCase()}</p>
+            <p className="text-xs text-[var(--muted-foreground)]">{result.rows.length} group{result.rows.length === 1 ? "" : "s"} · Total: <span className="font-semibold text-[var(--foreground)]">{format(result.total)}</span></p>
           </div>
-          <Button size="sm" variant="outline" className="border-[#DDDBD7]" onClick={() => downloadCsv(name, result)}><Download className="h-3.5 w-3.5 mr-1" /> Export CSV</Button>
+          <Button size="sm" variant="outline" className="border-[var(--border)]" onClick={() => downloadCsv(name, result)}><Download className="h-3.5 w-3.5 mr-1" /> Export CSV</Button>
         </div>
-        {result.rows.length === 0 ? <p className="mt-4 text-sm text-[#6B6B6B]">No rows match these filters — loosen the date range or status filter and run again.</p> : (
+        {result.rows.length === 0 ? <p className="mt-4 text-sm text-[var(--muted-foreground)]">No rows match these filters — loosen the date range or status filter and run again.</p> : (
           <>
             <div className="mt-4 h-48">
               <ResponsiveContainer width="100%" height="100%">
@@ -73,9 +73,9 @@ function ResultView({ name, result, metric }: { name: string; result: ReportResu
             </div>
             <div className="mt-2 overflow-x-auto rounded-lg border border-[#EFEEE9]">
               <table className="w-full text-sm">
-                <thead><tr className="bg-[#F7F6F3] text-left text-xs uppercase tracking-wide text-[#6B6B6B]"><th className="px-3 py-2">{result.keyLabel}</th><th className="px-3 py-2 text-right">{result.metricLabel}</th></tr></thead>
+                <thead><tr className="bg-[var(--background)] text-left text-xs uppercase tracking-wide text-[var(--muted-foreground)]"><th className="px-3 py-2">{result.keyLabel}</th><th className="px-3 py-2 text-right">{result.metricLabel}</th></tr></thead>
                 <tbody className="divide-y divide-[#EFEEE9]">
-                  {result.rows.map(row => <tr key={row.key}><td className="px-3 py-2 text-[#1A1A1A]">{row.key}</td><td className="px-3 py-2 text-right font-semibold text-[#1A1A1A]">{format(row.value)}</td></tr>)}
+                  {result.rows.map(row => <tr key={row.key}><td className="px-3 py-2 text-[var(--foreground)]">{row.key}</td><td className="px-3 py-2 text-right font-semibold text-[var(--foreground)]">{format(row.value)}</td></tr>)}
                 </tbody>
               </table>
             </div>
@@ -126,19 +126,19 @@ function BuilderTab({ editing, onDone }: { editing: SavedReport | null; onDone: 
 
   return (
     <div className="space-y-5">
-      <div className="bg-white rounded-xl border border-[#DDDBD7] p-5 space-y-4">
+      <div className="bg-white rounded-xl border border-[var(--border)] p-5 space-y-4">
         <div className="grid gap-4 sm:grid-cols-3">
-          <label className="block text-sm font-medium text-[#1A1A1A]">Data
+          <label className="block text-sm font-medium text-[var(--foreground)]">Data
             <select value={dataset} onChange={event => { setDataset(event.target.value as Dataset); setMetric(DATASET_OPTIONS[event.target.value as Dataset].metrics[0]); setGroupBy("none"); setPreviewed(false); }} className="mt-1.5 w-full form-input-light">
               {(Object.keys(DATASET_LABELS) as Dataset[]).map(key => <option key={key} value={key}>{DATASET_LABELS[key]}</option>)}
             </select>
           </label>
-          <label className="block text-sm font-medium text-[#1A1A1A]">Measure
+          <label className="block text-sm font-medium text-[var(--foreground)]">Measure
             <select value={metric} onChange={event => { setMetric(event.target.value as Metric); setPreviewed(false); }} className="mt-1.5 w-full form-input-light">
               {options.metrics.map(key => <option key={key} value={key}>{METRIC_LABELS[key]}</option>)}
             </select>
           </label>
-          <label className="block text-sm font-medium text-[#1A1A1A]">Grouping
+          <label className="block text-sm font-medium text-[var(--foreground)]">Grouping
             <select value={groupBy} onChange={event => { setGroupBy(event.target.value as GroupBy); setPreviewed(false); }} className="mt-1.5 w-full form-input-light">
               {options.groupBys.map(key => <option key={key} value={key}>{GROUP_LABELS[key]}</option>)}
             </select>
@@ -146,7 +146,7 @@ function BuilderTab({ editing, onDone }: { editing: SavedReport | null; onDone: 
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           {options.statuses && (
-            <label className="block text-sm font-medium text-[#1A1A1A]">Status filter
+            <label className="block text-sm font-medium text-[var(--foreground)]">Status filter
               <select value={status} onChange={event => { setStatus(event.target.value); setPreviewed(false); }} className="mt-1.5 w-full form-input-light">
                 <option value="">Any status</option>
                 {options.statuses.map(value => <option key={value} value={value}>{value.replace(/_/g, " ")}</option>)}
@@ -154,7 +154,7 @@ function BuilderTab({ editing, onDone }: { editing: SavedReport | null; onDone: 
             </label>
           )}
           {options.hasClientFilter && (
-            <label className="block text-sm font-medium text-[#1A1A1A]">Client filter
+            <label className="block text-sm font-medium text-[var(--foreground)]">Client filter
               <select value={clientFilter} onChange={event => { setClientFilter(event.target.value); setPreviewed(false); }} className="mt-1.5 w-full form-input-light">
                 <option value="">All clients</option>
                 {(clients.data ?? []).map(client => <option key={client.id} value={client.id}>{client.name}</option>)}
@@ -165,7 +165,7 @@ function BuilderTab({ editing, onDone }: { editing: SavedReport | null; onDone: 
             <Field label="Category filter (optional)" value={category} onChange={v => { setCategory(v); setPreviewed(false); }} placeholder="e.g. materials" maxLen={64} />
           )}
           {options.hasBillableFilter && (
-            <label className="block text-sm font-medium text-[#1A1A1A]">Billable
+            <label className="block text-sm font-medium text-[var(--foreground)]">Billable
               <select value={billable} onChange={event => { setBillable(event.target.value); setPreviewed(false); }} className="mt-1.5 w-full form-input-light">
                 <option value="">All entries</option>
                 <option value="true">Billable only</option>
@@ -179,19 +179,19 @@ function BuilderTab({ editing, onDone }: { editing: SavedReport | null; onDone: 
         <div className="flex flex-wrap items-center gap-2 border-t border-[#EFEEE9] pt-4">
           <Button onClick={runPreview} disabled={preview.isFetching} className="bg-[#D4922A] hover:bg-[#C07F1D] text-white">{preview.isFetching ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Play className="h-4 w-4 mr-1" />} Run preview</Button>
           {previewed && !preview.isFetching && !preview.error && preview.data && (
-            <Button variant="outline" className="border-[#DDDBD7]" onClick={() => { setSaveName(editing?.name ?? `${DATASET_LABELS[dataset]} — ${METRIC_LABELS[metric]}`); setSaveOpen(true); }}><Plus className="h-4 w-4 mr-1" /> {editing ? "Update saved report" : "Save this report"}</Button>
+            <Button variant="outline" className="border-[var(--border)]" onClick={() => { setSaveName(editing?.name ?? `${DATASET_LABELS[dataset]} — ${METRIC_LABELS[metric]}`); setSaveOpen(true); }}><Plus className="h-4 w-4 mr-1" /> {editing ? "Update saved report" : "Save this report"}</Button>
           )}
           {preview.error && <p className="text-sm text-red-600">{preview.error.message}</p>}
         </div>
       </div>
 
-      {preview.isFetching ? <div className="bg-white rounded-xl border border-[#DDDBD7] p-5"><Skeleton className="h-40" /></div>
+      {preview.isFetching ? <div className="bg-white rounded-xl border border-[var(--border)] p-5"><Skeleton className="h-40" /></div>
         : previewed && preview.data && <ResultView name={editing?.name ?? DATASET_LABELS[dataset]} result={preview.data} metric={metric} />}
 
       <Modal open={saveOpen} onClose={() => setSaveOpen(false)} title={editing ? "Update saved report" : "Save this report"}>
         <div className="space-y-3">
           <Field label="Report name" value={saveName} onChange={setSaveName} placeholder="e.g. Monthly invoiced by client" required maxLen={120} />
-          <p className="text-xs text-[#6B6B6B]">Saved reports always run against live data — open one any time to see the latest numbers, then export to CSV.</p>
+          <p className="text-xs text-[var(--muted-foreground)]">Saved reports always run against live data — open one any time to see the latest numbers, then export to CSV.</p>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setSaveOpen(false)}>Cancel</Button>
             <Button disabled={!saveName.trim() || createReport.isPending || updateReport.isPending} onClick={() => {
@@ -216,25 +216,25 @@ function MyReportsTab({ onEdit }: { onEdit: (report: SavedReport) => void }) {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white rounded-xl border border-[#DDDBD7] divide-y divide-[#EFEEE9]">
+      <div className="bg-white rounded-xl border border-[var(--border)] divide-y divide-[#EFEEE9]">
         {reports.isLoading ? <div className="p-5"><Skeleton className="h-12" /></div>
-          : reports.data?.length === 0 ? <p className="p-6 text-sm text-[#6B6B6B] text-center">No saved reports yet. Build one in the Builder tab — pick your data, measure, and filters, preview it, then save.</p>
+          : reports.data?.length === 0 ? <p className="p-6 text-sm text-[var(--muted-foreground)] text-center">No saved reports yet. Build one in the Builder tab — pick your data, measure, and filters, preview it, then save.</p>
           : reports.data!.map(report => (
             <div key={report.id} className="flex flex-wrap items-center gap-3 p-4">
               <div className="min-w-0 flex-1 basis-48">
-                <p className="font-semibold text-[#1A1A1A]">{report.name}</p>
-                <p className="mt-0.5 text-xs text-[#6B6B6B]">{DATASET_LABELS[report.dataset]} · {METRIC_LABELS[report.metric as Metric] ?? report.metric} · {GROUP_LABELS[report.groupBy as GroupBy] ?? report.groupBy}</p>
+                <p className="font-semibold text-[var(--foreground)]">{report.name}</p>
+                <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{DATASET_LABELS[report.dataset]} · {METRIC_LABELS[report.metric as Metric] ?? report.metric} · {GROUP_LABELS[report.groupBy as GroupBy] ?? report.groupBy}</p>
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
-                <Button size="sm" variant="outline" className="border-[#DDDBD7]" disabled={runningId === report.id && (run.isFetching || !!run.data)} onClick={() => setRunningId(report.id)}><Play className="h-3.5 w-3.5 mr-1" /> Run</Button>
-                <Button size="sm" variant="outline" className="border-[#DDDBD7]" onClick={() => onEdit(report)}><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</Button>
+                <Button size="sm" variant="outline" className="border-[var(--border)]" disabled={runningId === report.id && (run.isFetching || !!run.data)} onClick={() => setRunningId(report.id)}><Play className="h-3.5 w-3.5 mr-1" /> Run</Button>
+                <Button size="sm" variant="outline" className="border-[var(--border)]" onClick={() => onEdit(report)}><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</Button>
                 <Button size="sm" variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50" onClick={() => setPendingDelete(report)}><Trash2 className="h-3.5 w-3.5" /></Button>
               </div>
             </div>
           ))}
       </div>
 
-      {runningId !== null && (run.isFetching ? <div className="bg-white rounded-xl border border-[#DDDBD7] p-5"><Skeleton className="h-40" /></div>
+      {runningId !== null && (run.isFetching ? <div className="bg-white rounded-xl border border-[var(--border)] p-5"><Skeleton className="h-40" /></div>
         : run.error ? <p className="text-sm text-red-600">{run.error.message}</p>
           : run.data && <ResultView name={run.data.name} result={run.data} metric={run.data.metric as Metric} />)}
 
@@ -257,8 +257,8 @@ export default function ReportsPanel() {
     
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-extrabold text-[#1A1A1A]">Custom Reports</h2>
-        <p className="text-sm text-[#6B6B6B]">Build the exact view you need — dataset, measure, grouping, filters — then save it forever and export CSV. Included with Pro and Agency plans.</p>
+        <h2 className="text-xl font-extrabold text-[var(--foreground)]">Custom Reports</h2>
+        <p className="text-sm text-[var(--muted-foreground)]">Build the exact view you need — dataset, measure, grouping, filters — then save it forever and export CSV. Included with Pro and Agency plans.</p>
       </div>
       <PanelTabs key={tabSeq} defaultTab="builder" tabs={tabs} />
     </div>

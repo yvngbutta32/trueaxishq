@@ -111,17 +111,17 @@ const categories = [
 function ArticleAccordion({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border border-[#DDDBD7] rounded-xl overflow-hidden">
+    <div className="border border-[var(--border)] rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#D4922A] focus:ring-inset"
         aria-expanded={open}
       >
-        <span className="text-sm font-medium text-[#1A1A1A]">{q}</span>
-        <ChevronDown className={`w-4 h-4 text-[#6B6B6B] flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+        <span className="text-sm font-medium text-[var(--foreground)]">{q}</span>
+        <ChevronDown className={`w-4 h-4 text-[var(--muted-foreground)] flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="px-5 pb-5 text-sm text-[#3D3D3D] leading-relaxed border-t border-[#DDDBD7] pt-4">
+        <div className="px-5 pb-5 text-sm text-[var(--foreground-soft)] leading-relaxed border-t border-[var(--border)] pt-4">
           {a}
         </div>
       )}
@@ -143,8 +143,8 @@ export default function Help() {
   })).filter(cat => cat.articles.length > 0);
 
   return (
-    <div className="min-h-screen bg-[#F2F0EC] text-[#1A1A1A]">
-      <nav className="border-b border-[#DDDBD7] px-4 sm:px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#F2F0EC] text-[var(--foreground)]">
+      <nav className="border-b border-[var(--border)] px-4 sm:px-6 py-4 flex items-center justify-between">
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-[#D4922A] hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#D4922A] rounded px-2 py-1">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Home</span>
@@ -169,17 +169,17 @@ export default function Help() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search for answers..."
-            className="w-full pl-10 pr-4 py-3.5 bg-white border border-[#DDDBD7] rounded-xl text-[#1A1A1A] placeholder-[#9B9B9B] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4922A] transition-colors"
+            className="w-full pl-10 pr-4 py-3.5 bg-white border border-[var(--border)] rounded-xl text-[var(--foreground)] placeholder-[#9B9B9B] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4922A] transition-colors"
           />
         </div>
       </section>
 
       {/* Category pills */}
       {!search && (
-        <div className="px-4 py-4 flex flex-wrap gap-2 justify-center border-b border-[#DDDBD7]">
+        <div className="px-4 py-4 flex flex-wrap gap-2 justify-center border-b border-[var(--border)]">
           <button
             onClick={() => setActiveCategory(null)}
-            className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#D4922A] ${!activeCategory ? "bg-[#D4922A] text-white" : "bg-[#EEECEA] text-[#6B6B6B] hover:bg-[#E5E3DF]"}`}
+            className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#D4922A] ${!activeCategory ? "bg-[#D4922A] text-white" : "bg-[var(--muted)] text-[var(--muted-foreground)] hover:bg-[#E5E3DF]"}`}
           >
             All Topics
           </button>
@@ -187,7 +187,7 @@ export default function Help() {
             <button
               key={cat.title}
               onClick={() => setActiveCategory(activeCategory === cat.title ? null : cat.title)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#D4922A] ${activeCategory === cat.title ? "bg-[#D4922A] text-white" : "bg-[#EEECEA] text-[#6B6B6B] hover:bg-[#E5E3DF]"}`}
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#D4922A] ${activeCategory === cat.title ? "bg-[#D4922A] text-white" : "bg-[var(--muted)] text-[var(--muted-foreground)] hover:bg-[#E5E3DF]"}`}
             >
               {cat.title}
             </button>
@@ -220,9 +220,9 @@ export default function Help() {
         )}
 
         {/* Contact support */}
-        <section className="bg-white border border-[#DDDBD7] rounded-xl p-8 text-center">
+        <section className="bg-white border border-[var(--border)] rounded-xl p-8 text-center">
           <h2 className="text-xl font-bold mb-2">Still need help?</h2>
-          <p className="text-[#6B6B6B] text-sm mb-6">Contact support for help with your TrueAxis HQ workspace.</p>
+          <p className="text-[var(--muted-foreground)] text-sm mb-6">Contact support for help with your TrueAxis HQ workspace.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
               href="mailto:support@trueaxishq.com"
@@ -233,7 +233,7 @@ export default function Help() {
             </a>
             <button
               onClick={() => navigate("/dashboard")}
-              className="flex items-center justify-center gap-2 bg-[#EEECEA] hover:bg-[#E5E3DF] text-[#1A1A1A] px-6 py-3 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#D4922A] min-h-[48px]"
+              className="flex items-center justify-center gap-2 bg-[var(--muted)] hover:bg-[#E5E3DF] text-[var(--foreground)] px-6 py-3 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#D4922A] min-h-[48px]"
             >
               <ChevronRight className="w-4 h-4" />
               Open Dashboard
@@ -243,7 +243,7 @@ export default function Help() {
         </section>
       </div>
 
-      <footer className="border-t border-[#DDDBD7] py-8 px-4 text-center text-xs text-[#6B6B6B]">
+      <footer className="border-t border-[var(--border)] py-8 px-4 text-center text-xs text-[var(--muted-foreground)]">
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

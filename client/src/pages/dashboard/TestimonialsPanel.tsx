@@ -69,7 +69,7 @@ function TestimonialsPanel() {
     requested: "bg-blue-500/15 text-blue-400",
     submitted: "bg-amber-500/15 text-amber-400",
     approved: "bg-green-500/15 text-green-400",
-    rejected: "bg-[#EEECEA] text-[#3D3D3D]",
+    rejected: "bg-[var(--muted)] text-[var(--foreground-soft)]",
   };
 
   return (
@@ -77,8 +77,8 @@ function TestimonialsPanel() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-[#1A1A1A]">Testimonials</h2>
-          <p className="text-sm text-[#3D3D3D] mt-0.5">Request, review, and publish client testimonials</p>
+          <h2 className="text-xl font-bold text-[var(--foreground)]">Testimonials</h2>
+          <p className="text-sm text-[var(--foreground-soft)] mt-0.5">Request, review, and publish client testimonials</p>
         </div>
       </div>
 
@@ -87,7 +87,7 @@ function TestimonialsPanel() {
         {(["pending", "approved", "rejected", "request"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize transition-all ${
-              tab === t ? "bg-[#D4922A] text-white" : "bg-white border border-[#DDDBD7] text-[#6B6B6B] hover:border-[#D4922A]"
+              tab === t ? "bg-[#D4922A] text-white" : "bg-white border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[#D4922A]"
             }`}>
             {t === "request" ? "+ New Request" : t}
             {t === "pending" && list.filter(x => ["requested","submitted"].includes(x.status)).length > 0 && (
@@ -100,21 +100,21 @@ function TestimonialsPanel() {
       </div>
 
       {tab === "request" ? (
-        <div className="bg-white rounded-xl border border-[#DDDBD7] p-6 space-y-4 max-w-lg">
-          <h3 className="font-semibold text-[#1A1A1A]">Send Testimonial Request</h3>
+        <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4 max-w-lg">
+          <h3 className="font-semibold text-[var(--foreground)]">Send Testimonial Request</h3>
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Client Name *</label>
+              <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Client Name *</label>
               <input value={form.clientName} onChange={e => setTestiClientName(e.target.value)}
                 placeholder="Jane Smith" className="form-input-light" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Client Email *</label>
+              <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Client Email *</label>
               <input type="email" maxLength={320} value={form.clientEmail} onChange={e => setTestiClientEmail(e.target.value)}
                 placeholder="jane@example.com" className="form-input-light" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#6B6B6B] mb-1.5">Service Name</label>
+              <label className="block text-xs font-semibold text-[var(--muted-foreground)] mb-1.5">Service Name</label>
               <input value={form.serviceName} onChange={e => setTestiServiceName(e.target.value)}
                 placeholder="Brand Strategy Session" className="form-input-light" />
             </div>
@@ -130,28 +130,28 @@ function TestimonialsPanel() {
         <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-24 bg-white rounded-xl animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
-          <ThumbsUp className="w-12 h-12 text-[#6B6B6B] mx-auto mb-3" />
-          <p className="text-[#3D3D3D] font-medium">No {tab} testimonials yet</p>
-          <p className="text-sm text-[#3D3D3D] mt-1">Use the "+ New Request" tab to ask clients for reviews</p>
+          <ThumbsUp className="w-12 h-12 text-[var(--muted-foreground)] mx-auto mb-3" />
+          <p className="text-[var(--foreground-soft)] font-medium">No {tab} testimonials yet</p>
+          <p className="text-sm text-[var(--foreground-soft)] mt-1">Use the "+ New Request" tab to ask clients for reviews</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map(t => (
-            <div key={t.id} className="bg-white rounded-xl border border-[#DDDBD7] p-4">
+            <div key={t.id} className="bg-white rounded-xl border border-[var(--border)] p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-[#1A1A1A] text-sm">{t.clientName}</p>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${statusColors[t.status] ?? "bg-[#EEECEA] text-[#3D3D3D]"}`}>{t.status}</span>
+                    <p className="font-semibold text-[var(--foreground)] text-sm">{t.clientName}</p>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${statusColors[t.status] ?? "bg-[var(--muted)] text-[var(--foreground-soft)]"}`}>{t.status}</span>
                   </div>
                   {t.rating && (
                     <div className="flex gap-0.5 mb-1.5">
-                      {[1,2,3,4,5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= t.rating! ? "fill-[#D4922A] text-[#D4922A]" : "text-[#6B6B6B]"}`} />)}
+                      {[1,2,3,4,5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= t.rating! ? "fill-[#D4922A] text-[#D4922A]" : "text-[var(--muted-foreground)]"}`} />)}
                     </div>
                   )}
-                  {t.body && <p className="text-sm text-[#6B6B6B] line-clamp-3">"{t.body}"</p>}
-                  {!t.body && <p className="text-xs text-[#3D3D3D] italic">Awaiting response…</p>}
-                  <p className="text-[10px] text-[#3D3D3D] mt-1.5">{new Date(t.createdAt).toLocaleDateString()}</p>
+                  {t.body && <p className="text-sm text-[var(--muted-foreground)] line-clamp-3">"{t.body}"</p>}
+                  {!t.body && <p className="text-xs text-[var(--foreground-soft)] italic">Awaiting response…</p>}
+                  <p className="text-[10px] text-[var(--foreground-soft)] mt-1.5">{new Date(t.createdAt).toLocaleDateString()}</p>
                 </div>
                 {t.status === "submitted" && (
                   <div className="flex gap-2 flex-shrink-0">

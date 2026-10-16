@@ -46,7 +46,7 @@ export default function Status() {
         ? { label: "Degraded performance — database connection issue", Icon: AlertTriangle, className: "bg-amber-50 border-amber-200 text-amber-800" }
         : health.kind === "unreachable"
           ? { label: "This device cannot reach TrueAxis HQ right now", Icon: AlertTriangle, className: "bg-rose-50 border-rose-200 text-rose-800" }
-          : { label: "Checking system status…", Icon: RefreshCw, className: "bg-[#F7F6F3] border-[#EFEEE9] text-[#6B6B6B]" };
+          : { label: "Checking system status…", Icon: RefreshCw, className: "bg-[var(--background)] border-[#EFEEE9] text-[var(--muted-foreground)]" };
 
   const components = [
     { name: "Web application", detail: "The app you're using right now", live: health.kind === "healthy" || health.kind === "degraded" },
@@ -55,19 +55,19 @@ export default function Status() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FBFAF8]" style={{ color: "#1A1A1A" }}>
+    <div className="min-h-screen bg-[#FBFAF8]" style={{ color: "var(--foreground)" }}>
       <div className="container max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
-          <button onClick={() => navigate("/")} className="flex items-center gap-2 text-sm text-[#6B6B6B] hover:text-[#1A1A1A]" aria-label="Back to home">
+          <button onClick={() => navigate("/")} className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]" aria-label="Back to home">
             <ArrowLeft className="w-4 h-4" /> <img src={TRUEAXIS_LOGO_URL} alt="TrueAxis HQ" className="h-7 w-auto object-contain" />
           </button>
-          <button onClick={probe} className="flex items-center gap-1.5 text-xs text-[#6B6B6B] hover:text-[#1A1A1A]" aria-label="Refresh status now">
+          <button onClick={probe} className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]" aria-label="Refresh status now">
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </button>
         </div>
 
         <h1 className="text-2xl font-bold flex items-center gap-2"><Activity className="w-6 h-6 text-[#D4922A]" /> System Status</h1>
-        <p className="mt-2 text-sm text-[#6B6B6B]">
+        <p className="mt-2 text-sm text-[var(--muted-foreground)]">
           Live health, checked from your device every minute and on demand. We publish every incident here —
           including the ones that make us look bad — along with its root cause and fix.
         </p>
@@ -87,17 +87,17 @@ export default function Status() {
         </div>
 
         <section aria-labelledby="components-heading" className="mt-8">
-          <h2 id="components-heading" className="text-sm font-bold uppercase tracking-widest text-[#6B6B6B] mb-3">Components</h2>
+          <h2 id="components-heading" className="text-sm font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-3">Components</h2>
           <div className="rounded-xl border border-[#EFEEE9] divide-y divide-[#EFEEE9] bg-white">
             {components.map(component => (
               <div key={component.name} className="flex items-center justify-between p-4">
                 <div>
                   <p className="text-sm font-semibold">{component.name}</p>
-                  <p className="text-xs text-[#6B6B6B] mt-0.5">{component.detail}</p>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-0.5">{component.detail}</p>
                 </div>
                 {component.live
                   ? <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Operational</span>
-                  : <span className="text-xs font-semibold text-[#6B6B6B] flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> Unavailable</span>}
+                  : <span className="text-xs font-semibold text-[var(--muted-foreground)] flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> Unavailable</span>}
               </div>
             ))}
           </div>
@@ -108,11 +108,11 @@ export default function Status() {
         </section>
 
         <section aria-labelledby="incidents-heading" className="mt-8">
-          <h2 id="incidents-heading" className="text-sm font-bold uppercase tracking-widest text-[#6B6B6B] mb-3">Incident history</h2>
+          <h2 id="incidents-heading" className="text-sm font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-3">Incident history</h2>
           {STATUS_INCIDENTS.length === 0 ? (
             <div className="rounded-xl border border-[#EFEEE9] bg-white p-4">
               <p className="text-sm font-semibold">No published incidents</p>
-              <p className="text-xs text-[#6B6B6B] mt-1">
+              <p className="text-xs text-[var(--muted-foreground)] mt-1">
                 Incident tracking began {formatChangelogDate(INCIDENT_TRACKING_BEGAN)} — and nothing has taken TrueAxis HQ
                 offline for users since. When that changes, this page shows the full record: what happened, why, and the fix.
               </p>
@@ -124,7 +124,7 @@ export default function Status() {
                   <p className="text-sm font-semibold">{incident.title}</p>
                   <p className="text-xs text-[#8A8A8A] mt-0.5">{incident.began} → {incident.resolved} · {incident.components.join(", ")}</p>
                   <p className="text-sm text-[#4A4A4A] mt-2">{incident.summary}</p>
-                  <p className="text-sm text-[#6B6B6B] mt-1"><strong>Fix:</strong> {incident.resolution}</p>
+                  <p className="text-sm text-[var(--muted-foreground)] mt-1"><strong>Fix:</strong> {incident.resolution}</p>
                 </li>
               ))}
             </ol>
@@ -132,7 +132,7 @@ export default function Status() {
         </section>
 
         <section aria-labelledby="monitoring-heading" className="mt-8">
-          <h2 id="monitoring-heading" className="text-sm font-bold uppercase tracking-widest text-[#6B6B6B] mb-3">How we monitor</h2>
+          <h2 id="monitoring-heading" className="text-sm font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-3">How we monitor</h2>
           <div className="rounded-xl border border-[#EFEEE9] bg-white p-4 flex gap-3">
             <ShieldCheck className="w-5 h-5 text-[#D4922A] flex-shrink-0 mt-0.5" />
             <p className="text-sm text-[#4A4A4A]">

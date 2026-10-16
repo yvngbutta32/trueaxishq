@@ -87,10 +87,10 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       <OnboardingFirstHour setActivePanel={setActivePanel} />
       <ChangelogModal />
       <div>
-        <h1 className="text-2xl font-extrabold text-[#1A1A1A]">
+        <h1 className="text-2xl font-extrabold text-[var(--foreground)]">
           {getGreeting()}, {userName || "there"} 👋
         </h1>
-        <p className="text-sm text-[#6B6B6B] mt-1">Here's what's happening with your business today.</p>
+        <p className="text-sm text-[var(--muted-foreground)] mt-1">Here's what's happening with your business today.</p>
       </div>
       <OnboardingChecklist onNavigate={(panel) => setActivePanel(panel as ActivePanel)} />
       <ActionCards onNavigate={(panel) => setActivePanel(panel as ActivePanel)} />
@@ -110,7 +110,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             <p className="text-sm font-semibold text-red-400">
               {overdueInvoices.length} overdue invoice{overdueInvoices.length > 1 ? 's' : ''} — {formatCurrency(overdueInvoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0))} outstanding
             </p>
-            <p className="text-xs text-[#3D3D3D] mt-0.5">
+            <p className="text-xs text-[var(--foreground-soft)] mt-0.5">
               {overdueInvoices.slice(0, 2).map(i => i.clientName).join(", ")}{overdueInvoices.length > 2 ? ` +${overdueInvoices.length - 2} more` : ""}
             </p>
           </div>
@@ -128,7 +128,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             <p className="text-sm font-semibold text-[#D4922A]">
               {todayBookings.length} session{todayBookings.length > 1 ? 's' : ''} today
             </p>
-            <p className="text-xs text-[#3D3D3D] mt-0.5 truncate">
+            <p className="text-xs text-[var(--foreground-soft)] mt-0.5 truncate">
               {todayBookings.map(b => `${b.clientName} at ${formatBookingTime(b.time)}`).join(" · ")}
             </p>
           </div>
@@ -139,15 +139,15 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger-children">
         {stats.map(s => (
-          <div key={s.label} className="bg-white rounded-xl p-4 sm:p-5 border border-[#DDDBD7] card-lift group transition-all duration-200 hover:border-[#C8C5BF]" style={{ '--card-glow': s.color } as React.CSSProperties}>
+          <div key={s.label} className="bg-white rounded-xl p-4 sm:p-5 border border-[var(--border)] card-lift group transition-all duration-200 hover:border-[var(--border-strong)]" style={{ '--card-glow': s.color } as React.CSSProperties}>
             <div className="flex items-start justify-between mb-2 sm:mb-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white stat-icon-pop" style={{ backgroundColor: s.color }}>
                 <s.icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
               </div>
-              <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#3D3D3D]" aria-hidden="true" />
+              <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--foreground-soft)]" aria-hidden="true" />
             </div>
-            <p className="text-xl sm:text-2xl font-extrabold text-[#1A1A1A] leading-tight">{s.value}</p>
-            <p className="text-[11px] sm:text-xs text-[#6B6B6B] mt-0.5 leading-snug">{s.label}</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-[var(--foreground)] leading-tight">{s.value}</p>
+            <p className="text-[11px] sm:text-xs text-[var(--muted-foreground)] mt-0.5 leading-snug">{s.label}</p>
             <p className="text-[11px] sm:text-xs font-medium mt-1" style={{ color: s.color }}>{s.change}</p>
           </div>
         ))}
@@ -157,7 +157,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       {pnlData && (
         <button
           onClick={() => setActivePanel("insights")}
-          className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border border-[#DDDBD7] bg-white hover:border-[#D4922A]/40 hover:bg-[#D4922A]/5 transition-all text-left group card-lift"
+          className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border border-[var(--border)] bg-white hover:border-[#D4922A]/40 hover:bg-[#D4922A]/5 transition-all text-left group card-lift"
           style={{ '--card-glow': pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' } as React.CSSProperties}
           aria-label="View P&L breakdown in Insights"
         >
@@ -169,17 +169,17 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               <span className="text-base font-extrabold" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }}>
                 {pnlData.netProfit >= 0 ? '+' : ''}{formatCurrency(pnlData.netProfit)} net profit
               </span>
-              <span className="text-xs text-[#3D3D3D]">this period</span>
+              <span className="text-xs text-[var(--foreground-soft)]">this period</span>
             </div>
             <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-              <span className="text-xs text-[#6B6B6B]">Revenue: <span className="text-[#D4922A] font-semibold">{formatCurrency(pnlData.totalRevenue)}</span></span>
-              <span className="text-xs text-[#6B6B6B]">·</span>
-              <span className="text-xs text-[#6B6B6B]">Expenses: <span className="text-red-400 font-semibold">{formatCurrency(pnlData.totalExpenses)}</span></span>
-              <span className="text-xs text-[#6B6B6B]">·</span>
-              <span className="text-xs text-[#6B6B6B]">Margin: <span className="font-semibold" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }}>{pnlData.profitMargin}%</span></span>
+              <span className="text-xs text-[var(--muted-foreground)]">Revenue: <span className="text-[#D4922A] font-semibold">{formatCurrency(pnlData.totalRevenue)}</span></span>
+              <span className="text-xs text-[var(--muted-foreground)]">·</span>
+              <span className="text-xs text-[var(--muted-foreground)]">Expenses: <span className="text-red-400 font-semibold">{formatCurrency(pnlData.totalExpenses)}</span></span>
+              <span className="text-xs text-[var(--muted-foreground)]">·</span>
+              <span className="text-xs text-[var(--muted-foreground)]">Margin: <span className="font-semibold" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }}>{pnlData.profitMargin}%</span></span>
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-[#6B6B6B] group-hover:text-[#D4922A] transition-colors flex-shrink-0" />
+          <ArrowRight className="w-4 h-4 text-[var(--muted-foreground)] group-hover:text-[#D4922A] transition-colors flex-shrink-0" />
         </button>
       )}
 
@@ -198,24 +198,24 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
           <button
             key={label}
             onClick={() => setActivePanel(panel)}
-            className="bg-white rounded-xl p-2.5 sm:p-3 border border-[#DDDBD7] card-lift flex flex-col items-center gap-1.5 text-center transition-all group relative"
+            className="bg-white rounded-xl p-2.5 sm:p-3 border border-[var(--border)] card-lift flex flex-col items-center gap-1.5 text-center transition-all group relative"
             style={{ '--card-glow': color } as React.CSSProperties}
           >
             {shortcut && (
-              <kbd className="absolute top-1.5 right-1.5 px-1 py-0.5 rounded border border-white/12 text-[8px] text-[#3D3D3D] font-mono leading-none hidden sm:block">{shortcut}</kbd>
+              <kbd className="absolute top-1.5 right-1.5 px-1 py-0.5 rounded border border-white/12 text-[8px] text-[var(--foreground-soft)] font-mono leading-none hidden sm:block">{shortcut}</kbd>
             )}
             <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white stat-icon-pop" style={{ backgroundColor: color }}>
               <Icon className="w-3.5 h-3.5" aria-hidden="true" />
             </div>
-            <span className="text-[10px] sm:text-[11px] font-semibold text-[#1A1A1A] leading-tight">{label}</span>
+            <span className="text-[10px] sm:text-[11px] font-semibold text-[var(--foreground)] leading-tight">{label}</span>
           </button>
         ))}
       </div>
 
       {/* Charts */}
       <div className="grid lg:grid-cols-2 gap-6 stagger-children">
-        <div className="bg-white rounded-xl p-5 border border-[#DDDBD7]">
-          <h3 className="font-bold text-[#1A1A1A] text-sm mb-4">Revenue (Last 6 Months)</h3>
+        <div className="bg-white rounded-xl p-5 border border-[var(--border)]">
+          <h3 className="font-bold text-[var(--foreground)] text-sm mb-4">Revenue (Last 6 Months)</h3>
           {monthlyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={monthlyData}>
@@ -233,15 +233,15 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-48 flex flex-col items-center justify-center text-[#6B6B6B]">
+            <div className="h-48 flex flex-col items-center justify-center text-[var(--muted-foreground)]">
               <Activity className="w-8 h-8 mb-2 opacity-40" />
               <p className="text-sm">Revenue data will appear once you create paid invoices.</p>
             </div>
           )}
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-[#DDDBD7]">
-          <h3 className="font-bold text-[#1A1A1A] text-sm mb-4">Client Growth</h3>
+        <div className="bg-white rounded-xl p-5 border border-[var(--border)]">
+          <h3 className="font-bold text-[var(--foreground)] text-sm mb-4">Client Growth</h3>
           {clientGrowthData.some(d => d.count > 0) ? (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={clientGrowthData}>
@@ -253,7 +253,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-48 flex flex-col items-center justify-center text-[#6B6B6B]">
+            <div className="h-48 flex flex-col items-center justify-center text-[var(--muted-foreground)]">
               <Users className="w-8 h-8 mb-2 opacity-40" />
               <p className="text-sm">Add your first client to see growth trends.</p>
             </div>
@@ -272,11 +272,11 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
           : null;
         if (withPulse.length === 0) return null;
         return (
-          <div className="bg-white rounded-xl border border-[#DDDBD7] p-5">
+          <div className="bg-white rounded-xl border border-[var(--border)] p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <HeartPulse className="w-4 h-4 text-[#D4922A]" />
-                <h3 className="font-bold text-sm text-[#1A1A1A]">Client Pulse</h3>
+                <h3 className="font-bold text-sm text-[var(--foreground)]">Client Pulse</h3>
                 <span className="text-xs bg-[#D4922A]/10 text-[#D4922A] font-semibold px-2 py-0.5 rounded-full">AI</span>
               </div>
               <button onClick={() => setActivePanel("pulse")} className="text-xs text-[#D4922A] hover:underline font-medium flex items-center gap-1">
@@ -284,21 +284,21 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="text-center p-3 bg-[#F7F6F3] rounded-xl">
+              <div className="text-center p-3 bg-[var(--background)] rounded-xl">
                 <p className="text-2xl font-extrabold" style={{ color: avgScore !== null ? (avgScore >= 70 ? "#D4922A" : avgScore >= 40 ? "#F59E0B" : "#FF6B6B") : "#9CA3AF" }}>{avgScore ?? "—"}</p>
-                <p className="text-xs text-[#6B6B6B] mt-0.5">Avg Health</p>
+                <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Avg Health</p>
               </div>
               <div className="text-center p-3 bg-red-500/10 rounded-xl">
                 <p className="text-2xl font-extrabold text-[#FF6B6B]">{churnRisk}</p>
-                <p className="text-xs text-[#6B6B6B] mt-0.5">Churn Risk</p>
+                <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Churn Risk</p>
               </div>
               <div className="text-center p-3 bg-yellow-50 rounded-xl">
                 <p className="text-2xl font-extrabold text-yellow-600">{goingSilent}</p>
-                <p className="text-xs text-[#6B6B6B] mt-0.5">Going Silent</p>
+                <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Going Silent</p>
               </div>
               <div className="text-center p-3 bg-[#D4922A]/10 rounded-xl">
                 <p className="text-2xl font-extrabold text-[#D4922A]">{upsellReady}</p>
-                <p className="text-xs text-[#6B6B6B] mt-0.5">Upsell Ready</p>
+                <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Upsell Ready</p>
               </div>
             </div>
             {churnRisk > 0 && (
@@ -315,52 +315,52 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
 
       {/* Recent Activity */}
       <div className="grid lg:grid-cols-2 gap-6 stagger-children">
-        <div className="bg-white rounded-xl border border-[#DDDBD7] overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#EEECEA]">
-            <h3 className="font-bold text-sm text-[#1A1A1A]">Recent Clients</h3>
+        <div className="bg-white rounded-xl border border-[var(--border)] overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--muted)]">
+            <h3 className="font-bold text-sm text-[var(--foreground)]">Recent Clients</h3>
             <span className="text-xs text-[#D4922A] font-medium">{recentClients?.length || 0} total</span>
           </div>
           {!recentClients || recentClients.length === 0 ? (
-            <div className="py-10 text-center text-[#6B6B6B]">
+            <div className="py-10 text-center text-[var(--muted-foreground)]">
               <Users className="w-7 h-7 mx-auto mb-2 opacity-40" />
               <p className="text-sm">No clients yet. Add your first client!</p>
             </div>
           ) : recentClients.slice(0, 5).map(c => (
-            <div key={c.id} className="flex items-center gap-3 px-5 py-3 border-t border-[#EEECEA] hover:bg-[#F7F6F3] transition-colors">
+            <div key={c.id} className="flex items-center gap-3 px-5 py-3 border-t border-[var(--muted)] hover:bg-[var(--background)] transition-colors">
               <div className="w-8 h-8 rounded-full gradient-amber flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                 {c.avatarInitials || c.name.slice(0, 2).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#1A1A1A] truncate">{c.name}</p>
-                <p className="text-xs text-[#6B6B6B] truncate">{c.service || "General Client"}</p>
+                <p className="text-sm font-semibold text-[var(--foreground)] truncate">{c.name}</p>
+                <p className="text-xs text-[var(--muted-foreground)] truncate">{c.service || "General Client"}</p>
               </div>
-              <Badge className={`text-xs border-0 ${c.status === "active" ? "bg-green-500/10 text-green-600" : c.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-[#EEECEA] text-[#6B6B6B]"}`}>
+              <Badge className={`text-xs border-0 ${c.status === "active" ? "bg-green-500/10 text-green-600" : c.status === "prospect" ? "bg-yellow-50 text-yellow-600" : "bg-[var(--muted)] text-[var(--muted-foreground)]"}`}>
                 {c.status}
               </Badge>
             </div>
           ))}
         </div>
 
-        <div className="bg-white rounded-xl border border-[#DDDBD7] overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#EEECEA]">
-            <h3 className="font-bold text-sm text-[#1A1A1A]">Upcoming Sessions</h3>
+        <div className="bg-white rounded-xl border border-[var(--border)] overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--muted)]">
+            <h3 className="font-bold text-sm text-[var(--foreground)]">Upcoming Sessions</h3>
             <span className="text-xs text-[#D4922A] font-medium">{recentBookings?.length || 0} scheduled</span>
           </div>
           {!recentBookings || recentBookings.length === 0 ? (
-            <div className="py-10 text-center text-[#6B6B6B]">
+            <div className="py-10 text-center text-[var(--muted-foreground)]">
               <Calendar className="w-7 h-7 mx-auto mb-2 opacity-40" />
               <p className="text-sm">No upcoming sessions. Create a booking!</p>
             </div>
           ) : recentBookings.slice(0, 5).map(b => (
-            <div key={b.id} className="flex items-center gap-3 px-5 py-3 border-t border-[#EEECEA] hover:bg-[#F7F6F3] transition-colors">
+            <div key={b.id} className="flex items-center gap-3 px-5 py-3 border-t border-[var(--muted)] hover:bg-[var(--background)] transition-colors">
               <div className="w-8 h-8 rounded-xl bg-[#D4922A]/10 flex items-center justify-center flex-shrink-0">
                 <Calendar className="w-4 h-4 text-[#D4922A]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#1A1A1A] truncate">{b.clientName}</p>
-                <p className="text-xs text-[#6B6B6B]">{formatBookingDate(b.date)} at {formatBookingTime(b.time)}</p>
+                <p className="text-sm font-semibold text-[var(--foreground)] truncate">{b.clientName}</p>
+                <p className="text-xs text-[var(--muted-foreground)]">{formatBookingDate(b.date)} at {formatBookingTime(b.time)}</p>
               </div>
-              <span className="text-xs text-[#6B6B6B]">{b.duration}m</span>
+              <span className="text-xs text-[var(--muted-foreground)]">{b.duration}m</span>
             </div>
           ))}
         </div>

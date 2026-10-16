@@ -400,16 +400,16 @@ export default function Dashboard() {
 
   // Loading state — placed AFTER all hooks to satisfy Rules of Hooks
   if (loading) return (
-    <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center">
+    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
       <div className="text-center">
         <Loader2 className="w-8 h-8 text-[#D4922A] animate-spin mx-auto mb-3" />
-        <p className="text-sm text-[#6B6B6B]">Loading your dashboard...</p>
+        <p className="text-sm text-[var(--muted-foreground)]">Loading your dashboard...</p>
       </div>
     </div>
   );
 
   return (
-    <div className="bg-[#F7F6F3] flex flex-col md:flex-row overflow-x-hidden w-full" style={{ height: '100dvh' }}>
+    <div className="bg-[var(--background)] flex flex-col md:flex-row overflow-x-hidden w-full" style={{ height: '100dvh' }}>
       {/* Skip link */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-xl focus:shadow-lg focus:text-[#D4922A] focus:font-semibold">
         Skip to main content
@@ -429,7 +429,7 @@ export default function Dashboard() {
         tabIndex={-1}
       >
         {/* Header */}
-        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#DDDBD7] px-4 md:px-6 py-3 flex items-center justify-between">
+        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[var(--border)] px-4 md:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Mobile logo + panel title */}
             <div className="flex items-center gap-2 md:hidden">
@@ -445,13 +445,13 @@ export default function Dashboard() {
                   className="h-7 w-auto object-contain"
                 />
               </button>
-              <span className="text-sm font-bold text-[#1A1A1A]">
+              <span className="text-sm font-bold text-[var(--foreground)]">
                 {panelTitles[active]}
               </span>
             </div>
             <div className="hidden md:block">
-              <h1 className="text-base font-bold text-[#1A1A1A] leading-tight">{panelTitles[active]}</h1>
-              <p className="text-xs text-[#3D3D3D] leading-tight">{panelSubtitles[active]}</p>
+              <h1 className="text-base font-bold text-[var(--foreground)] leading-tight">{panelTitles[active]}</h1>
+              <p className="text-xs text-[var(--foreground-soft)] leading-tight">{panelSubtitles[active]}</p>
             </div>
           </div>
 
@@ -459,7 +459,7 @@ export default function Dashboard() {
             {/* Home button */}
             <button
               onClick={() => navigate("/")}
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-[#6B6B6B] hover:bg-[#EEECEA] hover:text-[#1A1A1A] transition-all"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-all"
               aria-label="Go to homepage"
               title="Homepage"
             >
@@ -469,23 +469,23 @@ export default function Dashboard() {
             {/* Global Search Trigger — Cmd+K */}
             <button
               onClick={() => setGlobalSearchOpen(true)}
-              className="hidden md:flex items-center gap-2.5 px-3 py-2 rounded-xl border border-[#DDDBD7] bg-white hover:bg-[#F7F6F3] hover:border-[#C8C5BF] transition-all group"
+              className="hidden md:flex items-center gap-2.5 px-3 py-2 rounded-xl border border-[var(--border)] bg-white hover:bg-[var(--background)] hover:border-[var(--border-strong)] transition-all group"
               aria-label="Search everything (Cmd+K)"
               title="Search (Cmd+K)"
             >
-              <Search className="w-3.5 h-3.5 text-[#6B6B6B] group-hover:text-[#1A1A1A] transition-colors" aria-hidden="true" />
-              <span className="text-sm text-[#6B6B6B] group-hover:text-[#1A1A1A] transition-colors w-32 text-left">Search everything…</span>
-              <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-[#C8C5BF] text-[10px] text-[#6B6B6B] font-mono">
+              <Search className="w-3.5 h-3.5 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)] transition-colors" aria-hidden="true" />
+              <span className="text-sm text-[var(--muted-foreground)] group-hover:text-[var(--foreground)] transition-colors w-32 text-left">Search everything…</span>
+              <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-[var(--border-strong)] text-[10px] text-[var(--muted-foreground)] font-mono">
                 <span className="text-[11px]">&#8984;</span>K
               </kbd>
             </button>
             {/* Mobile search icon */}
             <button
               onClick={() => setGlobalSearchOpen(true)}
-              className="md:hidden p-2 rounded-xl hover:bg-[#EEECEA] transition-colors"
+              className="md:hidden p-2 rounded-xl hover:bg-[var(--muted)] transition-colors"
               aria-label="Search (Cmd+K)"
             >
-              <Search className="w-4 h-4 text-[#6B6B6B]" />
+              <Search className="w-4 h-4 text-[var(--muted-foreground)]" />
             </button>
 
             {/* Health Monitor */}
@@ -494,19 +494,19 @@ export default function Dashboard() {
             <div className="relative">
               <button
                 onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications && unreadCount > 0) markAllReadMutation.mutate(); }}
-                className="relative p-2 rounded-xl hover:bg-[#EEECEA] transition-colors"
+                className="relative p-2 rounded-xl hover:bg-[var(--muted)] transition-colors"
                 aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
                 aria-expanded={showNotifications}
               >
-                <Bell className="w-4 h-4 text-[#6B6B6B]" />
+                <Bell className="w-4 h-4 text-[var(--muted-foreground)]" />
                 {unreadCount > 0 && (
                   <span className="absolute top-1 right-1 w-2 h-2 bg-red-500/100 rounded-full" aria-hidden="true" />
                 )}
               </button>
               {showNotifications && (
-                <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-[#DDDBD7] z-50 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-[#DDDBD7]">
-                    <p className="text-sm font-bold text-[#1A1A1A]">Notifications</p>
+                <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-[var(--border)] z-50 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
+                    <p className="text-sm font-bold text-[var(--foreground)]">Notifications</p>
                     {(notifList?.length ?? 0) > 0 && (
                       <button onClick={() => markAllReadMutation.mutate()} className="text-xs text-[#D4922A] hover:underline font-medium">Mark all read</button>
                     )}
@@ -514,20 +514,20 @@ export default function Dashboard() {
                   <div className="max-h-80 overflow-y-auto">
                     {!notifList || notifList.length === 0 ? (
                       <div className="py-8 text-center">
-                        <Bell className="w-8 h-8 text-[#6B6B6B] mx-auto mb-2" />
-                        <p className="text-xs text-[#6B6B6B]">No notifications yet</p>
+                        <Bell className="w-8 h-8 text-[var(--muted-foreground)] mx-auto mb-2" />
+                        <p className="text-xs text-[var(--muted-foreground)]">No notifications yet</p>
                       </div>
                     ) : (
                       notifList.map(n => (
-                        <div key={n.id} className={`flex items-start gap-3 px-4 py-3 border-b border-[#EEECEA] hover:bg-[#F7F6F3] transition-colors ${!n.read ? 'bg-amber-50' : ''}`}>
+                        <div key={n.id} className={`flex items-start gap-3 px-4 py-3 border-b border-[var(--muted)] hover:bg-[var(--background)] transition-colors ${!n.read ? 'bg-amber-50' : ''}`}>
                           <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.type === 'success' ? 'bg-green-400' : n.type === 'error' ? 'bg-red-400' : 'bg-blue-400'}`} />
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-[#1A1A1A] truncate">{n.title}</p>
-                            <p className="text-xs text-[#6B6B6B] mt-0.5 line-clamp-2">{n.body}</p>
-                            <p className="text-[10px] text-[#6B6B6B] mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+                            <p className="text-xs font-semibold text-[var(--foreground)] truncate">{n.title}</p>
+                            <p className="text-xs text-[var(--muted-foreground)] mt-0.5 line-clamp-2">{n.body}</p>
+                            <p className="text-[10px] text-[var(--muted-foreground)] mt-1">{new Date(n.createdAt).toLocaleString()}</p>
                           </div>
                           <button onClick={() => dismissNotifMutation.mutate({ id: n.id })} className="p-2 rounded hover:bg-white/12 transition-colors flex-shrink-0" aria-label="Dismiss">
-                            <X className="w-3 h-3 text-[#6B6B6B]" />
+                            <X className="w-3 h-3 text-[var(--muted-foreground)]" />
                           </button>
                         </div>
                       ))
@@ -565,7 +565,7 @@ export default function Dashboard() {
 
         {/* Panel Content — pb-[130px] ensures content clears MobileQuickStats (~40px) + MobileBottomNav (~62px) + buffer on mobile */}
         <div className="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-x-hidden pb-[130px] md:pb-6">
-          <Suspense fallback={<div className="flex min-h-48 items-center justify-center text-sm text-[#6B6B6B]"><Loader2 className="mr-2 h-5 w-5 animate-spin text-[#D4922A]" />Loading workspace…</div>}>
+          <Suspense fallback={<div className="flex min-h-48 items-center justify-center text-sm text-[var(--muted-foreground)]"><Loader2 className="mr-2 h-5 w-5 animate-spin text-[#D4922A]" />Loading workspace…</div>}>
             <div key={active} className="panel-in">{activePanel}</div>
           </Suspense>
         </div>

@@ -62,7 +62,7 @@ function MobileQuickStats() {
         background: "rgba(22,27,34,0.98)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
-        borderTop: "1px solid #DDDBD7",
+        borderTop: "1px solid var(--border)",
         boxShadow: "0 -4px 20px rgba(0,0,0,0.25)",
       }}
     >
@@ -253,7 +253,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
           background: "rgba(27,45,79,0.98)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
-          borderTop: "1px solid #DDDBD7",
+          borderTop: "1px solid var(--border)",
           boxShadow: "0 -2px 16px rgba(0,0,0,0.25)",
           paddingBottom: "max(env(safe-area-inset-bottom, 0px), 10px)",
           paddingLeft:  "max(env(safe-area-inset-left,   0px), 0px)",

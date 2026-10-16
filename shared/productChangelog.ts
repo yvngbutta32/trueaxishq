@@ -18,10 +18,11 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-16",
-    title: "Soft Studio visual recalibration — zero glare across every page",
+    title: "Paper Medium theme + optional dark mode — comfortable in any light",
     tag: "Platform",
-    description: "We audited every screen for eye comfort and removed every pure-white surface in the product. Large fields now sit in a restful warm-neutral band (no luminance spikes), text stays near-black so contrast actually improves as backgrounds soften, form inputs, cards, modals, and the booking flow all use one consistent off-white tone, and focus borders were tuned to keep structure readable at the lower brightness. Same information, same speed — just kinder on your eyes through a long day.",
+    description: "We rebuilt the entire color system so no surface in the product is pure white. The new default, Paper Medium, sits in a restful warm ivory band — bright enough for sunny job sites, soft enough for a 10-hour day — with deepened borders so cards and forms stay crisp, and text contrast that actually improves as backgrounds soften (all text passes WCAG AA, most well beyond). Every one of the 2,700+ hard-coded colors across the app now flows through one design-token system. And if you prefer working at night: a one-tap dark mode (warm charcoal, never black) is available from any page, remembers your choice, and never flashes the wrong theme on load.",
   },
+
 
   {
     date: "2026-10-09",

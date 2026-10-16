@@ -70,22 +70,22 @@ export default function TrackVisit() {
     : null;
 
   return (
-    <main className="min-h-screen bg-[#F7F6F3] px-4 py-8">
+    <main className="min-h-screen bg-[var(--background)] px-4 py-8">
       <div className="mx-auto max-w-lg space-y-4">
         {loading && !data ? (
-          <div className="rounded-2xl border border-[rgba(26,26,26,0.08)] bg-white p-10 text-center">
+          <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
             <Loader2 className="mx-auto h-7 w-7 animate-spin text-[#D4922A]" />
-            <p className="mt-3 text-sm text-[rgba(26,26,26,0.6)]">Checking this tracking link…</p>
+            <p className="mt-3 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Checking this tracking link…</p>
           </div>
         ) : error === "not_found" ? (
-          <div className="rounded-2xl border border-[rgba(26,26,26,0.08)] bg-white p-10 text-center">
-            <MapPin className="mx-auto h-8 w-8 text-[rgba(26,26,26,0.3)]" />
-            <h1 className="mt-3 text-lg font-bold text-[#1A1A1A]">This link is no longer active</h1>
-            <p className="mt-2 text-sm text-[rgba(26,26,26,0.6)]">Tracking links expire automatically shortly after they are shared, and end as soon as the visit arrives. Ask the business for a fresh link if you still need one.</p>
+          <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
+            <MapPin className="mx-auto h-8 w-8 text-[color-mix(in oklab, var(--foreground) 30%, transparent)]" />
+            <h1 className="mt-3 text-lg font-bold text-[var(--foreground)]">This link is no longer active</h1>
+            <p className="mt-2 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Tracking links expire automatically shortly after they are shared, and end as soon as the visit arrives. Ask the business for a fresh link if you still need one.</p>
           </div>
         ) : error === "unavailable" && !data ? (
-          <div className="rounded-2xl border border-[rgba(26,26,26,0.08)] bg-white p-10 text-center">
-            <p className="text-sm text-[rgba(26,26,26,0.6)]">Tracking is temporarily unavailable. This page will keep retrying.</p>
+          <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
+            <p className="text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Tracking is temporarily unavailable. This page will keep retrying.</p>
           </div>
         ) : data ? (
           <>
@@ -109,38 +109,38 @@ export default function TrackVisit() {
               </section>
             ) : enRoute ? (
               <>
-                <section className="rounded-2xl border border-[rgba(26,26,26,0.08)] bg-white p-5">
+                <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
                   <div className="flex items-center gap-3">
                     <span className="relative flex h-3 w-3"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-60" /><span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500" /></span>
-                    <h2 className="text-sm font-bold text-[#1A1A1A]">En route to you now</h2>
+                    <h2 className="text-sm font-bold text-[var(--foreground)]">En route to you now</h2>
                   </div>
                   {position ? (
                     <>
-                      <p className="mt-2 text-xs text-[rgba(26,26,26,0.6)]">Last position {lastUpdate ? `at ${lastUpdate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}` : "recently"}{position.accuracyMeters != null ? ` (±${Math.round(position.accuracyMeters)} m)` : ""}. Updates automatically.</p>
-                      <div className="mt-3 overflow-hidden rounded-xl border border-[rgba(26,26,26,0.1)]">
+                      <p className="mt-2 text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Last position {lastUpdate ? `at ${lastUpdate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}` : "recently"}{position.accuracyMeters != null ? ` (±${Math.round(position.accuracyMeters)} m)` : ""}. Updates automatically.</p>
+                      <div className="mt-3 overflow-hidden rounded-xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)]">
                         <iframe title="Live position map" src={mapSrc ?? ""} className="h-64 w-full" loading="lazy" referrerPolicy="no-referrer" />
                       </div>
-                      <p className="mt-2 text-[10px] text-[rgba(26,26,26,0.42)]">Map © OpenStreetMap contributors</p>
+                      <p className="mt-2 text-[10px] text-[color-mix(in oklab, var(--foreground) 42%, transparent)]">Map © OpenStreetMap contributors</p>
                     </>
                   ) : (
-                    <p className="mt-2 text-xs text-[rgba(26,26,26,0.6)]">The position will appear here as soon as the vehicle reports it. This page updates automatically.</p>
+                    <p className="mt-2 text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">The position will appear here as soon as the vehicle reports it. This page updates automatically.</p>
                   )}
                 </section>
-                <p className="flex items-start gap-2 px-1 text-xs text-[rgba(26,26,26,0.52)]">
+                <p className="flex items-start gap-2 px-1 text-xs text-[color-mix(in oklab, var(--foreground) 52%, transparent)]">
                   <CarFront className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#D4922A]" />
                   This link shows only this visit's progress. It was shared with you directly by the business, expires on its own, and shows no address or contact details.
                 </p>
               </>
             ) : (
-              <section className="rounded-2xl border border-[rgba(26,26,26,0.08)] bg-white p-6 text-center">
+              <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-6 text-center">
                 <Loader2 className="mx-auto h-7 w-7 animate-spin text-[#D4922A]" />
-                <p className="mt-3 text-sm text-[rgba(26,26,26,0.6)]">Waiting for the visit to start. This page updates automatically.</p>
+                <p className="mt-3 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Waiting for the visit to start. This page updates automatically.</p>
               </section>
             )}
           </>
         ) : null}
 
-        <p className="flex items-center justify-center gap-1.5 pt-2 text-[10px] text-[rgba(26,26,26,0.4)]">
+        <p className="flex items-center justify-center gap-1.5 pt-2 text-[10px] text-[color-mix(in oklab, var(--foreground) 40%, transparent)]">
           <ShieldCheck className="h-3.5 w-3.5" /> Consent-based sharing — powered by TrueAxis
         </p>
       </div>

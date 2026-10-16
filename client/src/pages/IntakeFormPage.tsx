@@ -131,19 +131,19 @@ export default function IntakeFormPage() {
           <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-emerald-400" />
           </div>
-          <h1 className="text-2xl font-bold text-[#1A1A1A] mb-2">Thank you!</h1>
-          <p className="text-sm text-[rgba(26,26,26,0.55)] mb-6">
+          <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">Thank you!</h1>
+          <p className="text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] mb-6">
             Your response has been recorded. Keep this page open if you would like to continue to the next available step.
           </p>
           {bookingUrl && (
-            <div className="bg-white border border-[#DDDBD7] rounded-2xl p-5 text-left">
+            <div className="bg-white border border-[var(--border)] rounded-2xl p-5 text-left">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-9 h-9 rounded-xl bg-[#D4922A]/15 flex items-center justify-center flex-shrink-0">
                   <CalendarDays className="w-4.5 h-4.5 text-[#D4922A]" />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm text-[#1A1A1A]">Ready to book a session?</p>
-                  <p className="text-xs text-[rgba(26,26,26,0.55)]">
+                  <p className="font-semibold text-sm text-[var(--foreground)]">Ready to book a session?</p>
+                  <p className="text-xs text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">
                     {formData?.hostName ? `Schedule time with ${formData.hostName}` : "Choose a time that works for you"}
                   </p>
                 </div>
@@ -185,13 +185,13 @@ export default function IntakeFormPage() {
           <div className="w-12 h-12 rounded-2xl bg-[#D4922A]/15 flex items-center justify-center mx-auto mb-4">
             <ClipboardList className="w-6 h-6 text-[#D4922A]" />
           </div>
-          <h1 className="text-2xl font-bold text-[#1A1A1A]">{formData.name}</h1>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">{formData.name}</h1>
           {formData.description && (
-            <p className="text-sm text-[rgba(26,26,26,0.55)] mt-2">{formData.description}</p>
+            <p className="text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] mt-2">{formData.description}</p>
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[#DDDBD7] p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[var(--border)] p-6 space-y-5">
           {fieldErrors._form && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-sm text-red-400">{fieldErrors._form}</div>
           )}
@@ -199,7 +199,7 @@ export default function IntakeFormPage() {
           {/* Respondent info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">Your Name *</label>
+              <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5">Your Name *</label>
               <input
                 value={respondentName}
                 onChange={e => setRespondentName(e.target.value)}
@@ -209,7 +209,7 @@ export default function IntakeFormPage() {
               {fieldErrors._name && <p className="text-[10px] text-red-400 mt-1">{fieldErrors._name}</p>}
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">Email (optional)</label>
+              <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5">Email (optional)</label>
               <input
                 type="email"
                 value={respondentEmail}
@@ -223,7 +223,7 @@ export default function IntakeFormPage() {
           {/* Dynamic fields */}
           {parsedFields.map(field => (
             <div key={field.id}>
-              <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-1.5">
+              <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-1.5">
                 {field.label}{field.required && <span className="text-red-400 ml-0.5">*</span>}
               </label>
               {field.type === "textarea" ? (
@@ -252,7 +252,7 @@ export default function IntakeFormPage() {
                     onChange={e => setAnswers(prev => ({ ...prev, [field.id]: e.target.checked ? "true" : "false" }))}
                     className="w-4 h-4 rounded"
                   />
-                  <span className="text-sm text-[rgba(26,26,26,0.7)]">{field.placeholder || field.label}</span>
+                  <span className="text-sm text-[color-mix(in oklab, var(--foreground) 70%, transparent)]">{field.placeholder || field.label}</span>
                 </label>
               ) : (
                 <input
@@ -268,17 +268,17 @@ export default function IntakeFormPage() {
           ))}
 
           {/* ─── Estimate Photo Upload ─────────────────────────────── */}
-          <div className="border-t border-[#DDDBD7] pt-5">
-            <label className="block text-xs font-semibold text-[rgba(26,26,26,0.6)] mb-2">
-              Estimate Photos <span className="font-normal text-[rgba(26,26,26,0.4)]">(optional — up to 5)</span>
+          <div className="border-t border-[var(--border)] pt-5">
+            <label className="block text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)] mb-2">
+              Estimate Photos <span className="font-normal text-[color-mix(in oklab, var(--foreground) 40%, transparent)]">(optional — up to 5)</span>
             </label>
-            <p className="text-xs text-[rgba(26,26,26,0.45)] mb-3">
+            <p className="text-xs text-[color-mix(in oklab, var(--foreground) 45%, transparent)] mb-3">
               Upload photos of the work area or materials to help with your estimate.
             </p>
             {estimatePhotos.length > 0 && (
               <div className="grid grid-cols-3 gap-2 mb-3">
                 {estimatePhotos.map(photo => (
-                  <div key={photo.key} className="relative group aspect-square rounded-xl overflow-hidden border border-[#DDDBD7]">
+                  <div key={photo.key} className="relative group aspect-square rounded-xl overflow-hidden border border-[var(--border)]">
                     <img src={photo.previewUrl} alt={photo.name} className="w-full h-full object-cover" />
                     <button type="button" aria-label={`Remove photo ${photo.name}`} onClick={() => setEstimatePhotos(prev => prev.filter(p => p.key !== photo.key))}
                       className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -293,16 +293,16 @@ export default function IntakeFormPage() {
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                 <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
                 <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingPhoto}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#DDDBD7] bg-[#F7F6F3] text-xs text-[rgba(26,26,26,0.6)] hover:bg-[#EEECEA] transition-colors disabled:opacity-50">
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)] hover:bg-[var(--muted)] transition-colors disabled:opacity-50">
                   <Upload className="w-3.5 h-3.5" />{uploadingPhoto ? "Uploading…" : "Upload Photo"}
                 </button>
                 <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={uploadingPhoto}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#DDDBD7] bg-[#F7F6F3] text-xs text-[rgba(26,26,26,0.6)] hover:bg-[#EEECEA] transition-colors disabled:opacity-50">
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)] hover:bg-[var(--muted)] transition-colors disabled:opacity-50">
                   <Camera className="w-3.5 h-3.5" />Take Photo
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 text-xs text-[rgba(26,26,26,0.45)]">
+              <div className="flex items-center gap-1.5 text-xs text-[color-mix(in oklab, var(--foreground) 45%, transparent)]">
                 <ImageIcon className="w-3.5 h-3.5" />Maximum 5 photos reached
               </div>
             )}
@@ -317,7 +317,7 @@ export default function IntakeFormPage() {
           </Button>
         </form>
 
-        <p className="text-center text-xs text-[rgba(26,26,26,0.25)] mt-4">
+        <p className="text-center text-xs text-[color-mix(in oklab, var(--foreground) 25%, transparent)] mt-4">
           Powered by TrueAxis HQ
         </p>
       </div>
