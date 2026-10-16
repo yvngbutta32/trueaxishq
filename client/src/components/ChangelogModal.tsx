@@ -10,6 +10,12 @@ const STORAGE_KEY = `trueaxis_changelog_seen_${CURRENT_VERSION}`;
 
 const CHANGELOG = [
   {
+    icon: Bell,
+    color: "#D4922A",
+    title: "Fair-Use SMS Meter",
+    desc: "Bundled SMS (50/500/2,000/5,000 by plan) is now counted live. See your monthly usage in Integration Hub → SMS.",
+  },
+  {
     icon: Zap,
     color: "#10B981",
     title: "Touch & Type Polish",

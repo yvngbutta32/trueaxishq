@@ -70,6 +70,71 @@ describe("bundled SMS fair-use metering", () => {
     expect(jobs.includes("sendMeteredSms")).toBe(true);
   });
 
+  it("contract: refusal is cost-based — console mode is never refused, never metered", () => {
+    const meter = source("./_core/smsMeter.ts");
+    const fn = meter.slice(meter.indexOf("export async function sendMeteredSms"));
+    // configured check runs FIRST; unconfigured returns before any refusal or insert
+    const configuredIdx = fn.indexOf("getSmsDeliveryStatus()");
+    const refuseIdx = fn.indexOf("decideSmsAllowance");
+    const insertIdx = fn.indexOf("db.insert(smsSends)");
+    expect(configuredIdx).toBeGreaterThan(-1);
+    expect(configuredIdx).toBeLessThan(refuseIdx);
+    expect(refuseIdx).toBeLessThan(insertIdx);
+    // the unconfigured branch returns before any refusal or insert
+    const consoleBranch = fn.indexOf("if (!configured) {");
+    const consoleReturn = fn.indexOf("return {", consoleBranch);
+    expect(consoleBranch).toBeGreaterThan(-1);
+    expect(consoleReturn).toBeGreaterThan(consoleBranch);
+    expect(consoleReturn).toBeLessThan(refuseIdx);
+  });
+
+  it("contract: refused sends never reach Twilio and are never recorded", () => {
+    const meter = source("./_core/smsMeter.ts");
+    const fn = meter.slice(meter.indexOf("export async function sendMeteredSms"));
+    // refusal returns before sendSms is called: no bill, no row
+    const refuseReturnIdx = fn.indexOf("allowanceExceeded: true");
+    const sendCallIdx = fn.indexOf("await sendSms(payload);", refuseReturnIdx);
+    expect(refuseReturnIdx).toBeGreaterThan(-1);
+    expect(sendCallIdx).toBeGreaterThan(refuseReturnIdx);
+    // and exactly one sendSms call site exists after the refusal block
+    expect(fn.indexOf("await sendSms(payload);", sendCallIdx + 1)).toBe(-1);
+    expect(fn).toContain("smsUpgradeMessage(overview.smsIncluded)");
+  });
+
+  it("contract: only ACCEPTED sends are metered — a Twilio rejection leaves no row", () => {
+    const meter = source("./_core/smsMeter.ts");
+    const fn = meter.slice(meter.indexOf("export async function sendMeteredSms"));
+    const rejectIdx = fn.indexOf("wasSmsAcceptedByConfiguredTwilio(result)");
+    const insertIdx = fn.indexOf("db.insert(smsSends)");
+    expect(rejectIdx).toBeGreaterThan(-1);
+    expect(rejectIdx).toBeLessThan(insertIdx);
+    // the rejection branch returns without inserting
+    const rejectReturn = fn.indexOf("allowanceExceeded: false, ...overview };", rejectIdx);
+    expect(rejectReturn).toBeGreaterThan(rejectIdx);
+    expect(rejectReturn).toBeLessThan(insertIdx);
+  });
+
+  it("contract: an accepted send records exactly one row of userId + kind — nothing else", () => {
+    const meter = source("./_core/smsMeter.ts");
+    const insertLine = meter.match(/db\.insert\(smsSends\)\.values\(\{[^}]*\}\)/);
+    expect(insertLine).toBeTruthy();
+    expect(insertLine![0]).toContain("userId");
+    expect(insertLine![0]).toContain("kind");
+    expect(insertLine![0]).not.toMatch(/body|to:|phone/i);
+  });
+
+  it("contract: the allowance resets on the UTC calendar month boundary", () => {
+    const meter = source("./_core/smsMeter.ts");
+    expect(meter).toContain("setUTCDate(1)");
+    expect(meter).toContain("setUTCHours(0, 0, 0, 0)");
+  });
+
+  it("contract: SMS login codes are the one exemption and never touch the meter", () => {
+    const smsLogin = source("./_core/smsLogin.ts");
+    expect(smsLogin).not.toContain("sendMeteredSms");
+    expect(smsLogin).not.toContain("smsSends");
+  });
+
   it("contract: smsSends table stores no message bodies or recipient numbers (privacy)", () => {
     const schema = source("../drizzle/schema.ts");
     const tableMatch = schema.match(/export const smsSends = mysqlTable\("smsSends", \{[^}]*\}/);
