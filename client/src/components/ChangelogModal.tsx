@@ -5,10 +5,16 @@ import { useEffect, useState } from "react";
 import { X, Sparkles, Clock, RefreshCw, FileSignature, Bell, Shield, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const CURRENT_VERSION = "1.4.0";
+const CURRENT_VERSION = "1.4.1";
 const STORAGE_KEY = `trueaxis_changelog_seen_${CURRENT_VERSION}`;
 
 const CHANGELOG = [
+  {
+    icon: Zap,
+    color: "#10B981",
+    title: "Touch & Type Polish",
+    desc: "Every button now meets 24px+ tap standards, AI suggestions wrap cleanly on small screens, and footer links got roomier.",
+  },
   {
     icon: FileSignature,
     color: "#6366F1",

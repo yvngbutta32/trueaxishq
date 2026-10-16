@@ -509,6 +509,36 @@
     box-shadow: 0 2px 8px rgba(212,146,42,0.15);
   }
 
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.5rem;
+    background: transparent;
+    color: color-mix(in oklab, var(--foreground) 82%, transparent);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: -0.01em;
+    border-radius: 0.5rem;
+    border: 1.5px solid color-mix(in oklab, var(--foreground) 16%, transparent);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn-ghost:hover {
+    background: var(--muted);
+    border-color: color-mix(in oklab, var(--foreground) 28%, transparent);
+  }
+
+  /* Extends the clickable area of small icon-only controls without moving layout.
+     .tap-target forces a positioning context (use for static controls);
+     .tap-target-abs is for controls that already set their own position (e.g. absolute). */
+  .tap-target { position: relative; }
+  .tap-target::after, .tap-target-abs::after { content: ""; position: absolute; inset: -6px; }
+
   .btn-outline-navy {
     display: inline-flex;
     align-items: center;

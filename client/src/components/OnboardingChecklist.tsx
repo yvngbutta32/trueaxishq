@@ -124,10 +124,10 @@ export function OnboardingChecklist({ onNavigate }: Props) {
         <button
           type="button"
           onClick={dismiss}
-          className="ml-2 p-1 rounded-lg hover:bg-[var(--muted)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A]"
+          className="ml-2 tap-target p-1.5 rounded-lg hover:bg-[var(--muted)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4922A]"
           aria-label="Dismiss checklist"
         >
-          <X className="w-3.5 h-3.5 text-[color-mix(in oklab, var(--foreground) 65%, transparent)]" />
+          <X className="w-4 h-4 text-[color-mix(in oklab, var(--foreground) 65%, transparent)]" />
         </button>
       </div>
 
@@ -173,7 +173,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
                 {step.panel && !done && (
                   <button
                     onClick={() => onNavigate(step.panel!)}
-                    className="text-xs text-[#D4922A] font-semibold hover:underline flex-shrink-0 mt-0.5"
+                    className="py-1.5 text-xs text-[#D4922A] font-semibold hover:underline flex-shrink-0 mt-0.5"
                   >
                     Go →
                   </button>

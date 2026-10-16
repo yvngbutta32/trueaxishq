@@ -850,7 +850,7 @@ export default function Admin() {
                         <button
                           type="button"
                           onClick={() => setCpShowCurrent(v => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgba(245,239,227,0.40)] hover:text-[rgba(245,239,227,0.60)]"
+                          className="tap-target-abs absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[rgba(245,239,227,0.40)] hover:text-[rgba(245,239,227,0.60)]"
                           aria-label={cpShowCurrent ? "Hide password" : "Show password"}
                         >
                           {cpShowCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -871,7 +871,7 @@ export default function Admin() {
                         <button
                           type="button"
                           onClick={() => setCpShowNew(v => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgba(245,239,227,0.40)] hover:text-[rgba(245,239,227,0.60)]"
+                          className="tap-target-abs absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[rgba(245,239,227,0.40)] hover:text-[rgba(245,239,227,0.60)]"
                           aria-label={cpShowNew ? "Hide password" : "Show password"}
                         >
                           {cpShowNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

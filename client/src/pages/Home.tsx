@@ -343,7 +343,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
                 key={l.label}
                 onClick={() => handleLink(l.href)}
                 className="animated-underline text-sm font-medium"
-                style={{ color: scrolled ? "rgba(255,255,255,0.80)" : "color-mix(in oklab, var(--foreground) 65%, transparent)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
+                style={{ color: scrolled ? "rgba(255,255,255,0.80)" : "color-mix(in oklab, var(--foreground) 65%, transparent)", background: "none", border: "none", minHeight: "auto", minWidth: "auto", padding: "0.625rem 0.25rem" }}
               >
                 {l.label}
               </button>
@@ -356,7 +356,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
             <button
               onClick={() => navigate("/login")}
               className="text-sm font-medium"
-              style={{ color: "color-mix(in oklab, var(--foreground) 50%, transparent)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
+              style={{ color: "color-mix(in oklab, var(--foreground) 50%, transparent)", background: "none", border: "none", minHeight: "auto", minWidth: "auto", padding: "0.625rem 0.25rem" }}
             >
               Sign In
             </button>
@@ -1238,7 +1238,7 @@ function FAQSection() {
           ))}
         </div>
         <p className="text-center text-sm text-[var(--muted-foreground)] mt-10">
-          Still have questions? <a href="/contact" className="text-[#D4922A] hover:underline font-medium">Contact our team →</a>
+          Still have questions? <a href="/contact" className="text-[#D4922A] hover:underline font-medium inline-block py-1">Contact our team →</a>
         </p>
       </div>
     </section>
@@ -1308,7 +1308,7 @@ function Footer() {
                   <li key={l.label}>
                     <button
                       onClick={l.action}
-                      className="text-sm animated-underline"
+                      className="text-sm animated-underline py-1.5"
                       style={{ color: "color-mix(in oklab, var(--foreground) 75%, transparent)", background: "none", border: "none", minHeight: "auto", minWidth: "auto" }}
                     >
                       {l.label}

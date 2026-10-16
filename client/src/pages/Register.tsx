@@ -248,8 +248,8 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:opacity-80"
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "color-mix(in oklab, var(--foreground) 60%, transparent)", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                  className="tap-target-abs absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:opacity-80"
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "color-mix(in oklab, var(--foreground) 60%, transparent)", padding: "0.375rem", minHeight: "auto", minWidth: "auto" }}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

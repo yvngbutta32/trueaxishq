@@ -288,7 +288,7 @@ function InvoicesPanel() {
             {invTab === "invoices" ? `${invoiceList?.length || 0} total invoices` : `${schedules?.length || 0} schedules · ${formatCurrency(estMonthlyRevenue)}/mo est.`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           {invTab === "invoices" ? (
             <>
               <Button size="sm" variant="outline" className="gap-1.5 text-[var(--muted-foreground)] border-[var(--border)]" onClick={exportInvoicesCSV} title="Export all invoices as CSV">
@@ -556,7 +556,7 @@ function InvoicesPanel() {
       <div className="bg-white rounded-xl border border-[var(--border)] overflow-hidden">
         <div className="hidden sm:grid grid-cols-5 gap-4 px-5 py-3 bg-[var(--background)] text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide">
           <div className="col-span-2 flex items-center gap-2">
-            <input type="checkbox" className="rounded w-3.5 h-3.5 accent-[#D4922A] cursor-pointer" checked={filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length} onChange={toggleSelectAll} title="Select all" />
+            <label className="tap-target p-1.5 -m-1.5 cursor-pointer"><input type="checkbox" className="rounded w-4 h-4 accent-[#D4922A] cursor-pointer" checked={filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length} onChange={toggleSelectAll} title="Select all" /></label>
             <span>Client / Service</span>
           </div>
           <span>Amount</span>
@@ -579,7 +579,7 @@ function InvoicesPanel() {
         ) : filteredInvoices.map(inv => (
           <div key={inv.id} className={`flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-t border-[var(--muted)] hover:bg-[var(--background)] transition-colors ${selectedIds.has(inv.id) ? "bg-[#D4922A]/5" : ""}`}>
             <div className="sm:col-span-2 flex items-start gap-2">
-              <input type="checkbox" className="mt-1 rounded w-3.5 h-3.5 accent-[#D4922A] cursor-pointer flex-shrink-0" checked={selectedIds.has(inv.id)} onChange={() => toggleSelect(inv.id)} />
+              <label className="tap-target p-1.5 -m-1.5 cursor-pointer"><input type="checkbox" className="mt-1 rounded w-4 h-4 accent-[#D4922A] cursor-pointer flex-shrink-0" checked={selectedIds.has(inv.id)} onChange={() => toggleSelect(inv.id)} /></label>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-[var(--foreground)] truncate">{inv.clientName}</p>
                 <p className="text-xs text-[var(--muted-foreground)] truncate">{inv.invoiceNumber} · {inv.service || "General Service"}</p>

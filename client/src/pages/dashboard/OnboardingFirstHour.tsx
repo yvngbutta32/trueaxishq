@@ -49,7 +49,7 @@ export default function OnboardingFirstHour({ setActivePanel }: Props) {
           </div>
           <div className="flex items-center gap-2">
             {isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#D4922A]" aria-label="Updating progress" />}
-            <button onClick={hideForSession} className="rounded-lg p-1.5 text-[var(--muted-foreground)] hover:bg-[#F0EEE9]" aria-label="Hide the first-hour checklist (reappears on your next visit until complete)"> <X className="h-4 w-4" /> </button>
+            <button onClick={hideForSession} className="tap-target rounded-lg p-2 text-[var(--muted-foreground)] hover:bg-[#F0EEE9]" aria-label="Hide the first-hour checklist (reappears on your next visit until complete)"> <X className="h-5 w-5" /> </button>
           </div>
         </div>
 
@@ -73,7 +73,7 @@ export default function OnboardingFirstHour({ setActivePanel }: Props) {
               {!step.done && (
                 <button
                   onClick={() => setActivePanel(step.panel as ActivePanel)}
-                  className="shrink-0 rounded-lg border border-[#D4922A]/40 px-2.5 py-1 text-[11px] font-bold text-[#8A5A0B] hover:bg-[#D4922A]/10"
+                  className="shrink-0 rounded-lg border border-[#D4922A]/40 px-3 py-1.5 text-xs font-bold text-[#8A5A0B] hover:bg-[#D4922A]/10"
                 >
                   Do it <span aria-hidden="true">→</span><span className="sr-only">{step.label}</span>
                 </button>

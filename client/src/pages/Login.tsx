@@ -403,7 +403,7 @@ export default function Login() {
                   type="button"
                   onClick={() => navigate("/forgot-password")}
                   className="text-xs font-medium transition-colors hover:opacity-80"
-                  style={{ color: "#D4922A", background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                  style={{ color: "#D4922A", background: "none", border: "none", cursor: "pointer", padding: "0.5rem 0.25rem", minHeight: "auto", minWidth: "auto" }}
                 >
                   Forgot password?
                 </button>
@@ -422,8 +422,8 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:opacity-80"
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "color-mix(in oklab, var(--foreground) 60%, transparent)", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                  className="tap-target-abs absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:opacity-80"
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "color-mix(in oklab, var(--foreground) 60%, transparent)", padding: "0.375rem", minHeight: "auto", minWidth: "auto" }}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -487,7 +487,7 @@ export default function Login() {
             <button
               onClick={() => navigate("/register")}
               className="font-semibold transition-colors hover:opacity-80"
-              style={{ color: "#D4922A", background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: "auto", minWidth: "auto" }}
+              style={{ color: "#D4922A", background: "none", border: "none", cursor: "pointer", padding: "0.5rem 0.25rem", minHeight: "auto", minWidth: "auto" }}
             >
               Request an invite
             </button>

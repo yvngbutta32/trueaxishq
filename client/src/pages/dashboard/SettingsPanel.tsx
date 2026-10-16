@@ -253,7 +253,7 @@ function ChangePasswordSection() {
             <button
               type="button"
               onClick={() => setShowPasswords(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)]"
+              className="tap-target-abs absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)]"
               aria-label={showPasswords ? "Hide passwords" : "Show passwords"}
             >
               {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -581,7 +581,7 @@ function ApiReference() {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-t border-[#EFEEE9] pt-4 space-y-3">
-      <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between text-left" aria-expanded={open}>
+      <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between text-left py-2" aria-expanded={open}>
         <span className="text-xs font-bold text-[var(--foreground)] flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5 text-[#D4922A]" />REST API reference {open ? "—" : "+"}</span>
       </button>
       {open && (
@@ -815,7 +815,7 @@ function SettingsPanel() {
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={avatarUploading}
                 className="text-xs font-semibold text-[#D4922A] hover:underline disabled:opacity-50 transition-opacity"
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "0.5rem 0.25rem", minHeight: "auto", minWidth: "auto" }}
               >
                 {avatarUrl ? "Change photo" : "Upload photo"}
               </button>
@@ -826,7 +826,7 @@ function SettingsPanel() {
                     onClick={handleAvatarRemove}
                     disabled={avatarUploading}
                     className="text-xs font-semibold text-red-400 hover:underline disabled:opacity-50 transition-opacity"
-                    style={{ background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: "auto", minWidth: "auto" }}
+                    style={{ background: "none", border: "none", cursor: "pointer", padding: "0.5rem 0.25rem", minHeight: "auto", minWidth: "auto" }}
                   >
                     Remove
                   </button>
@@ -918,9 +918,9 @@ function SettingsPanel() {
                   placeholder="Deposit $"
                   aria-label={`${s.name} booking deposit in dollars`}
                 />
-                <button type="button" onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.map((service, j) => j === i ? { ...service, active: !service.active } : service) }))} className="text-xs font-semibold text-[#D4922A]" aria-pressed={s.active}>{s.active ? "Live" : "Hidden"}</button>
-                <button onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.filter((_, j) => j !== i) }))} className="text-[var(--muted-foreground)] hover:text-red-500 transition-colors" aria-label={`Remove ${s.name}`}>
-                  <X className="w-3.5 h-3.5" />
+                <button type="button" onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.map((service, j) => j === i ? { ...service, active: !service.active } : service) }))} className="py-1 text-xs font-semibold text-[#D4922A]" aria-pressed={s.active}>{s.active ? "Live" : "Hidden"}</button>
+                <button onClick={() => setBookingPage(p => ({ ...p, bookingServices: p.bookingServices.filter((_, j) => j !== i) }))} className="tap-target p-1 text-[var(--muted-foreground)] hover:text-red-500 transition-colors" aria-label={`Remove ${s.name}`}>
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             ))}
@@ -934,7 +934,7 @@ function SettingsPanel() {
           <button
             type="button"
             onClick={() => setShowPresetServices(p => !p)}
-            className="text-xs text-[#D4922A] hover:text-[#d4901c] font-semibold flex items-center gap-1 mb-2 transition-colors"
+            className="text-xs text-[#D4922A] hover:text-[#d4901c] font-semibold flex items-center gap-1 my-1 py-1.5 transition-colors"
           >
             <Zap className="w-3 h-3" />
             {showPresetServices ? "Hide" : "Browse"} 50+ preset services

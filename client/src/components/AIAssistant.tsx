@@ -405,7 +405,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, panel
   const SuggestedPrompts = () => (
     messages.length === 1 ? (
       <div
-        className="px-4 pb-2 flex gap-2 overflow-x-auto scrollbar-hide"
+        className="px-4 pb-2 flex flex-wrap gap-2"
         onPointerDown={e => e.stopPropagation()}
         style={{ touchAction: "pan-x" }}
       >
@@ -413,7 +413,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, panel
           <button
             key={i}
             onClick={() => sendMessage(p)}
-            className="flex-shrink-0 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-full transition-colors min-h-[36px]"
+            className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-full transition-colors min-h-[36px] max-w-full text-left"
           >
             {p}
           </button>
