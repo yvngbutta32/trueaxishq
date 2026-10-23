@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 
 // Lazy-load pages for better performance and code splitting
 const Home = lazy(() => import("./pages/Home"));
+const AssetScan = lazy(() => import("./pages/AssetScan"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Admin = lazy(() => import("./pages/Admin"));
@@ -85,6 +86,7 @@ function Router() {
         <Route path="/pay/:token" component={PublicInvoicePayment} />
         <Route path="/success" component={CheckoutSuccess} />
         <Route path="/staff-access" component={StaffAccess} />
+        <Route path="/asset/:token" component={AssetScan} />
 
         {/* Authenticated user routes */}
         <Route path="/dashboard"><OwnerWorkspaceRoute><Dashboard /></OwnerWorkspaceRoute></Route>

@@ -30,7 +30,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions, stripeAccounts, voiceSettings, voiceCalls, voiceLines } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions, stripeAccounts, voiceSettings, voiceCalls, voiceLines, assetServiceRequests } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, revokeAllSessionsForUser, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -839,6 +839,14 @@ const agencyRouter = router({
       return { success: true };
     }),
 });
+
+
+// Public QR check-in URL for an asset label. SITE_ORIGIN is the deployment's
+// public origin (set at deploy time); localhost allowed only in dev/test boots.
+const assetScanUrl = (token: string) => {
+  const origin = process.env.SITE_ORIGIN || process.env.VITE_SITE_URL || "";
+  return `${origin}/asset/${token}`;
+};
 
 export const appRouter = router({
   voice: voiceRouter,
@@ -1842,6 +1850,91 @@ export const appRouter = router({
         const result = await db.update(customerAssets).set({ active: input.active, updatedAt: new Date() })
           .where(and(eq(customerAssets.id, input.id), eq(customerAssets.userId, ctx.user.id)));
         if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Customer asset not found." });
+        return { success: true };
+      }),
+    // ── QR check-in labels (ServiceM8's signature feature) ──────────────────
+    // Tokens are minted lazily the first time an owner asks for a label, so
+    // existing assets need no backfill and only labeled assets are public.
+    ensureScanToken: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [asset] = await db.select().from(customerAssets)
+          .where(and(eq(customerAssets.id, input.id), eq(customerAssets.userId, ctx.user.id))).limit(1);
+        if (!asset) throw new TRPCError({ code: "NOT_FOUND", message: "Customer asset not found." });
+        if (asset.scanToken) return { token: asset.scanToken, scanUrl: assetScanUrl(asset.scanToken) };
+        // Unique by construction (64-hex from CSPRNG); retry on the (astronomically unlikely) collision.
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const token = randomBytes(32).toString("hex");
+          const minted = await db.update(customerAssets).set({ scanToken: token, updatedAt: new Date() })
+            .where(and(eq(customerAssets.id, asset.id), isNull(customerAssets.scanToken)));
+          if (minted[0].affectedRows) return { token, scanUrl: assetScanUrl(token) };
+          const [again] = await db.select().from(customerAssets).where(eq(customerAssets.id, asset.id)).limit(1);
+          if (again?.scanToken) return { token: again.scanToken, scanUrl: assetScanUrl(again.scanToken) };
+        }
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not create a label token. Try again." });
+      }),
+    // QR label image for printing — mints the token on first print so owners
+    // never see a "create it first" step, then renders the scannable PNG.
+    labelQr: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), size: z.number().int().min(120).max(600).default(320) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [asset] = await db.select().from(customerAssets)
+          .where(and(eq(customerAssets.id, input.id), eq(customerAssets.userId, ctx.user.id))).limit(1);
+        if (!asset) throw new TRPCError({ code: "NOT_FOUND", message: "Customer asset not found." });
+        let scanToken = asset.scanToken;
+        if (!scanToken) {
+          for (let attempt = 0; attempt < 3 && !scanToken; attempt++) {
+            const token = randomBytes(32).toString("hex");
+            const minted = await db.update(customerAssets).set({ scanToken: token, updatedAt: new Date() })
+              .where(and(eq(customerAssets.id, asset.id), isNull(customerAssets.scanToken)));
+            if (minted[0].affectedRows) scanToken = token;
+          }
+          if (!scanToken) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not create the label. Try again." });
+        }
+        const dataUrl = await QRCode.toDataURL(assetScanUrl(scanToken), { width: input.size, margin: 2 });
+        return { dataUrl, scanUrl: assetScanUrl(scanToken) };
+      }),
+    scanStats: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [asset] = await db.select({ id: customerAssets.id, lastScanAt: customerAssets.lastScanAt, scanToken: customerAssets.scanToken })
+          .from(customerAssets).where(and(eq(customerAssets.id, input.id), eq(customerAssets.userId, ctx.user.id))).limit(1);
+        if (!asset) throw new TRPCError({ code: "NOT_FOUND", message: "Customer asset not found." });
+        return { hasLabel: Boolean(asset.scanToken), lastScanAt: asset.lastScanAt };
+      }),
+    // ── Owner queue: service requests from QR scans ─────────────────────────
+    serviceRequests: protectedProcedure
+      .input(z.object({ handled: z.boolean().optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const openOnly = input?.handled !== true;
+        const rows = await db.select({
+          id: assetServiceRequests.id,
+          name: assetServiceRequests.name,
+          phone: assetServiceRequests.phone,
+          message: assetServiceRequests.message,
+          handled: assetServiceRequests.handled,
+          createdAt: assetServiceRequests.createdAt,
+          assetId: assetServiceRequests.assetId,
+          assetName: customerAssets.name,
+          assetTag: customerAssets.assetTag,
+        }).from(assetServiceRequests)
+          .leftJoin(customerAssets, eq(customerAssets.id, assetServiceRequests.assetId))
+          .where(and(eq(assetServiceRequests.userId, ctx.user.id), openOnly ? eq(assetServiceRequests.handled, false) : sql`true`))
+          .orderBy(desc(assetServiceRequests.createdAt))
+          .limit(100);
+        return rows;
+      }),
+    resolveServiceRequest: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), handled: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const result = await db.update(assetServiceRequests).set({ handled: input.handled })
+          .where(and(eq(assetServiceRequests.id, input.id), eq(assetServiceRequests.userId, ctx.user.id)));
+        if (!result[0].affectedRows) throw new TRPCError({ code: "NOT_FOUND", message: "Service request not found." });
         return { success: true };
       }),
     serviceHistory: protectedProcedure

@@ -135,6 +135,9 @@ export const customerAssets = mysqlTable("customerAssets", {
   clientId: int("clientId").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   assetTag: varchar("assetTag", { length: 128 }),
+  // QR label token (lazy: minted when the owner first prints a label).
+  scanToken: varchar("scanToken", { length: 64 }).unique(),
+  lastScanAt: timestamp("lastScanAt"),
   functionalLocation: varchar("functionalLocation", { length: 255 }),
   notes: text("notes"),
   active: boolean("active").default(true).notNull(),
@@ -144,6 +147,25 @@ export const customerAssets = mysqlTable("customerAssets", {
   index("customerAssets_owner_client_idx").on(t.userId, t.clientId),
   index("customerAssets_owner_active_idx").on(t.userId, t.active),
 ]);
+
+// ─── Asset service requests (public QR scan → owner queue) ──────────────────
+// Created when a customer scans an asset's QR label and asks for service.
+// Per-owner by construction; the public API never exposes who else scanned.
+export const assetServiceRequests = mysqlTable("assetServiceRequests", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  assetId: int("assetId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  message: text("message").notNull(),
+  handled: boolean("handled").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("assetServiceRequests_owner_created_idx").on(t.userId, t.createdAt),
+  index("assetServiceRequests_owner_open_idx").on(t.userId, t.handled),
+]);
+export type AssetServiceRequest = typeof assetServiceRequests.$inferSelect;
+export type InsertAssetServiceRequest = typeof assetServiceRequests.$inferInsert;
 
 export type CustomerAsset = typeof customerAssets.$inferSelect;
 export type InsertCustomerAsset = typeof customerAssets.$inferInsert;

@@ -17,7 +17,8 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { and, desc, eq, isNull, like, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "./db";
-import { userApiKeys, clients, jobs, invoices, proposals, serviceVisits, serviceVisitTrackLinks, users, jobSubcontractors, jobSubcontractorNotes, jobActivities } from "../drizzle/schema";
+import { userApiKeys, clients, jobs, invoices, proposals, serviceVisits, serviceVisitTrackLinks, users, jobSubcontractors, jobSubcontractorNotes, jobActivities, customerAssets, assetServiceRequests, auditLogs } from "../drizzle/schema";
+import { sendPushToUser } from "./_core/push";
 
 export const publicApiRouter = Router();
 
@@ -418,4 +419,100 @@ subApiRouter.post("/:token", async (req: Request, res: Response) => {
     return;
   }
   res.status(400).json({ error: { code: "bad_request", message: "That action isn't available for this job link right now." } });
+});
+
+// ── QR asset check-in (public, token-gated) ──────────────────────────────────
+// ServiceM8's signature feature, done our way: a scannable label on customer
+// equipment. Scanning opens a public page with the asset's identity and
+// service history summary, and lets the customer request service for that
+// exact asset. Security mirrors the subcontractor link: 64-hex token, no
+// account, no enumeration (unknown/inactive/revoked all 404), rate-limited.
+// Projection is deliberately narrow: business name, asset name/tag/location,
+// last service date and count. NEVER the asset notes, client name, client
+// contact details, or anything that identifies other customers.
+export const assetApiRouter = Router();
+
+const ASSET_TOKEN_RE = /^[0-9a-f]{64}$/;
+const ASSET_RATE_LIMIT_MAX = 30;
+const ASSET_RATE_LIMIT_WINDOW_MS = 60_000;
+const assetHits = new Map<string, number[]>();
+const assetRateLimited = (key: string) => {
+  const now = Date.now();
+  const hits = (assetHits.get(key) ?? []).filter(t => now - t < ASSET_RATE_LIMIT_WINDOW_MS);
+  hits.push(now);
+  assetHits.set(key, hits.slice(-ASSET_RATE_LIMIT_MAX * 4));
+  return hits.length > ASSET_RATE_LIMIT_MAX;
+};
+
+const loadAssetByToken = async (db: NonNullable<Awaited<ReturnType<typeof getDb>>>, rawToken: string) => {
+  if (!ASSET_TOKEN_RE.test(rawToken)) return null;
+  const [asset] = await db.select().from(customerAssets)
+    .where(eq(customerAssets.scanToken, rawToken)).limit(1);
+  // Inactive assets answer 404 too: a deactivated label must stop working.
+  if (!asset || !asset.active) return null;
+  return asset;
+};
+
+assetApiRouter.get("/:token", async (req: Request, res: Response) => {
+  const ip = req.ip ?? "unknown";
+  if (assetRateLimited(`get:${ip}`)) {
+    res.status(429).json({ error: { code: "rate_limited", message: "Too many requests. Try again in a minute." } });
+    return;
+  }
+  const db = await getDb();
+  if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Asset link temporarily unavailable." } }); return; }
+  const asset = await loadAssetByToken(db, String(req.params.token ?? ""));
+  if (!asset) { res.status(404).json({ error: { code: "not_found", message: "This asset label is no longer active." } }); return; }
+  const [owner] = await db.select({ businessName: users.businessName, phone: users.phone }).from(users).where(eq(users.id, asset.userId)).limit(1);
+  const history = await db.select({ status: jobs.status, completedAt: jobs.completedAt, updatedAt: jobs.updatedAt })
+    .from(jobs)
+    .where(and(eq(jobs.userId, asset.userId), eq(jobs.clientId, asset.clientId), eq(jobs.customerAssetId, asset.id)))
+    .orderBy(desc(jobs.updatedAt))
+    .limit(50);
+  const services = history.filter(h => h.status === "completed").length;
+  const lastServiceAt = history.find(h => h.status === "completed")?.completedAt ?? null;
+  // Throttled scan-stamp (like sub lastViewedAt): cheap analytics, no PII.
+  if (!asset.lastScanAt || Date.now() - asset.lastScanAt.getTime() > 60_000) {
+    await db.update(customerAssets).set({ lastScanAt: new Date() }).where(eq(customerAssets.id, asset.id));
+  }
+  res.json({
+    data: {
+      businessName: owner?.businessName || null,
+      businessPhone: owner?.phone || null,
+      assetName: asset.name,
+      assetTag: asset.assetTag || null,
+      functionalLocation: asset.functionalLocation || null,
+      servicesCompleted: services,
+      lastServiceAt,
+    },
+  });
+});
+
+const ASSET_REQ_PHONE_RE = /^\+?[0-9 \-()]{7,20}$/;
+assetApiRouter.post("/:token", async (req: Request, res: Response) => {
+  const ip = req.ip ?? "unknown";
+  if (assetRateLimited(`post:${ip}`)) {
+    res.status(429).json({ error: { code: "rate_limited", message: "Too many requests. Try again in a minute." } });
+    return;
+  }
+  const db = await getDb();
+  if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Asset link temporarily unavailable." } }); return; }
+  const asset = await loadAssetByToken(db, String(req.params.token ?? ""));
+  if (!asset) { res.status(404).json({ error: { code: "not_found", message: "This asset label is no longer active." } }); return; }
+  const name = typeof req.body?.name === "string" ? req.body.name.trim().slice(0, 255) : "";
+  const phone = typeof req.body?.phone === "string" ? req.body.phone.trim().slice(0, 32) : "";
+  const message = typeof req.body?.message === "string" ? req.body.message.trim().slice(0, 2000) : "";
+  if (name.length < 2) { res.status(400).json({ error: { code: "bad_request", message: "Please enter your name." } }); return; }
+  if (!ASSET_REQ_PHONE_RE.test(phone)) { res.status(400).json({ error: { code: "bad_request", message: "Please enter a valid phone number." } }); return; }
+  if (message.length < 2) { res.status(400).json({ error: { code: "bad_request", message: "Tell us what you need serviced." } }); return; }
+  const [created] = await db.insert(assetServiceRequests).values({
+    userId: asset.userId, assetId: asset.id, name, phone, message,
+  });
+  await db.insert(auditLogs).values({
+    userId: asset.userId, action: "asset.qr.request", entityType: "assetServiceRequest", entityId: Number(created?.insertId ?? 0),
+    details: JSON.stringify({ assetId: asset.id, assetName: asset.name }),
+  });
+  // Fire-and-forget owner notification (never blocks the customer).
+  void sendPushToUser(asset.userId, "Service request from a QR label", `${name} asked about ${asset.name}.`, "/jobs").catch(() => {});
+  res.status(201).json({ data: { status: "received" } });
 });

@@ -16,7 +16,7 @@ import { icalRouter } from "../icalExport";
 import { startBackgroundJobs, stopBackgroundJobs } from "../backgroundJobs";
 import { invoicePdfRouter } from "../invoicePdf";
 import { verifyGoogleOAuthState } from "../googleOAuthState";
-import { publicApiRouter, trackApiRouter, subApiRouter } from "../publicApi";
+import { publicApiRouter, trackApiRouter, subApiRouter, assetApiRouter } from "../publicApi";
 import { voiceApiRouter } from "../voiceApi";
 import { assertSessionSecretConfigured } from "../auth";
 import { recordRequest, normalizeRequestLabel } from "./metrics";
@@ -92,6 +92,7 @@ async function startServer() {
   app.use("/api/v1", publicApiRouter);
   app.use("/api/track", trackApiRouter);
   app.use("/api/sub", subApiRouter);
+  app.use("/api/asset", assetApiRouter);
   app.use("/api/voice", voiceApiRouter);
 
   // ── Health Check ─────────────────────────────────────────────────────────
