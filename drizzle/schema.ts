@@ -1656,6 +1656,8 @@ export const voiceSettings = mysqlTable("voiceSettings", {
   businessInfo: varchar("businessInfo", { length: 1500 }).notNull().default(""),
   agentMode: varchar("agentMode", { length: 20 }).notNull().default("voicemail"),
   voicemailEnabled: boolean("voicemailEnabled").notNull().default(true),
+  transferNumber: varchar("transferNumber", { length: 32 }).notNull().default(""),
+  language: varchar("language", { length: 8 }).notNull().default("en"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").onUpdateNow().defaultNow().notNull(),
 });

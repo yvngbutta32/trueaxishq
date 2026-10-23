@@ -41,7 +41,7 @@ import {
 } from "recharts";
 
 // ─── Changelog Modal ─────────────────────────────────────────────────────────
-const CHANGELOG_VERSION = "1.4.1";
+const CHANGELOG_VERSION = "1.4.2";
 const CHANGELOG_KEY = `trueaxis_changelog_${CHANGELOG_VERSION}`;
 
 function ChangelogModal() {
@@ -63,6 +63,7 @@ function ChangelogModal() {
         </div>
         <div className="p-5 space-y-4">
           {([
+            { emoji: "🤖", title: "AI Receptionist, Hardened", desc: "The voice agent now answers in English or Spanish (es-MX), always identifies itself as AI, transfers to your cell when a caller presses 0, and can be trusted to never invent prices or time slots. Say 'press zero' in your voice settings to turn it on." },
             { emoji: "🏦", title: "More Ways to Pay", desc: "Client checkouts now offer ACH bank debit, Klarna, and Afterpay alongside cards (when your Stripe account has them enabled), with automatic card-only fallback so checkout never breaks." },
             { emoji: "📱", title: "Fair-Use SMS Meter", desc: "Bundled SMS (50/500/2,000/5,000 by plan) is counted live with honest refusals at the cap. See your monthly usage in Integration Hub → SMS." },
             { emoji: "👆", title: "Touch & Type Polish", desc: "Every button now meets 24px+ tap standards, AI suggestions wrap cleanly on small screens, and footer links got roomier." },

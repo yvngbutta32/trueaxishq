@@ -13,7 +13,54 @@ import { ENV } from "./env";
 import { invokeLLM } from "./llm";
 
 export const VOICE_MAX_TURNS = 6;
-export const VOICE_DEFAULT_GREETING = "Thanks for calling! I'm the after-hours receptionist. How can I help you today?";
+
+export type VoiceLanguage = "en" | "es";
+export function normalizeVoiceLanguage(value: string | null | undefined): VoiceLanguage {
+  return value === "es" ? "es" : "en";
+}
+
+// Default greetings disclose the AI upfront (research verdict: homeowners
+// accept AI that discloses; >80% hang up on voicemail — ai-receptionist-landscape-2026.md).
+export const VOICE_DEFAULT_GREETINGS: Record<VoiceLanguage, string> = {
+  en: "Thanks for calling! You've reached our virtual receptionist — I'm an AI assistant, and I'm here to help. How can I help you today?",
+  es: "Gracias por llamar. Ha llegado a nuestra recepcionista virtual, un asistente de inteligencia artificial. ¿En qué puedo ayudarle?",
+};
+// Back-compat alias for existing imports.
+export const VOICE_DEFAULT_GREETING = VOICE_DEFAULT_GREETINGS.en;
+
+/** Every spoken fixed prompt, per language. A missing key is a bug — the
+ *  phrase-parity test pins en and es to the same key set. */
+export const VOICE_PHRASES: Record<VoiceLanguage, Record<string, string>> = {
+  en: {
+    retry: "Sorry, I did not catch that. Could you say that again? You can also press zero to reach a person.",
+    anythingElse: "Is there anything else I can help with?",
+    leadSaved: "We have saved your details and will follow up shortly. Goodbye!",
+    switchingToVoicemail: "One moment, I am switching to message mode.",
+    leaveAMessage: "Let me take a message so the team can follow up.",
+    callbackHours: "Please call back during business hours. Goodbye.",
+    transferConnecting: "One moment, connecting you with a team member now.",
+    transferUnavailable: "No one is available to take your call right now. Let me take a message so someone can follow up.",
+    pressZeroHint: "Press zero at any time to reach a person.",
+    callBackLater: "The number you have dialed is not accepting calls right now. Please try again later.",
+    technicalProblem: "We are having a technical problem right now. Please try again in a few minutes.",
+  },
+  es: {
+    retry: "Lo siento, no le entendí. ¿Podría repetirlo? También puede marcar cero para hablar con una persona.",
+    anythingElse: "¿En qué más puedo ayudarle?",
+    leadSaved: "Hemos guardado sus datos y le contactaremos pronto. ¡Adiós!",
+    switchingToVoicemail: "Un momento, cambio al modo de mensajes.",
+    leaveAMessage: "Permítame tomar un mensaje para que el equipo le contacte.",
+    callbackHours: "Por favor, llame de nuevo en horario de atención. Adiós.",
+    transferConnecting: "Un momento, le comunico con un miembro del equipo.",
+    transferUnavailable: "Nadie está disponible para atender su llamada en este momento. Permítame tomar un mensaje para que alguien le contacte.",
+    pressZeroHint: "Marque cero en cualquier momento para hablar con una persona.",
+    callBackLater: "El número al que llama no está recibiendo llamadas en este momento. Por favor, intente más tarde.",
+    technicalProblem: "Tenemos un problema técnico en este momento. Por favor, intente en unos minutos.",
+  },
+};
+export function phrase(language: VoiceLanguage, key: keyof typeof VOICE_PHRASES.en): string {
+  return VOICE_PHRASES[language][key];
+}
 
 export type VoiceStatusState = "provider_setup_required" | "voicemail_only" | "ai_ready";
 
@@ -89,17 +136,27 @@ export async function decideNextTurn(input: {
   businessInfo: string;
   turns: VoiceTurn[];
   callerSpeech: string;
+  language?: string;
 }): Promise<AgentDecision> {
+  const language = normalizeVoiceLanguage(input.language);
+  const langName = language === "es" ? "Spanish (español)" : "English";
   const system = [
-    "You are the phone receptionist for a home-service business. You answer questions,",
+    "You are the AI virtual receptionist for a home-service business. You answer questions,",
     "capture leads (name, phone, service, preferred time), and never invent facts.",
+    `Respond ONLY in ${langName}, whatever language the caller uses.`,
     "Business info you may quote: " + (input.businessInfo?.trim() || "(none provided — say you will have the owner follow up)"),
+    "GROUNDING RULES (absolute): you have NO access to the schedule, prices, quotes, or",
+    "availability. Never state, guess, promise, or invent any price, availability, time slot,",
+    "or booking confirmation. If asked about those, say you will pass the request to the team",
+    "for exact details, and capture it as a lead instead.",
+    "DISCLOSURE RULE: you are honest that you are an AI virtual assistant; if this is your",
+    "first reply of the conversation, briefly mention you are a virtual assistant.",
     "Rules: keep replies under 80 words. Set intent=lead_captured once you have name AND",
     "service (phone optional; we already see the caller's number). Set intent=info_given",
     "when you answered a question and there is nothing more to do. Set intent=handoff",
-    "only for emergencies or angry callers: say the owner will be texted immediately.",
+    "only for emergencies or angry callers: say the owner will be texted immediately and offer",
+    "to connect them by pressing zero if they need a person.",
     "Set intent=end when the caller says goodbye. Otherwise ask one clear question (intent=ask).",
-    "Never mention you are an AI unless asked directly; if asked, answer honestly.",
   ].join(" ");
 
   const history = input.turns.slice(-8).map(t => `${t.role === "caller" ? "Caller" : "Receptionist"}: ${t.text}`).join("\n");

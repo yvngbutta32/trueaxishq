@@ -137,7 +137,12 @@ describe("included business lines (managed voice)", () => {
     expect(voiceApi).toContain("if (line) {");
     expect(voiceApi).toContain("voiceLineMinutesFor(ctx.plan)");
     expect(voiceApi).toContain('"fair_use_cap"');
-    expect(voiceApi).toContain("not accepting calls right now");
+    // cap message is localized (Oct 23 2026 hardening): en phrase preserves the
+    // exact "not accepting calls right now" wording; es ships the equivalent.
+    expect(voiceApi).toContain('phrase(ctx.language, "callBackLater")');
+    const phrases = source("./_core/voiceAgent.ts");
+    expect(phrases).toContain("not accepting calls right now");
+    expect(phrases).toContain("no está recibiendo llamadas");
   });
 
   it("requestLine is plan-gated: free accounts get an upgrade path, not a dead end", () => {

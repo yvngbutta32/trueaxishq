@@ -13,9 +13,10 @@ import { voiceLineMinutesFor } from "../shared/plans";
 import { sendPushToUser } from "./_core/push";
 import {
   getVoiceStatus, validateTwilioSignature, decideNextTurn, newCallTranscript, appendTurn,
-  sanitizeCallerFact, VOICE_MAX_TURNS, VOICE_DEFAULT_GREETING, type VoiceTurn,
+  sanitizeCallerFact, VOICE_MAX_TURNS, VOICE_DEFAULT_GREETINGS, VOICE_PHRASES, normalizeVoiceLanguage, phrase,
+  type VoiceLanguage, type VoiceTurn,
 } from "./_core/voiceAgent";
-import { renderTwiML, buildSay, buildGather, buildRecord, buildHangup } from "./_core/voiceTwiML";
+import { renderTwiML, buildSay, buildGather, buildRecord, buildHangup, buildDial } from "./_core/voiceTwiML";
 
 export const voiceApiRouter = Router();
 
@@ -51,7 +52,7 @@ const twiml = (res: Response, children: string[]) => {
 };
 
 const gracefulFailure = (res: Response) =>
-  twiml(res, [buildSay("We are having a technical problem right now. Please try again in a few minutes."), buildHangup()]);
+  twiml(res, [buildSay(phrase("en", "technicalProblem")), buildHangup()]);
 
 async function loadOwnerContext(userIdRaw: unknown) {
   const userId = Number(userIdRaw);
@@ -62,8 +63,10 @@ async function loadOwnerContext(userIdRaw: unknown) {
   if (!user) return null; // unknown destination: never answer calls for a made-up user id
   const [settings] = await db.select().from(voiceSettings).where(eq(voiceSettings.userId, userId)).limit(1);
   const plan = await getPlanTier(db, userId);
-  const greeting = settings?.greeting?.trim() || VOICE_DEFAULT_GREETING;
-  return { db, userId, greeting, businessInfo: settings?.businessInfo ?? "", agentMode: settings?.agentMode ?? "voicemail", voicemailEnabled: settings?.voicemailEnabled ?? true, plan };
+  const language = normalizeVoiceLanguage(settings?.language);
+  const greeting = settings?.greeting?.trim() || VOICE_DEFAULT_GREETINGS[language];
+  const transferNumber = settings?.transferNumber?.trim() || "";
+  return { db, userId, greeting, language, transferNumber, businessInfo: settings?.businessInfo ?? "", agentMode: settings?.agentMode ?? "voicemail", voicemailEnabled: settings?.voicemailEnabled ?? true, plan };
 }
 
 function wantsAi(ctx: NonNullable<Awaited<ReturnType<typeof loadOwnerContext>>>): boolean {
@@ -108,7 +111,7 @@ voiceApiRouter.post("/answer", withGracefulVoice(async (req: Request, res: Respo
       if (used >= cap) {
         try { await ctx.db.update(voiceCalls).set({ outcome: "fair_use_cap", status: "completed", endedAt: new Date() }).where(eq(voiceCalls.callSid, sid)); } catch { /* row may not exist */ }
         return twiml(res, [
-          buildSay("The number you have dialed is not accepting calls right now. Please try again later."),
+          buildSay(phrase(ctx.language, "callBackLater")),
           buildHangup(),
         ]);
       }
@@ -116,12 +119,13 @@ voiceApiRouter.post("/answer", withGracefulVoice(async (req: Request, res: Respo
   }
 
   if (wantsAi(ctx)) {
-    return twiml(res, [buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, ctx.greeting)]);
+    const hint = ctx.transferNumber ? " " + phrase(ctx.language, "pressZeroHint") : "";
+    return twiml(res, [buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, ctx.greeting + hint, { language: ctx.language })]);
   }
   if (ctx.voicemailEnabled) {
     return twiml(res, [buildSay(ctx.greeting), buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`)]);
   }
-  return twiml(res, [buildSay(ctx.greeting), buildSay("Please call back during business hours. Goodbye."), buildHangup()]);
+  return twiml(res, [buildSay(ctx.greeting), buildSay(phrase(ctx.language, "callbackHours")), buildHangup()]);
 }));
 
 // POST /api/voice/gather?u=<userId> — one conversational turn.
@@ -136,6 +140,7 @@ voiceApiRouter.post("/gather", withGracefulVoice(async (req: Request, res: Respo
   const [call] = sid ? await ctx.db.select().from(voiceCalls).where(eq(voiceCalls.callSid, sid)).limit(1) : [];
   if (!call || call.userId !== ctx.userId) return res.status(403).type("text/plain").send("Forbidden: unknown call.");
 
+  const digits = (body.Digits ?? "").trim();
   const speech = (body.SpeechResult ?? "").trim().slice(0, 1000);
   const speechConfidence = Number(body.Confidence ?? "0");
   const turns: VoiceTurn[] = Array.isArray(call.transcriptJson) ? (call.transcriptJson as VoiceTurn[]) : [];
@@ -146,28 +151,48 @@ voiceApiRouter.post("/gather", withGracefulVoice(async (req: Request, res: Respo
     await ctx.db.update(voiceCalls).set({ ...patch, transcriptJson: nextTurns as never, turns: turnCount + 1 }).where(eq(voiceCalls.id, call.id));
   };
 
+  // Press-zero: warm transfer to a human. The documented #1 emergency failure
+  // mode of AI receptionists is dropped transfers — pressing zero ALWAYS works,
+  // and when no transfer number is configured we say so honestly and take a
+  // voicemail instead of pretending.
+  if (digits === "0") {
+    if (ctx.transferNumber) {
+      await persist({ outcome: "transfer" });
+      const callerId = (await getActiveLine(ctx.db, ctx.userId))?.phoneNumber ?? undefined;
+      return twiml(res, [
+        buildSay(phrase(ctx.language, "transferConnecting")),
+        buildDial(ctx.transferNumber, `${baseUrl(req)}/api/voice/dial-end?u=${ctx.userId}`, callerId),
+      ]);
+    }
+    await persist({ status: "completed", outcome: "voicemail", endedAt: new Date() });
+    return twiml(res, [
+      buildSay(phrase(ctx.language, "transferUnavailable")),
+      buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`),
+    ]);
+  }
+
   // No usable speech (silence/timeout), not yet at the turn cap → ask once more.
   if (!speech && turnCount < VOICE_MAX_TURNS - 1) {
     await persist({});
-    return twiml(res, [buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, "Sorry, I did not catch that. Could you say that again?")]);
+    return twiml(res, [buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, phrase(ctx.language, "retry"), { language: ctx.language })]);
   }
 
   // Turn cap reached, empty speech, or non-AI mode → wrap up honestly.
   if (!speech || turnCount >= VOICE_MAX_TURNS || !wantsAi(ctx)) {
     await persist({ status: speech ? "completed" : "voicemail", outcome: "voicemail", endedAt: new Date() });
     return twiml(res, [
-      buildSay("Let me take a message so " + (sanitizeCallerFact(ctx.businessInfo.split("\n")[0], 40) ?? "the team") + " can follow up."),
+      buildSay(phrase(ctx.language, "leaveAMessage")),
       buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`),
     ]);
   }
 
   let decision;
   try {
-    decision = await decideNextTurn({ greeting: ctx.greeting, businessInfo: ctx.businessInfo, turns: nextTurns, callerSpeech: speech });
+    decision = await decideNextTurn({ greeting: ctx.greeting, businessInfo: ctx.businessInfo, turns: nextTurns, callerSpeech: speech, language: ctx.language });
   } catch {
     // LLM unavailable mid-call (misconfiguration, provider outage, bad output) → voicemail, never silence.
     await persist({ status: "completed", outcome: "voicemail", endedAt: new Date() });
-    return twiml(res, [buildSay("One moment, I am switching to message mode."), buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`)]);
+    return twiml(res, [buildSay(phrase(ctx.language, "switchingToVoicemail")), buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`)]);
   }
 
   const agentTurn = appendTurn(nextTurns, { role: "agent", text: decision.say, at: new Date().toISOString() });
@@ -193,7 +218,7 @@ voiceApiRouter.post("/gather", withGracefulVoice(async (req: Request, res: Respo
     });
     // Fire-and-forget owner notification (never blocks the call).
     void sendPushToUser(ctx.userId, "Voice lead captured", `${callerName ?? "A caller"} asked about ${serviceRequested ?? "your services"}.`, "/integration-hub").catch(() => {});
-    return twiml(res, [buildSay(decision.say), buildSay("We have saved your details and will follow up shortly. Goodbye!"), buildHangup()]);
+    return twiml(res, [buildSay(decision.say), buildSay(phrase(ctx.language, "leadSaved")), buildHangup()]);
   }
 
   if (decision.intent === "handoff" || decision.intent === "end") {
@@ -203,6 +228,14 @@ voiceApiRouter.post("/gather", withGracefulVoice(async (req: Request, res: Respo
     }).where(eq(voiceCalls.id, call.id));
     if (decision.intent === "handoff") {
       void sendPushToUser(ctx.userId, "Urgent call (handoff)", decision.say.slice(0, 200), "/integration-hub").catch(() => {});
+      if (ctx.transferNumber) {
+        const callerId = (await getActiveLine(ctx.db, ctx.userId))?.phoneNumber ?? undefined;
+        return twiml(res, [
+          buildSay(decision.say),
+          buildSay(phrase(ctx.language, "transferConnecting")),
+          buildDial(ctx.transferNumber, `${baseUrl(req)}/api/voice/dial-end?u=${ctx.userId}`, callerId),
+        ]);
+      }
     }
     return twiml(res, [buildSay(decision.say), buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`), buildHangup()]);
   }
@@ -213,9 +246,33 @@ voiceApiRouter.post("/gather", withGracefulVoice(async (req: Request, res: Respo
   }).where(eq(voiceCalls.id, call.id));
   if (decision.intent === "info_given") {
     await ctx.db.update(voiceCalls).set({ status: "completed", outcome: "info_given", endedAt: new Date() }).where(eq(voiceCalls.id, call.id));
-    return twiml(res, [buildSay(decision.say), buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, "Is there anything else I can help with?")]);
+    return twiml(res, [buildSay(decision.say), buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, phrase(ctx.language, "anythingElse"), { language: ctx.language })]);
   }
-  return twiml(res, [buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, decision.say)]);
+  return twiml(res, [buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, decision.say, { language: ctx.language })]);
+}));
+
+// POST /api/voice/dial-end — the human transfer ended (answered or not).
+// Twilio requires TwiML here; we log the outcome and close the call cleanly.
+voiceApiRouter.post("/dial-end", withGracefulVoice(async (req: Request, res: Response) => {
+  const body = gate(req, res);
+  if (!body) return;
+  const sid = (body.CallSid ?? "").slice(0, 64);
+  try {
+    const db = await getDb();
+    if (db && sid) {
+      const [call] = await db.select().from(voiceCalls).where(eq(voiceCalls.callSid, sid)).limit(1);
+      if (call) {
+        const dialStatus = (body.DialCallStatus ?? "").slice(0, 40);
+        await db.update(voiceCalls).set({
+          status: "completed",
+          outcome: dialStatus === "completed" ? "transfer" : (call.outcome === "unknown" ? "voicemail" : call.outcome),
+          durationSeconds: Math.max(0, Math.min(36000, Number(body.CallDuration ?? body.DialCallDuration ?? "0") || 0)),
+          endedAt: call.endedAt ?? new Date(),
+        }).where(eq(voiceCalls.id, call.id));
+      }
+    }
+  } catch { /* dial callbacks must never 500 Twilio */ }
+  twiml(res, [buildHangup()]);
 }));
 
 // POST /api/voice/completed — status callback / voicemail recording landed.

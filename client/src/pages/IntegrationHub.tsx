@@ -93,11 +93,13 @@ function VoiceReceptionistCard() {
   const [greeting, setGreeting] = useState("");
   const [businessInfo, setBusinessInfo] = useState("");
   const [agentMode, setAgentMode] = useState<"voicemail" | "ai">("voicemail");
+  const [transferNumber, setTransferNumber] = useState("");
+  const [language, setLanguage] = useState<"en" | "es">("en");
   const [saved, setSaved] = useState(false);
   const lineData = line.data;
   useEffect(() => {
     const d = status.data?.settings;
-    if (d && !greeting) { setGreeting(d.greeting); setBusinessInfo(d.businessInfo); setAgentMode(d.agentMode === "ai" ? "ai" : "voicemail"); }
+    if (d && !greeting) { setGreeting(d.greeting); setBusinessInfo(d.businessInfo); setAgentMode(d.agentMode === "ai" ? "ai" : "voicemail"); setTransferNumber(d.transferNumber ?? ""); setLanguage(d.language === "es" ? "es" : "en"); }
   }, [status.data, greeting]);
   const voiceState = status.data;
   return (
@@ -145,8 +147,21 @@ function VoiceReceptionistCard() {
           <label htmlFor="voice-info" className="mt-2 block text-sm font-semibold text-[var(--foreground)]">Business info the agent may quote (hours, services, service area)
             <textarea id="voice-info" value={businessInfo} onChange={e => setBusinessInfo(e.target.value)} rows={3} className="mt-1.5 block w-full rounded-lg border border-[color-mix(in oklab, var(--foreground) 16%, transparent)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-[#D4922A]/35" />
           </label>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <label htmlFor="voice-transfer" className="block text-sm font-semibold text-[var(--foreground)]">Press-zero transfer number
+              <input id="voice-transfer" value={transferNumber} onChange={e => setTransferNumber(e.target.value.trim().slice(0, 32))} placeholder="+15551234567 (optional)" className="mt-1.5 block w-full rounded-lg border border-[color-mix(in oklab, var(--foreground) 16%, transparent)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-[#D4922A]/35" />
+              <span className="mt-1 block text-xs font-normal text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">Callers press 0 to reach a person. Empty = honest voicemail instead.</span>
+            </label>
+            <label htmlFor="voice-language" className="block text-sm font-semibold text-[var(--foreground)]">Call language
+              <select id="voice-language" value={language} onChange={e => setLanguage(e.target.value === "es" ? "es" : "en")} className="mt-1.5 block w-full rounded-lg border border-[color-mix(in oklab, var(--foreground) 16%, transparent)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-[#D4922A]/35">
+                <option value="en">English</option>
+                <option value="es">Espanol (Spanish)</option>
+              </select>
+              <span className="mt-1 block text-xs font-normal text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">The receptionist answers and speaks this language.</span>
+            </label>
+          </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Button size="sm" onClick={() => save.mutate({ greeting: greeting.trim() || "Thanks for calling! How can I help you today?", businessInfo, agentMode: allowed === false ? "voicemail" : agentMode })}
+            <Button size="sm" onClick={() => save.mutate({ greeting: greeting.trim() || "Thanks for calling! How can I help you today?", businessInfo, agentMode: allowed === false ? "voicemail" : agentMode, transferNumber, language })}
               disabled={save.isPending || greeting.trim().length < 10} className="bg-[#D4922A] text-white hover:bg-[#B87716]">{save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}</Button>
             <Button size="sm" variant="outline" onClick={() => preview.refetch()} disabled={preview.isFetching} className="border-[#D4922A]/40 text-[#8A5A0B]">Preview spoken TwiML</Button>
             {saved && <span className="text-xs font-semibold text-emerald-700">Saved</span>}

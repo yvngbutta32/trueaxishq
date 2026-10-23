@@ -16,7 +16,7 @@ import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { geocodeLabelWithNominatim, normalizeGeocodeLabel, GEOCODE_BATCH_LIMIT } from "./_core/geocode";
-import { getVoiceStatus, VOICE_DEFAULT_GREETING } from "./_core/voiceAgent";
+import { getVoiceStatus, VOICE_DEFAULT_GREETINGS, phrase } from "./_core/voiceAgent";
 import { buyLineNumber, getActiveLine, getLineOverview, getVoiceLineStatus as getVoiceLineDeploymentStatus, releaseLineNumber } from "./_core/voiceLines";
 import { voiceLineMinutesFor, subAccountLimitFor } from "../shared/plans";
 import { DEMO_CLIENT_PREFIX, DEMO_INVOICE_PREFIX, DEMO_JOB_PREFIX } from "../shared/demoData";
@@ -643,8 +643,8 @@ const voiceRouter = router({
     return {
       ...getVoiceStatus(),
       settings: settings
-        ? { greeting: settings.greeting, businessInfo: settings.businessInfo, agentMode: settings.agentMode, voicemailEnabled: Boolean(settings.voicemailEnabled) }
-        : { greeting: VOICE_DEFAULT_GREETING, businessInfo: "", agentMode: "voicemail", voicemailEnabled: true },
+        ? { greeting: settings.greeting, businessInfo: settings.businessInfo, agentMode: settings.agentMode, voicemailEnabled: Boolean(settings.voicemailEnabled), transferNumber: settings.transferNumber, language: settings.language === "es" ? "es" : "en" }
+        : { greeting: VOICE_DEFAULT_GREETINGS.en, businessInfo: "", agentMode: "voicemail", voicemailEnabled: true, transferNumber: "", language: "en" },
       totalCalls: recent.length,
     };
   }),
@@ -655,11 +655,17 @@ const voiceRouter = router({
       businessInfo: z.string().max(1500).default(""),
       agentMode: z.enum(["ai", "voicemail"]).default("voicemail"),
       voicemailEnabled: z.boolean().default(true),
+      transferNumber: z.string().max(32).default(""),
+      language: z.enum(["en", "es"]).default("en"),
     }))
     .mutation(async ({ ctx, input }) => {
       const db = await requireDb();
       if (input.agentMode === "ai") {
         await requirePlanFeature(db, ctx.user.id, "voiceAgent");
+      }
+      const transferNumber = input.transferNumber.trim();
+      if (transferNumber && !/^\+[1-9]\d{7,14}$/.test(transferNumber)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Transfer number must be E.164 (e.g. +15551234567) or empty." });
       }
       const existing = await db.select().from(voiceSettings).where(eq(voiceSettings.userId, ctx.user.id)).limit(1);
       const values = {
@@ -667,6 +673,8 @@ const voiceRouter = router({
         businessInfo: input.businessInfo.trim(),
         agentMode: input.agentMode,
         voicemailEnabled: input.voicemailEnabled,
+        transferNumber,
+        language: input.language,
       };
       if (existing.length) {
         await db.update(voiceSettings).set(values).where(eq(voiceSettings.userId, ctx.user.id));
@@ -699,13 +707,14 @@ const voiceRouter = router({
     const db = await requireDb();
     const [settings] = await db.select().from(voiceSettings).where(eq(voiceSettings.userId, ctx.user.id)).limit(1);
     const plan = (await db.select({ planId: users.planId }).from(users).where(eq(users.id, ctx.user.id)).limit(1))[0]?.planId ?? "free";
-    const greeting = settings?.greeting?.trim() || VOICE_DEFAULT_GREETING;
+    const greeting = settings?.greeting?.trim() || VOICE_DEFAULT_GREETINGS[settings?.language === "es" ? "es" : "en"];
     const aiMode = settings?.agentMode === "ai" && (plan === "pro" || plan === "agency") && getVoiceStatus().llmConfigured;
+    const language = settings?.language === "es" ? "es" : "en";
     const twiml = aiMode
-      ? renderTwiML([buildGather("https://preview.invalid/api/voice/gather", greeting)])
+      ? renderTwiML([buildGather("https://preview.invalid/api/voice/gather", greeting, { language })])
       : settings?.voicemailEnabled !== false
         ? renderTwiML([buildSay(greeting), buildRecord("https://preview.invalid/api/voice/completed")])
-        : renderTwiML([buildSay(greeting), buildSay("Please call back during business hours. Goodbye."), buildHangup()]);
+        : renderTwiML([buildSay(greeting), buildSay(phrase(language, "callbackHours")), buildHangup()]);
     return { mode: aiMode ? "ai" : "voicemail", twiml };
   }),
 });

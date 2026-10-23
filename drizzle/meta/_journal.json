@@ -582,6 +582,20 @@
       "when": 1791490000000,
       "tag": "0082_agency_sub_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1791944400000,
+      "tag": "0083_voice_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1791945400000,
+      "tag": "0084_voice_outcome_varchar",
+      "breakpoints": true
     }
   ]
 }
