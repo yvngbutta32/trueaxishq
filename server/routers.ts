@@ -207,7 +207,7 @@ async function getOwnerJobCostReport(
 
   const jobIds = jobRows.map(row => row.id);
   const invoiceIds = jobRows.flatMap(row => row.invoiceId ? [row.invoiceId] : []);
-  const [linkedInvoices, photos, entries, linkedExpenses] = await Promise.all([
+  const [linkedInvoices, photos, entries, linkedExpenses, jobOrders, consumeMovements] = await Promise.all([
     invoiceIds.length ? db.select({ id: invoices.id, amount: invoices.amount }).from(invoices)
       .where(and(eq(invoices.userId, userId), inArray(invoices.id, invoiceIds))) : [],
     db.select({ jobId: jobPhotos.jobId, photoType: jobPhotos.photoType, lineItemAmount: jobPhotos.lineItemAmount }).from(jobPhotos)
@@ -216,6 +216,11 @@ async function getOwnerJobCostReport(
       .where(and(eq(timeEntries.userId, userId), inArray(timeEntries.jobId, jobIds))),
     db.select({ jobId: expenses.jobId, amount: expenses.amount }).from(expenses)
       .where(and(eq(expenses.userId, userId), inArray(expenses.jobId, jobIds))),
+    db.select({ jobId: purchaseOrders.jobId, totalAmount: purchaseOrders.totalAmount }).from(purchaseOrders)
+      .where(and(eq(purchaseOrders.userId, userId), inArray(purchaseOrders.jobId, jobIds), eq(purchaseOrders.status, "received"))),
+    db.select({ jobId: inventoryMovements.jobId, quantity: inventoryMovements.quantity, unitCost: sql<string>`COALESCE(${inventoryMovements.unitCostAt}, ${inventoryItems.unitCost}, 0)` }).from(inventoryMovements)
+      .innerJoin(inventoryItems, and(eq(inventoryItems.id, inventoryMovements.itemId), eq(inventoryItems.userId, userId)))
+      .where(and(eq(inventoryMovements.userId, userId), inArray(inventoryMovements.jobId, jobIds), eq(inventoryMovements.type, "consume"), isNull(inventoryMovements.purchaseOrderId))),
   ]);
   const invoiceAmounts = new Map(linkedInvoices.map(invoice => [invoice.id, Number(invoice.amount ?? 0)]));
   const receiptCosts = new Map<number, number>();
@@ -224,6 +229,14 @@ async function getOwnerJobCostReport(
   for (const entry of entries) if (entry.jobId) laborCosts.set(entry.jobId, (laborCosts.get(entry.jobId) ?? 0) + ((entry.durationMinutes ?? 0) / 60) * Number(entry.hourlyRate ?? 0));
   const expenseCosts = new Map<number, number>();
   for (const expense of linkedExpenses) if (expense.jobId) expenseCosts.set(expense.jobId, (expenseCosts.get(expense.jobId) ?? 0) + Number(expense.amount ?? 0));
+  // Materials: received job-linked PO totals + stock consumed onto the job.
+  // Movements that came in via a purchase order are excluded here — if that PO
+  // is job-linked its full total is already counted once above; if not, the
+  // later consumeForJob movement (purchaseOrderId null) carries the cost.
+  const poCosts = new Map<number, number>();
+  for (const order of jobOrders) if (order.jobId) poCosts.set(order.jobId, (poCosts.get(order.jobId) ?? 0) + Number(order.totalAmount ?? 0));
+  const stockCosts = new Map<number, number>();
+  for (const movement of consumeMovements) if (movement.jobId) stockCosts.set(movement.jobId, (stockCosts.get(movement.jobId) ?? 0) + Math.abs(Number(movement.quantity ?? 0)) * Number(movement.unitCost ?? 0));
 
   return jobRows.map(job => {
     const invoiceId = job.invoiceId;
@@ -233,6 +246,7 @@ async function getOwnerJobCostReport(
       receiptCost: receiptCosts.get(job.id) ?? 0,
       laborCost: laborCosts.get(job.id) ?? 0,
       expenseCost: expenseCosts.get(job.id) ?? 0,
+      materialCost: (poCosts.get(job.id) ?? 0) + (stockCosts.get(job.id) ?? 0),
     });
     return {
       jobNumber: job.jobNumber,
@@ -6307,36 +6321,42 @@ Only include actions when you have actually generated a complete draft. For gene
         const db = await requireDb();
         const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
         if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
-        const [item] = await db.select({ name: inventoryItems.name }).from(inventoryItems).where(and(eq(inventoryItems.id, input.itemId), eq(inventoryItems.userId, ctx.user.id))).limit(1);
+        const [item] = await db.select({ name: inventoryItems.name, unitCost: inventoryItems.unitCost }).from(inventoryItems).where(and(eq(inventoryItems.id, input.itemId), eq(inventoryItems.userId, ctx.user.id))).limit(1);
         if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "Inventory item not found." });
         const [location] = await db.select({ id: inventoryLocations.id }).from(inventoryLocations).where(and(eq(inventoryLocations.id, input.locationId), eq(inventoryLocations.userId, ctx.user.id))).limit(1);
         if (!location) throw new TRPCError({ code: "NOT_FOUND", message: "Stock location not found." });
-        await db.insert(inventoryMovements).values({ userId: ctx.user.id, itemId: input.itemId, locationId: input.locationId, jobId: input.jobId, type: "consume", quantity: String(-input.quantity), note: `Used on job #${input.jobId}` });
+        await db.insert(inventoryMovements).values({ userId: ctx.user.id, itemId: input.itemId, locationId: input.locationId, jobId: input.jobId, type: "consume", quantity: String(-input.quantity), unitCostAt: item.unitCost, note: `Used on job #${input.jobId}` });
         await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: input.jobId, actor: "owner", eventType: "material_used", message: `Material used from stock: ${input.quantity} ${item.name}.` });
         return { success: true };
       }),
 
     listPurchaseOrders: protectedProcedure.query(async ({ ctx }) => {
       const db = await requireDb();
-      const [orders, lines, locations] = await Promise.all([
+      const [orders, lines, locations, linkedJobs] = await Promise.all([
         db.select().from(purchaseOrders).where(eq(purchaseOrders.userId, ctx.user.id)).orderBy(desc(purchaseOrders.createdAt)).limit(100),
         db.select().from(purchaseOrderItems).where(eq(purchaseOrderItems.userId, ctx.user.id)),
         db.select().from(inventoryLocations).where(eq(inventoryLocations.userId, ctx.user.id)),
+        db.select({ id: jobs.id, jobNumber: jobs.jobNumber, title: jobs.title }).from(jobs).where(eq(jobs.userId, ctx.user.id)),
       ]);
       const locationMap = new Map(locations.map(location => [location.id, location.name]));
-      return orders.map(order => ({ ...order, locationName: locationMap.get(order.locationId) ?? "Unknown", items: lines.filter(line => line.purchaseOrderId === order.id) }));
+      const jobMap = new Map(linkedJobs.map(job => [job.id, job]));
+      return orders.map(order => ({ ...order, locationName: locationMap.get(order.locationId) ?? "Unknown", job: order.jobId ? jobMap.get(order.jobId) ?? null : null, items: lines.filter(line => line.purchaseOrderId === order.id) }));
     }),
 
     createPurchaseOrder: protectedProcedure
-      .input(z.object({ supplierName: safeString(255), locationId: z.number().int().positive(), expectedDate: safeOptionalString(32), notes: safeOptionalString(2000), items: z.array(z.object({ inventoryItemId: z.number().int().positive().optional(), description: safeString(255), quantity: z.number().positive().max(1_000_000), unitCost: z.number().min(0).max(1_000_000).default(0) })).min(1).max(50) }))
+      .input(z.object({ supplierName: safeString(255), locationId: z.number().int().positive(), jobId: z.number().int().positive().optional(), expectedDate: safeOptionalString(32), notes: safeOptionalString(2000), items: z.array(z.object({ inventoryItemId: z.number().int().positive().optional(), description: safeString(255), quantity: z.number().positive().max(1_000_000), unitCost: z.number().min(0).max(1_000_000).default(0) })).min(1).max(50) }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const [location] = await db.select({ id: inventoryLocations.id }).from(inventoryLocations).where(and(eq(inventoryLocations.id, input.locationId), eq(inventoryLocations.userId, ctx.user.id))).limit(1);
         if (!location) throw new TRPCError({ code: "NOT_FOUND", message: "Receive-to location not found." });
+        if (input.jobId) {
+          const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+          if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found for this purchase order." });
+        }
         const existing = await db.select({ id: purchaseOrders.id }).from(purchaseOrders).where(eq(purchaseOrders.userId, ctx.user.id));
         const poNumber = `PO-${String(existing.length + 1).padStart(4, "0")}`;
         const total = input.items.reduce((sum, line) => sum + line.quantity * line.unitCost, 0);
-        const values = { userId: ctx.user.id, supplierName: input.supplierName, locationId: input.locationId, expectedDate: input.expectedDate || null, notes: input.notes || null, totalAmount: String(total) };
+        const values = { userId: ctx.user.id, supplierName: input.supplierName, locationId: input.locationId, jobId: input.jobId ?? null, expectedDate: input.expectedDate || null, notes: input.notes || null, totalAmount: String(total) };
         let order: { insertId: number | bigint } | null = null;
         let assignedNumber = poNumber;
         for (let attempt = 0; attempt < 3 && !order; attempt++) {
@@ -6354,13 +6374,18 @@ Only include actions when you have actually generated a complete draft. For gene
       }),
 
     updatePurchaseOrder: protectedProcedure
-      .input(z.object({ id: z.number().int().positive(), supplierName: safeOptionalString(255), expectedDate: safeOptionalString(32), notes: safeOptionalString(2000) }))
+      .input(z.object({ id: z.number().int().positive(), supplierName: safeOptionalString(255), jobId: z.number().int().positive().nullable().optional(), expectedDate: safeOptionalString(32), notes: safeOptionalString(2000) }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         const [order] = await db.select().from(purchaseOrders).where(and(eq(purchaseOrders.id, input.id), eq(purchaseOrders.userId, ctx.user.id))).limit(1);
         if (!order) throw new TRPCError({ code: "NOT_FOUND" });
         if (order.status !== "draft") throw new TRPCError({ code: "BAD_REQUEST", message: "Only draft purchase orders can be edited." });
+        if (input.jobId) {
+          const [job] = await db.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+          if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found for this purchase order." });
+        }
         const updates: Record<string, unknown> = {};
+        if (input.jobId !== undefined) updates.jobId = input.jobId;
         if (input.supplierName !== undefined) updates.supplierName = input.supplierName;
         if (input.expectedDate !== undefined) updates.expectedDate = input.expectedDate || null;
         if (input.notes !== undefined) updates.notes = input.notes || null;
@@ -6396,6 +6421,10 @@ Only include actions when you have actually generated a complete draft. For gene
           }
         }
         await db.update(purchaseOrders).set({ status: "received" }).where(and(eq(purchaseOrders.id, input.id), eq(purchaseOrders.userId, ctx.user.id)));
+        if (order.jobId) {
+          // The received total now lands in this job's materials cost line.
+          await db.insert(jobActivities).values({ userId: ctx.user.id, jobId: order.jobId, actor: "owner", eventType: "material_received", message: `Purchase order ${order.poNumber} received ($${Number(order.totalAmount).toFixed(2)}) from ${order.supplierName}.` });
+        }
         return { success: true };
       }),
 
@@ -10383,10 +10412,24 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         const laborCost = entries.reduce((sum, entry) => sum + ((entry.durationMinutes ?? 0) / 60) * Number(entry.hourlyRate ?? 0), 0);
         const expenseCost = jobExpenses.reduce((sum, expense) => sum + Number(expense.amount ?? 0), 0);
         const revenue = Number(invoice?.amount ?? job.budgetAmount ?? 0);
+        // Materials: received job-linked purchase orders + stock consumed onto
+        // this job from inventory (movements via a PO are excluded — a job-linked
+        // PO's total is already counted once, and non-job stock that is later
+        // consumed lands here through its consume movement with no PO attached).
+        const [jobOrders, consumeMovements] = await Promise.all([
+          db.select({ totalAmount: purchaseOrders.totalAmount, poNumber: purchaseOrders.poNumber, supplierName: purchaseOrders.supplierName }).from(purchaseOrders)
+            .where(and(eq(purchaseOrders.jobId, job.id), eq(purchaseOrders.userId, ctx.user.id), eq(purchaseOrders.status, "received"))),
+          db.select({ quantity: inventoryMovements.quantity, unitCost: sql<string>`COALESCE(${inventoryMovements.unitCostAt}, ${inventoryItems.unitCost}, 0)`, itemName: inventoryItems.name }).from(inventoryMovements)
+            .innerJoin(inventoryItems, and(eq(inventoryItems.id, inventoryMovements.itemId), eq(inventoryItems.userId, ctx.user.id)))
+            .where(and(eq(inventoryMovements.jobId, job.id), eq(inventoryMovements.userId, ctx.user.id), eq(inventoryMovements.type, "consume"), isNull(inventoryMovements.purchaseOrderId))),
+        ]);
+        const poCost = jobOrders.reduce((sum, order) => sum + Number(order.totalAmount ?? 0), 0);
+        const stockCost = consumeMovements.reduce((sum, movement) => sum + Math.abs(Number(movement.quantity ?? 0)) * Number(movement.unitCost ?? 0), 0);
         return {
           job, client, booking: booking ?? null, invoice: invoice ?? null, proposal: proposal ?? null, contract: contract ?? null,
           tasks, activities, photos, entries, approvals, expenses: jobExpenses, phases,
-          financials: calculateJobCosting({ revenue, receiptCost, laborCost, expenseCost }),
+          materialOrders: jobOrders, materialMovements: consumeMovements,
+          financials: calculateJobCosting({ revenue, receiptCost, laborCost, expenseCost, materialCost: poCost + stockCost }),
         };
       }),
 

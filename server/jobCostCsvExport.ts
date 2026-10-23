@@ -11,6 +11,7 @@ export type ExportableJobCostRow = {
   receiptCost: number;
   laborCost: number;
   expenseCost: number;
+  materialCost?: number;
   totalCost: number;
   profit: number;
   marginPercent: number | null;
@@ -20,7 +21,7 @@ export type ExportableJobCostRow = {
 const money = (value: number) => value.toFixed(2);
 
 export function buildJobCostCsv(rows: ExportableJobCostRow[]): string {
-  const headers = ["Job number", "Job", "Client", "Status", "Target date", "Revenue basis", "Revenue", "Receipt-marked proof", "Logged time", "Tracked expenses", "Total tracked cost", "Projected profit", "Margin percent", "Updated at"];
+  const headers = ["Job number", "Job", "Client", "Status", "Target date", "Revenue basis", "Revenue", "Receipt-marked proof", "Logged time", "Tracked expenses", "Materials (POs + stock)", "Total tracked cost", "Projected profit", "Margin percent", "Updated at"];
   const records = rows.map(row => [
     row.jobNumber,
     row.title,
@@ -32,6 +33,7 @@ export function buildJobCostCsv(rows: ExportableJobCostRow[]): string {
     money(row.receiptCost),
     money(row.laborCost),
     money(row.expenseCost),
+    money(row.materialCost ?? 0),
     money(row.totalCost),
     money(row.profit),
     row.marginPercent === null ? "" : `${row.marginPercent.toFixed(1)}%`,

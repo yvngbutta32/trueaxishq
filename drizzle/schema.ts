@@ -1173,6 +1173,9 @@ export const inventoryMovements = mysqlTable("inventoryMovements", {
   purchaseOrderId: int("purchaseOrderId"),
   type: mysqlEnum("type", ["receive", "consume", "adjust"]).notNull(),
   quantity: decimal("quantity", { precision: 12, scale: 2 }).notNull(),
+  // Unit-cost snapshot when the movement happened — job costing must value
+  // consumed stock at the cost at use time, not today's item cost.
+  unitCostAt: decimal("unitCostAt", { precision: 12, scale: 2 }),
   note: varchar("note", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (t) => [index("inventoryMovements_userId_idx").on(t.userId), index("inventoryMovements_itemId_idx").on(t.itemId), index("inventoryMovements_locationId_idx").on(t.locationId), index("inventoryMovements_jobId_idx").on(t.jobId), index("inventoryMovements_purchaseOrderId_idx").on(t.purchaseOrderId)]);
@@ -1184,13 +1187,16 @@ export const purchaseOrders = mysqlTable("purchaseOrders", {
   poNumber: varchar("poNumber", { length: 64 }).notNull(),
   supplierName: varchar("supplierName", { length: 255 }).notNull(),
   locationId: int("locationId").notNull(),
+  // Optional job link: a received job-linked PO contributes its total to the
+  // owner job-cost roll-up (materials line).
+  jobId: int("jobId"),
   status: mysqlEnum("status", ["draft", "ordered", "received", "cancelled"]).notNull().default("draft"),
   expectedDate: varchar("expectedDate", { length: 32 }),
   notes: text("notes"),
   totalAmount: decimal("totalAmount", { precision: 12, scale: 2 }).notNull().default("0"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (t) => [index("purchaseOrders_userId_idx").on(t.userId), uniqueIndex("purchaseOrders_userId_poNumber_unique_idx").on(t.userId, t.poNumber), index("purchaseOrders_locationId_idx").on(t.locationId)]);
+}, (t) => [index("purchaseOrders_userId_idx").on(t.userId), uniqueIndex("purchaseOrders_userId_poNumber_unique_idx").on(t.userId, t.poNumber), index("purchaseOrders_locationId_idx").on(t.locationId), index("purchaseOrders_owner_job_idx").on(t.userId, t.jobId)]);
 export type PurchaseOrder = typeof purchaseOrders.$inferSelect;
 
 export const purchaseOrderItems = mysqlTable("purchaseOrderItems", {

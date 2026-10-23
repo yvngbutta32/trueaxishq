@@ -9,8 +9,9 @@ const workspaceSource = readFileSync(resolve(root, "client/src/pages/JobWorkspac
 
 describe("owner-only job-cost portfolio report", () => {
   it("exports conservative report columns with formula-neutralized cells", () => {
-    const csv = buildJobCostCsv([{ jobNumber: "JOB-1", title: "=Formula", clientName: "Client", status: "in_progress", targetDate: null, revenueSource: "Job budget", revenue: 100, receiptCost: 5, laborCost: 10, expenseCost: 15, totalCost: 30, profit: 70, marginPercent: 70, updatedAt: new Date("2026-08-26T00:00:00.000Z") }]);
-    expect(csv.split("\r\n")[0]).toBe('"Job number","Job","Client","Status","Target date","Revenue basis","Revenue","Receipt-marked proof","Logged time","Tracked expenses","Total tracked cost","Projected profit","Margin percent","Updated at"');
+    const csv = buildJobCostCsv([{ jobNumber: "JOB-1", title: "=Formula", clientName: "Client", status: "in_progress", targetDate: null, revenueSource: "Job budget", revenue: 100, receiptCost: 5, laborCost: 10, expenseCost: 15, materialCost: 12.5, totalCost: 42.5, profit: 57.5, marginPercent: 57.5, updatedAt: new Date("2026-08-26T00:00:00.000Z") }]);
+    expect(csv.split("\r\n")[0]).toBe('"Job number","Job","Client","Status","Target date","Revenue basis","Revenue","Receipt-marked proof","Logged time","Tracked expenses","Materials (POs + stock)","Total tracked cost","Projected profit","Margin percent","Updated at"');
+    expect(csv.split("\r\n")[1]).toContain('"12.50"');
     expect(csv).toContain("'=Formula");
     expect(csv).not.toContain("email");
     expect(csv).not.toContain("receiptUrl");

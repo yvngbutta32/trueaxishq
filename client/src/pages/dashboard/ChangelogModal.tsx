@@ -63,6 +63,7 @@ function ChangelogModal() {
         </div>
         <div className="p-5 space-y-4">
           {([
+            { emoji: "🧾", title: "Materials in Job Costing", desc: "Link any purchase order to a job and receive it — the cost lands in the job's private costing automatically. Stock consumed onto a job is valued at what it cost when you used it, so later price changes never rewrite history. See the full roll-up in the job workspace and the portfolio cost report (with CSV export)." },
             { emoji: "🏷️", title: "QR Asset Labels", desc: "Print a QR label for any customer asset (Job Workspace → assets → QR label). Customers scan it to see the equipment's service history and request service in one tap — requests land in your queue with the asset already identified. Labels go dark the moment you deactivate the asset." },
             { emoji: "🤖", title: "AI Receptionist, Hardened", desc: "The voice agent now answers in English or Spanish (es-MX), always identifies itself as AI, transfers to your cell when a caller presses 0, and can be trusted to never invent prices or time slots. Say 'press zero' in your voice settings to turn it on." },
             { emoji: "🏦", title: "More Ways to Pay", desc: "Client checkouts now offer ACH bank debit, Klarna, and Afterpay alongside cards (when your Stripe account has them enabled), with automatic card-only fallback so checkout never breaks." },

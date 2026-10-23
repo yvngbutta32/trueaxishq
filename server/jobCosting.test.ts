@@ -14,9 +14,14 @@ describe("private job costing", () => {
       receiptCost: 123.46,
       laborCost: 200,
       expenseCost: 76.55,
+      materialCost: 0,
       totalCost: 400.01,
       profit: 599.99,
       marginPercent: 60,
+    });
+    expect(calculateJobCosting({ revenue: 1000, receiptCost: 100, laborCost: 100, expenseCost: 100, materialCost: 325.005 })).toEqual({
+      revenue: 1000, receiptCost: 100, laborCost: 100, expenseCost: 100, materialCost: 325.01,
+      totalCost: 625.01, profit: 374.99, marginPercent: 37.5,
     });
     expect(calculateJobCosting({ revenue: 0, receiptCost: 4, laborCost: 0, expenseCost: 0 }).marginPercent).toBeNull();
   });
@@ -35,7 +40,7 @@ describe("private job costing", () => {
     expect(expenseRouter).toContain("eq(jobs.id, jobId), eq(jobs.userId, ctx.user.id)");
     const jobGet = routerSource.slice(routerSource.indexOf("    get: protectedProcedure", routerSource.indexOf("jobs: router({")), routerSource.indexOf("    listChecklistTemplates", routerSource.indexOf("jobs: router({")));
     expect(jobGet).toContain("eq(expenses.jobId, job.id), eq(expenses.userId, ctx.user.id)");
-    expect(jobGet).toContain("calculateJobCosting({ revenue, receiptCost, laborCost, expenseCost })");
+    expect(jobGet).toContain("calculateJobCosting({ revenue, receiptCost, laborCost, expenseCost, materialCost: poCost + stockCost })");
   });
 
   it("keeps expense and margin records outside the token-scoped client job surface", () => {

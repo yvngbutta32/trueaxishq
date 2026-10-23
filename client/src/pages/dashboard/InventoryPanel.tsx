@@ -22,7 +22,7 @@ interface ItemRow {
 interface LocationRow { id: number; name: string; type: "warehouse" | "truck"; active: boolean }
 interface MovementRow { id: number; type: "receive" | "consume" | "adjust"; quantity: string; note: string | null; createdAt: string; itemName: string; locationName: string; locationType: string }
 interface POLine { id: number; description: string; quantity: string; unitCost: string; receivedQuantity: string; inventoryItemId: number | null }
-interface PORow { id: number; poNumber: string; supplierName: string; status: "draft" | "ordered" | "received" | "cancelled"; expectedDate: string | null; notes: string | null; totalAmount: string; locationId: number; locationName: string; items: POLine[] }
+interface PORow { id: number; poNumber: string; supplierName: string; status: "draft" | "ordered" | "received" | "cancelled"; expectedDate: string | null; notes: string | null; totalAmount: string; locationId: number; locationName: string; job?: { id: number; jobNumber: string; title: string } | null; items: POLine[] }
 
 const num = (value: string | number) => Number(value) || 0;
 const qtyLabel = (value: number, unit: string) => `${Number.isInteger(value) ? value : value.toFixed(2)} ${unit}`;
@@ -182,13 +182,14 @@ function PurchaseOrdersTab() {
   const orders = trpc.inventory.listPurchaseOrders.useQuery();
   const items = trpc.inventory.listItems.useQuery(undefined, { select: data => data.filter(item => item.active) });
   const locations = trpc.inventory.listLocations.useQuery(undefined, { select: data => data.filter(location => location.active) });
+  const jobs = trpc.jobs.list.useQuery(undefined, { select: data => data.filter(job => !["completed", "cancelled"].includes(job.status)) });
   const [createOpen, setCreateOpen] = useState(false);
   const [pendingCancel, setPendingCancel] = useState<PORow | null>(null);
-  const [form, setForm] = useState({ supplierName: "", locationId: "", expectedDate: "", notes: "" });
+  const [form, setForm] = useState({ supplierName: "", locationId: "", jobId: "", expectedDate: "", notes: "" });
   const [lines, setLines] = useState([{ description: "", quantity: "1", unitCost: "0", inventoryItemId: "" as string }]);
   const invalidate = () => { utils.inventory.listPurchaseOrders.invalidate(); utils.inventory.listItems.invalidate(); utils.inventory.listMovements.invalidate(); };
 
-  const createPO = trpc.inventory.createPurchaseOrder.useMutation({ onSuccess: result => { invalidate(); setCreateOpen(false); setForm({ supplierName: "", locationId: "", expectedDate: "", notes: "" }); setLines([{ description: "", quantity: "1", unitCost: "0", inventoryItemId: "" }]); toast.success(`${result.poNumber} created as a draft`); }, onError: e => toast.error(e.message) });
+  const createPO = trpc.inventory.createPurchaseOrder.useMutation({ onSuccess: result => { invalidate(); setCreateOpen(false); setForm({ supplierName: "", locationId: "", jobId: "", expectedDate: "", notes: "" }); setLines([{ description: "", quantity: "1", unitCost: "0", inventoryItemId: "" }]); toast.success(`${result.poNumber} created as a draft`); }, onError: e => toast.error(e.message) });
   const submitPO = trpc.inventory.submitPurchaseOrder.useMutation({ onSuccess: () => { invalidate(); toast.success("Purchase order submitted to the supplier"); }, onError: e => toast.error(e.message) });
   const receivePO = trpc.inventory.receivePurchaseOrder.useMutation({ onSuccess: () => { invalidate(); toast.success("Stock received into the chosen location"); }, onError: e => toast.error(e.message) });
   const cancelPO = trpc.inventory.cancelPurchaseOrder.useMutation({ onSuccess: () => { invalidate(); setPendingCancel(null); toast.success("Purchase order cancelled — nothing was received into stock"); }, onError: e => toast.error(e.message) });
@@ -214,7 +215,7 @@ function PurchaseOrdersTab() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2"><p className="font-bold text-[var(--foreground)]">{order.poNumber}</p>{statusBadge(order.status)}</div>
-                  <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{order.supplierName} · into {order.locationName}{order.expectedDate ? ` · expected ${order.expectedDate}` : ""}</p>
+                  <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{order.supplierName} · into {order.locationName}{order.job ? ` · job ${order.job.jobNumber}` : ""}{order.expectedDate ? ` · expected ${order.expectedDate}` : ""}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-bold text-[var(--foreground)]">{formatCurrency(num(order.totalAmount))}</p>
@@ -244,7 +245,16 @@ function PurchaseOrdersTab() {
               </select>
             </label>
           </div>
-          <Field label="Expected date (optional)" value={form.expectedDate} onChange={v => setForm(f => ({ ...f, expectedDate: v }))} placeholder="2026-10-02" type="date" />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Expected date (optional)" value={form.expectedDate} onChange={v => setForm(f => ({ ...f, expectedDate: v }))} placeholder="2026-10-02" type="date" />
+            <label className="block text-sm font-medium text-[var(--foreground)]">Charge to job (optional)
+              <select value={form.jobId} onChange={event => setForm(f => ({ ...f, jobId: event.target.value }))} className="mt-1.5 w-full form-input-light">
+                <option value="">Not job-linked</option>
+                {(jobs.data ?? []).map(job => <option key={job.id} value={job.id}>{job.jobNumber} · {job.title}</option>)}
+              </select>
+              <span className="mt-1 block text-xs font-normal text-[var(--muted-foreground)]">Received POs on a job count toward that job's materials cost.</span>
+            </label>
+          </div>
           <div className="space-y-1.5">
             <p className="text-sm font-medium text-[var(--foreground)]">Lines</p>
             {lines.map((line, index) => (
@@ -267,7 +277,7 @@ function PurchaseOrdersTab() {
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
               <Button disabled={!form.supplierName.trim() || !form.locationId || lines.length === 0 || lines.some(line => !line.description.trim() || num(line.quantity) <= 0) || createPO.isPending} onClick={() => createPO.mutate({
-                supplierName: form.supplierName.trim(), locationId: Number(form.locationId), expectedDate: form.expectedDate || undefined, notes: form.notes.trim() || undefined,
+                supplierName: form.supplierName.trim(), locationId: Number(form.locationId), jobId: form.jobId ? Number(form.jobId) : undefined, expectedDate: form.expectedDate || undefined, notes: form.notes.trim() || undefined,
                 items: lines.map(line => ({ inventoryItemId: line.inventoryItemId ? Number(line.inventoryItemId) : undefined, description: line.description.trim(), quantity: num(line.quantity), unitCost: num(line.unitCost) })),
               })} className="bg-[#D4922A] hover:bg-[#C07F1D] text-white">Create draft</Button>
             </div>
