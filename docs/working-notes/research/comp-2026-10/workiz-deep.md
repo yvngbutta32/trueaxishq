@@ -1,0 +1,13 @@
+# Workiz Deep Dive Fact File (October 2026)
+
+## Facts
+* **Signature System - Genius Phone**: Embedded native VoIP phone system built directly into dispatch and CRM dashboards, supporting 2-way calling, call recording, call tracking, SMS, and call masking (Source: https://www.workiz.com/pricing-plans/).
+* **Signature System - Genius Answering AI**: 24/7 AI voice receptionist ("Jessica") that answers inbound calls and SMS in English, Spanish, and French, collects lead information, auto-books jobs onto the schedule, and offers live call transfer (Source: https://www.workiz.com/blog/featured/ai-call-answering-and-dispatching/).
+* **2025-2026 Weakness #1 - Hidden & Variable Telephony Costs**: Users report frustration over opaque sales-gated base pricing combined with unexpected add-on costs for phone minutes, SMS messages, and AI token usage (Source: https://www.capterra.com/p/147525/Workiz/reviews/).
+* **2025-2026 Weakness #2 - Mobile App & Sync Lag**: Verified review feedback highlights occasional mobile app syncing delays, sluggish dispatch board updates in the field, and VoIP latency issues (Source: https://www.reddit.com/r/Connecteam/comments/1ndffjk/tldr_honest_workiz_review_2025/).
+* **2025-2026 Weakness #3 - Basic Estimating & Reporting**: Limited depth in custom reporting, multi-option proposal templates, and complex flat-rate pricing structures for specialty trades like HVAC/plumbing (Source: https://fieldserviceguide.com/workiz-2/).
+* **Most-Requested Feature #1 - Transparent All-Inclusive Pricing**: Request for predictable, flat-rate pricing tiers that include phone minutes and AI capabilities without per-minute or per-seat add-on fees (Source: https://fervorstudio.ca/news/workiz-review-pricing-alternatives/).
+* **Most-Requested Feature #2 - Advanced Inventory & PO Tracking**: Enhanced inventory management with purchase order creation and parts tracking available across lower tiers without requiring top-tier upgrades (Source: https://www.workiz.com/pricing-plans/).
+* **Most-Requested Feature #3 - Multi-Option Proposal Engine**: Built-in Good-Better-Best estimate builder with interactive customer sign-offs and customizable pricing menus (Source: https://fieldserviceguide.com/workiz-2/).
+* **2026 Moves - Genius AI Suite Expansion**: Major 2025-2026 updates introducing Genius Marketing (AI ad writer/designer), Genius Call Insights, and upgraded 24/7 multilingual Genius Answering (Source: https://www.futureaiplanet.com/2025/12/workiz-genius-answering-review.html).
+* **2026 Moves - Workiz Pay Enhancements**: Expansion of embedded payment options including Buy Now Pay Later (BNPL) consumer financing, instant payout transfers, and mobile card reader updates (Source: https://www.workiz.com/pricing-plans/).

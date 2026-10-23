@@ -1,0 +1,36 @@
+# Field Service Management (FSM) Software Competitive Landscape Census (October 2026)
+
+## Overview
+Comprehensive census of the FSM software competitive landscape prepared for TrueAxis HQ dominance planning targeting freelancers and 1-3 person small crews.
+
+## Facts
+
+* **2026 Global FSM Market Size**: The global Field Service Management software market in 2026 is estimated at $5.1B–$6.56B (MarketsandMarkets, Market Research Future), growing at a CAGR of 10.7%–12.5% toward $13.8B by 2034. Source: https://www.fortunebusinessinsights.com/field-service-management-fsm-market-102215
+* **US Market Size & Growth**: US FSM software industry revenue reached $3.1B in 2026, expanding at a 7.7% CAGR (7.5% annual growth in 2026 alone). Source: https://www.ibisworld.com/united-states/industry/field-service-management-software/5393/
+* **Market Fragmentation & Share Estimates**: Market remains highly fragmented with top 5 players holding <35% combined revenue share: ServiceTitan (~15–18% overall FSM share, >40% of mid/enterprise residential trades), Jobber (~3–5%), Housecall Pro (~2–4%), Thryv (~4–5%), Buildertrend (~2–3%). Long-tail players (ServiceM8, Workiz, FieldPulse, GorillaDesk, Service Fusion, Kickserv) hold 0.5%–2% each; over 50% of freelancers/micro-crews still use pen-and-paper, SMS, or generic spreadsheet tools. Source: https://www.viewpointanalysis.com/post/field-service-management-software-options-2026
+* **ServiceTitan (IPO / Valuation / Financials)**: Completed IPO on NASDAQ (TTAN) on Dec 12, 2024, raising $625M at a $7.59B valuation ($1.1B total equity raised pre-IPO). FY26 LTM revenue reached $1.1B (Q4 FY26 revenue $254M, +21% YoY) with market valuation trading around $7.5B–$9.0B (6.5x ARR multiple). Target: enterprise/mid-market residential/commercial trades (5–100+ techs). Source: https://investors.servicetitan.com/news-releases/news-release-details/servicetitan-announces-fiscal-fourth-quarter-and-full-fiscal/
+* **Jobber (Funding / Valuation)**: Raised $100M Series D led by General Atlantic in Jan 2023 (total funding $191M) at a $1.5B valuation. Estimated 2026 ARR ~$150M+. Target: home service SMBs (2–20 techs). Source: https://www.generalatlantic.com/news-insights/
+* **Housecall Pro (Funding / Valuation)**: Raised $125M growth round in June 2022 led by Vista Equity Partners and Permira (total funding ~$147M) at a $1.1B valuation. Estimated 2026 ARR ~$100M+ ($96k MRR added via trade-specific packages in 2026). Target: residential service pros (1–15 techs). Source: https://www.vistaequitypartners.com/news/housecall-pro-secures-125m-in-new-funding-from-permira-and-vista/
+* **Thryv (Public / SaaS Revenue)**: Publicly traded (NASDAQ: THRY), reporting ~$300M+ in annualized SaaS revenue following the acquisition of Keap (Infusionsoft) to unify SMB CRM and field automation. Target: micro SMBs needing marketing + basic field tools. Source: https://www.thryv.com/investor-relations/
+* **Buildertrend (PE Backed)**: Backed by Bain Capital & Silversmith Capital (acquired CoConstruct in 2021). Estimated revenue $150M+. Target: home builders and remodeler crews. Source: https://buildertrend.com/press/
+* **ServiceM8**: Bootstrapped, profitable Australian platform starting at $0–$349/mo. Deep iOS ecosystem integration. Target: micro-crews and solo trade pros (1–5 users). Source: https://www.servicem8.com/pricing
+* **Workiz**: Raised $60M total (Series C led by Lead Edge Capital). Revenue ~$25M ARR. Pricing: $49–$129+/mo. Target: locksmiths, carpet cleaning, appliance repair. Source: https://www.workiz.com/pricing/
+* **FieldPulse**: Raised $15M+ Series A/B (backed by Capri Ventures). Pricing: $99–$200+/mo. Target: commercial/residential contractors (2–15 techs). Source: https://www.fieldpulse.com/pricing/
+* **GorillaDesk**: Bootstrapped, ~$10M+ ARR. Pricing: $49/mo per route. Target: pest control, lawn care, pool service micro-crews. Source: https://gorilladesk.com/pricing/
+* **Service Fusion**: PE-backed (Mainsail Partners / EverCommerce platform). Pricing: $208–$350+/mo (unlimited users). Target: mid-market HVAC and electrical contractors. Source: https://www.servicefusion.com/pricing
+* **Kickserv**: PE-backed / small business SaaS buyer portfolio. Pricing: $59–$159/mo. Target: budget micro-crews and sole proprietors. Source: https://www.kickserv.com/pricing
+* **M&A and Consolidation (2025–2026)**: ServiceTitan acquired JaRay Software (2025) to deepen HVAC/plumbing franchise penetration; Thryv completed integration of Keap (2025) for SMB marketing-FSM funneling; WorkWave (backed by EQT/TA Associates) integrated Real Green & Slingshot; Angi Inc. & Thumbtack expanded instant direct booking/dispatch SaaS tools to bypass traditional FSMs. Source: https://www.servicetitan.com/press/servicetitan-announces-acquisition-of-jaray-software-inc
+* **Secondary / Vertical FSM Landscape (Pricing / Segment / Freelancer Threat)**:
+  - *FieldEdge*: $250–$500+/mo | Mid-market HVAC/plumbing (5+ techs) | Threat: Low (overly complex/expensive for freelancers). Source: https://fieldedge.com/pricing/
+  - *JobNimbus*: $50–$150/user/mo | Roofing and exterior remodeling | Threat: Medium (strong CRM/workflow for specialty trades, but heavy overhead). Source: https://www.jobnimbus.com/pricing/
+  - *RazorSync*: $85–$300/mo | General field dispatch & scheduling | Threat: Low (legacy UI, lacks modern AI/mobile features). Source: https://www.razorsync.com/pricing/
+  - *Vonigo*: $98+/user/mo | Multi-location franchises & enterprise field operations | Threat: Very Low (enterprise focus). Source: https://www.vonigo.com/pricing/
+  - *WorkWave*: $150–$400+/mo | Pest, lawn, fleet field service | Threat: Low (heavy enterprise fleet requirements). Source: https://www.workwave.com/
+  - *Synchroteam*: $28–$38/user/mo | Global micro-crews & mobile dispatch | Threat: Medium (low entry point $28/mo, solid mobile dispatch). Source: https://www.synchroteam.com/pricing/
+  - *Contractor Foreman*: $49–$148/mo flat | General construction micro-crews | Threat: High (aggressive flat pricing for small crews, rich feature set). Source: https://contractorforeman.com/pricing/
+  - *LMN (Landscape Management Network)*: $197–$397/mo | Lawn & landscape contractor operations | Threat: Medium (strong niche estimating/crew tracking). Source: https://golmn.com/pricing/
+  - *Arborgold*: $129–$350+/mo | Tree care and specialized landscaping | Threat: Low (niche specialization). Source: https://arborgold.com/pricing/
+* **Adjacent Competitor Threats (2026)**:
+  - *Vertical Voice & AI Agents*: Autonomous conversational AI (e.g., Slang.ai, Bland AI, TradesAI) handling 24/7 call answering, instant estimating, and booking without requiring traditional software interaction. Threat: High. Source: https://myquoteiq.com/best-field-service-management-software-in-2026/
+  - *Lead-Gen Marketplaces Adding Native SaaS*: Angi, Thumbtack, and Houzz embedding instant scheduling, invoicing, and payment processing directly into lead capture, disintermediating standalone FSMs. Threat: High. Source: https://www.thumbtack.com/pro
+  - *Big Tech & OS-Native Local Service Tools*: Google Local Services Ads + Gemini and Apple Business Connect offering free/low-cost direct booking and payments inside maps/search interfaces. Threat: High. Source: https://ads.google.com/local-services-ads/

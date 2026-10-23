@@ -1,0 +1,14 @@
+# GorillaDesk Deep Dive Fact File (October 2026)
+
+## Facts
+* **Signature System - Route Model & Best Available Time**: Built for recurring route service operations; features 'Best Available Time' scheduling which automatically analyzes technician routes and recommends ideal calendar slots to minimize transit time (Source: https://gorilladesk.com/features/).
+* **Signature System - Job Magnet Lead Capture**: Embeddable website lead widget ('Job Magnet') that converts site traffic into confirmed bookings while automatically pulling job locations into existing geographical route clusters (Source: https://gorilladesk.com/pricing/).
+* **Signature System - Included AI Receptionist**: Features Maya AI, an included 24/7 virtual voice receptionist that handles incoming phone calls, provides service quotes, and schedules appointments automatically (Source: https://gorilladesk.com/).
+* **2025-2026 Weakness #1 - Unsuited for Non-Route Trades**: Lacks workflow structure, milestone billing, and sub-contractor management required for complex multi-day installation or construction projects (Source: https://usedeepsel.com/gorilladesk-recurring-jobs/).
+* **2025-2026 Weakness #2 - Basic Reporting & Analytics Depth**: Operational reporting dashboards offer limited multi-branch data aggregation, custom metrics, or trend analysis for scaling enterprises (Source: https://ustechautomations.com/resources/blog/automate-fieldroutes-vs-gorilladesk-for-pest-control-companies-2026).
+* **2025-2026 Weakness #3 - Basic Inventory Management**: Inventory capabilities lack purchase order generation, supplier management, and serialized equipment tracking (Source: https://myquoteiq.com/best-gorilladesk-alternative-for-pest-control-businesses/).
+* **Most-Requested Feature #1 - Purchase Order & Advanced Inventory**: Demanded addition of purchase order creation, vendor tracking, and multi-location inventory management (Source: https://myquoteiq.com/best-gorilladesk-alternative-for-pest-control-businesses/).
+* **Most-Requested Feature #2 - Multi-Option Estimate Builder**: Addition of Good-Better-Best estimate options for upselling service packages and add-ons during quotes (Source: https://myquoteiq.com/best-gorilladesk-alternative-for-pest-control-businesses/).
+* **Most-Requested Feature #3 - Advanced Reporting Dashboards**: Custom report builder with cross-route aggregations, profitability tracking, and exportable business intelligence (Source: https://ustechautomations.com/resources/blog/automate-fieldroutes-vs-gorilladesk-for-pest-control-companies-2026).
+* **2026 Moves - Maya AI Receptionist Integration**: Native embedding of Maya AI virtual receptionist agent to provide 24/7 call answering and automated booking (Source: https://gorilladesk.com/).
+* **2026 Moves - Job Magnet & Routing Updates**: Upgraded route optimization engine and enhanced Job Magnet proximity booking rules (Source: https://gorilladesk.com/features/).

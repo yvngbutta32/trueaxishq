@@ -1,0 +1,13 @@
+# FieldPulse Deep Dive Fact File (October 2026)
+
+## Facts
+* **Signature System - ClearPath Workflow Customization**: Customizable job pipeline system allowing office managers to define strict status stages, automate customer status updates, and mandate field tech checklists for operational consistency (Source: https://www.fieldpulse.com/articles/fieldpulse-work-order-software-review/).
+* **Signature System - Advanced Estimating Engine**: Multi-option proposal engine supporting Good-Better-Best estimate layouts, dynamic markup rules, itemized labor/materials cost calculators, and embedded e-signatures (Source: https://fieldcamp.ai/reviews/fieldpulse/).
+* **2025-2026 Weakness #1 - QuickBooks Desktop Sync Friction**: Users on Capterra and G2 cite ongoing synchronization errors and manual reconciliation issues when pairing with QuickBooks Desktop (Source: https://fieldcamp.ai/reviews/fieldpulse/).
+* **2025-2026 Weakness #2 - Mobile App Performance & UX**: Field technicians report mobile app clunkiness, occasional offline sync delays, and navigation friction compared to the desktop web interface (Source: https://onehousemarketing.com/fieldpulse-review/).
+* **2025-2026 Weakness #3 - Steep Setup Curve & Custom Quote Pricing**: Highly customizable architecture requires extensive initial configuration, while unpublished quote-based pricing creates budget uncertainty (Source: https://tooleduppro.com/guides/fieldpulse-pricing/).
+* **Most-Requested Feature #1 - Faster Native Mobile App**: Demand for a streamlined mobile interface with faster load times and robust offline data caching for remote job sites (Source: https://fieldcamp.ai/reviews/fieldpulse/).
+* **Most-Requested Feature #2 - Seamless Accounting Integrations**: Improved 1-click sync reliability for QuickBooks Desktop and expanded direct integrations with major inventory suppliers (Source: https://www.capterra.com/p/153475/FieldPulse/reviews/).
+* **Most-Requested Feature #3 - Advanced Reporting & Self-Service Portal**: Expanded custom reporting dashboards and enhanced client portal options for customer online booking and status tracking (Source: https://www.capterra.com/p/153475/FieldPulse/reviews/).
+* **2026 Moves - Operator AI & Chat AI Launch**: Rollout of FieldPulse Operator AI (automated dispatch assistance) and Chat AI assistant to automate scheduling and customer inquiry routing (Source: https://contractortoolstack.com/software/fieldpulse/).
+* **2026 Moves - ClearPath & Flat-Rate Updates**: Major feature upgrades to ClearPath automated workflows and the integrated flat-rate pricing catalog (Source: https://www.facebook.com/fieldpulse/videos/big-updates-real-workflow-wins-in-2025-we-introduced-major-releases-like-clearpa/1901029023883637/).
