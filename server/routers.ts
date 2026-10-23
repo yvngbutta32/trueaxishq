@@ -23,6 +23,7 @@ import { DEMO_CLIENT_PREFIX, DEMO_INVOICE_PREFIX, DEMO_JOB_PREFIX } from "../sha
 import { renderTwiML, buildSay, buildGather, buildRecord, buildHangup } from "./_core/voiceTwiML";
 import { getDb } from "./db";
 import { requireClientPaymentsAccount, getStripeAccountForUser } from "./_core/stripeConnect";
+import { checkoutPaymentMethodTypes, createSessionWithMethodFallback } from "./_core/checkoutMethods";
 import { requirePlanFeature, getEntitlements, getPlanTier } from "./_core/entitlements";
 import { SUPPORTED_AUTOMATION_ACTIONS } from "./automationEngine";
 import { buildAutomationPreview, parseAutomationPreviewActions } from "./automationPreview";
@@ -2295,9 +2296,9 @@ export const appRouter = router({
         if (amountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
 
                 const stripeAccountId = await requireClientPaymentsAccount(ctx.user.id); // client money -> freelancer's own connected Stripe account
-        const session = await stripe.checkout.sessions.create({
+        const session = await createSessionWithMethodFallback(stripe, {
           mode: "payment",
-          payment_method_types: ["card"],
+          payment_method_types: checkoutPaymentMethodTypes("payment", "usd"),
           customer_email: inv.clientEmail || undefined,
           line_items: [{
             price_data: {
@@ -2430,8 +2431,8 @@ export const appRouter = router({
         if (amountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
                 const stripeAccountId = await requireClientPaymentsAccount(inv.userId); // client money -> freelancer's own connected Stripe account
         const stripe = getStripe();
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"],
+        const session = await createSessionWithMethodFallback(stripe, {
+          payment_method_types: checkoutPaymentMethodTypes("payment", (inv as any).currency?.toLowerCase() ?? "usd"),
           line_items: [{
             price_data: {
               currency: (inv as any).currency?.toLowerCase() ?? "usd",
@@ -3272,8 +3273,9 @@ Only include actions when you have actually generated a complete draft. For gene
           : { interval: "month" as const, interval_count: 1 };
         let session;
         try {
-          session = await stripe.checkout.sessions.create({
+          session = await createSessionWithMethodFallback(stripe, {
             mode: "subscription",
+            payment_method_types: checkoutPaymentMethodTypes("subscription", "usd"),
             customer_email: ctx.user.email ?? undefined,
             allow_promotion_codes: true,
             client_reference_id: ctx.user.id.toString(),
@@ -3921,8 +3923,8 @@ Only include actions when you have actually generated a complete draft. For gene
           try {
             const stripe = getStripe();
             const stripeAccountId = await requireClientPaymentsAccount(hostId); // client money -> freelancer's own connected Stripe account
-            const session = await stripe.checkout.sessions.create({
-              payment_method_types: ["card"],
+            const session = await createSessionWithMethodFallback(stripe, {
+              payment_method_types: checkoutPaymentMethodTypes("payment", "usd"),
               line_items: [{
                 price_data: {
                   currency: "usd",
@@ -4477,8 +4479,8 @@ Only include actions when you have actually generated a complete draft. For gene
         if (portalAmountCents < 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Invoice amount must be at least $0.50 to process payment." });
                 const stripeAccountId = await requireClientPaymentsAccount(portalRecord.userId); // client money -> freelancer's own connected Stripe account
         const stripe = getStripe();
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"],
+        const session = await createSessionWithMethodFallback(stripe, {
+          payment_method_types: checkoutPaymentMethodTypes("payment", "usd"),
           mode: "payment",
           line_items: [{
             price_data: {

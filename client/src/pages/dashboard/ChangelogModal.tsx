@@ -63,6 +63,7 @@ function ChangelogModal() {
         </div>
         <div className="p-5 space-y-4">
           {([
+            { emoji: "🏦", title: "More Ways to Pay", desc: "Client checkouts now offer ACH bank debit, Klarna, and Afterpay alongside cards (when your Stripe account has them enabled), with automatic card-only fallback so checkout never breaks." },
             { emoji: "📱", title: "Fair-Use SMS Meter", desc: "Bundled SMS (50/500/2,000/5,000 by plan) is counted live with honest refusals at the cap. See your monthly usage in Integration Hub → SMS." },
             { emoji: "👆", title: "Touch & Type Polish", desc: "Every button now meets 24px+ tap standards, AI suggestions wrap cleanly on small screens, and footer links got roomier." },
             { emoji: "🔔", title: "Notification center", desc: "Review available app notifications from the bell menu." },

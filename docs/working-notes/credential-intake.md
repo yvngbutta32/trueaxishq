@@ -58,6 +58,14 @@ Run `scripts/oracle-setup.sh` per `docs/working-notes/oracle-deploy-runbook.md`
    `STRIPE_WEBHOOK_SECRET`. (The endpoint URL only exists after step 2.)
 5. Run verify-credentials.sh, then a $1 live test charge + one live Express
    onboarding link.
+6. **Enable extra payment methods (free, recommended):** in the Stripe
+   Dashboard under Settings → Payment methods, activate US bank payments
+   (ACH), Klarna, and Afterpay. Every client checkout (invoice pay link,
+   public pay, booking deposit, client portal) automatically offers them —
+   the app passes card + us_bank_account + klarna + afterpay_clearpay and
+   falls back to card-only for accounts without them enabled. Freelancers
+   can also flip on Instant Payouts (1% fee) in their own connected-account
+   settings; that is their choice, not platform code.
 
 ### 5. Gemini AI key (~5 min, no credit card)
 1. aistudio.google.com → Get API key → Create API key.

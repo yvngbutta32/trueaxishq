@@ -24,7 +24,7 @@ SMS/email/payments/voice are code-complete but await owner credentials
 | CRM & client management | 9 | 8 | 9 | 7 | 7 | 8 | 8 | 8 | 7 | 7 | 7 | 7 |
 | Scheduling & dispatch | 9 | 9 | 10 | 8 | 8 | 8 | 8 | 8 | 8 | 7 | 7 | 8 |
 | Quoting, proposals & e-sign | 9 | 8 | 10 | 9 | 8 | 8 | 7 | 9 | 7 | 7 | 6 | 7 |
-| Invoicing & payments | 7 | 9 | 9 | 9 | 8 | 8 | 8 | 8 | 8 | 8 | 7 | 8 |
+| Invoicing & payments | 8 | 9 | 9 | 9 | 8 | 8 | 8 | 8 | 8 | 8 | 7 | 8 |
 | Client portal & communication | 8 | 9 | 8 | 8 | 7 | 9 | 7 | 7 | 7 | 6 | 7 | 6 |
 | Mobile & field experience | 8 | 9 | 7 | 8 | 9 | 7 | 7 | 6 | 7 | 5 | 5 | 5 |
 | GPS tracking & routing | 9 | 7 | 9 | 7 | 7 | 6 | 7 | 7 | 7 | 5 | 5 | 5 |
@@ -36,12 +36,12 @@ SMS/email/payments/voice are code-complete but await owner credentials
 | Pricing & value | 10 | 7 | 3 | 5 | 9 | 4 | 5 | 5 | 8 | 8 | 4 | 6 |
 | Ease of use & onboarding | 8 | 10 | 4 | 8 | 10 | 5 | 8 | 8 | 9 | 7 | 7 | 7 |
 | Market traction & social proof | 1 | 9 | 8 | 9 | 7 | 8 | 7 | 7 | 6 | 6 | 8 | 6 |
-| **Product capability (14)** | **8.5** | **8.1** | **8.1** | **7.7** | **7.8** | **7.1** | **7.1** | **7.1** | **7.2** | **6.3** | **6.3** | **6.5** |
-| **Market reality (15)** | **8.0** | **8.2** | **8.1** | **7.8** | **7.7** | **7.2** | **7.1** | **7.1** | **7.1** | **6.3** | **6.4** | **6.5** |
+| **Product capability (14)** | **8.6** | **8.1** | **8.1** | **7.7** | **7.8** | **7.1** | **7.1** | **7.1** | **7.2** | **6.3** | **6.3** | **6.5** |
+| **Market reality (15)** | **8.1** | **8.2** | **8.1** | **7.8** | **7.7** | **7.2** | **7.1** | **7.1** | **7.1** | **6.3** | **6.4** | **6.5** |
 
 ## The honest headline
 
-**Product capability: #1 of 12** (8.5). Market reality: **#3 of 12** (8.0),
+**Product capability: #1 of 12** (8.6). Market reality: **#3 of 12** (8.1),
 behind Jobber (8.2) and ServiceTitan (8.1). The entire gap is one category:
 market traction 1 vs their 7–9. Zero customers, zero G2/Capterra reviews, no
 public deployment — every competitor beats us there today, and no feature
@@ -51,9 +51,9 @@ build closes it. Deploy + first 20 happy freelancers + review profiles do.
 
 | Rank | Product capability | Market reality |
 |---|---|---|
-| 1 | **TrueAxis HQ 8.5** | Jobber 8.2 |
+| 1 | **TrueAxis HQ 8.6** | Jobber 8.2 |
 | 2 | Jobber 8.1 | ServiceTitan 8.1 |
-| 3 | ServiceTitan 8.1 | **TrueAxis HQ 8.0** |
+| 3 | ServiceTitan 8.1 | **TrueAxis HQ 8.1** |
 | 4 | ServiceM8 7.8 | Housecall Pro 7.8 |
 | 5 | Housecall Pro 7.7 | ServiceM8 7.7 |
 | 6 | GorillaDesk 7.2 | Buildertrend 7.2 |
@@ -82,9 +82,14 @@ build closes it. Deploy + first 20 happy freelancers + review profiles do.
   Gemini keys.** Competitors' AI voice is live today but priced: Jobber
   Receptionist $29–99/mo, ServiceM8 Phone Agent $49/mo, Workiz Genius
   Answering add-on, ServiceTitan ~$2.75/call.
-- **Invoicing & payments (7)**: Stripe Connect routing client money to each
+- **Invoicing & payments (8)**: Stripe Connect routing client money to each
   freelancer's own account, Tap-to-Pay, deposits, quote-to-cash on signature.
-  Caveats: no ACH/BNPL/instant payouts yet; live keys pending.
+  Oct 23: ACH (us_bank_account) + Klarna + Afterpay wired into all four
+  client-money checkouts and ACH into SaaS subscription checkout, with a
+  card-only fallback so no checkout ever breaks (payment-method eligibility
+  is per-account dashboard config — free). Instant payouts (1%) are
+  connected-account config. Caveat: lights up when live keys + dashboard
+  methods are enabled.
 - **Market traction & social proof (1)**: the honest gap. Not deployed, zero
   reviews, no app-store presence.
 
@@ -111,8 +116,10 @@ build closes it. Deploy + first 20 happy freelancers + review profiles do.
 2. **Native app stores** (their iOS/Android apps have 100s–1,000s of reviews;
    our PWA is better-engineered offline but invisible in stores until we
    publish wrappers).
-3. **Payments breadth**: ACH, BNPL, instant payouts exist at Jobber/HCP
-   today; ours is Stripe config work once live keys exist.
+3. ~~Payments breadth~~ CLOSED Oct 23: ACH + Klarna + Afterpay now wired
+   into every checkout with honest card-only fallback; instant payouts are
+   connected-account config (1% fee, docs.stripe.com/connect/instant-payouts).
+   Remaining difference is purely activation, not code.
 4. **QBO native sync**: Kickserv, FieldPulse, Service Fusion have deep
    bi-directional sync; our CSV export covers every tier but costs a manual
    step. Decided against OAuth at launch (5–10 day Intuit review) — revisit
