@@ -1677,6 +1677,8 @@ export const voiceCalls = mysqlTable("voiceCalls", {
   userId: int("userId").notNull(),
   callSid: varchar("callSid", { length: 64 }).notNull().unique(),
   fromNumber: varchar("fromNumber", { length: 32 }).notNull().default(""),
+  // Caller-selected language (press-9 menu) for THIS call; null = owner default.
+  language: varchar("language", { length: 8 }),
   status: varchar("status", { length: 20 }).notNull().default("ringing"),
   outcome: varchar("outcome", { length: 20 }).notNull().default("unknown"),
   transcriptJson: json("transcriptJson"),

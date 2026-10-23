@@ -5,6 +5,7 @@ import { TerminalSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { VOICE_LANGUAGE_OPTIONS, normalizeLanguageOption, type VoiceLanguageOptionCode } from "../../../shared/voiceLanguageOptions";
 import { Bell, CalendarDays, CheckCircle2, CreditCard, ExternalLink, Loader2, MessageSquare, Phone, PlugZap, ShieldCheck, XCircle } from "lucide-react";
 
 type Provider = "google_calendar" | "outlook_calendar" | "quickbooks" | "gmail" | "outlook" | "slack" | "twilio" | "zapier" | "stripe";
@@ -94,12 +95,12 @@ function VoiceReceptionistCard() {
   const [businessInfo, setBusinessInfo] = useState("");
   const [agentMode, setAgentMode] = useState<"voicemail" | "ai">("voicemail");
   const [transferNumber, setTransferNumber] = useState("");
-  const [language, setLanguage] = useState<"en" | "es">("en");
+  const [language, setLanguage] = useState<VoiceLanguageOptionCode>("en");
   const [saved, setSaved] = useState(false);
   const lineData = line.data;
   useEffect(() => {
     const d = status.data?.settings;
-    if (d && !greeting) { setGreeting(d.greeting); setBusinessInfo(d.businessInfo); setAgentMode(d.agentMode === "ai" ? "ai" : "voicemail"); setTransferNumber(d.transferNumber ?? ""); setLanguage(d.language === "es" ? "es" : "en"); }
+    if (d && !greeting) { setGreeting(d.greeting); setBusinessInfo(d.businessInfo); setAgentMode(d.agentMode === "ai" ? "ai" : "voicemail"); setTransferNumber(d.transferNumber ?? ""); setLanguage(normalizeLanguageOption(d.language)); }
   }, [status.data, greeting]);
   const voiceState = status.data;
   return (
@@ -153,11 +154,10 @@ function VoiceReceptionistCard() {
               <span className="mt-1 block text-xs font-normal text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">Callers press 0 to reach a person. Empty = honest voicemail instead.</span>
             </label>
             <label htmlFor="voice-language" className="block text-sm font-semibold text-[var(--foreground)]">Call language
-              <select id="voice-language" value={language} onChange={e => setLanguage(e.target.value === "es" ? "es" : "en")} className="mt-1.5 block w-full rounded-lg border border-[color-mix(in oklab, var(--foreground) 16%, transparent)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-[#D4922A]/35">
-                <option value="en">English</option>
-                <option value="es">Espanol (Spanish)</option>
+              <select id="voice-language" value={language} onChange={e => setLanguage(normalizeLanguageOption(e.target.value))} className="mt-1.5 block w-full rounded-lg border border-[color-mix(in oklab, var(--foreground) 16%, transparent)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-[#D4922A]/35">
+                {VOICE_LANGUAGE_OPTIONS.map(o => <option key={o.code} value={o.code}>{o.label}</option>)}
               </select>
-              <span className="mt-1 block text-xs font-normal text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">The receptionist answers and speaks this language.</span>
+              <span className="mt-1 block text-xs font-normal text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">The receptionist answers and speaks this language. Callers can also press 9 mid-call to switch between all ten languages.</span>
             </label>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">

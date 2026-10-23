@@ -17,6 +17,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-23",
+    title: "Voice receptionist: grounded, honest, and fluent in ten languages",
+    tag: "Integrations",
+    description: "Your AI receptionist got the three things research shows customers actually judge it on. It is grounded: it never invents prices, availability, or appointment slots, and quietly captures interest as a lead instead of guessing. It is honest: every default greeting introduces itself as an AI assistant, and pressing zero always reaches a person when you set a transfer number — or a straight voicemail, never a dead line, when you haven't. And it is fluent: answer in English, Spanish, French, Mandarin, Cantonese, Tagalog, Vietnamese, Arabic, Korean, or Punjabi, and callers can press 9 mid-call to hear the language menu and switch on the spot — every option announced in its own language, with matching speech recognition and native voices for the whole call after that.",
+  },
+  {
     date: "2026-10-16",
     title: "Paper Medium theme + optional dark mode — comfortable in any light",
     tag: "Platform",

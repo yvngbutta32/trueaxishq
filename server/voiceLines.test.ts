@@ -139,7 +139,7 @@ describe("included business lines (managed voice)", () => {
     expect(voiceApi).toContain('"fair_use_cap"');
     // cap message is localized (Oct 23 2026 hardening): en phrase preserves the
     // exact "not accepting calls right now" wording; es ships the equivalent.
-    expect(voiceApi).toContain('phrase(ctx.language, "callBackLater")');
+    expect(voiceApi).toContain('phrase(lang, "callBackLater")');
     const phrases = source("./_core/voiceAgent.ts");
     expect(phrases).toContain("not accepting calls right now");
     expect(phrases).toContain("no está recibiendo llamadas");

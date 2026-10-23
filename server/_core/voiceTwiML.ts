@@ -3,6 +3,8 @@
 // with XML escaping and strict tag whitelisting — no Twilio SDK, no surprises.
 // Every builder returns a string; renderTwiML() wraps them in a valid document.
 
+import { normalizeVoiceLanguage, voiceLanguageMeta } from "./voiceAgent";
+
 export function xmlEscape(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -12,24 +14,39 @@ export function xmlEscape(value: string): string {
     .replace(/'/g, "&apos;");
 }
 
-/** Spoken text. voice/pick "Polly" voices cost extra on some engines; the default
- *  engine is included with Twilio calls, so we never request a named voice. */
-export function buildSay(text: string): string {
+/** Spoken text. English keeps the bare default <Say> voice (no named voice,
+ *  no per-character TTS charge). Every other language MUST carry a matching
+ *  voice + language pair — the default engine is English-only and garbles
+ *  non-English text. Voice/language values come from VOICE_LANGUAGES, each
+ *  verified against twilio-node's GatherLanguage/SayVoice/SayLanguage unions.
+ *  Named voices bill per character used (usage-based, $0 fixed cost). */
+export function buildSay(text: string, opts?: { voice?: string | null; language?: string }): string {
   const clean = text.replace(/[""''—–…]/g, "'").replace(/\s+/g, " ").trim();
   if (!clean) throw new Error("buildSay: empty text");
   if (clean.length > 4000) throw new Error("buildSay: text too long for one turn");
-  return `<Say>${xmlEscape(clean)}</Say>`;
+  const attrs = opts?.voice && opts.language ? ` voice="${xmlEscape(opts.voice)}" language="${xmlEscape(opts.language)}"` : "";
+  return `<Say${attrs}>${xmlEscape(clean)}</Say>`;
 }
 
-/** STT locale per conversation language. Both are documented Twilio <Gather>
- *  STT locales (twilio.com/docs/voice/twiml/gather language appendix);
- *  es-MX matches North American Spanish callers. */
+/** STT locale per conversation language, from the verified registry. */
 export function gatherLocale(language: string): string {
-  return language === "es" ? "es-MX" : "en-US";
+  return voiceLanguageMeta(normalizeVoiceLanguage(language)).gatherLocale;
+}
+
+/** TTS voice/language attributes for a conversation language, for buildSay. */
+export function sayVoiceFor(language: string): { voice: string | null; language: string } {
+  const meta = voiceLanguageMeta(normalizeVoiceLanguage(language));
+  return { voice: meta.sayVoice, language: meta.sayLanguage };
 }
 
 /** Collect caller speech. actionUrl must be absolute on the deployment origin. */
 export function buildGather(actionUrl: string, promptSay: string, opts?: { hints?: string[]; language?: string }): string {
+  return buildGatherWithChildren(actionUrl, [buildSay(promptSay, opts?.language ? sayVoiceFor(opts.language) : undefined)], opts);
+}
+
+/** A Gather that speaks several <Say> children then listens — used by the
+ *  language menu, where each option is announced in its own language. */
+export function buildGatherWithChildren(actionUrl: string, sayChildren: string[], opts?: { hints?: string[]; language?: string }): string {
   if (!/^https?:\/\//.test(actionUrl)) throw new Error("buildGather: action URL must be absolute http(s)");
   const attrs = [
     'input="speech dtmf"',
@@ -42,7 +59,7 @@ export function buildGather(actionUrl: string, promptSay: string, opts?: { hints
     const hints = opts.hints.slice(0, 12).map(h => h.replace(/[<>"]/g, "").trim()).filter(Boolean);
     if (hints.length) attrs.push(`hints="${xmlEscape(hints.join(","))}"`);
   }
-  return `<Gather ${attrs.join(" ")}>${buildSay(promptSay)}</Gather>`;
+  return `<Gather ${attrs.join(" ")}>${sayChildren.join("")}</Gather>`;
 }
 
 /** Voicemail: record a message. actionUrl receives the RecordingUrl. */
@@ -67,13 +84,15 @@ export function buildDial(number: string, actionUrl: string, callerId?: string):
   return `<Dial ${attrs.join(" ")}>${xmlEscape(number)}</Dial>`;
 }
 
-export function buildHangup(): string {
-  return "<Hangup/>";
+/** Redirect the call to another TwiML URL. Method POST keeps our signature
+ *  verification intact (Twilio signs redirect requests like webhooks). */
+export function buildRedirect(url: string, method: "POST" | "GET" = "POST"): string {
+  if (!/^https?:\/\//.test(url)) throw new Error("buildRedirect: URL must be absolute http(s)");
+  return `<Redirect method="${method}">${xmlEscape(url)}</Redirect>`;
 }
 
-export function buildRedirect(url: string): string {
-  if (!/^https?:\/\//.test(url)) throw new Error("buildRedirect: absolute URL required");
-  return `<Redirect method="POST">${xmlEscape(url)}</Redirect>`;
+export function buildHangup(): string {
+  return "<Hangup/>";
 }
 
 export function renderTwiML(children: string[]): string {

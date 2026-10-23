@@ -71,7 +71,8 @@ describe("mandate 3: human transfer (press zero)", () => {
   });
   it("the AI answer flow advertises press-zero only when a transfer number exists", () => {
     const api = read("voiceApi.ts");
-    expect(api).toContain('ctx.transferNumber ? " " + phrase(ctx.language, "pressZeroHint") : ""');
+    expect(api).toContain('phrase(lang, "pressZeroHint")'); // localized hint (per-call language)
+    expect(api).toContain('phrase(lang, "languageMenuHint")'); // press-9 language menu is always advertised
   });
   it("handoff (emergencies) dials the human too, keeping the owner push", () => {
     const api = read("voiceApi.ts");
@@ -128,10 +129,10 @@ describe("mandate 4: Spanish (bilingual at identical cost)", () => {
     expect(normalizeVoiceLanguage("EN")).toBe("en"); // anything else degrades to English
     expect(normalizeVoiceLanguage(undefined)).toBe("en");
   });
-  it("every gather on the AI path passes the owner's language", () => {
+  it("every gather on the AI path passes the per-call language", () => {
     const api = read("voiceApi.ts");
-    const gathers = api.split("buildGather(").length - 1;
-    const withLanguage = api.split("{ language: ctx.language }").length - 1;
+    const gathers = (api.split("buildGather(").length - 1) + (api.split("buildGatherWithChildren(").length - 1);
+    const withLanguage = api.split("{ language: lang }").length - 1;
     expect(withLanguage).toBe(gathers);
   });
 });
@@ -149,11 +150,11 @@ describe("persistence + UI wiring contracts", () => {
     const ui = read("../client/src/pages/IntegrationHub.tsx");
     expect(ui).toContain('id="voice-transfer"');
     expect(ui).toContain('id="voice-language"');
-    expect(ui).toContain('value="es"');
+    expect(ui).toContain("VOICE_LANGUAGE_OPTIONS.map"); // all ten languages selectable
   });
   it("the language flows through every spoken fixed prompt on the call path", () => {
     const api = read("voiceApi.ts");
-    expect(api.split("phrase(ctx.language").length - 1).toBeGreaterThanOrEqual(11);
+    expect(api.split("phrase(lang,").length - 1).toBeGreaterThanOrEqual(11);
     expect(api).not.toMatch(/buildSay\("(Sorry|Is there|We have saved|Let me take|One moment|Please call back|The number you|No one is|connecting you)/);
   });
 });

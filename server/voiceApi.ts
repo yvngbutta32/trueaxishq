@@ -14,9 +14,10 @@ import { sendPushToUser } from "./_core/push";
 import {
   getVoiceStatus, validateTwilioSignature, decideNextTurn, newCallTranscript, appendTurn,
   sanitizeCallerFact, VOICE_MAX_TURNS, VOICE_DEFAULT_GREETINGS, VOICE_PHRASES, normalizeVoiceLanguage, phrase,
+  languageMenuChoices, voiceLanguageMeta, VOICE_LANGUAGES,
   type VoiceLanguage, type VoiceTurn,
 } from "./_core/voiceAgent";
-import { renderTwiML, buildSay, buildGather, buildRecord, buildHangup, buildDial } from "./_core/voiceTwiML";
+import { renderTwiML, buildSay, buildGather, buildGatherWithChildren, buildRecord, buildHangup, buildDial, buildRedirect, sayVoiceFor } from "./_core/voiceTwiML";
 
 export const voiceApiRouter = Router();
 
@@ -53,6 +54,29 @@ const twiml = (res: Response, children: string[]) => {
 
 const gracefulFailure = (res: Response) =>
   twiml(res, [buildSay(phrase("en", "technicalProblem")), buildHangup()]);
+
+/** Say in the call's language (voice + language attrs for non-English). */
+const say = (lang: VoiceLanguage, text: string) => buildSay(text, sayVoiceFor(lang));
+
+/** The language actually in use on a live call: a caller-selected language
+ *  (press 9 menu) wins over the owner's configured default. */
+const callLanguage = (call: { language?: string | null } | undefined, fallback: VoiceLanguage): VoiceLanguage =>
+  call?.language ? normalizeVoiceLanguage(call.language) : fallback;
+
+/** Language menu children: each option announced in its own language, with
+ *  its digit spoken in that language. Rendered with buildGatherWithChildren
+ *  so Twilio listens while announcing. The digit order comes from
+ *  languageMenuChoices() — the /language webhook resolves digits with the
+ *  SAME function so the two sides always agree. */
+function languageMenuSayChildren(active: VoiceLanguage): string[] {
+  const children: string[] = [say(active, phrase(active, "chooseLanguage"))];
+  for (const choice of languageMenuChoices(active)) {
+    const meta = voiceLanguageMeta(choice.language);
+    const entry = meta.menuEntry.replace("{d}", meta.digitWords[choice.digit - 1] ?? String(choice.digit));
+    children.push(buildSay(entry, { voice: meta.sayVoice, language: meta.sayLanguage }));
+  }
+  return children;
+}
 
 async function loadOwnerContext(userIdRaw: unknown) {
   const userId = Number(userIdRaw);
@@ -100,6 +124,12 @@ voiceApiRouter.post("/answer", withGracefulVoice(async (req: Request, res: Respo
       await ctx.db.insert(voiceCalls).values({ userId: ctx.userId, callSid: sid, fromNumber: (body.From ?? "").slice(0, 32), status: "answered" });
     } catch { /* duplicate SID (Twilio retry) — continue with the existing row */ }
   }
+  // A caller may have picked their language on the press-9 menu; that choice
+  // is stored on the call row and wins over the owner's default from here on
+  // (this re-entry is also how the menu re-invokes the greeting).
+  const [existingCall] = sid ? await ctx.db.select().from(voiceCalls).where(eq(voiceCalls.callSid, sid)).limit(1) : [];
+  const lang = callLanguage(existingCall, ctx.language);
+  const greeting = lang !== ctx.language ? VOICE_DEFAULT_GREETINGS[lang] : ctx.greeting;
 
   // Fair use on platform-purchased lines only: bring-your-own numbers bill
   // to the client's own Twilio account and are never capped by us.
@@ -111,7 +141,7 @@ voiceApiRouter.post("/answer", withGracefulVoice(async (req: Request, res: Respo
       if (used >= cap) {
         try { await ctx.db.update(voiceCalls).set({ outcome: "fair_use_cap", status: "completed", endedAt: new Date() }).where(eq(voiceCalls.callSid, sid)); } catch { /* row may not exist */ }
         return twiml(res, [
-          buildSay(phrase(ctx.language, "callBackLater")),
+          say(lang, phrase(lang, "callBackLater")),
           buildHangup(),
         ]);
       }
@@ -119,13 +149,16 @@ voiceApiRouter.post("/answer", withGracefulVoice(async (req: Request, res: Respo
   }
 
   if (wantsAi(ctx)) {
-    const hint = ctx.transferNumber ? " " + phrase(ctx.language, "pressZeroHint") : "";
-    return twiml(res, [buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, ctx.greeting + hint, { language: ctx.language })]);
+    const hints = [
+      ctx.transferNumber ? " " + phrase(lang, "pressZeroHint") : "",
+      " " + phrase(lang, "languageMenuHint"),
+    ].join("");
+    return twiml(res, [buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, greeting + hints, { language: lang })]);
   }
   if (ctx.voicemailEnabled) {
-    return twiml(res, [buildSay(ctx.greeting), buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`)]);
+    return twiml(res, [say(lang, greeting), buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`)]);
   }
-  return twiml(res, [buildSay(ctx.greeting), buildSay(phrase(ctx.language, "callbackHours")), buildHangup()]);
+  return twiml(res, [say(lang, greeting), say(lang, phrase(lang, "callbackHours")), buildHangup()]);
 }));
 
 // POST /api/voice/gather?u=<userId> — one conversational turn.
@@ -141,6 +174,7 @@ voiceApiRouter.post("/gather", withGracefulVoice(async (req: Request, res: Respo
   if (!call || call.userId !== ctx.userId) return res.status(403).type("text/plain").send("Forbidden: unknown call.");
 
   const digits = (body.Digits ?? "").trim();
+  const lang: VoiceLanguage = callLanguage(call, ctx.language);
   const speech = (body.SpeechResult ?? "").trim().slice(0, 1000);
   const speechConfidence = Number(body.Confidence ?? "0");
   const turns: VoiceTurn[] = Array.isArray(call.transcriptJson) ? (call.transcriptJson as VoiceTurn[]) : [];
@@ -160,39 +194,49 @@ voiceApiRouter.post("/gather", withGracefulVoice(async (req: Request, res: Respo
       await persist({ outcome: "transfer" });
       const callerId = (await getActiveLine(ctx.db, ctx.userId))?.phoneNumber ?? undefined;
       return twiml(res, [
-        buildSay(phrase(ctx.language, "transferConnecting")),
+        say(lang, phrase(lang, "transferConnecting")),
         buildDial(ctx.transferNumber, `${baseUrl(req)}/api/voice/dial-end?u=${ctx.userId}`, callerId),
       ]);
     }
     await persist({ status: "completed", outcome: "voicemail", endedAt: new Date() });
     return twiml(res, [
-      buildSay(phrase(ctx.language, "transferUnavailable")),
+      say(lang, phrase(lang, "transferUnavailable")),
       buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`),
+    ]);
+  }
+
+  // Press-nine: language menu. Any caller can switch to any of the ten
+  // supported languages mid-call — the menu announces each option in its
+  // own language so it is usable no matter what the caller speaks.
+  if (digits === "9") {
+    await persist({});
+    return twiml(res, [
+      buildGatherWithChildren(`${baseUrl(req)}/api/voice/language?u=${ctx.userId}`, languageMenuSayChildren(lang), { language: lang }),
     ]);
   }
 
   // No usable speech (silence/timeout), not yet at the turn cap → ask once more.
   if (!speech && turnCount < VOICE_MAX_TURNS - 1) {
     await persist({});
-    return twiml(res, [buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, phrase(ctx.language, "retry"), { language: ctx.language })]);
+    return twiml(res, [buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, phrase(lang, "retry"), { language: lang })]);
   }
 
   // Turn cap reached, empty speech, or non-AI mode → wrap up honestly.
   if (!speech || turnCount >= VOICE_MAX_TURNS || !wantsAi(ctx)) {
     await persist({ status: speech ? "completed" : "voicemail", outcome: "voicemail", endedAt: new Date() });
     return twiml(res, [
-      buildSay(phrase(ctx.language, "leaveAMessage")),
+      say(lang, phrase(lang, "leaveAMessage")),
       buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`),
     ]);
   }
 
   let decision;
   try {
-    decision = await decideNextTurn({ greeting: ctx.greeting, businessInfo: ctx.businessInfo, turns: nextTurns, callerSpeech: speech, language: ctx.language });
+    decision = await decideNextTurn({ greeting: ctx.greeting, businessInfo: ctx.businessInfo, turns: nextTurns, callerSpeech: speech, language: lang });
   } catch {
     // LLM unavailable mid-call (misconfiguration, provider outage, bad output) → voicemail, never silence.
     await persist({ status: "completed", outcome: "voicemail", endedAt: new Date() });
-    return twiml(res, [buildSay(phrase(ctx.language, "switchingToVoicemail")), buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`)]);
+    return twiml(res, [say(lang, phrase(lang, "switchingToVoicemail")), buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`)]);
   }
 
   const agentTurn = appendTurn(nextTurns, { role: "agent", text: decision.say, at: new Date().toISOString() });
@@ -218,7 +262,7 @@ voiceApiRouter.post("/gather", withGracefulVoice(async (req: Request, res: Respo
     });
     // Fire-and-forget owner notification (never blocks the call).
     void sendPushToUser(ctx.userId, "Voice lead captured", `${callerName ?? "A caller"} asked about ${serviceRequested ?? "your services"}.`, "/integration-hub").catch(() => {});
-    return twiml(res, [buildSay(decision.say), buildSay(phrase(ctx.language, "leadSaved")), buildHangup()]);
+    return twiml(res, [say(lang, decision.say), say(lang, phrase(lang, "leadSaved")), buildHangup()]);
   }
 
   if (decision.intent === "handoff" || decision.intent === "end") {
@@ -231,13 +275,13 @@ voiceApiRouter.post("/gather", withGracefulVoice(async (req: Request, res: Respo
       if (ctx.transferNumber) {
         const callerId = (await getActiveLine(ctx.db, ctx.userId))?.phoneNumber ?? undefined;
         return twiml(res, [
-          buildSay(decision.say),
-          buildSay(phrase(ctx.language, "transferConnecting")),
+          say(lang, decision.say),
+          say(lang, phrase(lang, "transferConnecting")),
           buildDial(ctx.transferNumber, `${baseUrl(req)}/api/voice/dial-end?u=${ctx.userId}`, callerId),
         ]);
       }
     }
-    return twiml(res, [buildSay(decision.say), buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`), buildHangup()]);
+    return twiml(res, [say(lang, decision.say), buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`), buildHangup()]);
   }
 
   // ask / info_given → speak and continue (or close if we just answered a question with no pending lead intent).
@@ -246,9 +290,63 @@ voiceApiRouter.post("/gather", withGracefulVoice(async (req: Request, res: Respo
   }).where(eq(voiceCalls.id, call.id));
   if (decision.intent === "info_given") {
     await ctx.db.update(voiceCalls).set({ status: "completed", outcome: "info_given", endedAt: new Date() }).where(eq(voiceCalls.id, call.id));
-    return twiml(res, [buildSay(decision.say), buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, phrase(ctx.language, "anythingElse"), { language: ctx.language })]);
+    return twiml(res, [say(lang, decision.say), buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, phrase(lang, "anythingElse"), { language: lang })]);
   }
-  return twiml(res, [buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, decision.say, { language: ctx.language })]);
+  return twiml(res, [buildGather(`${baseUrl(req)}/api/voice/gather?u=${ctx.userId}`, decision.say, { language: lang })]);
+}));
+
+// POST /api/voice/language?u=<userId> — the caller picked a language on the
+// press-9 menu. Resolves the digit with the SAME languageMenuChoices()
+// mapping that rendered the menu, stores the choice on the call row, and
+// replays the greeting in the new language. Zero stays reserved for the
+// human transfer here too — the universal rule holds everywhere.
+voiceApiRouter.post("/language", withGracefulVoice(async (req: Request, res: Response) => {
+  const body = gate(req, res);
+  if (!body) return;
+  let ctx;
+  try { ctx = await loadOwnerContext(req.query.u); } catch { return gracefulFailure(res); }
+  if (!ctx) return res.status(403).type("text/plain").send("Forbidden: unknown voice destination.");
+
+  const sid = (body.CallSid ?? "").slice(0, 64);
+  const [call] = sid ? await ctx.db.select().from(voiceCalls).where(eq(voiceCalls.callSid, sid)).limit(1) : [];
+  if (!call || call.userId !== ctx.userId) return res.status(403).type("text/plain").send("Forbidden: unknown call.");
+  const lang: VoiceLanguage = callLanguage(call, ctx.language);
+
+  // Zero always means "a person" — even from inside the menu.
+  if ((body.Digits ?? "").trim() === "0") {
+    if (ctx.transferNumber) {
+      await ctx.db.update(voiceCalls).set({ outcome: "transfer" }).where(eq(voiceCalls.id, call.id));
+      const callerId = (await getActiveLine(ctx.db, ctx.userId))?.phoneNumber ?? undefined;
+      return twiml(res, [
+        say(lang, phrase(lang, "transferConnecting")),
+        buildDial(ctx.transferNumber, `${baseUrl(req)}/api/voice/dial-end?u=${ctx.userId}`, callerId),
+      ]);
+    }
+    await ctx.db.update(voiceCalls).set({ status: "completed", outcome: "voicemail", endedAt: new Date() }).where(eq(voiceCalls.id, call.id));
+    return twiml(res, [
+      say(lang, phrase(lang, "transferUnavailable")),
+      buildRecord(`${baseUrl(req)}/api/voice/completed?u=${ctx.userId}&mode=voicemail`),
+    ]);
+  }
+
+  const digit = Number((body.Digits ?? "").trim());
+  const choice = languageMenuChoices(lang).find(c => c.digit === digit);
+  if (!choice) {
+    // Unknown key → replay the menu, never a dead end.
+    return twiml(res, [
+      buildGatherWithChildren(`${baseUrl(req)}/api/voice/language?u=${ctx.userId}`, languageMenuSayChildren(lang), { language: lang }),
+    ]);
+  }
+
+  await ctx.db.update(voiceCalls).set({ language: choice.language }).where(eq(voiceCalls.id, call.id));
+  await ctx.db.insert(auditLogs).values({
+    userId: ctx.userId, action: "voice.language.selected", entityType: "voiceCall", entityId: call.id,
+    details: JSON.stringify({ callSid: sid, language: choice.language }),
+  });
+  // Replay the whole greeting in the chosen language — the answer webhook
+  // reads the language from the call row, so everything downstream (STT,
+  // prompts, LLM language, voicemail) follows automatically.
+  return twiml(res, [buildRedirect(`${baseUrl(req)}/api/voice/answer?u=${ctx.userId}`)]);
 }));
 
 // POST /api/voice/dial-end — the human transfer ended (answered or not).

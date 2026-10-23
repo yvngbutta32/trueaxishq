@@ -66,6 +66,7 @@ const seed = async (email, planId, settings) => {
 };
 const ownerEs = await seed("e2e-voice-es@test", "pro", { agentMode: "ai", transferNumber: "+15551234567", language: "es" });
 const ownerNoTransfer = await seed("e2e-voice-none@test", "pro", { agentMode: "ai", transferNumber: "", language: "en" });
+const ownerFr = await seed("e2e-voice-fr@test", "pro", { agentMode: "ai", transferNumber: "+15551234567", language: "fr" });
 
 // ── Scenario 1: AI answer in Spanish advertises press-zero, gathers in es-MX ──
 {
@@ -116,6 +117,49 @@ const ownerNoTransfer = await seed("e2e-voice-none@test", "pro", { agentMode: "a
 {
   const res = await fetch(`${BASE}/api/voice/gather?u=${ownerEs}`, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: "Digits=0" });
   check("unsigned request → 403 (fail closed)", res.status === 403);
+}
+
+// ── Scenario 6: French owner — fr-CA STT, Chantal voice, press-9 hint ────────
+{
+  const r = await postVoice(`/api/voice/answer?u=${ownerFr}`, { CallSid: "CA-FR-1", From: "+15125550100" });
+  const ok = r.status === 200 && r.text.includes('language="fr-CA"') &&
+    r.text.includes('voice="Polly.Chantal"') && r.text.includes("réceptionniste virtuelle") &&
+    r.text.includes("Composez le zéro") && r.text.includes("appuyez sur le neuf");
+  check("answer: fr greeting + fr-CA STT + Chantal TTS + press-zero AND press-9 hints", ok, r.text.slice(80, 260));
+}
+
+// ── Scenario 7: press 9 → menu lists the other nine languages natively ────────
+{
+  const r = await postVoice(`/api/voice/gather?u=${ownerFr}`, { CallSid: "CA-FR-1", From: "+15125550100", Digits: "9" });
+  // active=fr → en=1, es=2, zh=3, yue=4, fil=5, vi=6, ar=7, ko=8, pa=9 (registry order minus active)
+  const ok = r.status === 200 && r.text.includes("Veuillez choisir votre langue") &&
+    r.text.includes("For English, press one.") && r.text.includes("Para español, oprima dos.") &&
+    r.text.includes("普通话请按三。") && r.text.includes("廣東話請㩒四。") &&
+    r.text.includes("Para sa Tagalog, pindutin ang lima.") && r.text.includes("Cho tiếng Việt, hãy bấm sáu.") &&
+    r.text.includes("للعربية اضغط سبعة.") && r.text.includes("한국어는 팔번을 누르세요.") && r.text.includes("ਪੰਜਾਬੀ ਲਈ ਨੌਂ ਦਬਾਓ।") &&
+    r.text.includes("/api/voice/language?u=") && !r.text.includes("Pour le français"); // active language not offered
+  check("gather: press-9 menu announces all nine other languages natively", ok);
+}
+
+// ── Scenario 8: caller picks English (digit 1) → language persists on the call, greeting replays in English ──
+{
+  const r = await postVoice(`/api/voice/language?u=${ownerFr}`, { CallSid: "CA-FR-1", From: "+15125550100", Digits: "1" });
+  const [row] = await db.query("SELECT language FROM voiceCalls WHERE callSid='CA-FR-1'");
+  const [audit] = await db.query("SELECT action FROM auditLogs WHERE action='voice.language.selected' ORDER BY id DESC LIMIT 1");
+  const replay = await postVoice(`/api/voice/answer?u=${ownerFr}`, { CallSid: "CA-FR-1", From: "+15125550100" });
+  const ok = r.status === 200 && r.text.includes("<Redirect") && row[0]?.language === "en" &&
+    audit.length === 1 && replay.status === 200 &&
+    replay.text.includes('language="en-US"') && replay.text.includes("virtual receptionist") && replay.text.includes("press nine");
+  check("language menu: digit 1 stores en on the call row and replays the English greeting", ok,
+    JSON.stringify({ stored: row[0]?.language, redirect: r.text.slice(0, 120) }));
+}
+
+// ── Scenario 9: press 0 from inside the language menu still transfers ────────
+{
+  await postVoice(`/api/voice/answer?u=${ownerFr}`, { CallSid: "CA-FR-2", From: "+15125550100" });
+  const r = await postVoice(`/api/voice/language?u=${ownerFr}`, { CallSid: "CA-FR-2", From: "+15125550100", Digits: "0" });
+  const ok = r.status === 200 && r.text.includes("je vous transfère") && r.text.includes("<Dial") && r.text.includes("+15551234567");
+  check("language menu: zero stays reserved for the human transfer", ok);
 }
 
 llm.close();

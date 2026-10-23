@@ -16,11 +16,11 @@ import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { geocodeLabelWithNominatim, normalizeGeocodeLabel, GEOCODE_BATCH_LIMIT } from "./_core/geocode";
-import { getVoiceStatus, VOICE_DEFAULT_GREETINGS, phrase } from "./_core/voiceAgent";
+import { getVoiceStatus, VOICE_DEFAULT_GREETINGS, VOICE_LANGUAGES, phrase, normalizeVoiceLanguage, type VoiceLanguage as VoiceLanguageCode } from "./_core/voiceAgent";
 import { buyLineNumber, getActiveLine, getLineOverview, getVoiceLineStatus as getVoiceLineDeploymentStatus, releaseLineNumber } from "./_core/voiceLines";
 import { voiceLineMinutesFor, subAccountLimitFor } from "../shared/plans";
 import { DEMO_CLIENT_PREFIX, DEMO_INVOICE_PREFIX, DEMO_JOB_PREFIX } from "../shared/demoData";
-import { renderTwiML, buildSay, buildGather, buildRecord, buildHangup } from "./_core/voiceTwiML";
+import { renderTwiML, buildSay, buildGather, buildRecord, buildHangup, sayVoiceFor } from "./_core/voiceTwiML";
 import { getDb } from "./db";
 import { requireClientPaymentsAccount, getStripeAccountForUser } from "./_core/stripeConnect";
 import { checkoutPaymentMethodTypes, createSessionWithMethodFallback } from "./_core/checkoutMethods";
@@ -643,7 +643,7 @@ const voiceRouter = router({
     return {
       ...getVoiceStatus(),
       settings: settings
-        ? { greeting: settings.greeting, businessInfo: settings.businessInfo, agentMode: settings.agentMode, voicemailEnabled: Boolean(settings.voicemailEnabled), transferNumber: settings.transferNumber, language: settings.language === "es" ? "es" : "en" }
+        ? { greeting: settings.greeting, businessInfo: settings.businessInfo, agentMode: settings.agentMode, voicemailEnabled: Boolean(settings.voicemailEnabled), transferNumber: settings.transferNumber, language: normalizeVoiceLanguage(settings.language) }
         : { greeting: VOICE_DEFAULT_GREETINGS.en, businessInfo: "", agentMode: "voicemail", voicemailEnabled: true, transferNumber: "", language: "en" },
       totalCalls: recent.length,
     };
@@ -656,7 +656,7 @@ const voiceRouter = router({
       agentMode: z.enum(["ai", "voicemail"]).default("voicemail"),
       voicemailEnabled: z.boolean().default(true),
       transferNumber: z.string().max(32).default(""),
-      language: z.enum(["en", "es"]).default("en"),
+      language: z.enum(VOICE_LANGUAGES.map(l => l.code) as [VoiceLanguageCode, ...VoiceLanguageCode[]]).default("en"),
     }))
     .mutation(async ({ ctx, input }) => {
       const db = await requireDb();
@@ -707,14 +707,14 @@ const voiceRouter = router({
     const db = await requireDb();
     const [settings] = await db.select().from(voiceSettings).where(eq(voiceSettings.userId, ctx.user.id)).limit(1);
     const plan = (await db.select({ planId: users.planId }).from(users).where(eq(users.id, ctx.user.id)).limit(1))[0]?.planId ?? "free";
-    const greeting = settings?.greeting?.trim() || VOICE_DEFAULT_GREETINGS[settings?.language === "es" ? "es" : "en"];
+    const language = normalizeVoiceLanguage(settings?.language);
+    const greeting = settings?.greeting?.trim() || VOICE_DEFAULT_GREETINGS[language];
     const aiMode = settings?.agentMode === "ai" && (plan === "pro" || plan === "agency") && getVoiceStatus().llmConfigured;
-    const language = settings?.language === "es" ? "es" : "en";
     const twiml = aiMode
-      ? renderTwiML([buildGather("https://preview.invalid/api/voice/gather", greeting, { language })])
+      ? renderTwiML([buildGather("https://preview.invalid/api/voice/gather", greeting + " " + phrase(language, "languageMenuHint"), { language })])
       : settings?.voicemailEnabled !== false
-        ? renderTwiML([buildSay(greeting), buildRecord("https://preview.invalid/api/voice/completed")])
-        : renderTwiML([buildSay(greeting), buildSay(phrase(language, "callbackHours")), buildHangup()]);
+        ? renderTwiML([buildSay(greeting, sayVoiceFor(language)), buildRecord("https://preview.invalid/api/voice/completed")])
+        : renderTwiML([buildSay(greeting, sayVoiceFor(language)), buildSay(phrase(language, "callbackHours"), sayVoiceFor(language)), buildHangup()]);
     return { mode: aiMode ? "ai" : "voicemail", twiml };
   }),
 });
