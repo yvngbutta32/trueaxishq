@@ -55,6 +55,9 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
   if (error.message === UNAUTHED_ERR_MSG) {
+    // Guard: a 401 on the login page means a public page is querying an
+    // authenticated endpoint — redirecting there would reload it forever.
+    if (window.location.pathname === getLoginUrl()) return;
     window.location.href = getLoginUrl();
   }
 };

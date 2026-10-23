@@ -31,7 +31,7 @@ export default function Login() {
   const utils = trpc.useUtils();
 
   // SMS login is only offered when Twilio is actually configured.
-  const smsStatus = trpc.sms.status.useQuery();
+  const smsStatus = trpc.sms.publicStatus.useQuery();
   const smsAvailable = smsStatus.data?.configured === true;
 
   const smsRequestMutation = trpc.auth.smsRequest.useMutation({

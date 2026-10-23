@@ -93,6 +93,19 @@ describe("Twilio integration catalog truth", () => {
     expect(smsRouter).toContain('action: "sms.test"');
   });
 
+  it("exposes an anonymous-safe status for the login page that reveals only configured", () => {
+    const source = readFileSync(resolve(process.cwd(), "server/routers.ts"), "utf8");
+    const smsRouter = source.slice(source.indexOf("sms: router({"), source.indexOf("integrations: router({"));
+    // The login page queries this with no session; it must never include the
+    // owner metering overview (plan, usage) or the Twilio from-number.
+    expect(smsRouter).toContain("publicStatus: publicProcedure.query");
+    const pub = smsRouter.slice(smsRouter.indexOf("publicStatus"), smsRouter.indexOf("status: protectedProcedure"));
+    expect(pub).toContain("return { configured };");
+    expect(pub).not.toContain("overview");
+    expect(pub).not.toContain("getSmsAllowanceOverview");
+    expect(pub).not.toContain("twilioFromNumber");
+  });
+
   it("gates every background-job SMS on the recorded opt-in, with STOP disclosure", () => {
     const jobs = readFileSync(resolve(process.cwd(), "server/backgroundJobs.ts"), "utf8");
     expect(jobs).toContain("booking.smsOptIn === 1 && smsTarget");

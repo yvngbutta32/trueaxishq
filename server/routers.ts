@@ -9944,6 +9944,13 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
   // ── Integration Readiness ──────────────────────────────────────────────────
   // ── SMS (Twilio, env-gated) ──────────────────────────────────────────────────
   sms: router({
+    /** Anonymous-safe: the login page uses this to decide whether to offer the SMS tab.
+     *  Reveals only whether SMS login is configured — never numbers, plan, or usage. */
+    publicStatus: publicProcedure.query(async () => {
+      const { configured } = getSmsDeliveryStatus();
+      return { configured };
+    }),
+
     /** Owner-facing delivery status: "console" (not configured) vs "twilio" (live). */
     status: protectedProcedure.query(async ({ ctx }) => {
       const { configured } = getSmsDeliveryStatus();
