@@ -1,13 +1,13 @@
 # TrueAxis HQ Launch Readiness Register
 
-Last updated: Oct 24, 2026, through commit `7aa406b` (main).
+Last updated: Oct 24, 2026, through commit `45eaeb4` (main).
 
 ## Current verified baseline
 
-- **Unit/contract suite:** 188 Vitest files, 1003 tests, all green. Strict TypeScript (`tsc --noEmit` clean), lint zero warnings, production bundle within budget.
+- **Unit/contract suite:** 192 Vitest files, 1011 tests, all green. Strict TypeScript (`tsc --noEmit` clean), lint zero warnings, production bundle within budget.
 - **Fresh-install proof:** `scripts/fresh-install-proof.sh` — 90 migrations applied to a genuinely empty database, production boot, 10/10 smoke checks. This is a permanent release gate, not a one-off.
 - **Live e2e sweep:** `scripts/live-e2e-sweep.sh` — six suites against the real production build with real HTTP, real login, real database: AI voice receptionist (Twilio signatures verified), QR asset labels, PO job costing, QBO gate, public review engine, 21-check adversarial security probe — plus public smoke. All green Oct 24, 2026.
-- **Manual interactive QA:** three click-everything passes covering every dashboard panel on desktop and mobile viewports, all public pages, and the full 3-step customer booking wizard driven to completion. Defects found live were fixed and re-verified live (money validation, mobile nav, error toasts, public slot availability, AI scheduling suggestion hardening). Remaining sweep flags were individually verified as detector artifacts or honest validations.
+- **Manual interactive QA:** three click-everything passes covering every dashboard panel on desktop and mobile viewports, all public pages, and the full 3-step customer booking wizard driven to completion. Defects found live were fixed and re-verified live (money validation, mobile nav, error toasts, public slot availability, AI scheduling suggestion hardening). Remaining sweep flags were individually verified as detector artifacts or honest validations (stale-index timeouts on auto-dismissed toasts, duplicate-booking and invalid-review-link rejections, honest unconfigured-provider errors); the review-link input now opens the mobile URL keyboard (`type=url` + `inputMode`), and the demo account was restored and DB-verified after sweeps (services active, QA keys/clients/bookings removed).
 - **Security:** tenant isolation, token tampering, SQL injection, stored XSS, CSRF (origin guard), brute force, cross-tenant reads all adversarially probed against the production build; all async routes guarded against hangs; secrets out of code; production dependency audit clean; nightly database backups with retention.
 
 ## Open launch gates — all owner-side, none codeable
