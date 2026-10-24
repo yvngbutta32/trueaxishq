@@ -1,3 +1,4 @@
+import { asyncRoute } from "./_core/asyncRoute";
 /* TrueAxis HQ — Public REST API v1
  * Owner-generated API keys (see the Developer API panel) unlock read/write
  * access at /api/v1 for Zapier, custom scripts, and third-party integrations.
@@ -114,11 +115,11 @@ const bodyError = (result: { error: z.ZodError }) => {
 };
 
 // ── Endpoints ─────────────────────────────────────────────────────────────────
-publicApiRouter.get("/me", async (req, res) => {
+publicApiRouter.get("/me", asyncRoute(async (req: Request, res: Response) => {
   res.json({ data: { authenticated: true, keyId: req.apiKeyId, scope: "read_write", apiVersion: "v1" } });
-});
+}));
 
-publicApiRouter.get("/clients", async (req, res) => {
+publicApiRouter.get("/clients", asyncRoute(async (req: Request, res: Response) => {
   const db = await getDb();
   if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Database temporarily unavailable." } }); return; }
   const { limit, offset } = parsePagination(req);
@@ -130,7 +131,7 @@ publicApiRouter.get("/clients", async (req, res) => {
     db.select({ count: sql<number>`COUNT(*)` }).from(clients).where(scope),
   ]);
   await sendList(res, rows, Number(count), limit, offset);
-});
+}));
 
 const createClientSchema = z.object({
   name: z.string().trim().min(1).max(255),
@@ -139,7 +140,7 @@ const createClientSchema = z.object({
   service: z.string().trim().max(255).optional(),
 });
 
-publicApiRouter.post("/clients", async (req, res) => {
+publicApiRouter.post("/clients", asyncRoute(async (req: Request, res: Response) => {
   const db = await getDb();
   if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Database temporarily unavailable." } }); return; }
   const parsed = createClientSchema.safeParse(req.body);
@@ -147,11 +148,11 @@ publicApiRouter.post("/clients", async (req, res) => {
   const initials = parsed.data.name.split(/\s+/).map(part => part[0]?.toUpperCase() ?? "").slice(0, 2).join("") || "?";
   const [result] = await db.insert(clients).values({ userId: req.apiKeyUserId!, name: parsed.data.name, email: parsed.data.email || null, phone: parsed.data.phone || null, service: parsed.data.service || null, avatarInitials: initials });
   res.status(201).json({ data: { id: Number(result.insertId), name: parsed.data.name } });
-});
+}));
 
 const JOB_STATUSES = ["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"] as const;
 
-publicApiRouter.get("/jobs", async (req, res) => {
+publicApiRouter.get("/jobs", asyncRoute(async (req: Request, res: Response) => {
   const db = await getDb();
   if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Database temporarily unavailable." } }); return; }
   const { limit, offset } = parsePagination(req);
@@ -163,9 +164,9 @@ publicApiRouter.get("/jobs", async (req, res) => {
     db.select({ count: sql<number>`COUNT(*)` }).from(jobs).where(scope),
   ]);
   await sendList(res, rows, Number(count), limit, offset);
-});
+}));
 
-publicApiRouter.get("/jobs/:id", async (req, res) => {
+publicApiRouter.get("/jobs/:id", asyncRoute(async (req: Request, res: Response) => {
   const db = await getDb();
   if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Database temporarily unavailable." } }); return; }
   const id = Number(req.params.id);
@@ -173,7 +174,7 @@ publicApiRouter.get("/jobs/:id", async (req, res) => {
   const [job] = await db.select().from(jobs).where(and(eq(jobs.id, id), eq(jobs.userId, req.apiKeyUserId!))).limit(1);
   if (!job) { res.status(404).json({ error: { code: "not_found", message: `No job with id ${id}.` } }); return; }
   res.json({ data: job });
-});
+}));
 
 const updateJobSchema = z.object({
   status: z.enum(JOB_STATUSES).optional(),
@@ -181,7 +182,7 @@ const updateJobSchema = z.object({
   targetDate: z.string().trim().max(32).optional(),
 });
 
-publicApiRouter.patch("/jobs/:id", async (req, res) => {
+publicApiRouter.patch("/jobs/:id", asyncRoute(async (req: Request, res: Response) => {
   const db = await getDb();
   if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Database temporarily unavailable." } }); return; }
   const id = Number(req.params.id);
@@ -195,9 +196,9 @@ publicApiRouter.patch("/jobs/:id", async (req, res) => {
   if (!job) { res.status(404).json({ error: { code: "not_found", message: `No job with id ${id}.` } }); return; }
   await db.update(jobs).set(updates).where(and(eq(jobs.id, id), eq(jobs.userId, req.apiKeyUserId!)));
   res.json({ data: { id, ...parsed.data } });
-});
+}));
 
-publicApiRouter.get("/invoices", async (req, res) => {
+publicApiRouter.get("/invoices", asyncRoute(async (req: Request, res: Response) => {
   const db = await getDb();
   if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Database temporarily unavailable." } }); return; }
   const { limit, offset } = parsePagination(req);
@@ -209,7 +210,7 @@ publicApiRouter.get("/invoices", async (req, res) => {
     db.select({ count: sql<number>`COUNT(*)` }).from(invoices).where(scope),
   ]);
   await sendList(res, rows, Number(count), limit, offset);
-});
+}));
 
 const createInvoiceSchema = z.object({
   clientName: z.string().trim().min(1).max(255),
@@ -219,7 +220,7 @@ const createInvoiceSchema = z.object({
   dueDate: z.string().trim().max(32).optional(),
 });
 
-publicApiRouter.post("/invoices", async (req, res) => {
+publicApiRouter.post("/invoices", asyncRoute(async (req: Request, res: Response) => {
   const db = await getDb();
   if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Database temporarily unavailable." } }); return; }
   const parsed = createInvoiceSchema.safeParse(req.body);
@@ -232,9 +233,9 @@ publicApiRouter.post("/invoices", async (req, res) => {
     amount: String(parsed.data.amount), dueDate: parsed.data.dueDate || null,
   });
   res.status(201).json({ data: { id: Number(result.insertId), invoiceNumber } });
-});
+}));
 
-publicApiRouter.get("/proposals", async (req, res) => {
+publicApiRouter.get("/proposals", asyncRoute(async (req: Request, res: Response) => {
   const db = await getDb();
   if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Database temporarily unavailable." } }); return; }
   const { limit, offset } = parsePagination(req);
@@ -246,7 +247,7 @@ publicApiRouter.get("/proposals", async (req, res) => {
     db.select({ count: sql<number>`COUNT(*)` }).from(proposals).where(scope),
   ]);
   await sendList(res, rows, Number(count), limit, offset);
-});
+}));
 
 // 404 for unknown /api/v1 paths — consistent error envelope, never the SPA fallback.
 publicApiRouter.use((_req, res) => {
@@ -264,7 +265,7 @@ export const trackApiRouter = Router();
 
 const TRACK_TOKEN_RE = /^[0-9a-f]{64}$/;
 
-trackApiRouter.get("/:token", async (req: Request, res: Response) => {
+trackApiRouter.get("/:token", asyncRoute(async (req: Request, res: Response) => {
   const db = await getDb();
   if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Tracking temporarily unavailable." } }); return; }
   const token = String(req.params.token ?? "");
@@ -301,7 +302,7 @@ trackApiRouter.get("/:token", async (req: Request, res: Response) => {
         : null,
     },
   });
-});
+}));
 
 // ── Zero-install subcontractor workflow (public, token-gated) ──────────────────
 // Subcontractors never install the app or create an account. Everything they can
@@ -337,7 +338,7 @@ const loadSubAssignment = async (db: NonNullable<Awaited<ReturnType<typeof getDb
   return { assignment, job };
 };
 
-subApiRouter.get("/:token", async (req: Request, res: Response) => {
+subApiRouter.get("/:token", asyncRoute(async (req: Request, res: Response) => {
   const db = await getDb();
   if (!db) { res.status(503).json({ error: { code: "service_unavailable", message: "Job link temporarily unavailable." } }); return; }
   const loaded = await loadSubAssignment(db, String(req.params.token ?? ""));
@@ -365,9 +366,9 @@ subApiRouter.get("/:token", async (req: Request, res: Response) => {
       expiresAt: assignment.expiresAt,
     },
   });
-});
+}));
 
-subApiRouter.post("/:token", async (req: Request, res: Response) => {
+subApiRouter.post("/:token", asyncRoute(async (req: Request, res: Response) => {
   const ip = req.ip ?? "unknown";
   if (subRateLimited(`post:${ip}`)) {
     res.status(429).json({ error: { code: "rate_limited", message: "Too many requests. Try again in a minute." } });
@@ -419,7 +420,7 @@ subApiRouter.post("/:token", async (req: Request, res: Response) => {
     return;
   }
   res.status(400).json({ error: { code: "bad_request", message: "That action isn't available for this job link right now." } });
-});
+}));
 
 // ── QR asset check-in (public, token-gated) ──────────────────────────────────
 // ServiceM8's signature feature, done our way: a scannable label on customer
@@ -453,7 +454,7 @@ const loadAssetByToken = async (db: NonNullable<Awaited<ReturnType<typeof getDb>
   return asset;
 };
 
-assetApiRouter.get("/:token", async (req: Request, res: Response) => {
+assetApiRouter.get("/:token", asyncRoute(async (req: Request, res: Response) => {
   const ip = req.ip ?? "unknown";
   if (assetRateLimited(`get:${ip}`)) {
     res.status(429).json({ error: { code: "rate_limited", message: "Too many requests. Try again in a minute." } });
@@ -486,10 +487,10 @@ assetApiRouter.get("/:token", async (req: Request, res: Response) => {
       lastServiceAt,
     },
   });
-});
+}));
 
 const ASSET_REQ_PHONE_RE = /^\+?[0-9 \-()]{7,20}$/;
-assetApiRouter.post("/:token", async (req: Request, res: Response) => {
+assetApiRouter.post("/:token", asyncRoute(async (req: Request, res: Response) => {
   const ip = req.ip ?? "unknown";
   if (assetRateLimited(`post:${ip}`)) {
     res.status(429).json({ error: { code: "rate_limited", message: "Too many requests. Try again in a minute." } });
@@ -515,4 +516,4 @@ assetApiRouter.post("/:token", async (req: Request, res: Response) => {
   // Fire-and-forget owner notification (never blocks the customer).
   void sendPushToUser(asset.userId, "Service request from a QR label", `${name} asked about ${asset.name}.`, "/jobs").catch(() => {});
   res.status(201).json({ data: { status: "received" } });
-});
+}));

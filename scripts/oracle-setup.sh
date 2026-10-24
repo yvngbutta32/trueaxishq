@@ -172,6 +172,35 @@ add_rule 80
 add_rule 443
 command -v netfilter-persistent >/dev/null && netfilter-persistent save 2>/dev/null || iptables-save > /etc/iptables/rules.v4 2>/dev/null || true
 
+# ── 9. Automated nightly backups (business data deserves a schedule) ────────
+# Idempotent: re-running the installer never duplicates or resets the schedule.
+mkdir -p /var/backups/trueaxis
+cat > /usr/local/bin/trueaxis-backup.sh <<'BACKUPSCRIPT'
+#!/usr/bin/env bash
+# Nightly TrueAxis HQ backup: full logical dump of the business database.
+# Retention: 14 daily snapshots, then the 1st of each month is kept 6 months.
+set -euo pipefail
+STAMP=$(date +%Y-%m-%d)
+BACKUP_DIR=/var/backups/trueaxis
+mkdir -p "$BACKUP_DIR"
+mysqldump --single-transaction --routines --triggers trueaxis | gzip > "$BACKUP_DIR/trueaxis-$STAMP.sql.gz"
+# prune dailies older than 14 days (monthlies kept by name pattern below)
+find "$BACKUP_DIR" -name "trueaxis-*.sql.gz" ! -name "trueaxis-01-*.sql.gz" -mtime +14 -delete
+# keep 1st-of-month snapshots for 6 months
+find "$BACKUP_DIR" -name "trueaxis-01-*.sql.gz" -mtime +183 -delete
+# alert if the newest backup is smaller than 1 KB (empty dump = something broke)
+[ "$(stat -c%s "$BACKUP_DIR/trueaxis-$STAMP.sql.gz")" -gt 1024 ] || { echo "trueaxis-backup: dump suspiciously small!" >&2; exit 1; }
+BACKUPSCRIPT
+chmod 700 /usr/local/bin/trueaxis-backup.sh
+chown trueaxis:trueaxis /usr/local/bin/trueaxis-backup.sh 2>/dev/null || true
+chown -R trueaxis:trueaxis /var/backups/trueaxis 2>/dev/null || true
+cat > /etc/cron.d/trueaxis-backup <<'CRON'
+# Nightly full-database backup at 03:20 (low-traffic hour)
+20 3 * * * trueaxis /usr/local/bin/trueaxis-backup.sh >> /var/log/trueaxis-backup.log 2>&1
+CRON
+chmod 644 /etc/cron.d/trueaxis-backup
+
+
 # ── Done ─────────────────────────────────────────────────────────────────────
 sleep 3
 echo ""
@@ -183,6 +212,7 @@ echo " First owner invite code (one-time, register at /register): ${BOOTSTRAP_CO
 echo " Health check:  curl -s https://${DOMAIN}/api/health"
 echo " Smoke test:     BASE_URL=https://${DOMAIN} bash scripts/smoke.sh"
 echo " Logs:           journalctl -u trueaxis -f"
+echo " Backups:        nightly 03:20 -> /var/backups/trueaxis (cron installed)"
 echo ""
 echo " If the site is NOT reachable, the usual cause is Oracle's VCN"
 echo " security list: see docs/working-notes/oracle-deploy-runbook.md step 3."

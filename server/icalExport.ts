@@ -1,10 +1,11 @@
+import { asyncRoute } from "./_core/asyncRoute";
 /**
  * iCal Export — /api/calendar/:userId.ics
  * Generates a valid iCalendar feed of all bookings for a given user.
  * Token-protected: requires ?token=<portal_token_or_api_key> OR the user's own session.
  * Completely free — pure Node.js, no external service.
  */
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import { createHash } from "node:crypto";
 import { getDb } from "./db";
 import { bookings, users, clientPortalTokens, calendarFeedTokens } from "../drizzle/schema";
@@ -34,7 +35,7 @@ function hashCalendarFeedCredential(credential: string): string {
  * Owner subscription feed. It is addressed only by a revocable opaque
  * credential and deliberately omits client contact information and notes.
  */
-icalRouter.get("/calendar/feed/:credentialIcs", async (req, res) => {
+icalRouter.get("/calendar/feed/:credentialIcs", asyncRoute(async (req: Request, res: Response) => {
   try {
     const credential = req.params.credentialIcs.replace(/\.ics$/, "");
     if (!/^[A-Za-z0-9_-]{32,128}$/.test(credential)) return res.status(404).send("Not found");
@@ -95,9 +96,9 @@ icalRouter.get("/calendar/feed/:credentialIcs", async (req, res) => {
     console.error("[iCal] Error generating private owner calendar feed:", err);
     res.status(500).send("Failed to generate calendar feed");
   }
-});
+}));
 
-icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
+icalRouter.get("/calendar/:userIdIcs", asyncRoute(async (req: Request, res: Response) => {
   try {
     const raw = req.params.userIdIcs;
     // Accept both /calendar/42.ics and /calendar/42
@@ -213,4 +214,4 @@ icalRouter.get("/calendar/:userIdIcs", async (req, res) => {
     console.error("[iCal] Error generating calendar feed:", err);
     res.status(500).send("Failed to generate calendar feed");
   }
-});
+}));

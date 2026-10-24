@@ -1,3 +1,4 @@
+import { asyncRoute } from "./_core/asyncRoute";
 /**
  * Document Upload Route
  * POST /api/upload/document  — multipart/form-data, field "file" (any, max 20 MB)
@@ -48,7 +49,7 @@ export const documentUploadRouter = Router();
 documentUploadRouter.post(
   "/api/upload/document",
   upload.single("file"),
-  async (req: Request, res: Response) => {
+  asyncRoute(async (req: Request, res: Response) => {
     try {
       let user: Awaited<ReturnType<typeof authenticateRequest>>;
       try {
@@ -83,5 +84,5 @@ documentUploadRouter.post(
       console.error("[DocumentUpload] POST:", err);
       res.status(500).json({ error: msg });
     }
-  }
+  })
 );

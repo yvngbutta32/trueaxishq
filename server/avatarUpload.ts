@@ -1,3 +1,4 @@
+import { asyncRoute } from "./_core/asyncRoute";
 /**
  * Avatar Upload Route
  * POST /api/upload/avatar  — multipart/form-data, field "avatar" (image, max 5 MB)
@@ -35,7 +36,7 @@ export const avatarUploadRouter = Router();
 avatarUploadRouter.post(
   "/api/upload/avatar",
   upload.single("avatar"),
-  async (req: Request, res: Response) => {
+  asyncRoute(async (req: Request, res: Response) => {
     try {
       // Auth
       let user: Awaited<ReturnType<typeof authenticateRequest>>;
@@ -76,13 +77,13 @@ avatarUploadRouter.post(
       console.error("[AvatarUpload] POST:", err);
       res.status(500).json({ error: msg });
     }
-  }
+  })
 );
 
 // ── DELETE /api/upload/avatar ───────────────────────────────────────────────
 avatarUploadRouter.delete(
   "/api/upload/avatar",
-  async (req: Request, res: Response) => {
+  asyncRoute(async (req: Request, res: Response) => {
     try {
       let user: Awaited<ReturnType<typeof authenticateRequest>>;
       try {
@@ -108,5 +109,4 @@ avatarUploadRouter.delete(
       console.error("[AvatarUpload] DELETE:", err);
       res.status(500).json({ error: msg });
     }
-  }
-);
+  }));

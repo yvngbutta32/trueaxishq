@@ -1,3 +1,4 @@
+import { asyncRoute } from "./_core/asyncRoute";
 /**
  * Photo Upload Route
  * POST /api/photos/upload  — multipart/form-data, field "file" (image, max 16 MB)
@@ -76,7 +77,7 @@ function allowPublicUpload(ip: string, ownerId: number): boolean {
 photoUploadRouter.post(
   "/api/photos/upload",
   upload.single("file"),
-  async (req: Request, res: Response) => {
+  asyncRoute(async (req: Request, res: Response) => {
     try {
       if (!req.file) {
         res.status(400).json({ error: "No file uploaded." });
@@ -199,7 +200,7 @@ photoUploadRouter.post(
       console.error("[PhotoUpload] POST:", err);
       res.status(500).json({ error: msg });
     }
-  }
+  })
 );
 
 photoUploadRouter.use((error: unknown, _req: Request, res: Response, next: (error?: unknown) => void) => {

@@ -100,7 +100,12 @@ Order that gets you sellable fastest: **SMTP → Stripe → Gemini → Twilio.**
 ## Gotchas & good citizenship
 
 - **Upgrade to Pay As You Go** (Billing, add a card, click "Upgrade"): Oracle's free tier *reclaims idle* Always Free ARM instances (low CPU for 7 days); PAYG accounts are not subject to reclamation, and staying under the Always Free limits still costs $0. Strongly recommended once you're live.
-- **Backups:** the app has a built-in one-click JSON export (Settings → Import/Export) plus `mysqldump trueaxis > backup.sql` for full DB snapshots. A weekly cron on the server is a 3-line addition — ask and it gets added.
+- **Backups (installed automatically):** the installer (step 7) now ships a nightly cron — full `mysqldump --single-transaction` at 03:20, gzipped to `/var/backups/trueaxis/`, 14 daily + 6 monthly (1st-of-month) snapshots retained, tiny-dump alert built in. Restore a snapshot with:
+  ```bash
+  gunzip < /var/backups/trueaxis/trueaxis-YYYY-MM-DD.sql.gz | mysql trueaxis
+  sudo systemctl restart trueaxis
+  ```
+  Belt-and-suspenders: also download the in-app one-click JSON export (Settings → Import/Export) weekly; it is owner-readable business data even outside MySQL.
 - **Server software updates:** `sudo apt update && sudo apt upgrade -y` monthly; the app itself updates with `cd /opt/trueaxis && sudo -u trueaxis git pull && sudo -u trueaxis corepack pnpm install --frozen-lockfile && sudo -u trueaxis corepack pnpm build && sudo systemctl restart trueaxis`.
 - **Capacity:** 4 ARM cores / 24 GB RAM comfortably serves hundreds of accounts for this stack.
 

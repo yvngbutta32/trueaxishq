@@ -1,4 +1,5 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
+import { asyncRoute } from "./_core/asyncRoute";
 import PDFDocument from "pdfkit";
 import { getDb } from "./db";
 import { invoices, users } from "../drizzle/schema";
@@ -7,7 +8,7 @@ import { authenticateRequest } from "./auth";
 
 export const invoicePdfRouter = Router();
 
-invoicePdfRouter.get("/api/invoices/:id/pdf", async (req, res) => {
+invoicePdfRouter.get("/api/invoices/:id/pdf", asyncRoute(async (req: Request, res: Response) => {
   try {
     // Auth
     let authUser: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
@@ -221,4 +222,4 @@ invoicePdfRouter.get("/api/invoices/:id/pdf", async (req, res) => {
     console.error("[InvoicePDF] Error:", err);
     if (!res.headersSent) res.status(500).json({ error: "Failed to generate PDF" });
   }
-});
+}));

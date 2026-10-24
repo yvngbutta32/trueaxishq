@@ -39,6 +39,19 @@ describe("workspace export registry", () => {
     expect(exportSource).toContain("Deliberately EXCLUDED");
   });
 
+  it("reverse guard: tables shipped after the first export build are registered (Oct 23 2026 audit)", () => {
+    const keys = new Set(EXPORT_TABLES.map(([key]) => key));
+    for (const expected of [
+      "voiceCalls", "voiceSettings", "voiceLines",
+      "reviewRequests", "reviewSettings",
+      "portalMessages", "clientApprovalRequests",
+      "assetServiceRequests", "assetInspectionResponses",
+      "emailTemplates", "contractTemplates", "followUpRules",
+    ]) {
+      expect(keys.has(expected as never), `registry must include ${expected} — new business tables must never drift out of the export`).toBe(true);
+    }
+  });
+
   it("only registers workspace-scoped tables (every exported table has a userId column)", () => {
     const schemaSource = readFileSync(join(__dirname, "..", "drizzle", "schema.ts"), "utf8");
     for (const [key] of EXPORT_TABLES) {

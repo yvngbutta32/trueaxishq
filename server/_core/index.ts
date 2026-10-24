@@ -20,6 +20,7 @@ import { publicApiRouter, trackApiRouter, subApiRouter, assetApiRouter } from ".
 import { voiceApiRouter } from "../voiceApi";
 import { assertSessionSecretConfigured } from "../auth";
 import { recordRequest, normalizeRequestLabel } from "./metrics";
+import { asyncRoute } from "./asyncRoute";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -96,7 +97,7 @@ async function startServer() {
   app.use("/api/voice", voiceApiRouter);
 
   // ── Health Check ─────────────────────────────────────────────────────────
-  app.get("/api/health", async (_req, res) => {
+  app.get("/api/health", asyncRoute(async (_req, res) => {
     const start = Date.now();
     let databaseAvailable = false;
     try {
@@ -114,7 +115,7 @@ async function startServer() {
       supportEmail: process.env.SUPPORT_EMAIL || null,
       timestamp: new Date().toISOString(),
     });
-  });
+  }));
 
   // ── Avatar Upload ─────────────────────────────────────────────────────────
   // ── CSRF origin guard on cookie-authenticated write surfaces ─────────────
@@ -140,7 +141,7 @@ async function startServer() {
   app.use(invoicePdfRouter);
 
   // ── Google Calendar OAuth Callback ───────────────────────────────────────
-  app.get("/api/google-calendar/callback", async (req, res) => {
+  app.get("/api/google-calendar/callback", asyncRoute(async (req, res) => {
     const { code, state, error } = req.query as Record<string, string>;
     const fallbackOrigin = `${req.protocol}://${req.get("host")}`;
 
@@ -226,7 +227,7 @@ async function startServer() {
       console.error("[Google Calendar] OAuth callback error:", err);
       return res.redirect(`${origin}/dashboard?gcal_error=server_error`);
     }
-  });
+  }));
 
   // ── tRPC API────────────────────────────────────────────────────────────
   app.use(
@@ -283,7 +284,9 @@ async function startServer() {
     stopBackgroundJobs();
     server.close(() => {
       console.log("[Server] HTTP server closed.");
-      process.exit(0);
+      // Drain the MySQL pool so in-flight queries finish before exit (a forced
+      // exit can leave a half-written statement behind).
+      import("../db").then(({ resetDbConnection }) => resetDbConnection()).finally(() => process.exit(0));
     });
     // Force-exit if connections refuse to drain (platforms cap grace periods anyway)
     setTimeout(() => {

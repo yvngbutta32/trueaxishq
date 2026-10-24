@@ -22,6 +22,11 @@ import {
   teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits,
   recurringServicePlans, subcontractors, jobSubcontractors, jobSubcontractorNotes,
   clientTags,
+  voiceCalls, voiceSettings, voiceLines,
+  reviewRequests, reviewSettings,
+  portalMessages, clientApprovalRequests,
+  assetServiceRequests, assetInspectionResponses,
+  emailTemplates, contractTemplates, followUpRules,
 } from "../../drizzle/schema";
 
 /* Every table that is (a) the owner's business data and (b) safe to hand back.
@@ -76,6 +81,22 @@ export const EXPORT_TABLES = [
   ["customReports", customReports],
   ["revenueGoals", revenueGoals],
   ["testimonials", testimonials],
+  // Tables shipped after the export was first built (Oct 23 2026 audit found
+  // these missing — "your entire business" must mean ALL of it). The reverse
+  // guard in workspaceExport.test.ts keeps new userId business tables from
+  // drifting out of the export again.
+  ["voiceCalls", voiceCalls],
+  ["voiceSettings", voiceSettings],
+  ["voiceLines", voiceLines],
+  ["reviewRequests", reviewRequests],
+  ["reviewSettings", reviewSettings],
+  ["portalMessages", portalMessages],
+  ["clientApprovalRequests", clientApprovalRequests],
+  ["assetServiceRequests", assetServiceRequests],
+  ["assetInspectionResponses", assetInspectionResponses],
+  ["emailTemplates", emailTemplates],
+  ["contractTemplates", contractTemplates],
+  ["followUpRules", followUpRules],
 ] as const;
 
 export const EXPORT_ROW_CAP = 5_000;
