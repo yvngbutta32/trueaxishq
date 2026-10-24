@@ -8,7 +8,7 @@ const routers = source("server/routers.ts");
 const csvImport = source("server/csvImport.ts");
 const importPanel = source("client/src/pages/dashboard/ImportPanel.tsx");
 const home = source("client/src/pages/Home.tsx");
-const sidebar = source("client/src/pages/dashboard/Sidebar.tsx");
+const sidebar = source("client/src/pages/dashboard/navStructure.ts");
 const dashboard = source("client/src/pages/Dashboard.tsx");
 
 describe("data import wizard — the switching moat", () => {

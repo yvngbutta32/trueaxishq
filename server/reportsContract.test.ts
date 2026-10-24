@@ -7,7 +7,7 @@ const routerSource = readFileSync(resolve(root, "server/routers.ts"), "utf8");
 const schemaSource = readFileSync(resolve(root, "drizzle/schema.ts"), "utf8");
 const panelSource = readFileSync(resolve(root, "client/src/pages/dashboard/ReportsPanel.tsx"), "utf8");
 const dashboardSource = readFileSync(resolve(root, "client/src/pages/Dashboard.tsx"), "utf8");
-const sidebarSource = readFileSync(resolve(root, "client/src/pages/dashboard/Sidebar.tsx"), "utf8");
+const sidebarSource = readFileSync(resolve(root, "client/src/pages/dashboard/navStructure.ts"), "utf8");
 const migrationSource = (() => {
   const dir = readdirSync(resolve(root, "drizzle"));
   return dir.filter(name => name.endsWith(".sql") && name.startsWith("0070_"))
@@ -47,7 +47,9 @@ describe("Custom report builder (Tier 2 item 12 — gated at every competitor)",
   it("registers the Reports panel in the workspace navigation", () => {
     expect(dashboardSource).toContain('case "reports":');
     expect(dashboardSource).toContain('lazy(() => import("./dashboard/ReportsPanel"))');
-    expect(sidebarSource).toContain('label: "Reports",    panel: "reports"');
+    expect(sidebarSource).toContain('label: "Reports"');
+    expect(sidebarSource).toContain('panel: "reports"');
+    expect(sidebarSource).toContain('label: "Intelligence"'); // Reports sits with Insights
     expect(panelSource).toContain('<PanelTabs key={tabSeq} defaultTab="builder" tabs={tabs} />');
     expect(panelSource).toContain('label: "My Reports"');
   });

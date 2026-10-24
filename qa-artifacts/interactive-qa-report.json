@@ -1,0 +1,54 @@
+{
+  "startedAt": "2026-10-24T09:09:39.241Z",
+  "interactions": 0,
+  "clicked": [],
+  "typedFields": 0,
+  "dialogsCancelled": 0,
+  "modalsClosed": 0,
+  "consoleErrors": [
+    {
+      "page": "flows",
+      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    },
+    {
+      "page": "flows",
+      "text": "[API Mutation Error] TRPCClientError: defaultRate: Enter a valid rate like 85 or 85.50\n    at Ne.from (http://localhost:3998/assets/trpc-CoMKWc5C.js:14:20620)\n    at http://localhost:3998/assets/trpc-CoMKWc5C.js:14:25801"
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": [],
+  "unconfirmedDestructive": [],
+  "deadControls": [],
+  "notes": [
+    {
+      "check": "flows",
+      "value": {
+        "clientCreate": {
+          "modalOpened": true,
+          "saved": true,
+          "appearsInList": false
+        },
+        "booking": {
+          "typed": 5,
+          "steps": [
+            {
+              "name": "Continue to date and time selection",
+              "ok": true
+            },
+            {
+              "name": "Continue to confirmation",
+              "ok": true
+            },
+            {
+              "name": "Submit booking request",
+              "ok": true
+            }
+          ],
+          "result": "Booked!"
+        },
+        "settingsSave": "saved!\nSkip to mai"
+      }
+    }
+  ],
+  "finishedAt": "2026-10-24T09:10:02.636Z"
+}

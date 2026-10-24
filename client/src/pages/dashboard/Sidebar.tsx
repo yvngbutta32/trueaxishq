@@ -1,88 +1,16 @@
-import { TRUEAXIS_LOGO_URL } from "@shared/const";
-import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
-/* TrueAxis HQ — Full Dashboard (DB-backed)
- * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
+/* TrueAxis HQ — desktop sidebar.
+ * Navigation groups come from navStructure.ts — the single source of truth
+ * shared with the mobile "All Features" sheet.
  */
 
-import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
-import { useFormFields } from "@/hooks/useFormFields";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { OnboardingChecklist } from "@/components/OnboardingChecklist";
-import { ActionCards } from "@/components/ActionCards";
+import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { ChevronRight, Star } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
-import AIAssistant from "@/components/AIAssistant";
-import { HealthMonitor } from "@/components/HealthMonitor";
-import { PanelErrorBoundary } from "@/components/PanelErrorBoundary";
-import GlobalSearch from "@/components/GlobalSearch";
-import { PanelTabs } from "@/components/PanelTabs";
-import { Building2, Activity, AlertCircle, ArrowRight, ArrowUpRight, BarChart3, Bell, Bot, Building, Calendar, CalendarX, Camera, Check, CheckCircle, ChevronDown, ChevronRight, Clock, Copy, CreditCard, Crown, DollarSign, Download, Edit2, ExternalLink, Eye, EyeOff, FileBarChart, FileSignature, FileText, Globe, HardHat, HeartPulse, Home, Inbox, LayoutDashboard, Link, Link2, Loader2, LogOut, Mail, MapPin, MessageSquare, MoreHorizontal, Package, Phone, PlugZap, Plus, Printer, Receipt, RefreshCw, Rocket, Save, Search, Send, Settings, Shield, Smartphone, Sparkles, Star, Tag, ThumbsUp, ToggleLeft, ToggleRight, Trash2, TrendingUp, Upload, User, Users, UsersRound, Webhook, Wifi, WifiOff, X, Zap } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, BarChart, Bar,
-  PieChart, Pie, Cell
-} from "recharts";
-
-import { type ActivePanel, type ConfirmState, type LineItem, defaultConfirm, LEGACY_PANEL_REDIRECTS, getGreeting, formatCurrency, formatDate, formatBookingDate, formatBookingTime, Skeleton, Modal, useFormField, LineItemRow } from "./shared";
+import { NAV_GROUPS } from "./navStructure";
 import { prefetchPanel } from "./panelPrefetch";
-
-// ─── Sidebar ─────────────────────────────────────────────────────────────────
-const navGroups: { label: string; items: { icon: React.ElementType; label: string; panel: ActivePanel; badge?: string }[] }[] = [
-  {
-    label: "Run Business",
-    items: [
-      { icon: LayoutDashboard, label: "Dashboard",  panel: "overview"   },
-      { icon: Activity,        label: "Operations", panel: "executive"  },
-      { icon: Rocket,          label: "Launch",     panel: "launch"     },
-    ],
-  },
-  {
-    label: "Clients & Jobs",
-    items: [
-      { icon: Users,           label: "Clients",    panel: "clients"    },
-      { icon: Calendar,        label: "Scheduling", panel: "scheduling" },
-      { icon: Package,         label: "Jobs",       panel: "jobs"       },
-      { icon: Camera,          label: "Job Photos", panel: "photos"     },
-      { icon: UsersRound,      label: "Team",       panel: "team"       },
-      { icon: MapPin,          label: "Dispatch",   panel: "dispatch"   },
-      { icon: Smartphone,      label: "Field Mode", panel: "field"      },
-      { icon: HardHat,         label: "Subs",       panel: "subs"       },
-    ],
-  },
-  {
-    label: "Money",
-    items: [
-      { icon: FileText,        label: "Billing",    panel: "billing"    },
-      { icon: Package,         label: "Inventory",  panel: "inventory" },
-      { icon: FileBarChart,     label: "Reports",    panel: "reports"   },
-    ],
-  },
-  {
-    label: "Growth",
-    items: [
-      { icon: Mail,            label: "Outreach",   panel: "outreach"   },
-      { icon: FileSignature,   label: "Deals",      panel: "deals"      },
-      { icon: BarChart3,       label: "Insights",   panel: "insights"   },
-    ],
-  },
-  {
-    label: "System",
-    items: [
-      { icon: PlugZap,         label: "Integrations", panel: "integrations" },
-      { icon: Webhook,         label: "Webhooks",    panel: "webhooks"   },
-      { icon: Building2,      label: "Sub-Accounts", panel: "agency"     },
-      { icon: Download,       label: "Import Data", panel: "import"   },
-      { icon: Settings,        label: "Settings",   panel: "settings"   },
-      { icon: Bot,             label: "AI Assistant", panel: "ai"       },
-    ],
-  },
-];
+import { type ActivePanel } from "./shared";
 
 function Sidebar({ active, setActive, collapsed, setCollapsed }: {
   active: ActivePanel; setActive: (p: ActivePanel) => void;
@@ -90,7 +18,6 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
 }) {
   const [, navigate] = useLocation();
   const { user } = useAuth();
-  const { data: settings } = trpc.settings.get.useQuery(undefined, { retry: 1 });
 
   return (
     <aside
@@ -126,7 +53,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
 
       {/* Nav — scrollable, footer stays pinned */}
       <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto min-h-0 scroll-smooth sidebar-scrollbar" aria-label="Dashboard sections">
-        {navGroups.map((group) => (
+        {NAV_GROUPS.map((group) => (
           <div key={group.label} role="group" aria-label={group.label}>
             {!collapsed ? (
               <p className="px-3 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-white/35">{group.label}</p>

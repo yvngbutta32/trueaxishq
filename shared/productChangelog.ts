@@ -18,6 +18,12 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-24",
+    title: "Live QA sweep hardening — honest money validation, clickable mobile nav, clean error messages",
+    tag: "Platform",
+    description: "A click-everything interactive QA pass (all dashboard panels, public pages, mobile, and real end-to-end flows) caught three real defects that only show up with real usage. (1) A rate field with stray letters used to crash the server into a raw database error; money fields now validate with a plain-English message ('Enter a valid rate like 85 or 85.50'), and the client record is never half-saved. (2) On phones, while the All-features sheet was open, its dimmed backdrop swallowed every bottom-nav button — including the toggle that closes it; the nav now stays live above the sheet, matching how every major app's mobile drawer behaves. (3) Validation and server errors now surface as one readable sentence in the toast instead of a raw JSON blob, and unexpected server faults are masked behind the scenes in production. The interactive QA harness itself now drives the full 3-step customer booking wizard to completion (Booked!) and is wired into the release checklist.",
+  },
+  {
+    date: "2026-10-24",
     title: "Design deep-pass — real Inter everywhere, seamless panel navigation",
     tag: "Platform",
     description: "A design audit found the self-hosted Inter font files only covered Vietnamese and Latin-extended character ranges — basic A-Z text matched no font file at all, so the entire app had silently been rendering a system fallback instead of Inter. Shipped the correct Latin subsets (the typeface you were supposed to see all along), preloaded the primary font file so headlines never swap after first paint, and cached font files for a year so repeat visits download zero font bytes. Dashboard navigation now prefetches each section's code the moment you hover it (and warms the busiest sections during idle time), so panel switches feel instant; the loading state is a content-shaped skeleton instead of a spinner. Tables and dashboards now use tabular numerals, so money and quantities line up cleanly, and headings wrap with balanced line breaks.",

@@ -59,7 +59,7 @@ import { buildJobCostCsv, type ExportableJobCostRow } from "./jobCostCsvExport";
 import { getProposalPackageSubtotal, normalizeProposalLineItems, parseProposalPackages, type ProposalPackage } from "../shared/proposalPackages";
 import { daysUntilProposalExpiry, isProposalExpired } from "../shared/proposalValidity";
 import { isClientSafeJobActivityEvent } from "../shared/clientSafeJobActivity";
-import { doPublicBookingIntervalsOverlap, getPublishedBookingSchedule, getPublishedBookingServiceCatalog, getPublishedBookingServices, isPublishedPublicBookingSlot, PUBLIC_BOOKING_TIME_SLOTS } from "../shared/publicBookingRules";
+import { doPublicBookingIntervalsOverlap, getPublishedBookingSchedule, getPublishedBookingServiceCatalog, getPublishedBookingServices, isPublishedPublicBookingSlot, parseStoredBookingServices, PUBLIC_BOOKING_TIME_SLOTS } from "../shared/publicBookingRules";
 import { isValidRecurringServicePlanInput, nextRecurringServiceDate } from "../shared/recurringServicePlans";
 
 // LLM timeout: 25 seconds
@@ -113,6 +113,17 @@ const safeOptionalString = (max = 255) => z.string().trim().max(max).optional();
 const safeEmail = z.string().trim().email("Invalid email address").max(320);
 const safeOptionalEmail = z.string().trim().email("Invalid email address").max(320).optional().or(z.literal(""));
 const safeUrl = z.string().url("Invalid URL").max(2048);
+// Monetary strings stored in DECIMAL columns: accept ",234.50"-style input, store a
+// normalized decimal string. Anything else must fail validation with a friendly
+// message — never reach MySQL as raw text (strict mode turns it into a 500).
+const safeOptionalMoney = z
+  .string()
+  .trim()
+  .optional()
+  .transform((v) => (v === undefined || v === "" ? undefined : v.replace(/^[\$\s]+/, "").replace(/,/g, "")))
+  .refine((v) => v === undefined || /^\d{1,6}(\.\d{1,2})?$/.test(v), {
+    message: "Enter a valid rate like 85 or 85.50",
+  });
 export function normalizeStaffInviteEmail(email: string | null | undefined) {
   const normalized = email?.trim().toLowerCase() ?? "";
   return normalized || null;
@@ -1703,7 +1714,7 @@ export const appRouter = router({
         service: safeOptionalString(255),
         status: z.enum(["active", "inactive", "prospect"]).default("active"),
         notes: safeOptionalString(2000),
-        defaultRate: z.string().optional(),
+        defaultRate: safeOptionalMoney,
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
@@ -1732,7 +1743,7 @@ export const appRouter = router({
         service: safeOptionalString(255),
         status: z.enum(["active", "inactive", "prospect"]).optional(),
         notes: safeOptionalString(2000),
-        defaultRate: z.string().optional(),
+        defaultRate: safeOptionalMoney,
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
@@ -1746,6 +1757,21 @@ export const appRouter = router({
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
+        const [jobCount] = await db.select({ count: sql<number>`COUNT(*)` }).from(jobs)
+          .where(and(eq(jobs.clientId, input.id), eq(jobs.userId, ctx.user.id)));
+        if (jobCount.count > 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `This client has ${jobCount.count} job${jobCount.count === 1 ? "" : "s"}. Delete or reassign those jobs first — deleting the client would leave them orphaned.`,
+          });
+        }
+        // Allowed to delete: clean up dependent rows so nothing dangles.
+        await Promise.all([
+          db.delete(customerAssets).where(and(eq(customerAssets.clientId, input.id), eq(customerAssets.userId, ctx.user.id))),
+          db.delete(clientDocuments).where(and(eq(clientDocuments.clientId, input.id), eq(clientDocuments.userId, ctx.user.id))),
+          db.delete(clientCustomFieldValues).where(and(eq(clientCustomFieldValues.clientId, input.id), eq(clientCustomFieldValues.userId, ctx.user.id))),
+          db.delete(clientPortalTokens).where(and(eq(clientPortalTokens.clientId, input.id), eq(clientPortalTokens.userId, ctx.user.id))),
+        ]);
         await db.delete(clients).where(and(eq(clients.id, input.id), eq(clients.userId, ctx.user.id)));
         return { success: true };
       }),
@@ -2825,7 +2851,7 @@ export const appRouter = router({
       const u = result[0];
       return {
         ...u,
-        bookingServices: u.bookingServices ? JSON.parse(u.bookingServices) : ["Coaching Session", "Strategy Call", "Consultation"],
+        bookingServices: parseStoredBookingServices(u.bookingServices),
         bookingAvailability: getPublishedBookingSchedule(u.bookingAvailability),
       };
     }),
@@ -2851,7 +2877,7 @@ export const appRouter = router({
         active: sql<number>`SUM(CASE WHEN ${automations.active} = true THEN 1 ELSE 0 END)`,
       }).from(automations).where(eq(automations.userId, ctx.user.id));
       const email = getEmailDeliveryStatus();
-      const services = user.bookingServices ? JSON.parse(user.bookingServices) : [];
+      const services = parseStoredBookingServices(user.bookingServices);
       return buildClientExperiencePreflight({
         businessConfigured: Boolean(user.businessName && user.businessWebsite),
         businessName: user.businessName,
@@ -2918,7 +2944,7 @@ export const appRouter = router({
           sql`(${clientPortalTokens.expiresAt} IS NULL OR ${clientPortalTokens.expiresAt} > NOW())`,
         )).limit(1);
       const email = getEmailDeliveryStatus();
-      const services = user.bookingServices ? JSON.parse(user.bookingServices) : [];
+      const services = parseStoredBookingServices(user.bookingServices);
       return {
         email: { configured: email.configured, sender: email.sender, host: email.host, port: email.port, secure: email.secure, issues: email.issues },
         booking: { configured: Boolean(user.bookingUsername && Array.isArray(services) && services.length > 0), username: user.bookingUsername ?? null },
@@ -10506,7 +10532,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           priority: jobs.priority, targetDate: jobs.targetDate, budgetAmount: jobs.budgetAmount,
           clientId: jobs.clientId, clientName: clients.name, clientEmail: clients.email,
           createdAt: jobs.createdAt, updatedAt: jobs.updatedAt,
-        }).from(jobs).innerJoin(clients, eq(jobs.clientId, clients.id)).where(and(...filters)).orderBy(desc(jobs.updatedAt));
+        }).from(jobs).innerJoin(clients, and(eq(jobs.clientId, clients.id), eq(clients.userId, ctx.user.id))).where(and(...filters)).orderBy(desc(jobs.updatedAt));
       }),
 
     get: protectedProcedure
@@ -10929,7 +10955,7 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
           .limit(50),
         db.select({ id: jobs.id, title: jobs.title, client: clients.name })
           .from(jobs)
-          .leftJoin(clients, eq(jobs.clientId, clients.id))
+          .leftJoin(clients, and(eq(jobs.clientId, clients.id), eq(clients.userId, ctx.user.id)))
           .where(and(eq(jobs.userId, ctx.user.id), eq(jobs.status, "awaiting_client")))
           .orderBy(desc(jobs.updatedAt))
           .limit(20),

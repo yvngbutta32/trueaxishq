@@ -12,7 +12,7 @@ const routers = source("server/routers.ts");
 const auth = source("server/auth.ts");
 const schema = source("drizzle/schema.ts");
 const panel = source("client/src/pages/dashboard/SubAccountsPanel.tsx");
-const sidebar = source("client/src/pages/dashboard/Sidebar.tsx");
+const sidebar = source("client/src/pages/dashboard/navStructure.ts");
 const dashboard = source("client/src/pages/Dashboard.tsx");
 
 const AGENCY_BLOCK_START = routers.indexOf("agencyRouter = router({");
@@ -102,6 +102,7 @@ describe("agency sub-accounts (managed client workspaces)", () => {
   it("the panel is reachable: nav item + dashboard case + panel type", () => {
     expect(sidebar).toContain('label: "Sub-Accounts"');
     expect(sidebar).toContain('panel: "agency"');
+    expect(sidebar).toContain('label: "System"'); // Sub-Accounts lives in the System group
     expect(dashboard).toContain('case "agency":');
     expect(dashboard).toContain("SubAccountsPanel");
   });

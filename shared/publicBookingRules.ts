@@ -39,6 +39,17 @@ function isSafeService(value: unknown): value is string {
 }
 
 /** Returns only active service labels for existing booking page consumers. */
+/** Safe reader for the stored bookingServices JSON column — for status
+ *  checks and settings reads. Never throws: null, malformed, or non-array
+ *  data yields an empty list (never invents services, never 500s the dashboard). */
+export function parseStoredBookingServices(serialized: string | null | undefined): PublicBookingService[] {
+  if (!serialized) return [];
+  let parsed: unknown;
+  try { parsed = JSON.parse(serialized); } catch { return []; }
+  if (!Array.isArray(parsed) || parsed.length === 0) return [];
+  return getPublishedBookingServiceCatalog(JSON.stringify(parsed));
+}
+
 export function getPublishedBookingServices(serialized: string | null | undefined): string[] {
   return getPublishedBookingServiceCatalog(serialized).filter(service => service.active).map(service => service.name);
 }

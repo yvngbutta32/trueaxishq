@@ -1,6 +1,7 @@
 import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { ArrowLeft, Zap, Search, ChevronDown, ChevronRight, Mail, MessageCircle, BookOpen, Zap as ZapIcon } from "lucide-react";
 
 const categories = [
@@ -130,6 +131,7 @@ function ArticleAccordion({ q, a }: { q: string; a: string }) {
 }
 
 export default function Help() {
+  const { isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -232,11 +234,11 @@ export default function Help() {
               Email Support
             </a>
             <button
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate(isAuthenticated ? "/dashboard" : "/login")}
               className="flex items-center justify-center gap-2 bg-[var(--muted)] hover:bg-[#E5E3DF] text-[var(--foreground)] px-6 py-3 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#D4922A] min-h-[48px]"
             >
               <ChevronRight className="w-4 h-4" />
-              Open Dashboard
+              {isAuthenticated ? "Open Dashboard" : "Sign In"}
             </button>
           </div>
           <p className="text-xs text-gray-600 mt-4">support@trueaxishq.com</p>

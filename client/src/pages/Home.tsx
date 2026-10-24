@@ -1254,7 +1254,7 @@ function Footer() {
       links: [
         { label: "Features", action: () => document.querySelector("#features")?.scrollIntoView({ behavior: "smooth" }) },
         { label: "Pricing", action: () => navigate("/pricing") },
-        { label: "Dashboard", action: () => navigate("/dashboard") },
+        { label: "Sign In", action: () => navigate("/login") },
         { label: "Changelog", action: () => navigate("/changelog") },
         { label: "System Status", action: () => navigate("/status") },
       ],

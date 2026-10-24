@@ -7,7 +7,7 @@ const routerSource = readFileSync(resolve(root, "server/routers.ts"), "utf8");
 const schemaSource = readFileSync(resolve(root, "drizzle/schema.ts"), "utf8");
 const panelSource = readFileSync(resolve(root, "client/src/pages/dashboard/InventoryPanel.tsx"), "utf8");
 const dashboardSource = readFileSync(resolve(root, "client/src/pages/Dashboard.tsx"), "utf8");
-const sidebarSource = readFileSync(resolve(root, "client/src/pages/dashboard/Sidebar.tsx"), "utf8");
+const sidebarSource = readFileSync(resolve(root, "client/src/pages/dashboard/navStructure.ts"), "utf8");
 const migrationSource = (() => {
   const dir = readdirSync(resolve(root, "drizzle"));
   return dir.filter(name => name.endsWith(".sql") && name.startsWith("0069_"))
@@ -79,7 +79,9 @@ describe("Inventory & purchase orders", () => {
   it("registers the Inventory panel in the workspace navigation", () => {
     expect(dashboardSource).toContain('case "inventory":');
     expect(dashboardSource).toContain('lazy(() => import("./dashboard/InventoryPanel"))');
-    expect(sidebarSource).toContain('label: "Inventory",  panel: "inventory"');
+    expect(sidebarSource).toContain('label: "Inventory"');
+    expect(sidebarSource).toContain('panel: "inventory"');
+    expect(sidebarSource).toContain('label: "Money"'); // Billing + Inventory live together
     expect(panelSource).toContain('PanelTabs defaultTab="items"');
     expect(panelSource).toContain('label: "Purchase Orders"');
   });

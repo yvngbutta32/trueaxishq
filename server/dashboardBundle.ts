@@ -6,7 +6,7 @@ import { resolve } from "node:path";
 export function readDashboardBundle(cwd: string = process.cwd()): string {
   const shell = readFileSync(resolve(cwd, "client/src/pages/Dashboard.tsx"), "utf8");
   const dashboardDir = resolve(cwd, "client/src/pages/dashboard");
-  const modules = readdirSync(dashboardDir).filter(f => f.endsWith(".tsx")).sort()
+  const modules = readdirSync(dashboardDir).filter(f => f.endsWith(".tsx") || f === "navStructure.ts").sort()
     .map(f => readFileSync(resolve(dashboardDir, f), "utf8"));
   return shell + "\n" + modules.join("\n");
 }

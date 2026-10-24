@@ -16,15 +16,16 @@ describe("operational command navigation", () => {
 
   it("keeps the Job Photos sidebar destination mapped to its owner panel rather than the admin route", () => {
     const dashboard = readDashboardBundle();
-    const sidebar = dashboard.slice(dashboard.indexOf("const navGroups:"), dashboard.indexOf("function Sidebar"));
+    const nav = readFileSync(resolve(process.cwd(), "client/src/pages/dashboard/navStructure.ts"), "utf8");
     const panelSwitch = dashboard.slice(dashboard.indexOf("switch (active)"), dashboard.indexOf("default: return null"));
 
-    expect(sidebar).toContain('label: "Job Photos", panel: "photos"');
-    expect(sidebar).toContain('label: "Clients & Jobs"');
+    expect(nav).toContain('label: "Job Photos"');
+    expect(nav).toContain('panel: "photos"');
+    expect(nav).toContain('label: "Work"'); // Job Photos lives in the Work group
     // Grouped rendering (section headers per group) lives in the Sidebar render.
     expect(dashboard).toContain('role="group" aria-label={group.label}');
     expect(panelSwitch).toContain('case "photos": return (');
     expect(panelSwitch).toContain("<JobPhotosPanel />");
-    expect(sidebar).not.toContain('label: "Job Photos",  panel: "admin"');
+    expect(nav).not.toContain('panel: "admin"');
   });
 });

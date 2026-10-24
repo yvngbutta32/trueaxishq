@@ -1,46 +1,19 @@
-import { TRUEAXIS_LOGO_URL } from "@shared/const";
-import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
-/* TrueAxis HQ — Full Dashboard (DB-backed)
- * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
+/* TrueAxis HQ — mobile navigation.
+ * Nav groups and primary tabs come from navStructure.ts — the single source
+ * of truth shared with the desktop sidebar. Strategy: 4 primary daily-use
+ * tabs + 1 "More" tab that opens a full-screen sheet listing every panel,
+ * grouped exactly like the desktop sidebar. 2 taps max to reach anything.
  */
 
-import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
-import { useFormFields } from "@/hooks/useFormFields";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { OnboardingChecklist } from "@/components/OnboardingChecklist";
-import { ActionCards } from "@/components/ActionCards";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import AIAssistant from "@/components/AIAssistant";
-import { HealthMonitor } from "@/components/HealthMonitor";
-import { PanelErrorBoundary } from "@/components/PanelErrorBoundary";
-import GlobalSearch from "@/components/GlobalSearch";
-import { PanelTabs } from "@/components/PanelTabs";
 import {
-  LayoutDashboard, Users, Calendar, FileText, Mail,
-  BarChart3, Settings, Zap, Plus, TrendingUp,
-  DollarSign, Clock, CheckCircle, ArrowUpRight,
-  ChevronRight, LogOut, X, Edit2, Trash2, Send,
-  Download, Phone, AlertCircle, RefreshCw, User,
-  Building, Save, Bot, CreditCard,
-  ExternalLink, Bell, Search, ChevronDown, Loader2, Link,
-  Globe, ToggleLeft, ToggleRight, Printer, Eye, EyeOff,
-  Copy, Check, Star, Activity, HeartPulse, MoreHorizontal, Camera, FileSignature, Sparkles, Upload,
-  Home, Crown, ArrowRight, Shield, Inbox, MessageSquare, Tag, ThumbsUp, CalendarX, Link2, Wifi, WifiOff,
-  Package, Receipt, Smartphone, Rocket, UsersRound, MapPin, PlugZap, Webhook
+  AlertCircle, Calendar, DollarSign, Globe, Star, Users,
 } from "lucide-react";
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, BarChart, Bar,
-  PieChart, Pie, Cell
-} from "recharts";
-
-import { type ActivePanel, type ConfirmState, type LineItem, Field, FREQUENCY_LABELS, FREQUENCY_COLORS, defaultConfirm, LEGACY_PANEL_REDIRECTS, getGreeting, formatCurrency, formatDate, formatBookingDate, formatBookingTime, Skeleton, Modal, useFormField, LineItemRow } from "./shared";
+import { type ActivePanel } from "./shared";
+import { MOBILE_PRIMARY_TABS, MOBILE_SHEET_GROUPS } from "./navStructure";
 
 // ─── Mobile Quick-Stats Strip ─────────────────────────────────────────────────
 function MobileQuickStats() {
@@ -106,50 +79,12 @@ function MobileQuickStats() {
 }
 
 // ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
-// Strategy: 4 primary daily-use tabs + 1 "All Features" tab that opens a
-// full-screen sheet listing every panel. 2 taps max to reach anything.
 function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive: (p: ActivePanel) => void }) {
   const [showSheet, setShowSheet] = useState(false);
   const [, navigate] = useLocation();
   const { user } = useAuth();
 
-    // Primary 4 tabs — the highest-frequency daily actions
-  const primaryTabs = [
-    { icon: LayoutDashboard, label: "Dashboard",  panel: "overview"   as ActivePanel },
-    { icon: Users,           label: "Clients",    panel: "clients"    as ActivePanel },
-    { icon: Calendar,        label: "Schedule",   panel: "scheduling" as ActivePanel },
-    { icon: FileText,        label: "Billing",    panel: "billing"    as ActivePanel },
-  ];
-  // All panels available in the full-feature sheet, grouped by category
-  const sheetSections = [
-    {
-      label: "Work",
-      items: [
-        { icon: FileSignature, label: "Jobs",         panel: "jobs"       as ActivePanel },
-        { icon: UsersRound,    label: "Team",         panel: "team"       as ActivePanel },
-        { icon: MapPin,        label: "Dispatch",     panel: "dispatch"   as ActivePanel },
-        { icon: Calendar,      label: "Field Mode",   panel: "field"      as ActivePanel },
-        { icon: PlugZap,       label: "Integrations", panel: "integrations" as ActivePanel },
-        { icon: Webhook,       label: "Webhooks",     panel: "webhooks"   as ActivePanel },
-        { icon: FileText,      label: "Job Photos",   panel: "photos"     as ActivePanel },
-        { icon: BarChart3,     label: "Executive",    panel: "executive"  as ActivePanel },
-        { icon: Mail,          label: "Outreach",     panel: "outreach"   as ActivePanel },
-        { icon: FileSignature, label: "Deals",        panel: "deals"      as ActivePanel },
-        { icon: BarChart3,     label: "Insights",     panel: "insights"   as ActivePanel },
-        { icon: Bot,           label: "Automations",  panel: "automations" as ActivePanel },
-        { icon: Bot,           label: "AI Assistant", panel: "ai"         as ActivePanel, badge: "AI" },
-      ],
-    },
-    {
-      label: "Account",
-      items: [
-        { icon: Settings,      label: "Launch",       panel: "launch"     as ActivePanel },
-        { icon: Settings,      label: "Settings",     panel: "settings"   as ActivePanel },
-      ],
-    },
-  ];
-
-  const isSheetPanelActive = !primaryTabs.some(t => t.panel === active);
+  const isSheetPanelActive = !MOBILE_PRIMARY_TABS.some(t => t.panel === active);
 
   const handleSheetNav = (panel: ActivePanel) => {
     setActive(panel);
@@ -188,7 +123,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
         <div className="px-4 pb-6 pt-1 space-y-5">
           <p className="text-xs font-bold text-white/80 uppercase tracking-widest px-1">All Features</p>
 
-          {sheetSections.map((section) => (
+          {MOBILE_SHEET_GROUPS.map((section) => (
             <div key={section.label}>
               <p className="text-[10px] font-semibold text-[#D4922A] uppercase tracking-wider mb-2 px-1">{section.label}</p>
               <div className="grid grid-cols-4 gap-1.5">
@@ -216,15 +151,8 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
             </div>
           ))}
 
-          {/* Quick links row */}
+          {/* Quick links row — escape hatches that are not panels */}
           <div className="border-t border-white/10 pt-4 flex gap-2">
-            <button
-              onClick={() => { setActive("settings"); setShowSheet(false); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/8 text-white/65 hover:bg-white/15 hover:text-white transition-all text-xs font-medium"
-            >
-              <CreditCard className="w-4 h-4" />
-              Billing
-            </button>
             {(user as { isOwner?: boolean } | null)?.isOwner && (
               <button
                 onClick={() => { navigate("/admin"); setShowSheet(false); }}
@@ -238,16 +166,19 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
               onClick={() => { navigate("/"); setShowSheet(false); }}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/8 text-white/65 hover:bg-white/15 hover:text-white transition-all text-xs font-medium"
             >
-              <Home className="w-4 h-4" />
-              Home
+              <Globe className="w-4 h-4" />
+              Public Site
             </button>
           </div>
         </div>
       </div>
 
-      {/* Bottom Nav Bar — wrapper div already has display:block; nav fills it */}
+      {/* Bottom Nav Bar — wrapper div already has display:block; nav fills it.
+          relative z-50 keeps the bar clickable ABOVE the sheet backdrop (z-40):
+          the backdrop is meant to dim only the content above the nav, so while the
+          sheet is open the tab buttons and the All-features toggle must stay live. */}
       <nav
-        className="w-full"
+        className="w-full relative z-50"
         aria-label="Mobile navigation"
         style={{
           background: "rgba(27,45,79,0.98)",
@@ -262,7 +193,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
       >
         <div className="flex items-stretch">
           {/* 4 primary tabs */}
-          {primaryTabs.map((tab) => {
+          {MOBILE_PRIMARY_TABS.map((tab) => {
             const isActive = active === tab.panel && !showSheet;
             return (
               <button
@@ -311,6 +242,5 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
     </div>
   );
 }
-// ─── Main Dashboard ───────────────────────────────────────────────────────────
 
 export { MobileQuickStats, MobileBottomNav };
