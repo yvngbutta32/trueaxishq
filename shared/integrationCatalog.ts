@@ -16,7 +16,7 @@ export type IntegrationCategory = "calendar" | "accounting" | "communications" |
 export const integrationCatalog: Record<IntegrationProvider, { name: string; category: IntegrationCategory; description: string; availability: "available_now" | "provider_setup_required" | "planned" }> = {
   google_calendar: { name: "Google Calendar", category: "calendar", description: "Bring confirmed appointments into the calendar workflow after owner authorization.", availability: "available_now" },
   outlook_calendar: { name: "Outlook Calendar", category: "calendar", description: "A planned calendar connection for teams that schedule through Microsoft 365.", availability: "planned" },
-  quickbooks: { name: "QuickBooks", category: "accounting", description: "A planned accounting connection for reconciliation and finance workflows.", availability: "planned" },
+  quickbooks: { name: "QuickBooks", category: "accounting", description: "QuickBooks-format invoice and payment CSV exports work today (Invoices → Accounting export). Native two-way sync ships when 10+ paying companies ask for it — add yours below and it counts.", availability: "planned" },
   gmail: { name: "Gmail", category: "communications", description: "A provider-authorized mail connection for account-specific delivery workflows.", availability: "provider_setup_required" },
   outlook: { name: "Outlook Mail", category: "communications", description: "A provider-authorized Microsoft mail connection for delivery workflows.", availability: "planned" },
   slack: { name: "Slack", category: "communications", description: "A planned internal-alert connection for operational handoffs and exceptions.", availability: "planned" },

@@ -30,7 +30,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions, stripeAccounts, voiceSettings, voiceCalls, voiceLines, assetServiceRequests } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions, stripeAccounts, voiceSettings, voiceCalls, voiceLines, assetServiceRequests, qboSyncRequests } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, revokeAllSessionsForUser, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -48,6 +48,7 @@ import { createGoogleOAuthState } from "./googleOAuthState";
 import { processDueStripeEvents } from "./stripeWebhook";
 import { hasDispatchConflict } from "../shared/operationsPlanning";
 import { INTEGRATION_PROVIDERS, integrationCatalog, type IntegrationProvider } from "../shared/integrationCatalog";
+import { QBO_PAYING_PLANS, QBO_SYNC_DEMAND_THRESHOLD } from "../shared/qboDemandGate";
 import { WORKFLOW_WEBHOOK_EVENTS, parseWebhookEvents } from "../shared/workflowWebhooks";
 import { createWebhookSigningSecret, deliverWorkflowWebhookEvent, encryptWebhookSecret, processDueWorkflowWebhookDeliveries, validateWebhookEndpoint } from "./workflowWebhookDelivery";
 import { getTrustedPaymentReturnOrigin } from "./paymentReturnOrigin";
@@ -10204,6 +10205,51 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         };
       });
     }),
+
+    /**
+     * QBO sync demand gate. Native QuickBooks Online sync is deliberately
+     * deferred until QBO_SYNC_DEMAND_THRESHOLD paying companies ask; this
+     * registers this company's request (idempotent — one request per company)
+     * with the plan at request time snapshotted so "paying" is measurable.
+     * QuickBooks-format CSV export works today, no request needed.
+     */
+    requestQuickBooksSync: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const db = await requireDb();
+        const [existing] = await db.select({ id: qboSyncRequests.id, planId: qboSyncRequests.planId, businessName: qboSyncRequests.businessName, createdAt: qboSyncRequests.createdAt })
+          .from(qboSyncRequests).where(eq(qboSyncRequests.userId, ctx.user.id)).limit(1);
+        if (existing) {
+          return { registered: true as const, alreadyRequested: true as const, requestedAt: existing.createdAt };
+        }
+        await db.insert(qboSyncRequests).values({
+          userId: ctx.user.id,
+          planId: ctx.user.planId ?? "unknown",
+          businessName: ctx.user.businessName ?? "Unknown company",
+        });
+        return { registered: true as const, alreadyRequested: false as const, requestedAt: new Date() };
+      }),
+
+    /**
+     * The honest demand counter, visible to every owner: how many companies
+     * (and how many paying ones) have asked for native QBO sync, against the
+     * published threshold. Never exposes who asked — only counts.
+     */
+    quickBooksSyncDemand: protectedProcedure
+      .query(async ({ ctx }) => {
+        const db = await requireDb();
+        const rows = await db.select({ planId: qboSyncRequests.planId }).from(qboSyncRequests);
+        const [mine] = await db.select({ id: qboSyncRequests.id, createdAt: qboSyncRequests.createdAt })
+          .from(qboSyncRequests).where(eq(qboSyncRequests.userId, ctx.user.id)).limit(1);
+        const byPlan: Record<string, number> = {};
+        for (const row of rows) byPlan[row.planId] = (byPlan[row.planId] ?? 0) + 1;
+        const payingRequests = rows.filter(row => (QBO_PAYING_PLANS as readonly string[]).includes(row.planId)).length;
+        return {
+          threshold: QBO_SYNC_DEMAND_THRESHOLD,
+          totalRequests: rows.length,
+          payingRequests,
+          myRequest: mine ? { requestedAt: mine.createdAt } : null,
+        } as const;
+      }),
 
     prepare: protectedProcedure
       .input(z.object({ provider: z.enum(INTEGRATION_PROVIDERS), configurationNote: safeOptionalString(1000) }))

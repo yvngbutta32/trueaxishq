@@ -617,6 +617,13 @@
       "when": 1792761000000,
       "tag": "0087_po_job_link",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1792800938111,
+      "tag": "0088_qbo_sync_request",
+      "breakpoints": true
     }
   ]
 }

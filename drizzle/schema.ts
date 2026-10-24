@@ -148,6 +148,23 @@ export const customerAssets = mysqlTable("customerAssets", {
   index("customerAssets_owner_active_idx").on(t.userId, t.active),
 ]);
 
+// ─── QuickBooks Online sync demand gate ──────────────────────────────────────
+// Native QBO sync is deliberately deferred until demand is proven: one request
+// per company (unique userId), with the plan at request time snapshotted so
+// "paying companies" is measurable, not anecdotal. Threshold lives in
+// shared/qboDemandGate.ts.
+export const qboSyncRequests = mysqlTable("qboSyncRequests", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  planId: varchar("planId", { length: 32 }).notNull(),
+  businessName: varchar("businessName", { length: 255 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex("qboSyncRequests_userId_unique_idx").on(t.userId),
+  index("qboSyncRequests_plan_idx").on(t.planId),
+]);
+export type QboSyncRequest = typeof qboSyncRequests.$inferSelect;
+
 // ─── Asset service requests (public QR scan → owner queue) ──────────────────
 // Created when a customer scans an asset's QR label and asks for service.
 // Per-owner by construction; the public API never exposes who else scanned.
