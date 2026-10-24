@@ -81,7 +81,10 @@ import { ClientsPanel } from "./dashboard/ClientsPanel";
 import { SchedulingPanel } from "./dashboard/SchedulingPanel";
 import { FollowUpsPanel } from "./dashboard/FollowUpsPanel";
 import { MobileQuickStats, MobileBottomNav } from "./dashboard/MobileNav";
-import { type ActivePanel, type ConfirmState, defaultConfirm, LEGACY_PANEL_REDIRECTS, Skeleton, Modal } from "./dashboard/shared";
+import { type ActivePanel, type ConfirmState, defaultConfirm, LEGACY_PANEL_REDIRECTS, Skeleton, PanelSkeleton, Modal } from "./dashboard/shared";
+import { useIdlePanelPrefetch } from "./dashboard/panelPrefetch";
+
+const IDLE_PREFETCH_PANELS: ActivePanel[] = ["jobs", "billing", "field", "insights", "deals", "dispatch", "team", "inventory"];
 
 export default function Dashboard() {
   // Read ?panel= from URL on first render for deep-linking (e.g. /dashboard?panel=invoices)
@@ -398,6 +401,10 @@ export default function Dashboard() {
    
   }, [active, user?.name]);
 
+  // Warm the highest-traffic panel chunks during idle time — by the time the
+  // user clicks them, the chunk is cached and the switch is instant.
+  useIdlePanelPrefetch(IDLE_PREFETCH_PANELS);
+
   // Loading state — placed AFTER all hooks to satisfy Rules of Hooks
   if (loading) return (
     <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
@@ -565,7 +572,7 @@ export default function Dashboard() {
 
         {/* Panel Content — pb-[130px] ensures content clears MobileQuickStats (~40px) + MobileBottomNav (~62px) + buffer on mobile */}
         <div className="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-x-hidden pb-[130px] md:pb-6">
-          <Suspense fallback={<div className="flex min-h-48 items-center justify-center text-sm text-[var(--muted-foreground)]"><Loader2 className="mr-2 h-5 w-5 animate-spin text-[#D4922A]" />Loading workspace…</div>}>
+          <Suspense fallback={<PanelSkeleton />}>
             <div key={active} className="panel-in">{activePanel}</div>
           </Suspense>
         </div>

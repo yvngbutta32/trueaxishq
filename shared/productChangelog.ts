@@ -18,6 +18,12 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-24",
+    title: "Design deep-pass — real Inter everywhere, seamless panel navigation",
+    tag: "Platform",
+    description: "A design audit found the self-hosted Inter font files only covered Vietnamese and Latin-extended character ranges — basic A-Z text matched no font file at all, so the entire app had silently been rendering a system fallback instead of Inter. Shipped the correct Latin subsets (the typeface you were supposed to see all along), preloaded the primary font file so headlines never swap after first paint, and cached font files for a year so repeat visits download zero font bytes. Dashboard navigation now prefetches each section's code the moment you hover it (and warms the busiest sections during idle time), so panel switches feel instant; the loading state is a content-shaped skeleton instead of a spinner. Tables and dashboards now use tabular numerals, so money and quantities line up cleanly, and headings wrap with balanced line breaks.",
+  },
+  {
+    date: "2026-10-24",
     title: "Deep security audit — async crash guard, complete data export, nightly backups",
     tag: "Security",
     commit: "ded6fcf",

@@ -30,6 +30,7 @@ import {
 } from "recharts";
 
 import { type ActivePanel, type ConfirmState, type LineItem, defaultConfirm, LEGACY_PANEL_REDIRECTS, getGreeting, formatCurrency, formatDate, formatBookingDate, formatBookingTime, Skeleton, Modal, useFormField, LineItemRow } from "./shared";
+import { prefetchPanel } from "./panelPrefetch";
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 const navGroups: { label: string; items: { icon: React.ElementType; label: string; panel: ActivePanel; badge?: string }[] }[] = [
@@ -137,6 +138,8 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
                 <button
                   key={item.panel}
                   onClick={() => setActive(item.panel)}
+                  onMouseEnter={() => prefetchPanel(item.panel)}
+                  onFocus={() => prefetchPanel(item.panel)}
                   aria-current={active === item.panel ? "page" : undefined}
                   aria-label={item.label}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative ${

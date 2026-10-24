@@ -71,7 +71,12 @@ export function serveStatic(app: Express) {
     maxAge: 0,
     etag: true,
     setHeaders: (res, filePath) => {
-      if (filePath.endsWith(".html")) {
+      // Self-hosted fonts never change in place — if Inter is ever upgraded,
+      // ship it under a new filename (e.g. inter-normal-latin-v21.woff2) so
+      // immutable caches bust cleanly.
+      if (filePath.endsWith(".woff2")) {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      } else if (filePath.endsWith(".html")) {
         res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
       } else if (filePath.endsWith(".json") || filePath.endsWith(".webmanifest")) {
         res.setHeader("Cache-Control", "public, max-age=3600"); // 1 hour for manifest

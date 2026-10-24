@@ -319,5 +319,31 @@ const FREQUENCY_COLORS: Record<string, string> = {
   yearly: "#8B5CF6",
 };
 
-export { Field, FREQUENCY_LABELS, FREQUENCY_COLORS, defaultConfirm, LEGACY_PANEL_REDIRECTS, getGreeting, formatCurrency, formatDate, formatBookingDate, formatBookingTime, Skeleton, Modal, useFormField, LineItemRow };
+// ─── Panel switch skeleton — content-shaped, not a spinner ────────────────────
+// A spinner says "wait"; a skeleton says "your content is almost here".
+// Matches the real panel layout (header row + stat cards + list) so the
+// switch from skeleton → panel doesn't visibly jump.
+function PanelSkeleton() {
+  return (
+    <div className="space-y-6" role="status" aria-label="Loading panel content">
+      <div className="flex items-center justify-between gap-4">
+        <Skeleton className="h-8 w-48 rounded-lg" />
+        <Skeleton className="h-9 w-28 rounded-xl" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Skeleton className="h-28 rounded-2xl" />
+        <Skeleton className="h-28 rounded-2xl" />
+        <Skeleton className="h-28 rounded-2xl" />
+        <Skeleton className="h-28 rounded-2xl" />
+      </div>
+      <div className="space-y-3">
+        <Skeleton className="h-12 rounded-xl" />
+        <Skeleton className="h-12 rounded-xl" />
+        <Skeleton className="h-12 rounded-xl" />
+      </div>
+    </div>
+  );
+}
+
+export { Field, FREQUENCY_LABELS, FREQUENCY_COLORS, defaultConfirm, LEGACY_PANEL_REDIRECTS, getGreeting, formatCurrency, formatDate, formatBookingDate, formatBookingTime, Skeleton, PanelSkeleton, Modal, useFormField, LineItemRow };
 export type { ActivePanel, ConfirmState, LineItem };
