@@ -69,13 +69,19 @@ export default function FieldMode() {
     setNote(loadFieldModeDraft(jobId));
   }, [jobId]);
 
+  // Depend on primitives, not the query object: the interval should reset
+  // when the running entry (or its start time) actually changes, not on
+  // every background refetch producing a fresh object identity.
+  const runningEntryId = runningEntry?.id ?? null;
+  const runningEntryStartedAt = runningEntry?.startedAt ?? null;
   useEffect(() => {
-    if (!runningEntry) { setElapsed(0); return; }
-    const tick = () => setElapsed(Math.max(0, Math.floor((Date.now() - new Date(runningEntry.startedAt).getTime()) / 1000)));
+    if (!runningEntryStartedAt) { setElapsed(0); return; }
+    const startedAt = runningEntryStartedAt;
+    const tick = () => setElapsed(Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000)));
     tick();
     const timer = window.setInterval(tick, 1000);
     return () => window.clearInterval(timer);
-  }, [runningEntry?.id]);
+  }, [runningEntryId, runningEntryStartedAt]);
 
   const activeJob = detail.data?.job;
   const startTimer = trpc.time.start.useMutation({

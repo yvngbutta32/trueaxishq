@@ -104,7 +104,16 @@ export default function ClientPortal() {
   const portalPhotoInputRef = useRef<HTMLInputElement>(null);
   const handledPaymentReturn = useRef(false);
 
-  // Check if redirected back from successful payment
+
+
+  const { data, isLoading, error, refetch: refetchPortal } = trpc.portal.view.useQuery(
+    { token },
+    { enabled: !!token, retry: false }
+  );
+
+  // Check if redirected back from successful payment — runs on mount, right
+  // after a Stripe return carries ?payment_returned=1. refetchPortal is a
+  // stable React Query refetch, so it does not cause re-runs.
   useEffect(() => {
     const url = new URL(window.location.href);
     if (url.searchParams.get("payment_returned") === "1" && !handledPaymentReturn.current) {
@@ -115,13 +124,7 @@ export default function ClientPortal() {
       url.searchParams.delete("payment_returned");
       window.history.replaceState({}, "", url.toString());
     }
-  }, [location]);
-
-  const { data, isLoading, error, refetch: refetchPortal } = trpc.portal.view.useQuery(
-    { token },
-    { enabled: !!token, retry: false }
-  );
-
+  }, [refetchPortal]);
   const { data: photoData, refetch: refetchPhotos } = trpc.portal.getPhotos.useQuery(
     { token },
     { enabled: !!token, retry: false }

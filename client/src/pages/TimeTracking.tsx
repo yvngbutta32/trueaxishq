@@ -67,12 +67,17 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkInvoicing, setBulkInvoicing] = useState(false);
 
-  // Keep elapsed in sync with running entry
+  // Keep elapsed in sync with running entry. Depend on primitives, not the
+  // query object: reset only when the running entry (or its start time)
+  // actually changes, not on every background refetch.
+  const runningEntryId = runningEntry?.id ?? null;
+  const runningEntryStartedAt = runningEntry?.startedAt ?? null;
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    if (runningEntry) {
+    if (runningEntryStartedAt) {
+      const startedAt = runningEntryStartedAt;
       const update = () => {
-        setElapsed(Math.floor((Date.now() - new Date(runningEntry.startedAt).getTime()) / 1000));
+        setElapsed(Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000));
       };
       update();
       intervalRef.current = setInterval(update, 1000);
@@ -80,7 +85,7 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
       setElapsed(0);
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [runningEntry?.id]);
+  }, [runningEntryId, runningEntryStartedAt]);
 
   const startTimer = trpc.time.start.useMutation({
     onSuccess: () => {

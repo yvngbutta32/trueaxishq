@@ -194,6 +194,10 @@ export default function JobWorkspace() {
   useEffect(() => {
     setClientSummaryDraft(detail?.job.clientSummary ?? "");
     setClientSummaryVisibleDraft(Boolean(detail?.job.clientSummaryVisible));
+    // Deliberate: reset drafts ONLY when the selected job changes. Including
+    // the summary values in deps would wipe the user's in-progress edits on
+    // every background refetch of the same job.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detail?.job.id]);
   const linkedInspectionAsset = useMemo(() => customerAssets.data?.find(asset => asset.id === detail?.job.customerAssetId), [customerAssets.data, detail?.job.customerAssetId]);
   const activeInspectionTemplates = useMemo(() => (inspectionTemplates.data ?? []).filter(template => template.active), [inspectionTemplates.data]);
