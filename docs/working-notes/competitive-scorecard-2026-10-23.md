@@ -10,12 +10,40 @@ codebase state. Two honest views:
   where a pre-launch product is scored honestly against platforms with
   thousands of reviews.
 
-TrueAxis HQ state (live-verified Oct 23): 34 routes (20 dashboard panels),
-86 tRPC procedures + public REST API v1, 37 server-side plan gates, 86 tables,
-835 tests green, tsc/lint/build/bundle gates clean, 0 production CVEs,
-fresh-install + 132-combo live sweep proof. NOT yet deployed publicly;
-SMS/email/payments/voice are code-complete but await owner credentials
-(`bash scripts/verify-credentials.sh` gates each one live).
+TrueAxis HQ state (live-verified Oct 23, re-scored end-of-day at 07b389e):
+35 routes (20 dashboard panels), 409 tRPC procedures + public REST API v1,
+37 server-side plan gates, 88 tables, 89 migrations, 916 tests green,
+tsc/lint/build clean, 0 production CVEs, fresh-install proof + 51 live e2e
+checks across 4 suites (voice, QR labels, PO costing, QBO gate). NOT yet
+deployed publicly; SMS/email/payments/voice are code-complete but await
+owner credentials (`bash scripts/verify-credentials.sh` gates each one live).
+
+**End-of-day re-score:** the full dominance roadmap shipped after the morning
+snapshot (voice hardening + 10 languages, QR asset labels, PO job costing,
+QBO demand gate, plus the fresh-install/migration audit). Two categories move,
+from live-verified shipped code only:
+
+- **AI capabilities 8 → 9**: the voice receptionist is now grounded (tool
+  contract, no invented prices/slots), honest (mandatory AI disclosure,
+  press-zero always works or honest voicemail), and 10-language (research
+  verified only ServiceTitan offers bilingual, via Smith.ai at extra cost).
+  Per our own review-mining, AI voice is the category's only *proven* AI
+  feature, and ours implements every failure mode the research found.
+  Caveat: proven in signed-webhook e2e against a mock LLM; live on a real
+  deployment it needs Twilio + LLM credentials (same caveat competitors'
+  marketing-claim scores carry, minus their pricing).
+- **Reporting & job costing 8 → 9**: PO-to-job linking, materials cost
+  roll-up with unit-cost snapshots (later receipts can't rewrite old jobs),
+  portfolio cost report and CSV export — the exact feature Jobber users cite
+  as their #1 unfulfilled request. Works at $0, no provider needed.
+  ServiceTitan keeps 10 (enterprise-grade costing); we tie Buildertrend at 9.
+
+Updated totals: **Product capability 8.7 (#1 of 12)**. **Market reality 8.2 —
+tied with Jobber at the top, ahead of ServiceTitan 8.1.** That tie is exact
+arithmetic, not optimism: our product lead (+0.6 over Jobber) exactly cancels
+their traction lead (9 vs our 1). Read it honestly: it is *deployed potential*
+— until there is a public deployment, real customers, and G2/Capterra reviews,
+traction stays 1/10 and no feature build moves it.
 
 ## Ratings by section (scores /10)
 
@@ -28,32 +56,36 @@ SMS/email/payments/voice are code-complete but await owner credentials
 | Client portal & communication | 8 | 9 | 8 | 8 | 7 | 9 | 7 | 7 | 7 | 6 | 7 | 6 |
 | Mobile & field experience | 8 | 9 | 7 | 8 | 9 | 7 | 7 | 6 | 7 | 5 | 5 | 5 |
 | GPS tracking & routing | 9 | 7 | 9 | 7 | 7 | 6 | 7 | 7 | 7 | 5 | 5 | 5 |
-| AI capabilities | 8 | 8 | 9 | 9 | 8 | 8 | 9 | 7 | 8 | 3 | 6 | 5 |
+| AI capabilities | 9 | 8 | 9 | 9 | 8 | 8 | 9 | 7 | 8 | 3 | 6 | 5 |
 | Automation | 9 | 8 | 9 | 9 | 7 | 6 | 7 | 7 | 7 | 6 | 8 | 7 |
-| Reporting & job costing | 8 | 7 | 10 | 7 | 7 | 9 | 7 | 7 | 7 | 6 | 7 | 7 |
+| Reporting & job costing | 9 | 7 | 10 | 7 | 7 | 9 | 7 | 7 | 7 | 6 | 7 | 7 |
 | Integrations & ecosystem | 7 | 9 | 9 | 8 | 8 | 8 | 7 | 8 | 6 | 8 | 7 | 8 |
 | Security & trust | 10 | 6 | 7 | 6 | 6 | 6 | 5 | 5 | 5 | 5 | 5 | 5 |
 | Pricing & value | 10 | 7 | 3 | 5 | 9 | 4 | 5 | 5 | 8 | 8 | 4 | 6 |
 | Ease of use & onboarding | 8 | 10 | 4 | 8 | 10 | 5 | 8 | 8 | 9 | 7 | 7 | 7 |
 | Market traction & social proof | 1 | 9 | 8 | 9 | 7 | 8 | 7 | 7 | 6 | 6 | 8 | 6 |
-| **Product capability (14)** | **8.6** | **8.1** | **8.1** | **7.7** | **7.8** | **7.1** | **7.1** | **7.1** | **7.2** | **6.3** | **6.3** | **6.5** |
-| **Market reality (15)** | **8.1** | **8.2** | **8.1** | **7.8** | **7.7** | **7.2** | **7.1** | **7.1** | **7.1** | **6.3** | **6.4** | **6.5** |
+| **Product capability (14)** | **8.7** | **8.1** | **8.1** | **7.7** | **7.8** | **7.1** | **7.1** | **7.1** | **7.2** | **6.3** | **6.3** | **6.5** |
+| **Market reality (15)** | **8.2** | **8.2** | **8.1** | **7.8** | **7.7** | **7.2** | **7.1** | **7.1** | **7.1** | **6.3** | **6.4** | **6.5** |
 
-## The honest headline
+## The honest headline (end-of-day re-score)
 
-**Product capability: #1 of 12** (8.6). Market reality: **#3 of 12** (8.1),
-behind Jobber (8.2) and ServiceTitan (8.1). The entire gap is one category:
-market traction 1 vs their 7–9. Zero customers, zero G2/Capterra reviews, no
-public deployment — every competitor beats us there today, and no feature
-build closes it. Deploy + first 20 happy freelancers + review profiles do.
+**Product capability: #1 of 12** (8.7, up from 8.6 — the dominance roadmap
+shipped). Market reality: **tied #1 with Jobber** (8.2), ahead of
+ServiceTitan (8.1). The tie is arithmetic: our product lead cancels their
+traction lead. But traction is the only score that compounds on its own and
+the only one we cannot build: zero customers, zero G2/Capterra reviews, no
+public deployment. Every competitor beats us there today, and their product
+scores can rise with each release too. The tie only becomes real with:
+deploy (blocked on owner credentials/domain), first 20 happy freelancers,
+then review velocity.
 
 ## Rankings
 
 | Rank | Product capability | Market reality |
 |---|---|---|
-| 1 | **TrueAxis HQ 8.6** | Jobber 8.2 |
-| 2 | Jobber 8.1 | ServiceTitan 8.1 |
-| 3 | ServiceTitan 8.1 | **TrueAxis HQ 8.1** |
+| 1 | **TrueAxis HQ 8.7** | **TrueAxis HQ 8.2 (tied, pre-launch)** |
+| 2 | Jobber 8.1 | Jobber 8.2 (tied) |
+| 3 | ServiceTitan 8.1 | ServiceTitan 8.1 |
 | 4 | ServiceM8 7.8 | Housecall Pro 7.8 |
 | 5 | Housecall Pro 7.7 | ServiceM8 7.7 |
 | 6 | GorillaDesk 7.2 | Buildertrend 7.2 |
