@@ -117,6 +117,14 @@ async function startServer() {
   });
 
   // ── Avatar Upload ─────────────────────────────────────────────────────────
+  // ── CSRF origin guard on cookie-authenticated write surfaces ─────────────
+  // SameSite=Lax is the primary defense; this rejects foreign-Origin POSTs
+  // before they reach tRPC or the upload handlers (belt and suspenders).
+  const { csrfOriginMiddleware } = await import("../security");
+  app.use("/api/trpc", csrfOriginMiddleware);
+  app.use("/api/upload", csrfOriginMiddleware);
+  app.use("/api/photos/upload", csrfOriginMiddleware);
+
   app.use(avatarUploadRouter);
 
   // ── Document Upload ───────────────────────────────────────────────────────────────────────────────────────

@@ -31,6 +31,7 @@ const sections = [
     title: "Our infrastructure",
     points: [
       "Hardened HTTP headers on every response: Content-Security-Policy, HSTS, X-Frame-Options SAMEORIGIN, X-Content-Type-Options, Referrer-Policy.",
+      "Two-layer CSRF defense: SameSite=Lax session cookies plus server-side Origin validation that rejects cross-origin writes to the API.",
       "Layered rate limiting: global request caps on API routes plus a per-key 600 req/min limit with transparent X-RateLimit headers.",
       "Automatic IP blocklisting for abusive traffic; graceful server shutdown and a non-root containerized runtime.",
     ],

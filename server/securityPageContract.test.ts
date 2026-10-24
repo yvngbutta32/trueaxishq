@@ -10,6 +10,7 @@ const app = source("client/src/App.tsx");
 const securityServer = source("server/security.ts");
 const routers = source("server/routers.ts");
 const publicApi = source("server/publicApi.ts");
+const cookiesHelper = source("server/_core/cookies.ts");
 
 describe("security marketing page (Tier 3 item 17)", () => {
   it("is published at a public route and linked from the footer", () => {
@@ -33,6 +34,10 @@ describe("security marketing page (Tier 3 item 17)", () => {
       expect(securityPage).toContain(header);
       expect(securityServer).toContain(header);
     }
+    // Two-layer CSRF claim: SameSite cookie + server-side Origin validation
+    expect(securityPage).toContain("Origin validation");
+    expect(securityServer).toContain("csrfOriginMiddleware");
+    expect(cookiesHelper).toContain('sameSite: "lax"')
     // API key claims
     expect(securityPage).toContain("SHA-256");
     expect(publicApi).toContain("hashApiKey");

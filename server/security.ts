@@ -334,5 +334,53 @@ export function securityMiddleware(req: Request, res: Response, next: NextFuncti
   next();
 }
 
+// ─── CSRF origin validation (defense-in-depth beyond SameSite=Lax) ──────────
+// Browser cross-site POSTs cannot attach our SameSite=Lax cookie — that is the
+// primary CSRF defense. This guard is the second layer: state-changing requests
+// to the cookie-authenticated surfaces (tRPC + uploads) are rejected when an
+// Origin header is present and does not belong to this deployment. Requests
+// WITHOUT an Origin header (curl, server-to-server, mobile apps) pass — they
+// carry no ambient browser credentials. Non-browser clients presenting a stolen
+// cookie plus a foreign Origin get blocked here even if SameSite were ever
+// weakened by a proxy or browser change.
+const SAFE_HTTP_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+const LOCAL_ORIGIN_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
+
+function originHostname(origin: string): string | null {
+  try { return new URL(origin).hostname; } catch { return null; }
+}
+
+export function isAllowedRequestOrigin(origin: string, req: Request): boolean {
+  // Exact configured origins first (SITE_ORIGIN e.g. https://trueaxishq.com).
+  const configured = [process.env.SITE_ORIGIN, process.env.VITE_SITE_URL]
+    .filter((v): v is string => typeof v === "string" && v.length > 0);
+  if (configured.includes(origin)) return true;
+  const host = originHostname(origin);
+  if (!host) return false;
+  // Same-origin by definition: the request's own host (SPA + API share it).
+  if (host === (req.hostname || "")) return true;
+  // Deployments behind a proxy may see a rewritten Host — allow origins whose
+  // hostname matches a configured origin's hostname (covers www/apex variants).
+  for (const cfg of configured) {
+    const cfgHost = originHostname(cfg);
+    if (cfgHost && cfgHost === host) return true;
+  }
+  // Development boots (NODE_ENV unset/non-production): localhost origins are fine.
+  if (process.env.NODE_ENV !== "production" && LOCAL_ORIGIN_HOSTS.has(host)) return true;
+  return false;
+}
+
+export function csrfOriginMiddleware(req: Request, res: Response, next: NextFunction) {
+  if (SAFE_HTTP_METHODS.has(req.method)) return next();
+  const origin = req.headers.origin;
+  if (!origin || typeof origin !== "string") return next(); // non-browser client
+  if (isAllowedRequestOrigin(origin, req)) return next();
+  const ip = getClientIp(req);
+  const details = `${req.method} ${req.path} from Origin: ${origin} | UA: ${req.headers["user-agent"] ?? "unknown"}`;
+  logSecurityEvent({ eventType: "csrf_origin_rejected", severity: "high", ip, details, userAgent: req.headers["user-agent"] });
+  recordViolation(ip, req, "cross-origin state-changing request rejected");
+  return res.status(403).json({ error: "Cross-origin request rejected." });
+}
+
 // ─── Exported log helper for use in routers ──────────────────────────────────
 export { logSecurityEvent, alertOwner };

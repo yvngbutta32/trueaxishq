@@ -62,6 +62,7 @@ SUITES=(
   "QBO demand gate|test/e2e-qbo-demand.mjs"
   "Public review engine|test/e2e-review-requests.mjs"
   "AI voice hardening|test/e2e-voice-hardening.mjs"
+  "Adversarial security probe|test/e2e-security-probe.mjs"
 )
 FAILURES=0
 for entry in "${SUITES[@]}"; do
