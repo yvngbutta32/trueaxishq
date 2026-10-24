@@ -12,7 +12,7 @@ const PASS = process.argv[2] || "1";
 const OUT = path.join("manual-qa", `pass${PASS}`, "public.ndjson");
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 
-const PAGES = ["/", "/pricing", "/about", "/contact", "/help", "/privacy", "/terms", "/security", "/status", "/changelog", "/login", "/staff-access", "/admin-login"];
+const PAGES = ["/", "/pricing", "/about", "/contact", "/help", "/privacy", "/terms", "/security", "/status", "/changelog", "/compare", "/login", "/staff-access", "/admin-login"];
 const DESTRUCTIVE = /delete|remove|revoke|disconnect|sign ?out|log ?out|archive|resend|reset|purge|unlink|deactivate/i;
 const SKIP_CLICK = /start free|get started|sign ?up|register|book a call|schedule a demo|contact sales|buy|subscribe|checkout/i;
 

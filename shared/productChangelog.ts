@@ -18,6 +18,13 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-24",
+    title: "Public comparison page — every claim cited, including where we're behind",
+    tag: "Platform",
+    commit: "9a3e17d",
+    description: "A new /compare page puts TrueAxis HQ next to Jobber, Housecall Pro, and ServiceTitan with none of the usual marketing gloss. Every competitor statement on the page is quoted from our published Oct 2026 research and links to its public source; every TrueAxis statement lists the test file that proves it; and an automated contract test re-verifies all of it on every run, so a stale or unverifiable claim fails the build instead of shipping. The page also carries a mandatory 'where they're ahead of us' section — native QuickBooks sync, app-store presence, and track record are stated plainly, because a one-sided comparison is just an ad.",
+  },
+  {
+    date: "2026-10-24",
     title: "Public booking honesty — the slots you see are exactly the slots we accept",
     tag: "Clients",
     commit: "65c3401",

@@ -28,6 +28,7 @@ const Help = lazy(() => import("./pages/Help"));
 const Security = lazy(() => import("./pages/Security"));
 const Status = lazy(() => import("./pages/Status"));
 const Changelog = lazy(() => import("./pages/Changelog"));
+const Compare = lazy(() => import("./pages/Compare"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
@@ -108,6 +109,7 @@ function Router() {
         <Route path="/security" component={Security} />
         <Route path="/status" component={Status} />
         <Route path="/changelog" component={Changelog} />
+        <Route path="/compare" component={Compare} />
         <Route path="/contact" component={Contact} />
 
         {/* Client Portal — public, token-gated */}
