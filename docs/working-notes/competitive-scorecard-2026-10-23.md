@@ -158,3 +158,35 @@ then review velocity.
    on customer demand.
 5. **Proven at scale**: zero users have hammered our app; their complaints
    come from real usage at volume.
+
+---
+
+## October 24 addendum: full-scope verification + adversarial security gate
+
+Post-re-score verification completed (through 18b1ed9), one day after the
+end-of-day re-score. Numbers unchanged — the day strengthened evidence, not
+capabilities:
+
+- **Product capability holds at 8.7 (#1 of 12).** Full-scope pass: tsc clean,
+  949/949 tests, lint 0 errors, 0 dependency CVEs, bundle budgets green,
+  fresh-install proof (90 migrations, empty DB → production boot → smoke),
+  full adversarial sweep (QR 14, PO 17, QBO 10, review 16, voice 10,
+  security probe 21) + smoke — all green.
+- **Security & trust stays 10 and got deeper:** the 21-check adversarial
+  probe (IDOR, JWT tamper, SQLi, stored XSS, CSRF origin, lockout, rate
+  limits, headers) is now a permanent release gate in
+  `scripts/live-e2e-sweep.sh` — no competitor ships anything comparable at
+  this price band. A deep audit found and fixed 4 real defects: ~20 async
+  routes could hang sockets on mid-request errors (now guarded + pinned),
+  the one-click export was missing 12 newer tables (now complete +
+  guard), nightly automated backups now install with the server, and
+  shutdown drains the database pool cleanly.
+- **Market reality holds at 8.2** — still tied with Jobber at the top on
+  paper, still pre-launch in fact. The entire remaining gap is traction:
+  first deployment, first customers, first reviews. None of it is code.
+
+Competitive pricing re-checked Oct 24 (web): Jobber ladder unchanged
+(Core ~$29 solo annual → Connect $99-149 → Grow, texting still tiered);
+HCP Basic $79 + MAX overage; ServiceTitan still quote-only. No new AI
+announcements from any major competitor in the window. The October 23
+fact files (research/comp-2026-10/) remain current.
