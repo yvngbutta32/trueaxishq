@@ -17,6 +17,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-24",
+    title: "Deep security audit — async crash guard, complete data export, nightly backups",
+    tag: "Security",
+    commit: "ded6fcf",
+    description: "A full adversarial audit of the platform (server, data layer, frontend, deployment) verified every defense end to end with 88 live attack checks — cross-tenant access, token tampering, SQL injection, stored XSS, CSRF, brute force — and fixed the four real weaknesses it found. (1) About twenty public API routes could hang forever if the database hiccuped mid-request; every one now fails safely and answers honestly. (2) The one-click business export was missing twelve newer data types (voice calls, review requests, client portal messages, approval requests, and more) — your complete business now really is complete, and a new guard keeps future tables from silently falling out. (3) Server installs now schedule automatic nightly database backups with 14-day and monthly retention. (4) Restarts drain in-flight database work cleanly before exiting.",
+  },
+  {
     date: "2026-10-23",
     title: "Public review engine — turn finished jobs into Google reviews",
     tag: "Clients",

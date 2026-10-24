@@ -11,6 +11,8 @@ const securityServer = source("server/security.ts");
 const routers = source("server/routers.ts");
 const publicApi = source("server/publicApi.ts");
 const cookiesHelper = source("server/_core/cookies.ts");
+const exportSource = source("server/_core/workspaceExport.ts");
+const installerSource = source("scripts/oracle-setup.sh");
 
 describe("security marketing page (Tier 3 item 17)", () => {
   it("is published at a public route and linked from the footer", () => {
@@ -43,6 +45,12 @@ describe("security marketing page (Tier 3 item 17)", () => {
     expect(publicApi).toContain("hashApiKey");
     expect(publicApi).toContain("timingSafeEqual");
     expect(securityPage).toContain("fail closed");
+    // data export + backups claims (added Oct 24 2026 audit pass)
+    expect(securityPage).toContain("never held hostage");
+    expect(exportSource).toContain("EXPORT_TABLES");
+    expect(exportSource).toContain("redactSensitive");
+    expect(securityPage).toContain("Nightly automated database backups");
+    expect(installerSource).toContain("trueaxis-backup.sh");
   });
 
   it("is honest about certifications we do not hold", () => {

@@ -24,6 +24,8 @@ const sections = [
       "Workspace-scoped data: every query is bound to your account. Client portals, calendars, and public photo uploads each use their own revocable, scope-limited tokens — never your password.",
       "API keys are shown once at creation, stored only as SHA-256 hashes, compared in constant time, and can be revoked in one click. Expired and revoked keys fail closed.",
       "A security event log records suspicious activity (lockouts, blocked IPs, revoked sessions) alongside a general audit trail of sensitive actions.",
+      "One-click complete export of your business data (Settings → Import/Export) — every table we ship, credentials redacted — so your data is never held hostage.",
+      "Nightly automated database backups on self-hosted installs (14 daily + 6 monthly snapshots), with a documented one-command restore.",
     ],
   },
   {
@@ -40,7 +42,7 @@ const sections = [
     icon: FileCheck,
     title: "Transparency",
     points: [
-      "Dependency vulnerabilities are audited continuously — 12 known CVEs were patched in our September 2026 audit pass, and the shipped changelog is public.",
+      "Dependency vulnerabilities are audited continuously — 12 known CVEs were patched in our September 2026 pass and the audit now reports zero, and a full adversarial audit in October 2026 ran 88 live attack checks against every release.",
       "System status and incident history are published at the status page — including incidents that make us look bad.",
       "We publish what we have and don't pretend to have more: independent compliance certifications (SOC 2, ISO 27001) are not yet in place. When they are, this page will say so.",
     ],
