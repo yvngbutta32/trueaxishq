@@ -1,18 +1,89 @@
 {
-  "startedAt": "2026-10-24T09:09:39.241Z",
-  "interactions": 0,
-  "clicked": [],
-  "typedFields": 0,
-  "dialogsCancelled": 0,
+  "startedAt": "2026-10-24T10:56:29.543Z",
+  "interactions": 106,
+  "clicked": [
+    {
+      "label": "public:/",
+      "buttons": 40,
+      "fields": 1
+    },
+    {
+      "label": "public:/pricing",
+      "buttons": 15,
+      "fields": 0
+    },
+    {
+      "label": "public:/about",
+      "buttons": 6,
+      "fields": 0
+    },
+    {
+      "label": "public:/contact",
+      "buttons": 2,
+      "fields": 4
+    },
+    {
+      "label": "public:/help",
+      "buttons": 25,
+      "fields": 1
+    },
+    {
+      "label": "public:/privacy",
+      "buttons": 1,
+      "fields": 0
+    },
+    {
+      "label": "public:/terms",
+      "buttons": 1,
+      "fields": 0
+    },
+    {
+      "label": "public:/security",
+      "buttons": 2,
+      "fields": 0
+    },
+    {
+      "label": "public:/status",
+      "buttons": 3,
+      "fields": 0
+    },
+    {
+      "label": "public:/changelog",
+      "buttons": 2,
+      "fields": 0
+    },
+    {
+      "label": "public:/login",
+      "buttons": 7,
+      "fields": 2
+    },
+    {
+      "label": "public:/staff-access",
+      "buttons": 0,
+      "fields": 0
+    },
+    {
+      "label": "public:/admin-login",
+      "buttons": 1,
+      "fields": 2
+    },
+    {
+      "label": "public:/book/rivera-plumbing",
+      "buttons": 1,
+      "fields": 5
+    }
+  ],
+  "typedFields": 15,
+  "dialogsCancelled": 2,
   "modalsClosed": 0,
   "consoleErrors": [
     {
-      "page": "flows",
-      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      "page": "public",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
     },
     {
-      "page": "flows",
-      "text": "[API Mutation Error] TRPCClientError: defaultRate: Enter a valid rate like 85 or 85.50\n    at Ne.from (http://localhost:3998/assets/trpc-CoMKWc5C.js:14:20620)\n    at http://localhost:3998/assets/trpc-CoMKWc5C.js:14:25801"
+      "page": "public",
+      "text": "[API Mutation Error] TRPCClientError: Invalid email or password.\n    at Ne.from (http://localhost:3998/assets/trpc-CoMKWc5C.js:14:20620)\n    at http://localhost:3998/assets/trpc-CoMKWc5C.js:14:25801"
     }
   ],
   "pageErrors": [],
@@ -21,34 +92,9 @@
   "deadControls": [],
   "notes": [
     {
-      "check": "flows",
-      "value": {
-        "clientCreate": {
-          "modalOpened": true,
-          "saved": true,
-          "appearsInList": false
-        },
-        "booking": {
-          "typed": 5,
-          "steps": [
-            {
-              "name": "Continue to date and time selection",
-              "ok": true
-            },
-            {
-              "name": "Continue to confirmation",
-              "ok": true
-            },
-            {
-              "name": "Submit booking request",
-              "ok": true
-            }
-          ],
-          "result": "Booked!"
-        },
-        "settingsSave": "saved!\nSkip to mai"
-      }
+      "check": "login-wrong-password",
+      "value": "Invalid email or password."
     }
   ],
-  "finishedAt": "2026-10-24T09:10:02.636Z"
+  "finishedAt": "2026-10-24T10:59:14.407Z"
 }

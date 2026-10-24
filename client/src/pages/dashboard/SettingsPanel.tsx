@@ -1250,6 +1250,8 @@ function SettingsPanel() {
 // ─── Integrations Section ────────────────────────────────────────────────────────
 function IntegrationsSection() {
   const utils = trpc.useUtils();
+  const { user } = useAuth();
+  const isOwner = user?.isOwner === true;
   const { data: calStatus } = trpc.googleCal.status.useQuery(undefined, { retry: 1 });
   const { data: calAuthData } = trpc.googleCal.getAuthUrl.useQuery(
     { origin: window.location.origin },
@@ -1358,14 +1360,22 @@ function IntegrationsSection() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            {connectionResult?.smtp.verified === true && connectionResult.smtp.testEmailSent !== true && (
-              <Button size="sm" variant="outline" onClick={() => testConnections.mutate({ sendTestEmail: true })} disabled={testConnections.isPending}>
-                Send test email
-              </Button>
+            {isOwner ? (
+              <>
+                {connectionResult?.smtp.verified === true && connectionResult.smtp.testEmailSent !== true && (
+                  <Button size="sm" variant="outline" onClick={() => testConnections.mutate({ sendTestEmail: true })} disabled={testConnections.isPending}>
+                    Send test email
+                  </Button>
+                )}
+                <Button size="sm" onClick={() => testConnections.mutate({ sendTestEmail: false })} disabled={testConnections.isPending}>
+                  {testConnections.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Run connection test"}
+                </Button>
+              </>
+            ) : (
+              <p className="text-xs text-[var(--muted-foreground)] max-w-[220px] text-right">
+                Admin sign-in required to test server connections.
+              </p>
             )}
-            <Button size="sm" onClick={() => testConnections.mutate({ sendTestEmail: false })} disabled={testConnections.isPending}>
-              {testConnections.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Run connection test"}
-            </Button>
           </div>
         </div>
         {connectionResult && (

@@ -246,9 +246,9 @@ function SchedulingPanel() {
                 {smartSchedule.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Suggest Times"}
               </Button>
             </div>
-            {smartSuggestions.length > 0 ? (
+            {smartSuggestions.filter(s => s && s.date && s.time).length > 0 ? (
               <div className="space-y-1.5">
-                {smartSuggestions.map((s, i) => (
+                {smartSuggestions.filter(s => s && s.date && s.time).map((s, i) => (
                   <button key={i} onClick={() => { setForm(p => ({ ...p, date: s.date, time: s.time })); setSmartSuggestions([]); toast.success("Time slot applied!"); }} className="w-full text-left px-3 py-2 rounded-lg bg-white border border-amber-500/20 hover:border-amber-300 transition-colors">
                     <span className="text-xs font-semibold text-[var(--foreground)]">{s.date} at {s.time}</span>
                     <span className="text-xs text-[var(--muted-foreground)] ml-2">{s.reason}</span>

@@ -1,4 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { normalizeScheduleSuggestions } from "./scheduleSuggestions";
 import { eq, desc, asc, and, sql, inArray, or, like, notLike, isNull, isNotNull, gt, gte, lt, lte, ne, type SQL, type Column, type SQLWrapper } from "drizzle-orm";
 import { z } from "zod";
 import Stripe from "stripe";
@@ -3314,7 +3315,7 @@ Only include actions when you have actually generated a complete draft. For gene
         const raw = result.choices[0]?.message?.content;
         try {
           const parsed = JSON.parse(typeof raw === "string" ? raw : JSON.stringify(raw));
-          return { suggestions: parsed.suggestions ?? [] };
+          return { suggestions: normalizeScheduleSuggestions(parsed) };
         } catch {
           return { suggestions: [] };
         }
@@ -3802,11 +3803,13 @@ Only include actions when you have actually generated a complete draft. For gene
         const whiteLabel = (hostPlanId ?? "").trim().toLowerCase() === "agency";
         const today = new Date().toISOString().slice(0, 10);
         const publicWindowEnd = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-        const bookedSlots = await db.select({ date: bookings.date, time: bookings.time })
+        // Mirrors the public submit conflict query (status NOT IN cancelled/no_show)
+        // and includes duration so the client can apply the same overlap rule.
+        const bookedSlots = await db.select({ date: bookings.date, time: bookings.time, duration: bookings.duration })
           .from(bookings)
           .where(and(
             eq(bookings.userId, host.id),
-            eq(bookings.status, "scheduled"),
+            sql`${bookings.status} NOT IN ('cancelled', 'no_show')`,
             sql`${bookings.date} >= ${today}`,
             sql`${bookings.date} < ${publicWindowEnd}`,
           ));

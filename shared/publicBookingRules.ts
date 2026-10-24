@@ -115,6 +115,12 @@ export function isPublishedPublicBookingSlot(date: string, time: string, schedul
 
 /** Converts a published display time into minutes after midnight for deterministic interval checks. */
 export function publicBookingTimeToMinutes(time: string): number | null {
+  // 24-hour "HH:MM" first: dashboard-created bookings store this format while
+  // published public slots use "9:00 AM". Overlap math must understand both,
+  // otherwise every dashboard booking reads as unparseable and (fail-closed)
+  // blocks every public slot — the exact trap the live sweep caught.
+  const h24 = time.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+  if (h24) return Number(h24[1]) * 60 + Number(h24[2]);
   const match = time.match(/^(1[0-2]|[1-9]):([0-5]\d) (AM|PM)$/);
   if (!match) return null;
   const hour = Number(match[1]);

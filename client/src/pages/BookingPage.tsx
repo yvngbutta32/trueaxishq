@@ -9,7 +9,7 @@ import {
   CalendarDays, Sparkles, Camera, Upload, X, CreditCard, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PublicRecoveryState } from "@/components/PublicRecoveryState";
-import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, DEFAULT_PUBLIC_BOOKING_SERVICES, PUBLIC_BOOKING_TIME_SLOTS } from "@shared/publicBookingRules";
+import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, DEFAULT_PUBLIC_BOOKING_SERVICES, doPublicBookingIntervalsOverlap, PUBLIC_BOOKING_TIME_SLOTS } from "@shared/publicBookingRules";
 
 // ─── .ics calendar file generator ────────────────────────────────────────────
 function generateICS({
@@ -242,6 +242,17 @@ export default function BookingPage() {
 
   const host = pageQuery.data;
   const publishedSchedule = host.bookingAvailability ?? DEFAULT_PUBLIC_BOOKING_SCHEDULE;
+  // Occupancy must use the SAME interval-overlap rule the server enforces on
+  // booking.submit (duration + buffer), not an exact time match — otherwise the
+  // page would offer slots that submit then rejects with 409. Found by the live
+  // click-everything sweep: a 90-minute booking at 09:00 left 10:00 shown as
+  // available, and submitting it failed with an overlap conflict.
+  const formServiceDurationMins = host.bookingServiceCatalog?.find(service => service.name === form.service)?.durationMinutes ?? 60;
+  const bufferMins = publishedSchedule.bufferMinutes ?? 0;
+  const slotOccupied = (isoDate: string, time: string) =>
+    host.bookedSlots?.some((slot: { date: string; time: string; duration?: number | null }) =>
+      slot.date === isoDate &&
+      doPublicBookingIntervalsOverlap(time, formServiceDurationMins + bufferMins, slot.time, (slot.duration ?? 60) + bufferMins)) ?? false;
   const availableDays = getNextDays(14, publishedSchedule.weekdays);
 
   // Success / Confirmation screen
@@ -664,7 +675,7 @@ export default function BookingPage() {
                   const dayName = day.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
                   const dayNum = day.getUTCDate();
                   const isSelected = form.preferredDate === isoDate;
-                  const isFullyOccupied = publishedSchedule.timeSlots.every(time => host.bookedSlots?.some((slot: { date: string; time: string }) => slot.date === isoDate && slot.time === time));
+                  const isFullyOccupied = publishedSchedule.timeSlots.every(time => slotOccupied(isoDate, time));
                   return (
                     <button
                       key={isoDate}
@@ -695,7 +706,7 @@ export default function BookingPage() {
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2" role="group" aria-label="Available time slots">
                   {publishedSchedule.timeSlots.map(time => {
                     const isSelected = form.preferredTime === time;
-                    const isOccupied = host.bookedSlots?.some((slot: { date: string; time: string }) => slot.date === form.preferredDate && slot.time === time) ?? false;
+                    const isOccupied = slotOccupied(form.preferredDate, time);
                     return (
                       <button
                         key={time}

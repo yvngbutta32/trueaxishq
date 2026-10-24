@@ -109,3 +109,6 @@ temp/
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
 .project-config.json
+
+# Manual QA run artifacts (logs, ndjson, screenshots)
+manual-qa/

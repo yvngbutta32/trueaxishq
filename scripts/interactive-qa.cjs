@@ -146,6 +146,113 @@ async function guarded(p, ms, label) {
   } finally { clearTimeout(timer); }
 }
 
+async function stageDialogs() {
+  // Delta sweep: after each button click, every control that NEWLY became visible
+  // (modal interiors, dropdown menus, expanded accordions) gets fully exercised:
+  // every field typed, every safe button clicked. The page-level sweep closes
+  // overlays without testing their contents — this stage covers exactly that gap.
+  const browser = await chromium.launch({ executablePath: EXE });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  page.setDefaultTimeout(12000);
+  attachCollectors(page, "dialogs");
+  await login(page);
+
+  const key = (c) => `${c.kind}|${(c.text || "").slice(0, 60)}`;
+  const dlgSummary = {};
+
+  for (const [panel, label] of LIVE_PANELS) {
+    try { await page.goto(BASE + `/dashboard?panel=${panel}`, { waitUntil: "networkidle", timeout: 20000 }); } catch { /* long-pollers */ }
+    await page.waitForTimeout(1800);
+    await closeOverlays(page).catch(() => {});
+
+    const base = await enumerateControls(page);
+    const baseVisible = new Set(base.filter((c) => c.visible).map(key));
+    const openers = base.filter((c) => c.kind === "button" && c.visible && !c.disabled && !SKIP_CLICK.test(c.text || ""));
+
+    for (const op of openers) {
+      const openerText = (op.text || "(icon-only)").slice(0, 40);
+      const before = report.consoleErrors.length + report.pageErrors.length;
+      let dialogOpen = false;
+      try {
+        const loc = page.locator("button").nth(op.idx);
+        await loc.scrollIntoViewIfNeeded({ timeout: 3000 }).catch(() => {});
+        if (await loc.isDisabled().catch(() => true)) continue;
+        await loc.click({ force: true, timeout: 4000 });
+      } catch (e) {
+        if (!String(e).includes("watchdog")) report.deadControls.push({ panel: `dlg:${label}`, control: openerText, reason: String(e).slice(0, 120) });
+        continue;
+      }
+      report.interactions++;
+      await page.waitForTimeout(450);
+      dialogOpen = await guarded(hasOpenDialog(page).catch(() => false), 8000, "hasDialog").catch(() => false);
+
+      const fresh = await enumerateControls(page).catch(() => []);
+      let delta = fresh.filter((c) => c.visible && !baseVisible.has(key(c)) && !(c.kind === "button" && (c.text || "") === openerText));
+      if (delta.length === 0) {
+        // nothing opened — restore state for the next opener
+        await closeOverlays(page).catch(() => {});
+        const urlOk = new URL(page.url()).pathname === new URL(BASE + `/dashboard?panel=${panel}`).pathname;
+        if (!urlOk) { try { await page.goto(BASE + `/dashboard?panel=${panel}`, { waitUntil: "networkidle", timeout: 20000 }); await page.waitForTimeout(1200); } catch {} }
+        continue;
+      }
+      dlgSummary[`${label}/${openerText}`] = { controls: delta.length, dialogOpen };
+
+      // 1) type into every newly-visible field
+      for (const f of delta.filter((c) => ["input", "textarea", "select"].includes(c.kind) && !c.disabled)) {
+        try {
+          const loc = page.locator(f.kind === "input" ? "input" : f.kind).nth(f.idx);
+          await loc.scrollIntoViewIfNeeded({ timeout: 3000 }).catch(() => {});
+          if (f.kind === "select") await loc.selectOption({ index: 1 }).then(() => report.typedFields++).catch(() => {});
+          else await loc.fill(sampleValue(f), { force: true, timeout: 4000 }).then(() => report.typedFields++).catch(() => {});
+        } catch { /* transient */ }
+      }
+
+      // 2) click every newly-visible safe button (destructive + money-movers skipped, same as page sweep)
+      for (const b of delta.filter((c) => c.kind === "button" && !c.disabled && !DESTRUCTIVE.test(c.text || "") && !SKIP_CLICK.test(c.text || ""))) {
+        const inner = (b.text || "(icon-only)").slice(0, 40);
+        const beforeInner = report.consoleErrors.length + report.pageErrors.length;
+        try {
+          const loc = page.locator("button").nth(b.idx);
+          await loc.scrollIntoViewIfNeeded({ timeout: 3000 }).catch(() => {});
+          if (await loc.isDisabled().catch(() => true)) continue;
+          await loc.click({ force: true, timeout: 4000 });
+        } catch (e) {
+          if (!String(e).includes("watchdog")) report.deadControls.push({ panel: `dlg:${label} (opened by ${openerText.slice(0, 20)})`, control: inner, reason: String(e).slice(0, 120) });
+          continue;
+        }
+        report.interactions++;
+        log(`    dlg [${label}] "${openerText.slice(0, 24)}" -> click: ${inner.slice(0, 40)}`);
+        await page.waitForTimeout(350);
+        await closeOverlays(page).catch(() => {});
+        // overlay gone (e.g. Save submitted + closed, or the button navigated)? stop sweeping this delta
+        const stillOpen = await guarded(hasOpenDialog(page).catch(() => false), 8000, "hasDialog2").catch(() => false);
+        const urlOk = new URL(page.url()).pathname === new URL(BASE + `/dashboard?panel=${panel}`).pathname;
+        const afterInner = report.consoleErrors.length + report.pageErrors.length;
+        if (afterInner > beforeInner) {
+          report.issues = report.issues || [];
+          report.notes.push({ check: "dialogs-issue", value: { panel: label, opener: openerText, control: inner, errors: report.consoleErrors.slice(beforeInner).map((e) => e.text.slice(0, 150)) } });
+        }
+        if (!stillOpen || !urlOk) {
+          try { await page.goto(BASE + `/dashboard?panel=${panel}`, { waitUntil: "networkidle", timeout: 20000 }); await page.waitForTimeout(1200); } catch {}
+          break;
+        }
+      }
+
+      // 3) close whatever remains open
+      await closeOverlays(page).catch(() => {});
+      const urlOk2 = new URL(page.url()).pathname === new URL(BASE + `/dashboard?panel=${panel}`).pathname;
+      if (!urlOk2) { try { await page.goto(BASE + `/dashboard?panel=${panel}`, { waitUntil: "networkidle", timeout: 20000 }); await page.waitForTimeout(1200); } catch {} }
+      const after = report.consoleErrors.length + report.pageErrors.length;
+      if (after > before) {
+        report.notes.push({ check: "dialogs-issue", value: { panel: label, opener: openerText, errors: report.consoleErrors.slice(before).map((e) => e.text.slice(0, 150)) } });
+      }
+    }
+    log(`dlg panel ${label.padEnd(15)} openers:${String(Object.keys(dlgSummary).filter((k) => k.startsWith(label + "/")).length).padStart(3)} totalInteractions:${report.interactions}`);
+  }
+  report.notes.push({ check: "dialogs-swept", value: Object.keys(dlgSummary).length });
+  await browser.close();
+}
+
 async function sweepPanel(page, panelUrl, label) {
   const result = { label, url: panelUrl, clicked: 0, typed: 0, issues: [] };
   try { await page.goto(BASE + panelUrl, { waitUntil: "networkidle", timeout: 20000 }); } catch { /* long-pollers */ }
@@ -446,6 +553,7 @@ function fs_mkdir(d) { require("fs").mkdirSync(d, { recursive: true }); }
     require("fs").writeFileSync("qa-artifacts/interactive-qa-report.json", JSON.stringify(report, null, 2));
   };
   if (stage === "desktop" || stage === "all") { await stageDesktop(); dump(); }
+  if (stage === "dialogs" || stage === "all") { await stageDialogs(); dump(); }
   if (stage === "public" || stage === "all") { await stagePublic(); dump(); }
   if (stage === "mobile" || stage === "all") { await stageMobile(); dump(); }
   if (stage === "flows" || stage === "all") { await stageFlows(); dump(); }
