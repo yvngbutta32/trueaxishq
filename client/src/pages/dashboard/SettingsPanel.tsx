@@ -672,6 +672,11 @@ function ReviewsSection() {
             <label htmlFor="review-site-url" className="text-xs font-medium text-[var(--foreground)]">Your review link (https://)</label>
             <input
               id="review-site-url"
+              type="url"
+              inputMode="url"
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="url"
               value={reviewSiteUrl}
               onChange={(e) => setReviewSiteUrl(e.target.value)}
               placeholder="https://g.page/r/your-business/review"
