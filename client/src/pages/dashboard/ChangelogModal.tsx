@@ -41,7 +41,7 @@ import {
 } from "recharts";
 
 // ─── Changelog Modal ─────────────────────────────────────────────────────────
-const CHANGELOG_VERSION = "1.4.3";
+const CHANGELOG_VERSION = "1.4.4";
 const CHANGELOG_KEY = `trueaxis_changelog_${CHANGELOG_VERSION}`;
 
 function ChangelogModal() {
@@ -63,6 +63,7 @@ function ChangelogModal() {
         </div>
         <div className="p-5 space-y-4">
           {([
+            { emoji: "⭐", title: "Public Review Engine", desc: "Paste your Google review link once (Settings → Public Reviews) and completed jobs can ask for a public review in one tap — or automatically, 24h after completion. Strict anti-spam: one ask per job, one per client per 90 days, SMS only to opted-in clients, and an ask log that shows every send, failure, and skip honestly. Included on every plan." },
             { emoji: "🗳️", title: "QuickBooks Sync Vote", desc: "Native QuickBooks Online sync is built only when real demand exists: one tap in Integration Hub adds your company to the count (10+ paying companies triggers the build). Until then, QuickBooks-format CSV exports in Invoices keep your bookkeeper happy — and the honest counter shows exactly where demand stands." },
             { emoji: "🧾", title: "Materials in Job Costing", desc: "Link any purchase order to a job and receive it — the cost lands in the job's private costing automatically. Stock consumed onto a job is valued at what it cost when you used it, so later price changes never rewrite history. See the full roll-up in the job workspace and the portfolio cost report (with CSV export)." },
             { emoji: "🏷️", title: "QR Asset Labels", desc: "Print a QR label for any customer asset (Job Workspace → assets → QR label). Customers scan it to see the equipment's service history and request service in one tap — requests land in your queue with the asset already identified. Labels go dark the moment you deactivate the asset." },

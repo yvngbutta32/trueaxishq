@@ -25,7 +25,7 @@ type Db = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 
 const FREE_ALLOWANCE = 50; // matches SMS_INCLUDED_MONTHLY.free
 
-export type SmsSendKind = "booking" | "reminder" | "checkin" | "invite" | "test" | "other";
+export type SmsSendKind = "booking" | "reminder" | "checkin" | "invite" | "review" | "test" | "other";
 
 export interface MeteredSmsResult extends SmsResult {
   allowanceExceeded: boolean;

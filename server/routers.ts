@@ -30,7 +30,7 @@ import { buildAutomationPreview, parseAutomationPreviewActions } from "./automat
 import { buildClientExperiencePreflight } from "./clientExperiencePreflight";
 import { strongPasswordSchema } from "./passwordPolicy";
 import { calculateJobCosting } from "../shared/jobCosting";
-import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions, stripeAccounts, voiceSettings, voiceCalls, voiceLines, assetServiceRequests, qboSyncRequests } from "../drizzle/schema";
+import { users, leads, clients, customerAssets, assetInspectionTemplates, assetInspectionResponses, invoices, bookings, followUps, emailTemplates, clientPulse, platformSettings, passwordResetTokens, inviteCodes, securityEvents, userSessions, clientPortalTokens, calendarFeedTokens, contracts, notifications, timeEntries, clientDocuments, clientCustomFields, clientCustomFieldValues, jobChecklistTemplates, jobChecklistTemplateItems, recurringInvoices, auditLogs, userApiKeys, contactMessages, portalMessages, followUpRules, clientTags, testimonials, bookingCancelTokens, googleCalendarTokens, services, expenses, proposals, automations, automationLogs, intakeForms, intakeResponses, revenueGoals, contractTemplates, jobPhotos, jobs, jobTasks, jobActivities, clientApprovalRequests, teamMembers, staffAvailabilityBlocks, jobAssignments, serviceVisits, recurringServicePlans, integrationConnections, workflowWebhooks, workflowWebhookDeliveries, stripeWebhookEvents, publicPhotoUploadSessions, publicPhotoUploads, workspaceStaffInvites, workspaceStaffMemberships, twoFactorBackupCodes, priceBookItems, jobPhases, smsLoginCodes, inventoryItems, inventoryLocations, inventoryMovements, purchaseOrders, purchaseOrderItems, customReports, serviceVisitTrackLinks, subcontractors, jobSubcontractors, jobSubcontractorNotes, geocodeCache, pushSubscriptions, stripeAccounts, voiceSettings, voiceCalls, voiceLines, assetServiceRequests, qboSyncRequests, reviewSettings, reviewRequests } from "../drizzle/schema";
 import { registerUser, loginUser, createSessionToken, recordSession, revokeSession, revokeAllSessionsForUser, hashPassword, verifyPassword } from "./auth";
 import { runGoogleCalendarSyncForUser } from "./googleCalendarSync";
 import { recordFailedLogin, isAccountLocked, clearFailedLogins, logSecurityEvent, getClientIp, manualBlockIP, unblockIP, getSecurityStats, allowPasswordResetRequest } from "./security";
@@ -42,6 +42,7 @@ import { withTimeout } from "./utils";
 import { sendSms, normalizePhoneToE164, getSmsDeliveryStatus, wasSmsAcceptedByConfiguredTwilio } from "./_core/sms";
 import { sendMeteredSms, getSmsAllowanceOverview } from "./_core/smsMeter";
 import { allowSmsLoginRequest, generateSmsLoginCode, hashSmsLoginCode, verifySmsLoginCodeHash, SMS_LOGIN_CODE_TTL_MS, SMS_LOGIN_MAX_ATTEMPTS } from "./_core/smsLogin";
+import { sendReviewRequest, validateReviewSiteUrl, reviewLogWithClientNames, REVIEW_REQUEST_COOLDOWN_DAYS } from "./_core/reviewRequests";
 import { sendEmail, forgotPasswordEmail, invoiceReminderEmail, bookingConfirmationEmail, invoicePaidEmail, followUpEmail, testimonialRequestEmail, monthlyReportEmail, bookingCancelConfirmEmail, newClientWelcomeEmail, intakeAutoReplyEmail, getEmailDeliveryStatus, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { createPublicUploadToken, hashPublicUploadToken, isOwnerPhotoKeyForType, PUBLIC_UPLOAD_MAX_FILES, PUBLIC_UPLOAD_TTL_MS } from "./photoUploadSecurity";
 import { createGoogleOAuthState } from "./googleOAuthState";
@@ -6624,6 +6625,81 @@ Only include actions when you have actually generated a complete draft. For gene
   }),
 
   // ── Testimonials ──────────────────────────────────────────────────────────────
+  reviews: router({
+    /** Owner's review-link settings + honest delivery states + recent ask log. */
+    status: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      const [settings] = await db.select().from(reviewSettings).where(eq(reviewSettings.userId, ctx.user.id)).limit(1);
+      const log = await reviewLogWithClientNames(db, ctx.user.id);
+      return {
+        settings: settings ? { reviewSiteUrl: settings.reviewSiteUrl, autoAfterCompletion: settings.autoAfterCompletion } : null,
+        smsConfigured: getSmsDeliveryStatus().configured,
+        emailConfigured: getEmailDeliveryStatus().configured,
+        recentRequests: log,
+        cooldownDays: REVIEW_REQUEST_COOLDOWN_DAYS,
+      } as const;
+    }),
+
+    saveSettings: protectedProcedure
+      .input(z.object({
+        reviewSiteUrl: z.string().trim().max(512),
+        autoAfterCompletion: z.boolean(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const check = validateReviewSiteUrl(input.reviewSiteUrl);
+        if (!check.ok || !check.url) throw new TRPCError({ code: "BAD_REQUEST", message: check.reason ?? "Invalid review link." });
+        await db.insert(reviewSettings).values({
+          userId: ctx.user.id, reviewSiteUrl: check.url, autoAfterCompletion: input.autoAfterCompletion,
+        }).onDuplicateKeyUpdate({
+          set: { reviewSiteUrl: check.url, autoAfterCompletion: input.autoAfterCompletion, updatedAt: new Date() },
+        });
+        await db.insert(auditLogs).values({
+          userId: ctx.user.id, action: "reviews.settings.saved", entityType: "reviews", entityId: null,
+          details: JSON.stringify({ autoAfterCompletion: input.autoAfterCompletion }),
+        });
+        return { success: true } as const;
+      }),
+
+    /** One-tap ask for a specific client (optionally tied to a completed job). */
+    sendRequest: protectedProcedure
+      .input(z.object({
+        clientId: z.number().int().positive(),
+        jobId: z.number().int().positive().nullish(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const [settings] = await db.select().from(reviewSettings).where(eq(reviewSettings.userId, ctx.user.id)).limit(1);
+        const check = validateReviewSiteUrl(settings?.reviewSiteUrl);
+        if (!check.ok || !check.url) throw new TRPCError({ code: "BAD_REQUEST", message: check.reason ?? "Invalid review link." });
+        const [client] = await db.select().from(clients)
+          .where(and(eq(clients.id, input.clientId), eq(clients.userId, ctx.user.id))).limit(1);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+        if (input.jobId) {
+          const [job] = await db.select({ id: jobs.id }).from(jobs)
+            .where(and(eq(jobs.id, input.jobId), eq(jobs.userId, ctx.user.id))).limit(1);
+          if (!job) throw new TRPCError({ code: "NOT_FOUND", message: "Job not found." });
+        }
+        const result = await sendReviewRequest({
+          db, userId: ctx.user.id,
+          clientId: input.clientId, jobId: input.jobId ?? null,
+          reviewSiteUrl: check.url,
+          clientName: client.name, clientEmail: client.email, clientPhone: client.phone,
+          smsOptIn: client.smsOptIn, serviceName: client.service ?? "your recent service",
+        });
+        await db.insert(auditLogs).values({
+          userId: ctx.user.id, action: "reviews.request.sent", entityType: "client", entityId: input.clientId,
+          details: JSON.stringify({ jobId: input.jobId ?? null, status: result.status, channel: result.channel }),
+        });
+        return result;
+      }),
+
+    listRequests: protectedProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return { requests: await reviewLogWithClientNames(db, ctx.user.id) } as const;
+    }),
+  }),
+
   testimonials: router({
     // Owner: list all testimonials
     list: protectedProcedure.query(async ({ ctx }) => {

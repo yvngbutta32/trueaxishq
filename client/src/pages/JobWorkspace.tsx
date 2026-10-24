@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   BriefcaseBusiness, Plus, CheckCircle2, Circle, Clock3, CalendarDays,
   DollarSign, Camera, Link2, MessageSquare, Target, Loader2, ArrowRight,
-  ClipboardCheck, AlertTriangle, Receipt, Timer, X, Download, BarChart3, Search, RotateCcw, Layers, ChevronUp, ChevronDown, Trash2,
+  ClipboardCheck, AlertTriangle, Receipt, Timer, X, Download, BarChart3, Search, RotateCcw, Layers, ChevronUp, ChevronDown, Trash2, Star,
 } from "lucide-react";
 
 const JOB_STATUSES = ["lead", "quoted", "approved", "scheduled", "in_progress", "awaiting_client", "completed", "cancelled"] as const;
@@ -158,6 +158,14 @@ export default function JobWorkspace() {
     onError: error => toast.error(error.message),
   });
   const updateMutation = trpc.jobs.update.useMutation({ onSuccess: () => { invalidateJobs(); toast.success("Job updated"); }, onError: error => toast.error(error.message) });
+  const requestReview = trpc.reviews.sendRequest.useMutation({
+    onSuccess: result => {
+      if (result.status === "sent") toast.success(`Review request sent via ${result.channel}. ${result.detail}`);
+      else if (result.status === "skipped") toast.info(`Skipped: ${result.detail}`);
+      else toast.error(`Failed: ${result.detail}`);
+    },
+    onError: error => toast.error(error.message),
+  });
   const createCustomerAsset = trpc.customerAssets.create.useMutation({ onSuccess: () => { customerAssets.refetch(); setCustomerAssetForm(newCustomerAssetForm); toast.success("Private customer asset added"); }, onError: error => toast.error(error.message) });
   const updateCustomerAsset = trpc.customerAssets.update.useMutation({ onSuccess: () => { customerAssets.refetch(); setEditingCustomerAssetId(null); setCustomerAssetEditForm(newCustomerAssetEditForm); toast.success("Private customer asset updated"); }, onError: error => toast.error(error.message) });
   const setCustomerAsset = trpc.jobs.setCustomerAsset.useMutation({ onSuccess: () => { invalidateJobs(); toast.success("Private asset context updated"); }, onError: error => toast.error(error.message) });
@@ -316,7 +324,7 @@ export default function JobWorkspace() {
           {detail ? <section className="min-w-0 space-y-5">
             <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5 sm:p-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div className="min-w-0"><p className="text-xs font-bold tracking-wide text-[#D4922A]">{detail.job.jobNumber}</p><h2 className="mt-1 text-2xl font-bold text-[var(--foreground)]">{detail.job.title}</h2><p className="mt-2 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">{detail.job.description || "No scope note added yet."}</p><div className="mt-4 flex flex-wrap gap-2"><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{detail.client?.name ?? "Client"}</span>{detail.booking && <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Appointment {detail.booking.date} · {detail.booking.time}</span>}{detail.invoice && <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Invoice {detail.invoice.invoiceNumber}</span>}</div></div>
+                <div className="min-w-0"><p className="text-xs font-bold tracking-wide text-[#D4922A]">{detail.job.jobNumber}</p><h2 className="mt-1 text-2xl font-bold text-[var(--foreground)]">{detail.job.title}</h2><p className="mt-2 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">{detail.job.description || "No scope note added yet."}</p><div className="mt-4 flex flex-wrap gap-2"><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{detail.client?.name ?? "Client"}</span>{detail.booking && <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Appointment {detail.booking.date} · {detail.booking.time}</span>}{detail.invoice && <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Invoice {detail.invoice.invoiceNumber}</span>}{detail.job.status === "completed" && <Button type="button" size="sm" variant="outline" onClick={() => requestReview.mutate({ clientId: detail.job.clientId, jobId: detail.job.id })} disabled={requestReview.isPending} className="gap-1.5 border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100" aria-label="Ask this client for a public review">{requestReview.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Star className="h-3.5 w-3.5" />}Ask for a review</Button>}</div></div>
                 <div className="grid grid-cols-2 gap-2 sm:flex lg:w-60 lg:flex-col"><label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">Status<select value={detail.job.status} onChange={event => updateMutation.mutate({ id: detail.job.id, status: event.target.value as typeof JOB_STATUSES[number] })} className="mt-1 block w-full rounded-lg border border-[color-mix(in oklab, var(--foreground) 16%, transparent)] bg-white px-2 py-2 text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[#D4922A]/35">{JOB_STATUSES.map(status => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label><label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">Priority<select value={detail.job.priority} onChange={event => updateMutation.mutate({ id: detail.job.id, priority: event.target.value as typeof PRIORITIES[number] })} className="mt-1 block w-full rounded-lg border border-[color-mix(in oklab, var(--foreground) 16%, transparent)] bg-white px-2 py-2 text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[#D4922A]/35">{PRIORITIES.map(priority => <option key={priority} value={priority}>{statusLabel(priority)}</option>)}</select></label></div>
               </div>
               <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">

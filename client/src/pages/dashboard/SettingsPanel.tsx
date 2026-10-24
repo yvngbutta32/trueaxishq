@@ -629,6 +629,105 @@ function AuditLogSection() {
   );
 }
 
+function ReviewsSection() {
+  const utils = trpc.useUtils();
+  const { data: status, isLoading } = trpc.reviews.status.useQuery(undefined, { retry: 1 });
+  const [reviewSiteUrl, setReviewSiteUrl] = useState("");
+  const [autoAfterCompletion, setAutoAfterCompletion] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    if (status?.settings && !hydrated) {
+      setReviewSiteUrl(status.settings.reviewSiteUrl);
+      setAutoAfterCompletion(status.settings.autoAfterCompletion);
+      setHydrated(true);
+    }
+  }, [status, hydrated]);
+  const saveSettings = trpc.reviews.saveSettings.useMutation({
+    onSuccess: () => { utils.reviews.status.invalidate(); toast.success("Review settings saved."); },
+    onError: (e) => toast.error(e.message),
+  });
+  const sendRequest = trpc.reviews.sendRequest.useMutation({
+    onSuccess: (r) => {
+      utils.reviews.status.invalidate();
+      if (r.status === "sent") toast.success(`Review request sent via ${r.channel}. ${r.detail}`);
+      else if (r.status === "skipped") toast.info(`Skipped: ${r.detail}`);
+      else toast.error(`Failed: ${r.detail}`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const STATUS_STYLES: Record<string, string> = {
+    sent: "bg-green-100 text-green-700",
+    failed: "bg-red-100 text-red-600",
+    skipped: "bg-amber-100 text-amber-700",
+  };
+  return (
+    <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
+      <h3 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2"><Star className="w-4 h-4 text-[#D4922A]" />Public Reviews</h3>
+      <p className="text-xs text-[var(--muted-foreground)]">
+        Turn happy clients into public Google (or any site) reviews. One tap per client, or automatically 24h after a job completes — never more than once per client per {status?.cooldownDays ?? 90} days, and only by SMS if the client explicitly opted in.
+      </p>
+      {isLoading ? <Skeleton className="h-10" /> : (
+        <>
+          <div className="space-y-2">
+            <label htmlFor="review-site-url" className="text-xs font-medium text-[var(--foreground)]">Your review link (https://)</label>
+            <input
+              id="review-site-url"
+              value={reviewSiteUrl}
+              onChange={(e) => setReviewSiteUrl(e.target.value)}
+              placeholder="https://g.page/r/your-business/review"
+              className="w-full rounded-xl border border-input bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)]"
+            />
+            <p className="text-[10px] text-[var(--muted-foreground)]">Paste the full review URL from Google Business Profile → "Ask for reviews". Any https review site works.</p>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-[var(--background)] rounded-xl">
+            <div>
+              <p className="text-sm font-semibold text-[var(--foreground)]">Ask automatically after completed jobs</p>
+              <p className="text-xs text-[var(--muted-foreground)]">Sends ~24h after a job is marked complete. Skips honestly if there is no opt-in, no contact method, or the cooldown applies.</p>
+            </div>
+            <button
+              role="switch"
+              aria-checked={autoAfterCompletion}
+              aria-label="Ask for reviews automatically after completed jobs"
+              onClick={() => setAutoAfterCompletion(!autoAfterCompletion)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${autoAfterCompletion ? "bg-[#D4922A]" : "bg-[var(--muted)]"}`}
+              type="button"
+            >
+              <span aria-hidden="true" className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${autoAfterCompletion ? "translate-x-5" : "translate-x-0"}`} />
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              className="gradient-amber text-white border-0 hover:opacity-90 gap-2"
+              onClick={() => saveSettings.mutate({ reviewSiteUrl, autoAfterCompletion })}
+              disabled={saveSettings.isPending}
+            >
+              {saveSettings.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" />Save</>}
+            </Button>
+            <p className="text-[10px] text-[var(--muted-foreground)]">
+              SMS {!status?.smsConfigured && "(console mode — no Twilio yet)"} · Email {!status?.emailConfigured && "(console mode — no SMTP yet)"}
+            </p>
+          </div>
+          {status?.recentRequests && status.recentRequests.length > 0 && (
+            <div className="space-y-1 max-h-56 overflow-y-auto">
+              <p className="text-xs font-semibold text-[var(--foreground)] pt-1">Ask log (the truth, not a marketing claim)</p>
+              {status.recentRequests.map(r => (
+                <div key={r.id} className="flex items-start gap-3 py-2 border-b border-[var(--muted)] last:border-0">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-[var(--foreground)]">{r.clientName}{r.jobId ? ` · job #${r.jobId}` : ""}</p>
+                    <p className="text-xs text-[var(--muted-foreground)] truncate">{r.detail}</p>
+                  </div>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${STATUS_STYLES[r.status] ?? ""}`}>{r.status}</span>
+                  <p className="text-[10px] text-[var(--muted-foreground)] shrink-0">{r.sentAt ? new Date(r.sentAt).toLocaleDateString() : new Date(r.createdAt).toLocaleDateString()}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function SettingsPanel() {
   const [feedConfirm, setFeedConfirm] = useState<"rotate" | "revoke" | null>(null);
   const utils = trpc.useUtils();
@@ -1129,6 +1228,9 @@ function SettingsPanel() {
 
       {/* Audit Log */}
       <AuditLogSection />
+
+      {/* Public Reviews */}
+      <ReviewsSection />
 
       {/* Integrations */}
       <IntegrationsSection />

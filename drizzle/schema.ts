@@ -165,6 +165,35 @@ export const qboSyncRequests = mysqlTable("qboSyncRequests", {
 ]);
 export type QboSyncRequest = typeof qboSyncRequests.$inferSelect;
 
+// ─── Public review-site request engine (Google reviews et al.) ──────────────
+export const reviewSettings = mysqlTable("reviewSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  reviewSiteUrl: varchar("reviewSiteUrl", { length: 512 }).notNull(),
+  autoAfterCompletion: boolean("autoAfterCompletion").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  uniqueIndex("reviewSettings_userId_unique_idx").on(t.userId),
+]);
+
+export const reviewRequests = mysqlTable("reviewRequests", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  clientId: int("clientId").notNull(),
+  jobId: int("jobId"),
+  channel: mysqlEnum("channel", ["sms", "email"]).notNull(),
+  status: mysqlEnum("status", ["sent", "failed", "skipped"]).notNull(),
+  detail: varchar("detail", { length: 255 }),
+  sentAt: timestamp("sentAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("reviewRequests_owner_idx").on(t.userId, t.clientId),
+  index("reviewRequests_job_idx").on(t.jobId),
+  index("reviewRequests_recent_idx").on(t.userId, t.sentAt),
+]);
+export type ReviewRequest = typeof reviewRequests.$inferSelect;
+
 // ─── Asset service requests (public QR scan → owner queue) ──────────────────
 // Created when a customer scans an asset's QR label and asks for service.
 // Per-owner by construction; the public API never exposes who else scanned.

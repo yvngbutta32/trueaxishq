@@ -18,6 +18,12 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-23",
+    title: "Public review engine — turn finished jobs into Google reviews",
+    tag: "Clients",
+    description: "Happy clients are the only marketing that compounds, so completed jobs can now ask for a public review on the spot: paste your Google review link once (Settings → Public Reviews), and a one-tap “Ask for a review” button appears on every completed job — or let the app ask automatically 24 hours after a job completes. Anti-spam rules are strict and honest: never more than one ask per job, never more than one per client per 90 days, SMS only to clients who explicitly opted in (with STOP instructions), and every send, failure, and skip is logged in plain sight — the ask log shows the truth, not a marketing claim. Review asking is included on every plan; competitors gate it behind their top tiers.",
+  },
+  {
+    date: "2026-10-23",
     title: "Dependency security sweep + verified fresh installs",
     tag: "Platform",
     description: "A full production audit patched every known vulnerability in the app's shipping dependencies (prod audit now reports zero), and — the bigger catch — revealed that a fresh database install had been silently broken by recent migrations: they applied on existing databases but aborted on a brand-new one. The migration chain is repaired, and two new guards now prove it: an automated test that holds every migration ledger entry to account, and a one-command fresh-install proof that builds the app, applies all migrations to an empty database, boots it, and runs the full smoke suite. Also cleaned up: a leftover native browser confirm dialog replaced with the in-app version, and a dead ADMIN_EMAILS config entry removed from the setup template.",

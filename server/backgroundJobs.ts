@@ -7,7 +7,8 @@
  * 5. Monthly business report email (new, runs on 1st of month)
  * All jobs are idempotent and safe to run repeatedly.
  */
-import { eq, and, lte, sql } from "drizzle-orm";
+import { eq, and, gte, lte, sql, notExists } from "drizzle-orm";
+import { sendReviewRequest, validateReviewSiteUrl } from "./_core/reviewRequests";
 import { getDb, resetDbConnection } from "./db";
 import {
   invoices,
@@ -19,6 +20,9 @@ import {
   clients,
   bookings,
   jobRunGuards,
+  jobs,
+  reviewSettings,
+  reviewRequests,
 } from "../drizzle/schema";
 import { sendSms, normalizePhoneToE164 } from "./_core/sms";
 import { sendMeteredSms } from "./_core/smsMeter";
@@ -667,6 +671,59 @@ async function runGoogleCalendarSyncJob() {
   }
 }
 
+// ─── Job: automatic review requests after completed jobs ──────────────────────
+// Owners who turned on "ask automatically" get one public-review ask per
+// client, sent ~24h after a job completes (window 24–48h so the hourly sweep
+// never double-sends). Skips honestly: no review link, no opt-in/email,
+// cooldown, allowance. Every outcome lands in reviewRequests.
+async function runReviewRequestSweep() {
+  const db = await getDb();
+  if (!db) return;
+  const owners = await db.select().from(reviewSettings).where(eq(reviewSettings.autoAfterCompletion, true));
+  const since = new Date(Date.now() - 48 * 60 * 60 * 1000);
+  const before = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  for (const owner of owners) {
+    const check = validateReviewSiteUrl(owner.reviewSiteUrl);
+    if (!check.ok || !check.url) continue;
+    const rows = await db
+      .select({
+        jobId: jobs.id,
+        jobTitle: jobs.title,
+        clientId: clients.id,
+        clientName: clients.name,
+        clientEmail: clients.email,
+        clientPhone: clients.phone,
+        smsOptIn: clients.smsOptIn,
+      })
+      .from(jobs)
+      .innerJoin(clients, and(eq(clients.id, jobs.clientId), eq(clients.userId, jobs.userId)))
+      .where(and(
+        eq(jobs.userId, owner.userId),
+        eq(jobs.status, "completed"),
+        gte(jobs.completedAt, since),
+        lte(jobs.completedAt, before),
+        notExists(db.select({ one: sql`1` }).from(reviewRequests)
+          .where(eq(reviewRequests.jobId, jobs.id))),
+      ))
+      .limit(50);
+    for (const row of rows) {
+      try {
+        const result = await sendReviewRequest({
+          db, userId: owner.userId,
+          clientId: row.clientId, jobId: row.jobId,
+          reviewSiteUrl: check.url,
+          clientName: row.clientName, clientEmail: row.clientEmail, clientPhone: row.clientPhone,
+          smsOptIn: row.smsOptIn, serviceName: row.jobTitle,
+        });
+        console.log(`[Jobs] Review request job ${row.jobId}: ${result.status} (${result.channel}) — ${result.detail}`);
+      } catch (err) {
+        console.error(`[Jobs] Review request failed for job ${row.jobId}:`, err);
+      }
+    }
+  }
+  return;
+}
+
 let startTimer: ReturnType<typeof setTimeout> | null = null;
 let interval: ReturnType<typeof setInterval> | null = null;
 
@@ -683,6 +740,7 @@ export function startBackgroundJobs() {
       ["post-session check-ins", runPostSessionCheckIns],
       ["workflow automations", processDueAutomations],
       ["google calendar sync", runGoogleCalendarSyncJob],
+      ["review requests", runReviewRequestSweep],
     ];
     for (const [name, job] of jobs) {
       try {
@@ -696,7 +754,7 @@ export function startBackgroundJobs() {
   startTimer = setTimeout(runAll, 10_000);
   // Then every hour
   interval = setInterval(runAll, 60 * 60 * 1000);
-  console.log("[Jobs] Background jobs scheduled (every 1 hour, 9 jobs)");
+  console.log("[Jobs] Background jobs scheduled (every 1 hour, 10 jobs)");
 }
 
 /** Stop the scheduler cleanly (called during graceful shutdown). */
