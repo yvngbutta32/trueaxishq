@@ -101,6 +101,8 @@ Twilio credentials; they stay honestly off otherwise.
 | `pnpm test`        | Vitest suite (CI gate) |
 | `pnpm check:bundle`| Client bundle size budget (CI gate) |
 | `pnpm db:push`     | Generate + apply Drizzle migrations |
+| `scripts/fresh-install-proof.sh` | Live gate: full migration chain on an empty DB → production boot → smoke (run before any release that touches migrations) |
+| `scripts/live-e2e-sweep.sh` | Live gate: boots the production bundle (NODE_ENV=production) and runs all 5 live e2e suites + smoke (run before any release) |
 | `pnpm format`      | Prettier |
 
 ## Production operations
