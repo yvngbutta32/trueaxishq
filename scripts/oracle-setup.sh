@@ -111,10 +111,10 @@ BOOTSTRAP_CODE=$(grep -m1 '^BOOTSTRAP_INVITE_CODE=' /opt/trueaxis/.env | cut -d=
 
 # ── 5. Build + migrate ───────────────────────────────────────────────────────
 cd /opt/trueaxis
-sudo -u trueaxis corepack pnpm install --frozen-lockfile
-sudo -u trueaxis corepack pnpm build
+sudo -u trueaxis env COREPACK_ENABLE_DOWNLOAD_PROMPT=0 corepack pnpm install --frozen-lockfile
+sudo -u trueaxis env COREPACK_ENABLE_DOWNLOAD_PROMPT=0 corepack pnpm build
 sudo -u trueaxis env DATABASE_URL="mysql://${DB_USER}:${DB_PASS}@127.0.0.1:3306/${DB_NAME}" \
-  corepack pnpm drizzle-kit migrate
+  env COREPACK_ENABLE_DOWNLOAD_PROMPT=0 corepack pnpm drizzle-kit migrate
 
 # ── 6. systemd service ───────────────────────────────────────────────────────
 cat > /etc/systemd/system/trueaxis.service <<UNIT
@@ -185,9 +185,9 @@ BACKUP_DIR=/var/backups/trueaxis
 mkdir -p "$BACKUP_DIR"
 mysqldump --single-transaction --routines --triggers trueaxis | gzip > "$BACKUP_DIR/trueaxis-$STAMP.sql.gz"
 # prune dailies older than 14 days (monthlies kept by name pattern below)
-find "$BACKUP_DIR" -name "trueaxis-*.sql.gz" ! -name "trueaxis-01-*.sql.gz" -mtime +14 -delete
+find "$BACKUP_DIR" -name "trueaxis-*.sql.gz" ! -name "trueaxis-????-??-01.sql.gz" -mtime +14 -delete
 # keep 1st-of-month snapshots for 6 months
-find "$BACKUP_DIR" -name "trueaxis-01-*.sql.gz" -mtime +183 -delete
+find "$BACKUP_DIR" -name "trueaxis-????-??-01.sql.gz" -mtime +183 -delete
 # alert if the newest backup is smaller than 1 KB (empty dump = something broke)
 [ "$(stat -c%s "$BACKUP_DIR/trueaxis-$STAMP.sql.gz")" -gt 1024 ] || { echo "trueaxis-backup: dump suspiciously small!" >&2; exit 1; }
 BACKUPSCRIPT

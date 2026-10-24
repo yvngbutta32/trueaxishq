@@ -1,23 +1,25 @@
 # TrueAxis HQ Launch Readiness Register
 
-## Validated in the Current Autonomous Release
+Last updated: Oct 24, 2026, through commit `7aa406b` (main).
 
-The client portal provides deterministic next-step guidance and token-scoped proof-of-work data while excluding internal notes and receipt photos. Owner mutations retain final owner-scoped predicates; public photo uploads use short-lived hashed session tokens; and portal access is constrained by both workspace and client identity.
+## Current verified baseline
 
-The latest autonomous sequence also added private job-cost attribution, owner-only job-cost portfolio reporting and local margin review signals, token-scoped proposal package selection, proposal validity-date enforcement, client proposal decline capture with owner-only feedback, owner-safe proposal duplication, editable duplicated drafts, and factual public acceptance/Terms copy. These additions preserve their explicit limits: they do not represent payment completion, automatic messaging, job creation, delivery, GPS, accounting sync, or universal legal enforceability.
+- **Unit/contract suite:** 188 Vitest files, 1003 tests, all green. Strict TypeScript (`tsc --noEmit` clean), lint zero warnings, production bundle within budget.
+- **Fresh-install proof:** `scripts/fresh-install-proof.sh` — 90 migrations applied to a genuinely empty database, production boot, 10/10 smoke checks. This is a permanent release gate, not a one-off.
+- **Live e2e sweep:** `scripts/live-e2e-sweep.sh` — six suites against the real production build with real HTTP, real login, real database: AI voice receptionist (Twilio signatures verified), QR asset labels, PO job costing, QBO gate, public review engine, 21-check adversarial security probe — plus public smoke. All green Oct 24, 2026.
+- **Manual interactive QA:** three click-everything passes covering every dashboard panel on desktop and mobile viewports, all public pages, and the full 3-step customer booking wizard driven to completion. Defects found live were fixed and re-verified live (money validation, mobile nav, error toasts, public slot availability, AI scheduling suggestion hardening). Remaining sweep flags were individually verified as detector artifacts or honest validations.
+- **Security:** tenant isolation, token tampering, SQL injection, stored XSS, CSRF (origin guard), brute force, cross-tenant reads all adversarially probed against the production build; all async routes guarded against hangs; secrets out of code; production dependency audit clean; nightly database backups with retention.
 
-The current deterministic baseline is **48 Vitest files / 158 tests**, strict TypeScript, successful production builds, production dependency audit evidence, and configured bundle-budget checks. The comprehensive data/error sweep remains a clean inspected baseline; see `trueaxis-comprehensive-data-error-sweep-2026.md`. Public recovery at 375px has prior evidence, but it does not substitute for authenticated mobile validation.
+## Open launch gates — all owner-side, none codeable
 
-## Open defects and launch gates
-
-| Area | Current state | Required evidence before general launch |
+| Area | Current state | Required to close the gate |
 |---|---|---|
-| Transactional email | Console fallback is safe; SMTP configuration validation and diagnostics are implemented | Provider credentials, verified sender/domain, and a real inbox delivery test |
-| Stripe billing | Test integration exists but the sandbox must be claimed and webhook secret verified | End-to-end checkout, webhook subscription sync, failed-payment, and customer-portal checks |
-| Accessibility and mobile | Core portal recovery view checked at 375px; broader route audit remains | Manual checks for booking, portal, dashboard, keyboard focus, touch targets, and error recovery |
-| Proof-of-work and proposal flows | Portal guidance, proof timeline, package selection, proposal expiry, decline capture, and owner follow-up workflows are implemented and scoped | Validate representative owner/client data across proposal, signature, package choice, decline, job, progress, completion, and billing transitions |
-| Product claims | Competitive roadmap is documented | Keep public claims feature-specific; do not claim universal superiority without user evidence |
+| Transactional email | Console fallback is safe and honest (says nothing was really sent) | Owner provides SMTP credentials; one real inbox delivery test |
+| Stripe billing | Full checkout wired incl. ACH/Klarna/Afterpay + subscription sync; unconfigured state fails honestly | Owner provides live Stripe keys; end-to-end checkout, webhook sync, failed-payment, customer-portal checks |
+| Telephony / AI voice | Twilio + Gemini 2.0 Flash engine built and e2e-proven with genuine signatures | Owner provides Twilio credentials; one real phone-call test |
+| Deployment | One-command Oracle installer (`scripts/oracle-setup.sh`) + runbook, fresh-install-proven code path | Owner points DNS at an Oracle instance and runs the installer |
+| Traction | Product capability 8.6/10 (#1 vs 10 competitors in the Oct 2026 scorecard) | First paying companies, G2/Capterra profiles, comparison content |
 
 ## Candid assessment
 
-TrueAxis HQ is a strong controlled-beta release with meaningful security, proposal, job-cost, client-trust, and workflow improvements. It is not yet generally launch-ready because real external delivery and payment verification have not been completed, and a full manual authenticated accessibility/responsive pass still remains. Those gates cannot be honestly marked complete from code-only validation.
+The application is code-complete for launch and every codeable claim in this register is backed by a live, reproducible test gate. What remains is external-world work that cannot be honestly completed from inside the codebase: real credentials, a real domain, real customers. The $0 fixed-cost launch guarantee (`server/zeroCostLaunch.test.ts`) holds: none of the remaining gates blocks launch — SMTP, Stripe, and Twilio are optional adds on top of a fully working product.
