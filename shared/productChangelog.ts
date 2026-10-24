@@ -18,6 +18,13 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-24",
+    title: "Review links get the right mobile keyboard",
+    tag: "Clients",
+    commit: "45eaeb4",
+    description: "The public-review link field in Settings now opens the proper URL keyboard on phones (type=url with inputMode, autocapitalize and autocorrect off), so pasting your Google review link on a phone stops mangling it. Found during a full click-everything pass of every dashboard panel on a 390px phone viewport; verified live on the production build.",
+  },
+  {
+    date: "2026-10-24",
     title: "Public comparison page — every claim cited, including where we're behind",
     tag: "Platform",
     commit: "9a3e17d",
