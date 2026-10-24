@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { trpc } from "@/lib/trpc";
 import { useFeatureAllowed } from "@/components/FeatureLock";
 import { TerminalSquare } from "lucide-react";
@@ -87,6 +88,7 @@ function VoiceReceptionistCard() {
   const line = trpc.voice.myLine.useQuery();
   const requestLine = trpc.voice.requestLine.useMutation({ onSuccess: () => void line.refetch() });
   const releaseLine = trpc.voice.releaseLine.useMutation({ onSuccess: () => void line.refetch() });
+  const [confirmRelease, setConfirmRelease] = useState(false);
   const [areaCode, setAreaCode] = useState("");
   const save = trpc.voice.updateSettings.useMutation({ onSuccess: () => { void status.refetch(); setSaved(true); setTimeout(() => setSaved(false), 2500); } });
   const preview = trpc.voice.previewCall.useQuery(undefined, { enabled: false });
@@ -104,6 +106,7 @@ function VoiceReceptionistCard() {
   }, [status.data, greeting]);
   const voiceState = status.data;
   return (
+    <>
     <section className="rounded-2xl border border-[#D4922A]/25 bg-[#D4922A]/5 p-4">
       <div className="flex gap-3"><Phone className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#9A610A]" />
         <div className="flex-1">
@@ -125,7 +128,7 @@ function VoiceReceptionistCard() {
                 <p className="text-sm font-semibold text-[var(--foreground)]">{lineData.line.phoneNumber}
                   <span className="ml-2 text-xs font-normal text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">{lineData.minutesUsed} of {lineData.minutesIncluded} plan minutes used this month</span>
                 </p>
-                <Button size="sm" variant="outline" onClick={() => { if (window.confirm("Release this number? Your customers will lose this line.")) releaseLine.mutate(); }} disabled={releaseLine.isPending} className="border-[color-mix(in oklab, var(--foreground) 20%, transparent)] text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Release number</Button>
+                <Button size="sm" variant="outline" onClick={() => setConfirmRelease(true)} disabled={releaseLine.isPending} className="border-[color-mix(in oklab, var(--foreground) 20%, transparent)] text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Release number</Button>
               </div>
             ) : lineData && !lineData.available ? (
               <p className="mt-1.5 text-xs text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">Managed lines aren&rsquo;t turned on for this deployment yet — the operator must connect Twilio and set the public URL. Meanwhile, you can point any existing phone number&rsquo;s webhook at <code className="rounded bg-[var(--background)] px-1">/api/voice/answer?u={lineData.line === null ? "your user id" : ""}</code>.</p>
@@ -178,6 +181,16 @@ function VoiceReceptionistCard() {
         </div>
       </div>
     </section>
+
+    <ConfirmDialog
+      open={confirmRelease}
+      onOpenChange={setConfirmRelease}
+      title="Release this number?"
+      description="Your customers will lose this line immediately. Any caller will hear a carrier disconnect until you provision a new number."
+      onConfirm={() => releaseLine.mutate()}
+      confirmLabel="Release"
+    />
+    </>
   );
 }
 

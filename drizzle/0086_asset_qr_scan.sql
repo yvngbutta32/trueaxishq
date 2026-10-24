@@ -5,14 +5,10 @@
 -- need no backfill. Service requests land in a per-owner queue (never a
 -- global table) so the owner always sees their own requests.
 ALTER TABLE `customerAssets`
-  --> statement-breakpoint
   ADD COLUMN `scanToken` VARCHAR(64) NULL AFTER `assetTag`,
-  --> statement-breakpoint
   ADD COLUMN `lastScanAt` TIMESTAMP NULL AFTER `scanToken`,
-  --> statement-breakpoint
   ADD UNIQUE INDEX `customerAssets_scanToken_unique_idx` (`scanToken`);
 --> statement-breakpoint
-
 CREATE TABLE `assetServiceRequests` (
   `id` int AUTO_INCREMENT PRIMARY KEY NOT NULL,
   `userId` int NOT NULL,
@@ -25,5 +21,7 @@ CREATE TABLE `assetServiceRequests` (
   CONSTRAINT `assetServiceRequests_userId_idx` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE,
   CONSTRAINT `assetServiceRequests_assetId_idx` FOREIGN KEY (`assetId`) REFERENCES `customerAssets`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+--> statement-breakpoint
 CREATE INDEX `assetServiceRequests_owner_created_idx` ON `assetServiceRequests` (`userId`, `createdAt`);
+--> statement-breakpoint
 CREATE INDEX `assetServiceRequests_owner_open_idx` ON `assetServiceRequests` (`userId`, `handled`);

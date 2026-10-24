@@ -41,7 +41,7 @@ import {
 } from "recharts";
 
 // ─── Changelog Modal ─────────────────────────────────────────────────────────
-const CHANGELOG_VERSION = "1.4.2";
+const CHANGELOG_VERSION = "1.4.3";
 const CHANGELOG_KEY = `trueaxis_changelog_${CHANGELOG_VERSION}`;
 
 function ChangelogModal() {

@@ -18,6 +18,12 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-23",
+    title: "Dependency security sweep + verified fresh installs",
+    tag: "Platform",
+    description: "A full production audit patched every known vulnerability in the app's shipping dependencies (prod audit now reports zero), and — the bigger catch — revealed that a fresh database install had been silently broken by recent migrations: they applied on existing databases but aborted on a brand-new one. The migration chain is repaired, and two new guards now prove it: an automated test that holds every migration ledger entry to account, and a one-command fresh-install proof that builds the app, applies all migrations to an empty database, boots it, and runs the full smoke suite. Also cleaned up: a leftover native browser confirm dialog replaced with the in-app version, and a dead ADMIN_EMAILS config entry removed from the setup template.",
+  },
+  {
+    date: "2026-10-23",
     title: "QR asset labels — equipment that sells its own service",
     tag: "Field Ops",
     description: "Every customer asset can now wear a QR label (Job Workspace → Customer assets → QR label). Print it, stick it on the unit, and any customer with a phone camera lands on a private page showing that equipment's service history — plus a one-tap form to request service. The request lands in your queue with the asset already identified: no “which unit is this?” phone tag. Labels are honest about privacy: the public page never shows your private notes or the client's contact details, unknown or deactivated labels are plain 404s, and deactivating an asset kills its label instantly. Label printing is unlimited on every plan; only labeled assets are ever public.",

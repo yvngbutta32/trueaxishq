@@ -3,5 +3,4 @@
 -- every write of newer outcomes ('fair_use_cap' from managed lines, 'transfer'
 -- from the press-zero path; the live e2e caught it). Widen to match schema.
 ALTER TABLE `voiceCalls`
-  --> statement-breakpoint
   MODIFY COLUMN `outcome` VARCHAR(20) NOT NULL DEFAULT 'unknown';
