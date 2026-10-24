@@ -18,6 +18,13 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-24",
+    title: "Public booking honesty — the slots you see are exactly the slots we accept",
+    tag: "Clients",
+    commit: "65c3401",
+    description: "A live click-everything pass that drove the real customer booking wizard end to end caught a defect that only shows up with real bookings: the public booking page greyed out only the exact times already taken, while the booking engine refuses anything that overlaps an existing job (length and travel buffer included). A customer could pick 10:30 AM, fill the whole form, and only then hit 'slot unavailable'. Worse, bookings created from the dashboard stored their times in a different format than public ones, which could make a busy day read as fully booked when it wasn't. The page now applies the identical availability rule the server enforces — dashboard-created and public bookings count the same way — so a bookable slot on screen always goes through, and a greyed slot tells you why. The AI scheduling assistant also got a guardrail: if it ever returns malformed suggestions, they're dropped with a clear message instead of breaking the New Booking dialog.",
+  },
+  {
+    date: "2026-10-24",
     title: "Live QA sweep hardening — honest money validation, clickable mobile nav, clean error messages",
     tag: "Platform",
     description: "A click-everything interactive QA pass (all dashboard panels, public pages, mobile, and real end-to-end flows) caught three real defects that only show up with real usage. (1) A rate field with stray letters used to crash the server into a raw database error; money fields now validate with a plain-English message ('Enter a valid rate like 85 or 85.50'), and the client record is never half-saved. (2) On phones, while the All-features sheet was open, its dimmed backdrop swallowed every bottom-nav button — including the toggle that closes it; the nav now stays live above the sheet, matching how every major app's mobile drawer behaves. (3) Validation and server errors now surface as one readable sentence in the toast instead of a raw JSON blob, and unexpected server faults are masked behind the scenes in production. The interactive QA harness itself now drives the full 3-step customer booking wizard to completion (Booked!) and is wired into the release checklist.",
