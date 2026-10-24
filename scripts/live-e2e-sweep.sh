@@ -88,7 +88,7 @@ fi
 
 echo ""
 if [ "${FAILURES}" -eq 0 ]; then
-  echo "LIVE E2E SWEEP PASSED: 5 suites + smoke green against the production build."
+  echo "LIVE E2E SWEEP PASSED: ${#SUITES[@]} suites + smoke green against the production build."
   exit 0
 fi
 echo "LIVE E2E SWEEP FAILED: ${FAILURES} failing suite(s)."
