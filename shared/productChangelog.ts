@@ -17,6 +17,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-25",
+    title: "The URL remembers where you are in the dashboard",
+    tag: "Platform",
+    description: "Clicking a sidebar panel now updates the address bar (?panel=scheduling, ?panel=billing, and so on; the overview stays clean at /dashboard). Refresh keeps your place, copied links open the exact panel, and browser bookmarks work per-panel. Verified live: reload on a deep-linked panel restores it with the correct active state.",
+  },
+  {
     date: "2026-10-24",
     title: "Review links get the right mobile keyboard",
     tag: "Clients",

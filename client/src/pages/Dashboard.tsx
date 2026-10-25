@@ -130,6 +130,11 @@ export default function Dashboard() {
   // Scroll to top of main content when switching panels
   const setActiveWithScroll = (panel: ActivePanel) => {
     setActive(panel);
+    // Keep ?panel= in sync so refresh keeps your place and links are shareable.
+    try {
+      const url = panel === "overview" ? "/dashboard" : `/dashboard?panel=${encodeURIComponent(panel)}`;
+      window.history.replaceState(null, "", url);
+    } catch { /* history is unavailable (e.g. sandboxed iframe) — panel still switches */ }
     // AI panel is now embedded — no need to show floating widget when navigating there
     requestAnimationFrame(() => {
       mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
@@ -233,7 +238,6 @@ export default function Dashboard() {
     if (params.get("gcal_connected") === "1") {
       toast.success("Google Calendar connected successfully!");
       setActiveWithScroll("settings");
-      window.history.replaceState({}, "", window.location.pathname);
     } else if (params.get("gcal_error")) {
       const errMsg = params.get("gcal_error");
       toast.error(`Google Calendar connection failed: ${errMsg?.replace(/_/g, " ")}`);
