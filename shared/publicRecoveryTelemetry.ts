@@ -2,9 +2,13 @@ const publicRecoveryPrefixes = [
   "/book/",
   "/booking/manage/",
   "/intake/",
+  "/pay/",
   "/portal/",
   "/proposal/",
+  "/sub/",
+  "/asset/",
   "/testimonial/",
+  "/track/",
 ] as const;
 
 /**
