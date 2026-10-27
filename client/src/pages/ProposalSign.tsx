@@ -208,7 +208,7 @@ export default function ProposalSign() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
         {/* Client greeting */}
-        <div className="p-5 rounded-2xl bg-white border border-[var(--border)]">
+        <div className="p-5 rounded-lg bg-white border border-[var(--border)]">
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-full bg-[#D4922A]/15 border border-[#D4922A]/25 flex items-center justify-center shrink-0">
               <User className="w-5 h-5 text-[#D4922A]" />
@@ -241,7 +241,7 @@ export default function ProposalSign() {
 
         {/* Scope of Work */}
         {proposal.scope && (
-          <div className="p-5 rounded-2xl bg-white border border-[var(--border)] space-y-3">
+          <div className="p-5 rounded-lg bg-white border border-[var(--border)] space-y-3">
             <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider">Scope of Work</h2>
             <div className="prose prose-sm prose-invert max-w-none">
               <p className="text-[color-mix(in oklab, var(--foreground) 70%, transparent)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.scope}</p>
@@ -250,7 +250,7 @@ export default function ProposalSign() {
         )}
 
         {proposalPackages.length > 0 && (
-          <section className="rounded-2xl border border-violet-200 bg-violet-50/55 p-5">
+          <section className="rounded-lg border border-violet-200 bg-violet-50/55 p-5">
             <div className="flex items-start gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-violet-200 bg-violet-100"><FileText className="h-4 w-4 text-violet-700" /></div><div><h2 className="text-sm font-bold uppercase tracking-wider text-violet-950">Choose your proposal option</h2><p className="mt-1 text-sm text-violet-950/70">Select one option to review and sign. Selection is recorded with your signature.</p></div></div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[...proposalPackages].map(option => ({ ...option, computedSubtotal: getProposalPackageSubtotal(option) })).sort((a, b) => a.computedSubtotal - b.computedSubtotal).map((option, index, sorted) => { const optionSubtotal = option.computedSubtotal; const optionTax = optionSubtotal * (taxRate / 100); const optionTotal = optionSubtotal + optionTax; const selected = effectiveSelectedPackageId === option.id; const recommended = option.recommended === true; const tierLabel = sorted.length >= 2 ? (index === 0 ? "Good" : index === sorted.length - 1 ? "Best" : "Better") : null; return <button key={option.id} type="button" onClick={() => setSelectedPackageId(option.id)} aria-pressed={selected} aria-label={`${option.name}${tierLabel ? `, ${tierLabel} option` : ""}${recommended ? ", recommended" : ""}`} className={`relative rounded-xl border p-4 text-left transition focus:outline-none focus:ring-2 focus:ring-violet-400 ${selected ? "border-violet-500 bg-white shadow-md" : recommended ? "border-violet-300 bg-white/80 hover:border-violet-400" : "border-violet-200 bg-white/70 hover:border-violet-300"}`}><div className="flex items-center gap-2">{tierLabel && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-700">{tierLabel}</span>}{recommended && <span className="rounded-full bg-[#D4922A] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Recommended</span>}</div><div className="mt-2 flex items-start justify-between gap-3"><p className="font-semibold text-[var(--foreground)]">{option.name}</p><span className={`mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 ${selected ? "border-violet-600 bg-violet-600 shadow-[inset_0_0_0_2px_white]" : "border-violet-300"}`} aria-hidden="true" /></div>{option.description && <p className="mt-2 text-xs leading-5 text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">{option.description}</p>}<ul className="mt-3 space-y-1.5 border-t border-violet-100 pt-3">{option.lineItems.map(item => <li key={item.id} className="flex justify-between gap-3 text-xs text-[color-mix(in oklab, var(--foreground) 72%, transparent)]"><span>{item.name}{item.qty > 1 ? ` × ${item.qty}` : ""}</span><span>{proposal.currency} {item.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></li>)}</ul><div className="mt-3 flex justify-between border-t border-violet-100 pt-3 text-sm font-bold text-violet-950"><span>Total{taxRate > 0 ? ` incl. ${taxRate}% tax` : ""}</span><span>{proposal.currency} {optionTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div></button>; })}</div>
           </section>
@@ -258,7 +258,7 @@ export default function ProposalSign() {
 
         {/* Line Items */}
         {lineItems.length > 0 && (
-          <div className="rounded-2xl bg-white border border-[var(--border)] overflow-hidden">
+          <div className="rounded-lg bg-white border border-[var(--border)] overflow-hidden">
             <div className="px-5 py-3 border-b border-[var(--border)]">
               <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider">Deliverables & Pricing</h2>
             </div>
@@ -298,18 +298,18 @@ export default function ProposalSign() {
 
         {/* Notes */}
         {proposal.notes && (
-          <div className="p-5 rounded-2xl bg-white border border-[var(--border)] space-y-2">
+          <div className="p-5 rounded-lg bg-white border border-[var(--border)] space-y-2">
             <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider">Additional Notes</h2>
             <p className="text-[color-mix(in oklab, var(--foreground) 60%, transparent)] text-sm leading-relaxed whitespace-pre-wrap">{proposal.notes}</p>
           </div>
         )}
 
-        <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+        <section className="rounded-lg border border-slate-200 bg-slate-50/70 p-5">
           {!declineOpen ? <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-sm font-semibold text-[var(--foreground)]">Need to pass on this proposal?</h2><p className="mt-1 text-xs leading-5 text-[color-mix(in oklab, var(--foreground) 58.0%, transparent)]">You can record a decline instead of signing. An optional note is shared only with the proposal owner.</p></div><Button type="button" variant="outline" onClick={() => setDeclineOpen(true)} className="border-slate-300 text-slate-700 hover:bg-slate-100">Decline proposal</Button></div> : <div><h2 className="text-sm font-semibold text-[var(--foreground)]">Confirm decline</h2><p className="mt-1 text-xs leading-5 text-[color-mix(in oklab, var(--foreground) 58.0%, transparent)]">This records a final decline for this secure proposal link. You may include an optional note for the owner.</p><textarea value={declineReason} onChange={event => setDeclineReason(event.target.value)} maxLength={1000} rows={3} placeholder="Optional note" className="mt-3 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-[var(--foreground)] outline-none focus:ring-2 focus:ring-slate-300" /><div className="mt-3 flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => { setDeclineOpen(false); setDeclineReason(""); }} disabled={declineMutation.isPending}>Keep reviewing</Button><Button type="button" onClick={handleDecline} disabled={declineMutation.isPending} className="bg-slate-700 text-white hover:bg-slate-800">{declineMutation.isPending ? "Recording…" : "Confirm decline"}</Button></div></div>}
         </section>
 
         {/* Signature Section */}
-        <div className="p-5 rounded-2xl bg-white border border-[#D4922A]/25 space-y-4">
+        <div className="p-5 rounded-lg bg-white border border-[#D4922A]/25 space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#D4922A]/15 border border-[#D4922A]/25 flex items-center justify-center">
               <PenLine className="w-4 h-4 text-[#D4922A]" />

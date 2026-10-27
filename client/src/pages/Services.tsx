@@ -111,7 +111,7 @@ export default function Services() {
         </div>
       ) : services.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[rgba(0,201,167,0.12)] flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-lg bg-[rgba(0,201,167,0.12)] flex items-center justify-center mb-4">
             <Package className="w-8 h-8 text-[#00C9A7]" />
           </div>
           <h3 className="text-lg font-semibold text-[color-mix(in oklab, var(--foreground) 85%, transparent)] mb-2">No services yet</h3>

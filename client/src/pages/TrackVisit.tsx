@@ -73,23 +73,23 @@ export default function TrackVisit() {
     <main className="min-h-screen bg-[var(--background)] px-4 py-8">
       <div className="mx-auto max-w-lg space-y-4">
         {loading && !data ? (
-          <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
+          <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
             <Loader2 className="mx-auto h-7 w-7 animate-spin text-[#D4922A]" />
             <p className="mt-3 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Checking this tracking link…</p>
           </div>
         ) : error === "not_found" ? (
-          <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
+          <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
             <MapPin className="mx-auto h-8 w-8 text-[color-mix(in oklab, var(--foreground) 30%, transparent)]" />
             <h1 className="mt-3 text-lg font-bold text-[var(--foreground)]">This link is no longer active</h1>
             <p className="mt-2 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Tracking links expire automatically shortly after they are shared, and end as soon as the visit arrives. Ask the business for a fresh link if you still need one.</p>
           </div>
         ) : error === "unavailable" && !data ? (
-          <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
+          <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
             <p className="text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Tracking is temporarily unavailable. This page will keep retrying.</p>
           </div>
         ) : data ? (
           <>
-            <header className="rounded-2xl bg-[#1C2333] p-6 text-white">
+            <header className="rounded-lg bg-[#1C2333] p-6 text-white">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#F5C842]">{data.businessName ? "On the way to you" : "Visit tracking"}</p>
               <h1 className="mt-1.5 text-2xl font-bold">{data.businessName ?? data.jobTitle ?? "Service visit"}</h1>
               {data.jobTitle && data.businessName && <p className="mt-1 text-sm text-white/75">{data.jobTitle}</p>}
@@ -102,14 +102,14 @@ export default function TrackVisit() {
             </header>
 
             {arrived ? (
-              <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center" role="status">
+              <section className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-center" role="status">
                 <CheckCircle2 className="mx-auto h-9 w-9 text-emerald-600" />
                 <h2 className="mt-2 text-lg font-bold text-emerald-900">They have arrived</h2>
                 <p className="mt-1 text-sm text-emerald-800">This tracking link has ended. The map and position updates are no longer available.</p>
               </section>
             ) : enRoute ? (
               <>
-                <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
+                <section className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
                   <div className="flex items-center gap-3">
                     <span className="relative flex h-3 w-3"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-60" /><span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500" /></span>
                     <h2 className="text-sm font-bold text-[var(--foreground)]">En route to you now</h2>
@@ -132,7 +132,7 @@ export default function TrackVisit() {
                 </p>
               </>
             ) : (
-              <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-6 text-center">
+              <section className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-6 text-center">
                 <Loader2 className="mx-auto h-7 w-7 animate-spin text-[#D4922A]" />
                 <p className="mt-3 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Waiting for the visit to start. This page updates automatically.</p>
               </section>

@@ -22,6 +22,13 @@
 ═══════════════════════════════════════════════════════════════════════════════ */
 
 @theme {
+  /* Type voices: Instrument Sans for UI prose, Bricolage Grotesque for display
+     moments, Spline Sans Mono as the ledger hand for data and micro-labels.
+     font-display utility = .font-display, etc. */
+  --font-sans: "Instrument Sans", "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --font-mono: "Spline Sans Mono", "Inter", ui-monospace, SFMono-Regular, monospace;
+
   /* Anti-glare override: "white" is now the card tone, never pure #FFF.
      Every bg-white / text-white / bg-white/… utility inherits this. */
   --color-white: oklch(0.94 0.005 85);    /* ivory card tone — Tailwind white = card, never #FFF */
@@ -68,7 +75,7 @@
 
 /* ─── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
-  --radius: 0.5rem;
+  --radius: 0.375rem;
 
   /* ── Brand Palette ── */
   --brand-navy:        #1B2D4F;
@@ -223,7 +230,7 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Instrument Sans', 'Inter', system-ui, -apple-system, sans-serif;
     font-optical-sizing: auto;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -236,11 +243,11 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Bricolage Grotesque', 'Instrument Sans', system-ui, sans-serif;
     font-optical-sizing: auto;
-    line-height: 1.2;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--foreground);
     text-wrap: balance;
   }
@@ -253,6 +260,33 @@
 
   /* Large display numbers (dashboards, pricing) line up cleanly too. */
   .tabular { font-variant-numeric: tabular-nums; }
+
+  /* ── Signature voices ──────────────────────────────────────────────────────
+     The ledger hand: small tracked mono labels that name what a number IS.
+     Use on stat captions, table column heads, section kickers — the one
+     detail that makes the screen read as a tool, not a template. */
+  .ledger-label {
+    font-family: 'Spline Sans Mono', 'Inter', ui-monospace, monospace;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* Numbers that read as data: money, counters, timers. */
+  .ledger-num {
+    font-family: 'Spline Sans Mono', 'Inter', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* Display moments: hero numbers, panel titles where brand should speak. */
+  .display-type {
+    font-family: 'Bricolage Grotesque', 'Instrument Sans', system-ui, sans-serif;
+    font-optical-sizing: auto;
+    letter-spacing: -0.015em;
+  }
 
   .touch-target { min-height: 44px; min-width: 44px; }
 
@@ -405,12 +439,12 @@
     padding: 0.625rem 1.5rem;
     background: #1B2D4F;
     color: #FFFFFF;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.875rem;
     letter-spacing: -0.01em;
-    border-radius: 0.5rem;
-    border: 1.5px solid #1B2D4F;
+    border-radius: 0.375rem;
+    border: 1px solid #1B2D4F;
     cursor: pointer;
     transition: background 0.15s ease, box-shadow 0.15s ease;
     text-decoration: none;
@@ -429,12 +463,12 @@
     padding: 0.625rem 1.5rem;
     background: #C0392B;
     color: #FFFFFF;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.875rem;
     letter-spacing: -0.01em;
-    border-radius: 0.5rem;
-    border: 1.5px solid #C0392B;
+    border-radius: 0.375rem;
+    border: 1px solid #C0392B;
     cursor: pointer;
     transition: background 0.15s ease, box-shadow 0.15s ease;
     text-decoration: none;
@@ -453,12 +487,12 @@
     padding: 0.625rem 1.5rem;
     background: #D4922A;
     color: #221205;  /* near-black on amber — 7:1 contrast, far kinder than white */
-    font-family: 'Inter', sans-serif;
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.875rem;
     letter-spacing: -0.01em;
-    border-radius: 0.5rem;
-    border: 1.5px solid #D4922A;
+    border-radius: 0.375rem;
+    border: 1px solid #D4922A;
     cursor: pointer;
     transition: background 0.15s ease, box-shadow 0.15s ease;
     text-decoration: none;
@@ -477,12 +511,12 @@
     padding: 0.625rem 1.5rem;
     background: #D4922A;
     color: #FFFFFF;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.875rem;
     letter-spacing: -0.01em;
-    border-radius: 0.5rem;
-    border: 1.5px solid #D4922A;
+    border-radius: 0.375rem;
+    border: 1px solid #D4922A;
     cursor: pointer;
     transition: background 0.15s ease, box-shadow 0.15s ease;
     text-decoration: none;
@@ -502,12 +536,12 @@
     padding: 0.625rem 1.5rem;
     background: transparent;
     color: #D4922A;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.875rem;
     letter-spacing: -0.01em;
-    border-radius: 0.5rem;
-    border: 1.5px solid #D4922A;
+    border-radius: 0.375rem;
+    border: 1px solid #D4922A;
     cursor: pointer;
     transition: background 0.15s ease, box-shadow 0.15s ease;
     text-decoration: none;
@@ -525,12 +559,12 @@
     padding: 0.625rem 1.5rem;
     background: transparent;
     color: color-mix(in oklab, var(--foreground) 82%, transparent);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.875rem;
     letter-spacing: -0.01em;
-    border-radius: 0.5rem;
-    border: 1.5px solid color-mix(in oklab, var(--foreground) 16%, transparent);
+    border-radius: 0.375rem;
+    border: 1px solid color-mix(in oklab, var(--foreground) 16%, transparent);
     cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease;
     text-decoration: none;
@@ -555,12 +589,12 @@
     padding: 0.625rem 1.5rem;
     background: transparent;
     color: #1B2D4F;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.875rem;
     letter-spacing: -0.01em;
-    border-radius: 0.5rem;
-    border: 1.5px solid #1B2D4F;
+    border-radius: 0.375rem;
+    border: 1px solid #1B2D4F;
     cursor: pointer;
     transition: background 0.15s ease;
     text-decoration: none;
@@ -583,7 +617,7 @@
   }
   .card-lift:hover {
     box-shadow: 0 6px 24px rgba(0,0,0,0.10);
-    transform: translateY(-1px);
+    transform: translateY(-0.5px);
   }
   .card-amber {
     background: var(--card);
@@ -617,7 +651,7 @@
 
   /* ── Typography Utilities ──────────────────────────────────────────────── */
   .heading-display {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif;
     font-optical-sizing: auto;
     font-weight: 800;
     letter-spacing: -0.03em;
@@ -625,7 +659,7 @@
     color: var(--foreground);
   }
   .heading-section {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif;
     font-optical-sizing: auto;
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -633,7 +667,7 @@
     color: var(--foreground);
   }
   .section-label {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Spline Sans Mono', 'Inter', ui-monospace, monospace;
     font-size: 0.6875rem;
     font-weight: 600;
     letter-spacing: 0.08em;
@@ -642,7 +676,7 @@
     display: block;
   }
   .stat-number {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif;
     font-optical-sizing: auto;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
@@ -654,14 +688,17 @@
   .pill-retro {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 100px;
-    font-size: 0.75rem;
+    gap: 0.4rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 2px;
+    font-family: 'Spline Sans Mono', 'Inter', ui-monospace, monospace;
+    font-size: 0.6875rem;
     font-weight: 500;
-    background: rgba(212,146,42,0.10);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(212,146,42,0.08);
     color: #B07820;
-    border: 1px solid rgba(212,146,42,0.25);
+    border: 1px solid rgba(212,146,42,0.28);
   }
   .pill-navy   { background: rgba(27,45,79,0.08);   color: #1B2D4F; border: 1px solid rgba(27,45,79,0.18); }
   .pill-red    { background: rgba(192,57,43,0.08);  color: #A0301F; border: 1px solid rgba(192,57,43,0.18); }
@@ -821,9 +858,9 @@
     width: 100%;
     padding: 0.625rem 0.875rem;
     background: var(--card);
-    border: 1.5px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: 0.5rem;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
     font-size: 1rem;
     color: var(--foreground);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -842,9 +879,9 @@
     width: 100%;
     padding: 0.625rem 0.875rem;
     background: var(--card);
-    border: 1.5px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: 0.5rem;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
     font-size: 1rem;
     color: var(--foreground);
     outline: none;
@@ -887,9 +924,9 @@
     width: 100%;
     padding: 0.625rem 0.875rem;
     background: var(--card);
-    border: 1.5px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: 0.5rem;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
     font-size: 1rem;
     color: var(--foreground);
     outline: none;
@@ -922,7 +959,7 @@
   /* ── Form Labels, Hints & Errors ─────────────────────────────────────── */
   .form-label {
     display: block;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
     font-size: 0.8125rem;
     font-weight: 600;
     color: var(--foreground-soft);
@@ -1034,21 +1071,9 @@
 
   /* ── TrueAxis public brand composition ─────────────────────────────────── */
   .trueaxis-hero {
-    background:
-      /* soft studio hero: opens on the card tone, settles into the page tone */
-      linear-gradient(112deg, rgba(250,249,246,0.94) 0%, rgba(239,238,233,0.96) 52%, rgba(228,240,237,0.80) 100%);
-  }
-  .trueaxis-hero::before {
-    content: '';
-    position: absolute;
-    right: -14rem;
-    top: 5rem;
-    width: min(52vw, 40rem);
-    height: 18rem;
-    border-radius: 3rem;
-    background: linear-gradient(135deg, rgba(0,168,143,0.11), rgba(255,107,107,0.08));
-    transform: rotate(-12deg);
-    pointer-events: none;
+    /* flat ledger paper — the ruled lines in the JSX do the surface work;
+     * no gradient washes, no tilted blobs */
+    background: var(--background);
   }
   @media (max-width: 639px) {
     .trueaxis-hero::before { right: -10rem; top: 2.5rem; width: 22rem; height: 12rem; }

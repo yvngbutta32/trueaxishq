@@ -272,7 +272,7 @@ export default function Proposals() {
         <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 rounded-xl bg-white animate-pulse" />)}</div>
       ) : proposalList.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[rgba(59,130,246,0.12)] flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-lg bg-[rgba(59,130,246,0.12)] flex items-center justify-center mb-4">
             <FileText className="w-8 h-8 text-[#3B82F6]" />
           </div>
           <h3 className="text-lg font-semibold text-[color-mix(in oklab, var(--foreground) 85%, transparent)] mb-2">No proposals yet</h3>

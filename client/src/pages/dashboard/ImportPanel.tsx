@@ -150,7 +150,7 @@ export default function ImportPanel() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 pb-8">
-      <header className="rounded-3xl bg-[#1C2333] p-6 text-white sm:p-8">
+      <header className="rounded-xl bg-[#1C2333] p-6 text-white sm:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#f5c36d]">Switch to TrueAxis HQ</p>
         <h1 className="mt-2 text-3xl font-bold">Bring your data with you</h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/70">
@@ -183,19 +183,19 @@ export default function ImportPanel() {
         <section className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <button onClick={() => { setTarget("clients"); setStep("paste"); }}
-              className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5 text-left transition hover:border-[#D4922A]/50">
+              className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5 text-left transition hover:border-[#D4922A]/50">
               <Users className="h-6 w-6 text-[#D4922A]" />
               <h2 className="mt-3 font-bold text-[var(--foreground)]">Client list</h2>
               <p className="mt-1 text-sm text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">Names, emails, phones, service types, and notes. Duplicates against your existing clients are detected before anything is saved.</p>
             </button>
             <button onClick={() => { setTarget("services"); setStep("paste"); }}
-              className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5 text-left transition hover:border-[#D4922A]/50">
+              className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5 text-left transition hover:border-[#D4922A]/50">
               <Wrench className="h-6 w-6 text-[#D4922A]" />
               <h2 className="mt-3 font-bold text-[var(--foreground)]">Price book services</h2>
               <p className="mt-1 text-sm text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">Service names, prices, units, and categories — ready for proposals and invoices.</p>
             </button>
           </div>
-          <div className="rounded-2xl border border-[#D4922A]/25 bg-[#fffaf0] p-5">
+          <div className="rounded-lg border border-[#D4922A]/25 bg-[#fffaf0] p-5">
             <h3 className="text-sm font-bold text-[var(--foreground)]">Where do I get a CSV?</h3>
             <p className="mt-1 text-sm leading-relaxed text-[color-mix(in oklab, var(--foreground) 65%, transparent)]">
               Jobber, Housecall Pro, ServiceTitan, ServiceM8, and Buildertrend can all export client data as CSV from their
@@ -208,7 +208,7 @@ export default function ImportPanel() {
 
       {step === "paste" && (
         <section className="space-y-4">
-          <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
+          <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="font-bold text-[var(--foreground)]">{target === "clients" ? "Client list" : "Price book"} CSV</h2>
               <button onClick={() => downloadTemplate(target)} className="inline-flex items-center gap-1.5 rounded-lg border border-[color-mix(in oklab, var(--foreground) 14.0%, transparent)] px-3 py-1.5 text-xs font-bold text-[var(--foreground)] hover:bg-[#F0EEE9]">
@@ -251,21 +251,21 @@ export default function ImportPanel() {
       {step === "review" && preview && (
         <section className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4">
+            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Source detected</p>
               <p className="mt-1 text-lg font-bold text-[var(--foreground)]">{preview.sourceLabel}</p>
             </div>
-            <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4">
+            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Ready to import</p>
               <p className="mt-1 text-lg font-bold text-emerald-700">{preview.validRows} of {preview.totalRows} rows</p>
             </div>
-            <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4">
+            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Needs attention</p>
               <p className="mt-1 text-lg font-bold text-[var(--foreground)]">{preview.issueCount + preview.duplicateCount} rows</p>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
+          <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
             <h2 className="font-bold text-[var(--foreground)]">Column mapping</h2>
             <p className="mt-1 text-sm text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">We auto-detected this from your headers. Change any mapping — the preview updates when you re-check.</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -294,7 +294,7 @@ export default function ImportPanel() {
           </div>
 
           {preview.sample.length > 0 && (
-            <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
+            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
               <h2 className="font-bold text-[var(--foreground)]">First rows, as they will be imported</h2>
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -316,7 +316,7 @@ export default function ImportPanel() {
           )}
 
           {preview.duplicates.length > 0 && (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5">
+            <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-5">
               <h2 className="flex items-center gap-2 font-bold text-[var(--foreground)]"><AlertTriangle className="h-4 w-4 text-amber-600" /> {preview.duplicateCount} row{preview.duplicateCount === 1 ? "" : "s"} match clients you already have</h2>
               <ul className="mt-2 space-y-1 text-sm text-[color-mix(in oklab, var(--foreground) 70%, transparent)]">
                 {preview.duplicates.slice(0, 5).map(d => <li key={d.row}>Row {d.row} → already have <strong>{d.existingName}</strong> (same {d.matchedOn})</li>)}
@@ -337,7 +337,7 @@ export default function ImportPanel() {
           )}
 
           {preview.issues.length > 0 && (
-            <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
+            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
               <h2 className="font-bold text-[var(--foreground)]">{preview.issueCount} row{preview.issueCount === 1 ? "" : "s"} can't be imported</h2>
               <ul className="mt-2 space-y-1 text-sm text-[color-mix(in oklab, var(--foreground) 70%, transparent)]">
                 {preview.issues.slice(0, 6).map(issue => <li key={issue.row}>Row {issue.row}: {issue.errors.join(" ")}</li>)}
@@ -361,15 +361,15 @@ export default function ImportPanel() {
 
       {step === "results" && result && (
         <section className="space-y-4">
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6 text-center">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-6 text-center">
             <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
             <h2 className="mt-2 text-xl font-bold text-[var(--foreground)]">Import complete</h2>
             <p className="mt-1 text-sm text-[color-mix(in oklab, var(--foreground) 65%, transparent)]">Every change is recorded in your audit log under “import”.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Created</p><p className="mt-1 text-2xl font-bold text-emerald-700">{result.created}</p></div>
-            <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Updated</p><p className="mt-1 text-2xl font-bold text-[var(--foreground)]">{result.updated}</p></div>
-            <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Skipped</p><p className="mt-1 text-2xl font-bold text-[var(--foreground)]">{result.skipped}</p></div>
+            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Created</p><p className="mt-1 text-2xl font-bold text-emerald-700">{result.created}</p></div>
+            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Updated</p><p className="mt-1 text-2xl font-bold text-[var(--foreground)]">{result.updated}</p></div>
+            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Skipped</p><p className="mt-1 text-2xl font-bold text-[var(--foreground)]">{result.skipped}</p></div>
           </div>
           {(result.skippedReasons.duplicate > 0 || result.skippedReasons.emailConflict > 0) && (
             <p className="text-center text-xs text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">
@@ -379,7 +379,7 @@ export default function ImportPanel() {
             </p>
           )}
           {result.failedCount > 0 && (
-            <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
+            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
               <h3 className="font-bold text-[var(--foreground)]">{result.failedCount} row{result.failedCount === 1 ? "" : "s"} couldn't be imported</h3>
               <ul className="mt-2 space-y-1 text-sm text-[color-mix(in oklab, var(--foreground) 70%, transparent)]">
                 {result.failed.slice(0, 8).map(issue => <li key={issue.row}>Row {issue.row}: {issue.errors.join(" ")}</li>)}
@@ -393,7 +393,7 @@ export default function ImportPanel() {
         </section>
       )}
 
-      <section aria-labelledby="demo-heading" className="mt-10 rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-[#FAFAF8] p-5">
+      <section aria-labelledby="demo-heading" className="mt-10 rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-[#FAFAF8] p-5">
         <h3 id="demo-heading" className="flex items-center gap-2 font-bold text-[var(--foreground)]"><Sparkles className="h-4 w-4" /> Try it with sample data</h3>
         <p className="mt-1 text-sm text-[color-mix(in oklab, var(--foreground) 70%, transparent)]">
           Not ready to import your real list? Seed four sample clients with jobs, bookings, and invoices to explore every dashboard with realistic data.
@@ -428,7 +428,7 @@ export default function ImportPanel() {
         {demoError && <p className="mt-2 text-sm font-bold text-[#B42318]">{demoError}</p>}
       </section>
 
-      <section aria-labelledby="export-heading" className="mt-10 rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-[#FAFAF8] p-5">
+      <section aria-labelledby="export-heading" className="mt-10 rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-[#FAFAF8] p-5">
         <h3 id="export-heading" className="flex items-center gap-2 font-bold text-[var(--foreground)]"><HardDriveDownload className="h-4 w-4" /> Export all your data</h3>
         <p className="mt-1 text-sm text-[color-mix(in oklab, var(--foreground) 70%, transparent)]">
           Download your entire workspace — clients, jobs, invoices, proposals, photos metadata, team, inventory and more — as one JSON backup file.

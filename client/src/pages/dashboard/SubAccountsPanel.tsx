@@ -64,7 +64,7 @@ function SubAccountsInner() {
 
   return (
     <div className="space-y-6 fade-in-up">
-      <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
+      <section className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
         <h2 className="flex items-center gap-2 text-lg font-bold text-[var(--foreground)]">
           <Building2 className="h-5 w-5" /> Managed client workspaces
         </h2>
@@ -83,11 +83,11 @@ function SubAccountsInner() {
       </section>
 
       {actionError && (
-        <p className="rounded-2xl border border-[#B42318]/30 bg-[#B42318]/5 px-4 py-3 text-sm font-bold text-[#B42318]">{actionError}</p>
+        <p className="rounded-lg border border-[#B42318]/30 bg-[#B42318]/5 px-4 py-3 text-sm font-bold text-[#B42318]">{actionError}</p>
       )}
 
       {subs.length === 0 ? (
-        <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-[#FAFAF8] p-6 text-center">
+        <section className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-[#FAFAF8] p-6 text-center">
           <p className="text-sm text-[color-mix(in oklab, var(--foreground) 65%, transparent)]">
             No workspaces yet. Create your first one below — the client business signs in and works in it independently.
           </p>
@@ -95,7 +95,7 @@ function SubAccountsInner() {
       ) : (
         <section className="grid gap-4 md:grid-cols-2">
           {subs.map(sub => (
-            <div key={sub.id} className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
+            <div key={sub.id} className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h3 className="font-bold text-[var(--foreground)]">{sub.businessName || sub.name || "Workspace"}</h3>
@@ -179,7 +179,7 @@ function SubAccountsInner() {
         </section>
       )}
 
-      <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
+      <section className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-5">
         <h3 className="flex items-center gap-2 font-bold text-[var(--foreground)]"><Plus className="h-4 w-4" /> Create a new workspace</h3>
         {subs.length >= limit ? (
           <p className="mt-2 text-sm text-[color-mix(in oklab, var(--foreground) 65%, transparent)]">

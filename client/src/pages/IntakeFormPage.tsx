@@ -136,7 +136,7 @@ export default function IntakeFormPage() {
             Your response has been recorded. Keep this page open if you would like to continue to the next available step.
           </p>
           {bookingUrl && (
-            <div className="bg-white border border-[var(--border)] rounded-2xl p-5 text-left">
+            <div className="bg-white border border-[var(--border)] rounded-lg p-5 text-left">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-9 h-9 rounded-xl bg-[#D4922A]/15 flex items-center justify-center flex-shrink-0">
                   <CalendarDays className="w-4.5 h-4.5 text-[#D4922A]" />
@@ -182,7 +182,7 @@ export default function IntakeFormPage() {
       <div className="max-w-lg w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-[#D4922A]/15 flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 rounded-lg bg-[#D4922A]/15 flex items-center justify-center mx-auto mb-4">
             <ClipboardList className="w-6 h-6 text-[#D4922A]" />
           </div>
           <h1 className="text-2xl font-bold text-[var(--foreground)]">{formData.name}</h1>
@@ -191,7 +191,7 @@ export default function IntakeFormPage() {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[var(--border)] p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-[var(--border)] p-6 space-y-5">
           {fieldErrors._form && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-sm text-red-400">{fieldErrors._form}</div>
           )}

@@ -54,7 +54,7 @@ function PageLoader() {
       aria-label="Loading page"
     >
       <div className="text-center">
-        <div className="w-12 h-12 rounded-2xl bg-[#D4922A]/10 flex items-center justify-center mx-auto mb-4">
+        <div className="w-12 h-12 rounded-lg bg-[#D4922A]/10 flex items-center justify-center mx-auto mb-4">
           <Loader2 className="w-6 h-6 text-[#D4922A] animate-spin" aria-hidden="true" />
         </div>
         <p className="text-sm font-medium text-muted-foreground">Loading…</p>

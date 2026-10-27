@@ -155,7 +155,7 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
 
       {/* Modal */}
       <div
-        className="relative w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl border border-[var(--border)] search-modal-enter"
+        className="relative w-full max-w-xl rounded-lg overflow-hidden shadow-2xl border border-[var(--border)] search-modal-enter"
         style={{ background: "#FFFFFF" }}
       >
         {/* Search input row */}

@@ -28,7 +28,7 @@ export function PublicRecoveryState({
           <span className="h-1.5 w-1.5 rounded-full bg-[#00C9A7]" aria-hidden="true" />
           {eyebrow}
         </div>
-        <div className="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: `${accent}18`, border: `1px solid ${accent}45` }}>
+        <div className="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-lg" style={{ background: `${accent}18`, border: `1px solid ${accent}45` }}>
           <AlertCircle className="h-7 w-7" style={{ color: accent }} aria-hidden="true" />
         </div>
         <h1 id="public-recovery-title" className="mt-5 text-2xl font-extrabold tracking-[-0.03em] text-[var(--foreground)]">{title}</h1>

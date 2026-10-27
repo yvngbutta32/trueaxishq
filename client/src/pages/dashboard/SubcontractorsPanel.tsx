@@ -128,7 +128,7 @@ export default function SubcontractorsPanel() {
           </div>
           <Button onClick={openAdd}><Plus className="mr-1.5 h-4 w-4" /> Add subcontractor</Button>
         </div>
-        <div className="mt-4 overflow-hidden rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white">
+        <div className="mt-4 overflow-hidden rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white">
           {subs.isLoading ? (
             <div className="p-5"><Skeleton /></div>
           ) : activeSubs.length === 0 ? (
@@ -166,7 +166,7 @@ export default function SubcontractorsPanel() {
             <Send className="mr-1.5 h-4 w-4" /> Invite to job
           </Button>
         </div>
-        <div className="mt-4 overflow-hidden rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white">
+        <div className="mt-4 overflow-hidden rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white">
           {invitations.isLoading ? (
             <div className="p-5"><Skeleton /></div>
           ) : liveInvites.length === 0 ? (

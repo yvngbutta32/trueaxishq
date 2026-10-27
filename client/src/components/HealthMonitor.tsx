@@ -61,7 +61,7 @@ export function HealthMonitor() {
 
       {showTooltip && (
         <div
-          className="absolute right-0 top-full mt-2 w-72 bg-[var(--background)] border border-[var(--border)] rounded-2xl shadow-2xl z-50 p-4"
+          className="absolute right-0 top-full mt-2 w-72 bg-[var(--background)] border border-[var(--border)] rounded-lg shadow-2xl z-50 p-4"
           role="tooltip"
         >
           <div className="flex items-center justify-between mb-3">

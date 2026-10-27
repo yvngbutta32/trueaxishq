@@ -167,7 +167,7 @@ export default function ContractTemplatesPanel() {
 
       {/* Template editor */}
       {showCreate && (
-        <div className="bg-white border border-[var(--border)] rounded-2xl p-5 space-y-4">
+        <div className="bg-white border border-[var(--border)] rounded-lg p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-[var(--foreground)]">{editingId ? "Edit Template" : "New Contract Template"}</h3>
             <button type="button" aria-label="Close template editor" onClick={resetForm} className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)]"><X className="w-4 h-4" /></button>
@@ -210,7 +210,7 @@ export default function ContractTemplatesPanel() {
 
       {/* Use Template dialog */}
       {useTemplateId && useTemplate && (
-        <div className="bg-white border border-[#D4922A]/30 rounded-2xl p-5 space-y-4">
+        <div className="bg-white border border-[#D4922A]/30 rounded-lg p-5 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#D4922A]" />
@@ -244,7 +244,7 @@ export default function ContractTemplatesPanel() {
 
       {/* Preview dialog */}
       {previewId && previewTemplate && (
-        <div className="bg-white border border-[var(--border)] rounded-2xl p-5 space-y-3">
+        <div className="bg-white border border-[var(--border)] rounded-lg p-5 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-[color-mix(in oklab, var(--foreground) 50%, transparent)]" />
@@ -269,7 +269,7 @@ export default function ContractTemplatesPanel() {
 
       {/* Templates list */}
       {filtered.length === 0 ? (
-        <div className="text-center py-10 bg-white rounded-2xl border border-[var(--border)]">
+        <div className="text-center py-10 bg-white rounded-lg border border-[var(--border)]">
           <FileSignature className="w-10 h-10 text-[color-mix(in oklab, var(--foreground) 20%, transparent)] mx-auto mb-3" />
           <p className="text-sm text-[color-mix(in oklab, var(--foreground) 40%, transparent)]">No templates in this category</p>
         </div>

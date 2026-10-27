@@ -172,7 +172,7 @@ export default function IntakeFormsPanel() {
 
       {/* Form Builder */}
       {showCreate && (
-        <div className="bg-white border border-[var(--border)] rounded-2xl p-5 space-y-4">
+        <div className="bg-white border border-[var(--border)] rounded-lg p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-[var(--foreground)]">{editingId ? "Edit Form" : "New Intake Form"}</h3>
             <button onClick={resetBuilder} aria-label="Close form builder" className="text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[var(--foreground)] transition-colors">
@@ -291,7 +291,7 @@ export default function IntakeFormsPanel() {
 
       {/* Forms list */}
       {forms.length === 0 && !showCreate ? (
-        <div className="text-center py-12 bg-white rounded-2xl border border-[var(--border)]">
+        <div className="text-center py-12 bg-white rounded-lg border border-[var(--border)]">
           <ClipboardList className="w-10 h-10 text-[color-mix(in oklab, var(--foreground) 20%, transparent)] mx-auto mb-3" />
           <p className="text-sm font-semibold text-[color-mix(in oklab, var(--foreground) 50%, transparent)]">No intake forms yet</p>
           <p className="text-xs text-[color-mix(in oklab, var(--foreground) 30%, transparent)] mt-1 mb-4">Create your first questionnaire to collect client info</p>
@@ -306,7 +306,7 @@ export default function IntakeFormsPanel() {
             try { fieldCount = JSON.parse(form.fields).length; } catch {}
             const isExpanded = expandedId === form.id;
             return (
-              <div key={form.id} className="bg-white border border-[var(--border)] rounded-2xl overflow-hidden">
+              <div key={form.id} className="bg-white border border-[var(--border)] rounded-lg overflow-hidden">
                 <div
                   className="flex items-center gap-3 p-4 cursor-pointer hover:bg-white/3 transition-colors"
                   onClick={() => setExpandedId(isExpanded ? null : form.id)}

@@ -240,7 +240,7 @@ export default function Automations() {
         <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 rounded-xl bg-white animate-pulse" />)}</div>
       ) : automations.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[rgba(139,92,246,0.12)] flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-lg bg-[rgba(139,92,246,0.12)] flex items-center justify-center mb-4">
             <Zap className="w-8 h-8 text-[#8B5CF6]" />
           </div>
           <h3 className="text-lg font-semibold text-[color-mix(in oklab, var(--foreground) 85%, transparent)] mb-2">No automations yet</h3>

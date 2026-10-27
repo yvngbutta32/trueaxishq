@@ -268,12 +268,12 @@ export default function ClientPortal() {
   if (error || !data) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex items-center justify-center px-4 py-10">
-        <div className="relative max-w-md w-full overflow-hidden rounded-3xl border border-[#D4922A]/20 bg-white p-8 text-center shadow-xl shadow-[#1B2D4F]/10 sm:p-10">
+        <div className="relative max-w-md w-full overflow-hidden rounded-xl border border-[#D4922A]/20 bg-white p-8 text-center shadow-xl shadow-[#1B2D4F]/10 sm:p-10">
           <div className="absolute inset-x-0 top-0 h-1.5 bg-[#D4922A]" />
           <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full bg-[#1B2D4F] px-3 py-1.5 text-xs font-bold text-white">
             <span className="h-1.5 w-1.5 rounded-full bg-[#D4922A]" /> TrueAxis HQ Client Portal
           </div>
-          <div className="w-14 h-14 bg-[#FFF1F1] rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-14 h-14 bg-[#FFF1F1] rounded-lg flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-7 h-7 text-[#FF6B6B]" />
           </div>
           <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">This portal link is no longer active</h2>
@@ -751,7 +751,7 @@ export default function ClientPortal() {
                 const fromClient = message.senderRole === "client";
                 return (
                   <div key={message.id} className={`flex ${fromClient ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-sm ${fromClient ? "bg-[#D4922A] text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"}`}>
+                    <div className={`max-w-[85%] rounded-lg px-3.5 py-2.5 text-sm shadow-sm ${fromClient ? "bg-[#D4922A] text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"}`}>
                       <p className="whitespace-pre-wrap break-words">{message.body}</p>
                       <p className={`mt-1 text-[10px] ${fromClient ? "text-white/75" : "text-gray-500"}`}>
                         {fromClient ? "You" : providerName} · {formatPortalTimestamp(message.createdAt)}

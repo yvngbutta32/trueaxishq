@@ -418,29 +418,56 @@ function Nav({ onCTA }: { onCTA: () => void }) {
 function Hero({ onCTA }: { onCTA: () => void }) {
   const [, navigate] = useLocation();
 
+  // The three honest claims, presented as ledger rows — ruled lines and mono
+  // numerals instead of the icon-bubble card stack every template ships.
+  const ledgerRows = [
+    {
+      icon: Sparkles,
+      title: "One operational record",
+      detail: "Clients · Jobs · Proof · Billing · Follow-ups",
+      accent: "#007A68",
+    },
+    {
+      icon: Timer,
+      title: "Operational in under an hour",
+      detail: "A guided first-hour checklist walks you from signup to your first invoice — no consultants, no implementation calls.",
+      accent: "#8A5A0B",
+    },
+    {
+      icon: ArrowRightLeft,
+      title: "Switching from Jobber, Housecall Pro, or ServiceTitan?",
+      detail: "A guided import wizard brings your client list and price book over from a CSV export — you approve the preview before anything is saved. No migration fees, no sales calls, no password for your old system.",
+      accent: "#8A5A0B",
+    },
+  ];
+
   return (
     <section className="trueaxis-hero relative min-h-[min(100dvh,980px)] flex items-center overflow-hidden" style={{ paddingTop: "4rem" }} aria-labelledby="hero-heading">
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 60% at 78% 32%, rgba(0,168,143,0.16) 0%, transparent 68%), radial-gradient(ellipse 55% 45% at 8% 82%, rgba(255,107,107,0.10) 0%, transparent 70%)" }} />
+      {/* Ruled-paper ground — the page reads as a ledger, not a gradient poster */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "repeating-linear-gradient(to bottom, transparent 0 31px, color-mix(in oklab, var(--foreground) 4.5%, transparent) 31px 32px)" }} />
       {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent, var(--background))" }} />
 
       <div className="container relative z-10">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center py-12 sm:py-16 lg:py-20">
-          {/* Left — copy */}
-          <div>
-            <div className="pill-retro mb-6 inline-flex">
-              <Sparkles className="w-3 h-3" />
-              The service-business operating system
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center py-12 sm:py-16 lg:py-20">
+          {/* Left — copy, seven of twelve columns */}
+          <div className="lg:col-span-7">
+            <div className="flex items-center gap-4 mb-8">
+              <span className="h-px w-10" style={{ background: "color-mix(in oklab, var(--foreground) 30%, transparent)" }} />
+              <span className="ledger-label flex items-center gap-2">
+                <Sparkles className="w-3 h-3" style={{ color: "#B07820" }} />
+                The service-business operating system
+              </span>
             </div>
 
             <h1
               id="hero-heading"
-              className="mb-6"
+              className="display-type mb-6"
               style={{
-                fontWeight: 800,
-                fontSize: "clamp(2.4rem, 5vw, 3.75rem)",
-                lineHeight: 1.05,
-                letterSpacing: "-0.03em",
+                fontWeight: 700,
+                fontSize: "clamp(2.6rem, 5.4vw, 4.125rem)",
+                lineHeight: 1.04,
+                letterSpacing: "-0.02em",
                 color: "var(--foreground)",
               }}
             >
@@ -465,40 +492,27 @@ function Hero({ onCTA }: { onCTA: () => void }) {
               </button>
             </div>
 
-            {/* Product scope */}
-            <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ background: "rgba(0,168,143,0.07)", border: "1px solid rgba(0,168,143,0.18)" }}>
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "rgba(0,168,143,0.14)", color: "#007A68" }}>
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs font-bold" style={{ color: "var(--foreground)" }}>One operational record</p>
-                <p className="text-[10px]" style={{ color: "#4A4A4A" }}>Clients · Jobs · Proof · Billing · Follow-ups</p>
-              </div>
+            {/* Ledger rows — the honest claims, ruled like an account book */}
+            <div className="border-t mb-8" style={{ borderColor: "color-mix(in oklab, var(--foreground) 14%, transparent)" }}>
+              {ledgerRows.map((row, i) => (
+                <div
+                  key={row.title}
+                  className="flex items-start gap-4 py-3.5 border-b"
+                  style={{ borderColor: "color-mix(in oklab, var(--foreground) 14%, transparent)" }}
+                >
+                  <span className="ledger-num text-xs pt-0.5 w-6 flex-shrink-0" style={{ color: "#B07820" }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold" style={{ color: "var(--foreground)" }}>{row.title}</p>
+                    <p className="text-[10px] mt-0.5" style={{ color: "#4A4A4A", lineHeight: 1.55 }}>{row.detail}</p>
+                  </div>
+                  <row.icon className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: row.accent }} aria-hidden="true" />
+                </div>
+              ))}
             </div>
 
-            {/* One-hour onboarding guarantee — backed by the in-app first-hour checklist */}
-            <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ background: "rgba(212,146,42,0.07)", border: "1px solid rgba(212,146,42,0.22)" }}>
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "rgba(212,146,42,0.14)", color: "#8A5A0B" }}>
-                <Timer className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs font-bold" style={{ color: "var(--foreground)" }}>Operational in under an hour</p>
-                <p className="text-[10px]" style={{ color: "#4A4A4A" }}>A guided first-hour checklist walks you from signup to your first invoice — no consultants, no implementation calls.</p>
-              </div>
-            </div>
-
-            {/* Switching moat — backed by the shipped data import wizard (ImportPanel + migration router) */}
-            <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ background: "rgba(212,146,42,0.07)", border: "1px solid rgba(212,146,42,0.22)" }}>
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "rgba(212,146,42,0.14)", color: "#8A5A0B" }}>
-                <ArrowRightLeft className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs font-bold" style={{ color: "var(--foreground)" }}>Switching from Jobber, Housecall Pro, or ServiceTitan?</p>
-                <p className="text-[10px]" style={{ color: "#4A4A4A" }}>A guided import wizard brings your client list and price book over from a CSV export — you approve the preview before anything is saved. No migration fees, no sales calls, no password for your old system.</p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "#4A4A4A" }}>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs" style={{ color: "#4A4A4A" }}>
               {["Owner-reviewed workflows", "Workspace-scoped data", "Field-ready operations"].map(t => (
                 <span key={t} className="flex items-center gap-1.5">
                   <CheckCircle className="w-3.5 h-3.5" style={{ color: "#007A68" }} />
@@ -508,17 +522,17 @@ function Hero({ onCTA }: { onCTA: () => void }) {
             </div>
           </div>
 
-          {/* Right — dashboard preview */}
-          <div className="relative mt-2 lg:mt-0">
-            <div className="absolute inset-0 rounded-2xl opacity-30 blur-xl" style={{ background: "linear-gradient(135deg, rgba(0,168,143,0.40), rgba(255,107,107,0.30))" }} />
-            <div className="relative rounded-xl overflow-hidden" style={{ background: "var(--background)", border: "1px solid rgba(212,146,42,0.20)", boxShadow: "0 24px 60px rgba(0,0,0,0.55)" }}>
-              {/* Window bar */}
-              <div className="flex items-center gap-2 px-4 py-3" style={{ background: "var(--muted)", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
+          {/* Right — workspace preview, five of twelve columns */}
+          <div className="relative mt-2 lg:mt-0 lg:col-span-5">
+            <div className="relative rounded-lg overflow-hidden" style={{ background: "var(--background)", border: "1px solid color-mix(in oklab, var(--foreground) 16%, transparent)", boxShadow: "0 1px 0 rgba(0,0,0,0.04), 0 16px 40px rgba(0,0,0,0.18)" }}>
+              {/* Window bar — mono label, drafting corner ticks */}
+              <div className="flex items-center gap-2 px-4 py-3" style={{ background: "var(--muted)", borderBottom: "1px solid color-mix(in oklab, var(--foreground) 10%, transparent)" }}>
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C85A3A" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#D4922A" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#7A9A8A" }} />
                 <span className="ml-3 text-xs font-mono" style={{ color: "color-mix(in oklab, var(--foreground) 55.0%, transparent)" }}>TrueAxis HQ — Example workspace</span>
               </div>
+
 
               <div className="p-4 space-y-3">
                 {/* Revenue sparkline + stats row */}
@@ -1012,9 +1026,12 @@ function ClientPulseShowcase() {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left — copy */}
           <div>
-            <div className="pill-retro mb-6 inline-flex">
-              <Sparkles className="w-3 h-3" />
-              Exclusive to TrueAxis HQ
+            <div className="flex items-center gap-3 mb-6">
+              <span className="h-px w-8" style={{ background: "color-mix(in oklab, var(--foreground) 30%, transparent)" }} />
+              <span className="ledger-label flex items-center gap-2">
+                <Sparkles className="w-3 h-3" style={{ color: "#B07820" }} />
+                Exclusive to TrueAxis HQ
+              </span>
             </div>
             <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)", color: "var(--foreground)", letterSpacing: "-0.025em", lineHeight: 1.1 }}>
               Client Pulse AI™

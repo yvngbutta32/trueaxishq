@@ -28,13 +28,13 @@ export default function OnboardingFirstHour({ setActivePanel }: Props) {
   };
 
   if (isLoading) {
-    return <div className="mx-auto mb-6 h-36 max-w-4xl animate-pulse rounded-2xl bg-slate-100" aria-hidden="true" />;
+    return <div className="mx-auto mb-6 h-36 max-w-4xl animate-pulse rounded-lg bg-slate-100" aria-hidden="true" />;
   }
   if (!data || !data.showChecklist || userDismissed) return null;
 
   return (
     <section className="mx-auto mb-6 max-w-4xl" aria-labelledby="first-hour-heading">
-      <div className="rounded-2xl border border-[#D4922A]/25 bg-[#fffaf0] p-5">
+      <div className="rounded-lg border border-[#D4922A]/25 bg-[#fffaf0] p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex gap-3">
             <Rocket className="mt-0.5 h-5 w-5 shrink-0 text-[#D4922A]" />

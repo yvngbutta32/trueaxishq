@@ -15,7 +15,7 @@ export function FeatureLock({ feature, label, children }: { feature: string; lab
   const allowed = features ? (features as Record<string, boolean>)[feature] : false;
   if (allowed) return <>{children}</>;
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white px-6 py-12 text-center">
+    <div className="flex flex-col items-center justify-center rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white px-6 py-12 text-center">
       <Lock className="h-8 w-8 text-[#D4922A]" />
       <h3 className="mt-3 text-sm font-bold text-[var(--foreground)]">{label} is a {featureMinPlanLabel(feature as ProFeature)}-plan feature</h3>
       <p className="mt-1 max-w-md text-xs leading-5 text-[color-mix(in oklab, var(--foreground) 56.0%, transparent)]">

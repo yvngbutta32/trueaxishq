@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 export function PublicShell({ children, width = "md" }: { children: ReactNode; width?: "md" | "lg" }) {
   return (
     <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
-      <div className={`bg-white rounded-2xl shadow-lg w-full ${width === "md" ? "max-w-md" : "max-w-2xl"} text-center`}>
+      <div className={`bg-white rounded-lg shadow-lg w-full ${width === "md" ? "max-w-md" : "max-w-2xl"} text-center`}>
         {children}
       </div>
     </div>

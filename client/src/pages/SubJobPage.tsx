@@ -85,23 +85,23 @@ export default function SubJobPage() {
     <main className="min-h-screen bg-[var(--background)] px-4 py-8">
       <div className="mx-auto max-w-lg space-y-4">
         {loading && !data ? (
-          <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
+          <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
             <Loader2 className="mx-auto h-7 w-7 animate-spin text-[#D4922A]" />
             <p className="mt-3 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Opening your job link…</p>
           </div>
         ) : error === "not_found" ? (
-          <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
+          <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
             <AlertCircle className="mx-auto h-8 w-8 text-[color-mix(in oklab, var(--foreground) 30%, transparent)]" />
             <h1 className="mt-3 text-lg font-bold text-[var(--foreground)]">This job link is no longer active</h1>
             <p className="mt-2 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Job links expire after 14 days and end when revoked or completed. Ask the business for a fresh link if you still need one.</p>
           </div>
         ) : error === "unavailable" && !data ? (
-          <div className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
+          <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-10 text-center">
             <p className="text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">This page is temporarily unavailable. Refresh to try again.</p>
           </div>
         ) : data ? (
           <>
-            <header className="rounded-2xl bg-[#1C2333] p-6 text-white">
+            <header className="rounded-lg bg-[#1C2333] p-6 text-white">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#F5C842]">{data.businessName ? `${data.businessName} · Subcontract` : "Subcontract job"}</p>
               <h1 className="mt-1.5 text-2xl font-bold">{data.jobTitle ?? "Job invitation"}</h1>
               {data.jobNumber && <p className="mt-1 text-sm text-white/75">Job #{data.jobNumber}</p>}
@@ -114,7 +114,7 @@ export default function SubJobPage() {
             </header>
 
             {(data.schedule?.startDate || data.schedule?.targetDate) && (
-              <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
+              <section className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
                 <h2 className="flex items-center gap-2 text-sm font-bold text-[var(--foreground)]"><CalendarDays className="h-4 w-4 text-[#D4922A]" /> Schedule</h2>
                 <p className="mt-2 text-sm text-[color-mix(in oklab, var(--foreground) 75%, transparent)]">
                   {formatDate(data.schedule?.startDate) && <>Starts {formatDate(data.schedule?.startDate)}</>}
@@ -125,14 +125,14 @@ export default function SubJobPage() {
             )}
 
             {data.scopeNote && (
-              <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
+              <section className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
                 <h2 className="flex items-center gap-2 text-sm font-bold text-[var(--foreground)]"><ClipboardList className="h-4 w-4 text-[#D4922A]" /> Scope & site details</h2>
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[color-mix(in oklab, var(--foreground) 75%, transparent)]">{data.scopeNote}</p>
               </section>
             )}
 
             {data.clientContact && (
-              <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
+              <section className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
                 <h2 className="flex items-center gap-2 text-sm font-bold text-[var(--foreground)]"><Phone className="h-4 w-4 text-[#D4922A]" /> On-site contact</h2>
                 <p className="mt-2 text-sm text-[color-mix(in oklab, var(--foreground) 75%, transparent)]">{data.clientContact.name}</p>
                 {data.clientContact.phone && (
@@ -142,7 +142,7 @@ export default function SubJobPage() {
             )}
 
             {data.status === "invited" ? (
-              <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
+              <section className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
                 <h2 className="text-sm font-bold text-[var(--foreground)]">Can you take this job?</h2>
                 <p className="mt-1 text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Responding sends your answer straight to the business — no app or account needed.</p>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -156,11 +156,11 @@ export default function SubJobPage() {
               </section>
             ) : data.status === "accepted" ? (
               <>
-                <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5" role="status">
+                <section className="rounded-lg border border-emerald-200 bg-emerald-50 p-5" role="status">
                   <h2 className="flex items-center gap-2 text-sm font-bold text-emerald-900"><CheckCircle2 className="h-4 w-4" /> You accepted this job</h2>
                   <p className="mt-1 text-xs text-emerald-800">The business can see your acceptance. Keep this link — it's your job page.</p>
                 </section>
-                <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
+                <section className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-5">
                   <label htmlFor="sub-note" className="text-sm font-bold text-[var(--foreground)]">Send a note to the business</label>
                   <textarea id="sub-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} rows={3} disabled={busy}
                     className="mt-2 w-full rounded-xl border border-[color-mix(in oklab, var(--foreground) 15%, transparent)] bg-white p-3 text-sm text-[var(--foreground)] outline-none focus:border-[#D4922A] focus:ring-2 focus:ring-[#D4922A]/25"
@@ -177,13 +177,13 @@ export default function SubJobPage() {
                 </section>
               </>
             ) : data.status === "completed" ? (
-              <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center" role="status">
+              <section className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-center" role="status">
                 <CheckCircle2 className="mx-auto h-9 w-9 text-emerald-600" />
                 <h2 className="mt-2 text-lg font-bold text-emerald-900">Work reported complete</h2>
                 <p className="mt-1 text-sm text-emerald-800">The business has been notified. This link is now a record of the job.</p>
               </section>
             ) : (
-              <section className="rounded-2xl border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-6 text-center" role="status">
+              <section className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] bg-white p-6 text-center" role="status">
                 <XCircle className="mx-auto h-9 w-9 text-[color-mix(in oklab, var(--foreground) 30%, transparent)]" />
                 <h2 className="mt-2 text-lg font-bold text-[var(--foreground)]">You declined this job</h2>
                 <p className="mt-1 text-sm text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">The business was notified. Ask them for a fresh link if you change your mind.</p>

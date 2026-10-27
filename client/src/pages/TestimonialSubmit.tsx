@@ -41,7 +41,7 @@ export default function TestimonialSubmit() {
   if (data.status !== "requested" || submitted) {
     return (
       <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
           <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h1>
           <p className="text-gray-600">Your testimonial has been submitted and is pending review.</p>
@@ -53,7 +53,7 @@ export default function TestimonialSubmit() {
 
   return (
     <div className="min-h-screen bg-[#F2F0EC] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden max-w-lg w-full">
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-lg w-full">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#D4922A] to-[#D4911A] p-6 text-white">
           <h1 className="text-xl font-bold">How was your experience?</h1>
