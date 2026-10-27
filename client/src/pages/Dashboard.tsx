@@ -298,7 +298,7 @@ export default function Dashboard() {
   // active panel and losing input focus mid-typing.
   const activePanel = useMemo(() => {
     switch (active) {
-      case "overview": return <PanelErrorBoundary panelName="Overview"><OverviewPanel userName={user?.name || ""} setActivePanel={setActive} /></PanelErrorBoundary>;
+      case "overview": return <PanelErrorBoundary panelName="Overview"><OverviewPanel userName={user?.name || ""} setActivePanel={setActiveWithScroll} /></PanelErrorBoundary>;
       case "clients": return (
         <PanelErrorBoundary panelName="Clients">
           <PanelTabs

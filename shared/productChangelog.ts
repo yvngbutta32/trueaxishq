@@ -17,6 +17,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-27",
+    title: "Every in-dashboard link now deep-links correctly",
+    tag: "Platform",
+    description: "The checklist shortcuts, first-hour cards, and Today's-priorities buttons on the Dashboard now sync the ?panel= address the same way the sidebar does — found during a full click-everything health pass and fixed at the source. Refresh keeps your place no matter how you navigated there.",
+  },
+  {
     date: "2026-10-25",
     title: "The URL remembers where you are in the dashboard",
     tag: "Platform",
