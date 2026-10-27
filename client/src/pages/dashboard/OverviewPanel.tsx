@@ -146,8 +146,8 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               </div>
               <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--foreground-soft)]" aria-hidden="true" />
             </div>
-            <p className="text-xl sm:text-2xl font-extrabold text-[var(--foreground)] leading-tight">{s.value}</p>
-            <p className="text-[11px] sm:text-xs text-[var(--muted-foreground)] mt-0.5 leading-snug">{s.label}</p>
+            <p className="ledger-num text-xl sm:text-2xl font-extrabold text-[var(--foreground)] leading-tight">{s.value}</p>
+            <p className="ledger-label text-[11px] sm:text-xs text-[var(--muted-foreground)] mt-0.5 leading-snug">{s.label}</p>
             <p className="text-[11px] sm:text-xs font-medium mt-1" style={{ color: s.color }}>{s.change}</p>
           </div>
         ))}
@@ -166,7 +166,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="text-base font-extrabold" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }}>
+              <span className="ledger-num text-base font-extrabold" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }}>
                 {pnlData.netProfit >= 0 ? '+' : ''}{formatCurrency(pnlData.netProfit)} net profit
               </span>
               <span className="text-xs text-[var(--foreground-soft)]">this period</span>

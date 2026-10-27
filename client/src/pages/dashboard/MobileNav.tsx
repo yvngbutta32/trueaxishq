@@ -43,7 +43,7 @@ function MobileQuickStats() {
       <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
         <div className="flex items-center gap-1">
           <DollarSign className="w-3 h-3 text-[#D4922A]" />
-          <span className="text-xs font-extrabold text-white">{totalRevenue >= 1000 ? `$${(totalRevenue/1000).toFixed(1)}k` : `$${Math.round(totalRevenue)}`}</span>
+          <span className="ledger-num text-xs font-extrabold text-white">{totalRevenue >= 1000 ? `$${(totalRevenue/1000).toFixed(1)}k` : `$${Math.round(totalRevenue)}`}</span>
         </div>
         <span className="text-[9px] text-white/55 font-medium uppercase tracking-wide">Revenue</span>
       </div>
@@ -52,7 +52,7 @@ function MobileQuickStats() {
       <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
         <div className="flex items-center gap-1">
           <Users className="w-3 h-3 text-[#818CF8]" />
-          <span className="text-xs font-extrabold text-white">{activeClients}</span>
+          <span className="ledger-num text-xs font-extrabold text-white">{activeClients}</span>
         </div>
         <span className="text-[9px] text-white/55 font-medium uppercase tracking-wide">Clients</span>
       </div>

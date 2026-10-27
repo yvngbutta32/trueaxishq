@@ -367,9 +367,9 @@ export default function ImportPanel() {
             <p className="mt-1 text-sm text-[color-mix(in oklab, var(--foreground) 65%, transparent)]">Every change is recorded in your audit log under “import”.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Created</p><p className="mt-1 text-2xl font-bold text-emerald-700">{result.created}</p></div>
-            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Updated</p><p className="mt-1 text-2xl font-bold text-[var(--foreground)]">{result.updated}</p></div>
-            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Skipped</p><p className="mt-1 text-2xl font-bold text-[var(--foreground)]">{result.skipped}</p></div>
+            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4"><p className="ledger-label text-xs text-[var(--muted-foreground)]">Created</p><p className="ledger-num mt-1 text-2xl font-bold text-emerald-700">{result.created}</p></div>
+            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4"><p className="ledger-label text-xs text-[var(--muted-foreground)]">Updated</p><p className="ledger-num mt-1 text-2xl font-bold text-[var(--foreground)]">{result.updated}</p></div>
+            <div className="rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-4"><p className="ledger-label text-xs text-[var(--muted-foreground)]">Skipped</p><p className="ledger-num mt-1 text-2xl font-bold text-[var(--foreground)]">{result.skipped}</p></div>
           </div>
           {(result.skippedReasons.duplicate > 0 || result.skippedReasons.emailConflict > 0) && (
             <p className="text-center text-xs text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">

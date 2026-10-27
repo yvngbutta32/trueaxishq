@@ -338,12 +338,12 @@ function InvoicesPanel() {
           {/* Summary stats */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white rounded-xl p-4 shadow-sm border border-[var(--border)]">
-              <p className="text-2xl font-bold text-[var(--foreground)]">{activeScheduleCount}</p>
-              <p className="text-xs text-[var(--foreground-soft)] mt-0.5">Active Schedules</p>
+              <p className="ledger-num text-2xl font-bold text-[var(--foreground)]">{activeScheduleCount}</p>
+              <p className="ledger-label text-xs text-[var(--foreground-soft)] mt-0.5">Active Schedules</p>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm border border-[var(--border)]">
-              <p className="text-2xl font-bold text-[var(--foreground)]">{formatCurrency(estMonthlyRevenue)}</p>
-              <p className="text-xs text-[var(--foreground-soft)] mt-0.5">Est. Monthly Revenue</p>
+              <p className="ledger-num text-2xl font-bold text-[var(--foreground)]">{formatCurrency(estMonthlyRevenue)}</p>
+              <p className="ledger-label text-xs text-[var(--foreground-soft)] mt-0.5">Est. Monthly Revenue</p>
             </div>
           </div>
 

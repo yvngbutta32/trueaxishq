@@ -82,8 +82,8 @@ function AnalyticsPanel() {
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white mb-3" style={{ backgroundColor: s.color }}>
               <s.icon className="w-4 h-4" />
             </div>
-            <p className="text-xl font-extrabold text-[var(--foreground)]">{s.value}</p>
-            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">{s.label}</p>
+            <p className="ledger-num text-xl font-extrabold text-[var(--foreground)]">{s.value}</p>
+            <p className="ledger-label text-xs text-[var(--muted-foreground)] mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
