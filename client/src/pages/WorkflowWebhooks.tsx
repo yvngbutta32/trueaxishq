@@ -8,9 +8,13 @@ import { CheckCircle2, Clipboard, Code2, ExternalLink, Eye, EyeOff, Loader2, Plu
 import { WORKFLOW_WEBHOOK_EVENTS, type WorkflowWebhookEvent } from "@shared/workflowWebhooks";
 
 const eventLabel: Record<WorkflowWebhookEvent, string> = {
+  "app.automation.failed": "Automation run failed",
   "app.booking.created": "New booking created",
   "app.client.created": "New client added",
+  "app.invoice.created": "Invoice created",
+  "app.invoice.overdue": "Invoice overdue",
   "app.invoice.paid": "Invoice paid",
+  "app.job.completed": "Job completed",
   "app.proposal.signed": "Proposal signed",
   "job.status_changed": "Job status changed",
   "service_visit.scheduled": "Service visit scheduled",
@@ -20,7 +24,11 @@ const eventLabel: Record<WorkflowWebhookEvent, string> = {
 const blankForm = () => ({ name: "", endpointUrl: "", events: [] as WorkflowWebhookEvent[] });
 
 const webhookDataExamples: Record<WorkflowWebhookEvent, Record<string, unknown>> = {
+  "app.automation.failed": { automationId: 12, automationName: "Post-session follow-up", errorMessage: "Owner notification service unavailable" },
   "app.booking.created": { bookingId: 1420, service: "Interior painting", date: "2026-09-24", preferredTime: "morning" },
+  "app.invoice.created": { invoiceId: 8807, invoiceNumber: "INV-0088", amount: 950, clientName: "Jordan Reyes" },
+  "app.invoice.overdue": { invoiceId: 8808, invoiceNumber: "INV-0089", amount: 1250, clientName: "Jordan Reyes", dueDate: "2026-09-01" },
+  "app.job.completed": { jobId: 42, jobNumber: "JOB-2026-100483", title: "Water heater replacement" },
   "app.client.created": { clientId: 311, name: "Jordan Reyes", email: null },
   "app.invoice.paid": { invoiceId: 8806, invoiceNumber: "INV-0087", amount: 1250 },
   "app.proposal.signed": { proposalId: 204, signatureName: "Jordan Reyes", total: 4312.5 },

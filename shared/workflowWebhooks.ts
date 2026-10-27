@@ -3,9 +3,13 @@
 // endpoint, no marketplace listing required. Workflow events (the rest) are
 // the same signed pipeline used by internal job automations.
 export const WORKFLOW_WEBHOOK_EVENTS = [
+  "app.automation.failed",
   "app.booking.created",
   "app.client.created",
+  "app.invoice.created",
+  "app.invoice.overdue",
   "app.invoice.paid",
+  "app.job.completed",
   "app.proposal.signed",
   "job.status_changed",
   "service_visit.scheduled",

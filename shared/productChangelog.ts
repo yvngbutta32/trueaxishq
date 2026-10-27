@@ -18,6 +18,12 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-27",
+    title: "Five more webhook triggers for your Zapier and Make automations",
+    tag: "Integrations",
+    description: "Signed webhooks now fire on job completed, invoice created, invoice overdue (exactly once, the moment it flips), and automation run failed — alongside booking created, client created, invoice paid, and proposal signed. Wire finish-the-job follow-ups, dunning, and ops alerting to any HTTPS receiver with no marketplace listing required.",
+  },
+  {
+    date: "2026-10-27",
     title: "Every in-dashboard link now deep-links correctly",
     tag: "Platform",
     description: "The checklist shortcuts, first-hour cards, and Today's-priorities buttons on the Dashboard now sync the ?panel= address the same way the sidebar does — found during a full click-everything health pass and fixed at the source. Refresh keeps your place no matter how you navigated there.",

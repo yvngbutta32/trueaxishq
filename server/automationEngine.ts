@@ -11,6 +11,7 @@ import {
 import { getDb } from "./db";
 import { followUpEmail, sendEmail, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { notifyOwner } from "./_core/notification";
+import { deliverWorkflowWebhookEvent } from "./workflowWebhookDelivery";
 
 export const SUPPORTED_AUTOMATION_ACTIONS = ["send_email", "create_followup", "notify_owner"] as const;
 export type SupportedAutomationAction = (typeof SUPPORTED_AUTOMATION_ACTIONS)[number];
@@ -245,6 +246,11 @@ export async function processDueAutomations(): Promise<void> {
         actionsExecuted: result.actionsExecuted,
         errorMessage: result.issues.length ? result.issues.join(" | ").slice(0, 4000) : null,
       });
+      if (status === "failed") {
+        try {
+          await deliverWorkflowWebhookEvent(db, automation.userId, "app.automation.failed", { automationId: automation.id, automationName: automation.name, trigger: automation.trigger, errorMessage: result.issues.join(" | ").slice(0, 500) });
+        } catch { /* webhook failures never block the automation log */ }
+      }
       if (status === "success") {
         await db.update(automations)
           .set({ runCount: sql`${automations.runCount} + 1`, lastRunAt: new Date() })

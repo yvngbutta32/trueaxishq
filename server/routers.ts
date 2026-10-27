@@ -2243,7 +2243,9 @@ export const appRouter = router({
           dueDate: input.dueDate || null,
           notes: input.notes || null,
         });
-        return { id: Number((result as any).insertId), invoiceNumber, success: true };
+        const invoiceId = Number((result as any).insertId);
+        await deliverWorkflowWebhookEvent(db, ctx.user.id, "app.invoice.created", { invoiceId, invoiceNumber, amount: Number(totalAmount), clientId: input.clientId ?? null, clientName: input.clientName });
+        return { id: invoiceId, invoiceNumber, success: true };
       }),
 
     update: protectedProcedure
@@ -10735,6 +10737,9 @@ Be precise with dollar amounts. If a value is ambiguous, use your best estimate.
         await db.update(jobs).set(updates).where(and(eq(jobs.id, id), eq(jobs.userId, ctx.user.id), eq(jobs.clientId, current.clientId)));
         if (input.status && input.status !== current.status) {
           await deliverWorkflowWebhookEvent(db, ctx.user.id, "job.status_changed", { jobId: id, jobNumber: current.jobNumber, previousStatus: current.status, status: input.status });
+          if (input.status === "completed") {
+            await deliverWorkflowWebhookEvent(db, ctx.user.id, "app.job.completed", { jobId: id, jobNumber: current.jobNumber, title: current.title });
+          }
         }
         return { success: true };
       }),

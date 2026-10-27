@@ -26,6 +26,7 @@ import {
 } from "../drizzle/schema";
 import { sendSms, normalizePhoneToE164 } from "./_core/sms";
 import { sendMeteredSms } from "./_core/smsMeter";
+import { deliverWorkflowWebhookEvent } from "./workflowWebhookDelivery";
 import { sendEmail, invoiceReminderEmail, followUpEmail, monthlyReportEmail, bookingReminderEmail, postSessionCheckInEmail, wasAcceptedByConfiguredSmtp } from "./_core/email";
 import { getRecurringInvoiceDeliveryOutcome } from "./recurringInvoiceDeliveryOutcome";
 import { processDueAutomations } from "./automationEngine";
@@ -165,11 +166,21 @@ async function runOverdueDetection() {
       if (!db) return;
 
       const todayStr = new Date().toISOString().split("T")[0];
+      const [flipping] = await db.execute(
+        sql`SELECT id, userId, invoiceNumber, amount, clientName, dueDate FROM invoices WHERE status = 'sent' AND dueDate IS NOT NULL AND dueDate != '' AND dueDate < ${todayStr}`
+      );
       await db.execute(
         sql`UPDATE invoices SET status = 'overdue' WHERE status = 'sent' AND dueDate IS NOT NULL AND dueDate != '' AND dueDate < ${todayStr}`
       );
+      // One app.invoice.overdue webhook per invoice, fired exactly once at the moment it flips
+      const dueRows = (Array.isArray(flipping) ? flipping : []) as Array<{ id: number; userId: number; invoiceNumber: string | null; amount: string | number | null; clientName: string | null; dueDate: string | null }>;
+      for (const row of dueRows) {
+        try {
+          await deliverWorkflowWebhookEvent(db, row.userId, "app.invoice.overdue", { invoiceId: row.id, invoiceNumber: row.invoiceNumber, amount: row.amount === null ? null : Number(row.amount), clientName: row.clientName, dueDate: row.dueDate });
+        } catch { /* webhook failures never block the overdue sweep */ }
+      }
 
-      console.log(`[Jobs] Overdue detection complete for ${todayStr}`);
+      console.log(`[Jobs] Overdue detection complete for ${todayStr}${dueRows.length ? ` (${dueRows.length} newly overdue)` : ""}`);
       return;
     } catch (err: any) {
       const isTransient = err?.code === "ECONNRESET" || err?.code === "ETIMEDOUT" || err?.code === "ECONNREFUSED";

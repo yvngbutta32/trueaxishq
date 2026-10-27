@@ -44,11 +44,38 @@ describe("app events on the signed webhook pipeline (external integrations witho
     expect(createWebhookSignature(secret, timestamp, body)).toBe(expected);
   });
 
-  it("migration 0078 widens the delivery enum so every allowlisted event is storable", () => {
-    const sql = source("../drizzle/0078_webhook_app_events.sql");
+  it("the latest enum migration can store every allowlisted event (0078 + 0091 together)", () => {
+    const sql = source("../drizzle/0078_webhook_app_events.sql") + source("../drizzle/0091_webhook_more_app_events.sql");
     for (const event of WORKFLOW_WEBHOOK_EVENTS) {
       expect(sql).toContain(`'${event}'`);
     }
+    // 0091 is a superset: the enum is fully restated, never appended
+    const latest = source("../drizzle/0091_webhook_more_app_events.sql");
+    for (const event of WORKFLOW_WEBHOOK_EVENTS) {
+      expect(latest).toContain(`'${event}'`);
+    }
+  });
+
+  it("dispatches the lifecycle events at their real business moments", () => {
+    const routers = source("./routers.ts");
+    // invoice.created fires right after the insert in invoices.create
+    const ci = routers.indexOf("invoiceNumber,");
+    expect(routers).toContain('deliverWorkflowWebhookEvent(db, ctx.user.id, "app.invoice.created"');
+    // job.completed fires only on a real transition into completed
+    const ji = routers.indexOf('"app.job.completed"');
+    expect(ji).toBeGreaterThan(routers.indexOf('"job.status_changed"'));
+    expect(routers.slice(ji - 140, ji + 60)).toContain('input.status === "completed"');
+  });
+
+  it("fires the ops events from the background paths that detect them", () => {
+    const jobs = source("./backgroundJobs.ts");
+    // overdue webhook fires once per invoice, after selecting exactly the rows that flip
+    expect(jobs).toContain('"app.invoice.overdue"');
+    expect(jobs.indexOf("SELECT id, userId, invoiceNumber")).toBeGreaterThan(-1);
+    expect(jobs.indexOf("app.invoice.overdue")).toBeGreaterThan(jobs.indexOf("UPDATE invoices SET status = 'overdue'") - 1);
+    const engine = source("./automationEngine.ts");
+    expect(engine).toContain('"app.automation.failed"');
+    expect(engine).toContain('status === "failed"');
   });
 
   it("the endpoint UI derives its event choices from the shared allowlist — new events appear without UI edits", () => {
