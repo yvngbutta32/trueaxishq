@@ -2,7 +2,8 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
+ * Design: "Mechanical Ledger" — hairline drafting-table form, ledger mono captions,
+ * brand families: navy #1B2D4F / amber #D4922A / pine #1E6B45 / brick #C0392B
  */
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
@@ -62,7 +63,7 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
   const unreadCount = (feed as Array<{ read: boolean }>).filter(f => !f.read).length;
 
   const typeIcon = (type: string) => {
-    if (type === "message") return <MessageSquare className="w-4 h-4 text-blue-500" />;
+    if (type === "message") return <MessageSquare className="w-4 h-4 text-[#1B2D4F]" />;
     if (type === "booking") return <Calendar className="w-4 h-4 text-[#D4922A]" />;
     if (type === "invoice_paid") return <CheckCircle className="w-4 h-4 text-green-500" />;
     if (type === "invoice_overdue") return <AlertCircle className="w-4 h-4 text-red-500" />;
@@ -73,7 +74,7 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
   };
 
   const typeColor = (type: string) => {
-    if (type === "message") return "bg-blue-50 border-blue-500/20";
+    if (type === "message") return "bg-[#1B2D4F]/[0.06] border-[#1B2D4F]/20";
     if (type === "booking") return "bg-amber-500/10 border-amber-500/20";
     if (type === "invoice_paid") return "bg-green-500/10 border-green-100";
     if (type === "invoice_overdue") return "bg-red-500/10 border-red-100";
@@ -127,7 +128,7 @@ function SmartInboxPanel({ setActivePanel }: { setActivePanel: (p: ActivePanel) 
         <div className="space-y-2">
           {filtered.map(item => (
             <div key={item.id}
-              className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer hover:shadow-sm ${
+              className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
                 item.read ? "bg-white border-[var(--border)]" : typeColor(item.type)
               }`}
               onClick={() => {

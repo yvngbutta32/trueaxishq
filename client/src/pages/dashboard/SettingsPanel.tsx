@@ -2,7 +2,8 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
+ * Design: "Mechanical Ledger" — hairline drafting-table form, ledger mono captions,
+ * brand families: navy #1B2D4F / amber #D4922A / pine #1E6B45 / brick #C0392B
  */
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
@@ -46,7 +47,7 @@ import { type ActivePanel, type ConfirmState, type LineItem, Field, FREQUENCY_LA
 // ─── Settings Panel ─────────────────────────────────────────────────────
 // ─── Billing Section (inline in Settings) ─────────────────────────────────────────────────────
 const BILLING_PLAN_ICONS: Record<string, React.ElementType> = { starter: Zap, pro: Star, agency: Crown };
-const BILLING_PLAN_COLORS: Record<string, string> = { starter: "bg-blue-500", pro: "bg-[#D4922A]", agency: "bg-purple-600" };
+const BILLING_PLAN_COLORS: Record<string, string> = { starter: "bg-[#1B2D4F]", pro: "bg-[#D4922A]", agency: "bg-[#1E6B45]" };
 
 function BillingSection() {
   const { isAuthenticated } = useAuth();
@@ -111,7 +112,7 @@ function BillingSection() {
             onClick={() => setBillingInterval(opt)}
             className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all border ${
               billingInterval === opt
-                ? "gradient-amber text-white border-transparent shadow-sm"
+                ? "gradient-amber text-white border-transparent"
                 : "bg-[var(--background)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--border-strong)]"
             }`}
           >
@@ -141,8 +142,8 @@ function BillingSection() {
               <div
                 key={plan.id}
                 className={`rounded-xl border-2 p-4 flex flex-col transition-all ${
-                  plan.highlighted ? "border-[#D4922A] shadow-md shadow-[#D4922A]/10 bg-[#D4922A]/3" :
-                  isCurrent ? "border-blue-300 bg-blue-50/30" :
+                  plan.highlighted ? "border-[#D4922A] bg-[#D4922A]/3" :
+                  isCurrent ? "border-[var(--border-strong)] bg-[var(--muted)]" :
                   "border-[var(--border)] bg-[var(--background)] hover:border-[var(--border)]"
                 }`}
               >
@@ -905,7 +906,7 @@ function SettingsPanel() {
             <button
               onClick={() => avatarInputRef.current?.click()}
               disabled={avatarUploading}
-              className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-[#D4922A] flex items-center justify-center shadow-md hover:bg-[#D4911A] transition-colors disabled:opacity-50"
+              className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-[#D4922A] flex items-center justify-center border-2 border-white hover:bg-[#D4911A] transition-colors disabled:opacity-50"
               aria-label="Change profile photo"
             >
               {avatarUploading ? <Loader2 className="w-3 h-3 text-white animate-spin" /> : <Camera className="w-3 h-3 text-white" />}
@@ -1167,7 +1168,7 @@ function SettingsPanel() {
               href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(issuedCalendarFeedUrl.replace(/^https?:/, "webcal:"))}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-500/15 text-blue-400 text-xs font-semibold transition-colors border border-blue-500/20"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[#1B2D4F]/[0.06] hover:bg-[#1B2D4F]/15 text-[#1B2D4F] text-xs font-semibold transition-colors border border-[#1B2D4F]/20"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.5 3h-3V1.5h-1.5V3h-6V1.5H7.5V3h-3C3.675 3 3 3.675 3 4.5v15C3 20.325 3.675 21 4.5 21h15c.825 0 1.5-.675 1.5-1.5v-15c0-.825-.675-1.5-1.5-1.5zm0 16.5h-15V9h15v10.5zM7.5 4.5V6H9V4.5h6V6h1.5V4.5h1.5V7.5h-12V4.5h1.5z"/></svg>
               Add to Google Calendar
@@ -1297,8 +1298,8 @@ function IntegrationsSection() {
       {/* Google Calendar */}
       <div className="flex items-center justify-between gap-4 py-3 border-b border-[var(--border)]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-            <Calendar className="w-5 h-5 text-blue-500" />
+          <div className="w-10 h-10 rounded-xl bg-[#1B2D4F]/[0.06] flex items-center justify-center flex-shrink-0">
+            <Calendar className="w-5 h-5 text-[#1B2D4F]" />
           </div>
           <div>
             <p className="text-sm font-semibold text-[var(--foreground)]">Google Calendar</p>

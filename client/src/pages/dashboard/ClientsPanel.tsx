@@ -2,7 +2,8 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
+ * Design: "Mechanical Ledger" — hairline drafting-table form, ledger mono captions,
+ * brand families: navy #1B2D4F / amber #D4922A / pine #1E6B45 / brick #C0392B
  */
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
@@ -48,7 +49,7 @@ const PIPELINE_STAGES = [
   { id: "proposal_sent" as const, label: "Proposal Sent", color: "#D4922A", bg: "rgba(212,146,42,0.15)", desc: "Awaiting decision" },
   { id: "active" as const, label: "Active", color: "#00C9A7", bg: "rgba(0,201,167,0.15)", desc: "Current clients" },
   { id: "completed" as const, label: "Completed", color: "#3B82F6", bg: "rgba(59,130,246,0.15)", desc: "Finished projects" },
-  { id: "lost" as const, label: "Lost", color: "#EF4444", bg: "rgba(239,68,68,0.15)", desc: "Didn't convert" },
+  { id: "lost" as const, label: "Lost", color: "#C0392B", bg: "rgba(192,57,43,0.12)", desc: "Didn't convert" },
 ];
 type PipelineStageId = "inquiry" | "proposal_sent" | "active" | "completed" | "lost";
 
@@ -445,7 +446,7 @@ function ClientsPanel() {
                   const score = p.healthScore;
                   const isGood = score >= 70;
                   const isMid = score >= 40;
-                  const bg = isGood ? "#22c55e" : isMid ? "#f59e0b" : "#ef4444";
+                  const bg = isGood ? "#1E6B45" : isMid ? "#8A5E10" : "#C0392B";
                   const label = isGood ? "Healthy" : isMid ? "Needs attention" : "At risk";
                   return (
                     <span
@@ -519,7 +520,7 @@ function ClientsPanel() {
               {(["info", "tags", "messages"] as const).map(t => (
                 <button key={t} onClick={() => setProfileTab(t)}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-                    profileTab === t ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[var(--foreground-soft)] hover:text-[#2A2A2A]"
+                    profileTab === t ? "bg-[#D4922A]/20 text-[#D4922A]" : "text-[var(--foreground-soft)] hover:text-[#2A2A2A]"
                   }`}>
                   {t === "messages" ? "Messages" : t === "tags" ? "Tags" : "Info"}
                 </button>
@@ -675,7 +676,7 @@ function ClientsPanel() {
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 gap-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+                    className="flex-1 gap-2 border-[#1B2D4F]/20 text-[#1B2D4F] hover:bg-[#1B2D4F]/[0.06]"
                     onClick={() => getPortalToken.mutate({ clientId: selectedClient.id, origin: window.location.origin })}
                     disabled={getPortalToken.isPending}
                   >
@@ -719,7 +720,7 @@ function ClientsPanel() {
       <Modal open={showCsvImport} onClose={() => { setShowCsvImport(false); setCsvText(""); setCsvPreview([]); }} title="Import Clients from CSV">
         <div className="space-y-4">
           {/* Info + Download Template */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800 flex items-start justify-between gap-3">
+          <div className="bg-[#1B2D4F]/[0.05] border border-[#1B2D4F]/15 rounded-xl p-3 text-xs text-[#1B2D4F] flex items-start justify-between gap-3">
             <div>
               <strong>Expected columns:</strong> name, email, phone, service, status (active/inactive/prospect). First row can be a header row — works with exports from HoneyBook, Dubsado, 17hats, Notion, and most CRMs.
             </div>
@@ -731,7 +732,7 @@ function ClientsPanel() {
                 const a = document.createElement("a"); a.href = url; a.download = "clients-import-template.csv"; a.click();
                 URL.revokeObjectURL(url);
               }}
-              className="flex-shrink-0 text-blue-700 underline underline-offset-2 font-semibold hover:text-blue-900 whitespace-nowrap"
+              className="flex-shrink-0 text-[#1B2D4F] underline underline-offset-2 font-semibold hover:text-[#2A3E63] whitespace-nowrap"
             >
               Download Template
             </button>

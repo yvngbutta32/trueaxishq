@@ -88,7 +88,7 @@ export default function Expenses() {
         <div className="flex items-center gap-2">
           <div className="flex bg-[var(--muted)] rounded-lg p-0.5">
             {(["pnl","list"] as const).map(v => (
-              <button key={v} onClick={() => setView(v)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === v ? "bg-white text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"}`}>
+              <button key={v} onClick={() => setView(v)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${view === v ? "bg-white text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"}`}>
                 {v === "pnl" ? "P&L Report" : "Expense List"}
               </button>
             ))}

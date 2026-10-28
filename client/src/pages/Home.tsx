@@ -721,6 +721,7 @@ function FeaturesSection() {
                   {f.tag}
                 </span>
               </div>
+              <div className="ledger-label mb-2" aria-hidden="true">{String(i + 1).padStart(2, "0")}</div>
               <h3 className="font-bold mb-2" style={{ color: "var(--foreground)", fontSize: "1.0625rem" }}>
                 {f.title}
               </h3>
@@ -912,7 +913,7 @@ function HowItWorksSection() {
   const active = tabs[activeTab];
 
   return (
-    <section id="how-it-works" className="py-20" style={{ background: "#F2F0EC" }}>
+    <section id="how-it-works" className="py-16" style={{ background: "#F2F0EC" }}>
       <div className="container">
         <Reveal>
         <div className="text-center mb-12">

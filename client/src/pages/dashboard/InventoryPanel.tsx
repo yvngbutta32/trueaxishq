@@ -219,7 +219,7 @@ function PurchaseOrdersTab() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-bold text-[var(--foreground)]">{formatCurrency(num(order.totalAmount))}</p>
-                  {order.status === "draft" && <Button size="sm" variant="outline" className="border-blue-200 text-blue-800 hover:bg-blue-50" disabled={submitPO.isPending} onClick={() => submitPO.mutate({ id: order.id })}>Submit</Button>}
+                  {order.status === "draft" && <Button size="sm" variant="outline" className="border-[#1B2D4F]/20 text-[#1B2D4F] hover:bg-[#1B2D4F]/[0.06]" disabled={submitPO.isPending} onClick={() => submitPO.mutate({ id: order.id })}>Submit</Button>}
                   {order.status === "ordered" && <Button size="sm" variant="outline" className="border-emerald-200 text-emerald-800 hover:bg-emerald-50" disabled={receivePO.isPending} onClick={() => receivePO.mutate({ id: order.id })}><RefreshCw className="h-3.5 w-3.5 mr-1" /> Receive</Button>}
                   {(order.status === "draft" || order.status === "ordered") && <Button size="sm" variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50" onClick={() => setPendingCancel(order)}>Cancel</Button>}
                 </div>

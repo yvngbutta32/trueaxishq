@@ -2,7 +2,8 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
+ * Design: "Mechanical Ledger" — hairline drafting-table form, ledger mono captions,
+ * brand families: navy #1B2D4F / amber #D4922A / pine #1E6B45 / brick #C0392B
  */
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
@@ -56,14 +57,14 @@ function AnalyticsPanel() {
 
   const stats = [
     { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), icon: DollarSign, color: "#D4922A" },
-    { label: "Active Clients", value: String(analytics?.activeClients || 0), icon: Users, color: "#6366F1" },
-    { label: "Sessions Booked", value: String(analytics?.completedSessions || 0), icon: Calendar, color: "#F59E0B" },
-    { label: "Conversion Rate", value: analytics?.totalClients ? `${Math.round((analytics.activeClients / analytics.totalClients) * 100)}%` : "0%", icon: TrendingUp, color: "#FF6B6B" },
+    { label: "Active Clients", value: String(analytics?.activeClients || 0), icon: Users, color: "#1B2D4F" },
+    { label: "Sessions Booked", value: String(analytics?.completedSessions || 0), icon: Calendar, color: "#1E6B45" },
+    { label: "Conversion Rate", value: analytics?.totalClients ? `${Math.round((analytics.activeClients / analytics.totalClients) * 100)}%` : "0%", icon: TrendingUp, color: "#C0392B" },
   ];
 
   const pieData = [
     { name: "Active", value: analytics?.activeClients || 0, color: "#D4922A" },
-    { name: "Prospects", value: analytics?.totalClients || 0, color: "#6366F1" },
+    { name: "Prospects", value: analytics?.totalClients || 0, color: "#1B2D4F" },
     { name: "Inactive", value: analytics?.activeClients || 0, color: "#E5E7EB" },
   ].filter(d => d.value > 0);
 
@@ -210,7 +211,7 @@ function AnalyticsPanel() {
                       <span className="text-sm font-bold text-[#D4922A] ml-2 flex-shrink-0">{formatCurrency(c.ltv)}</span>
                     </div>
                     <div className="h-1.5 bg-[var(--muted)] rounded-full overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${Math.min((c.ltv / analytics.clientLTV[0].ltv) * 100, 100)}%`, background: i === 0 ? "#D4922A" : "#6366F1" }} />
+                      <div className="h-full rounded-full" style={{ width: `${Math.min((c.ltv / analytics.clientLTV[0].ltv) * 100, 100)}%`, background: i === 0 ? "#D4922A" : "#1B2D4F" }} />
                     </div>
                     <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">{c.invoiceCount} invoice{c.invoiceCount !== 1 ? "s" : ""}</p>
                   </div>
@@ -228,7 +229,7 @@ function AnalyticsPanel() {
               {analytics.referralSources.slice(0, 6).map((s, i) => {
                 const total = analytics.referralSources.reduce((sum: number, r) => sum + r.count, 0);
                 const pct = total > 0 ? Math.round((s.count / total) * 100) : 0;
-                const colors = ["#D4922A", "#6366F1", "#5A9A7A", "#FF6B6B", "#F59E0B", "#8B5CF6"];
+                const colors = ["#D4922A", "#1B2D4F", "#1E6B45", "#C0392B", "#8A5E10", "#6B7280"];
                 return (
                   <div key={s.source} className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: colors[i % colors.length] }} />

@@ -39,7 +39,7 @@ export default function StaffAccess() {
 
   return (
     <main className="min-h-screen bg-[var(--background)] px-4 py-10">
-      <section className="mx-auto max-w-lg rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-6 shadow-sm">
+      <section className="mx-auto max-w-lg rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-6">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#D4922A]/15 text-[#8A5A0B]"><UsersRound className="h-5 w-5" /></div>
         <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-[#D4922A]">Private staff access</p>
         <h1 className="mt-1 text-2xl font-bold text-[var(--foreground)]">Join {invite.teamMemberName}&apos;s assigned work</h1>
@@ -90,5 +90,5 @@ function Field({ label, value, setValue, type = "text", autoComplete }: { label:
 }
 
 function Recovery({ title, detail }: { title: string; detail: string }) {
-  return <main className="grid min-h-screen place-items-center bg-[var(--background)] p-4"><section className="max-w-md rounded-lg bg-white p-7 text-center shadow-sm"><h1 className="text-xl font-bold text-[var(--foreground)]">{title}</h1><p className="mt-2 text-sm leading-6 text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">{detail}</p></section></main>;
+  return <main className="grid min-h-screen place-items-center bg-[var(--background)] p-4"><section className="max-w-md rounded-lg bg-white p-7 text-center"><h1 className="text-xl font-bold text-[var(--foreground)]">{title}</h1><p className="mt-2 text-sm leading-6 text-[color-mix(in oklab, var(--foreground) 62%, transparent)]">{detail}</p></section></main>;
 }

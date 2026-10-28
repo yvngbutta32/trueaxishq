@@ -51,7 +51,7 @@ function MobileQuickStats() {
       {/* Active Clients */}
       <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
         <div className="flex items-center gap-1">
-          <Users className="w-3 h-3 text-[#818CF8]" />
+          <Users className="w-3 h-3 text-[#8FA6C9]" />
           <span className="ledger-num text-xs font-extrabold text-white">{activeClients}</span>
         </div>
         <span className="text-[9px] text-white/55 font-medium uppercase tracking-wide">Clients</span>
@@ -60,7 +60,7 @@ function MobileQuickStats() {
       {/* Today's Sessions */}
       <div className="flex-1 flex flex-col items-center gap-0.5 py-2">
         <div className="flex items-center gap-1">
-          <Calendar className="w-3 h-3 text-[#F59E0B]" />
+          <Calendar className="w-3 h-3 text-[#D4922A]" />
           <span className="text-xs font-extrabold text-white">{todaySessions}</span>
         </div>
         <span className="text-[9px] text-white/55 font-medium uppercase tracking-wide">Today</span>
@@ -139,7 +139,7 @@ function MobileBottomNav({ active, setActive }: { active: ActivePanel; setActive
                     }`}
                   >
                     {item.badge && (
-                      <span className="absolute top-1.5 right-1.5 text-[8px] font-bold bg-violet-500/30 text-violet-300 px-1 py-0.5 rounded-full leading-none">
+                      <span className="absolute top-1.5 right-1.5 text-[8px] font-bold bg-[#D4922A]/30 text-[#FFD9A0] px-1 py-0.5 rounded-full leading-none">
                         {item.badge}
                       </span>
                     )}

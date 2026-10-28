@@ -2,7 +2,8 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
+ * Design: "Mechanical Ledger" — hairline drafting-table form, ledger mono captions,
+ * brand families: navy #1B2D4F / amber #D4922A / pine #1E6B45 / brick #C0392B
  */
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
@@ -66,7 +67,7 @@ function TestimonialsPanel() {
   });
 
   const statusColors: Record<string, string> = {
-    requested: "bg-blue-500/15 text-blue-400",
+    requested: "bg-[#1B2D4F]/10 text-[#1B2D4F]",
     submitted: "bg-amber-500/15 text-amber-400",
     approved: "bg-green-500/15 text-green-400",
     rejected: "bg-[var(--muted)] text-[var(--foreground-soft)]",

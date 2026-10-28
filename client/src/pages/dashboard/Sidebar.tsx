@@ -21,7 +21,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-full bg-[#1B2D4F] border-r border-[#243A5E] flex flex-col transition-all duration-300 z-40 shadow-lg ${collapsed ? "w-16" : "w-60"}`}
+      className={`fixed left-0 top-0 h-full bg-[#1B2D4F] border-r border-[#243A5E] flex flex-col transition-all duration-300 z-40 ${collapsed ? "w-16" : "w-60"}`}
       aria-label="Main navigation"
     >
       {/* Logo — click navigates to dashboard */}

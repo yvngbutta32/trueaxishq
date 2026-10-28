@@ -20,7 +20,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
   icon: React.ElementType; label: string; value: string | number; sub?: string; color: string;
 }) {
   return (
-    <article className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+    <article className="bg-[#161B22] rounded-xl p-6 border border-white/8">
       <div className="flex items-center justify-between mb-4">
         <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${color}`}>
           <Icon className="w-5 h-5 text-white" />
@@ -376,7 +376,7 @@ export default function Admin() {
               </div>
             )}
 
-            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
               <h3 className="text-base font-bold text-[#F5EFE3] mb-5">Plan Distribution</h3>
               <div className="space-y-4">
                 {[
@@ -422,7 +422,7 @@ export default function Admin() {
               />
             </div>
 
-            <div className="bg-[#161B22] rounded-xl border border-white/8 shadow-sm overflow-hidden">
+            <div className="bg-[#161B22] rounded-xl border border-white/8 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -595,7 +595,7 @@ export default function Admin() {
                 Export CSV
               </Button>
             </div>
-            <div className="bg-[#161B22] rounded-xl border border-white/8 overflow-hidden shadow-sm">
+            <div className="bg-[#161B22] rounded-xl border border-white/8 overflow-hidden">
               <div className="hidden sm:grid grid-cols-4 gap-4 px-6 py-3 bg-[#1C2333] text-xs font-semibold text-[rgba(245,239,227,0.60)] uppercase tracking-wide">
                 <span>Name</span><span>Email</span><span>Source</span><span>Date</span>
               </div>
@@ -634,7 +634,7 @@ export default function Admin() {
           <section aria-label="Broadcast notification">
             <h2 className="text-xl font-bold text-[#F5EFE3] mb-2">Send Broadcast</h2>
             <p className="text-sm text-[rgba(245,239,227,0.60)] mb-6">Send an owner notification — useful for tracking important events or reminders.</p>
-            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm max-w-xl">
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 max-w-xl">
               <form onSubmit={e => { e.preventDefault(); if (!broadcastTitle.trim() || !broadcastContent.trim()) { toast.error("Please fill in both fields"); return; } broadcastMutation.mutate({ title: broadcastTitle, content: broadcastContent }); }} noValidate>
                 <div className="mb-4">
                   <label htmlFor="broadcast-title" className="form-label">Title *</label>
@@ -682,7 +682,7 @@ export default function Admin() {
               <div className="space-y-6">
 
                 {/* Site Identity */}
-                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
                   <h3 className="text-base font-bold text-[#F5EFE3] mb-5 flex items-center gap-2">
                     <Globe className="w-4 h-4 text-[#D4922A]" />
                     Site Identity
@@ -712,7 +712,7 @@ export default function Admin() {
                 </div>
 
                 {/* Announcement Banner */}
-                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
                   <div className="flex items-center justify-between mb-5">
                     <h3 className="text-base font-bold text-[#F5EFE3] flex items-center gap-2">
                       <Megaphone className="w-4 h-4 text-[#D4922A]" />
@@ -754,7 +754,7 @@ export default function Admin() {
                 </div>
 
                 {/* Social Links */}
-                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
                   <h3 className="text-base font-bold text-[#F5EFE3] mb-5 flex items-center gap-2">
                     <Globe className="w-4 h-4 text-[#D4922A]" />
                     Social Media Links
@@ -778,7 +778,7 @@ export default function Admin() {
                 </div>
 
                 {/* Feature Flags */}
-                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
                   <h3 className="text-base font-bold text-[#F5EFE3] mb-5 flex items-center gap-2">
                     <Zap className="w-4 h-4 text-[#D4922A]" />
                     Feature Flags
@@ -809,7 +809,7 @@ export default function Admin() {
                 </div>
 
                 {/* Maintenance Mode */}
-                <div className={`bg-[#161B22] rounded-xl p-6 border shadow-sm ${settingsForm.maintenanceMode ? "border-red-200 bg-red-50/30" : "border-white/8"}`}>
+                <div className={`bg-[#161B22] rounded-xl p-6 border ${settingsForm.maintenanceMode ? "border-red-200 bg-red-50/30" : "border-white/8"}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-base font-bold text-[#F5EFE3] flex items-center gap-2">
                       <Lock className="w-4 h-4 text-red-500" />
@@ -830,7 +830,7 @@ export default function Admin() {
                 </div>
 
                 {/* Change Admin Password */}
-                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
                   <h3 className="text-base font-bold text-[#F5EFE3] mb-5 flex items-center gap-2">
                     <KeyRound className="w-4 h-4 text-[#D4922A]" />
                     Change Admin Password
@@ -907,7 +907,7 @@ export default function Admin() {
                   </div>
                 </div>
 
-                <div className="bg-[#161B22] rounded-xl p-6 border border-red-400/20 shadow-sm">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-red-400/20">
                   <h3 className="text-base font-bold text-[#F5EFE3] flex items-center gap-2">
                     <Shield className="w-4 h-4 text-red-300" />
                     Account session control
@@ -961,7 +961,7 @@ export default function Admin() {
               <div className="space-y-6">
                 {/* Status indicators */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="bg-[#161B22] rounded-xl p-5 border border-white/8 shadow-sm">
+                  <div className="bg-[#161B22] rounded-xl p-5 border border-white/8">
                     <div className="flex items-center gap-3 mb-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${health.dbStatus === "healthy" ? "bg-emerald-500/15" : "bg-red-500/15"}`}>
                         <Database className={`w-5 h-5 ${health.dbStatus === "healthy" ? "text-emerald-600" : "text-red-600"}`} />
@@ -977,7 +977,7 @@ export default function Admin() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-[#161B22] rounded-xl p-5 border border-white/8 shadow-sm">
+                  <div className="bg-[#161B22] rounded-xl p-5 border border-white/8">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center">
                         <Server className="w-5 h-5 text-blue-600" />
@@ -992,7 +992,7 @@ export default function Admin() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-[#161B22] rounded-xl p-5 border border-white/8 shadow-sm">
+                  <div className="bg-[#161B22] rounded-xl p-5 border border-white/8">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center">
                         <Activity className="w-5 h-5 text-purple-600" />
@@ -1006,7 +1006,7 @@ export default function Admin() {
                 </div>
 
                 {/* Data counts */}
-                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
                   <h3 className="text-base font-bold text-[#F5EFE3] mb-5">Platform Data</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                     {[
@@ -1027,7 +1027,7 @@ export default function Admin() {
                 </div>
 
                 {/* Quick actions */}
-                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+                <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
                   <h3 className="text-base font-bold text-[#F5EFE3] mb-4">Quick Actions</h3>
                   <div className="flex flex-wrap gap-3">
                     <Button variant="outline" size="sm" className="gap-2" onClick={() => { healthQuery.refetch(); statsQuery.refetch(); toast.success("All data refreshed"); }}>
@@ -1071,7 +1071,7 @@ export default function Admin() {
           <section id="security-content" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
 
             {/* Watchdog Status */}
-            <div className={`rounded-xl p-6 border shadow-sm ${
+            <div className={`rounded-xl p-6 border ${
               watchdogQuery.data?.healthy === false
                 ? "bg-red-50 border-red-200"
                 : watchdogQuery.data?.healthy === true
@@ -1136,7 +1136,7 @@ export default function Admin() {
                   { label: "Rate Limited IPs", value: securityStatsQuery.data.activeWindows, color: "text-orange-600", bg: "bg-orange-50" },
                   { label: "Unresolved Events", value: securityEventsQuery.data?.length ?? 0, color: "text-purple-600", bg: "bg-purple-50" },
                 ].map(stat => (
-                  <div key={stat.label} className={`${stat.bg} rounded-xl p-5 border border-white shadow-sm`}>
+                  <div key={stat.label} className={`${stat.bg} rounded-xl p-5 border border-white`}>
                     <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
                     <p className="text-xs text-[rgba(245,239,227,0.60)] mt-1">{stat.label}</p>
                   </div>
@@ -1145,7 +1145,7 @@ export default function Admin() {
             )}
 
             {/* IP Management */}
-            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
               <h3 className="text-base font-bold text-[#F5EFE3] mb-4">IP Management</h3>
               <div className="grid sm:grid-cols-2 gap-6">
                 {/* Block IP */}
@@ -1207,7 +1207,7 @@ export default function Admin() {
             </div>
 
             {/* Account Lockout Management */}
-            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
               <h3 className="text-base font-bold text-[#F5EFE3] mb-4">Account Lockout Management</h3>
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="space-y-3">
@@ -1252,7 +1252,7 @@ export default function Admin() {
             </div>
 
             {/* Security Events Log */}
-            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <h3 className="text-base font-bold text-[#F5EFE3]">Security Event Log</h3>
                 <div className="flex flex-wrap items-center gap-2">
@@ -1376,7 +1376,7 @@ export default function Admin() {
         {/* Invite Codes Tab */}
         {activeTab === "invites" && (
           <section aria-label="Invite Codes" className="space-y-6">
-            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
               <h3 className="text-base font-bold text-[#F5EFE3] mb-4">Generate Invite Code</h3>
               <div className="flex gap-3">
                 <input
@@ -1394,7 +1394,7 @@ export default function Admin() {
                 </Button>
               </div>
             </div>
-            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8 shadow-sm">
+            <div className="bg-[#161B22] rounded-xl p-6 border border-white/8">
               <h3 className="text-base font-bold text-[#F5EFE3] mb-4">Active Invite Codes</h3>
               {invitesQuery.isLoading ? (
                 <div className="py-8 text-center text-[rgba(245,239,227,0.60)]">Loading...</div>

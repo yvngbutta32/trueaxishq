@@ -107,7 +107,7 @@ export default function Billing() {
         </div>
 
         {/* Current Plan Card */}
-        <section aria-label="Current subscription" className="bg-white rounded-xl border border-[var(--border)] shadow-sm p-6 mb-8">
+        <section aria-label="Current subscription" className="bg-white rounded-xl border border-[var(--border)] p-6 mb-8">
           <h2 className="text-base font-bold text-[var(--foreground)] mb-4">Current Plan</h2>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
@@ -171,7 +171,7 @@ export default function Billing() {
                 aria-pressed={billingCycle === opt}
                 className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all min-h-[40px] ${
                   billingCycle === opt
-                    ? "gradient-amber text-white shadow-sm"
+                    ? "gradient-amber text-white"
                     : "text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[var(--foreground)]"
                 }`}
               >
@@ -207,7 +207,7 @@ export default function Billing() {
                     key={plan.id}
                     className={`bg-white rounded-xl border-2 p-6 flex flex-col transition-all ${
                       plan.highlighted
-                        ? "border-[#D4922A] shadow-lg shadow-[#D4922A]/10"
+                        ? "border-[#D4922A]"
                         : isCurrent
                         ? "border-blue-400/60"
                         : "border-[var(--border)] hover:border-[var(--border-strong)]"

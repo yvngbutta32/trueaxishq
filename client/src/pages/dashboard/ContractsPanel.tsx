@@ -2,7 +2,8 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
+ * Design: "Mechanical Ledger" — hairline drafting-table form, ledger mono captions,
+ * brand families: navy #1B2D4F / amber #D4922A / pine #1E6B45 / brick #C0392B
  */
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
@@ -235,7 +236,7 @@ This agreement is governed by the laws of [State/Country].`,
 
   const statusColors: Record<string, string> = {
     draft: "bg-[var(--muted)] text-[var(--muted-foreground)]",
-    sent: "bg-blue-500/15 text-blue-400",
+    sent: "bg-[#1B2D4F]/10 text-[#1B2D4F]",
     signed: "bg-green-500/15 text-green-400",
     declined: "bg-red-500/15 text-red-400",
     expired: "bg-orange-500/15 text-orange-400",
@@ -290,11 +291,11 @@ This agreement is governed by the laws of [State/Country].`,
       ) : (
         <div className="space-y-3">
           {list.map(c => (
-            <div key={c.id} className="bg-white rounded-xl border border-[var(--border)] p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedId(selectedId === c.id ? null : c.id)}>
+            <div key={c.id} className="bg-white rounded-xl border border-[var(--border)] p-4 hover:border-[#D4922A]/40 transition-colors cursor-pointer" onClick={() => setSelectedId(selectedId === c.id ? null : c.id)}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${ c.type === "proposal" ? "bg-violet-500/15 text-violet-400" : "bg-blue-500/15 text-blue-400" }`}>{c.type}</span>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${ c.type === "proposal" ? "bg-[#D4922A]/15 text-[#8A5E10]" : "bg-[#1B2D4F]/10 text-[#1B2D4F]" }`}>{c.type}</span>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${statusColors[c.status] || "bg-[var(--muted)] text-[var(--muted-foreground)]"}`}>{c.status}</span>
                     {c.proposalAmount && <span className="text-xs font-semibold text-[#D4922A]">{formatCurrency(c.proposalAmount)}</span>}
                   </div>
@@ -302,7 +303,7 @@ This agreement is governed by the laws of [State/Country].`,
                   <p className="text-sm text-[var(--muted-foreground)]">{c.clientName}{c.clientEmail ? ` · ${c.clientEmail}` : ""}</p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <button onClick={e => { e.stopPropagation(); setPreviewContract(c); }} className="p-2 rounded-lg hover:bg-blue-50 transition-colors" aria-label="Preview" title="Preview"><Eye className="w-3.5 h-3.5 text-blue-500" /></button>
+                  <button onClick={e => { e.stopPropagation(); setPreviewContract(c); }} className="p-2 rounded-lg hover:bg-[#1B2D4F]/[0.06] transition-colors" aria-label="Preview" title="Preview"><Eye className="w-3.5 h-3.5 text-[#1B2D4F]" /></button>
                   <button onClick={e => { e.stopPropagation(); openEdit(c); }} className="p-2 rounded-lg hover:bg-[var(--muted)] transition-colors" aria-label="Edit"><Edit2 className="w-3.5 h-3.5 text-[var(--muted-foreground)]" /></button>
                   {c.type === "proposal" && c.status === "signed" && !c.linkedInvoiceId && (
                     <button onClick={e => { e.stopPropagation(); convertMut.mutate({ id: c.id }); }} className="p-2 rounded-lg hover:bg-green-500/10 transition-colors" aria-label="Convert to invoice" title="Convert to Invoice"><ArrowUpRight className="w-3.5 h-3.5 text-green-600" /></button>
@@ -315,7 +316,7 @@ This agreement is governed by the laws of [State/Country].`,
                 <div className="mt-4 pt-4 border-t border-[var(--border)]">
                   <div className="bg-[var(--background)] rounded-xl p-4 text-sm text-[#2A2A2A] whitespace-pre-wrap font-mono leading-relaxed max-h-64 overflow-y-auto">{selected.body}</div>
                   <div className="flex items-center gap-3 mt-3">
-                    {c.status === "draft" && <button onClick={e => { e.stopPropagation(); updateMut.mutate({ id: c.id, status: "sent" }); }} className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1"><Send className="w-3 h-3" /> Mark as Sent</button>}
+                    {c.status === "draft" && <button onClick={e => { e.stopPropagation(); updateMut.mutate({ id: c.id, status: "sent" }); }} className="text-xs font-semibold text-[#1B2D4F] hover:underline flex items-center gap-1"><Send className="w-3 h-3" /> Mark as Sent</button>}
                     {c.status === "sent" && <button onClick={e => { e.stopPropagation(); updateMut.mutate({ id: c.id, status: "signed" }); }} className="text-xs font-semibold text-green-600 hover:underline flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Mark as Signed</button>}
                     {c.status === "sent" && <button onClick={e => { e.stopPropagation(); updateMut.mutate({ id: c.id, status: "declined" }); }} className="text-xs font-semibold text-red-500 hover:underline">Mark as Declined</button>}
                     {c.expiresAt && <span className="text-xs text-[var(--muted-foreground)] ml-auto">Expires {formatDate(c.expiresAt)}</span>}
@@ -394,11 +395,11 @@ This agreement is governed by the laws of [State/Country].`,
             <div className="flex items-start justify-between mb-5">
               <div>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide mr-2 ${
-                  previewContract.type === "proposal" ? "bg-violet-500/15 text-violet-400" : "bg-blue-500/15 text-blue-400"
+                  previewContract.type === "proposal" ? "bg-[#D4922A]/15 text-[#8A5E10]" : "bg-[#1B2D4F]/10 text-[#1B2D4F]"
                 }`}>{previewContract.type}</span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${
                   previewContract.status === "signed" ? "bg-green-500/15 text-green-400" :
-                  previewContract.status === "sent" ? "bg-blue-500/15 text-blue-400" :
+                  previewContract.status === "sent" ? "bg-[#1B2D4F]/10 text-[#1B2D4F]" :
                   previewContract.status === "declined" ? "bg-red-500/15 text-red-400" :
                   "bg-[var(--muted)] text-[var(--muted-foreground)]"
                 }`}>{previewContract.status}</span>

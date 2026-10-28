@@ -22,6 +22,182 @@
 ═══════════════════════════════════════════════════════════════════════════════ */
 
 @theme {
+  /* ── Harmonized status ramp: Tailwind color names → brand families ──────
+     One red (brick #C0392B), one green (pine #1E6B45), one amber (ledger #D4922A),
+     one blue/sky/indigo (navy #1B2D4F family). Every status chip, banner, icon and
+     chart in the app resolves here — cohesion without touching a single class string. */
+  --color-red-50: #FAF0EE;
+  --color-red-100: #F3DCD8;
+  --color-red-200: #E5B7AF;
+  --color-red-300: #D98D80;
+  --color-red-400: #CD6554;
+  --color-red-500: #C0392B;
+  --color-red-600: #A0301F;
+  --color-red-700: #822619;
+  --color-red-800: #641D14;
+  --color-red-900: #4A140E;
+  --color-rose-50: #FAF0EE;
+  --color-rose-100: #F3DCD8;
+  --color-rose-200: #E5B7AF;
+  --color-rose-300: #D98D80;
+  --color-rose-400: #CD6554;
+  --color-rose-500: #C0392B;
+  --color-rose-600: #A0301F;
+  --color-rose-700: #822619;
+  --color-rose-800: #641D14;
+  --color-rose-900: #4A140E;
+  --color-pink-50: #FAF0EE;
+  --color-pink-100: #F3DCD8;
+  --color-pink-200: #E5B7AF;
+  --color-pink-300: #D98D80;
+  --color-pink-400: #CD6554;
+  --color-pink-500: #C0392B;
+  --color-pink-600: #A0301F;
+  --color-pink-700: #822619;
+  --color-pink-800: #641D14;
+  --color-pink-900: #4A140E;
+  --color-fuchsia-50: #FAF0EE;
+  --color-fuchsia-100: #F3DCD8;
+  --color-fuchsia-200: #E5B7AF;
+  --color-fuchsia-300: #D98D80;
+  --color-fuchsia-400: #CD6554;
+  --color-fuchsia-500: #C0392B;
+  --color-fuchsia-600: #A0301F;
+  --color-fuchsia-700: #822619;
+  --color-fuchsia-800: #641D14;
+  --color-fuchsia-900: #4A140E;
+  --color-green-50: #F0F5F2;
+  --color-green-100: #DEEAE1;
+  --color-green-200: #BBD4C3;
+  --color-green-300: #93B99E;
+  --color-green-400: #5C9275;
+  --color-green-500: #1E6B45;
+  --color-green-600: #175537;
+  --color-green-700: #13442D;
+  --color-green-800: #0F3424;
+  --color-green-900: #0B2418;
+  --color-emerald-50: #F0F5F2;
+  --color-emerald-100: #DEEAE1;
+  --color-emerald-200: #BBD4C3;
+  --color-emerald-300: #93B99E;
+  --color-emerald-400: #5C9275;
+  --color-emerald-500: #1E6B45;
+  --color-emerald-600: #175537;
+  --color-emerald-700: #13442D;
+  --color-emerald-800: #0F3424;
+  --color-emerald-900: #0B2418;
+  --color-lime-50: #F0F5F2;
+  --color-lime-100: #DEEAE1;
+  --color-lime-200: #BBD4C3;
+  --color-lime-300: #93B99E;
+  --color-lime-400: #5C9275;
+  --color-lime-500: #1E6B45;
+  --color-lime-600: #175537;
+  --color-lime-700: #13442D;
+  --color-lime-800: #0F3424;
+  --color-lime-900: #0B2418;
+  --color-teal-50: #F0F5F2;
+  --color-teal-100: #DEEAE1;
+  --color-teal-200: #BBD4C3;
+  --color-teal-300: #93B99E;
+  --color-teal-400: #5C9275;
+  --color-teal-500: #1E6B45;
+  --color-teal-600: #175537;
+  --color-teal-700: #13442D;
+  --color-teal-800: #0F3424;
+  --color-teal-900: #0B2418;
+  --color-amber-50: #FBF6EB;
+  --color-amber-100: #F5EBD4;
+  --color-amber-200: #EBD7AC;
+  --color-amber-300: #E1C07E;
+  --color-amber-400: #DAA854;
+  --color-amber-500: #D4922A;
+  --color-amber-600: #C07F1D;
+  --color-amber-700: #8A5E10;
+  --color-amber-800: #6E4A0C;
+  --color-amber-900: #523608;
+  --color-yellow-50: #FBF6EB;
+  --color-yellow-100: #F5EBD4;
+  --color-yellow-200: #EBD7AC;
+  --color-yellow-300: #E1C07E;
+  --color-yellow-400: #DAA854;
+  --color-yellow-500: #D4922A;
+  --color-yellow-600: #C07F1D;
+  --color-yellow-700: #8A5E10;
+  --color-yellow-800: #6E4A0C;
+  --color-yellow-900: #523608;
+  --color-orange-50: #FBF6EB;
+  --color-orange-100: #F5EBD4;
+  --color-orange-200: #EBD7AC;
+  --color-orange-300: #E1C07E;
+  --color-orange-400: #DAA854;
+  --color-orange-500: #D4922A;
+  --color-orange-600: #C07F1D;
+  --color-orange-700: #8A5E10;
+  --color-orange-800: #6E4A0C;
+  --color-orange-900: #523608;
+  --color-blue-50: #F0F3F7;
+  --color-blue-100: #E2E8F0;
+  --color-blue-200: #C3D0E0;
+  --color-blue-300: #9DB2CA;
+  --color-blue-400: #7290B8;
+  --color-blue-500: #4A6289;
+  --color-blue-600: #3A4F70;
+  --color-blue-700: #2C3D56;
+  --color-blue-800: #1E2B3D;
+  --color-blue-900: #161F2C;
+  --color-sky-50: #F0F3F7;
+  --color-sky-100: #E2E8F0;
+  --color-sky-200: #C3D0E0;
+  --color-sky-300: #9DB2CA;
+  --color-sky-400: #7290B8;
+  --color-sky-500: #4A6289;
+  --color-sky-600: #3A4F70;
+  --color-sky-700: #2C3D56;
+  --color-sky-800: #1E2B3D;
+  --color-sky-900: #161F2C;
+  --color-cyan-50: #F0F3F7;
+  --color-cyan-100: #E2E8F0;
+  --color-cyan-200: #C3D0E0;
+  --color-cyan-300: #9DB2CA;
+  --color-cyan-400: #7290B8;
+  --color-cyan-500: #4A6289;
+  --color-cyan-600: #3A4F70;
+  --color-cyan-700: #2C3D56;
+  --color-cyan-800: #1E2B3D;
+  --color-cyan-900: #161F2C;
+  --color-indigo-50: #F0F3F7;
+  --color-indigo-100: #E2E8F0;
+  --color-indigo-200: #C3D0E0;
+  --color-indigo-300: #9DB2CA;
+  --color-indigo-400: #7290B8;
+  --color-indigo-500: #4A6289;
+  --color-indigo-600: #3A4F70;
+  --color-indigo-700: #2C3D56;
+  --color-indigo-800: #1E2B3D;
+  --color-indigo-900: #161F2C;
+  --color-violet-50: #F0F3F7;
+  --color-violet-100: #E2E8F0;
+  --color-violet-200: #C3D0E0;
+  --color-violet-300: #9DB2CA;
+  --color-violet-400: #7290B8;
+  --color-violet-500: #4A6289;
+  --color-violet-600: #3A4F70;
+  --color-violet-700: #2C3D56;
+  --color-violet-800: #1E2B3D;
+  --color-violet-900: #161F2C;
+  --color-purple-50: #F0F3F7;
+  --color-purple-100: #E2E8F0;
+  --color-purple-200: #C3D0E0;
+  --color-purple-300: #9DB2CA;
+  --color-purple-400: #7290B8;
+  --color-purple-500: #4A6289;
+  --color-purple-600: #3A4F70;
+  --color-purple-700: #2C3D56;
+  --color-purple-800: #1E2B3D;
+  --color-purple-900: #161F2C;
+
+
   /* Type voices: Instrument Sans for UI prose, Bricolage Grotesque for display
      moments, Spline Sans Mono as the ledger hand for data and micro-labels.
      font-display utility = .font-display, etc. */
@@ -613,33 +789,32 @@
     border-color: var(--border-strong);
   }
   .card-lift {
-    transition: box-shadow 0.18s ease, transform 0.18s ease;
+    transition: border-color 0.15s ease, transform 0.15s ease;
   }
   .card-lift:hover {
-    box-shadow: 0 6px 24px rgba(0,0,0,0.10);
-    transform: translateY(-0.5px);
+    border-color: color-mix(in oklab, var(--foreground) 16%, transparent);
+  }
+  .card-lift:active {
+    transform: translateY(1px);
   }
   .card-amber {
     background: var(--card);
     border: 1px solid rgba(212,146,42,0.25);
-    border-radius: 0.75rem;
-    box-shadow: 0 1px 4px rgba(212,146,42,0.08);
+    border-radius: 0.625rem;
   }
   .retro-card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 0.75rem;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    transition: box-shadow 0.18s ease;
+    border-radius: 0.625rem;
+    transition: border-color 0.15s ease;
   }
   .retro-card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
     border-color: rgba(212,146,42,0.35);
   }
   .retro-card-navy {
     background: #1B2D4F;
     border: 1px solid rgba(255,255,255,0.10);
-    border-radius: 0.75rem;
+    border-radius: 0.625rem;
     color: #FFFFFF;
   }
   .dashboard-panel {
@@ -1007,7 +1182,8 @@
   .glow-red      { box-shadow: 0 0 16px rgba(192,57,43,0.15); }
   .glow-yellow   { box-shadow: 0 0 16px rgba(212,146,42,0.18); }
   .glow-amber    { box-shadow: 0 0 16px rgba(212,146,42,0.18); }
-  .glow-amber-sm { box-shadow: 0 0 10px rgba(212,146,42,0.12); }
+  /* Highlight is carried by hairline border + tint, never glow (Oct 2026 cohesion pass). */
+  .glow-amber-sm { box-shadow: none; }
 
   /* ── Pulse ring ─────────────────────────────────────────────────────────── */
   @keyframes pulse-ring {

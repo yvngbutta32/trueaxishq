@@ -191,7 +191,7 @@ export default function ClientPulse() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
             <Activity className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -303,7 +303,7 @@ export default function ClientPulse() {
             return (
               <Card
                 key={client.id}
-                className={`transition-all duration-200 hover:shadow-md ${
+                className={`transition-all duration-200 ${
                   pulse?.churnRisk ? "border-red-200 dark:border-red-800" :
                   pulse?.goingSilent ? "border-orange-200 dark:border-orange-800" :
                   pulse?.upsellReady ? "border-amber-700/30 dark:border-amber-800" :

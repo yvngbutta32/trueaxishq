@@ -2,7 +2,8 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
+ * Design: "Mechanical Ledger" — hairline drafting-table form, ledger mono captions,
+ * brand families: navy #1B2D4F / amber #D4922A / pine #1E6B45 / brick #C0392B
  */
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
@@ -74,9 +75,9 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
 
   const stats = [
     { label: "Total Revenue", value: formatCurrency(analytics?.totalRevenue || 0), change: "+12% this month", icon: DollarSign, color: "#D4922A" },
-    { label: "Active Clients", value: String(analytics?.activeClients || 0), change: `${analytics?.totalClients || 0} total`, icon: Users, color: "#6366F1" },
-    { label: "Sessions Completed", value: String(analytics?.completedSessions || 0), change: `${analytics?.upcomingSessions || 0} upcoming`, icon: CheckCircle, color: "#F59E0B" },
-    { label: "Outstanding", value: formatCurrency(analytics?.outstanding || 0), change: "Awaiting payment", icon: Clock, color: "#FF6B6B" },
+    { label: "Active Clients", value: String(analytics?.activeClients || 0), change: `${analytics?.totalClients || 0} total`, icon: Users, color: "#1B2D4F" },
+    { label: "Sessions Completed", value: String(analytics?.completedSessions || 0), change: `${analytics?.upcomingSessions || 0} upcoming`, icon: CheckCircle, color: "#1E6B45" },
+    { label: "Outstanding", value: formatCurrency(analytics?.outstanding || 0), change: "Awaiting payment", icon: Clock, color: "#C0392B" },
   ];
 
   const monthlyData = analytics?.monthlyRevenue || [];
@@ -158,15 +159,15 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
         <button
           onClick={() => setActivePanel("insights")}
           className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border border-[var(--border)] bg-white hover:border-[#D4922A]/40 hover:bg-[#D4922A]/5 transition-all text-left group card-lift"
-          style={{ '--card-glow': pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' } as React.CSSProperties}
+          style={{ '--card-glow': pnlData.netProfit >= 0 ? '#1E6B45' : '#C0392B' } as React.CSSProperties}
           aria-label="View P&L breakdown in Insights"
         >
           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: pnlData.netProfit >= 0 ? 'rgba(34,197,94,0.15)' : 'rgba(255,107,107,0.15)' }}>
-            <TrendingUp className="w-4 h-4" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }} />
+            <TrendingUp className="w-4 h-4" style={{ color: pnlData.netProfit >= 0 ? '#1E6B45' : '#C0392B' }} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="ledger-num text-base font-extrabold" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }}>
+              <span className="ledger-num text-base font-extrabold" style={{ color: pnlData.netProfit >= 0 ? '#1E6B45' : '#C0392B' }}>
                 {pnlData.netProfit >= 0 ? '+' : ''}{formatCurrency(pnlData.netProfit)} net profit
               </span>
               <span className="text-xs text-[var(--foreground-soft)]">this period</span>
@@ -176,7 +177,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
               <span className="text-xs text-[var(--muted-foreground)]">·</span>
               <span className="text-xs text-[var(--muted-foreground)]">Expenses: <span className="text-red-400 font-semibold">{formatCurrency(pnlData.totalExpenses)}</span></span>
               <span className="text-xs text-[var(--muted-foreground)]">·</span>
-              <span className="text-xs text-[var(--muted-foreground)]">Margin: <span className="font-semibold" style={{ color: pnlData.netProfit >= 0 ? '#22c55e' : '#FF6B6B' }}>{pnlData.profitMargin}%</span></span>
+              <span className="text-xs text-[var(--muted-foreground)]">Margin: <span className="font-semibold" style={{ color: pnlData.netProfit >= 0 ? '#1E6B45' : '#C0392B' }}>{pnlData.profitMargin}%</span></span>
             </div>
           </div>
           <ArrowRight className="w-4 h-4 text-[var(--muted-foreground)] group-hover:text-[#D4922A] transition-colors flex-shrink-0" />
@@ -186,26 +187,25 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
       {/* Quick Actions */}
       <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2">
         {([
-          { icon: Plus,         label: "Add Client",     color: "#6366F1", panel: "clients",    shortcut: "C" },
-          { icon: Calendar,     label: "New Booking",    color: "#F59E0B", panel: "scheduling", shortcut: "B" },
-          { icon: FileText,     label: "New Invoice",    color: "#D4922A", panel: "billing",    shortcut: "N" },
-          { icon: Mail,         label: "Outreach",       color: "#5A9A7A", panel: "outreach",   shortcut: "O" },
-          { icon: FileSignature,label: "New Proposal",   color: "#8B5CF6", panel: "deals",      shortcut: "D" },
-          { icon: Shield,       label: "New Contract",   color: "#EC4899", panel: "deals",      shortcut: null },
-          { icon: Receipt,      label: "Log Expense",    color: "#EF4444", panel: "insights",   shortcut: null },
-          { icon: Clock,        label: "Start Timer",    color: "#14B8A6", panel: "billing",    shortcut: null },
-        ] as { icon: React.ElementType; label: string; color: string; panel: ActivePanel; shortcut: string | null }[]).map(({ icon: Icon, label, color, panel, shortcut }) => (
+          { icon: Plus,         label: "Add Client",     panel: "clients",    shortcut: "C" },
+          { icon: Calendar,     label: "New Booking",    panel: "scheduling", shortcut: "B" },
+          { icon: FileText,     label: "New Invoice",    panel: "billing",    shortcut: "N" },
+          { icon: Mail,         label: "Outreach",       panel: "outreach",   shortcut: "O" },
+          { icon: FileSignature,label: "New Proposal",   panel: "deals",      shortcut: "D" },
+          { icon: Shield,       label: "New Contract",   panel: "deals",      shortcut: null },
+          { icon: Receipt,      label: "Log Expense",    panel: "insights",   shortcut: null },
+          { icon: Clock,        label: "Start Timer",    panel: "billing",    shortcut: null },
+        ] as { icon: React.ElementType; label: string; panel: ActivePanel; shortcut: string | null }[]).map(({ icon: Icon, label, panel, shortcut }) => (
           <button
             key={label}
             onClick={() => setActivePanel(panel)}
             className="bg-white rounded-xl p-2.5 sm:p-3 border border-[var(--border)] card-lift flex flex-col items-center gap-1.5 text-center transition-all group relative"
-            style={{ '--card-glow': color } as React.CSSProperties}
           >
             {shortcut && (
               <kbd className="absolute top-1.5 right-1.5 px-1 py-0.5 rounded border border-white/12 text-[8px] text-[var(--foreground-soft)] font-mono leading-none hidden sm:block">{shortcut}</kbd>
             )}
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white stat-icon-pop" style={{ backgroundColor: color }}>
-              <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center stat-icon-pop border border-[color-mix(in_oklab,var(--foreground)_9%,transparent)]" style={{ backgroundColor: "color-mix(in oklab, var(--foreground) 4%, transparent)" }}>
+              <Icon className="w-3.5 h-3.5 text-[#1B2D4F]" aria-hidden="true" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-semibold text-[var(--foreground)] leading-tight">{label}</span>
           </button>
@@ -285,11 +285,11 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="text-center p-3 bg-[var(--background)] rounded-xl">
-                <p className="text-2xl font-extrabold" style={{ color: avgScore !== null ? (avgScore >= 70 ? "#D4922A" : avgScore >= 40 ? "#F59E0B" : "#FF6B6B") : "#9CA3AF" }}>{avgScore ?? "—"}</p>
+                <p className="text-2xl font-extrabold" style={{ color: avgScore !== null ? (avgScore >= 70 ? "#1E6B45" : avgScore >= 40 ? "#8A5E10" : "#C0392B") : "#9CA3AF" }}>{avgScore ?? "—"}</p>
                 <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Avg Health</p>
               </div>
               <div className="text-center p-3 bg-red-500/10 rounded-xl">
-                <p className="text-2xl font-extrabold text-[#FF6B6B]">{churnRisk}</p>
+                <p className="text-2xl font-extrabold text-[#C0392B]">{churnRisk}</p>
                 <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Churn Risk</p>
               </div>
               <div className="text-center p-3 bg-yellow-50 rounded-xl">
@@ -303,7 +303,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
             </div>
             {churnRisk > 0 && (
               <div className="mt-3 flex items-center gap-2 p-3 bg-red-500/10 rounded-xl border border-red-100">
-                <AlertCircle className="w-4 h-4 text-[#FF6B6B] flex-shrink-0" />
+                <AlertCircle className="w-4 h-4 text-[#C0392B] flex-shrink-0" />
                 <p className="text-xs text-red-700">
                   <strong>{churnRisk} client{churnRisk > 1 ? "s" : ""}</strong> at risk of churning. <button onClick={() => setActivePanel("pulse")} className="underline font-semibold">Take action →</button>
                 </p>

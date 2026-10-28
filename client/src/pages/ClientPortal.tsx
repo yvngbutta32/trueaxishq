@@ -345,7 +345,7 @@ export default function ClientPortal() {
         )}
 
         {/* Client Info Card */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">Your Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex items-center gap-3">
@@ -386,7 +386,7 @@ export default function ClientPortal() {
         </div>
 
         {/* Invoices */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
             <FileText className="w-4 h-4 text-[#D4922A]" />
             <h2 className="font-semibold text-gray-900">Invoices</h2>
@@ -443,7 +443,7 @@ export default function ClientPortal() {
         </div>
 
         {/* Bookings */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[#D4922A]" />
             <h2 className="font-semibold text-gray-900">Appointments</h2>
@@ -513,7 +513,7 @@ export default function ClientPortal() {
         </div>
 
         {(portalDocuments?.documents.length ?? 0) > 0 && (
-          <section className="overflow-hidden rounded-xl border border-sky-100 bg-white shadow-sm" aria-labelledby="shared-documents-heading">
+          <section className="overflow-hidden rounded-xl border border-sky-100 bg-white" aria-labelledby="shared-documents-heading">
             <div className="flex items-center gap-2 border-b border-sky-100 bg-sky-50/60 px-6 py-4"><FileText className="h-4 w-4 text-sky-700" /><div><h2 id="shared-documents-heading" className="font-semibold text-sky-950">Shared documents</h2><p className="mt-0.5 text-xs text-sky-900">Files your provider has chosen to share with you.</p></div></div>
             <div className="divide-y divide-gray-100">{portalDocuments?.documents.filter(document => isSafePortalAssetUrl(document.fileUrl)).map(document => <a key={document.id} href={document.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-6 py-4 transition-colors hover:bg-sky-50/50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700"><FileText className="h-4 w-4" /></span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-gray-900">{document.fileName}</span><span className="mt-0.5 block text-xs text-gray-600">{document.mimeType || "Document"}{document.sizeBytes ? ` · ${(document.sizeBytes / 1024).toFixed(0)} KB` : ""}</span></span><ArrowRight className="h-4 w-4 shrink-0 text-sky-700" aria-hidden="true" /></a>)}</div>
             <p className="border-t border-sky-100 bg-sky-50/40 px-6 py-3 text-[11px] leading-4 text-sky-900">Only documents your provider explicitly shares appear here. Internal documents and operational notes remain private.</p>
@@ -522,7 +522,7 @@ export default function ClientPortal() {
 
         {/* Job Progress Center */}
         {(jobData?.jobs.length ?? 0) > 0 && (
-          <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" aria-labelledby="job-progress-heading">
+          <section className="bg-white rounded-xl border border-gray-200 overflow-hidden" aria-labelledby="job-progress-heading">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
               <BriefcaseBusiness className="w-4 h-4 text-[#D4922A]" />
               <div>
@@ -591,7 +591,7 @@ export default function ClientPortal() {
           const lightboxPhotos = tabPhotos;
 
           return (
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               {/* Header */}
               <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
                 <Camera className="w-4 h-4 text-[#D4922A]" />
@@ -734,7 +734,7 @@ export default function ClientPortal() {
         })()}
 
         {/* Secure Portal Messages */}
-        <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" aria-labelledby="portal-messages-heading">
+        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden" aria-labelledby="portal-messages-heading">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
             <MessageCircle className="w-4 h-4 text-[#D4922A]" />
             <h2 id="portal-messages-heading" className="font-semibold text-gray-900">Messages</h2>
@@ -751,7 +751,7 @@ export default function ClientPortal() {
                 const fromClient = message.senderRole === "client";
                 return (
                   <div key={message.id} className={`flex ${fromClient ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[85%] rounded-lg px-3.5 py-2.5 text-sm shadow-sm ${fromClient ? "bg-[#D4922A] text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"}`}>
+                    <div className={`max-w-[85%] rounded-lg px-3.5 py-2.5 text-sm ${fromClient ? "bg-[#D4922A] text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"}`}>
                       <p className="whitespace-pre-wrap break-words">{message.body}</p>
                       <p className={`mt-1 text-[10px] ${fromClient ? "text-white/75" : "text-gray-500"}`}>
                         {fromClient ? "You" : providerName} · {formatPortalTimestamp(message.createdAt)}
@@ -796,7 +796,7 @@ export default function ClientPortal() {
         </section>
 
         {/* Provider Contact */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">Contact Your Provider</h2>
           <div className="flex items-center gap-4">
             {isSafeImageUrl(freelancer?.avatarUrl) ? (

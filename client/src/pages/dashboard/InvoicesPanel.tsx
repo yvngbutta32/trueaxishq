@@ -2,7 +2,8 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
+ * Design: "Mechanical Ledger" — hairline drafting-table form, ledger mono captions,
+ * brand families: navy #1B2D4F / amber #D4922A / pine #1E6B45 / brick #C0392B
  */
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
@@ -273,7 +274,7 @@ function InvoicesPanel() {
 
   const statusColor: Record<string, string> = {
     draft: "bg-[var(--muted)] text-[var(--muted-foreground)]",
-    sent: "bg-blue-50 text-blue-600",
+    sent: "bg-[#1B2D4F]/[0.06] text-[#1B2D4F]",
     paid: "bg-green-500/10 text-green-600",
     overdue: "bg-red-500/10 text-red-500",
   };
@@ -314,7 +315,7 @@ function InvoicesPanel() {
         <button
           onClick={() => setInvTab("invoices")}
           className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-            invTab === "invoices" ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[#2A2A2A]"
+            invTab === "invoices" ? "bg-[#D4922A]/20 text-[#D4922A]" : "text-[var(--muted-foreground)] hover:text-[#2A2A2A]"
           }`}
         >
           <FileText className="w-3.5 h-3.5" />Invoices
@@ -322,7 +323,7 @@ function InvoicesPanel() {
         <button
           onClick={() => setInvTab("recurring")}
           className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-            invTab === "recurring" ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[#2A2A2A]"
+            invTab === "recurring" ? "bg-[#D4922A]/20 text-[#D4922A]" : "text-[var(--muted-foreground)] hover:text-[#2A2A2A]"
           }`}
         >
           <RefreshCw className="w-3.5 h-3.5" />Recurring
@@ -337,11 +338,11 @@ function InvoicesPanel() {
         <div className="space-y-5">
           {/* Summary stats */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-[var(--border)]">
+            <div className="bg-white rounded-xl p-4 border border-[var(--border)]">
               <p className="ledger-num text-2xl font-bold text-[var(--foreground)]">{activeScheduleCount}</p>
               <p className="ledger-label text-xs text-[var(--foreground-soft)] mt-0.5">Active Schedules</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-[var(--border)]">
+            <div className="bg-white rounded-xl p-4 border border-[var(--border)]">
               <p className="ledger-num text-2xl font-bold text-[var(--foreground)]">{formatCurrency(estMonthlyRevenue)}</p>
               <p className="ledger-label text-xs text-[var(--foreground-soft)] mt-0.5">Est. Monthly Revenue</p>
             </div>
@@ -349,7 +350,7 @@ function InvoicesPanel() {
 
           {/* Create form */}
           {showRecurringForm && (
-            <div className="bg-white rounded-xl p-5 shadow-sm border border-[var(--border)]">
+            <div className="bg-white rounded-xl p-5 border border-[var(--border)]">
               <h3 className="font-bold text-sm text-[var(--foreground)] mb-4">New Recurring Schedule</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -413,7 +414,7 @@ function InvoicesPanel() {
           )}
 
           {/* Schedules list */}
-          <div className="bg-white rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
+          <div className="bg-white rounded-xl border border-[var(--border)] overflow-hidden">
             <div className="px-5 py-4 border-b border-[var(--border)]">
               <h3 className="font-bold text-sm text-[var(--foreground)]">All Schedules</h3>
             </div>
@@ -428,7 +429,7 @@ function InvoicesPanel() {
             ) : (
               <div className="divide-y divide-gray-50">
                 {schedules.map((s) => {
-                  const color = FREQUENCY_COLORS[s.frequency] || "#6366F1";
+                  const color = FREQUENCY_COLORS[s.frequency] || "#1B2D4F";
                   return (
                     <div key={s.id} className={`flex items-center gap-4 px-5 py-4 hover:bg-[var(--background)] transition-colors ${!s.active ? "opacity-50" : ""}`}>
                       <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + "15" }}>
@@ -493,7 +494,7 @@ function InvoicesPanel() {
       <div className="flex gap-1 p-1 bg-[var(--muted)] rounded-xl overflow-x-auto">
         {(["all", "unpaid", "paid", "overdue"] as const).map(f => (
           <button key={f} onClick={() => setInvFilter(f)} className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
-            invFilter === f ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[#2A2A2A]"
+            invFilter === f ? "bg-[#D4922A]/20 text-[#D4922A]" : "text-[var(--muted-foreground)] hover:text-[#2A2A2A]"
           }`}>{f}</button>
         ))}
       </div>
@@ -502,9 +503,9 @@ function InvoicesPanel() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Total Paid", value: formatCurrency(invoiceStats?.totalRevenue || 0), color: "#D4922A", bg: "bg-[#D4922A]/10" },
-          { label: "Outstanding", value: formatCurrency(invoiceStats?.outstanding || 0), color: "#6366F1", bg: "bg-indigo-50" },
-          { label: "Overdue", value: String(invoiceStats?.overdue || 0), color: "#FF6B6B", bg: "bg-red-500/10" },
-          { label: "Total Invoices", value: String(invoiceStats?.total || 0), color: "#F59E0B", bg: "bg-yellow-50" },
+          { label: "Outstanding", value: formatCurrency(invoiceStats?.outstanding || 0), color: "#1B2D4F", bg: "bg-[#1B2D4F]/[0.06]" },
+          { label: "Overdue", value: String(invoiceStats?.overdue || 0), color: "#C0392B", bg: "bg-red-500/10" },
+          { label: "Total Invoices", value: String(invoiceStats?.total || 0), color: "#8A5E10", bg: "bg-yellow-50" },
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-xl p-3 sm:p-4`}>
             <p className="text-[11px] sm:text-xs font-semibold mb-1" style={{ color: s.color }}>{s.label}</p>
@@ -536,7 +537,7 @@ function InvoicesPanel() {
                 .then(() => { setSelectedIds(new Set()); toast.success(`Reminders sent for ${withEmail.length} invoice${withEmail.length > 1 ? "s" : ""}.`); })
                 .catch(e => toast.error(e.message));
             }}
-            className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
+            className="text-xs bg-[#1B2D4F] hover:bg-[#2A3E63] text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
             disabled={bulkPending}
           >Send Reminder</button>
           <button
@@ -621,7 +622,7 @@ function InvoicesPanel() {
                   </button>
                   <button
                     onClick={() => sendReminder.mutate({ id: inv.id })}
-                    className="text-xs text-[#FF6B6B] hover:underline font-medium flex items-center gap-1"
+                    className="text-xs text-[#C0392B] hover:underline font-medium flex items-center gap-1"
                     disabled={sendReminder.isPending}
                     title="Send payment reminder to client"
                   >
@@ -632,10 +633,10 @@ function InvoicesPanel() {
               <button onClick={() => setPreviewInvoice(inv)} className="p-2 rounded hover:bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-[var(--muted-foreground)] transition-colors" aria-label="Preview invoice" title="Preview invoice">
                 <Eye className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => openEditInvoice(inv)} className="p-2 rounded hover:bg-indigo-50 text-[var(--foreground-soft)] hover:text-indigo-600 transition-colors" aria-label="Edit invoice" title="Edit invoice">
+              <button onClick={() => openEditInvoice(inv)} className="p-2 rounded hover:bg-[#1B2D4F]/[0.06] text-[var(--foreground-soft)] hover:text-[#1B2D4F] transition-colors" aria-label="Edit invoice" title="Edit invoice">
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-2 rounded hover:bg-blue-50 text-[var(--foreground-soft)] hover:text-blue-500 transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
+              <button onClick={() => { const link = `${window.location.origin}/portal?invoice=${inv.id}`; navigator.clipboard.writeText(link).then(() => toast.success("Invoice link copied!")).catch(() => toast.info(`Invoice link: ${link}`)); }} className="p-2 rounded hover:bg-[#1B2D4F]/[0.06] text-[var(--foreground-soft)] hover:text-[#1B2D4F] transition-colors" aria-label="Copy invoice link" title="Copy shareable invoice link">
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
               {(inv.status === "sent" || inv.status === "overdue" || inv.status === "draft") && (

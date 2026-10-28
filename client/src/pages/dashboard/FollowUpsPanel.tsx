@@ -2,7 +2,8 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
+ * Design: "Mechanical Ledger" — hairline drafting-table form, ledger mono captions,
+ * brand families: navy #1B2D4F / amber #D4922A / pine #1E6B45 / brick #C0392B
  */
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
@@ -117,7 +118,7 @@ function FollowUpsPanel() {
         {(["emails", "sequences"] as const).map(t => (
           <button key={t} onClick={() => setFuTab(t)}
             className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-              fuTab === t ? "bg-[#D4922A]/20 text-[#D4922A] shadow-sm" : "text-[var(--foreground-soft)] hover:text-[#2A2A2A]"
+              fuTab === t ? "bg-[#D4922A]/20 text-[#D4922A]" : "text-[var(--foreground-soft)] hover:text-[#2A2A2A]"
             }`}>
             {t === "sequences" ? "Auto-Sequences" : "AI Emails"}
           </button>
@@ -126,9 +127,9 @@ function FollowUpsPanel() {
 
       {fuTab === "sequences" && (
         <div className="space-y-4">
-          <div className="bg-gradient-to-r from-[#6366F1]/10 to-[#D4922A]/10 border border-[#6366F1]/20 rounded-xl p-5">
+          <div className="bg-gradient-to-r from-[#1B2D4F]/10 to-[#D4922A]/10 border border-[#1B2D4F]/20 rounded-xl p-5">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#6366F1] flex items-center justify-center text-white flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#1B2D4F] flex items-center justify-center text-white flex-shrink-0">
                 <Zap className="w-5 h-5" />
               </div>
               <div>
@@ -199,7 +200,7 @@ function FollowUpsPanel() {
       )}
       {fuTab === "emails" && <>
       {/* Info Card */}
-      <div className="bg-gradient-to-r from-[#D4922A]/10 to-[#6366F1]/10 border border-[#D4922A]/20 rounded-xl p-5">
+      <div className="bg-gradient-to-r from-[#D4922A]/10 to-[#1B2D4F]/10 border border-[#D4922A]/20 rounded-xl p-5">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl gradient-amber flex items-center justify-center text-white flex-shrink-0">
             <Zap className="w-5 h-5" />
@@ -316,7 +317,7 @@ function FollowUpsPanel() {
 
             {/* Email body — rendered as it will appear */}
             <div className="bg-white rounded-xl p-4 mb-4">
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="bg-white rounded-lg border border-[var(--border)] overflow-hidden">
                 {/* Top accent bar */}
                 <div className="h-1 bg-[#D4922A]" />
                 {/* Brand header */}
@@ -350,7 +351,7 @@ function FollowUpsPanel() {
                 {copied ? <><Check className="w-4 h-4" />Copied!</> : <><Copy className="w-4 h-4" />Copy Body</>}
               </Button>
               {previewFollowUp.clientEmail && previewFollowUp.status === "draft" && previewFollowUp.id && (
-                <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white gap-2" onClick={() => sendEmailMut.mutate({ id: previewFollowUp.id })} disabled={sendEmailMut.isPending}>
+                <Button className="flex-1 bg-[#1B2D4F] hover:bg-[#2A3E63] text-white gap-2" onClick={() => sendEmailMut.mutate({ id: previewFollowUp.id })} disabled={sendEmailMut.isPending}>
                   {sendEmailMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4" />Send Email</>}
                 </Button>
               )}

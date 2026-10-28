@@ -2,7 +2,8 @@ import { TRUEAXIS_LOGO_URL } from "@shared/const";
 import { DEFAULT_PUBLIC_BOOKING_SCHEDULE, getPublishedBookingServiceCatalog, PUBLIC_BOOKING_TIME_SLOTS, type PublicBookingService } from "@shared/publicBookingRules";
 /* TrueAxis HQ — Full Dashboard (DB-backed)
  * All panels connected to real tRPC/database procedures
- * Design: "Kinetic Warmth" — Dark sidebar (#1C2333), Teal (#D4922A), Coral (#FF6B6B)
+ * Design: "Mechanical Ledger" — hairline drafting-table form, ledger mono captions,
+ * brand families: navy #1B2D4F / amber #D4922A / pine #1E6B45 / brick #C0392B
  */
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, memo, useMemo, useId, lazy, Suspense } from "react";
@@ -312,11 +313,11 @@ const FREQUENCY_LABELS: Record<string, string> = {
   yearly: "Yearly",
 };
 const FREQUENCY_COLORS: Record<string, string> = {
-  weekly: "#6366F1",
+  weekly: "#1B2D4F",
   biweekly: "#D4922A",
-  monthly: "#10B981",
-  quarterly: "#FF6B6B",
-  yearly: "#8B5CF6",
+  monthly: "#1E6B45",
+  quarterly: "#C0392B",
+  yearly: "#6B7280",
 };
 
 // ─── Panel switch skeleton — content-shaped, not a spinner ────────────────────
