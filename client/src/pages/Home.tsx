@@ -524,7 +524,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
 
           {/* Right — workspace preview, five of twelve columns */}
           <div className="relative mt-2 lg:mt-0 lg:col-span-5">
-            <div className="relative rounded-lg overflow-hidden" style={{ background: "var(--background)", border: "1px solid color-mix(in oklab, var(--foreground) 16%, transparent)", boxShadow: "0 1px 0 rgba(0,0,0,0.04), 0 16px 40px rgba(0,0,0,0.18)" }}>
+            <div className="relative rounded-lg overflow-hidden" style={{ background: "var(--background)", border: "1px solid color-mix(in oklab, var(--foreground) 16%, transparent)" }}>
               {/* Window bar — mono label, drafting corner ticks */}
               <div className="flex items-center gap-2 px-4 py-3" style={{ background: "var(--muted)", borderBottom: "1px solid color-mix(in oklab, var(--foreground) 10%, transparent)" }}>
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C0392B" }} />
@@ -988,7 +988,7 @@ function HowItWorksSection() {
           {/* Right — animated UI panel */}
           <div
             className="rounded-xl overflow-hidden"
-            style={{ background: "var(--background)", border: "1px solid rgba(212,146,42,0.18)", boxShadow: "0 20px 50px rgba(0,0,0,0.45)" }}
+            style={{ background: "var(--background)", border: "1px solid rgba(212,146,42,0.18)" }}
           >
             {/* Window chrome */}
             <div className="flex items-center gap-2 px-4 py-3" style={{ background: "var(--muted)", borderBottom: "1px solid rgba(212,146,42,0.10)" }}>
