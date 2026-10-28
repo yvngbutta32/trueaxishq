@@ -287,7 +287,7 @@ export default function ImportPanel() {
               <button
                 disabled={previewMutation.isPending}
                 onClick={() => previewMutation.mutate({ csv: csvText, target, mapping })}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#D4922A]/40 px-4 py-2 text-sm font-bold text-[#8A5A0B] hover:bg-[#D4922A]/10">
+                className="inline-flex items-center gap-2 rounded-xl border border-[#D4922A]/40 px-4 py-2 text-sm font-bold text-[#8a5e10] hover:bg-[#D4922A]/10">
                 <RefreshCw className={`h-4 w-4 ${previewMutation.isPending ? "animate-spin" : ""}`} /> Re-check with this mapping
               </button>
             </div>
@@ -388,7 +388,7 @@ export default function ImportPanel() {
             </div>
           )}
           <div className="flex flex-wrap justify-center gap-2">
-            <button onClick={reset} className="inline-flex items-center gap-2 rounded-xl border border-[#D4922A]/40 px-4 py-2 text-sm font-bold text-[#8A5A0B] hover:bg-[#D4922A]/10"><RefreshCw className="h-4 w-4" /> Import another file</button>
+            <button onClick={reset} className="inline-flex items-center gap-2 rounded-xl border border-[#D4922A]/40 px-4 py-2 text-sm font-bold text-[#8a5e10] hover:bg-[#D4922A]/10"><RefreshCw className="h-4 w-4" /> Import another file</button>
           </div>
         </section>
       )}
@@ -418,7 +418,7 @@ export default function ImportPanel() {
               type="button"
               disabled={seedDemo.isPending || clearDemo.isPending}
               onClick={() => seedDemo.mutate()}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#1A3C2E] px-4 py-2 text-sm font-bold text-white hover:bg-[#143024] disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#175537] px-4 py-2 text-sm font-bold text-white hover:bg-[#13442d] disabled:opacity-60"
             >
               {seedDemo.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
               {seedDemo.isPending ? "Adding sample data…" : "Add sample data"}
@@ -439,7 +439,7 @@ export default function ImportPanel() {
             type="button"
             disabled={exporting}
             onClick={() => exportQuery.refetch()}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1A3C2E] px-4 py-2 text-sm font-bold text-white hover:bg-[#143024] disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#175537] px-4 py-2 text-sm font-bold text-white hover:bg-[#13442d] disabled:opacity-60"
           >
             {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <HardDriveDownload className="h-4 w-4" />}
             {exporting ? "Preparing backup…" : "Download full backup (JSON)"}

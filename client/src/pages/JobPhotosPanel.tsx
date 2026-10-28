@@ -170,13 +170,13 @@ function PhotoCard({
       </div>
       {/* Caption */}
       {photo.caption && (
-        <div className="px-2 py-1.5 bg-[#0F1E35]/90">
+        <div className="px-2 py-1.5 bg-[#16233c]/90">
           <p className="text-xs text-gray-300 truncate">{photo.caption}</p>
         </div>
       )}
       {/* Receipt line item */}
       {photo.photoType === "receipt" && photo.lineItemLabel && (
-        <div className="px-2 py-1.5 bg-[#0F1E35]/90 border-t border-[#243A5E]">
+        <div className="px-2 py-1.5 bg-[#16233c]/90 border-t border-[#243A5E]">
           <div className="flex items-center justify-between">
             <p className="text-xs text-gray-300 truncate flex-1">{photo.lineItemLabel}</p>
             {photo.lineItemAmount && (
@@ -294,7 +294,7 @@ function PhotoGalleryTab({
 
       {/* Lightbox */}
       <Dialog open={!!zoomUrl} onOpenChange={() => setZoomUrl(null)}>
-        <DialogContent className="max-w-4xl bg-[#0F1E35] border-[#243A5E] p-2">
+        <DialogContent className="max-w-4xl bg-[#16233c] border-[#243A5E] p-2">
           <button
             aria-label="Close photo"
             onClick={() => setZoomUrl(null)}
@@ -330,7 +330,7 @@ function PhotoGalleryTab({
               value={editCaption}
               onChange={(e) => setEditCaption(e.target.value)}
               placeholder="Add a caption…"
-              className="bg-[#0F1E35] border-[#243A5E] text-white"
+              className="bg-[#16233c] border-[#243A5E] text-white"
               maxLength={512}
             />
             <div className="flex gap-2 justify-end">
@@ -340,7 +340,7 @@ function PhotoGalleryTab({
               <Button
                 onClick={() => editPhoto && updateMutation.mutate({ id: editPhoto.id, caption: editCaption })}
                 disabled={updateMutation.isPending}
-                className="bg-[#D4922A] hover:bg-[#C07820] text-white"
+                className="bg-[#D4922A] hover:bg-[#8a5e10] text-white"
               >
                 {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
               </Button>
@@ -574,7 +574,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
                 <div className="p-2 flex gap-1">
                   <Button
                     size="sm"
-                    className="flex-1 h-7 text-xs bg-[#D4922A] hover:bg-[#C07820] text-white"
+                    className="flex-1 h-7 text-xs bg-[#D4922A] hover:bg-[#8a5e10] text-white"
                     onClick={() => handleAiScan(photo)}
                     disabled={scanningPhotoId === photo.id || extractOcrMutation.isPending}
                   >
@@ -644,14 +644,14 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
                   value={item.description}
                   onChange={(e) => updateItem(idx, "description", e.target.value)}
                   placeholder="Description"
-                  className="bg-[#0F1E35] border-[#243A5E] text-white text-sm flex-1 min-w-0"
+                  className="bg-[#16233c] border-[#243A5E] text-white text-sm flex-1 min-w-0"
                 />
                 <Input
                   type="number"
                   value={item.qty}
                   onChange={(e) => updateItem(idx, "qty", e.target.value)}
                   placeholder="Qty"
-                  className="bg-[#0F1E35] border-[#243A5E] text-white text-sm w-16"
+                  className="bg-[#16233c] border-[#243A5E] text-white text-sm w-16"
                   min="0.01"
                   step="0.01"
                 />
@@ -660,7 +660,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
                   value={item.unitPrice}
                   onChange={(e) => updateItem(idx, "unitPrice", e.target.value)}
                   placeholder="Unit $"
-                  className="bg-[#0F1E35] border-[#243A5E] text-white text-sm w-24"
+                  className="bg-[#16233c] border-[#243A5E] text-white text-sm w-24"
                   min="0"
                   step="0.01"
                 />
@@ -713,7 +713,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
                     max={1000}
                     value={markupPercent}
                     onChange={(e) => setMarkupPercent(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                    className="bg-[#0F1E35] border-[#243A5E] text-white text-sm w-16 text-center"
+                    className="bg-[#16233c] border-[#243A5E] text-white text-sm w-16 text-center"
                   />
                   <span className="text-gray-400 text-sm">%</span>
                 </div>
@@ -727,7 +727,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
           </Card>
 
           {/* Running total */}
-          <Card className="bg-[#0F1E35] border-[#D4922A]/30">
+          <Card className="bg-[#16233c] border-[#D4922A]/30">
             <CardContent className="py-4">
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between text-gray-300">
@@ -757,7 +757,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
           {/* Action buttons */}
           <div className="flex gap-2">
             <Button
-              className="flex-1 bg-[#D4922A] hover:bg-[#C07820] text-white font-semibold h-11"
+              className="flex-1 bg-[#D4922A] hover:bg-[#8a5e10] text-white font-semibold h-11"
               onClick={handleAddToInvoice}
               disabled={addToInvoiceMutation.isPending}
             >
@@ -797,7 +797,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
 
       {/* Lightbox */}
       <Dialog open={!!zoomUrl} onOpenChange={() => setZoomUrl(null)}>
-        <DialogContent className="max-w-4xl bg-[#0F1E35] border-[#243A5E] p-2">
+        <DialogContent className="max-w-4xl bg-[#16233c] border-[#243A5E] p-2">
           <button onClick={() => setZoomUrl(null)} aria-label="Close photo" className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80">
             <X className="w-4 h-4" />
           </button>
@@ -816,7 +816,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
           </DialogHeader>
           <div className="space-y-4">
             {/* Summary */}
-            <div className="p-3 rounded-lg bg-[#0F1E35] border border-[#243A5E]">
+            <div className="p-3 rounded-lg bg-[#16233c] border border-[#243A5E]">
               <p className="text-xs text-gray-400 mb-1">{finalLineItems.length} line item{finalLineItems.length !== 1 ? "s" : ""} — Total</p>
               <p className="text-2xl font-bold text-[#D4922A]">${totalWithMarkup.toFixed(2)}</p>
             </div>
@@ -824,13 +824,13 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
             {/* Mode toggle */}
             <div className="flex rounded-lg overflow-hidden border border-[#243A5E]">
               <button
-                className={`flex-1 py-2 text-sm font-medium transition-colors ${invoiceMode === "new" ? "bg-[#D4922A] text-white" : "bg-[#0F1E35] text-gray-400 hover:text-white"}`}
+                className={`flex-1 py-2 text-sm font-medium transition-colors ${invoiceMode === "new" ? "bg-[#D4922A] text-white" : "bg-[#16233c] text-gray-400 hover:text-white"}`}
                 onClick={() => setInvoiceMode("new")}
               >
                 Create New Invoice
               </button>
               <button
-                className={`flex-1 py-2 text-sm font-medium transition-colors ${invoiceMode === "existing" ? "bg-[#D4922A] text-white" : "bg-[#0F1E35] text-gray-400 hover:text-white"}`}
+                className={`flex-1 py-2 text-sm font-medium transition-colors ${invoiceMode === "existing" ? "bg-[#D4922A] text-white" : "bg-[#16233c] text-gray-400 hover:text-white"}`}
                 onClick={() => setInvoiceMode("existing")}
               >
                 Add to Existing
@@ -845,7 +845,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
                     placeholder="e.g. John Smith"
-                    className="bg-[#0F1E35] border-[#243A5E] text-white"
+                    className="bg-[#16233c] border-[#243A5E] text-white"
                   />
                 </div>
                 <div>
@@ -855,7 +855,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
                     value={clientEmail}
                     onChange={(e) => setClientEmail(e.target.value)}
                     placeholder="client@example.com"
-                    className="bg-[#0F1E35] border-[#243A5E] text-white"
+                    className="bg-[#16233c] border-[#243A5E] text-white"
                   />
                 </div>
                 <div>
@@ -864,7 +864,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
                     value={invoiceNotes}
                     onChange={(e) => setInvoiceNotes(e.target.value)}
                     placeholder="e.g. Materials from job on 7/27"
-                    className="bg-[#0F1E35] border-[#243A5E] text-white"
+                    className="bg-[#16233c] border-[#243A5E] text-white"
                   />
                 </div>
               </div>
@@ -873,7 +873,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Select Invoice</label>
                   <Select value={selectedInvoiceId} onValueChange={setSelectedInvoiceId}>
-                    <SelectTrigger className="bg-[#0F1E35] border-[#243A5E] text-white">
+                    <SelectTrigger className="bg-[#16233c] border-[#243A5E] text-white">
                       <SelectValue placeholder="Choose an invoice…" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#1B2D4F] border-[#243A5E]">
@@ -894,7 +894,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
                     value={invoiceNotes}
                     onChange={(e) => setInvoiceNotes(e.target.value)}
                     placeholder="e.g. Receipt from 7/27 job"
-                    className="bg-[#0F1E35] border-[#243A5E] text-white"
+                    className="bg-[#16233c] border-[#243A5E] text-white"
                   />
                 </div>
               </div>
@@ -907,7 +907,7 @@ ${scannedPhotoUrl ? `<br/><img src="${scannedPhotoUrl}" style="max-width:100%;bo
               <Button
                 onClick={handleConfirmInvoice}
                 disabled={addToInvoiceMutation.isPending}
-                className="bg-[#D4922A] hover:bg-[#C07820] text-white"
+                className="bg-[#D4922A] hover:bg-[#8a5e10] text-white"
               >
                 {addToInvoiceMutation.isPending ? (
                   <><Loader2 className="w-4 h-4 animate-spin mr-1" />Saving…</>

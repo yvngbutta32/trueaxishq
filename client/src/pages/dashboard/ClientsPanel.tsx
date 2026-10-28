@@ -47,8 +47,8 @@ import { type ActivePanel, type ConfirmState, type LineItem, Field, FREQUENCY_LA
 const PIPELINE_STAGES = [
   { id: "inquiry" as const, label: "Inquiry", color: "#6B7280", bg: "rgba(107,114,128,0.15)", desc: "New leads" },
   { id: "proposal_sent" as const, label: "Proposal Sent", color: "#D4922A", bg: "rgba(212,146,42,0.15)", desc: "Awaiting decision" },
-  { id: "active" as const, label: "Active", color: "#00C9A7", bg: "rgba(0,201,167,0.15)", desc: "Current clients" },
-  { id: "completed" as const, label: "Completed", color: "#3B82F6", bg: "rgba(59,130,246,0.15)", desc: "Finished projects" },
+  { id: "active" as const, label: "Active", color: "#1E6B45", bg: "rgba(30,107,69,0.15)", desc: "Current clients" },
+  { id: "completed" as const, label: "Completed", color: "#2a3e63", bg: "rgba(59,130,246,0.15)", desc: "Finished projects" },
   { id: "lost" as const, label: "Lost", color: "#C0392B", bg: "rgba(192,57,43,0.12)", desc: "Didn't convert" },
 ];
 type PipelineStageId = "inquiry" | "proposal_sent" | "active" | "completed" | "lost";

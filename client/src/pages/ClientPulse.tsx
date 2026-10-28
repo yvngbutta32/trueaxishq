@@ -62,9 +62,9 @@ interface PulseRecord {
 function HealthRing({ score }: { score: number }) {
   const color =
     score >= 75 ? "#D4922A" :
-    score >= 50 ? "#F59E0B" :
-    score >= 25 ? "#F97316" :
-    "#EF4444";
+    score >= 50 ? "#D4922A" :
+    score >= 25 ? "#C07F1D" :
+    "#C0392B";
 
   const radius = 20;
   const circumference = 2 * Math.PI * radius;

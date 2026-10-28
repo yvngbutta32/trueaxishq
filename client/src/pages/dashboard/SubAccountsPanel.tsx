@@ -73,7 +73,7 @@ function SubAccountsInner() {
           Each workspace signs in with its own email, sees only its own clients and jobs, and carries the full Pro feature set under your Agency plan.
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-          <span className="rounded-full bg-[#D4922A]/10 px-3 py-1 font-bold text-[#8A5A0B]">
+          <span className="rounded-full bg-[#D4922A]/10 px-3 py-1 font-bold text-[#8a5e10]">
             {subs.length} of {limit} workspaces in use
           </span>
           <span className="flex items-center gap-1 text-xs text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)]">
@@ -133,7 +133,7 @@ function SubAccountsInner() {
                   onClick={() => setStatus.mutate({ id: sub.id, suspended: !sub.subSuspended })}
                   className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold disabled:opacity-60 ${
                     sub.subSuspended
-                      ? "bg-[#1A3C2E] text-white hover:bg-[#143024]"
+                      ? "bg-[#175537] text-white hover:bg-[#13442d]"
                       : "border border-[#B42318]/40 text-[#B42318] hover:bg-[#B42318]/10"
                   }`}
                 >
@@ -166,7 +166,7 @@ function SubAccountsInner() {
                       type="button"
                       disabled={busy || newPassword.length < 8}
                       onClick={() => resetPassword.mutate({ id: sub.id, password: newPassword })}
-                      className="rounded-lg bg-[#1B2D4F] px-3 py-2 text-xs font-bold text-white hover:bg-[#132343] disabled:opacity-60"
+                      className="rounded-lg bg-[#1B2D4F] px-3 py-2 text-xs font-bold text-white hover:bg-[#16233C] disabled:opacity-60"
                     >
                       {resetPassword.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Set password"}
                     </button>
@@ -223,7 +223,7 @@ function SubAccountsInner() {
               <button
                 type="submit"
                 disabled={busy || !form.businessName || !form.email || form.password.length < 8}
-                className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#D4922A] px-4 py-2 text-sm font-bold text-white hover:bg-[#B87716] disabled:opacity-60"
+                className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#D4922A] px-4 py-2 text-sm font-bold text-white hover:bg-[#8a5e10] disabled:opacity-60"
               >
                 {createSub.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                 Create workspace

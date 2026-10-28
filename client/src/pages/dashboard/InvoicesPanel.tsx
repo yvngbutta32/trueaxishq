@@ -295,7 +295,7 @@ function InvoicesPanel() {
               <Button size="sm" variant="outline" className="gap-1.5 text-[var(--muted-foreground)] border-[var(--border)]" onClick={exportInvoicesCSV} title="Export all invoices as CSV">
                 <Download className="w-3.5 h-3.5" />Export CSV
               </Button>
-              <Button size="sm" variant="outline" className="gap-1.5 text-[#8A5A0B] border-[#D4922A]/40 hover:bg-[#D4922A]/10" onClick={() => setShowAccountingExport(true)} title="Accountant-ready export: QuickBooks invoices, payments, monthly summary">
+              <Button size="sm" variant="outline" className="gap-1.5 text-[#8a5e10] border-[#D4922A]/40 hover:bg-[#D4922A]/10" onClick={() => setShowAccountingExport(true)} title="Accountant-ready export: QuickBooks invoices, payments, monthly summary">
                 <BookOpen className="w-3.5 h-3.5" />Accounting export
               </Button>
               <Button size="sm" className="gradient-amber text-white border-0 hover:opacity-90 gap-1.5" onClick={() => setShowAdd(true)}>

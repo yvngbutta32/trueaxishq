@@ -41,7 +41,7 @@ export default function About() {
       {/* Hero */}
       <section className="py-10 sm:py-14 px-4 text-center relative overflow-hidden">
         <div className="absolute inset-0 retro-grid opacity-30 pointer-events-none" />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 60% at 50% 40%, rgba(232,160,32,0.07) 0%, transparent 70%)" }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 60% at 50% 40%, rgba(212,146,42,0.07) 0%, transparent 70%)" }} />
         <div className="relative max-w-3xl mx-auto">
           <div className="pill-retro mb-6 inline-flex">
             <Heart className="w-3 h-3" />
@@ -66,7 +66,7 @@ export default function About() {
             { icon: Shield, title: "Our Product Boundary", body: "Available workflows use workspace-scoped access and owner-controlled sharing. Data practices remain subject to the reviewed public privacy policy before launch." },
           ].map(({ icon: Icon, title, body }) => (
             <div key={title} className="retro-card p-6">
-              <div className="w-10 h-10 rounded flex items-center justify-center mb-4" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.18)" }}>
+              <div className="w-10 h-10 rounded flex items-center justify-center mb-4" style={{ background: "rgba(212,146,42,0.08)", border: "1px solid rgba(212,146,42,0.18)" }}>
                 <Icon className="w-5 h-5" style={{ color: "#D4922A" }} />
               </div>
               <h2 style={{ fontWeight: 700, fontSize: "1.0625rem", color: "var(--foreground)", marginBottom: "0.5rem" }}>{title}</h2>
@@ -94,7 +94,7 @@ export default function About() {
 
       {/* Product principles */}
       <section className="py-12 px-4" style={{ background: "#F2F0EC" }}>
-        <div className="container max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl overflow-hidden" style={{ background: "rgba(232,160,32,0.08)" }}>
+        <div className="container max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl overflow-hidden" style={{ background: "rgba(212,146,42,0.08)" }}>
           {[
             { icon: Users, value: "Clients", label: "Relationships in context" },
             { icon: Clock, value: "Jobs", label: "Work organized by status" },
@@ -102,7 +102,7 @@ export default function About() {
             { icon: Shield, value: "Privacy", label: "Workspace-scoped access" },
           ].map(({ icon: Icon, value, label }) => (
             <div key={label} className="flex flex-col items-center justify-center py-10 px-6 text-center" style={{ background: "var(--background)" }}>
-              <Icon className="w-5 h-5 mb-3" style={{ color: "rgba(232,160,32,0.50)" }} />
+              <Icon className="w-5 h-5 mb-3" style={{ color: "rgba(212,146,42,0.50)" }} />
               <p className="stat-number text-3xl mb-1">{value}</p>
               <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "color-mix(in oklab, var(--foreground) 65%, transparent)" }}>{label}</p>
             </div>
@@ -154,7 +154,7 @@ export default function About() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-4 text-center text-xs" style={{ borderTop: "1px solid rgba(232,160,32,0.08)", color: "color-mix(in oklab, var(--foreground) 20%, transparent)" }}>
+      <footer className="py-8 px-4 text-center text-xs" style={{ borderTop: "1px solid rgba(212,146,42,0.08)", color: "color-mix(in oklab, var(--foreground) 20%, transparent)" }}>
         <p>© {new Date().getFullYear()} TrueAxis HQ. All rights reserved.</p>
       </footer>
     </div>

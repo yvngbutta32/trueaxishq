@@ -17,11 +17,11 @@ const FREQUENCY_LABELS: Record<string, string> = {
 };
 
 const FREQUENCY_COLORS: Record<string, string> = {
-  weekly: "#6366F1",
+  weekly: "#1b2d4f",
   biweekly: "#D4922A",
-  monthly: "#10B981",
-  quarterly: "#FF6B6B",
-  yearly: "#8B5CF6",
+  monthly: "#1E6B45",
+  quarterly: "#C0392B",
+  yearly: "#2c3d56",
 };
 
 function formatCurrency(n: string | number) {
@@ -126,8 +126,8 @@ export default function RecurringInvoicesPanel() {
           <p className="text-xs text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] mt-0.5">Active Schedules</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-[var(--border)] card-lift">
-          <div className="w-9 h-9 rounded-xl bg-[#10B981]/15 flex items-center justify-center mb-3">
-            <DollarSign className="w-4 h-4 text-[#10B981]" />
+          <div className="w-9 h-9 rounded-xl bg-[#1E6B45]/15 flex items-center justify-center mb-3">
+            <DollarSign className="w-4 h-4 text-[#1E6B45]" />
           </div>
           <p className="text-2xl font-extrabold text-[var(--foreground)]">{formatCurrency(monthlyRevenue)}</p>
           <p className="text-xs text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] mt-0.5">Est. Monthly Revenue</p>
@@ -270,7 +270,7 @@ export default function RecurringInvoicesPanel() {
         ) : (
           <div className="divide-y divide-white/5">
             {schedules.map((s) => {
-              const color = FREQUENCY_COLORS[s.frequency] || "#6366F1";
+              const color = FREQUENCY_COLORS[s.frequency] || "#1b2d4f";
               return (
                 <div key={s.id} className={`flex items-center gap-4 px-5 py-4 hover:bg-[var(--background)] transition-colors ${!s.active ? "opacity-50" : ""}`}>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + "18" }}>

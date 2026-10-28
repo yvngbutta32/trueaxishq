@@ -274,7 +274,7 @@ export default function ClientPortal() {
             <span className="h-1.5 w-1.5 rounded-full bg-[#D4922A]" /> TrueAxis HQ Client Portal
           </div>
           <div className="w-14 h-14 bg-[#FFF1F1] rounded-lg flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-7 h-7 text-[#FF6B6B]" />
+            <AlertCircle className="w-7 h-7 text-[#C0392B]" />
           </div>
           <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">This portal link is no longer active</h2>
           <p className="text-[color-mix(in oklab, var(--foreground) 62%, transparent)] text-sm leading-relaxed">
@@ -473,7 +473,7 @@ export default function ClientPortal() {
                       <button
                         type="button"
                         onClick={() => { setManageBookingId(b.id); void refetchBookingAvailability(); }}
-                        className="shrink-0 rounded-lg border border-[#D4922A]/35 px-3 py-1.5 text-xs font-semibold text-[#8a5a0b] transition-colors hover:bg-[#fff8ea] focus:outline-none focus:ring-2 focus:ring-[#D4922A] focus:ring-offset-2"
+                        className="shrink-0 rounded-lg border border-[#D4922A]/35 px-3 py-1.5 text-xs font-semibold text-[#8A5E10] transition-colors hover:bg-[#fff8ea] focus:outline-none focus:ring-2 focus:ring-[#D4922A] focus:ring-offset-2"
                       >
                         Manage
                       </button>
@@ -499,7 +499,7 @@ export default function ClientPortal() {
                             </select>
                           </label>
                           <div className="sm:col-span-2 flex flex-wrap gap-2 pt-1">
-                            <button type="button" disabled={!rescheduleDate || !rescheduleTime || reschedulePortalBooking.isPending} onClick={() => reschedulePortalBooking.mutate({ token, bookingId: b.id, date: rescheduleDate, time: rescheduleTime })} className="rounded-lg bg-[#D4922A] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#b97812] disabled:cursor-not-allowed disabled:opacity-60">{reschedulePortalBooking.isPending ? "Saving…" : "Confirm new time"}</button>
+                            <button type="button" disabled={!rescheduleDate || !rescheduleTime || reschedulePortalBooking.isPending} onClick={() => reschedulePortalBooking.mutate({ token, bookingId: b.id, date: rescheduleDate, time: rescheduleTime })} className="rounded-lg bg-[#D4922A] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#8A5E10] disabled:cursor-not-allowed disabled:opacity-60">{reschedulePortalBooking.isPending ? "Saving…" : "Confirm new time"}</button>
                             <button type="button" disabled={cancelPortalBooking.isPending} onClick={() => setCancelConfirm({ bookingId: b.id })} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:opacity-60">{cancelPortalBooking.isPending ? "Cancelling…" : "Cancel appointment"}</button>
                           </div>
                         </div>
@@ -542,21 +542,21 @@ export default function ClientPortal() {
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-gray-900">{job.title}</p>{statusBadge(job.status)}</div>
-                        <p className="mt-1 text-xs font-medium tracking-wide text-[#a46c10]">{job.jobNumber}</p>
+                        <p className="mt-1 text-xs font-medium tracking-wide text-[#8A5E10]">{job.jobNumber}</p>
                         {job.clientSummary && <p className="mt-2 text-sm text-gray-600">{job.clientSummary}</p>}
                       </div>
                       <div className="text-left sm:text-right shrink-0">
                         <p className="text-xs text-gray-500">Target completion</p>
                         <p className="mt-0.5 text-sm font-medium text-gray-800">{job.targetDate ? formatBookingDate(job.targetDate) : "To be confirmed"}</p>
                         {job.proposal && ["sent", "viewed"].includes(job.proposal.status) && job.proposal.token && (
-                          <a href={`/proposal/${job.proposal.token}`} className="mt-2 inline-flex rounded-lg bg-[#1C2333] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#2B3446] focus:outline-none focus:ring-2 focus:ring-[#D4922A] focus:ring-offset-2">Review & approve</a>
+                          <a href={`/proposal/${job.proposal.token}`} className="mt-2 inline-flex rounded-lg bg-[#1C2333] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#2c3d56] focus:outline-none focus:ring-2 focus:ring-[#D4922A] focus:ring-offset-2">Review & approve</a>
                         )}
                         {job.proposal?.status === "signed" && <p className="mt-2 text-xs font-semibold text-emerald-700">Proposal approved</p>}
                       </div>
                     </div>
                     <div className="mt-5 grid gap-4 lg:grid-cols-2">
                       <div className="rounded-lg bg-[#faf8f2] p-4">
-                        <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><ClipboardCheck className="h-3.5 w-3.5 text-[#D4922A]" /> Milestones</span><span className="text-xs font-semibold text-[#8a5a0b]">{progress}% complete</span></div><p className="mt-1 text-[11px] leading-4 text-gray-500">Only items your provider has chosen to share appear here.</p>
+                        <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><ClipboardCheck className="h-3.5 w-3.5 text-[#D4922A]" /> Milestones</span><span className="text-xs font-semibold text-[#8A5E10]">{progress}% complete</span></div><p className="mt-1 text-[11px] leading-4 text-gray-500">Only items your provider has chosen to share appear here.</p>
                         <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#e9e5db]"><div className="h-full rounded-full bg-[#D4922A] transition-all" style={{ width: `${progress}%` }} /></div>
                         {job.tasks.length ? <ul className="mt-3 space-y-2">{job.tasks.slice(0, 4).map(task => <li key={task.id} className="flex items-center gap-2 text-xs text-gray-700"><CheckCircle className={`h-3.5 w-3.5 shrink-0 ${task.status === "done" ? "text-emerald-600" : "text-gray-500"}`} /><span className={task.status === "done" ? "line-through text-gray-500" : ""}>{task.title}</span></li>)}</ul> : <p className="mt-3 text-xs text-gray-500">Your provider will add milestones as work is planned.</p>}
                       </div>
@@ -569,7 +569,7 @@ export default function ClientPortal() {
                     {job.approvals.length > 0 && <section className="mt-4 rounded-lg border border-violet-200 bg-violet-50/60 p-4" aria-label="Deliverables needing your review"><div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-violet-950"><ClipboardCheck className="h-3.5 w-3.5 text-violet-700" /> Deliverable review</span><span className="text-[11px] text-violet-800">Shared by your provider</span></div><div className="mt-3 space-y-3">{job.approvals.map(approval => <div key={approval.id} className="rounded-lg border border-violet-100 bg-white p-3"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold text-gray-900">{approval.title}</p>{approval.description && <p className="mt-1 text-xs leading-5 text-gray-700">{approval.description}</p>}</div>{statusBadge(approval.status)}</div>{approval.status === "pending" ? <div className="mt-3"><label className="text-[11px] font-medium text-gray-700" htmlFor={`approval-note-${approval.id}`}>Optional note for your provider</label><textarea id={`approval-note-${approval.id}`} value={approvalNotes[approval.id] ?? ""} onChange={event => setApprovalNotes(current => ({ ...current, [approval.id]: event.target.value }))} maxLength={2000} rows={2} className="mt-1 w-full rounded-md border border-gray-300 px-2.5 py-2 text-xs text-gray-900 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200" placeholder="Add context or requested changes" /><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => respondToApproval.mutate({ token, approvalId: approval.id, response: "approved", note: approvalNotes[approval.id] || undefined })} disabled={respondToApproval.isPending} className="rounded-md bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-60">Approve</button><button type="button" onClick={() => respondToApproval.mutate({ token, approvalId: approval.id, response: "changes_requested", note: approvalNotes[approval.id] || undefined })} disabled={respondToApproval.isPending} className="rounded-md border border-violet-300 bg-white px-3 py-2 text-xs font-semibold text-violet-900 hover:bg-violet-50 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 disabled:opacity-60">Request changes</button></div></div> : <div className="mt-3 rounded-md bg-gray-50 px-2.5 py-2 text-xs text-gray-700">{approval.clientResponse ? <>Your note: {approval.clientResponse}</> : <>Your response was recorded {approval.respondedAt ? formatPortalTimestamp(approval.respondedAt) : ""}.</>}</div>}</div>)}</div><p className="mt-3 text-[11px] leading-4 text-violet-900">Only approval requests your provider chooses to share appear here. Internal job planning and staff details remain private.</p></section>}
                     <div className="mt-4 rounded-lg border border-[#D4922A]/20 bg-[#fffaf0] p-4">
                       <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><Clock className="h-3.5 w-3.5 text-[#D4922A]" /> Proof-of-work timeline</span><span className="text-[11px] text-gray-500">{proofTimeline.length} event{proofTimeline.length === 1 ? "" : "s"}</span></div>
-                      {proofTimeline.length ? <ol className="mt-3 space-y-3">{proofTimeline.slice(0, 8).map(item => <li key={item.id} className="flex gap-3"><span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${item.kind === "photo" ? "bg-blue-50 text-blue-600" : item.kind === "milestone" ? "bg-emerald-50 text-emerald-700" : "bg-[#D4922A]/10 text-[#8a5a0b]"}`}>{item.kind === "photo" ? <Camera className="h-3 w-3" /> : item.kind === "milestone" ? <CheckCircle className="h-3 w-3" /> : <Target className="h-3 w-3" />}</span><span className="min-w-0"><span className="block text-xs font-semibold text-gray-800">{item.title}</span><span className="mt-0.5 block text-xs text-gray-600">{item.detail}</span><span className="mt-0.5 block text-[11px] text-gray-500">{formatPortalTimestamp(item.occurredAt)}</span></span></li>)}</ol> : <p className="mt-3 text-xs text-gray-500">Your provider will post milestones, updates, and proof here as the job moves forward.</p>}
+                      {proofTimeline.length ? <ol className="mt-3 space-y-3">{proofTimeline.slice(0, 8).map(item => <li key={item.id} className="flex gap-3"><span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${item.kind === "photo" ? "bg-blue-50 text-blue-600" : item.kind === "milestone" ? "bg-emerald-50 text-emerald-700" : "bg-[#D4922A]/10 text-[#8A5E10]"}`}>{item.kind === "photo" ? <Camera className="h-3 w-3" /> : item.kind === "milestone" ? <CheckCircle className="h-3 w-3" /> : <Target className="h-3 w-3" />}</span><span className="min-w-0"><span className="block text-xs font-semibold text-gray-800">{item.title}</span><span className="mt-0.5 block text-xs text-gray-600">{item.detail}</span><span className="mt-0.5 block text-[11px] text-gray-500">{formatPortalTimestamp(item.occurredAt)}</span></span></li>)}</ol> : <p className="mt-3 text-xs text-gray-500">Your provider will post milestones, updates, and proof here as the job moves forward.</p>}
                     </div>
                     {job.photos.length > 0 && <div className="mt-4 flex gap-2 overflow-x-auto pb-1">{job.photos.slice(0, 5).filter(photo => isSafeImageUrl(photo.photoUrl)).map(photo => <img key={photo.id} src={photo.photoUrl} alt={photo.caption || `${photo.photoType} work proof`} className="h-14 w-14 shrink-0 rounded-md object-cover ring-1 ring-gray-200" loading="lazy" />)}</div>}
                   </article>
@@ -611,7 +611,7 @@ export default function ClientPortal() {
                   type="button"
                   onClick={() => portalPhotoInputRef.current?.click()}
                   disabled={portalPhotoUploading}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#D4922A] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#b6781d] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#D4922A] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#8A5E10] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {portalPhotoUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
                   {portalPhotoUploading ? "Uploading" : "Share a photo"}
@@ -785,7 +785,7 @@ export default function ClientPortal() {
               <button
                 type="submit"
                 disabled={!messageDraft.trim() || sendPortalMessage.isPending}
-                className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-[#D4922A] px-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#b6781d] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-[#D4922A] px-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#8A5E10] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {sendPortalMessage.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 <span className="hidden sm:inline">Send</span>

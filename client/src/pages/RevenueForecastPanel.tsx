@@ -165,14 +165,14 @@ export default function RevenueForecastPanel() {
           label="Projected Annual"
           value={fmt(projectedAnnual)}
           sub={projPct != null ? `${projPct}% of annual goal` : "Based on avg monthly"}
-          color="#6366F1"
+          color="#1b2d4f"
         />
         <SummaryCard
           icon={Target}
           label="Annual Goal"
           value={annualGoal != null ? fmt(annualGoal) : "Not set"}
           sub={annualGoal ? `$${fmt(Math.max(0, annualGoal - ytdRevenue))} remaining` : "Click 'Set Annual Goal'"}
-          color="#10B981"
+          color="#1E6B45"
           action={!annualGoal ? { label: "Set", onClick: () => startEditGoal("annual") } : undefined}
         />
         <SummaryCard
@@ -180,7 +180,7 @@ export default function RevenueForecastPanel() {
           label="Avg / Month"
           value={fmt(forecast.avgMonthlyRevenue)}
           sub={`Based on ${currentMonth - 1} paid months`}
-          color="#F59E0B"
+          color="#D4922A"
         />
       </div>
 
@@ -196,7 +196,7 @@ export default function RevenueForecastPanel() {
               className="h-full rounded-full transition-all duration-700"
               style={{
                 width: `${Math.min(ytdPct ?? 0, 100)}%`,
-                background: (ytdPct ?? 0) >= 100 ? "#10B981" : (ytdPct ?? 0) >= 75 ? "#D4922A" : "#6366F1",
+                background: (ytdPct ?? 0) >= 100 ? "#1E6B45" : (ytdPct ?? 0) >= 75 ? "#D4922A" : "#1b2d4f",
               }}
             />
           </div>
@@ -222,8 +222,8 @@ export default function RevenueForecastPanel() {
             />
             <Legend wrapperStyle={{ fontSize: 11, color: "color-mix(in oklab, var(--foreground) 50%, transparent)" }} />
             <Bar dataKey="Actual" fill="#D4922A" radius={[4, 4, 0, 0]} maxBarSize={32} />
-            <Bar dataKey="Projected" fill="#6366F1" radius={[4, 4, 0, 0]} maxBarSize={32} opacity={0.7} />
-            <Bar dataKey="Goal" fill="rgba(16,185,129,0.3)" radius={[4, 4, 0, 0]} maxBarSize={32} stroke="#10B981" strokeWidth={1} />
+            <Bar dataKey="Projected" fill="#1b2d4f" radius={[4, 4, 0, 0]} maxBarSize={32} opacity={0.7} />
+            <Bar dataKey="Goal" fill="rgba(30,107,69,0.3)" radius={[4, 4, 0, 0]} maxBarSize={32} stroke="#1E6B45" strokeWidth={1} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -287,7 +287,7 @@ export default function RevenueForecastPanel() {
                         className="h-full rounded-full"
                         style={{
                           width: `${Math.min(pct(m.actual, m.goal) ?? 0, 100)}%`,
-                          background: (pct(m.actual, m.goal) ?? 0) >= 100 ? "#10B981" : "#D4922A",
+                          background: (pct(m.actual, m.goal) ?? 0) >= 100 ? "#1E6B45" : "#D4922A",
                         }}
                       />
                     </div>

@@ -76,7 +76,7 @@ describe("mobile-first responsiveness and CTAs", () => {
 
   it("stacks footer buttons on phones and keeps the primary CTA distinct", () => {
     expect(page).toContain("DialogFooter className=\"flex-col gap-2");
-    expect(page).toContain("bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold");
+    expect(page).toContain("bg-[#1B2D4F] hover:bg-[#2A3E63] text-white font-semibold");
   });
 
   it("compresses stat tiles on small screens instead of overflowing", () => {

@@ -90,7 +90,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
                   <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth="3.2" />
                   <circle
                     cx="18" cy="18" r="15.9" fill="none"
-                    stroke={allDone ? "#10B981" : "#D4922A"} strokeWidth="3.2"
+                    stroke={allDone ? "#1E6B45" : "#D4922A"} strokeWidth="3.2"
                     strokeDasharray={`${pct} ${100 - pct}`}
                     strokeLinecap="round"
                   />
@@ -137,7 +137,7 @@ export function OnboardingChecklist({ onNavigate }: Props) {
           <div className="h-1.5 bg-[var(--muted)] rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${pct}%`, background: allDone ? "#10B981" : "#D4922A" }}
+              style={{ width: `${pct}%`, background: allDone ? "#1E6B45" : "#D4922A" }}
             />
           </div>
         </div>

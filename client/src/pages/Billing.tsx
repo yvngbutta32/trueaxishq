@@ -215,7 +215,7 @@ export default function Billing() {
                     aria-label={`${plan.name} plan — $${price} per ${billingCycle === "annual" ? "month (billed annually)" : "month"}`}
                   >
                     {plan.highlighted && (
-                      <div className="text-xs font-bold text-[#007A65] bg-[#D4922A]/10 border border-[#D4922A]/20 rounded-full px-3 py-1 text-center mb-4 -mt-1" role="note">
+                      <div className="text-xs font-bold text-[#175537] bg-[#D4922A]/10 border border-[#D4922A]/20 rounded-full px-3 py-1 text-center mb-4 -mt-1" role="note">
                         Most Popular
                       </div>
                     )}

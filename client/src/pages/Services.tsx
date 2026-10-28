@@ -80,7 +80,7 @@ export default function Services() {
           <h1 className="text-2xl font-bold text-[color-mix(in oklab, var(--foreground) 95%, transparent)]">Service Catalog</h1>
           <p className="text-sm text-[color-mix(in oklab, var(--foreground) 55.0%, transparent)] mt-0.5">Define your services and packages — select them instantly when creating invoices or proposals</p>
         </div>
-        <Button onClick={openCreate} className="bg-[#00C9A7] hover:bg-[#00b396] text-[#1C1C1E] font-semibold gap-2">
+        <Button onClick={openCreate} className="bg-[#1E6B45] hover:bg-[#175537] text-[#1C1C1E] font-semibold gap-2">
           <Plus className="w-4 h-4" /> New Service
         </Button>
       </div>
@@ -88,9 +88,9 @@ export default function Services() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Total Services", value: services.length, icon: Package, color: "#00C9A7" },
-          { label: "Active", value: activeServices.length, icon: ToggleRight, color: "#34D399" },
-          { label: "Avg Price", value: services.length ? `$${(services.reduce((s, sv) => s + parseFloat(String(sv.price)), 0) / services.length).toFixed(0)}` : "$0", icon: DollarSign, color: "#F59E0B" },
+          { label: "Total Services", value: services.length, icon: Package, color: "#1E6B45" },
+          { label: "Active", value: activeServices.length, icon: ToggleRight, color: "#5C9275" },
+          { label: "Avg Price", value: services.length ? `$${(services.reduce((s, sv) => s + parseFloat(String(sv.price)), 0) / services.length).toFixed(0)}` : "$0", icon: DollarSign, color: "#D4922A" },
         ].map(stat => (
           <div key={stat.label} className="bg-white border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] rounded-xl p-4 flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${stat.color}20` }}>
@@ -111,12 +111,12 @@ export default function Services() {
         </div>
       ) : services.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-lg bg-[rgba(0,201,167,0.12)] flex items-center justify-center mb-4">
-            <Package className="w-8 h-8 text-[#00C9A7]" />
+          <div className="w-16 h-16 rounded-lg bg-[rgba(30,107,69,0.12)] flex items-center justify-center mb-4">
+            <Package className="w-8 h-8 text-[#1E6B45]" />
           </div>
           <h3 className="text-lg font-semibold text-[color-mix(in oklab, var(--foreground) 85%, transparent)] mb-2">No services yet</h3>
           <p className="text-sm text-[color-mix(in oklab, var(--foreground) 45%, transparent)] mb-6 max-w-sm">Create your service catalog to quickly add line items to invoices and proposals in seconds.</p>
-          <Button onClick={openCreate} className="bg-[#00C9A7] hover:bg-[#00b396] text-[#1C1C1E] font-semibold gap-2">
+          <Button onClick={openCreate} className="bg-[#1E6B45] hover:bg-[#175537] text-[#1C1C1E] font-semibold gap-2">
             <Plus className="w-4 h-4" /> Create First Service
           </Button>
         </div>
@@ -174,7 +174,7 @@ export default function Services() {
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map(cat => (
                   <button key={cat} onClick={() => setForm(p => ({ ...p, category: cat }))}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-all capitalize ${form.category === cat ? "bg-[#00C9A7] border-[#00C9A7] text-[#1C1C1E]" : "border-[color-mix(in oklab, var(--foreground) 15%, transparent)] text-[color-mix(in oklab, var(--foreground) 60%, transparent)] hover:border-[color-mix(in oklab, var(--foreground) 30%, transparent)]"}`}>
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-all capitalize ${form.category === cat ? "bg-[#1E6B45] border-[#1E6B45] text-[#1C1C1E]" : "border-[color-mix(in oklab, var(--foreground) 15%, transparent)] text-[color-mix(in oklab, var(--foreground) 60%, transparent)] hover:border-[color-mix(in oklab, var(--foreground) 30%, transparent)]"}`}>
                     {cat}
                   </button>
                 ))}
@@ -183,7 +183,7 @@ export default function Services() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)} className="text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Cancel</Button>
-            <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="bg-[#00C9A7] hover:bg-[#00b396] text-[#1C1C1E] font-semibold">
+            <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="bg-[#1E6B45] hover:bg-[#175537] text-[#1C1C1E] font-semibold">
               {editing !== null ? "Save Changes" : "Create Service"}
             </Button>
           </DialogFooter>
@@ -211,7 +211,7 @@ function ServiceCard({ service, onEdit, onDelete, onToggle, inactive }: {
   const price = parseFloat(String(service.price));
   const dur = service.durationMinutes ?? 60;
   return (
-    <div className="group bg-white border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] rounded-xl p-5 hover:border-[rgba(0,201,167,0.3)] hover:bg-[rgba(0,201,167,0.04)] transition-all">
+    <div className="group bg-white border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] rounded-xl p-5 hover:border-[rgba(30,107,69,0.3)] hover:bg-[rgba(30,107,69,0.04)] transition-all">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-[color-mix(in oklab, var(--foreground) 95%, transparent)] truncate">{service.name}</h3>
@@ -225,11 +225,11 @@ function ServiceCard({ service, onEdit, onDelete, onToggle, inactive }: {
       {service.description && <p className="text-xs text-[color-mix(in oklab, var(--foreground) 45%, transparent)] mb-3 line-clamp-2">{service.description}</p>}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1 text-[#00C9A7] font-bold text-lg"><DollarSign className="w-4 h-4" />{price.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
+          <span className="flex items-center gap-1 text-[#1E6B45] font-bold text-lg"><DollarSign className="w-4 h-4" />{price.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
           {dur > 0 && <span className="flex items-center gap-1 text-xs text-[color-mix(in oklab, var(--foreground) 40%, transparent)]"><Clock className="w-3 h-3" />{dur >= 60 ? `${dur / 60}h` : `${dur}m`}</span>}
         </div>
         <button type="button" aria-label={`${inactive ? "Activate" : "Deactivate"} service ${service.name}`} onClick={() => onToggle(service.id)} className="text-xs flex items-center gap-1 text-[color-mix(in oklab, var(--foreground) 40%, transparent)] hover:text-[color-mix(in oklab, var(--foreground) 70%, transparent)] transition-colors">
-          {inactive ? <ToggleLeft className="w-4 h-4" /> : <ToggleRight className="w-4 h-4 text-[#34D399]" />}
+          {inactive ? <ToggleLeft className="w-4 h-4" /> : <ToggleRight className="w-4 h-4 text-[#5C9275]" />}
           {inactive ? "Activate" : "Active"}
         </button>
       </div>

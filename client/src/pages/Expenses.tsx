@@ -93,7 +93,7 @@ export default function Expenses() {
               </button>
             ))}
           </div>
-          <Button onClick={openCreate} className="bg-[#FF6B6B] hover:bg-[#e85f5f] text-white font-semibold gap-2">
+          <Button onClick={openCreate} className="bg-[#C0392B] hover:bg-[#A0301F] text-white font-semibold gap-2">
             <Plus className="w-4 h-4" /> Add Expense
           </Button>
         </div>
@@ -122,10 +122,10 @@ export default function Expenses() {
             {/* KPI Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Total Revenue", value: `$${pnl.totalRevenue.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}`, icon: TrendingUp, color: "#00C9A7", sub: "Paid invoices" },
-                { label: "Total Expenses", value: `$${pnl.totalExpenses.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}`, icon: TrendingDown, color: "#FF6B6B", sub: `${expenseList.length} entries` },
-                { label: "Net Profit", value: `$${pnl.netProfit.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}`, icon: pnl.netProfit >= 0 ? ArrowUpRight : ArrowDownRight, color: pnl.netProfit >= 0 ? "#34D399" : "#FF6B6B", sub: `${pnl.profitMargin}% margin` },
-                { label: "Tax Deductible", value: `$${pnl.taxDeductibleExpenses.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}`, icon: CheckCircle, color: "#F59E0B", sub: "Deductible expenses" },
+                { label: "Total Revenue", value: `$${pnl.totalRevenue.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}`, icon: TrendingUp, color: "#1E6B45", sub: "Paid invoices" },
+                { label: "Total Expenses", value: `$${pnl.totalExpenses.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}`, icon: TrendingDown, color: "#C0392B", sub: `${expenseList.length} entries` },
+                { label: "Net Profit", value: `$${pnl.netProfit.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}`, icon: pnl.netProfit >= 0 ? ArrowUpRight : ArrowDownRight, color: pnl.netProfit >= 0 ? "#5C9275" : "#C0392B", sub: `${pnl.profitMargin}% margin` },
+                { label: "Tax Deductible", value: `$${pnl.taxDeductibleExpenses.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}`, icon: CheckCircle, color: "#D4922A", sub: "Deductible expenses" },
               ].map(kpi => (
                 <div key={kpi.label} className="bg-white border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -150,8 +150,8 @@ export default function Expenses() {
                     <YAxis tick={{ fill: "color-mix(in oklab, var(--foreground) 40%, transparent)", fontSize: 11 }} tickFormatter={v => `$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`} />
                     <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)" }} formatter={(v: any) => [`$${Number(v).toLocaleString()}`, ""]} />
                     <Legend wrapperStyle={{ color: "color-mix(in oklab, var(--foreground) 50%, transparent)", fontSize: 12 }} />
-                    <Bar dataKey="revenue" name="Revenue" fill="#00C9A7" radius={[4,4,0,0]} />
-                    <Bar dataKey="expenses" name="Expenses" fill="#FF6B6B" radius={[4,4,0,0]} />
+                    <Bar dataKey="revenue" name="Revenue" fill="#1E6B45" radius={[4,4,0,0]} />
+                    <Bar dataKey="expenses" name="Expenses" fill="#C0392B" radius={[4,4,0,0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -168,7 +168,7 @@ export default function Expenses() {
                       <div key={cat.name} className="flex items-center gap-3">
                         <span className="text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)] w-24 capitalize truncate">{cat.name}</span>
                         <div className="flex-1 h-2 bg-white rounded-full overflow-hidden">
-                          <div className="h-full bg-[#FF6B6B] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                          <div className="h-full bg-[#C0392B] rounded-full transition-all" style={{ width: `${pct}%` }} />
                         </div>
                         <span className="text-xs text-[color-mix(in oklab, var(--foreground) 70%, transparent)] w-16 text-right">${cat.value.toLocaleString()}</span>
                         <span className="text-xs text-[color-mix(in oklab, var(--foreground) 40%, transparent)] w-10 text-right">{pct.toFixed(0)}%</span>
@@ -188,16 +188,16 @@ export default function Expenses() {
           ) : expenseList.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="w-14 h-14 rounded-lg bg-[rgba(255,107,107,0.12)] flex items-center justify-center mb-4">
-                <Receipt className="w-7 h-7 text-[#FF6B6B]" />
+                <Receipt className="w-7 h-7 text-[#C0392B]" />
               </div>
               <h3 className="text-base font-semibold text-[color-mix(in oklab, var(--foreground) 80%, transparent)] mb-2">No expenses recorded</h3>
               <p className="text-sm text-[color-mix(in oklab, var(--foreground) 45%, transparent)] mb-5">Start tracking your business expenses to see your real profit.</p>
-              <Button onClick={openCreate} className="bg-[#FF6B6B] hover:bg-[#e85f5f] text-white font-semibold gap-2"><Plus className="w-4 h-4" />Add First Expense</Button>
+              <Button onClick={openCreate} className="bg-[#C0392B] hover:bg-[#A0301F] text-white font-semibold gap-2"><Plus className="w-4 h-4" />Add First Expense</Button>
             </div>
           ) : expenseList.map(e => (
             <div key={e.id} className="group flex items-center gap-4 bg-white border border-[color-mix(in oklab, var(--foreground) 7.0%, transparent)] rounded-xl px-4 py-3 hover:border-[rgba(255,107,107,0.25)] transition-all">
               <div className="w-9 h-9 rounded-lg bg-[rgba(255,107,107,0.12)] flex items-center justify-center flex-shrink-0">
-                <Receipt className="w-4 h-4 text-[#FF6B6B]" />
+                <Receipt className="w-4 h-4 text-[#C0392B]" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-[color-mix(in oklab, var(--foreground) 90%, transparent)] text-sm truncate">{e.description}</p>
@@ -205,10 +205,10 @@ export default function Expenses() {
                   <Badge variant="outline" className="text-xs border-[color-mix(in oklab, var(--foreground) 12%, transparent)] text-[color-mix(in oklab, var(--foreground) 45%, transparent)] capitalize py-0">{e.category}</Badge>
                   {e.vendor && <span className="text-xs text-[color-mix(in oklab, var(--foreground) 40%, transparent)]">{e.vendor}</span>}
                   <span className="text-xs text-[color-mix(in oklab, var(--foreground) 35%, transparent)] flex items-center gap-1"><Calendar className="w-3 h-3" />{e.date}</span>
-                  {e.taxDeductible && <span className="text-xs text-[#F59E0B]">Tax deductible</span>}
+                  {e.taxDeductible && <span className="text-xs text-[#D4922A]">Tax deductible</span>}
                 </div>
               </div>
-              <span className="font-bold text-[#FF6B6B] text-base">${parseFloat(String(e.amount)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+              <span className="font-bold text-[#C0392B] text-base">${parseFloat(String(e.amount)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button onClick={() => openEdit(e)} aria-label={`Edit expense ${e.id}`} className="p-1.5 rounded-lg hover:bg-white text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[color-mix(in oklab, var(--foreground) 90%, transparent)] transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
                 <button onClick={() => setDeleteConfirm(e.id)} aria-label={`Delete expense ${e.id}`} className="p-1.5 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -259,7 +259,7 @@ export default function Expenses() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)} className="text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Cancel</Button>
-            <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="bg-[#FF6B6B] hover:bg-[#e85f5f] text-white font-semibold">
+            <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="bg-[#C0392B] hover:bg-[#A0301F] text-white font-semibold">
               {editing !== null ? "Save Changes" : "Add Expense"}
             </Button>
           </DialogFooter>

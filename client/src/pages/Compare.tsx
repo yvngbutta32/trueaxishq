@@ -18,7 +18,7 @@ function SourceLink({ url, label }: { url: string; label: string }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1 text-xs text-[#8A5A0B] hover:underline mt-1"
+      className="inline-flex items-center gap-1 text-xs text-[#8a5e10] hover:underline mt-1"
     >
       <ExternalLink className="w-3 h-3" /> {label}
     </a>
@@ -53,7 +53,7 @@ export default function Compare() {
               <h2 className="text-sm font-bold">{row.feature}</h2>
 
               <div className="mt-3 rounded-lg border border-[#D4922A]/30 bg-[#D4922A]/5 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8A5A0B] flex items-center gap-1">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8a5e10] flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" /> TrueAxis HQ
                 </p>
                 <p className="text-sm text-[#4A4A4A] mt-1 leading-6">{row.us}</p>
@@ -77,9 +77,9 @@ export default function Compare() {
           ))}
         </div>
 
-        <section className="mt-8 rounded-xl border border-[#C85A3A]/25 bg-[#C85A3A]/5 p-5">
+        <section className="mt-8 rounded-xl border border-[#C0392B]/25 bg-[#C0392B]/5 p-5">
           <h2 className="text-sm font-bold flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-[#C85A3A]" /> Where they're ahead of us
+            <ShieldAlert className="w-4 h-4 text-[#C0392B]" /> Where they're ahead of us
           </h2>
           <p className="mt-2 text-sm text-[var(--muted-foreground)]">
             No product wins every row. These are the gaps we haven't closed — stated plainly.

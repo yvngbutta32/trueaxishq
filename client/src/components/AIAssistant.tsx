@@ -339,7 +339,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, panel
                       className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-all ${
                         isSaved
                           ? "bg-green-100 text-green-700 cursor-default"
-                          : "bg-[#00C9A7]/10 text-[#00C9A7] hover:bg-[#00C9A7]/20 active:scale-95 border border-[#00C9A7]/30"
+                          : "bg-[#1E6B45]/10 text-[#1E6B45] hover:bg-[#1E6B45]/20 active:scale-95 border border-[#1E6B45]/30"
                       }`}
                     >
                       {isSaved ? <CheckCircle2 className="w-3.5 h-3.5" /> : <ActionIcon type={action.type} />}
@@ -504,7 +504,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, panel
           <button
             onClick={onClose}
             aria-label="Dismiss AI Assistant"
-            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#1B2D4F] text-white flex items-center justify-center hover:bg-[#111E33] transition-colors shadow"
+            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#1B2D4F] text-white flex items-center justify-center hover:bg-[#16233c] transition-colors shadow"
           >
             <X className="w-3 h-3" />
           </button>
@@ -563,7 +563,7 @@ export default function AIAssistant({ visible, onClose, onNavigateToPanel, panel
         <button
           onClick={onClose}
           aria-label="Dismiss AI Assistant"
-          className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#1B2D4F] text-white flex items-center justify-center hover:bg-[#111E33] transition-colors shadow"
+          className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#1B2D4F] text-white flex items-center justify-center hover:bg-[#16233c] transition-colors shadow"
           style={{ pointerEvents: "auto" }}
         >
           <X className="w-3 h-3" />

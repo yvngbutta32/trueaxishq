@@ -78,7 +78,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }: {
                   <item.icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                   {!collapsed && <span>{item.label}</span>}
                   {!collapsed && item.badge && active !== item.panel && (
-                    <span className="ml-auto text-[9px] font-bold bg-[#D4922A]/25 text-[#E8A020] px-1.5 py-0.5 rounded-full">{item.badge}</span>
+                    <span className="ml-auto text-[9px] font-bold bg-[#D4922A]/25 text-[#D4922A] px-1.5 py-0.5 rounded-full">{item.badge}</span>
                   )}
                   {!collapsed && active === item.panel && <ChevronRight className="w-3 h-3 ml-auto" aria-hidden="true" />}
                 </button>

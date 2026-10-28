@@ -39,7 +39,7 @@ function PlanBadge({ plan }: { plan: string }) {
     agency: "bg-purple-500/15 text-purple-400",
     pro: "bg-amber-900/30 text-amber-400",
     starter: "bg-blue-500/15 text-blue-400",
-    free: "bg-[#243040] text-[rgba(245,239,227,0.60)]",
+    free: "bg-[#2C3D56] text-[rgba(245,239,227,0.60)]",
   };
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${colors[plan] ?? colors.free}`}>
@@ -391,7 +391,7 @@ export default function Admin() {
                   return (
                     <div key={plan.id} className="flex items-center gap-3">
                       <span className="text-sm text-[rgba(245,239,227,0.60)] w-36 flex-shrink-0">{plan.label}</span>
-                      <div className="flex-1 bg-[#243040] rounded-full h-2.5">
+                      <div className="flex-1 bg-[#2C3D56] rounded-full h-2.5">
                         <div className={`h-2.5 rounded-full ${plan.color} transition-all duration-700`} style={{ width: `${pct}%` }} />
                       </div>
                       <span className="text-sm font-semibold text-[rgba(245,239,227,0.70)] w-16 text-right">{count} ({pct}%)</span>
@@ -456,7 +456,7 @@ export default function Admin() {
                         <tr key={u.id} className="border-b border-white/5 hover:bg-[#1C2333] transition-colors">
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-[#D4922A]/15 flex items-center justify-center text-[#007A65] text-xs font-bold flex-shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-[#D4922A]/15 flex items-center justify-center text-[#175537] text-xs font-bold flex-shrink-0">
                                 {u.name?.[0]?.toUpperCase() ?? "?"}
                               </div>
                               <div>
@@ -614,7 +614,7 @@ export default function Admin() {
                 <div key={lead.id} className={`grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 px-6 py-4 ${i > 0 ? "border-t border-white/5" : ""} hover:bg-[#1C2333]`}>
                   <p className="text-sm font-medium text-[#F5EFE3]">{lead.name || <span className="text-[rgba(245,239,227,0.60)] italic">No name</span>}</p>
                   <p className="text-sm text-[rgba(245,239,227,0.60)] truncate">{lead.email}</p>
-                  <span className="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-xs font-medium bg-[#D4922A]/10 text-[#007A65]">{lead.source ?? "landing_page"}</span>
+                  <span className="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-xs font-medium bg-[#D4922A]/10 text-[#175537]">{lead.source ?? "landing_page"}</span>
                   <p className="text-sm text-[rgba(245,239,227,0.60)]">{new Date(lead.createdAt).toLocaleDateString()}</p>
                 </div>
               ))}
@@ -742,11 +742,11 @@ export default function Admin() {
                   </div>
                   {settingsForm.announcementEnabled && settingsForm.announcementText && (
                     <div className={`mt-4 px-4 py-2.5 rounded-xl text-sm font-medium text-center ${
-                      settingsForm.announcementColor === "coral" ? "bg-[#FF6B6B]/15 text-[#CC3333]" :
+                      settingsForm.announcementColor === "coral" ? "bg-[#C0392B]/15 text-[#A0301F]" :
                       settingsForm.announcementColor === "purple" ? "bg-purple-500/15 text-purple-400" :
                       settingsForm.announcementColor === "yellow" ? "bg-yellow-500/15 text-yellow-400" :
                       settingsForm.announcementColor === "blue" ? "bg-blue-500/15 text-blue-400" :
-                      "bg-[#D4922A]/15 text-[#007A65]"
+                      "bg-[#D4922A]/15 text-[#175537]"
                     }`}>
                       Preview: {settingsForm.announcementText}
                     </div>
@@ -1059,7 +1059,7 @@ export default function Admin() {
           <section aria-label="Stripe event recovery" className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div><h2 className="text-xl font-bold text-[#F5EFE3]">Stripe event recovery</h2><p className="mt-1 max-w-3xl text-sm text-[rgba(245,239,227,0.65)]">Owner-only processing evidence for signed payment events. The table excludes event payloads and does not establish that Stripe or a downstream system completed a business action.</p></div>
-              <Button onClick={() => processDueStripeEventsMutation.mutate({ limit: 10 })} disabled={processDueStripeEventsMutation.isPending} className="bg-[#D4922A] text-white hover:bg-[#B87716]"><RefreshCw className={`mr-2 h-4 w-4 ${processDueStripeEventsMutation.isPending ? "animate-spin" : ""}`} />{processDueStripeEventsMutation.isPending ? "Processing…" : "Process due events"}</Button>
+              <Button onClick={() => processDueStripeEventsMutation.mutate({ limit: 10 })} disabled={processDueStripeEventsMutation.isPending} className="bg-[#D4922A] text-white hover:bg-[#8a5e10]"><RefreshCw className={`mr-2 h-4 w-4 ${processDueStripeEventsMutation.isPending ? "animate-spin" : ""}`} />{processDueStripeEventsMutation.isPending ? "Processing…" : "Process due events"}</Button>
             </div>
             <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-[#F5EFE3]"><p className="font-semibold">Bounded recovery policy</p><p className="mt-1 text-xs leading-5 text-[rgba(245,239,227,0.72)]">TrueAxis HQ stores an encrypted event envelope before acknowledging a verified event. Failed processing can be retried up to five times with increasing delays; terminal events require owner review. A real-provider signed webhook walkthrough remains an external validation gate.</p></div>
             {stripeRecoveryQuery.isLoading ? <div className="h-52 animate-pulse rounded-xl bg-white/10" /> : stripeRecoveryQuery.isError ? <div className="rounded-xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-100">Recovery evidence could not be loaded. Refresh the page or review server logs.</div> : stripeRecoveryQuery.data?.length ? <div className="overflow-x-auto rounded-xl border border-white/10 bg-[#161B22]"><table className="min-w-[760px] w-full text-left text-sm"><thead className="border-b border-white/10 text-xs uppercase tracking-wide text-[rgba(245,239,227,0.56)]"><tr><th className="px-4 py-3">Event</th><th className="px-4 py-3">State</th><th className="px-4 py-3">Attempts</th><th className="px-4 py-3">Next action</th><th className="px-4 py-3">Last issue</th></tr></thead><tbody>{stripeRecoveryQuery.data.map(event => <tr key={event.id} className="border-b border-white/5 last:border-0"><td className="px-4 py-3"><p className="font-semibold text-[#F5EFE3]">{event.eventType}</p><p className="mt-0.5 font-mono text-[11px] text-[rgba(245,239,227,0.52)]">{event.eventId}</p></td><td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-[10px] font-bold ${event.status === "processed" ? "bg-emerald-400/15 text-emerald-200" : event.status === "terminal" ? "bg-rose-400/15 text-rose-200" : "bg-amber-400/15 text-amber-100"}`}>{event.status}</span></td><td className="px-4 py-3 text-[#F5EFE3]">{event.attemptCount}</td><td className="px-4 py-3 text-xs text-[rgba(245,239,227,0.7)]">{event.nextAttemptAt ? new Date(event.nextAttemptAt).toLocaleString() : event.completedAt ? `Completed ${new Date(event.completedAt).toLocaleString()}` : "No scheduled retry"}</td><td className="max-w-[260px] truncate px-4 py-3 text-xs text-[rgba(245,239,227,0.7)]">{event.lastError || "—"}</td></tr>)}</tbody></table></div> : <div className="rounded-xl border border-dashed border-white/15 bg-[#161B22] p-8 text-center text-sm text-[rgba(245,239,227,0.68)]">No Stripe processing evidence has been recorded yet.</div>}
@@ -1341,7 +1341,7 @@ export default function Admin() {
                               event.severity === "critical" ? "bg-red-500/15 text-red-400" :
                               event.severity === "high" ? "bg-orange-100 text-orange-700" :
                               event.severity === "medium" ? "bg-amber-500/15 text-amber-400" :
-                              "bg-[#243040] text-[rgba(245,239,227,0.60)]"
+                              "bg-[#2C3D56] text-[rgba(245,239,227,0.60)]"
                             }`}>
                               {event.severity}
                             </span>
@@ -1423,7 +1423,7 @@ export default function Admin() {
                               <span className="font-mono font-bold text-[#0D1117]">{inv.code}</span>
                               <button
                                 onClick={() => { navigator.clipboard.writeText(inv.code); setCopiedCode(inv.code); setTimeout(() => setCopiedCode(null), 2000); }}
-                                className="p-1 rounded hover:bg-[#243040] text-[rgba(245,239,227,0.60)] hover:text-[rgba(245,239,227,0.60)]"
+                                className="p-1 rounded hover:bg-[#2C3D56] text-[rgba(245,239,227,0.60)] hover:text-[rgba(245,239,227,0.60)]"
                               >
                                 {copiedCode === inv.code ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                               </button>
@@ -1432,7 +1432,7 @@ export default function Admin() {
                           <td className="py-2 px-3 text-[rgba(245,239,227,0.60)]">{inv.note || "—"}</td>
                           <td className="py-2 px-3">
                             {inv.usedBy ? (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-[#243040] text-[rgba(245,239,227,0.60)]">Used</span>
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-[#2C3D56] text-[rgba(245,239,227,0.60)]">Used</span>
                             ) : (
                               <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-600">Available</span>
                             )}

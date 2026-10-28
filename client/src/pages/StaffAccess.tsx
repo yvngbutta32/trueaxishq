@@ -40,7 +40,7 @@ export default function StaffAccess() {
   return (
     <main className="min-h-screen bg-[var(--background)] px-4 py-10">
       <section className="mx-auto max-w-lg rounded-lg border border-[color-mix(in oklab, var(--foreground) 10%, transparent)] bg-white p-6">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#D4922A]/15 text-[#8A5A0B]"><UsersRound className="h-5 w-5" /></div>
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#D4922A]/15 text-[#8a5e10]"><UsersRound className="h-5 w-5" /></div>
         <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-[#D4922A]">Private staff access</p>
         <h1 className="mt-1 text-2xl font-bold text-[var(--foreground)]">Join {invite.teamMemberName}&apos;s assigned work</h1>
         <p className="mt-2 text-sm leading-6 text-[color-mix(in oklab, var(--foreground) 65%, transparent)]">This access is limited to the work assigned to you. It does not grant owner finance, private CRM, or dispatch-note access. The link expires {new Date(invite.expiresAt).toLocaleString()}.</p>
@@ -54,7 +54,7 @@ export default function StaffAccess() {
                 <p className="mt-1">Sign in with the invited account, then reopen the link. No access has been activated.</p>
               </div>
             ) : (
-              <button type="button" onClick={() => accept.mutate({ token })} disabled={accept.isPending} className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#D4922A] px-4 py-2.5 text-sm font-bold text-white transition-transform duration-150 ease-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A5A0B] focus-visible:ring-offset-2 disabled:opacity-50">
+              <button type="button" onClick={() => accept.mutate({ token })} disabled={accept.isPending} className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#D4922A] px-4 py-2.5 text-sm font-bold text-white transition-transform duration-150 ease-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8a5e10] focus-visible:ring-offset-2 disabled:opacity-50">
                 {accept.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 Accept staff access
               </button>
@@ -72,7 +72,7 @@ export default function StaffAccess() {
             <Field label="Full name" value={name} setValue={setName} autoComplete="name" />
             <Field label="Invited email" value={email} setValue={setEmail} type="email" autoComplete="email" />
             <Field label="Password" value={password} setValue={setPassword} type="password" autoComplete="new-password" />
-            <button type="submit" disabled={!name.trim() || !email.trim() || password.length < 8 || register.isPending} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#D4922A] px-4 py-3 text-sm font-bold text-white transition-transform duration-150 ease-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A5A0B] focus-visible:ring-offset-2 disabled:opacity-50">
+            <button type="submit" disabled={!name.trim() || !email.trim() || password.length < 8 || register.isPending} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#D4922A] px-4 py-3 text-sm font-bold text-white transition-transform duration-150 ease-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8a5e10] focus-visible:ring-offset-2 disabled:opacity-50">
               {register.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               Create account and accept access
             </button>
@@ -86,7 +86,7 @@ export default function StaffAccess() {
 }
 
 function Field({ label, value, setValue, type = "text", autoComplete }: { label: string; value: string; setValue: (value: string) => void; type?: string; autoComplete?: string }) {
-  return <label className="block text-sm font-semibold text-[var(--foreground)]">{label}<input required type={type} value={value} onChange={event => setValue(event.target.value)} autoComplete={autoComplete} className="mt-1.5 block w-full rounded-lg border border-[color-mix(in oklab, var(--foreground) 16%, transparent)] bg-white px-3 py-2 text-sm font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A5A0B] focus-visible:ring-offset-2" /></label>;
+  return <label className="block text-sm font-semibold text-[var(--foreground)]">{label}<input required type={type} value={value} onChange={event => setValue(event.target.value)} autoComplete={autoComplete} className="mt-1.5 block w-full rounded-lg border border-[color-mix(in oklab, var(--foreground) 16%, transparent)] bg-white px-3 py-2 text-sm font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8a5e10] focus-visible:ring-offset-2" /></label>;
 }
 
 function Recovery({ title, detail }: { title: string; detail: string }) {

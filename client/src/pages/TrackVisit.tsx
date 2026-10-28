@@ -90,7 +90,7 @@ export default function TrackVisit() {
         ) : data ? (
           <>
             <header className="rounded-lg bg-[#1C2333] p-6 text-white">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#F5C842]">{data.businessName ? "On the way to you" : "Visit tracking"}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#e1c07e]">{data.businessName ? "On the way to you" : "Visit tracking"}</p>
               <h1 className="mt-1.5 text-2xl font-bold">{data.businessName ?? data.jobTitle ?? "Service visit"}</h1>
               {data.jobTitle && data.businessName && <p className="mt-1 text-sm text-white/75">{data.jobTitle}</p>}
               {window_ && (

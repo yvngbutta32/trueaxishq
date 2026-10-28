@@ -102,7 +102,7 @@ export default function SubJobPage() {
         ) : data ? (
           <>
             <header className="rounded-lg bg-[#1C2333] p-6 text-white">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#F5C842]">{data.businessName ? `${data.businessName} · Subcontract` : "Subcontract job"}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#e1c07e]">{data.businessName ? `${data.businessName} · Subcontract` : "Subcontract job"}</p>
               <h1 className="mt-1.5 text-2xl font-bold">{data.jobTitle ?? "Job invitation"}</h1>
               {data.jobNumber && <p className="mt-1 text-sm text-white/75">Job #{data.jobNumber}</p>}
               {data.jobStatus && (
@@ -146,7 +146,7 @@ export default function SubJobPage() {
                 <h2 className="text-sm font-bold text-[var(--foreground)]">Can you take this job?</h2>
                 <p className="mt-1 text-xs text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Responding sends your answer straight to the business — no app or account needed.</p>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                  <button onClick={() => void act("accept")} disabled={busy} className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#D4922A] px-4 text-sm font-bold text-white transition hover:bg-[#b87a20] disabled:opacity-60">
+                  <button onClick={() => void act("accept")} disabled={busy} className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#D4922A] px-4 text-sm font-bold text-white transition hover:bg-[#8A5E10] disabled:opacity-60">
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Accept job
                   </button>
                   <button onClick={() => void act("decline", note || undefined)} disabled={busy} className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[color-mix(in oklab, var(--foreground) 18%, transparent)] bg-white px-4 text-sm font-bold text-[color-mix(in oklab, var(--foreground) 75%, transparent)] transition hover:bg-[color-mix(in oklab, var(--foreground) 4%, transparent)] disabled:opacity-60">

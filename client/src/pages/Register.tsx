@@ -78,7 +78,7 @@ export default function Register() {
       {/* Left panel — branding & perks */}
       <div
         className="hidden lg:flex flex-col justify-between w-[45%] p-12 relative overflow-hidden"
-        style={{ background: "var(--muted)", borderRight: "1px solid rgba(232,160,32,0.12)" }}
+        style={{ background: "var(--muted)", borderRight: "1px solid rgba(212,146,42,0.12)" }}
       >
         {/* Subtle background grid */}
         <div className="absolute inset-0 retro-grid opacity-30 pointer-events-none" />
@@ -113,7 +113,7 @@ export default function Register() {
               <li key={text} className="flex items-start gap-3">
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ background: "rgba(232,160,32,0.12)" }}
+                  style={{ background: "rgba(212,146,42,0.12)" }}
                 >
                   <Icon className="w-4 h-4" style={{ color: "#D4922A" }} />
                 </div>
@@ -275,10 +275,10 @@ export default function Register() {
                 required
                 autoComplete="new-password"
                 className="form-input"
-                style={passwordMismatch ? { borderColor: "rgba(239,68,68,0.55)", boxShadow: "0 0 0 3px rgba(239,68,68,0.10)" } : {}}
+                style={passwordMismatch ? { borderColor: "rgba(192,57,43,0.55)", boxShadow: "0 0 0 3px rgba(192,57,43,0.10)" } : {}}
               />
               {passwordMismatch && (
-                <p className="text-xs mt-1" style={{ color: "#ef4444" }}>Passwords do not match</p>
+                <p className="text-xs mt-1" style={{ color: "#C0392B" }}>Passwords do not match</p>
               )}
             </div>
 
@@ -289,7 +289,7 @@ export default function Register() {
               disabled={isSubmitDisabled}
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-2"
               style={{
-                background: "linear-gradient(135deg, #D4922A, #F5C842)",
+                background: "linear-gradient(135deg, #D4922A, #e1c07e)",
                 color: "#161B22", fontSize: "0.9375rem",
                 border: "none",
                 cursor: isSubmitDisabled ? "not-allowed" : "pointer",

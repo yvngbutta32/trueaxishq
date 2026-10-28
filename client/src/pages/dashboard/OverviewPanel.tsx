@@ -162,7 +162,7 @@ function OverviewPanel({ userName, setActivePanel }: { userName: string; setActi
           style={{ '--card-glow': pnlData.netProfit >= 0 ? '#1E6B45' : '#C0392B' } as React.CSSProperties}
           aria-label="View P&L breakdown in Insights"
         >
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: pnlData.netProfit >= 0 ? 'rgba(34,197,94,0.15)' : 'rgba(255,107,107,0.15)' }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: pnlData.netProfit >= 0 ? 'rgba(30,107,69,0.15)' : 'rgba(255,107,107,0.15)' }}>
             <TrendingUp className="w-4 h-4" style={{ color: pnlData.netProfit >= 0 ? '#1E6B45' : '#C0392B' }} />
           </div>
           <div className="flex-1 min-w-0">

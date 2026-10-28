@@ -21,7 +21,7 @@ export function FeatureLock({ feature, label, children }: { feature: string; lab
       <p className="mt-1 max-w-md text-xs leading-5 text-[color-mix(in oklab, var(--foreground) 56.0%, transparent)]">
         Upgrade in Settings &rarr; Billing to unlock it. Your current plan keeps every core tool - this layer is the advanced operating tier.
       </p>
-      <a href="/pricing" className="mt-4 rounded-lg bg-[#D4922A] px-4 py-2 text-xs font-semibold text-white hover:bg-[#B87716]">View plans</a>
+      <a href="/pricing" className="mt-4 rounded-lg bg-[#D4922A] px-4 py-2 text-xs font-semibold text-white hover:bg-[#8a5e10]">View plans</a>
     </div>
   );
 }

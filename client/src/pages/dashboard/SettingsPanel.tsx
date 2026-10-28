@@ -413,7 +413,7 @@ function TwoFactorSection() {
 
       {step === "backup" && backupCodes && (
         <div className="space-y-4 rounded-xl bg-[var(--background)] border border-[var(--border)] p-4">
-          <p className="text-xs font-semibold text-[#8A5A0B]">Save your backup codes now — they're shown only once.</p>
+          <p className="text-xs font-semibold text-[#8a5e10]">Save your backup codes now — they're shown only once.</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {backupCodes.map(code => (
               <code key={code} className="font-mono text-xs bg-white border border-[var(--border)] rounded px-2 py-1.5 text-center">{code}</code>
@@ -1083,7 +1083,7 @@ function SettingsPanel() {
                     const weekdays = selected ? (current.length === 1 ? current : current.filter(value => value !== day.id)) : [...current, day.id].sort((a, b) => a - b);
                     return { ...p, bookingAvailability: { ...p.bookingAvailability, weekdays } };
                   })}
-                  className={`min-h-[36px] rounded-lg border px-3 text-xs font-semibold transition-colors ${selected ? "border-[#D4922A] bg-[#D4922A]/15 text-[#8A5A0B]" : "border-[var(--border-strong)] bg-white text-[var(--muted-foreground)] hover:border-[#D4922A]/60"}`}
+                  className={`min-h-[36px] rounded-lg border px-3 text-xs font-semibold transition-colors ${selected ? "border-[#D4922A] bg-[#D4922A]/15 text-[#8a5e10]" : "border-[var(--border-strong)] bg-white text-[var(--muted-foreground)] hover:border-[#D4922A]/60"}`}
                 >{day.label}</button>;
               })}
             </div>
@@ -1102,7 +1102,7 @@ function SettingsPanel() {
                     const timeSlots = selected ? (current.length === 1 ? current : current.filter(value => value !== time)) : PUBLIC_BOOKING_TIME_SLOTS.filter(value => current.includes(value) || value === time);
                     return { ...p, bookingAvailability: { ...p.bookingAvailability, timeSlots } };
                   })}
-                  className={`min-h-[36px] rounded-lg border px-2 text-xs font-semibold transition-colors ${selected ? "border-[#D4922A] bg-[#D4922A]/15 text-[#8A5A0B]" : "border-[var(--border-strong)] bg-white text-[var(--muted-foreground)] hover:border-[#D4922A]/60"}`}
+                  className={`min-h-[36px] rounded-lg border px-2 text-xs font-semibold transition-colors ${selected ? "border-[#D4922A] bg-[#D4922A]/15 text-[#8a5e10]" : "border-[var(--border-strong)] bg-white text-[var(--muted-foreground)] hover:border-[#D4922A]/60"}`}
                 >{time}</button>;
               })}
             </div>

@@ -44,13 +44,13 @@ const buttonVariants = cva(
         // ── Primary: ink-navy background, paper text — the one action ────
         default:
           "bg-[#1B2D4F] text-white border border-[#1B2D4F] shadow-xs " +
-          "hover:bg-[#111E33] hover:border-[#111E33] " +
+          "hover:bg-[#16233c] hover:border-[#16233c] " +
           "active:translate-y-px active:shadow-none",
 
         // ── Amber: brand gold, near-black text — high-energy CTA ──────────
         yellow:
-          "bg-[#D4922A] text-[#221205] border border-[#B07820] font-semibold " +
-          "hover:bg-[#B07820] hover:border-[#96651B] hover:text-white " +
+          "bg-[#D4922A] text-[#221205] border border-[#8A5E10] font-semibold " +
+          "hover:bg-[#8A5E10] hover:border-[#96651B] hover:text-white " +
           "active:translate-y-px active:shadow-none",
 
         // ── Danger: stamped red — destructive actions ──────────────────────

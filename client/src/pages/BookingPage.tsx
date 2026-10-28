@@ -344,7 +344,7 @@ export default function BookingPage() {
             const catalogEntry = host.bookingServiceCatalog?.find(entry => entry.name === form.service);
             const deposit = catalogEntry?.depositAmountCents;
             return (
-              <div className="bg-[#1C2333] border border-[#2B3446] rounded-xl p-5 mb-5">
+              <div className="bg-[#1C2333] border border-[#2c3d56] rounded-xl p-5 mb-5">
                 <div className="flex items-center gap-2 mb-2">
                   <CreditCard className="w-4 h-4 text-[#D4922A]" />
                   <span className="text-xs font-bold text-[#D4922A] uppercase tracking-wider">Secure Your Booking</span>
@@ -354,7 +354,7 @@ export default function BookingPage() {
                 </p>
                 <button
                   onClick={() => { window.location.assign(depositCheckoutUrl); }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#D4922A] hover:bg-[#b87814] transition-colors text-sm font-bold text-white"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#D4922A] hover:bg-[#8A5E10] transition-colors text-sm font-bold text-white"
                 >
                   <CreditCard className="w-4 h-4" />
                   Pay booking deposit{deposit ? ` ($${(deposit / 100).toFixed(deposit % 100 === 0 ? 0 : 2)})` : ""}

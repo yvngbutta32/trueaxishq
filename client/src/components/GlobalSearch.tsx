@@ -22,10 +22,10 @@ interface GlobalSearchProps {
 }
 
 const TYPE_META = {
-  client:   { icon: Users,          label: "Client",   panel: "clients",    color: "#6366F1" },
+  client:   { icon: Users,          label: "Client",   panel: "clients",    color: "#1b2d4f" },
   invoice:  { icon: FileText,        label: "Invoice",  panel: "billing",    color: "#D4922A" },
-  booking:  { icon: Calendar,        label: "Booking",  panel: "scheduling", color: "#F59E0B" },
-  contract: { icon: FileSignature,   label: "Contract", panel: "deals",      color: "#5A9A7A" },
+  booking:  { icon: Calendar,        label: "Booking",  panel: "scheduling", color: "#D4922A" },
+  contract: { icon: FileSignature,   label: "Contract", panel: "deals",      color: "#1e6b45" },
 } as const;
 
 function formatAmount(amount: string) {
@@ -50,22 +50,22 @@ function getResultSub(r: SearchResult): string {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  active: "#22c55e", paid: "#22c55e", completed: "#22c55e", signed: "#22c55e",
-  draft: "#9CA3AF", scheduled: "#6366F1", sent: "#F59E0B",
-  overdue: "#EF4444", cancelled: "#EF4444", declined: "#EF4444",
-  prospect: "#F59E0B", inactive: "#6B7280",
+  active: "#1E6B45", paid: "#1E6B45", completed: "#1E6B45", signed: "#1E6B45",
+  draft: "#9CA3AF", scheduled: "#1b2d4f", sent: "#D4922A",
+  overdue: "#C0392B", cancelled: "#C0392B", declined: "#C0392B",
+  prospect: "#D4922A", inactive: "#6B7280",
 };
 
 const OPERATIONAL_SHORTCUTS = [
-  { panel: "clients", label: "Clients", detail: "CRM and relationships", icon: Users, color: "#6366F1" },
+  { panel: "clients", label: "Clients", detail: "CRM and relationships", icon: Users, color: "#1b2d4f" },
   { panel: "scheduling", label: "Schedule", detail: "Bookings and calendar", icon: Calendar, color: "#D4922A" },
-  { panel: "jobs", label: "Jobs", detail: "Work and proof", icon: BriefcaseBusiness, color: "#007A68" },
-  { panel: "team", label: "Team", detail: "Capacity and assignments", icon: UsersRound, color: "#7C3AED" },
-  { panel: "dispatch", label: "Dispatch", detail: "Service visits", icon: MapPin, color: "#EA580C" },
-  { panel: "billing", label: "Billing", detail: "Invoices and time", icon: FileText, color: "#059669" },
-  { panel: "insights", label: "Insights", detail: "Signals and reporting", icon: BarChart3, color: "#2563EB" },
-  { panel: "integrations", label: "Integrations", detail: "Provider readiness", icon: PlugZap, color: "#0F766E" },
-  { panel: "webhooks", label: "Webhooks", detail: "Workflow event bridge", icon: Webhook, color: "#BE123C" },
+  { panel: "jobs", label: "Jobs", detail: "Work and proof", icon: BriefcaseBusiness, color: "#175537" },
+  { panel: "team", label: "Team", detail: "Capacity and assignments", icon: UsersRound, color: "#2c3d56" },
+  { panel: "dispatch", label: "Dispatch", detail: "Service visits", icon: MapPin, color: "#C07F1D" },
+  { panel: "billing", label: "Billing", detail: "Invoices and time", icon: FileText, color: "#1E6B45" },
+  { panel: "insights", label: "Insights", detail: "Signals and reporting", icon: BarChart3, color: "#2a3e63" },
+  { panel: "integrations", label: "Integrations", detail: "Provider readiness", icon: PlugZap, color: "#175537" },
+  { panel: "webhooks", label: "Webhooks", detail: "Workflow event bridge", icon: Webhook, color: "#A0301F" },
 ] as const;
 
 export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearchProps) {
@@ -197,7 +197,7 @@ export default function GlobalSearch({ open, onClose, onNavigate }: GlobalSearch
               <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {OPERATIONAL_SHORTCUTS.map(shortcut => {
                   const Icon = shortcut.icon;
-                  return <button key={shortcut.panel} type="button" onClick={() => { onNavigate(shortcut.panel); onClose(); }} className="flex min-h-16 items-center gap-2.5 rounded-xl border border-[#E7E5E4] bg-[#FCFCFB] p-3 text-left transition hover:border-[#D4922A]/40 hover:bg-[#FFF9EF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00A88F]">
+                  return <button key={shortcut.panel} type="button" onClick={() => { onNavigate(shortcut.panel); onClose(); }} className="flex min-h-16 items-center gap-2.5 rounded-xl border border-[#E7E5E4] bg-[#FCFCFB] p-3 text-left transition hover:border-[#D4922A]/40 hover:bg-[#FFF9EF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E6B45]">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ background: `${shortcut.color}16`, color: shortcut.color }}><Icon className="h-4 w-4" aria-hidden="true" /></span>
                     <span className="min-w-0"><span className="block truncate text-xs font-bold text-[var(--foreground)]">{shortcut.label}</span><span className="mt-0.5 block truncate text-[10px] text-[#666]">{shortcut.detail}</span></span>
                   </button>;

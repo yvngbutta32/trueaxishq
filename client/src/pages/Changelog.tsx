@@ -5,7 +5,7 @@ import { useLocation } from "wouter";
 
 const TAG_COLORS: Record<string, string> = {
   Platform: "bg-[#1C2333] text-white",
-  "Field Ops": "bg-[#D4922A]/15 text-[#8A5A0B]",
+  "Field Ops": "bg-[#D4922A]/15 text-[#8a5e10]",
   Money: "bg-emerald-100 text-emerald-800",
   Clients: "bg-blue-100 text-blue-800",
   Integrations: "bg-violet-100 text-violet-800",

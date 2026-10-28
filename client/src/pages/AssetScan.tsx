@@ -99,7 +99,7 @@ export default function AssetScanPage() {
         ) : data ? (
           <>
             <header className="rounded-lg bg-[#1C2333] p-6 text-white">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#F5C842]">{data.businessName ?? "Equipment label"}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#e1c07e]">{data.businessName ?? "Equipment label"}</p>
               <h1 className="mt-1.5 text-2xl font-bold">{data.assetName}</h1>
               <div className="mt-2 flex flex-wrap gap-2 text-xs text-white/80">
                 {data.assetTag && <span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1"><Tag className="h-3 w-3" />{data.assetTag}</span>}
@@ -145,7 +145,7 @@ export default function AssetScanPage() {
                     <textarea id="asset-req-msg" required rows={3} value={message} onChange={e => setMessage(e.target.value.slice(0, 2000))} placeholder="e.g. The unit is making a loud noise and won't start." className="mt-1 block w-full rounded-lg border border-[color-mix(in oklab, var(--foreground) 16%, transparent)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-[#D4922A]/35" />
                   </label>
                   {formError && <p className="text-xs font-medium text-rose-700">{formError}</p>}
-                  <button type="submit" disabled={sending} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#D4922A] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#B87716] disabled:opacity-60">
+                  <button type="submit" disabled={sending} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#D4922A] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#8a5e10] disabled:opacity-60">
                     {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     {sending ? "Sending…" : "Send service request"}
                   </button>

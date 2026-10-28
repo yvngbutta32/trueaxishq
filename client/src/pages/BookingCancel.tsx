@@ -123,7 +123,7 @@ export default function BookingCancel() {
                   {availableDays.map((day) => {
                     const iso = toIsoDate(day);
                     const selected = selectedDate === iso;
-                    return <button key={iso} type="button" onClick={() => { setSelectedDate(iso); setSelectedTime(""); }} aria-pressed={selected} className={`min-h-[60px] rounded-xl border-2 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4922A] ${selected ? "border-[#D4922A] bg-[#D4922A]/10 text-[#8D5D00]" : "border-gray-200 hover:border-[#D4922A]/60 text-gray-800"}`}>
+                    return <button key={iso} type="button" onClick={() => { setSelectedDate(iso); setSelectedTime(""); }} aria-pressed={selected} className={`min-h-[60px] rounded-xl border-2 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4922A] ${selected ? "border-[#D4922A] bg-[#D4922A]/10 text-[#8a5e10]" : "border-gray-200 hover:border-[#D4922A]/60 text-gray-800"}`}>
                       <span className="block text-xs text-gray-500">{day.toLocaleDateString("en-US", { weekday: "short" })}</span><span className="block font-bold">{day.getDate()}</span>
                     </button>;
                   })}
@@ -136,7 +136,7 @@ export default function BookingCancel() {
                     {TIME_SLOTS.map((time) => {
                       const booked = bookedSlots.some((slot) => slot.date === selectedDate && slot.time === time);
                       const selected = selectedTime === time;
-                      return <button key={time} type="button" disabled={booked} onClick={() => setSelectedTime(time)} aria-pressed={selected} className={`min-h-[44px] rounded-lg border text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4922A] ${booked ? "cursor-not-allowed border-gray-100 bg-gray-100 text-gray-400 line-through" : selected ? "border-[#D4922A] bg-[#D4922A]/10 text-[#8D5D00]" : "border-gray-200 hover:border-[#D4922A]/60 text-gray-800"}`}>
+                      return <button key={time} type="button" disabled={booked} onClick={() => setSelectedTime(time)} aria-pressed={selected} className={`min-h-[44px] rounded-lg border text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4922A] ${booked ? "cursor-not-allowed border-gray-100 bg-gray-100 text-gray-400 line-through" : selected ? "border-[#D4922A] bg-[#D4922A]/10 text-[#8a5e10]" : "border-gray-200 hover:border-[#D4922A]/60 text-gray-800"}`}>
                         {booked ? "Taken" : time}
                       </button>;
                     })}

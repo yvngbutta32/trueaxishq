@@ -73,7 +73,7 @@ export default function OnboardingFirstHour({ setActivePanel }: Props) {
               {!step.done && (
                 <button
                   onClick={() => setActivePanel(step.panel as ActivePanel)}
-                  className="shrink-0 rounded-lg border border-[#D4922A]/40 px-3 py-1.5 text-xs font-bold text-[#8A5A0B] hover:bg-[#D4922A]/10"
+                  className="shrink-0 rounded-lg border border-[#D4922A]/40 px-3 py-1.5 text-xs font-bold text-[#8a5e10] hover:bg-[#D4922A]/10"
                 >
                   Do it <span aria-hidden="true">→</span><span className="sr-only">{step.label}</span>
                 </button>

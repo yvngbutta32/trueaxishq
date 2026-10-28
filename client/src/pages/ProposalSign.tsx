@@ -20,10 +20,10 @@ import {
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; color: string; bg: string }> = {
     draft:    { label: "Draft",    color: "#94a3b8", bg: "rgba(148,163,184,0.1)" },
-    sent:     { label: "Sent",     color: "#60a5fa", bg: "rgba(96,165,250,0.1)"  },
-    viewed:   { label: "Viewed",   color: "#f59e0b", bg: "rgba(245,158,11,0.1)"  },
-    signed:   { label: "Signed",   color: "#22c55e", bg: "rgba(34,197,94,0.1)"   },
-    declined: { label: "Declined", color: "#ef4444", bg: "rgba(239,68,68,0.1)"   },
+    sent:     { label: "Sent",     color: "#7290B8", bg: "rgba(114,144,184,0.1)"  },
+    viewed:   { label: "Viewed",   color: "#D4922A", bg: "rgba(212,146,42,0.1)"  },
+    signed:   { label: "Signed",   color: "#1E6B45", bg: "rgba(30,107,69,0.1)"   },
+    declined: { label: "Declined", color: "#C0392B", bg: "rgba(192,57,43,0.1)"   },
   };
   const s = map[status] ?? map.draft;
   return (
@@ -226,8 +226,8 @@ export default function ProposalSign() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {[
             { icon: DollarSign, label: "Total Value", value: proposalPackages.length ? "Choose an option" : `${proposal.currency} ${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, color: "#D4922A" },
-            { icon: Calendar, label: "Valid Until", value: proposal.validUntil ? new Date(proposal.validUntil + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "Open", color: "#60a5fa" },
-            { icon: Clock, label: "Status", value: proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1), color: "#22c55e" },
+            { icon: Calendar, label: "Valid Until", value: proposal.validUntil ? new Date(proposal.validUntil + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "Open", color: "#7290B8" },
+            { icon: Clock, label: "Status", value: proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1), color: "#1E6B45" },
           ].map(({ icon: Icon, label, value, color }) => (
             <div key={label} className="p-3 rounded-xl bg-white border border-[var(--border)]">
               <div className="flex items-center gap-2 mb-1">
@@ -356,7 +356,7 @@ export default function ProposalSign() {
             disabled={signMutation.isPending || !signatureName.trim() || !agreementChecked || (proposalPackages.length > 0 && !effectiveSelectedPackageId)}
             className="w-full py-3 rounded-xl font-bold text-sm gap-2 transition-all"
             style={{
-              background: signatureName.trim() && agreementChecked && (!proposalPackages.length || effectiveSelectedPackageId) ? "linear-gradient(135deg, #D4922A, #F0A830)" : undefined,
+              background: signatureName.trim() && agreementChecked && (!proposalPackages.length || effectiveSelectedPackageId) ? "linear-gradient(135deg, #D4922A, #e1c07e)" : undefined,
               opacity: signatureName.trim() && agreementChecked && (!proposalPackages.length || effectiveSelectedPackageId) ? 1 : 0.5,
             }}
           >

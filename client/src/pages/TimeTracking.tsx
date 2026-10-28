@@ -263,10 +263,10 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Total Hours", value: totalHours + "h", icon: Clock, color: "#6366F1" },
+          { label: "Total Hours", value: totalHours + "h", icon: Clock, color: "#1b2d4f" },
           { label: "Billable Amount", value: formatCurrency(totalBillable), icon: DollarSign, color: "#D4922A" },
-          { label: "Sessions Today", value: String(todayCount), icon: Timer, color: "#10B981" },
-          { label: "Avg Rate/hr", value: avgRate !== null ? formatCurrency(avgRate) : "—", icon: TrendingUp, color: "#FF6B6B" },
+          { label: "Sessions Today", value: String(todayCount), icon: Timer, color: "#1E6B45" },
+          { label: "Avg Rate/hr", value: avgRate !== null ? formatCurrency(avgRate) : "—", icon: TrendingUp, color: "#C0392B" },
         ].map(c => (
           <div key={c.label} className="bg-white rounded-xl p-4 shadow-sm border border-[var(--border)]">
             <div className="flex items-center gap-2 mb-2">
@@ -579,13 +579,13 @@ export default function TimeTrackingPanel({ onInvoiceGenerated }: Props) {
 
                   {/* Status icon */}
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                    entry.invoiced ? "bg-green-500/15" : isRunning ? "bg-green-500/15" : "bg-[#6366F1]/10"
+                    entry.invoiced ? "bg-green-500/15" : isRunning ? "bg-green-500/15" : "bg-[#1b2d4f]/10"
                   }`}>
                     {entry.invoiced
                       ? <CheckCircle2 className="w-4 h-4 text-green-400" />
                       : isRunning
                         ? <Play className="w-4 h-4 text-green-400" />
-                        : <Clock className="w-4 h-4 text-[#6366F1]" />
+                        : <Clock className="w-4 h-4 text-[#1b2d4f]" />
                     }
                   </div>
 

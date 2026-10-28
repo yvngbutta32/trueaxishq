@@ -17,7 +17,7 @@ import { PLANS as PLAN_SOURCE } from "@shared/plans";
 const planPresentation: Record<string, { accentColor: string; cta: string; notIncluded: string[] }> = {
   Starter: { accentColor: "color-mix(in oklab, var(--foreground) 30%, transparent)", cta: "Create Account", notIncluded: ["Client Pulse AI™", "Unlimited follow-ups", "Priority support"] },
   Pro: { accentColor: "#D4922A", cta: "Create Account", notIncluded: [] },
-  Agency: { accentColor: "#7A9A8A", cta: "Contact Sales", notIncluded: [] },
+  Agency: { accentColor: "#1E6B45", cta: "Contact Sales", notIncluded: [] },
 };
 
 const plans = Object.values(PLAN_SOURCE).map((p) => ({
@@ -90,7 +90,7 @@ export default function Pricing() {
       {/* Header */}
       <section className="py-10 sm:py-14 text-center px-4 relative overflow-hidden">
         <div className="absolute inset-0 retro-grid opacity-30 pointer-events-none" />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 60% at 50% 40%, rgba(232,160,32,0.07) 0%, transparent 70%)" }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 60% at 50% 40%, rgba(212,146,42,0.07) 0%, transparent 70%)" }} />
         <div className="relative z-10">
           <div className="pill-retro mb-5 inline-flex">
             <Sparkles className="w-3 h-3" />
@@ -127,7 +127,7 @@ export default function Pricing() {
       </section>
 
       {/* Pricing clarity banner */}
-      <div className="py-2.5 text-center text-xs font-semibold" style={{ background: "rgba(232,160,32,0.12)", borderTop: "1px solid rgba(232,160,32,0.20)", borderBottom: "1px solid rgba(232,160,32,0.20)", color: "#D4922A" }}>
+      <div className="py-2.5 text-center text-xs font-semibold" style={{ background: "rgba(212,146,42,0.12)", borderTop: "1px solid rgba(212,146,42,0.20)", borderBottom: "1px solid rgba(212,146,42,0.20)", color: "#D4922A" }}>
         <span className="inline-flex items-center gap-2">
           <Shield className="w-3.5 h-3.5" />
           Review plan capabilities before creating your workspace
@@ -143,9 +143,9 @@ export default function Pricing() {
                 key={plan.name}
                 className="relative rounded-xl p-6 flex flex-col"
                 style={{
-                  background: plan.popular ? "rgba(232,160,32,0.04)" : "var(--card)",
-                  border: plan.popular ? "1px solid rgba(232,160,32,0.30)" : "1px solid color-mix(in oklab, var(--border) 90%, transparent)",
-                  boxShadow: plan.popular ? "0 0 40px rgba(232,160,32,0.08)" : "none",
+                  background: plan.popular ? "rgba(212,146,42,0.04)" : "var(--card)",
+                  border: plan.popular ? "1px solid rgba(212,146,42,0.30)" : "1px solid color-mix(in oklab, var(--border) 90%, transparent)",
+                  boxShadow: plan.popular ? "0 0 40px rgba(212,146,42,0.08)" : "none",
                   transform: plan.popular ? "scale(1.02)" : "scale(1)",
                 }}
               >
@@ -199,7 +199,7 @@ export default function Pricing() {
                 <ul className="space-y-2.5 flex-1">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2.5 text-sm">
-                      <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: plan.popular ? "#D4922A" : "#7A9A8A" }} />
+                      <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: plan.popular ? "#D4922A" : "#1E6B45" }} />
                       <span style={{ color: "color-mix(in oklab, var(--foreground) 65%, transparent)" }}>{feature}</span>
                     </li>
                   ))}
@@ -226,10 +226,10 @@ export default function Pricing() {
             </h2>
           </div>
 
-          <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(232,160,32,0.10)" }}>
+          <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(212,146,42,0.10)" }}>
             <div className="overflow-x-auto">
             {/* Header */}
-            <div className="grid grid-cols-4 min-w-[480px] px-5 py-3" style={{ background: "var(--muted)", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
+            <div className="grid grid-cols-4 min-w-[480px] px-5 py-3" style={{ background: "var(--muted)", borderBottom: "1px solid rgba(212,146,42,0.10)" }}>
               <div className="text-xs font-bold uppercase tracking-widest" style={{ color: "color-mix(in oklab, var(--foreground) 55.0%, transparent)" }}>Feature</div>
               {["Starter", "Pro", "Agency"].map((p, i) => (
                 <div key={p} className="text-center">
@@ -248,7 +248,7 @@ export default function Pricing() {
                 <div className="text-sm" style={{ color: "color-mix(in oklab, var(--foreground) 85%, transparent)" }}>{row.feature}</div>
                 {[row.starter, row.pro, row.agency].map((val, j) => (
                   <div key={j} className="text-center text-sm" style={{ color: val === "—" ? "color-mix(in oklab, var(--foreground) 35%, transparent)" : j === 1 ? "#D4922A" : "color-mix(in oklab, var(--foreground) 80%, transparent)" }}>
-                    {val === "✓" ? <CheckCircle className="w-4 h-4 mx-auto" style={{ color: j === 1 ? "#D4922A" : "#7A9A8A" }} /> : val}
+                    {val === "✓" ? <CheckCircle className="w-4 h-4 mx-auto" style={{ color: j === 1 ? "#D4922A" : "#1E6B45" }} /> : val}
                   </div>
                 ))}
               </div>
@@ -259,7 +259,7 @@ export default function Pricing() {
       </section>
 
       {/* Product assurances */}
-      <section className="py-12" style={{ background: "var(--background)", borderTop: "1px solid rgba(232,160,32,0.08)", borderBottom: "1px solid rgba(232,160,32,0.08)" }}>
+      <section className="py-12" style={{ background: "var(--background)", borderTop: "1px solid rgba(212,146,42,0.08)", borderBottom: "1px solid rgba(212,146,42,0.08)" }}>
         <div className="container">
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm">
             {[
@@ -280,8 +280,8 @@ export default function Pricing() {
       {/* Billing guidance */}
       <section className="py-12 px-4" style={{ background: "var(--background)" }}>
         <div className="container max-w-2xl mx-auto">
-          <div className="flex flex-col sm:flex-row items-center gap-6 p-7 rounded-xl" style={{ background: "rgba(232,160,32,0.05)", border: "1px solid rgba(232,160,32,0.18)" }}>
-            <div className="flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(232,160,32,0.12)", border: "2px solid rgba(232,160,32,0.30)" }}>
+          <div className="flex flex-col sm:flex-row items-center gap-6 p-7 rounded-xl" style={{ background: "rgba(212,146,42,0.05)", border: "1px solid rgba(212,146,42,0.18)" }}>
+            <div className="flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(212,146,42,0.12)", border: "2px solid rgba(212,146,42,0.30)" }}>
               <Shield className="w-8 h-8" style={{ color: "#D4922A" }} />
             </div>
             <div className="text-center sm:text-left">
@@ -307,13 +307,13 @@ export default function Pricing() {
                 <button
                   className="w-full text-left px-5 py-4 flex items-center justify-between text-sm font-semibold"
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  style={{ background: openFaq === i ? "rgba(232,160,32,0.04)" : "var(--card)", color: "var(--foreground)", border: "none", minHeight: "auto" }}
+                  style={{ background: openFaq === i ? "rgba(212,146,42,0.04)" : "var(--card)", color: "var(--foreground)", border: "none", minHeight: "auto" }}
                 >
                   {faq.q}
                   <span className="text-lg transition-transform" style={{ color: "#D4922A", transform: openFaq === i ? "rotate(45deg)" : "none", display: "inline-block" }}>+</span>
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-4 text-sm leading-relaxed" style={{ background: "rgba(232,160,32,0.02)", borderTop: "1px solid rgba(232,160,32,0.08)", color: "color-mix(in oklab, var(--foreground) 80%, transparent)" }}>
+                  <div className="px-5 pb-4 text-sm leading-relaxed" style={{ background: "rgba(212,146,42,0.02)", borderTop: "1px solid rgba(212,146,42,0.08)", color: "color-mix(in oklab, var(--foreground) 80%, transparent)" }}>
                     {faq.a}
                   </div>
                 )}
@@ -326,7 +326,7 @@ export default function Pricing() {
       {/* CTA */}
       <section className="pt-20 pb-16 page-bottom text-center relative overflow-hidden" style={{ background: "var(--background)" }}>
         <div className="absolute inset-0 retro-grid opacity-25 pointer-events-none" />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 70% at 50% 50%, rgba(232,160,32,0.06) 0%, transparent 70%)" }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 70% at 50% 50%, rgba(212,146,42,0.06) 0%, transparent 70%)" }} />
         <div className="container relative z-10">
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 3vw, 2.25rem)", color: "var(--foreground)", letterSpacing: "-0.025em" }}>
             Explore TrueAxis HQ.

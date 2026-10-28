@@ -118,9 +118,9 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
               aria-required="true"
               aria-invalid={!!errors.name}
               className="form-input"
-              style={errors.name ? { borderColor: "#C85A3A" } : {}}
+              style={errors.name ? { borderColor: "#C0392B" } : {}}
             />
-            {errors.name && <p role="alert" className="text-xs mt-1" style={{ color: "#C85A3A" }}>{errors.name}</p>}
+            {errors.name && <p role="alert" className="text-xs mt-1" style={{ color: "#C0392B" }}>{errors.name}</p>}
           </div>
           <div>
             <label htmlFor="ob-email" className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#D4922A" }}>
@@ -136,9 +136,9 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
               aria-required="true"
               aria-invalid={!!errors.email}
               className="form-input"
-              style={errors.email ? { borderColor: "#C85A3A" } : {}}
+              style={errors.email ? { borderColor: "#C0392B" } : {}}
             />
-            {errors.email && <p role="alert" className="text-xs mt-1" style={{ color: "#C85A3A" }}>{errors.email}</p>}
+            {errors.email && <p role="alert" className="text-xs mt-1" style={{ color: "#C0392B" }}>{errors.email}</p>}
           </div>
         </div>
       ),
@@ -191,7 +191,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
       subtitle: "Your TrueAxis HQ command center is ready.",
       content: (
         <div className="text-center py-4 space-y-5">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "rgba(232,160,32,0.12)", border: "1px solid rgba(232,160,32,0.25)" }}>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "rgba(212,146,42,0.12)", border: "1px solid rgba(212,146,42,0.25)" }}>
             <CheckCircle className="w-8 h-8" style={{ color: "#D4922A" }} />
           </div>
           <div>
@@ -204,7 +204,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
             {["Client CRM", "AI Scheduling", "Smart Invoices", "Client Pulse AI"].map(f => (
-              <div key={f} className="rounded p-2 text-center flex items-center justify-center gap-1.5" style={{ background: "rgba(232,160,32,0.07)", border: "1px solid rgba(232,160,32,0.15)", color: "#D4922A" }}>
+              <div key={f} className="rounded p-2 text-center flex items-center justify-center gap-1.5" style={{ background: "rgba(212,146,42,0.07)", border: "1px solid rgba(212,146,42,0.15)", color: "#D4922A" }}>
                 <CheckCircle className="w-3 h-3" />
                 {f}
               </div>
@@ -235,7 +235,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="ob-title">
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.80)", backdropFilter: "blur(8px)" }} onClick={onClose} aria-hidden="true" />
-      <div ref={modalRef} className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl" style={{ background: "var(--background)", border: "1px solid rgba(232,160,32,0.20)", boxShadow: "0 32px 80px rgba(0,0,0,0.60)" }}>
+      <div ref={modalRef} className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl" style={{ background: "var(--background)", border: "1px solid rgba(212,146,42,0.20)", boxShadow: "0 32px 80px rgba(0,0,0,0.60)" }}>
         {/* Top accent line */}
         <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #D4922A, transparent)" }} />
 
@@ -256,7 +256,7 @@ function OnboardingModal({ open, onClose }: { open: boolean; onClose: () => void
         {/* Progress */}
         <div className="px-6 pt-4">
           <div className="h-1 rounded-full" style={{ background: "color-mix(in oklab, var(--foreground) 6%, transparent)" }}>
-            <div className="h-1 rounded-full transition-all duration-500" style={{ width: `${((step + 1) / steps.length) * 100}%`, background: "linear-gradient(90deg, #D4922A, #F5C842)" }} />
+            <div className="h-1 rounded-full transition-all duration-500" style={{ width: `${((step + 1) / steps.length) * 100}%`, background: "linear-gradient(90deg, #D4922A, #e1c07e)" }} />
           </div>
         </div>
 
@@ -382,7 +382,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
       <div
         style={{
           background: "rgba(247,246,243,0.98)",
-          borderTop: mobileOpen ? "1px solid rgba(232,160,32,0.12)" : "none",
+          borderTop: mobileOpen ? "1px solid rgba(212,146,42,0.12)" : "none",
           maxHeight: mobileOpen ? "400px" : "0",
           overflow: "hidden",
           transition: "max-height 0.28s cubic-bezier(0.4,0,0.2,1), border-top 0.28s ease",
@@ -400,7 +400,7 @@ function Nav({ onCTA }: { onCTA: () => void }) {
               {l.label}
             </button>
           ))}
-          <div className="pt-3 flex flex-col gap-2" style={{ borderTop: "1px solid rgba(232,160,32,0.10)" }}>
+          <div className="pt-3 flex flex-col gap-2" style={{ borderTop: "1px solid rgba(212,146,42,0.10)" }}>
             <button onClick={() => { setMobileOpen(false); navigate("/login"); }} className="btn-ghost w-full" style={{ fontSize: "0.875rem" }}>
               Sign In
             </button>
@@ -425,19 +425,19 @@ function Hero({ onCTA }: { onCTA: () => void }) {
       icon: Sparkles,
       title: "One operational record",
       detail: "Clients · Jobs · Proof · Billing · Follow-ups",
-      accent: "#007A68",
+      accent: "#175537",
     },
     {
       icon: Timer,
       title: "Operational in under an hour",
       detail: "A guided first-hour checklist walks you from signup to your first invoice — no consultants, no implementation calls.",
-      accent: "#8A5A0B",
+      accent: "#8a5e10",
     },
     {
       icon: ArrowRightLeft,
       title: "Switching from Jobber, Housecall Pro, or ServiceTitan?",
       detail: "A guided import wizard brings your client list and price book over from a CSV export — you approve the preview before anything is saved. No migration fees, no sales calls, no password for your old system.",
-      accent: "#8A5A0B",
+      accent: "#8a5e10",
     },
   ];
 
@@ -455,7 +455,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
             <div className="flex items-center gap-4 mb-8">
               <span className="h-px w-10" style={{ background: "color-mix(in oklab, var(--foreground) 30%, transparent)" }} />
               <span className="ledger-label flex items-center gap-2">
-                <Sparkles className="w-3 h-3" style={{ color: "#B07820" }} />
+                <Sparkles className="w-3 h-3" style={{ color: "#8A5E10" }} />
                 The service-business operating system
               </span>
             </div>
@@ -472,7 +472,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
               }}
             >
               Make every client
-              <span className="block" style={{ color: "#007A68" }}>next step visible.</span>
+              <span className="block" style={{ color: "#175537" }}>next step visible.</span>
             </h1>
 
             <p className="mb-8 max-w-lg" style={{ fontSize: "1.125rem", color: "#4A4A4A", lineHeight: 1.7 }}>
@@ -500,7 +500,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                   className="flex items-start gap-4 py-3.5 border-b"
                   style={{ borderColor: "color-mix(in oklab, var(--foreground) 14%, transparent)" }}
                 >
-                  <span className="ledger-num text-xs pt-0.5 w-6 flex-shrink-0" style={{ color: "#B07820" }}>
+                  <span className="ledger-num text-xs pt-0.5 w-6 flex-shrink-0" style={{ color: "#8A5E10" }}>
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <div className="flex-1 min-w-0">
@@ -515,7 +515,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs" style={{ color: "#4A4A4A" }}>
               {["Owner-reviewed workflows", "Workspace-scoped data", "Field-ready operations"].map(t => (
                 <span key={t} className="flex items-center gap-1.5">
-                  <CheckCircle className="w-3.5 h-3.5" style={{ color: "#007A68" }} />
+                  <CheckCircle className="w-3.5 h-3.5" style={{ color: "#175537" }} />
                   {t}
                 </span>
               ))}
@@ -527,9 +527,9 @@ function Hero({ onCTA }: { onCTA: () => void }) {
             <div className="relative rounded-lg overflow-hidden" style={{ background: "var(--background)", border: "1px solid color-mix(in oklab, var(--foreground) 16%, transparent)", boxShadow: "0 1px 0 rgba(0,0,0,0.04), 0 16px 40px rgba(0,0,0,0.18)" }}>
               {/* Window bar — mono label, drafting corner ticks */}
               <div className="flex items-center gap-2 px-4 py-3" style={{ background: "var(--muted)", borderBottom: "1px solid color-mix(in oklab, var(--foreground) 10%, transparent)" }}>
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C85A3A" }} />
+                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C0392B" }} />
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#D4922A" }} />
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#7A9A8A" }} />
+                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#1E6B45" }} />
                 <span className="ml-3 text-xs font-mono" style={{ color: "color-mix(in oklab, var(--foreground) 55.0%, transparent)" }}>TrueAxis HQ — Example workspace</span>
               </div>
 
@@ -542,7 +542,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                       <div className="text-xs" style={{ color: "color-mix(in oklab, var(--foreground) 55.0%, transparent)" }}>Revenue overview</div>
                       <div className="font-bold text-base" style={{ color: "var(--foreground)", letterSpacing: "-0.02em" }}>Your data</div>
                     </div>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#4ADE80" }}>Workspace preview</span>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#1E6B45" }}>Workspace preview</span>
                   </div>
                   {/* SVG sparkline */}
                   <svg viewBox="0 0 160 36" className="w-full" style={{ height: 36 }} aria-hidden="true">
@@ -581,7 +581,7 @@ function Hero({ onCTA }: { onCTA: () => void }) {
                     <div className="text-xs font-semibold" style={{ color: "var(--foreground)" }}>Upcoming appointment</div>
                     <div className="text-[10px] mt-0.5" style={{ color: "color-mix(in oklab, var(--foreground) 50%, transparent)" }}>Client-selected time · calendar-ready</div>
                   </div>
-                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#4ADE80" }}>Confirmed</span>
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(30,107,69,0.15)", color: "#1E6B45" }}>Confirmed</span>
                 </div>
 
                 {/* Recent invoice */}
@@ -625,12 +625,12 @@ function TickerBar() {
   return (
     <div
       className="relative overflow-hidden py-3"
-      style={{ background: "rgba(232,160,32,0.05)", borderTop: "1px solid rgba(232,160,32,0.10)", borderBottom: "1px solid rgba(232,160,32,0.10)" }}
+      style={{ background: "rgba(212,146,42,0.05)", borderTop: "1px solid rgba(212,146,42,0.10)", borderBottom: "1px solid rgba(212,146,42,0.10)" }}
       aria-hidden="true"
     >
       <div className="marquee-track">
         {doubled.map((item, i) => (
-          <span key={i} className="flex items-center gap-3 px-6 whitespace-nowrap text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(232,160,32,0.60)" }}>
+          <span key={i} className="flex items-center gap-3 px-6 whitespace-nowrap text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(212,146,42,0.60)" }}>
             <span style={{ color: "#D4922A" }}>◆</span>
             {item}
           </span>
@@ -653,7 +653,7 @@ function StatsBar() {
     <section className="py-12" style={{ background: "#F2F0EC" }}>
       <div className="container">
         <Reveal cascade>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl overflow-hidden" style={{ background: "rgba(232,160,32,0.08)" }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl overflow-hidden" style={{ background: "rgba(212,146,42,0.08)" }}>
           {stats.map((s, i) => (
             <div key={i} className="flex flex-col items-center justify-center py-10 px-6 text-center" style={{ background: "var(--background)" }}>
               <div className="stat-number text-xl md:text-2xl mb-2">{s.value}</div>
@@ -702,19 +702,19 @@ function FeaturesSection() {
             <div
               key={i}
               className={`retro-card card-lift p-6 ${f.highlight ? "glow-amber-sm" : ""}`}
-              style={f.highlight ? { borderColor: "rgba(232,160,32,0.28)", background: "rgba(232,160,32,0.03)" } : {}}
+              style={f.highlight ? { borderColor: "rgba(212,146,42,0.28)", background: "rgba(212,146,42,0.03)" } : {}}
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: f.highlight ? "rgba(232,160,32,0.12)" : "color-mix(in oklab, var(--foreground) 5%, transparent)", border: `1px solid ${f.highlight ? "rgba(232,160,32,0.22)" : "color-mix(in oklab, var(--foreground) 8%, transparent)"}` }}>
+                <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: f.highlight ? "rgba(212,146,42,0.12)" : "color-mix(in oklab, var(--foreground) 5%, transparent)", border: `1px solid ${f.highlight ? "rgba(212,146,42,0.22)" : "color-mix(in oklab, var(--foreground) 8%, transparent)"}` }}>
                   <f.icon className="w-5 h-5" style={{ color: f.highlight ? "#D4922A" : "color-mix(in oklab, var(--foreground) 55.0%, transparent)" }} />
                 </div>
                 <span
                   className="tag"
                   style={
                     f.tag === "Exclusive"
-                      ? { background: "rgba(232,160,32,0.12)", color: "#D4922A", border: "1px solid rgba(232,160,32,0.25)" }
+                      ? { background: "rgba(212,146,42,0.12)", color: "#D4922A", border: "1px solid rgba(212,146,42,0.25)" }
                       : f.tag === "AI"
-                      ? { background: "rgba(90,122,106,0.12)", color: "#7A9A8A", border: "1px solid rgba(90,122,106,0.25)" }
+                      ? { background: "rgba(30,107,69,0.12)", color: "#1E6B45", border: "1px solid rgba(30,107,69,0.25)" }
                       : { background: "color-mix(in oklab, var(--foreground) 5%, transparent)", color: "color-mix(in oklab, var(--foreground) 65%, transparent)", border: "1px solid color-mix(in oklab, var(--foreground) 10%, transparent)" }
                   }
                 >
@@ -770,9 +770,9 @@ function HowItWorksSection() {
           <div className="rounded-lg p-3" style={{ background: "var(--muted)", border: "1px solid rgba(212,146,42,0.12)" }}>
             <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "color-mix(in oklab, var(--foreground) 45%, transparent)" }}>This Week</div>
             {[
-              { day: "Mon", time: "10:00 AM", client: "Sarah Chen", service: "Strategy Session", status: "Confirmed", statusColor: "#4ADE80" },
+              { day: "Mon", time: "10:00 AM", client: "Sarah Chen", service: "Strategy Session", status: "Confirmed", statusColor: "#1E6B45" },
               { day: "Wed", time: "2:00 PM", client: "Marcus Lee", service: "Consulting Call", status: "Pending", statusColor: "#D4922A" },
-              { day: "Fri", time: "11:30 AM", client: "Priya Patel", service: "Design Review", status: "Confirmed", statusColor: "#4ADE80" },
+              { day: "Fri", time: "11:30 AM", client: "Priya Patel", service: "Design Review", status: "Confirmed", statusColor: "#1E6B45" },
             ].map((b, i) => (
               <div key={i} className="flex items-center gap-3 py-2" style={{ borderBottom: i < 2 ? "1px solid rgba(212,146,42,0.06)" : "none" }}>
                 <div className="w-10 text-center">
@@ -805,12 +805,12 @@ function HowItWorksSection() {
           <div className="rounded-lg overflow-hidden" style={{ border: "1px solid rgba(212,146,42,0.12)" }}>
             <div className="px-3 py-2 flex items-center justify-between" style={{ background: "var(--muted)", borderBottom: "1px solid rgba(212,146,42,0.08)" }}>
               <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "color-mix(in oklab, var(--foreground) 45%, transparent)" }}>Recent Invoices</span>
-              <span className="text-[10px] font-bold" style={{ color: "#4ADE80" }}>$12,400 this month</span>
+              <span className="text-[10px] font-bold" style={{ color: "#1E6B45" }}>$12,400 this month</span>
             </div>
             {[
-              { id: "INV-0044", client: "Sarah Chen", amount: "$2,400", status: "Paid", color: "#4ADE80" },
-              { id: "INV-0043", client: "James Wu", amount: "$3,200", status: "Paid", color: "#4ADE80" },
-              { id: "INV-0042", client: "Marcus Lee", amount: "$1,800", status: "Overdue", color: "#C85A3A" },
+              { id: "INV-0044", client: "Sarah Chen", amount: "$2,400", status: "Paid", color: "#1E6B45" },
+              { id: "INV-0043", client: "James Wu", amount: "$3,200", status: "Paid", color: "#1E6B45" },
+              { id: "INV-0042", client: "Marcus Lee", amount: "$1,800", status: "Overdue", color: "#C0392B" },
               { id: "INV-0041", client: "Priya Patel", amount: "$950", status: "Sent", color: "#D4922A" },
             ].map((inv, i) => (
               <div key={i} className="px-3 py-2.5 flex items-center gap-3" style={{ borderBottom: i < 3 ? "1px solid rgba(212,146,42,0.06)" : "none" }}>
@@ -853,8 +853,8 @@ function HowItWorksSection() {
           <div className="grid grid-cols-3 gap-2">
             {[
               { label: "Drafts Ready", value: "5", color: "#D4922A" },
-              { label: "Sent This Mo", value: "18", color: "#4ADE80" },
-              { label: "Response Rate", value: "74%", color: "#7A9A8A" },
+              { label: "Sent This Mo", value: "18", color: "#1E6B45" },
+              { label: "Response Rate", value: "74%", color: "#1E6B45" },
             ].map(s => (
               <div key={s.label} className="rounded-lg p-2.5 text-center" style={{ background: "var(--muted)", border: "1px solid rgba(212,146,42,0.08)" }}>
                 <div className="font-bold text-sm" style={{ color: s.color }}>{s.value}</div>
@@ -901,7 +901,7 @@ function HowItWorksSection() {
               <div key={s.label} className="rounded-lg p-2.5" style={{ background: "var(--muted)", border: "1px solid rgba(212,146,42,0.08)" }}>
                 <div className="text-[9px]" style={{ color: "color-mix(in oklab, var(--foreground) 45%, transparent)" }}>{s.label}</div>
                 <div className="font-bold text-sm" style={{ color: "var(--foreground)" }}>{s.value}</div>
-                <div className="text-[9px]" style={{ color: s.up ? "#4ADE80" : "#C85A3A" }}>{s.change}</div>
+                <div className="text-[9px]" style={{ color: s.up ? "#1E6B45" : "#C0392B" }}>{s.change}</div>
               </div>
             ))}
           </div>
@@ -992,9 +992,9 @@ function HowItWorksSection() {
           >
             {/* Window chrome */}
             <div className="flex items-center gap-2 px-4 py-3" style={{ background: "var(--muted)", borderBottom: "1px solid rgba(212,146,42,0.10)" }}>
-              <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C85A3A" }} />
+              <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#C0392B" }} />
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#D4922A" }} />
-              <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#7A9A8A" }} />
+              <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#1E6B45" }} />
               <div className="flex items-center gap-1.5 ml-3">
                 <active.icon className="w-3 h-3" style={{ color: "#D4922A" }} />
                 <span className="text-xs font-mono" style={{ color: "color-mix(in oklab, var(--foreground) 55.0%, transparent)" }}>TrueAxis HQ — {active.label}</span>
@@ -1015,7 +1015,7 @@ function HowItWorksSection() {
 function ClientPulseShowcase() {
   const clients = [
     { name: "Sarah Chen", role: "Life Coach", score: 94, status: "Upsell Ready", color: "#D4922A", days: 2, revenue: "$3,200" },
-    { name: "Marcus Lee", role: "Consultant", score: 62, status: "Going Silent", color: "#7A9A8A", days: 18, revenue: "$1,800" },
+    { name: "Marcus Lee", role: "Consultant", score: 62, status: "Going Silent", color: "#1E6B45", days: 18, revenue: "$1,800" },
     { name: "Priya Patel", role: "Designer", score: 28, status: "Churn Risk", color: "#C0392B", days: 47, revenue: "$950" },
     { name: "James Wu", role: "Developer", score: 81, status: "Healthy", color: "#1E6B45", days: 5, revenue: "$4,100" },
   ];
@@ -1030,7 +1030,7 @@ function ClientPulseShowcase() {
             <div className="flex items-center gap-3 mb-6">
               <span className="h-px w-8" style={{ background: "color-mix(in oklab, var(--foreground) 30%, transparent)" }} />
               <span className="ledger-label flex items-center gap-2">
-                <Sparkles className="w-3 h-3" style={{ color: "#B07820" }} />
+                <Sparkles className="w-3 h-3" style={{ color: "#8A5E10" }} />
                 Exclusive to TrueAxis HQ
               </span>
             </div>
@@ -1049,7 +1049,7 @@ function ClientPulseShowcase() {
                 { icon: Brain, text: "AI-drafted re-engagement emails queued in your Follow-Ups panel instantly" },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.18)" }}>
+                  <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "rgba(212,146,42,0.08)", border: "1px solid rgba(212,146,42,0.18)" }}>
                     <item.icon className="w-4 h-4" style={{ color: "#D4922A" }} />
                   </div>
                   <p className="text-sm" style={{ color: "color-mix(in oklab, var(--foreground) 80%, transparent)", lineHeight: 1.65 }}>{item.text}</p>
@@ -1059,8 +1059,8 @@ function ClientPulseShowcase() {
           </div>
 
           {/* Right — live UI preview */}
-          <div className="retro-card overflow-hidden" style={{ border: "1px solid rgba(232,160,32,0.18)" }}>
-            <div className="px-5 py-3 flex items-center justify-between" style={{ background: "var(--muted)", borderBottom: "1px solid rgba(232,160,32,0.10)" }}>
+          <div className="retro-card overflow-hidden" style={{ border: "1px solid rgba(212,146,42,0.18)" }}>
+            <div className="px-5 py-3 flex items-center justify-between" style={{ background: "var(--muted)", borderBottom: "1px solid rgba(212,146,42,0.10)" }}>
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4" style={{ color: "#D4922A" }} />
                 <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "var(--foreground)" }}>Client Pulse</span>
@@ -1096,7 +1096,7 @@ function ClientPulseShowcase() {
                 </div>
               ))}
             </div>
-            <div className="px-5 py-3" style={{ background: "rgba(232,160,32,0.03)", borderTop: "1px solid rgba(232,160,32,0.08)" }}>
+            <div className="px-5 py-3" style={{ background: "rgba(212,146,42,0.03)", borderTop: "1px solid rgba(212,146,42,0.08)" }}>
               <div className="flex items-start gap-2">
                 <Brain className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "#D4922A" }} />
                 <p className="text-xs" style={{ color: "color-mix(in oklab, var(--foreground) 75%, transparent)" }}>
@@ -1182,7 +1182,7 @@ function EmailCapture({ onCTA }: { onCTA: () => void }) {
         </p>
 
         {submitted ? (
-          <div className="inline-flex items-center gap-3 px-6 py-4 rounded-lg" style={{ background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.22)" }}>
+          <div className="inline-flex items-center gap-3 px-6 py-4 rounded-lg" style={{ background: "rgba(212,146,42,0.08)", border: "1px solid rgba(212,146,42,0.22)" }}>
             <CheckCircle className="w-5 h-5" style={{ color: "#D4922A" }} />
             <span style={{ color: "var(--foreground)", fontWeight: 600 }}>You're on the list — thanks for your interest!</span>
           </div>
@@ -1229,14 +1229,14 @@ function FAQSection() {
       <div className="max-w-3xl mx-auto">
         <Reveal>
         <div className="text-center mb-12">
-          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ background: "rgba(232,160,32,0.12)", color: "#D4922A" }}>FAQ</span>
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ background: "rgba(212,146,42,0.12)", color: "#D4922A" }}>FAQ</span>
           <h2 className="text-3xl md:text-4xl font-extrabold mb-3" style={{ color: "var(--foreground)", letterSpacing: "-0.02em" }}>Frequently Asked Questions</h2>
           <p className="text-[var(--foreground-soft)] text-base">Everything you need to know before getting started.</p>
         </div>
         </Reveal>
         <div className="space-y-3">
           {HOME_FAQS.map((faq, i) => (
-            <div key={i} className="rounded-xl border overflow-hidden" style={{ borderColor: open === i ? "rgba(232,160,32,0.4)" : "color-mix(in oklab, var(--border) 80%, transparent)", background: open === i ? "rgba(232,160,32,0.04)" : "var(--card)" }}>
+            <div key={i} className="rounded-xl border overflow-hidden" style={{ borderColor: open === i ? "rgba(212,146,42,0.4)" : "color-mix(in oklab, var(--border) 80%, transparent)", background: open === i ? "rgba(212,146,42,0.04)" : "var(--card)" }}>
               <button
                 className="w-full flex items-center justify-between px-5 py-4 text-left"
                 onClick={() => setOpen(open === i ? null : i)}
@@ -1374,7 +1374,7 @@ export default function Home() {
         aria-label="Loading"
       >
         <div style={{ textAlign: "center" }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(232,160,32,0.10)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(212,146,42,0.10)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite" }}>
               <circle cx="12" cy="12" r="10" stroke="#D4922A" strokeWidth="2" strokeDasharray="31.4" strokeDashoffset="10" strokeLinecap="round" />
             </svg>

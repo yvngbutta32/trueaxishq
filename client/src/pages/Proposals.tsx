@@ -17,10 +17,10 @@ import {
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "color-mix(in oklab, var(--foreground) 30%, transparent)",
-  sent: "#3B82F6",
-  viewed: "#F59E0B",
-  signed: "#34D399",
-  declined: "#FF6B6B",
+  sent: "#2a3e63",
+  viewed: "#D4922A",
+  signed: "#5C9275",
+  declined: "#C0392B",
 };
 const STATUS_ICONS: Record<string, any> = {
   draft: Clock, sent: Send, viewed: Eye, signed: CheckCircle, declined: XCircle,
@@ -246,7 +246,7 @@ export default function Proposals() {
           >
             <Sparkles className="w-4 h-4" /> Generate with AI
           </Button>
-          <Button onClick={openNewProposal} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold gap-2">
+          <Button onClick={openNewProposal} className="bg-[#2a3e63] hover:bg-[#2a3e63] text-white font-semibold gap-2">
             <Plus className="w-4 h-4" /> New Proposal
           </Button>
         </div>
@@ -255,10 +255,10 @@ export default function Proposals() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: "Total", value: stats.total, color: "#3B82F6" },
+          { label: "Total", value: stats.total, color: "#2a3e63" },
           { label: "Drafts", value: stats.draft, color: "color-mix(in oklab, var(--foreground) 40%, transparent)" },
-          { label: "Signed", value: stats.signed, color: "#34D399" },
-          { label: "Signed Value", value: `$${stats.totalValue.toLocaleString(undefined,{maximumFractionDigits:0})}`, color: "#00C9A7" },
+          { label: "Signed", value: stats.signed, color: "#5C9275" },
+          { label: "Signed Value", value: `$${stats.totalValue.toLocaleString(undefined,{maximumFractionDigits:0})}`, color: "#1E6B45" },
         ].map(s => (
           <div key={s.label} className="bg-white border border-[color-mix(in oklab, var(--foreground) 8%, transparent)] rounded-xl p-4 text-center">
             <p className="text-xl font-bold" style={{ color: s.color }}>{s.value}</p>
@@ -273,7 +273,7 @@ export default function Proposals() {
       ) : proposalList.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-16 h-16 rounded-lg bg-[rgba(59,130,246,0.12)] flex items-center justify-center mb-4">
-            <FileText className="w-8 h-8 text-[#3B82F6]" />
+            <FileText className="w-8 h-8 text-[#2a3e63]" />
           </div>
           <h3 className="text-lg font-semibold text-[color-mix(in oklab, var(--foreground) 85%, transparent)] mb-2">No proposals yet</h3>
           <p className="text-sm text-[color-mix(in oklab, var(--foreground) 45%, transparent)] mb-6 max-w-sm">Create a proposal with your scope, line items, and pricing. Send it to clients for electronic signature.</p>
@@ -285,7 +285,7 @@ export default function Proposals() {
             >
               <Sparkles className="w-4 h-4" /> Generate with AI
             </Button>
-            <Button onClick={openNewProposal} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold gap-2">
+            <Button onClick={openNewProposal} className="bg-[#2a3e63] hover:bg-[#2a3e63] text-white font-semibold gap-2">
               <Plus className="w-4 h-4" /> Create First Proposal
             </Button>
           </div>
@@ -298,7 +298,7 @@ export default function Proposals() {
             return (
               <div key={p.id} className="group flex items-center gap-4 bg-white border border-[color-mix(in oklab, var(--foreground) 7.0%, transparent)] rounded-xl px-5 py-4 hover:border-[rgba(59,130,246,0.3)] transition-all">
                 <div className="w-10 h-10 rounded-xl bg-[rgba(59,130,246,0.1)] flex items-center justify-center flex-shrink-0">
-                  <FileText className="w-5 h-5 text-[#3B82F6]" />
+                  <FileText className="w-5 h-5 text-[#2a3e63]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -317,16 +317,16 @@ export default function Proposals() {
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button type="button" aria-label={`Preview proposal ${p.title}`} onClick={() => setPreviewId(p.id)} title="Preview" className="p-2 rounded-lg hover:bg-white text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[color-mix(in oklab, var(--foreground) 90%, transparent)] transition-colors"><Eye className="w-4 h-4" /></button>
                   {p.status === "draft" && (
-                    <button type="button" aria-label={`Send proposal ${p.title}`} onClick={() => sendMut.mutate({ id: p.id, origin: window.location.origin })} title="Send" className="p-2 rounded-lg hover:bg-[rgba(59,130,246,0.15)] text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[#3B82F6] transition-colors"><Send className="w-4 h-4" /></button>
+                    <button type="button" aria-label={`Send proposal ${p.title}`} onClick={() => sendMut.mutate({ id: p.id, origin: window.location.origin })} title="Send" className="p-2 rounded-lg hover:bg-[rgba(59,130,246,0.15)] text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[#2a3e63] transition-colors"><Send className="w-4 h-4" /></button>
                   )}
                   {p.status === "signed" && !p.linkedInvoiceId && (
-                    <button type="button" aria-label={`Convert proposal ${p.title} to invoice`} onClick={() => convertMut.mutate({ id: p.id })} title="Convert to Invoice" className="p-2 rounded-lg hover:bg-[rgba(0,201,167,0.15)] text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[#00C9A7] transition-colors"><ArrowRight className="w-4 h-4" /></button>
+                    <button type="button" aria-label={`Convert proposal ${p.title} to invoice`} onClick={() => convertMut.mutate({ id: p.id })} title="Convert to Invoice" className="p-2 rounded-lg hover:bg-[rgba(30,107,69,0.15)] text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[#1E6B45] transition-colors"><ArrowRight className="w-4 h-4" /></button>
                   )}
                   {p.token && (
                     <button type="button" aria-label={`Copy secure link for proposal ${p.title}`} onClick={() => { const url = `${window.location.origin}/proposal/${p.token}`; navigator.clipboard.writeText(url); toast.success("Link copied"); }} title="Copy link" className="p-2 rounded-lg hover:bg-white text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[color-mix(in oklab, var(--foreground) 90%, transparent)] transition-colors"><Copy className="w-4 h-4" /></button>
                   )}
-                  {p.status === "draft" && <button type="button" aria-label={`Edit draft proposal ${p.title}`} onClick={() => openEditProposal(p)} title="Edit draft" className="p-2 rounded-lg hover:bg-white text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[#3B82F6] transition-colors"><Pencil className="w-4 h-4" /></button>}
-                  <button type="button" aria-label={`Duplicate proposal ${p.title}`} onClick={() => duplicateMut.mutate({ id: p.id })} disabled={duplicateMut.isPending} title="Duplicate as a fresh draft" className="p-2 rounded-lg hover:bg-white text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[#3B82F6] disabled:opacity-50 transition-colors"><FileText className="w-4 h-4" /></button>
+                  {p.status === "draft" && <button type="button" aria-label={`Edit draft proposal ${p.title}`} onClick={() => openEditProposal(p)} title="Edit draft" className="p-2 rounded-lg hover:bg-white text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[#2a3e63] transition-colors"><Pencil className="w-4 h-4" /></button>}
+                  <button type="button" aria-label={`Duplicate proposal ${p.title}`} onClick={() => duplicateMut.mutate({ id: p.id })} disabled={duplicateMut.isPending} title="Duplicate as a fresh draft" className="p-2 rounded-lg hover:bg-white text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-[#2a3e63] disabled:opacity-50 transition-colors"><FileText className="w-4 h-4" /></button>
                   <button type="button" aria-label={`Delete proposal ${p.title}`} onClick={() => setDeleteConfirm(p.id)} title="Delete" className="p-2 rounded-lg hover:bg-[rgba(255,80,80,0.12)] text-[color-mix(in oklab, var(--foreground) 50%, transparent)] hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
@@ -372,7 +372,7 @@ export default function Proposals() {
             <Button
               onClick={handleAiGenerate}
               disabled={aiGenerateMut.isPending || aiBrief.trim().length < 10}
-              className="bg-[#D4922A] hover:bg-[#B8791F] text-white font-semibold gap-2 min-w-[140px]"
+              className="bg-[#D4922A] hover:bg-[#8a5e10] text-white font-semibold gap-2 min-w-[140px]"
             >
               {aiGenerateMut.isPending ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
@@ -388,7 +388,7 @@ export default function Proposals() {
       <Dialog open={priceBookOpen} onOpenChange={setPriceBookOpen}>
         <DialogContent className="bg-white border-[color-mix(in oklab, var(--foreground) 10%, transparent)] text-[color-mix(in oklab, var(--foreground) 95%, transparent)] max-w-xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><BookOpen className="h-4 w-4 text-[#3B82F6]" /> Price book</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><BookOpen className="h-4 w-4 text-[#2a3e63]" /> Price book</DialogTitle>
           </DialogHeader>
           <p className="text-xs leading-5 text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Reusable services and materials for fast, consistent quoting. Tap an item to add it to this proposal.</p>
           <div className="relative mt-3">
@@ -423,7 +423,7 @@ export default function Proposals() {
                 {PRICE_BOOK_UNITS.map(unit => <option key={unit} value={unit}>{unit.replaceAll("_", " ")}</option>)}
               </select>
             </div>
-            <Button type="button" size="sm" disabled={!newPriceItem.name.trim() || !newPriceItem.unitPrice} onClick={() => priceBookCreateMut.mutate({ name: newPriceItem.name.trim(), category: newPriceItem.category.trim() || "service", unit: newPriceItem.unit, unitPrice: parseFloat(newPriceItem.unitPrice) || 0 })} className="mt-2 bg-[#3B82F6] text-white hover:bg-[#2563EB]">Save item</Button>
+            <Button type="button" size="sm" disabled={!newPriceItem.name.trim() || !newPriceItem.unitPrice} onClick={() => priceBookCreateMut.mutate({ name: newPriceItem.name.trim(), category: newPriceItem.category.trim() || "service", unit: newPriceItem.unit, unitPrice: parseFloat(newPriceItem.unitPrice) || 0 })} className="mt-2 bg-[#2a3e63] text-white hover:bg-[#2a3e63]">Save item</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -436,7 +436,7 @@ export default function Proposals() {
               <DialogTitle>{editingId !== null ? "Edit Proposal Draft" : "New Proposal"}</DialogTitle>
               <button
                 onClick={() => setAiOpen(true)}
-                className="flex items-center gap-1.5 text-xs font-semibold text-[#D4922A] hover:text-[#F0A830] bg-[rgba(212,146,42,0.1)] hover:bg-[rgba(212,146,42,0.18)] border border-[rgba(212,146,42,0.25)] rounded-lg px-3 py-1.5 transition-all"
+                className="flex items-center gap-1.5 text-xs font-semibold text-[#D4922A] hover:text-[#e1c07e] bg-[rgba(212,146,42,0.1)] hover:bg-[rgba(212,146,42,0.18)] border border-[rgba(212,146,42,0.25)] rounded-lg px-3 py-1.5 transition-all"
               >
                 <Sparkles className="w-3.5 h-3.5" /> Generate with AI
               </button>
@@ -467,10 +467,10 @@ export default function Proposals() {
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-semibold text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Line Items</label>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setForm(p => ({...p, lineItems: [...p.lineItems, newLineItem()]}))} className="text-xs text-[#3B82F6] hover:text-[#60A5FA] flex items-center gap-1 transition-colors">
+                  <button onClick={() => setForm(p => ({...p, lineItems: [...p.lineItems, newLineItem()]}))} className="text-xs text-[#2a3e63] hover:text-[#7290B8] flex items-center gap-1 transition-colors">
                     <Plus className="w-3 h-3" /> Add Line
                   </button>
-                  <button type="button" onClick={() => priceBookAllowed === false ? toast.info(featureLockToast("priceBook")) : setPriceBookOpen(true)} title={priceBookAllowed === false ? "Price book is a Pro-plan feature" : "Insert from your price book"} className={`text-xs flex items-center gap-1 transition-colors ${priceBookAllowed === false ? "text-[#9A9A9A]" : "text-[#3B82F6] hover:text-[#60A5FA]"}`}>
+                  <button type="button" onClick={() => priceBookAllowed === false ? toast.info(featureLockToast("priceBook")) : setPriceBookOpen(true)} title={priceBookAllowed === false ? "Price book is a Pro-plan feature" : "Insert from your price book"} className={`text-xs flex items-center gap-1 transition-colors ${priceBookAllowed === false ? "text-[#9A9A9A]" : "text-[#2a3e63] hover:text-[#7290B8]"}`}>
                     {priceBookAllowed === false ? <Lock className="w-3 h-3" /> : <BookOpen className="w-3 h-3" />} Price book{priceBookAllowed === false ? " (Pro)" : ""}
                   </button>
                 </div>
@@ -515,7 +515,7 @@ export default function Proposals() {
                   <span>${taxAmt.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-[color-mix(in oklab, var(--foreground) 95%, transparent)] text-base pt-1">
-                  <span>Total</span><span className="text-[#00C9A7]">${total.toFixed(2)}</span>
+                  <span>Total</span><span className="text-[#1E6B45]">${total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -566,7 +566,7 @@ export default function Proposals() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)} className="text-[color-mix(in oklab, var(--foreground) 60%, transparent)]">Cancel</Button>
-            <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold">
+            <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="bg-[#2a3e63] hover:bg-[#2a3e63] text-white font-semibold">
               {createMut.isPending || updateMut.isPending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Saving…</> : editingId !== null ? "Save Draft" : "Create Proposal"}
             </Button>
           </DialogFooter>
@@ -600,7 +600,7 @@ export default function Proposals() {
                   ))}
                 </div>
                 <div className="flex justify-between font-bold text-[color-mix(in oklab, var(--foreground) 95%, transparent)] mt-2 pt-2">
-                  <span>Total</span><span className="text-[#00C9A7]">${parseFloat(String(previewProposal.total)).toFixed(2)}</span>
+                  <span>Total</span><span className="text-[#1E6B45]">${parseFloat(String(previewProposal.total)).toFixed(2)}</span>
                 </div>
               </div>
               {previewProposal.token && (

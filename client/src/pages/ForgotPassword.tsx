@@ -42,14 +42,14 @@ export default function ForgotPassword() {
       {/* Card */}
       <div
         className="w-full max-w-md rounded-xl p-8 sm:p-10"
-        style={{ background: "#F2F0EC", border: "1px solid rgba(232,160,32,0.15)" }}
+        style={{ background: "#F2F0EC", border: "1px solid rgba(212,146,42,0.15)" }}
       >
         {sent ? (
           /* Success state */
           <div className="text-center">
             <div
               className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
-              style={{ background: "rgba(232,160,32,0.10)", border: "1px solid rgba(232,160,32,0.20)" }}
+              style={{ background: "rgba(212,146,42,0.10)", border: "1px solid rgba(212,146,42,0.20)" }}
             >
               <CheckCircle2 size={32} style={{ color: "#D4922A" }} />
             </div>
@@ -68,7 +68,7 @@ export default function ForgotPassword() {
               onClick={() => navigate("/login")}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm"
               style={{
-                background: "linear-gradient(135deg, #D4922A, #F5C842)",
+                background: "linear-gradient(135deg, #D4922A, #e1c07e)",
                 color: "#0D1117",
                 fontSize: "0.9375rem",
                 border: "none",
@@ -83,7 +83,7 @@ export default function ForgotPassword() {
           <>
             <div
               className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-6"
-              style={{ background: "rgba(232,160,32,0.10)", border: "1px solid rgba(232,160,32,0.20)" }}
+              style={{ background: "rgba(212,146,42,0.10)", border: "1px solid rgba(212,146,42,0.20)" }}
             >
               <Mail size={24} style={{ color: "#D4922A" }} />
             </div>
@@ -126,7 +126,7 @@ export default function ForgotPassword() {
                 disabled={forgotMutation.isPending || !email.trim()}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
-                  background: "linear-gradient(135deg, #D4922A, #F5C842)",
+                  background: "linear-gradient(135deg, #D4922A, #e1c07e)",
                   color: "#0D1117",
                   fontSize: "0.9375rem",
                   border: "none",

@@ -69,7 +69,7 @@ export default function AdminLogin() {
         <div className="flex flex-col items-center gap-3 text-center">
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(232,160,32,0.15)", border: "1px solid rgba(232,160,32,0.3)" }}
+            style={{ background: "rgba(212,146,42,0.15)", border: "1px solid rgba(212,146,42,0.3)" }}
           >
             <Shield className="w-6 h-6 text-[#D4922A]" />
           </div>
@@ -99,7 +99,7 @@ export default function AdminLogin() {
                 background: "rgba(255,255,255,0.06)",
                 border: "1px solid rgba(255,255,255,0.1)",
               }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(232,160,32,0.5)")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,146,42,0.5)")}
               onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
             />
           </div>
@@ -122,7 +122,7 @@ export default function AdminLogin() {
                   background: "rgba(255,255,255,0.06)",
                   border: "1px solid rgba(255,255,255,0.1)",
                 }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(232,160,32,0.5)")}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,146,42,0.5)")}
                 onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
               />
               <button
