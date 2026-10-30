@@ -1,311 +1,633 @@
-# TrueAxis HQ — Deploy + Credentials, Step by Step
+# TrueAxis HQ — Complete Beginner's Deployment Guide
 
-Follow in order. Do not skip. Every command is copy-paste.
-This guide uses **trueaxishq.com** (the domain you already own through Manus).
-If your real spelling differs, substitute it everywhere.
+**Read this first.** You are moving your app off Manus and onto your own server.
+You do not need to know how to code. You only need to copy, paste, and click.
 
----
+**Time:** about 90 minutes of work, plus waiting time for DNS.
+**Cost:** $0 fixed. Oracle's free server is free forever at this size.
+**What you end up with:** your app live at `https://trueaxishq.com`, with your own
+admin login, automatic HTTPS, automatic nightly backups, and auto-restart if the
+server reboots.
 
-## WHAT YOU NEED BEFORE YOU START
-
-- [ ] A card (Oracle wants one for identity verification; free tier stays $0)
-- [ ] ~45 minutes for the server, ~20 minutes for credentials
-- [ ] A domain you own (Step 1)
-
----
-
-# PHASE 1 — YOUR DOMAIN (already done)
-
-You already own `trueaxishq.com`, purchased through Manus. Nothing to buy.
-The only thing to confirm is the exact spelling — see Phase 4.0.
+Work through the parts in order. Do not skip ahead. Each part ends with
+**"You should see"** — if what's on your screen does not match, stop and fix it
+before moving on.
 
 ---
 
-# PHASE 2 — GITHUB TOKEN (SKIP THIS)
+# PART 0 — Words you will see, in plain English
 
-**You do not need a GitHub token.** Your repository is public, and the installer
-clones it anonymously. There is nothing to create here.
+You do not need to memorize these. Skim them so nothing later feels alien.
 
-(If you ever make the repo private, the installer will detect the failed clone and
-ask for a read-only token at that moment. Not now.)
+| Word | What it actually means |
+|---|---|
+| **Server** | A computer in a data center that runs 24/7. You rent one free from Oracle. |
+| **Terminal / PowerShell** | The black window where you type commands instead of clicking. |
+| **SSH** | The secure way to type commands on a remote server from your own computer. |
+| **IP address** | The server's numeric address, like `129.213.45.67`. |
+| **Domain** | `trueaxishq.com` — the name people type. |
+| **DNS** | The internet's phone book. It decides which IP a domain name points to. |
+| **A record** | The specific DNS entry that says "this domain → this IP". |
+| **`.env` file** | A plain text file of settings (passwords, API keys) the app reads. |
+| **Service** | A program the server keeps running and auto-restarts if it crashes. |
+| **HTTPS / SSL** | The padlock. Caddy gets this certificate for you automatically, free. |
+| **Migration** | A database update script. There are 91 of them. The installer runs them all. |
 
----
+**What you need before starting:**
 
-# PHASE 3 — ORACLE SERVER (20-40 minutes, mostly waiting)
-
-## 3.1 Create the account
-
-1. Go to https://cloud.oracle.com and sign up (free).
-2. When it asks for a **home region**, this is **permanent**:
-   - US customers → `us-ashburn-1` or `us-phoenix-1`
-   - Canada → `ca-toronto-1` or `ca-montreal-1`
-3. Verify your card. You will not be charged on the free tier.
-
-## 3.2 Create the server
-
-1. Top-left hamburger menu (☰) → **Compute** → **Instances** → **Create instance**
-2. **Name:** `trueaxis`
-3. **Image and shape** → click **Edit**
-   - Image: **Canonical Ubuntu 24.04**
-   - Shape: **Ampere** → `VM.Standard.A1.Flex` → **4 OCPUs**, **24 GB memory**
-     (if the sliders only allow **1 OCPU / 6 GB**, take that and read the note below)
-   - Leave boot volume at default (or set 100 GB — still free)
-4. **Add SSH keys:** leave **Generate a key pair** selected, then click **Save private key** and **Save public key**.
-   - The private key downloads as `ssh-key-2026-...key`. **This is your only way in. Back it up.**
-5. Click **Create**
-6. Wait until the state says **RUNNING** (1-3 minutes). Then copy the **Public IP address**.
-
-**If you get "Out of host capacity":** this is Oracle's most common annoyance, not your fault. Try again at a quieter hour (late night / early morning), or create the instance in a different region than your home region. It usually takes a few tries.
-
-**If the sliders only allow 1 OCPU / 6 GB:** accept it and continue. That is
-Oracle limiting what this region currently has free, not a mistake on your part.
-1 OCPU / 6 GB is still Always Free and runs this app comfortably for your first
-customers — the install just takes longer (10-15 minutes instead of 5-8). Two ways
-to get more later:
-
-- **Resize this server (preferred):** after it is running, go to
-  **Compute → Instances → trueaxis → Edit** (top of the page) → shape config →
-  set **4 OCPUs / 24 GB** → save. Works whenever the region has capacity; you are
-  changing the same server, nothing else on it moves.
-- **Try another Availability Domain first:** on the Create screen open
-  **Show advanced options → Availability domain** and pick a different AD; capacity
-  is per-AD, so AD 2 or 3 often has room when AD 1 does not.
-
-Nothing in the app requires 4 cores. 1 OCPU / 6 GB is a working launch server.
-
-## 3.3 Open the ports (this is the step everyone forgets)
-
-Oracle has its own firewall on top of Ubuntu's. You must open it here.
-
-1. ☰ → **Networking** → **Virtual Cloud Networks**
-2. Click your VCN (usually named `vcn-...`)
-3. Click **Security Lists** → **Default Security List for vcn-...**
-4. Click **Add Ingress Rules** and add one rule:
-   - Source Type: **CIDR**
-   - Source CIDR: `0.0.0.0/0`
-   - IP Protocol: **TCP**
-   - Destination Port Range: `80`
-   - Click **Add Ingress Rules**
-5. Repeat: same form, port `443`
-6. Do **not** touch the existing port 22 rule.
-
-**Done when:** the security list shows three ingress rules: 22, 80, 443.
+- [ ] A computer (Windows or Mac)
+- [ ] A credit or debit card (Oracle verifies identity; you are not charged)
+- [ ] Access to the email on your Manus account
+- [ ] About 90 minutes without rushing
 
 ---
 
-# PHASE 4 — POINT YOUR MANUS DOMAIN AT THE ORACLE SERVER
+# PART 1 — Get your computer ready (5 minutes)
 
-## 4.0 Know exactly what you own (verified 2026-10-30)
+## 1.1 Open your terminal
 
-- `trueaxishq.com` **currently resolves** and is serving a **Manus-hosted app**
-  (it redirects to `manus.im/app-auth`). This is almost certainly your domain.
-- `truaxishq.com` (one fewer "e") does **not** resolve at all — no DNS records.
+**Windows:**
+1. Press the **Windows key** on your keyboard.
+2. Type `powershell`.
+3. Click **Windows PowerShell** in the results.
+4. A blue or black window opens. That is your terminal.
 
-Confirm the exact spelling before you touch anything: in Manus open
-**Settings → Data controls → Manage**. The domain listed there is the one you own.
-**Everything below uses `trueaxishq.com` — substitute your real spelling.**
+**Mac:**
+1. Press **Command + Space**.
+2. Type `terminal`.
+3. Press **Enter**.
+4. A white or black window opens. That is your terminal.
 
-Two consequences you must accept before continuing:
+## 1.2 Learn how to paste into it
 
-1. **Your Manus site will go dark on that domain** the moment DNS points at Oracle.
-   That is the point of a migration, not a bug. If you still need the Manus site,
-   publish it on a Manus subdomain first.
-2. **HTTPS cannot work until DNS resolves.** Caddy asks Let's Encrypt to verify the
-   domain by reaching your server. If Manus DNS is wrong, certificate issuance fails
-   and the site shows no padlock. Do Phase 4 fully, then Phase 6.
+| Where | How to paste |
+|---|---|
+| Windows PowerShell | **Right-click** anywhere in the window |
+| Mac Terminal | **Command + V** |
 
-## 4.1 Open the Manus DNS panel
+Copying is normal: select text and `Ctrl+C` (Windows) or `Command+C` (Mac).
 
-For a domain bought inside Manus, DNS is managed inside Manus, not at a registrar:
+## 1.3 Make a folder for your server key
 
-1. Log in to https://manus.im
-2. Click your avatar → **Settings**
-3. Open the **Data controls** tab
-4. Find your domain → click **Manage**
-5. Click **Manage** again on the domain to open its DNS records
+Later you will download a key file. Put it somewhere you will not lose it.
 
-You should see the records currently sending traffic to the Manus app.
+1. Open your **Downloads** folder.
+2. Create a new folder called `trueaxis-key`.
+3. Remember this path — you will need it. It looks like:
+   - Windows: `C:\Users\YourName\Downloads\trueaxis-key`
+   - Mac: `/Users/YourName/Downloads/trueaxis-key`
 
-## 4.2 Replace the apex record
+**You should see:** an empty folder waiting for the key file.
 
-The old record is what points the domain at Manus. Per Manus's own documentation,
-existing A records must be removed before adding the new one.
+---
 
-1. Find the **A** record with Name `@` (or blank / the bare domain).
-   - If it exists → delete it (or edit it in place, whichever the panel offers).
-   - If instead you see a **CNAME** on `@`, delete that CNAME.
-2. Click **Add record**:
+# PART 2 — Create your Oracle account (10 minutes)
+
+1. In your browser go to: **`cloud.oracle.com`**
+2. Click **Sign up** (or **Start for free**).
+3. **Country:** choose yours.
+4. **Email:** use an email you check often. This becomes your Oracle login.
+5. Click **Verify my email**. Oracle sends you a 6-digit code.
+6. Open your email, copy the code, paste it, click **Verify**.
+7. **Password:** create one and write it down somewhere safe.
+8. **Account name:** any short name, e.g. `trueaxis`.
+9. **Home region:** this is the data center that will hold your server.
+   - United States → **US East (Ashburn)** or **US West (Phoenix)**
+   - Canada → **Canada (Toronto)** or **Canada (Montreal)**
+   - **This cannot be changed later.** Pick the one closest to your customers.
+10. **Home region** confirm, then continue.
+
+## 2.1 Card verification
+
+1. Oracle asks for a **credit or debit card**. A debit card works.
+2. Fill in card number, expiry, CVC, and billing address exactly as on the card.
+3. Oracle may place a **temporary $1 authorization**. It disappears in a few days.
+4. Confirm. Oracle may send another email code; complete it.
+
+> If your card is declined: try a different card, or contact your bank and say
+> "I am authorizing an Oracle Cloud signup." Many banks block it as fraud by default.
+> Oracle will not charge you for the free tier, but they do require a valid card.
+
+**You should see:** the Oracle Cloud **Console** — a page with a hamburger menu (☰)
+in the top-left corner and "Compute" somewhere in the menu.
+
+> **Free tier note:** Oracle gives you a permanently free ARM server with up to
+> 4 cores and 24 GB RAM. If it only offers you 1 core and 6 GB, that is normal
+> (explained in Part 3). It is still free and still enough to launch.
+
+---
+
+# PART 3 — Create the server (20 minutes)
+
+## 3.1 Start the create form
+
+1. Click the hamburger menu **☰** (top left).
+2. Click **Compute** → **Instances**.
+3. Make sure the **Compartment** dropdown shows your root compartment
+   (usually your account name, e.g. `trueaxis (root)`).
+4. Click the blue **Create instance** button.
+
+## 3.2 Fill in the form exactly
+
+1. **Name:** type `trueaxis`
+2. **Create in compartment:** leave as-is.
+3. **Placement:** leave as-is unless you want to change Availability Domain
+   (see 3.5).
+
+4. Find the box titled **Image and shape**. Click **Edit** on it.
+   - **Image:** choose **Canonical Ubuntu** → version **24.04**
+     (Do **not** choose Oracle Linux, and do not choose 22.04.)
+   - **Shape:** choose **Ampere** → **VM.Standard.A1.Flex**
+   - **OCPUs:** drag to **4** if available. **Memory:** **24 GB** if available.
+   - If the sliders only allow **1 OCPU** and **6 GB**, leave them there. Take it.
+     (Reason in 3.6.)
+   - Click **Select shape** / **Save** to close that panel.
+
+5. **Primary VNIC / networking:** leave everything as it is. Do not edit.
+
+6. **Add SSH keys** section:
+   - Leave **Generate a key pair** selected.
+   - Click **Save private key**. Your browser downloads a file like
+     `ssh-key-2026-10-30.key`. Move it into the `trueaxis-key` folder you made in
+     Part 1.3.
+   - Click **Save public key** and save it in the same folder.
+   - **This private key is the only way into your server. If you lose it you must
+     build a new server.** Back it up to cloud storage or email it to yourself.
+
+7. **Boot volume:** leave default. (Optionally raise to 100 GB — still free.)
+
+8. Leave **Show advanced options** closed.
+
+9. Click the blue **Create** button at the bottom.
+
+**You should see:** a banner saying the instance is **PROVISIONING**, then within
+1–3 minutes a green **RUNNING** status with an orange circle icon.
+
+## 3.3 Copy the IP address
+
+1. On the instance page, find **Public IP address** in the Instance information panel.
+2. Click **Copy** next to it.
+3. Paste it into a notes app. It looks like `129.213.45.67`.
+
+You will paste this number in three different places later. Keep it handy.
+
+## 3.4 If creation fails
+
+| Message | What it means | Do this |
+|---|---|---|
+| **Out of host capacity** | That data center has no free ARM cores right now | Try again in a few hours, or read 3.5 |
+| **Limit exceeded** | Your account is capped | Open a support chat and ask them to raise the A1 limit for your tenancy |
+| Page just spins | Normal slowness | Wait 2 minutes, refresh |
+
+## 3.5 Trying for the bigger server (optional)
+
+Capacity is per **Availability Domain** (AD-1, AD-2, AD-3), which are separate
+buildings. One may be full while another has room.
+
+1. On the **Create instance** form, open **Show advanced options**.
+2. Find **Availability domain** and change it to a different one (AD-2 or AD-3).
+3. Click **Create** again.
+
+If all domains refuse, take the 1 OCPU / 6 GB and move on. You can upgrade the
+same server later without reinstalling anything (see Part 13.1).
+
+## 3.6 Why 1 core / 6 GB is genuinely fine
+
+This app is a small Node.js web server plus a small database. It does not need
+4 cores to serve your first customers. The trade-offs are:
+
+- The install takes **10–15 minutes** instead of 5–8.
+- The installer automatically adds a **2 GB swap file** so the build cannot run
+  out of memory.
+
+Nothing else changes. Same features, same speed for a handful of users.
+
+---
+
+# PART 4 — Open the two doors (5 minutes)
+
+Oracle ships with a firewall that blocks web traffic by default. There are two
+firewalls: Oracle's (this part) and Ubuntu's inside the server (the installer
+handles that one). Everyone forgets this part, and then wonders why the site
+will not load.
+
+1. Click **☰** (top left).
+2. Click **Networking** → **Virtual Cloud Networks**.
+3. Click your network name. It looks like `vcn-20261030-1234`.
+4. In the left sidebar under **Resources**, click **Security Lists**.
+5. Click the one named **Default Security List for vcn-...**
+6. Click the **Add Ingress Rules** button.
+
+### Rule 1 (web traffic)
+
+- **Stateless:** leave unchecked
+- **Source Type:** CIDR
+- **Source CIDR:** `0.0.0.0/0`
+- **IP Protocol:** TCP
+- **Source Port Range:** leave blank
+- **Destination Port Range:** `80`
+- **Description:** `web`
+- Click **Add Ingress Rules**
+
+### Rule 2 (secure web traffic)
+
+Click **Add Ingress Rules** again and repeat with one change:
+
+- **Destination Port Range:** `443`
+- **Description:** `https`
+- Click **Add Ingress Rules**
+
+**You should see:** three rules in the list — port 22 (SSH, pre-existing), port 80,
+port 443.
+
+---
+
+# PART 5 — Point your domain at your server (10 minutes + waiting)
+
+Your domain `trueaxishq.com` was bought inside **Manus**, so its DNS lives inside
+Manus, not at a normal registrar.
+
+## 5.1 Important things to know first
+
+1. **Your Manus site will stop working at that domain.** The domain can only point
+   at one place. That is what migration means. If you still need the Manus site,
+   ask Manus to put it on a subdomain first (e.g. `old.trueaxishq.com`).
+2. **HTTPS cannot be issued until DNS is correct.** Let's Encrypt must reach your
+   new server through this DNS record to prove you own the domain. So do this part
+   fully and let it settle before Part 7.
+
+## 5.2 Open the Manus DNS panel
+
+1. Go to **`manus.im`** and log in.
+2. Click your **avatar / profile picture** (usually bottom-left or top-right).
+3. Click **Settings**.
+4. Click the **Data controls** tab.
+5. Find your domain `trueaxishq.com` and click **Manage**.
+6. On the domain row, click **Manage** again to open its DNS records.
+
+**You should see:** a list of DNS records. There will be something pointing at
+Manus (an **A** record with name `@`, or a **CNAME**).
+
+## 5.3 Remove the old record
+
+1. Find the **A** record where the **Name/Host** is `@` (sometimes shown as blank,
+   or as the bare domain).
+2. Click the **⋯** (three dots) beside it, or **Delete**.
+3. Confirm deletion.
+
+If instead you see a **CNAME** on `@`, delete that one.
+
+> Manus's own documentation says an existing A record must be removed before the
+> new one is added, so do not try to "edit in place" if the panel resists.
+
+## 5.4 Add the new record for the main domain
+
+1. Click **Add record**.
+2. Fill in exactly:
    - **Type:** `A`
    - **Name / Host:** `@`
-   - **Value / Points to:** your Oracle **Public IP** (from Phase 3.2)
-   - **TTL:** 300
-3. Click **Confirm**
+   - **Value / Points to:** your Oracle **Public IP** (from Part 3.3)
+   - **TTL:** `300`
+3. Click **Confirm** / **Save**.
 
-## 4.3 Add the www record
+## 5.5 Add the record for www
 
-Caddy is configured to redirect `www.trueaxishq.com` → `trueaxishq.com`, and it
-needs a certificate for `www` too, which means `www` must resolve to your server.
-
-1. **Add record** again:
+1. Click **Add record** again.
+2. Fill in exactly:
    - **Type:** `A`
    - **Name / Host:** `www`
-   - **Value / Points to:** the same Oracle **Public IP**
-   - **TTL:** 300
-2. Click **Confirm**
+   - **Value / Points to:** the **same** Oracle IP
+   - **TTL:** `300`
+3. Click **Confirm** / **Save**.
 
-## 4.4 Wait, then verify
+Why `www` matters: your server is configured to redirect `www.trueaxishq.com` to
+`trueaxishq.com`, and it needs its own certificate to do that. No `www` record =
+the redirect cannot be issued.
 
-1. Wait 5-30 minutes.
-2. Open https://dnschecker.org, type your domain, and confirm it resolves to your
-   **Oracle Public IP** (not a Cloudflare/Manus address).
-3. Optional but decisive, run this in PowerShell or Terminal:
-   `nslookup trueaxishq.com`
-   The `Address` line must be your Oracle IP.
+## 5.6 Wait, then verify (this is the step people rush)
 
-Do not continue to Phase 6 until DNS resolves to Oracle. Nothing downstream works otherwise.
+1. Wait **15 minutes**. Up to 30 is normal, rarely an hour.
+2. Open a new browser tab → **`dnschecker.org`**.
+3. Type `trueaxishq.com` and press Enter.
+4. Look at the IP addresses shown. They must be **your Oracle IP**.
+5. Also check `www.trueaxishq.com` — same IP.
 
-## 4.5 If the Manus panel will not let you edit the record
+**On Windows**, you can double-check in PowerShell:
 
-Manus's DNS panel is self-service for purchased domains, but if the record is
-locked, greyed out, or missing:
+```
+nslookup trueaxishq.com
+```
 
-1. **Ask Manus support in-app** to set an `A` record for `@` and `www` to your
-   Oracle IP. Give them the IP exactly.
-2. **Or transfer the domain out** to a normal registrar and manage DNS yourself:
-   - Manus **Settings → Data controls → Manage** → your domain → three-dot menu (⋯)
-     → **Transfer out** → **Copy** the authorization code
-   - Buy a transfer at a registrar (Namecheap/Cloudflare), paste the code
-   - Caveat: newly registered domains are usually locked for 60 days before transfer
-   - Keep the existing nameservers during transfer so nothing drops mid-way
+The **Address** line (not "Server") must show your Oracle IP.
 
-Either path ends the same way: `@` and `www` both reach your Oracle IP before Phase 6.
+**Do not continue until this is correct.** If it still shows an old Cloudflare or
+Manus address, wait longer, or re-check that you saved the record.
+
+## 5.7 If Manus will not let you edit the record
+
+Two fallbacks, in order:
+
+**A. Ask Manus support in-app** to set an **A** record for `@` and for `www`
+pointing at your Oracle IP. Paste the IP for them. This is usually fastest.
+
+**B. Transfer the domain out** to a normal registrar you control:
+1. Manus → **Settings → Data controls → Manage** → your domain.
+2. Click the **⋯** menu → **Transfer out**.
+3. Click **Copy** to copy the authorization code (also called EPP/auth code).
+4. Go to a registrar (Namecheap, Cloudflare Registrar, Porkbun) and choose
+   **Transfer a domain**. Paste the code. Expect ~$10/year and 5–7 days.
+5. Caveat: newly registered domains are usually locked for **60 days** before they
+   can transfer. Keep the existing nameservers during the transfer so nothing drops.
 
 ---
 
-# PHASE 5 — CONNECT TO THE SERVER
+# PART 6 — Connect to your server (5 minutes)
 
-## Windows (PowerShell)
+## 6.1 Windows
 
-1. Press `Win`, type `powershell`, open it.
-2. Fix the key's permissions first (Windows refuses otherwise):
-   ```powershell
-   icacls "$env:USERPROFILE\Downloads\ssh-key-2026-10-30.key" /inheritance:r
-   icacls "$env:USERPROFILE\Downloads\ssh-key-2026-10-30.key" /grant:r "$($env:USERNAME):(R)"
-   ```
-   (Replace the filename with your actual downloaded key name.)
-3. Connect:
-   ```powershell
-   ssh -i "$env:USERPROFILE\Downloads\ssh-key-2026-10-30.key" ubuntu@YOUR_PUBLIC_IP
-   ```
-   Type `yes` when it asks about the fingerprint.
+Open **PowerShell** (Part 1.1). Run these three commands one at a time, pressing
+**Enter** after each. Replace `YourName` with your Windows username, and the key
+filename with the one you actually downloaded.
 
-## Mac / Linux (Terminal)
+**Command 1 — lock the key file down (SSH refuses keys anyone can read):**
+
+```powershell
+icacls "$env:USERPROFILE\Downloads\trueaxis-key\ssh-key-2026-10-30.key" /inheritance:r
+```
+
+**Command 2 — give yourself read access:**
+
+```powershell
+icacls "$env:USERPROFILE\Downloads\trueaxis-key\ssh-key-2026-10-30.key" /grant:r "$($env:USERNAME):(R)"
+```
+
+**Command 3 — connect (replace the IP):**
+
+```powershell
+ssh -i "$env:USERPROFILE\Downloads\trueaxis-key\ssh-key-2026-10-30.key" ubuntu@YOUR_ORACLE_IP
+```
+
+## 6.2 Mac
+
+Open **Terminal** (Part 1.1). Run these two commands:
 
 ```bash
-chmod 600 ~/Downloads/ssh-key-2026-10-30.key
-ssh -i ~/Downloads/ssh-key-2026-10-30.key ubuntu@YOUR_PUBLIC_IP
+chmod 600 ~/Downloads/trueaxis-key/ssh-key-2026-10-30.key
+ssh -i ~/Downloads/trueaxis-key/ssh-key-2026-10-30.key ubuntu@YOUR_ORACLE_IP
 ```
-Type `yes` at the fingerprint prompt.
 
-**You are in when** the prompt changes to `ubuntu@trueaxis:~$`.
+## 6.3 The first-connection prompt
 
-**Error "Permission denied (publickey)"** = wrong key file or permissions not fixed. Redo step 2.
+The first time, you will see:
+
+```
+The authenticity of host '129.213.45.67' can't be established.
+ED25519 key fingerprint is SHA256:....
+Are you sure you want to continue connecting (yes/no/[fingerprint])?
+```
+
+Type `yes` and press Enter. This happens once per server, and it is normal.
+
+**You should see** a prompt like:
+
+```
+ubuntu@trueaxis:~$
+```
+
+That means you are inside your server. Everything you type now runs on the server,
+not on your computer.
+
+> **Typing a password will never work here.** Oracle uses the key file instead.
+> If it asks for a password, the key path is wrong.
+
+## 6.4 If it fails
+
+| Message | Cause | Fix |
+|---|---|---|
+| `Permission denied (publickey)` | Key file permissions, or wrong file | Redo 6.1 commands 1 and 2, confirm the filename |
+| `No such file or directory` | Wrong path | Open the folder, right-click the key → **Copy as path**, paste that |
+| `Connection timed out` | Port 22 blocked or wrong IP | Confirm the IP, confirm the instance is **RUNNING** |
+| `Host key verification failed` | Old entry for that IP | Run `ssh-keygen -R YOUR_ORACLE_IP` then retry |
 
 ---
 
-# PHASE 6 — RUN THE INSTALLER (5-8 minutes)
+# PART 7 — Install everything (one command, 10–15 minutes)
 
-Paste this whole line exactly (no editing needed — the domain is already yours):
+Stay in the same terminal window. You should still see `ubuntu@trueaxis:~$`.
+
+## 7.1 Run the installer
+
+Copy this **entire line** and paste it, then press Enter:
 
 ```bash
 sudo bash -c 'curl -fsSL https://raw.githubusercontent.com/yvngbutta32/trueaxishq/main/scripts/oracle-setup.sh -o /opt/oracle-setup.sh && bash /opt/oracle-setup.sh --domain trueaxishq.com'
 ```
 
-It runs unattended and asks you nothing. (If your domain spelling is different,
-change only the text after `--domain`.)
+**It asks you nothing.** There is no token, no username, no password prompt.
+(Later, if the repo were ever made private, it would ask for a GitHub token. Not now.)
 
-It installs Node 22, MariaDB, Caddy (automatic HTTPS), the app, the database, all 91 migrations, the auto-restart service, the firewall, and nightly backups.
+## 7.2 What it does, in order
 
-**When it finishes, copy these three things from the last lines:**
+You will see scrolling text. It is installing, in this order:
 
-1. The URL: `https://trueaxishq.com`
-2. **The first owner invite code** — 6 characters (digits and A-F). You need it in Phase 8.
-3. Ignore the rest.
+1. A 2 GB swap file (build headroom on small servers)
+2. Ubuntu packages, Node.js 22, git, MariaDB, Caddy
+3. Database and a locked-down database user with a generated password
+4. The app code into `/opt/trueaxis`
+5. A settings file (`/opt/trueaxis/.env`) with a random login secret and a
+   one-time owner invite code
+6. All 91 database migrations
+7. A systemd service so the app restarts automatically
+8. Caddy with automatic HTTPS
+9. Firewall rules inside Ubuntu
+10. Nightly backups at 03:20
 
-If you lose the code:
+## 7.3 How long
+
+- 4 cores: 5–8 minutes
+- 1 core: 10–15 minutes
+
+Do not close the window. If your connection drops mid-install, reconnect with the
+Part 6 command and run the same installer line again — it is safe and idempotent;
+it picks up where it left off without duplicating anything.
+
+## 7.4 The finish message
+
+**You should see** something like:
+
+```
+════════════════════════════════════════════════════════
+ ✔ Installed. Your app should be live at: https://trueaxishq.com
+════════════════════════════════════════════════════════
+
+ First owner invite code (one-time, register at /register): 4A9C21
+ Health check:  curl -s https://trueaxishq.com/api/health
+ Smoke test:     BASE_URL=https://trueaxishq.com bash scripts/smoke.sh
+ Logs:           journalctl -u trueaxis -f
+ Backups:        nightly 03:20 -> /var/backups/trueaxis (cron installed)
+```
+
+**Write down the 6-character invite code.** That code creates your admin account,
+and it works only once.
+
+If you lose it, retrieve it at any time:
+
 ```bash
 sudo grep BOOTSTRAP_INVITE_CODE /opt/trueaxis/.env
 ```
 
 ---
 
-# PHASE 7 — VERIFY THE SERVER (2 minutes)
+# PART 8 — Prove it works (3 minutes)
 
-Run these on the server, one at a time:
+Still in the same terminal window.
+
+## 8.1 Health check
 
 ```bash
 curl -s https://trueaxishq.com/api/health
 ```
-Expected: one JSON line containing `"status":"healthy"` (plus a timestamp).
+
+**You should see** one line like:
+
+```json
+{"status":"healthy","supportEmail":null,"timestamp":"2026-10-30T12:16:30.000Z"}
+```
+
+The important part is `"status":"healthy"`.
+
+**If you get an error or nothing:**
+
+- Wait 2 minutes and try again. Caddy may still be getting the certificate.
+- Then check DNS again (Part 5.6). This is the #1 cause.
+- Then re-check Oracle ports 80/443 (Part 4).
+
+## 8.2 Full smoke test
 
 ```bash
 cd /opt/trueaxis && BASE_URL=https://trueaxishq.com bash scripts/smoke.sh
 ```
-Expected: 10 lines of `PASS`, ending `ALL CHECKS PASSED`.
 
-If health fails:
-- Wait 2 minutes (Caddy may still be getting its certificate), retry.
-- Still failing? Confirm Phase 3.3 ports were added and DNS resolves.
+**You should see** ten lines starting with `PASS`, ending with:
+
+```
+ALL CHECKS PASSED — deployment is live and behaving.
+```
+
+Ten green passes means: the app responds, fonts load, your public pages render,
+and your private API correctly refuses anonymous access.
+
+## 8.3 Certificate check (optional but reassuring)
+
+Open `https://trueaxishq.com` in your browser. You should see a **padlock** and
+your app's home page.
+
+If you see "Not secure" or a warning page: the certificate is not issued yet.
+Wait 5 minutes and refresh. If it persists, run:
+
+```bash
+sudo systemctl status caddy --no-pager
+sudo journalctl -u caddy -n 40 --no-pager
+```
+
+Look for "certificate obtained successfully". If you see errors mentioning
+DNS or challenge failures, your DNS still is not pointing at this server.
 
 ---
 
-# PHASE 8 — CREATE YOUR OWNER ACCOUNT (2 minutes)
+# PART 9 — Create your owner account (3 minutes)
 
-1. In a browser open `https://trueaxishq.com/register`
-2. Enter your name, email, password.
-3. When asked for an **invite code**, paste the 6-character code from Phase 6.
-4. Register, then log in.
+1. Open **`https://trueaxishq.com/register`**
+2. **Full name:** your name.
+3. **Email:** the email you want to log in with.
+4. **Password:** at least 10 characters, mix letters/numbers/symbols.
+5. **Invite code:** the 6-character code from Part 7.4.
+6. Click **Create account**.
+7. Log in with the same email and password.
 
-This account is the owner/admin. It sees everything.
+**You should see** your dashboard: Overview, Clients, Scheduling, Jobs, Dispatch,
+Billing, Integrations, AI, Insights, and the rest of the sidebar.
+
+**This account is the owner/admin.** It sees everything and can do everything.
+Create staff accounts later from inside the app.
 
 ---
 
-# PHASE 9 — ADD CREDENTIALS (each one is a copy-paste)
+# PART 10 — How to edit the settings file (learn this once)
 
-## How to edit the settings file (do this once, learn it)
+Every credential you add later goes into one file: `/opt/trueaxis/.env`.
+Here is the entire skill, and it never changes.
+
+## 10.1 Open it
 
 ```bash
 sudo nano /opt/trueaxis/.env
 ```
 
-- Move with arrow keys. **Do not retype lines**, just add new lines at the bottom.
-- Save: `Ctrl+O`, then `Enter`. Exit: `Ctrl+X`.
-- After every `nano` session, restart the app:
-  ```bash
-  sudo systemctl restart trueaxis
-  ```
+You now see a text file. The bottom of the screen shows keyboard hints like
+`^O Write Out` — the `^` means the **Ctrl** key.
 
-## 9.0 Support email (do this one now — takes 1 minute)
+## 10.2 Move and type
 
-Add to the bottom of `.env`:
+- Move the cursor with **arrow keys**.
+- Type normally. **Do not delete existing lines.**
+- Add new lines at the very bottom.
+
+## 10.3 Save and exit (memorize these two)
+
+1. Press **Ctrl + O** (that is the letter O, for "write Out")
+2. Press **Enter** (confirms the filename)
+3. Press **Ctrl + X** (exits)
+
+## 10.4 Restart the app so it reads the new settings
+
+```bash
+sudo systemctl restart trueaxis
+```
+
+**Do this after every single edit.** Without a restart, nothing you typed is used.
+
+## 10.5 Confirm it restarted cleanly
+
+```bash
+sudo systemctl status trueaxis --no-pager
+```
+
+Look for `Active: active (running)` in green. If it says `failed`, you have a typo
+in `.env` — reopen it and check, then restart again.
+
+---
+
+# PART 11 — Add your credentials (choose what you want now)
+
+Everything here is **optional**. The app runs and sells without any of it, and it
+tells you honestly in the UI which features are off.
+
+Order that gets you sellable fastest: **support email → email → payments → AI → texts.**
+
+After each one: save (Ctrl+O, Enter, Ctrl+X) → restart (`sudo systemctl restart trueaxis`).
+
+## 11.1 Support email (1 minute, do this now)
+
+This address appears on your public status page so customers can reach you.
 
 ```
 SUPPORT_EMAIL=you@trueaxishq.com
 ```
 
-Save, exit, restart. This shows on your public status page.
+## 11.2 Email — so confirmations and invoices actually send (5 minutes)
 
----
+### Option A: Gmail app password (fastest, free)
 
-## 9.1 EMAIL — SMTP (real booking confirmations, invoice emails)
+Requirements: your Google account must have **2-Step Verification** turned on.
 
-### Fastest zero-cost option: Gmail app password
-
-1. Your Google account must have **2-Step Verification** on: https://myaccount.google.com/security
-2. Go to https://myaccount.google.com/apppasswords
-3. App name: `TrueAxis` → **Create**
-4. Copy the 16-character password (looks like `abcd efgh ijkl mnop`). Remove the spaces when pasting.
-5. Add to `.env`:
+1. Go to **`myaccount.google.com/security`** and confirm 2-Step Verification is ON.
+2. Go to **`myaccount.google.com/apppasswords`**
+3. **App name:** type `TrueAxis`
+4. Click **Create**
+5. Google shows a 16-character password like `abcd efgh ijkl mnop`.
+   **Remove the spaces** → `abcdefghijklmnop`
+6. Add these five lines to `.env`:
 
 ```
 SMTP_HOST=smtp.gmail.com
@@ -315,55 +637,71 @@ SMTP_PASS=abcdefghijklmnop
 SMTP_FROM=youraddress@gmail.com
 ```
 
-Notes: Gmail is fine for your first customers but caps around 500 sends/day and can land in spam. When you have paying customers, switch to Brevo/Resend/Postmark with your own domain — same five variable names, different values, nothing else changes.
+Trade-offs you should know: Gmail caps around 500 sends per day, and receipts sent
+from a Gmail address are more likely to land in spam. Fine for your first customers.
+When you have paying clients, move to a provider that sends from your own domain
+(Brevo, Resend, Postmark) — same five variable names, different values, nothing else
+changes.
 
-Save → exit → restart.
+### Option B: a provider on your own domain (better deliverability)
 
----
+1. Sign up at Brevo, Resend, or Postmark (free tiers exist).
+2. Add and verify `trueaxishq.com`.
+3. Copy the **SMTP host, port, username, password** they give you into the same five
+   lines above. `SMTP_FROM` becomes something like `billing@trueaxishq.com`.
 
-## 9.2 PAYMENTS — STRIPE (subscriptions + client invoices)
+## 11.3 Payments — Stripe (15 minutes)
 
-1. Create/log in at https://dashboard.stripe.com
-2. Complete **Activate your account** (business details + bank). This is required to accept real money. Test keys work before activation but cannot charge cards.
-3. Get the key: **Developers** → **API keys** → reveal **Secret key** → copy the `sk_live_...` (or `sk_test_...` while testing).
-4. Add to `.env`:
+1. Go to **`dashboard.stripe.com`** and create an account (or log in).
+2. Complete **Activate your account**: legal business name, address, bank account,
+   tax ID if you have one. Stripe cannot pay you until this is done.
+   - You can develop with test keys before activation, but you cannot take real money.
+3. Get your key: **Developers** (top right) → **API keys**.
+4. Under **Standard keys**, click **Reveal** on **Secret key**, copy the whole
+   `sk_live_...` value.
+5. Add to `.env`:
 
 ```
-STRIPE_SECRET_KEY=sk_live_xxxxxxxxxxxxxxxx
+STRIPE_SECRET_KEY=sk_live_xxxxxxxxxxxxxxxxxxxx
 ```
 
-5. Create the webhook (this is what keeps subscriptions in sync):
+6. Create the webhook — **this is the part people skip, and then subscriptions never
+   update**:
    - **Developers** → **Webhooks** → **Add endpoint**
-   - Endpoint URL: `https://trueaxishq.com/api/stripe/webhook`
-   - Events to send, select exactly these six:
+   - **Endpoint URL:** `https://trueaxishq.com/api/stripe/webhook`
+   - Click **+ Select events** and tick exactly these six:
      - `checkout.session.completed`
      - `customer.subscription.updated`
      - `customer.subscription.deleted`
      - `invoice.paid`
      - `invoice.payment_failed`
      - `account.updated`
-   - Click **Add endpoint**
-   - On the endpoint page, click **Reveal** under **Signing secret**, copy `whsec_...`
-6. Add to `.env`:
+   - Click **Add events**, then **Add endpoint**
+7. On the new endpoint's page, under **Signing secret**, click **Reveal**, copy the
+   `whsec_...` value.
+8. Add to `.env`:
 
 ```
-STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxx
 ```
 
-Save → exit → restart.
+**How money flows:** your platform key only charges subscriptions to *you*. When a
+freelancer's client pays an invoice, that money goes into the *freelancer's own*
+Stripe account through Stripe Connect onboarding inside the app. You never hold
+their money, which keeps you out of money-transmitter territory.
 
-Note: payments from your customers (invoice "Pay now") go to the freelancer's own Stripe account via Stripe Connect onboarding inside the app — your platform key only handles subscriptions.
+## 11.4 Texts and phone calls — Twilio (15 minutes)
 
----
-
-## 9.3 TEXT MESSAGES + PHONE — TWILIO
-
-1. Sign up at https://www.twilio.com (free trial credit).
-2. From https://console.twilio.com copy:
-   - **Account SID** (starts `AC...`)
-   - **Auth Token** (click to reveal)
-3. Buy a phone number: **Phone Numbers** → **Buy a number** → filter by your area code → make sure it lists **Voice** and **SMS** capabilities → buy (~$1.15/month).
-4. Add to `.env` (number must start with `+` and country code):
+1. Sign up at **`twilio.com`** (free trial credit included).
+2. Open **`console.twilio.com`**. On the homepage, in the **Account Info** panel,
+   copy:
+   - **Account SID** — starts with `AC`
+   - **Auth Token** — click **show** to reveal it
+3. Buy a phone number: left menu **Phone Numbers → Manage → Buy a number**.
+   - Filter by your area code.
+   - Tick both **Voice** and **SMS** capabilities.
+   - Buy it (~$1.15/month, billed by Twilio to you).
+4. Add to `.env` (the number must include `+` and country code):
 
 ```
 TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -371,91 +709,200 @@ TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 TWILIO_FROM_NUMBER=+15551234567
 ```
 
-5. Save → exit → restart.
+**The honest part about US texting:** calls and voicemail work immediately after
+this. Texts to US numbers require **A2P 10DLC registration** with The Campaign
+Registry, which Twilio guides you through at **Messaging → Regulatory Compliance**.
+It costs roughly $4–44 one-time plus a few dollars monthly, and approval takes a few
+days. Until approved, carriers filter your SMS. Voice is unaffected.
 
-**Honest reality about US texting:** calls work immediately after this. Texts to US numbers require **A2P 10DLC registration** with The Campaign Registry — Twilio walks you through it (**Messaging** → **Regulatory Compliance**). It costs roughly $4-44 one-time plus a few dollars a month, and approval can take a few days. Until it is approved, SMS sends will be filtered. Voice and voicemail are unaffected.
+Also note: each text you send costs a fraction of a cent, billed to *you* by Twilio.
+That is exactly why each plan includes a capped allowance.
 
-SMS costs money per message beyond your plan allowance: that is charged to you by Twilio, which is why each plan has a cap.
+## 11.5 AI receptionist and drafting — Google Gemini (5 minutes)
 
----
-
-## 9.4 AI — GOOGLE GEMINI (AI receptionist + drafting)
-
-1. Go to https://aistudio.google.com/apikey
+1. Go to **`aistudio.google.com/apikey`**
 2. Click **Create API key** (free tier, no card required).
-3. Copy the key (starts `AIza...`).
-4. Add to `.env` — the URL must be the **full path**, exactly as below:
+3. Copy the key — it starts with `AIza`.
+4. Add these three lines **exactly**, including the full URL:
 
 ```
 BUILT_IN_FORGE_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
-BUILT_IN_FORGE_API_KEY=AIzaSyxxxxxxxxxxxxxxxxxxxx
+BUILT_IN_FORGE_API_KEY=AIzaSyxxxxxxxxxxxxxxxxxxxxxxx
 BUILT_IN_FORGE_API_MODEL=gemini-2.5-flash
 ```
 
-Save → exit → restart.
+The URL must be that entire path. Google's OpenAI-compatible endpoint is not under
+`/v1`, so a short URL will fail. This was a real bug we fixed; the line above is
+the corrected form.
 
-Without this, AI features stay off and say so honestly. Nothing breaks.
+## 11.6 Google Calendar sync (optional — skip unless you want it)
+
+Only needed for two-way calendar sync. Calendar feeds (ICS) already work without it.
+If you want it later, create an OAuth client at `console.cloud.google.com`, then add
+`GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
 
 ---
 
-## 9.5 OPTIONAL — Google Calendar sync
+# PART 12 — Prove every credential is real (1 command, 1 minute)
 
-Skip this unless you specifically want two-way calendar sync. ICS calendar feeds already work without it.
-
----
-
-# PHASE 10 — PROVE EVERY CREDENTIAL IS REAL (1 command)
-
-Run on the server:
+Do not trust that a key is valid because you pasted it. Test it against the live
+provider:
 
 ```bash
 cd /opt/trueaxis && sudo bash scripts/verify-credentials.sh
 ```
 
-This contacts each provider live and prints PASS / SKIP / FAIL per group:
-- `PASS` = the credential works
-- `SKIP` = you haven't added it yet (fine)
-- `FAIL` = you added it but the provider rejected it — fix that line in `.env`
+It reads your `.env`, contacts each provider for real, and prints a line per group:
 
-Finish only when every credential you added shows **PASS** and the summary says **All provided credentials are LIVE-VALID**.
+- **PASS** — the credential works
+- **SKIP** — not configured yet (perfectly fine)
+- **FAIL** — you added it and the provider rejected it; fix that line
 
----
+**You should see**, for the ones you configured:
 
-# PHASE 11 — AFTER LAUNCH (do this week one)
-
-1. **Upgrade Oracle to Pay As You Go.** Billing → add card → **Upgrade to Pay As You Go**. Free ARM servers can be reclaimed by Oracle after 7 idle days; paid accounts are exempt, and staying inside Always Free limits still costs $0.
-2. **Check backups exist:**
-   ```bash
-   ls -la /var/backups/trueaxis
-   ```
-   Nightly at 03:20, 14 daily + 6 monthly snapshots.
-3. **Download a copy of your data weekly:** app → Settings → Import/Export → JSON export.
-4. **Monthly server updates:**
-   ```bash
-   sudo apt update && sudo apt upgrade -y
-   ```
-
----
-
-# COMMON ERRORS AND FIXES
-
-| What you see | What it means | Fix |
-|---|---|---|
-| "Out of host capacity" on Oracle | No free ARM room in that region | Retry off-peak, or pick another region |
-| `Permission denied (publickey)` | Wrong key or loose permissions | Redo Phase 5 permission step |
-| Site times out, health fails | Ports 80/443 not open in Oracle | Phase 3.3 |
-| Caddy certificate error in logs | DNS not pointing at server yet | Wait for DNS, restart: `sudo systemctl restart caddy` |
-| Site loads but login fails | Database not migrated | `cd /opt/trueaxis && sudo -u trueaxis corepack pnpm drizzle-kit migrate` |
-| Register says invite code invalid | Code already used or mistyped | `sudo grep BOOTSTRAP_INVITE_CODE /opt/trueaxis/.env` |
-| Text messages silently not arriving | US 10DLC not approved yet | Finish Twilio A2P registration |
-| AI says not configured after adding key | Wrong URL shape | Use the exact full URL from 9.4 |
-
-Logs for anything else:
-```bash
-sudo journalctl -u trueaxis -f
+```
+  PASS  Database reachable (tables:91)
+  PASS  SMTP smtp.gmail.com:587 accepted credentials — booking confirmations, invoices, password resets, magic links go live
+  PASS  Stripe LIVE key valid (account ...) — SaaS subscriptions + client Connect payments go live
+  PASS  LLM endpoint accepted the key — AI voice receptionist + assistant features go live
+  4 passed, 0 failed, 2 not yet provided
+  All provided credentials are LIVE-VALID. Remaining items just need credentials.
 ```
 
-Restart the app after ANY `.env` change:
+Finish only when every credential you added says **PASS**.
+
+---
+
+# PART 13 — First week after launch
+
+## 13.1 Upgrade Oracle to Pay As You Go (do this within days)
+
+**Why:** Oracle reclaims *idle* Always Free ARM servers after about 7 days of low
+CPU. Paid accounts are exempt. Staying inside Always Free limits still costs $0.
+
+1. Oracle console → **Billing & Cost Management**
+2. Click **Upgrade to Pay As You Go**
+3. Add your card, confirm
+
+## 13.2 Grow the server to 4 cores / 24 GB (any time)
+
+1. **Compute → Instances → trueaxis → Edit** (button at top of the page)
+2. **Shape config** → set **4 OCPUs**, **24 GB**
+3. Save. The app restarts automatically; nothing else changes.
+
+## 13.3 Confirm backups exist
+
 ```bash
+ls -la /var/backups/trueaxis
+```
+
+You should see `trueaxis-2026-10-31.sql.gz` style files appearing nightly at 03:20.
+Retention: 14 daily plus the 1st of each month for 6 months.
+
+Restore a backup if you ever need to:
+
+```bash
+gunzip < /var/backups/trueaxis/trueaxis-2026-10-31.sql.gz | mysql trueaxis
 sudo systemctl restart trueaxis
 ```
+
+## 13.4 Also keep a business-data export
+
+Once a week: in the app, **Settings → Import/Export → Export JSON**. Download it.
+That file is readable outside MySQL, which is what you want in a disaster.
+
+## 13.5 Routine maintenance (monthly, 2 minutes)
+
+Server updates:
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+App updates (when we ship changes):
+
+```bash
+cd /opt/trueaxis
+sudo -u trueaxis git pull
+sudo -u trueaxis corepack pnpm install --frozen-lockfile
+sudo -u trueaxis corepack pnpm build
+sudo systemctl restart trueaxis
+```
+
+## 13.6 Everyday commands you will actually use
+
+| What you want | Command |
+|---|---|
+| Is the app running? | `sudo systemctl status trueaxis --no-pager` |
+| Restart after editing `.env` | `sudo systemctl restart trueaxis` |
+| Watch live logs | `sudo journalctl -u trueaxis -f` (Ctrl+C to stop) |
+| Last 50 log lines | `sudo journalctl -u trueaxis -n 50 --no-pager` |
+| Is HTTPS working? | `sudo systemctl status caddy --no-pager` |
+| Edit settings | `sudo nano /opt/trueaxis/.env` |
+| See the invite code | `sudo grep BOOTSTRAP_INVITE_CODE /opt/trueaxis/.env` |
+
+---
+
+# PART 14 — Troubleshooting, by what you see
+
+| What you see | What it really means | Fix |
+|---|---|---|
+| Site never loads, browser spins | Oracle ports closed | Part 4 — add 80 and 443 ingress rules |
+| Health check says connection refused | App not running | `sudo systemctl status trueaxis` then `sudo systemctl restart trueaxis` |
+| Site loads but says "Not secure" | Certificate not issued | Confirm DNS (Part 5.6), then `sudo systemctl restart caddy` |
+| Caddy log says "challenge failed" | DNS still points elsewhere | Wait for DNS, verify at dnschecker.org, restart caddy |
+| `Permission denied (publickey)` | Key permissions or wrong key | Redo Part 6.1 commands 1–2 |
+| Installer stops halfway | Dropped connection or transient apt error | Reconnect, run the same installer line again — it is safe to re-run |
+| Register says invite code invalid | Already used, or typo | `sudo grep BOOTSTRAP_INVITE_CODE /opt/trueaxis/.env`; the code is one-time |
+| Emails never arrive | SMTP wrong, or Gmail app password spaces | Re-paste the 16-char password with no spaces; check spam |
+| Texts never arrive | A2P 10DLC not approved | Finish Twilio regulatory registration |
+| AI features say not configured | Wrong URL shape, or app not restarted | Use the exact 3 lines in 11.5, then restart |
+| Subscription status never updates | Missing webhook | Part 11.3 step 6, all six events |
+| Blank white page after an update | Browser cached old bundle | Hard refresh: Ctrl+Shift+R / Cmd+Shift+R |
+| `502 Bad Gateway` | App crashed | `sudo journalctl -u trueaxis -n 80 --no-pager` and read the last error |
+
+---
+
+# PART 15 — Master checklist
+
+**Server**
+- [ ] Oracle account created, card verified
+- [ ] Instance `trueaxis` created, status **RUNNING**
+- [ ] Private key saved and backed up
+- [ ] Public IP written down
+- [ ] Security list has 80 and 443
+
+**Domain**
+- [ ] Old A record deleted in Manus
+- [ ] `@` → Oracle IP, TTL 300
+- [ ] `www` → Oracle IP, TTL 300
+- [ ] dnschecker.org confirms both
+
+**Install**
+- [ ] Installer ran to the finish banner
+- [ ] 6-character invite code written down
+- [ ] Health check returns `"status":"healthy"`
+- [ ] Smoke test shows 10 PASS and "ALL CHECKS PASSED"
+
+**Account**
+- [ ] Owner account registered with the invite code
+- [ ] Logged in and dashboard loads
+
+**Credentials (optional, in this order)**
+- [ ] SUPPORT_EMAIL
+- [ ] SMTP (email)
+- [ ] Stripe key + webhook with all six events
+- [ ] Gemini (AI)
+- [ ] Twilio (texts and calls)
+- [ ] `verify-credentials.sh` shows PASS for everything configured
+
+**Week one**
+- [ ] Oracle upgraded to Pay As You Go
+- [ ] Backups confirmed in `/var/backups/trueaxis`
+- [ ] First JSON export downloaded
+
+---
+
+**When something looks different from this guide, stop and describe exactly what
+you see.** Most problems here are a missing port rule, DNS not settled yet, or a
+`.env` typo — all quick fixes, none of them a rebuild.
