@@ -1,7 +1,8 @@
 # TrueAxis HQ — Deploy + Credentials, Step by Step
 
 Follow in order. Do not skip. Every command is copy-paste.
-Replace **yourdomain.com** with the domain you actually buy (everywhere).
+This guide uses **trueaxishq.com** (the domain you already own through Manus).
+If your real spelling differs, substitute it everywhere.
 
 ---
 
@@ -13,38 +14,20 @@ Replace **yourdomain.com** with the domain you actually buy (everywhere).
 
 ---
 
-# PHASE 1 — DOMAIN (10 minutes)
+# PHASE 1 — YOUR DOMAIN (already done)
 
-1. Go to https://www.namecheap.com or https://dash.cloudflare.com (Registrar).
-2. Search a name. Buy the `.com` if you can (~$10-15/year). This is your only fixed cost.
-3. After purchase, you land on the domain's management page. Leave it open — you come back in Phase 4.
-4. Write down the exact domain, e.g. `trueaxishq.com`.
-
-**Done when:** you own a domain and know its exact spelling.
+You already own `trueaxishq.com`, purchased through Manus. Nothing to buy.
+The only thing to confirm is the exact spelling — see Phase 4.0.
 
 ---
 
-# PHASE 2 — GITHUB TOKEN (3 minutes)
+# PHASE 2 — GITHUB TOKEN (SKIP THIS)
 
-You need this so the server can download your private code.
+**You do not need a GitHub token.** Your repository is public, and the installer
+clones it anonymously. There is nothing to create here.
 
-1. Log in to https://github.com
-2. Click your avatar (top right) → **Settings**
-3. Left sidebar, scroll to the bottom → **Developer settings**
-4. **Personal access tokens** → **Fine-grained tokens**
-5. Click **Generate new token**
-6. Fill in:
-   - **Token name:** `trueaxis-deploy`
-   - **Expiration:** 90 days (or custom)
-   - **Repository access:** select **Only select repositories** → choose **trueaxishq**
-7. Scroll to **Permissions** → **Repository permissions**
-8. Find **Contents** → set the dropdown to **Read-only**
-9. Click **Generate token**
-10. Copy the token that starts with `github_pat_...` and paste it into a note. **You will never see it again.**
-
-**Watch out:** if you leave Repository access on "All repositories", the token still works but is riskier. Use "Only select repositories".
-
-**Done when:** you have a `github_pat_...` string saved.
+(If you ever make the repo private, the installer will detect the failed clone and
+ask for a read-only token at that moment. Not now.)
 
 ---
 
@@ -93,20 +76,92 @@ Oracle has its own firewall on top of Ubuntu's. You must open it here.
 
 ---
 
-# PHASE 4 — POINT YOUR DOMAIN AT THE SERVER (5 minutes + waiting)
+# PHASE 4 — POINT YOUR MANUS DOMAIN AT THE ORACLE SERVER
 
-1. Go back to your domain's DNS management page.
-2. Add a record:
+## 4.0 Know exactly what you own (verified 2026-10-30)
+
+- `trueaxishq.com` **currently resolves** and is serving a **Manus-hosted app**
+  (it redirects to `manus.im/app-auth`). This is almost certainly your domain.
+- `truaxishq.com` (one fewer "e") does **not** resolve at all — no DNS records.
+
+Confirm the exact spelling before you touch anything: in Manus open
+**Settings → Data controls → Manage**. The domain listed there is the one you own.
+**Everything below uses `trueaxishq.com` — substitute your real spelling.**
+
+Two consequences you must accept before continuing:
+
+1. **Your Manus site will go dark on that domain** the moment DNS points at Oracle.
+   That is the point of a migration, not a bug. If you still need the Manus site,
+   publish it on a Manus subdomain first.
+2. **HTTPS cannot work until DNS resolves.** Caddy asks Let's Encrypt to verify the
+   domain by reaching your server. If Manus DNS is wrong, certificate issuance fails
+   and the site shows no padlock. Do Phase 4 fully, then Phase 6.
+
+## 4.1 Open the Manus DNS panel
+
+For a domain bought inside Manus, DNS is managed inside Manus, not at a registrar:
+
+1. Log in to https://manus.im
+2. Click your avatar → **Settings**
+3. Open the **Data controls** tab
+4. Find your domain → click **Manage**
+5. Click **Manage** again on the domain to open its DNS records
+
+You should see the records currently sending traffic to the Manus app.
+
+## 4.2 Replace the apex record
+
+The old record is what points the domain at Manus. Per Manus's own documentation,
+existing A records must be removed before adding the new one.
+
+1. Find the **A** record with Name `@` (or blank / the bare domain).
+   - If it exists → delete it (or edit it in place, whichever the panel offers).
+   - If instead you see a **CNAME** on `@`, delete that CNAME.
+2. Click **Add record**:
    - **Type:** `A`
-   - **Host / Name:** `@`
-   - **Value / Points to:** your Oracle **Public IP**
-   - **TTL:** 300 seconds (5 minutes)
-3. Optionally add the same A record with Host `www`.
-4. Wait 5-30 minutes.
+   - **Name / Host:** `@`
+   - **Value / Points to:** your Oracle **Public IP** (from Phase 3.2)
+   - **TTL:** 300
+3. Click **Confirm**
 
-**Check it worked:** open https://dnschecker.org, type your domain, ensure it resolves to your Oracle IP.
+## 4.3 Add the www record
 
-Do not continue until DNS resolves. HTTPS setup fails without it.
+Caddy is configured to redirect `www.trueaxishq.com` → `trueaxishq.com`, and it
+needs a certificate for `www` too, which means `www` must resolve to your server.
+
+1. **Add record** again:
+   - **Type:** `A`
+   - **Name / Host:** `www`
+   - **Value / Points to:** the same Oracle **Public IP**
+   - **TTL:** 300
+2. Click **Confirm**
+
+## 4.4 Wait, then verify
+
+1. Wait 5-30 minutes.
+2. Open https://dnschecker.org, type your domain, and confirm it resolves to your
+   **Oracle Public IP** (not a Cloudflare/Manus address).
+3. Optional but decisive, run this in PowerShell or Terminal:
+   `nslookup trueaxishq.com`
+   The `Address` line must be your Oracle IP.
+
+Do not continue to Phase 6 until DNS resolves to Oracle. Nothing downstream works otherwise.
+
+## 4.5 If the Manus panel will not let you edit the record
+
+Manus's DNS panel is self-service for purchased domains, but if the record is
+locked, greyed out, or missing:
+
+1. **Ask Manus support in-app** to set an `A` record for `@` and `www` to your
+   Oracle IP. Give them the IP exactly.
+2. **Or transfer the domain out** to a normal registrar and manage DNS yourself:
+   - Manus **Settings → Data controls → Manage** → your domain → three-dot menu (⋯)
+     → **Transfer out** → **Copy** the authorization code
+   - Buy a transfer at a registrar (Namecheap/Cloudflare), paste the code
+   - Caveat: newly registered domains are usually locked for 60 days before transfer
+   - Keep the existing nameservers during transfer so nothing drops mid-way
+
+Either path ends the same way: `@` and `www` both reach your Oracle IP before Phase 6.
 
 ---
 
@@ -143,25 +198,20 @@ Type `yes` at the fingerprint prompt.
 
 # PHASE 6 — RUN THE INSTALLER (5-8 minutes)
 
-Paste this whole line, replacing the domain with yours:
+Paste this whole line exactly (no editing needed — the domain is already yours):
 
 ```bash
-sudo bash -c 'curl -fsSL https://raw.githubusercontent.com/yvngbutta32/trueaxishq/main/scripts/oracle-setup.sh -o /opt/oracle-setup.sh && bash /opt/oracle-setup.sh --domain yourdomain.com'
+sudo bash -c 'curl -fsSL https://raw.githubusercontent.com/yvngbutta32/trueaxishq/main/scripts/oracle-setup.sh -o /opt/oracle-setup.sh && bash /opt/oracle-setup.sh --domain trueaxishq.com'
 ```
 
-When it prints:
-
-```
-The repo is private. Create a fine-grained GitHub token ... then paste it here:
-```
-
-paste your `github_pat_...` token and press Enter. **The cursor will not move while you paste — that is normal.** Then press Enter.
+It runs unattended and asks you nothing. (If your domain spelling is different,
+change only the text after `--domain`.)
 
 It installs Node 22, MariaDB, Caddy (automatic HTTPS), the app, the database, all 91 migrations, the auto-restart service, the firewall, and nightly backups.
 
 **When it finishes, copy these three things from the last lines:**
 
-1. The URL: `https://yourdomain.com`
+1. The URL: `https://trueaxishq.com`
 2. **The first owner invite code** — 6 characters (digits and A-F). You need it in Phase 8.
 3. Ignore the rest.
 
@@ -177,12 +227,12 @@ sudo grep BOOTSTRAP_INVITE_CODE /opt/trueaxis/.env
 Run these on the server, one at a time:
 
 ```bash
-curl -s https://yourdomain.com/api/health
+curl -s https://trueaxishq.com/api/health
 ```
 Expected: one JSON line containing `"status":"healthy"` (plus a timestamp).
 
 ```bash
-cd /opt/trueaxis && BASE_URL=https://yourdomain.com bash scripts/smoke.sh
+cd /opt/trueaxis && BASE_URL=https://trueaxishq.com bash scripts/smoke.sh
 ```
 Expected: 10 lines of `PASS`, ending `ALL CHECKS PASSED`.
 
@@ -194,7 +244,7 @@ If health fails:
 
 # PHASE 8 — CREATE YOUR OWNER ACCOUNT (2 minutes)
 
-1. In a browser open `https://yourdomain.com/register`
+1. In a browser open `https://trueaxishq.com/register`
 2. Enter your name, email, password.
 3. When asked for an **invite code**, paste the 6-character code from Phase 6.
 4. Register, then log in.
@@ -223,7 +273,7 @@ sudo nano /opt/trueaxis/.env
 Add to the bottom of `.env`:
 
 ```
-SUPPORT_EMAIL=you@yourdomain.com
+SUPPORT_EMAIL=you@trueaxishq.com
 ```
 
 Save, exit, restart. This shows on your public status page.
@@ -267,7 +317,7 @@ STRIPE_SECRET_KEY=sk_live_xxxxxxxxxxxxxxxx
 
 5. Create the webhook (this is what keeps subscriptions in sync):
    - **Developers** → **Webhooks** → **Add endpoint**
-   - Endpoint URL: `https://yourdomain.com/api/stripe/webhook`
+   - Endpoint URL: `https://trueaxishq.com/api/stripe/webhook`
    - Events to send, select exactly these six:
      - `checkout.session.completed`
      - `customer.subscription.updated`

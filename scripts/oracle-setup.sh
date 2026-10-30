@@ -80,15 +80,23 @@ mysql -e "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'127.0.0.1'; 
 id -u trueaxis >/dev/null 2>&1 || useradd --system --home /opt/trueaxis --shell /usr/sbin/nologin trueaxis
 mkdir -p /opt/trueaxis
 if [[ ! -d /opt/trueaxis/.git && ! -f /opt/trueaxis/package.json ]]; then
-  if [[ -z "$GITHUB_TOKEN" ]]; then
-    echo ""
-    echo "The repo is private. Create a fine-grained GitHub token with read-only"
-    echo "access to yvngbutta32/trueaxishq (Settings → Developer settings → Tokens),"
-    echo "then paste it here:"
-    read -r -s GITHUB_TOKEN
+  REPO_URL="https://github.com/yvngbutta32/trueaxishq.git"
+  # Public repo: clone anonymously so the owner never handles a token. If that
+  # fails (repo made private later), fall back to asking for one.
+  if ! git clone --depth 1 "$REPO_URL" /opt/trueaxis 2>/dev/null; then
+    find /opt/trueaxis -mindepth 1 -delete 2>/dev/null || true
+    if [[ -z "$GITHUB_TOKEN" ]]; then
+      echo ""
+      echo "Repo could not be cloned anonymously (it may be private now)."
+      echo "Create a fine-grained GitHub token with read-only access to"
+      echo "yvngbutta32/trueaxishq (Settings -> Developer settings -> Tokens),"
+      echo "then paste it here:"
+      read -r -s GITHUB_TOKEN
+      echo ""
+    fi
+    git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/yvngbutta32/trueaxishq.git" /opt/trueaxis
+    git -C /opt/trueaxis remote set-url origin "$REPO_URL"
   fi
-  git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/yvngbutta32/trueaxishq.git" /opt/trueaxis
-  git -C /opt/trueaxis remote set-url origin "$(git -C /opt/trueaxis remote get-url origin | sed "s|x-access-token:${GITHUB_TOKEN}@||")"
 else
   git -C /opt/trueaxis pull --ff-only 2>/dev/null || echo "(existing install kept — manual git pull if needed)"
 fi
