@@ -411,6 +411,38 @@ If instead you see a **CNAME** on `@`, delete that one.
 > Manus's own documentation says an existing A record must be removed before the
 > new one is added, so do not try to "edit in place" if the panel resists.
 
+## 5.3.1 If Manus will not let you delete the record
+
+You will see this on domains that are still **attached to a Manus-deployed app**: the
+zone is served from Manus's own Cloudflare, so the records are greyed out and there is
+no delete option. The lock is the app binding, not a permissions mistake.
+
+**Fix A — unbind the domain first (do this).** Either:
+- In Manus chat, say: *"Disconnect trueaxishq.com from my deployed app so I can manage
+  its DNS records."* Manus is agent-driven; a plain-English request is the real interface.
+- Or open the project in Manus → **Publish / Deploy** → the custom-domain section →
+  **Disconnect** / **Remove domain**.
+
+Once the domain is no longer served by a Manus app, its records become editable and
+5.3 through 5.5 work normally.
+
+**Fix B — have Manus make the change for you.** Paste this to Manus support/chat:
+*"On trueaxishq.com, delete the A record for @ and the A record for www, then add
+A @ → 170.9.227.176 and A www → 170.9.227.176 with TTL 300. I am migrating to my own
+server and need these records pointed there."*
+
+**Fix C — launch today without touching Manus DNS.** Point the installer at a hostname
+that already resolves to your IP (`sslip.io` does this automatically for any IP):
+
+```bash
+sudo bash -c 'curl -fsSL https://raw.githubusercontent.com/yvngbutta32/trueaxishq/main/scripts/oracle-setup.sh -o /opt/oracle-setup.sh && bash /opt/oracle-setup.sh --domain 170-9-227-176.sslip.io'
+```
+
+Real HTTPS, real app, no DNS control needed. When the Manus records finally point at
+your server, re-run the installer with `--domain trueaxishq.com` **and** change
+`SITE_ORIGIN` in `/opt/trueaxis/.env` to `https://trueaxishq.com`, then restart.
+The installer only writes `SITE_ORIGIN` on a first install, so that one line is manual.
+
 ## 5.4 Add the new record for the main domain
 
 1. Click **Add record**.
