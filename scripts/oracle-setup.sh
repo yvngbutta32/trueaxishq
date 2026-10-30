@@ -42,6 +42,21 @@ echo "────────────────────────�
 echo " TrueAxis HQ installer for: https://${DOMAIN}"
 echo "──────────────────────────────────────────"
 
+# ── 0. Swap safety net ───────────────────────────────────────────────────────
+# Small ARM instances (1 OCPU / 6 GB is often all Oracle frees up) can run out of
+# headroom during the pnpm install + Vite build. A 2 GB swapfile costs nothing on
+# an SSD-backed volume and prevents an OOM-killed install. Idempotent.
+if [[ "$(free -m | awk '/^Swap:/ {print $2}')" -eq 0 ]]; then
+  if [[ ! -f /swapfile ]]; then
+    fallocate -l 2G /swapfile 2>/dev/null || dd if=/dev/zero of=/swapfile bs=1M count=2048 status=none
+    chmod 600 /swapfile
+    mkswap /swapfile >/dev/null
+  fi
+  swapon /swapfile 2>/dev/null || true
+  grep -q "^/swapfile" /etc/fstab || echo "/swapfile none swap sw 0 0" >> /etc/fstab
+  echo "Added a 2 GB swapfile (build headroom)."
+fi
+
 # ── 1. Packages ──────────────────────────────────────────────────────────────
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
