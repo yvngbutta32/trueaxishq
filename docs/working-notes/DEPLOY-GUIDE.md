@@ -119,6 +119,46 @@ in the top-left corner and "Compute" somewhere in the menu.
 
 # PART 3 — Create the server (20 minutes)
 
+## 3.0 Create the network FIRST (do this before the instance)
+
+Starting from a brand-new account, build the network with Oracle's wizard. It creates
+the public subnet, internet gateway, NAT gateway, route tables and security list in
+one pass, with no guessing about CIDR blocks.
+
+**Every value to type is listed. If a field already shows that value, leave it.**
+
+1. **☰ → Networking → Virtual Cloud Networks**
+2. Click **Start VCN Wizard**
+3. Choose **Create VCN with Internet Connectivity** → click **Start VCN Wizard**
+4. Fill in:
+   - **VCN Name:** `trueaxis-vcn`
+   - **Compartment:** your root compartment (e.g. `trueaxis (root)`)
+   - **VCN IPv4 CIDR Block:** `10.0.0.0/16`
+   - **Use DNS Hostnames in this VCN:** leave **checked**
+   - **Public Subnet IPv4 CIDR Block:** `10.0.0.0/24`
+   - **Private Subnet IPv4 CIDR Block:** `10.0.1.0/24`
+5. Click **Next**, review the list, click **Create**
+6. Wait until everything shows green (about 30 seconds). You get: the VCN, an
+   Internet Gateway, a NAT Gateway, a Service Gateway, route tables, and two subnets
+   (`public subnet-trueaxis-vcn` and `private subnet-trueaxis-vcn`).
+
+**You should see:** your new `trueaxis-vcn` in the Virtual Cloud Networks list, with
+**Public Subnet** marked Public and **Private Subnet** marked Private.
+
+> This is the step that prevents "You must select a public subnet to assign a public
+> IPv4 address." A public subnet exists now, so the instance form will offer it.
+
+## 3.0.1 Open ports 80 and 443 now (in the new network)
+
+1. **☰ → Networking → Virtual Cloud Networks** → click **trueaxis-vcn**
+2. Left sidebar under **Resources** → **Security Lists**
+3. Click **Default Security List for trueaxis-vcn**
+4. **Add Ingress Rules** → Source Type CIDR, Source CIDR `0.0.0.0/0`,
+   IP Protocol **TCP**, Destination Port Range `80`, Description `web` → **Add Ingress Rules**
+5. **Add Ingress Rules** again → same but Destination Port Range `443`, Description `https` → **Add Ingress Rules**
+
+**You should see:** three rules — 22, 80, 443.
+
 ## 3.1 Start the create form
 
 1. Click the hamburger menu **☰** (top left).
@@ -143,7 +183,12 @@ in the top-left corner and "Compute" somewhere in the menu.
      (Reason in 3.6.)
    - Click **Select shape** / **Save** to close that panel.
 
-5. **Primary VNIC / networking:** leave everything as it is. Do not edit.
+5. **Primary VNIC information** (this is the networking part that must be exact):
+   - **Select existing virtual cloud network** → choose **`trueaxis-vcn`**
+   - **Select existing subnet** → choose **`public subnet-trueaxis-vcn`**
+     (its **Access** column must say **Public**)
+   - **Assign a public IPv4 address:** **Yes**
+   - Leave the private IP as assigned and leave IPv6 alone.
 
 6. **Add SSH keys** section:
    - Leave **Generate a key pair** selected.
