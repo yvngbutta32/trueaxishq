@@ -504,6 +504,45 @@ pointing at your Oracle IP. Paste the IP for them. This is usually fastest.
 
 ---
 
+## 5.8 If your DNS is at Cloudflare instead of Manus
+
+Cloudflare only controls your domain once the **nameservers** at the registrar point
+to Cloudflare. Adding a site in Cloudflare is not enough — this is the step everyone
+misses, and while it is pending, Cloudflare's DNS panel does nothing at all.
+
+**5.8.1 Check the zone status.** In Cloudflare → your domain, the Overview page shows
+either **Active** or **Pending Nameserver Update**.
+
+**5.8.2 If it says Pending Nameserver Update:**
+
+1. On that Overview page, copy the two nameservers Cloudflare assigned you, e.g.
+   `ada.ns.cloudflare.com` and `bob.ns.cloudflare.com`.
+2. Log in to the **registrar** that currently holds the domain (whatever dashboard you
+   got after transferring). Confirm you own the domain: check that
+   `nslookup -type=ns trueaxishq.com` shows the Cloudflare pair, not
+   `ns1.globaldomaingroup.com`.
+3. In that registrar, open the domain → **Nameservers** (or "DNS servers") → choose
+   **Custom nameservers** → replace the existing entries with Cloudflare's two →
+   save. Delete any leftover nameservers so only Cloudflare's remain.
+4. Wait. Usually minutes, sometimes a few hours. Cloudflare emails you when the zone is
+   **Active**.
+
+**5.8.3 Once Active, set the records.** Cloudflare → **DNS → Records**:
+
+- Delete any **A** record for `@` (or root) pointing at `104.18.26.246` — that is the
+  old Manus edge. Delete any CNAME on `@` too.
+- **Add record:** Type `A`, Name `@`, IPv4 address `YOUR_ORACLE_IP`,
+  **Proxy status: DNS only (grey cloud)**, TTL `Auto`.
+- **Add record:** Type `A`, Name `www`, same IPv4, **Proxy status: DNS only**, TTL `Auto`.
+
+**The grey cloud matters.** With the orange cloud (proxied), Cloudflare terminates TLS
+and Caddy cannot pass the Let's Encrypt challenge, so HTTPS fails. DNS only for now.
+You can enable proxying later using a Cloudflare Origin Certificate, if you want their
+CDN — that is an optional upgrade, not part of launch.
+
+**5.8.4 Verify.** `nslookup trueaxishq.com` must return your Oracle IP. Only then run
+the installer, or Caddy cannot get a certificate.
+
 # PART 6 — Connect to your server (5 minutes)
 
 ## 6.1 Windows
