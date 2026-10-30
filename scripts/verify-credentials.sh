@@ -152,6 +152,9 @@ fi
 echo "── AI receptionist (LLM)"
 if [ -n "${BUILT_IN_FORGE_API_URL:-}" ] && [ -n "${BUILT_IN_FORGE_API_KEY:-}" ]; then
   LLM_URL="${BUILT_IN_FORGE_API_URL:-}"
+  # A full endpoint path may be configured (Gemini: .../v1beta/openai/chat/completions).
+  # Probe the base's /models listing, never <endpoint>/models.
+  LLM_URL="${LLM_URL%/}"; LLM_URL="${LLM_URL%/chat/completions}"
   case "$LLM_URL" in */) ;; *) LLM_URL="$LLM_URL/";; esac
   LLM_CODE=$(curl -s -m 15 -o /tmp/llmprobe.json -w "%{http_code}" -H "Authorization: Bearer ${BUILT_IN_FORGE_API_KEY:-}" "${LLM_URL}models" || echo 000)
   case "$LLM_CODE" in

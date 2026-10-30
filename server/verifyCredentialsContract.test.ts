@@ -49,6 +49,8 @@ describe("verify-credentials.sh contract", () => {
     expect(sh).toContain("oauth2.googleapis.com/token");
     expect(sh).toContain("/api/health");
     expect(sh).toContain("${LLM_URL}models");
+    // a full endpoint path must be reduced to its base before probing /models
+    expect(sh).toContain('%/chat/completions')
   });
 
   it("distinguishes Stripe live vs test keys", () => {
