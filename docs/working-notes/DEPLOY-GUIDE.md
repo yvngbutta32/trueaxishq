@@ -201,9 +201,13 @@ one pass, with no guessing about CIDR blocks.
 
 7. **Boot volume:** leave default. (Optionally raise to 100 GB — still free.)
 
-8. Leave **Show advanced options** closed.
+8. **Security / Shielded instance:** leave **unchecked**. It is optional boot-integrity
+   hardening this stack does not need, and leaving it off keeps console recovery
+   simple. Your disk is still encrypted at rest by Oracle by default.
 
-9. Click the blue **Create** button at the bottom.
+9. Leave **Show advanced options** closed.
+
+10. Click the blue **Create** button at the bottom.
 
 **You should see:** a banner saying the instance is **PROVISIONING**, then within
 1–3 minutes a green **RUNNING** status with an orange circle icon.
