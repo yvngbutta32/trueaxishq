@@ -369,6 +369,12 @@ port 443.
 
 # PART 5 — Point your domain at your server (10 minutes + waiting)
 
+> **Read this once, it prevents a whole wrong turn:** Oracle has **no domain
+> settings at all**. Your domain stays registered and managed at Manus. "Using the
+> domain on the new server" means exactly one thing: add a DNS record at Manus that
+> points the name at your Oracle server's **public IP**. That is why the instance
+> comes **first** (Part 3) — until it exists, there is no IP to point at.
+
 Your domain `trueaxishq.com` was bought inside **Manus**, so its DNS lives inside
 Manus, not at a normal registrar.
 
