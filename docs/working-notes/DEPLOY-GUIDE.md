@@ -543,6 +543,39 @@ CDN — that is an optional upgrade, not part of launch.
 **5.8.4 Verify.** `nslookup trueaxishq.com` must return your Oracle IP. Only then run
 the installer, or Caddy cannot get a certificate.
 
+## 5.9 If the registrar is a Manus partner you have no login for
+
+Check who actually holds the registration (RDAP is the authoritative source, not the
+dashboard):
+
+```bash
+curl -s https://rdap.verisign.com/com/v1/domain/trueaxishq.com | grep -A2 registrar
+```
+
+If it answers **Global Domain Group LLC**, that is the wholesale registrar Manus used
+to buy the domain for you. You never had an account there, and you do not need one —
+but it is why the Manus DNS panel is read-only and why Cloudflare cannot take over yet.
+Cloudflare only manages DNS once the **nameservers** at that registrar point at
+Cloudflare.
+
+Two ways forward, both requiring Manus (the account holder at that registrar):
+
+1. **Ask Manus to change the nameservers** to the two Cloudflare gave you.
+2. **Ask Manus to unlock the domain and send the authorization (EPP) code**, then
+   transfer the registration to Cloudflare (5–7 days, ~$10 renewal).
+
+Send this to Manus chat:
+
+> Two requests for trueaxishq.com, which you registered through Global Domain Group LLC:
+> (1) change its nameservers to the two Cloudflare nameservers assigned to my zone:
+> NS1 and NS2, or (2) unlock the domain and send me the authorization (EPP) code so I
+> can transfer the registration to Cloudflare. I am migrating off Manus to my own
+> server at 170.9.227.176 and need DNS control.
+
+While that is pending, launch on the sslip.io hostname (5.3.1 Fix C) so the server is
+built, tested and sellable. Switch to the domain later; it is a DNS record plus one
+`.env` line, not a rebuild.
+
 # PART 6 — Connect to your server (5 minutes)
 
 ## 6.1 Windows
