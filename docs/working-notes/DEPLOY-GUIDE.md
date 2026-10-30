@@ -285,6 +285,37 @@ buildings. One may be full while another has room.
 If all domains refuse, take the 1 OCPU / 6 GB and move on. You can upgrade the
 same server later without reinstalling anything (see Part 13.1).
 
+## 3.5.1 "Out of capacity for shape VM.Standard.A1.Flex in AD-1" — exact playbook
+
+This is Oracle telling you that specific building has no free ARM cores. Your account
+is fine and your network is fine. Work through these in order; stop as soon as one works.
+
+1. **Switch Availability Domain (do this first — keeps your VCN).**
+   On the Create instance form: open **Show advanced options** →
+   **Availability domain** → pick **AD-2** → **Create**. If AD-2 fails, try **AD-3**.
+   Capacity is per building, so one is usually open while another is not.
+
+2. **Do not pin a fault domain.** If you set a fault domain anywhere, clear it and let
+   Oracle choose. A pinned fault domain shrinks the search to a single rack.
+
+3. **Keep 1 OCPU / 6 GB.** Small requests get filled far more often than 4/24.
+
+4. **Retry in waves.** Capacity frees up constantly. Click Create again every few
+   minutes; most people get in within an hour or two, sometimes in 30 seconds.
+
+5. **Upgrade the tenancy to Pay As You Go.** Billing & Cost Management →
+   **Upgrade to Pay As You Go**. Free limits still apply and cost stays $0, but paid
+   tenancies are widely reported to get better ARM capacity availability, and you are
+   exempt from idle reclamation afterwards. This is the most reliable fix when every
+   AD refuses for a long stretch.
+
+6. **Different region (last resort).** Instance region does not have to match your
+   home region. Switch region at the top right of the console, then you must create a
+   new VCN there too (Part 3.0) before creating the instance.
+
+**Do not** switch to the AMD micro shape to escape this. It has 1 GB of RAM and
+cannot build this app reliably.
+
 ## 3.6 Why 1 core / 6 GB is genuinely fine
 
 This app is a small Node.js web server plus a small database. It does not need
