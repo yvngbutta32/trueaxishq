@@ -163,6 +163,51 @@ in the top-left corner and "Compute" somewhere in the menu.
 **You should see:** a banner saying the instance is **PROVISIONING**, then within
 1–3 minutes a green **RUNNING** status with an orange circle icon.
 
+## 3.2.1 If you see "You must select a public subnet to assign a public IPv4 address"
+
+This is Oracle refusing to hand out a public IP because the **subnet** you picked is
+private. A subnet is just a slice of the network; only a *public* subnet has a door
+to the internet. Nothing is broken, and you do not need to start over.
+
+**Fix A — pick the public subnet (this is almost always it):**
+
+1. On the Create instance page, scroll to **Primary VNIC information**
+   (sometimes labelled **Networking**).
+2. Make sure **Select existing virtual cloud network** is chosen, and pick your VCN.
+3. Open the **Subnet** dropdown. Read the list:
+   - Choose the entry whose name contains **public** (e.g. `public subnet-vcn-...`).
+   - Its **Access** column must say **Public**. Ignore anything labelled Private.
+4. Just below, in **Primary VNIC IP addresses**, set
+   **Assign a public IPv4 address** = **Yes**.
+5. Click **Create** again.
+
+**Fix B — no public subnet in the dropdown at all:**
+
+Your VCN was built with private subnets only. Create a proper one (takes 2 minutes
+and does not disturb anything else):
+
+1. **☰ → Networking → Virtual Cloud Networks**.
+2. Click **Start VCN Wizard** (or **Create VCN** → **Start VCN Wizard**).
+3. Choose **Create VCN with Internet Connectivity** → **Start VCN Wizard**.
+4. **VCN name:** `trueaxis-vcn`. Leave all CIDR blocks as suggested.
+5. Click **Next** → **Create**. Wait for it to finish.
+6. Go back to **☰ → Compute → Instances → Create instance**, and in
+   **Primary VNIC information** select this new VCN and its **public subnet**.
+
+That wizard creates the public subnet, the private subnet, the internet gateway and
+the route table in one pass, which is exactly what the free tier expects.
+
+**Fix C — you already created the instance without a public IP:**
+
+1. **Compute → Instances → trueaxis** → **Attached VNICs** → click the VNIC.
+2. **IP administration** (left sidebar) → **IPv4 addresses**.
+3. On the row, **⋯** → **Edit** → set **Public IP** = **Ephemeral public IP**, save.
+4. Copy the public IP from that page and use it from Part 5 onward.
+
+**How to confirm it worked:** the instance page shows a **Public IP address** field
+with a real number (e.g. `129.213.45.67`). If that field is empty, stop and fix the
+subnet before continuing — nothing after this point works without it.
+
 ## 3.3 Copy the IP address
 
 1. On the instance page, find **Public IP address** in the Instance information panel.
