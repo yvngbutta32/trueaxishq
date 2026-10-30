@@ -218,7 +218,22 @@ const resolveApiUrl = () => {
   if (!url) {
     throw new Error("LLM endpoint is not configured (set BUILT_IN_FORGE_API_URL to your own OpenAI-compatible server)");
   }
-  return `${url.replace(/\/$/, "")}/v1/chat/completions`;
+  const trimmed = url.replace(/\/$/, "");
+  // Two accepted shapes:
+  //  - host base, e.g. https://api.openai.com        → append /v1/chat/completions
+  //  - full endpoint, e.g. Google's Gemini compat    → .../v1beta/openai/chat/completions
+  //    (Gemini's OpenAI-compatible surface is NOT under /v1, so host-base only
+  //     could never reach it — accept an explicit full path instead of guessing)
+  if (/\/chat\/completions$/.test(trimmed)) return trimmed;
+  return `${trimmed}/v1/chat/completions`;
+};
+
+/* Model is configurable: hosted providers name models differently (Gemini's
+ * OpenAI-compatible surface expects "gemini-2.5-flash", a self-hosted Ollama
+ * expects its own tag). Default stays the documented launch model. */
+const resolveModel = () => {
+  const configured = (process.env.BUILT_IN_FORGE_API_MODEL ?? "").trim();
+  return configured || "gemini-2.5-flash";
 };
 
 const assertApiKey = () => {
@@ -287,7 +302,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   } = params;
 
   const payload: Record<string, unknown> = {
-    model: "gemini-2.5-flash",
+    model: resolveModel(),
     messages: messages.map(normalizeMessage),
   };
 
