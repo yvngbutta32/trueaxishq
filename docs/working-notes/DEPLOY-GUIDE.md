@@ -48,6 +48,7 @@ ask for a read-only token at that moment. Not now.)
 3. **Image and shape** → click **Edit**
    - Image: **Canonical Ubuntu 24.04**
    - Shape: **Ampere** → `VM.Standard.A1.Flex` → **4 OCPUs**, **24 GB memory**
+     (if the sliders only allow **1 OCPU / 6 GB**, take that and read the note below)
    - Leave boot volume at default (or set 100 GB — still free)
 4. **Add SSH keys:** leave **Generate a key pair** selected, then click **Save private key** and **Save public key**.
    - The private key downloads as `ssh-key-2026-...key`. **This is your only way in. Back it up.**
@@ -55,6 +56,22 @@ ask for a read-only token at that moment. Not now.)
 6. Wait until the state says **RUNNING** (1-3 minutes). Then copy the **Public IP address**.
 
 **If you get "Out of host capacity":** this is Oracle's most common annoyance, not your fault. Try again at a quieter hour (late night / early morning), or create the instance in a different region than your home region. It usually takes a few tries.
+
+**If the sliders only allow 1 OCPU / 6 GB:** accept it and continue. That is
+Oracle limiting what this region currently has free, not a mistake on your part.
+1 OCPU / 6 GB is still Always Free and runs this app comfortably for your first
+customers — the install just takes longer (10-15 minutes instead of 5-8). Two ways
+to get more later:
+
+- **Resize this server (preferred):** after it is running, go to
+  **Compute → Instances → trueaxis → Edit** (top of the page) → shape config →
+  set **4 OCPUs / 24 GB** → save. Works whenever the region has capacity; you are
+  changing the same server, nothing else on it moves.
+- **Try another Availability Domain first:** on the Create screen open
+  **Show advanced options → Availability domain** and pick a different AD; capacity
+  is per-AD, so AD 2 or 3 often has room when AD 1 does not.
+
+Nothing in the app requires 4 cores. 1 OCPU / 6 GB is a working launch server.
 
 ## 3.3 Open the ports (this is the step everyone forgets)
 
